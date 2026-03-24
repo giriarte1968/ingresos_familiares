@@ -1,0 +1,2153 @@
+import streamlit as st
+import pandas as pd
+import re
+from datetime import datetime
+import os
+import io
+import numpy as np
+from PIL import Image
+import requests
+from urllib.parse import quote
+import time
+import json
+
+# Archivo de datos (ruta absoluta)
+DATOS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'datos.json')
+
+# Estructura de datos:
+# {
+#   "activos": [
+#     {"id": 1, "tipo": "fondo_mutuo", "nombre": "...", ...},
+#     {"id": 2, "tipo": "propiedad", "nombre": "...", ...}
+#   ],
+#   "meses": {
+#     "2026-02": {
+#       "ingresos_bancarios": [...],
+#       "ganancia_fondos": 1041053,
+#       "plusvalia_propiedades": 0,
+#       "ajustes": [...]
+#     }
+#   }
+# }
+
+
+def cargar_datos():
+    """Carga datos desde JSON"""
+    try:
+        if os.path.exists(DATOS_FILE):
+            with open(DATOS_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+    except Exception as e:
+        print(f"Error cargando datos: {e}")
+    return {'activos': [], 'meses': {}}
+
+
+def guardar_datos(datos):
+    """Guarda datos a JSON"""
+    try:
+        with open(DATOS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(datos, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"Error guardando datos: {e}")
+
+try:
+    import pymupdf
+    PDF_AVAILABLE = True
+except ImportError:
+    PDF_AVAILABLE = False
+
+try:
+    import easyocr
+    EASYOCR_AVAILABLE = True
+except ImportError:
+    EASYOCR_AVAILABLE = False
+
+_ocr_reader = None
+
+def get_ocr_reader():
+    global _ocr_reader
+    if _ocr_reader is None:
+        import easyocr
+        _ocr_reader = easyocr.Reader(['es', 'en'], gpu=False)
+    return _ocr_reader
+
+
+def buscar_comercio_en_web(nombre_comercio):
+    """Busca información de un comercio en la web usando DuckDuckGo"""
+    import re
+    try:
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+        busqueda = f"{nombre_comercio} Argentina"
+        url = f"https://html.duckduckgo.com/html/?q={quote(busqueda)}"
+        
+        response = requests.get(url, headers=headers, timeout=10)
+        if response.status_code == 200:
+            html = response.text
+            titulos = re.findall(r'<a class="result__a"[^>]*href[^>]*>([^<]+)</a>', html, re.IGNORECASE)
+            if titulos:
+                mejor_titulo = titulos[0].strip()
+                return mejor_titulo, 0.85
+        return None, 0
+    except Exception as e:
+        print(f"Error buscando comercio: {e}")
+        return None, 0
+
+
+CATEGORIAS_WEB = {
+    'comercios': {
+        'supermercado': ['supermercado', 'hiper', 'atomo', 'changomas', 'carrefour', 'walmart', 'jumbo', 'disco', 'vea', 'coto'],
+        'restaurant': ['restaurant', 'resto', 'pizza', 'pizzer', 'burger', 'mcdonald', 'burger king', 'kfc', 'fast food', 'comida rapida'],
+        'farmacia': ['farmacia', 'farmacity', 'fv', 'disfarma', 'social'],
+        'combustible': ['estacion', 'shell', 'ypf', 'axion', 'oil', 'petro', ' refinery'],
+        'indumentaria': ['ropa', 'indumentaria', 'zara', 'h&m', 'nike', 'adidas', 'local'],
+        'electronica': ['tecnologia', 'samsung', 'lg', 'sony', 'musimundo', 'garbarino', 'fravega'],
+        'gimnasio': ['gimnasio', 'gym', 'fitness', 'club'],
+        'panaderia': ['panader', 'bakery', 'pan'],
+        'carniceria': ['carniceria', 'carnes', 'polleria'],
+        'pintureria': ['pinturer', 'pintura', 'color'],
+        'veterinaria': ['veterinaria', 'vet', 'mascota', 'pet'],
+        'optica': ['optica', 'lentes', 'vision'],
+        'bazar': ['bazar', 'regaleria', 'regalos'],
+        'heladeria': ['heladeria', 'helado', 'freddo', 'persicco'],
+        'cafeteria': ['cafeteria', 'coffee', 'cafe', 'starbucks'],
+        'verduleria': ['verduleria', 'fruteria', 'fruta', 'verdura'],
+        'almacen': ['almacen', 'market', 'kiosko', 'kiosco'],
+    },
+    'servicios': {
+        'salud': ['clinica', 'hospital', 'sanatorio', 'doctor', 'medico', 'salud', 'gamma', 'diagnostico', 'laboratorio', 'imagenes'],
+        'educacion': ['universidad', 'facultad', 'colegio', 'escuela', 'curso', 'educacion', 'idiomas'],
+        'transporte': ['uber', 'cabify', 'taxi', 'remis', 'transporte', 'combis', ' colectivos'],
+        'bancos': ['banco', 'galicia', 'santander', 'bbva', 'macro', 'provincia', 'nacion'],
+        'servicios_publicos': ['edesur', 'edenor', 'metrogas', 'gas', 'agua', 'luz', 'telefono', 'internet', 'movistar', 'claro', 'personal'],
+        'seguros': ['seguro', 'san cristobal', 'prevencion', 'meridional'],
+        'alquiler': ['alquiler', 'alquilo', 'propiedad'],
+        'estacionamiento': ['estacionamiento', 'parking', 'cochera'],
+        'peluqueria': ['peluqueria', 'barberia', 'salon', 'belleza'],
+    },
+    'impuestos': ['afip', 'dgi', 'impuesto', 'rentas', 'municipalidad', 'tasa'],
+    'suscripciones': ['netflix', 'spotify', 'disney', 'amazon', 'hbo', 'paramount', 'suscripcion'],
+}
+
+
+# Cache para precios de Binance
+@st.cache_data(ttl=3600)
+def obtener_precio_binance(simbolo, fecha=None):
+    """Obtiene el precio de cierre de USDT en la moneda especificada"""
+    try:
+        url = f"https://api.binance.com/api/v3/klines"
+        params = {
+            'symbol': simbolo,
+            'interval': '1d',
+            'limit': 1
+        }
+        
+        if fecha:
+            timestamp = int(datetime.strptime(fecha, '%Y-%m-%d').timestamp() * 1000)
+            params['startTime'] = timestamp
+            params['endTime'] = timestamp + 86400000  # Un día después
+        
+        response = requests.get(url, params=params, timeout=10)
+        data = response.json()
+        
+        if data and len(data) > 0:
+            return float(data[0][4])  # Precio de cierre
+        return None
+    except Exception as e:
+        print(f"Error obteniendo precio {simbolo}: {e}")
+        return None
+
+
+@st.cache_data(ttl=86400)
+def obtener_usdt_ars_binance(fecha=None):
+    """Obtiene USDT/ARS de CryptoCompare API (más preciso que CoinGecko)"""
+    try:
+        if not fecha:
+            url = 'https://min-api.cryptocompare.com/data/pricemulti?fsyms=USDT&tsyms=ARS'
+            response = requests.get(url, timeout=10)
+            if response.status_code == 200:
+                data = response.json()
+                if 'USDT' in data:
+                    return data['USDT']['ARS']
+            return None
+        
+        # Parsear fecha
+        try:
+            fecha_obj = datetime.strptime(fecha, '%Y-%m-%d')
+        except ValueError:
+            try:
+                fecha_obj = datetime.strptime(fecha, '%Y-%m')
+                fecha_obj = fecha_obj.replace(day=28)
+            except ValueError:
+                print(f"Formato de fecha no reconocido: {fecha}")
+                return None
+        
+        timestamp = int(fecha_obj.timestamp())
+        url = f'https://min-api.cryptocompare.com/data/v2/histoday?fsym=USDT&tsym=ARS&limit=1&toTs={timestamp}'
+        
+        response = requests.get(url, timeout=10)
+        
+        if response.status_code == 200:
+            data = response.json()
+            if 'Data' in data and 'Data' in data['Data'] and len(data['Data']['Data']) > 0:
+                return data['Data']['Data'][0]['close']
+        return None
+    except Exception as e:
+        print(f"Error obteniendo USDT/ARS: {e}")
+        return None
+
+
+@st.cache_data(ttl=86400)
+def obtener_precios_historicos(fecha=None):
+    """Obtiene USDT/CLP de CoinGecko y USDT/ARS de CryptoCompare"""
+    try:
+        usd_clp = None
+        usdt_ars = None
+        
+        if not fecha:
+            return None, None
+        
+        # Determinar el formato de fecha y crear objeto datetime
+        try:
+            fecha_obj = datetime.strptime(fecha, '%Y-%m-%d')
+        except ValueError:
+            try:
+                fecha_obj = datetime.strptime(fecha, '%Y-%m')
+                # Si es solo año-mes, usar el último día del mes
+                fecha_obj = fecha_obj.replace(day=28)
+            except ValueError:
+                print(f"Formato de fecha no reconocido: {fecha}")
+                return None, None
+        
+        # USDT/CLP desde CoinGecko
+        fecha_cg = fecha_obj.strftime('%d-%m-%Y')
+        url = f'https://api.coingecko.com/api/v3/coins/tether/history?date={fecha_cg}&localization=false'
+        response = requests.get(url, timeout=10)
+        if response.status_code == 200:
+            data = response.json()
+            if 'market_data' in data:
+                usd_clp = data['market_data']['current_price'].get('clp')
+        
+        # USDT/ARS desde CryptoCompare
+        usdt_ars = obtener_usdt_ars_binance(fecha)
+        
+        return usd_clp, usdt_ars
+    except Exception as e:
+        print(f"Error obteniendo precios: {e}")
+        return None, None
+
+
+@st.cache_data(ttl=86400)
+def obtener_usdt_clp(fecha=None):
+    """Obtiene el precio de USDT en CLP usando CoinGecko API"""
+    clp, _ = obtener_precios_historicos(fecha)
+    return clp
+
+
+# Valor USD/CLP - El usuario puede ingresarlo manualmente en la UI
+if 'usd_clp' not in st.session_state:
+    # Intentar obtener de CoinGecko al iniciar
+    st.session_state.usd_clp = obtener_usdt_clp() or 900.0
+
+
+def convertir_clp_a_ars(monto_clp, fecha):
+    """Convierte un monto en CLP a ARS usando precios históricos"""
+    try:
+        # Obtener USDT/CLP y USDT/ARS históricos para la misma fecha
+        usd_clp, usdt_ars = obtener_precios_historicos(fecha)
+        
+        # Si no se puede obtener el precio histórico, usar el actual
+        if not usd_clp:
+            usd_clp = st.session_state.usd_clp
+        if not usdt_ars:
+            usdt_ars = obtener_usdt_ars_binance()  # Precio actual
+        
+        if usdt_ars and usd_clp:
+            # ARS = (CLP / USD_CLP) * USDT_ARS
+            monto_ars = (monto_clp / usd_clp) * usdt_ars
+            return monto_ars, usd_clp, usdt_ars
+        return None, None, None
+    except Exception as e:
+        print(f"Error en conversión: {e}")
+        return None, None, None
+
+
+def extraer_texto_pdf(archivo, password=None):
+    """Extrae texto de un PDF usando PyMuPDF"""
+    if not PDF_AVAILABLE:
+        return None
+    
+    try:
+        pdf_bytes = archivo.read()
+        doc = pymupdf.open(stream=pdf_bytes, filetype="pdf")
+        
+        # Si está encriptado y hay password, intentar desbloquear
+        if doc.is_encrypted and password:
+            doc.authenticate(password)
+        elif doc.is_encrypted and not password:
+            # PDF encriptado, no se puede leer
+            st.error("El PDF está encriptado. Ingresa la password para desbloquearlo.")
+            return None
+        
+        texto = ""
+        for page in doc:
+            texto += page.get_text() + "\n"
+        doc.close()
+        return texto
+    except Exception as e:
+        # Posiblemente password incorrecta
+        if "invalid" in str(e).lower() or "authentication" in str(e).lower():
+            st.error("Password incorrecta. Intenta de nuevo.")
+        else:
+            st.error(f"Error al leer PDF: {e}")
+        return None
+
+
+def extraer_texto_imagen(archivo):
+    """Extrae texto de una imagen usando EasyOCR"""
+    if not EASYOCR_AVAILABLE:
+        return None
+    
+    try:
+        imagen = Image.open(archivo)
+        img_array = np.array(imagen)
+        
+        reader = get_ocr_reader()
+        resultados = reader.readtext(img_array)
+        
+        texto = ""
+        for (_, text, _) in resultados:
+            texto += text + " "
+        
+        return texto
+    except Exception as e:
+        st.error(f"Error al leer imagen: {e}")
+        return None
+
+
+def extraer_fondos_mutuos(archivo, password=None):
+    """Extrae fondos mutuos de un PDF de Santander Chile"""
+    if not PDF_AVAILABLE:
+        return None, None, None
+    
+    try:
+        pdf_bytes = archivo.read()
+        doc = pymupdf.open(stream=pdf_bytes, filetype="pdf")
+        
+        if doc.is_encrypted and password:
+            doc.authenticate(password)
+        elif doc.is_encrypted and not password:
+            st.error("El PDF está encriptado. Ingresa la password.")
+            return None, None, None
+        
+        texto = ""
+        for page in doc:
+            texto += page.get_text() + "\n"
+        doc.close()
+        
+        lines = texto.split('\n')
+        
+        usd_clp, usdt_ars = None, None
+        
+        # Buscar la fecha en el PDF (formato: Hasta : XX/XX/XXXX)
+        fecha_encontrada = None
+        for linea in lines:
+            if 'Hasta' in linea:
+                match = re.search(r'Hasta\s*:\s*(\d{2})/(\d{2})/(\d{4})', linea)
+                if match:
+                    fecha_encontrada = f"{match.group(3)}-{match.group(2)}-{match.group(1)}"
+                    break
+        
+        if fecha_encontrada:
+            usd_clp, usdt_ars = obtener_precios_historicos(fecha_encontrada)
+        
+        if not usd_clp:
+            usd_clp = obtener_usdt_clp()
+        if not usdt_ars:
+            usdt_ars = obtener_usdt_ars_binance()
+        
+        # Mapeo de líneas: (nombre, linea_inicial, linea_final, moneda)
+        # Initial: 34,44,53,62 (CLP), 76,85 (USD)
+        # Final: 37,47,56,65 (CLP), 79,88 (USD)
+        fondos_data = [
+            ('AHORRO MEDIANO PLAZO', 34, 37, 'CLP'),
+            ('BONOS NACIONALES', 44, 47, 'CLP'),
+            ('GESTION ACTIVA AGRESIVA', 53, 56, 'CLP'),
+            ('GO ACC GLOBALES ESG', 62, 65, 'CLP'),
+            ('EQUILIBRIO DOLAR', 76, 79, 'USD'),
+            ('MONEY MARKET DOLAR USD', 85, 88, 'USD'),
+        ]
+        
+        fondos = []
+        for nombre, line_ini, line_fin, moneda in fondos_data:
+            linea_ini = lines[line_ini]
+            linea_fin = lines[line_fin]
+            
+            if moneda == 'CLP':
+                match_ini = re.search(r'\$([0-9]+\.[0-9]+\.[0-9]+)', linea_ini)
+                match_fin = re.search(r'\$([0-9]+\.[0-9]+\.[0-9]+)', linea_fin)
+                val_ini = float(match_ini.group(1).replace('.', '')) if match_ini else 0
+                val_fin = float(match_fin.group(1).replace('.', '')) if match_fin else 0
+            else:  # USD
+                match_ini = re.search(r'US\$([0-9.]+),([0-9]+)', linea_ini)
+                match_fin = re.search(r'US\$([0-9.]+),([0-9]+)', linea_fin)
+                val_ini = float(match_ini.group(1).replace('.', '') + '.' + match_ini.group(2)) if match_ini else 0
+                val_fin = float(match_fin.group(1).replace('.', '') + '.' + match_fin.group(2)) if match_fin else 0
+            
+            # Calcular ganancia en moneda original
+            ganancia = val_fin - val_ini
+            
+            # Convertir ganancia a ARS
+            if moneda == 'CLP':
+                ganancia_ars = (ganancia / usd_clp) * usdt_ars if usd_clp and usdt_ars else 0
+            else:
+                ganancia_ars = ganancia * usdt_ars if usdt_ars else 0
+            
+            # Valor final en ARS (para mostrar total)
+            if moneda == 'CLP':
+                valor_final_ars = (val_fin / usd_clp) * usdt_ars if usd_clp and usdt_ars else 0
+            else:
+                valor_final_ars = val_fin * usdt_ars if usdt_ars else 0
+            
+            fondos.append({
+                'nombre': nombre,
+                'moneda': moneda,
+                'valor_inicial': val_ini,
+                'valor_final': val_fin,
+                'ganancia': ganancia,
+                'valor_final_ars': valor_final_ars,
+                'ganancia_ars': ganancia_ars,
+                'fecha': fecha_encontrada,
+                'tasas': f"USDT/CLP: {usd_clp:.2f}, USDT/ARS: {usdt_ars:.2f}" if usd_clp and usdt_ars else None
+            })
+        
+        # Calcular totales
+        total_ars = sum(f['valor_final_ars'] for f in fondos)
+        total_ganancia_ars = sum(f['ganancia_ars'] for f in fondos)
+        
+        return fondos, total_ars, fecha_encontrada, total_ganancia_ars
+        
+    except Exception as e:
+        st.error(f"Error al leer fondos mutuos: {e}")
+        import traceback
+        traceback.print_exc()
+        return None, None, None, None
+
+
+def convertir_monto_argentino(valor):
+    """Convierte monto formato argentino a float: 260.000,00 -> 260000.00"""
+    if pd.isna(valor):
+        return 0.0
+    if isinstance(valor, (int, float)):
+        return float(valor)
+    valor_str = str(valor).strip()
+    if not valor_str:
+        return 0.0
+    # Formato argentino: 260.000,00 -> 260000.00
+    valor_limpio = valor_str.replace('.', '').replace(',', '.')
+    try:
+        return float(valor_limpio)
+    except:
+        return 0.0
+
+
+def extraer_movimientos_excel(archivo, banco='galicia'):
+    """Extrae movimientos de un archivo Excel - retorna lista de diccionarios"""
+    movimientos = []
+    
+    try:
+        # Detectar banco por contenido o nombre
+        es_galicia = banco == 'galicia' or 'galicia' in banco.lower()
+        
+        if es_galicia:
+            # Leer Excel con header=5 (las columnas están en la fila 6)
+            df = pd.read_excel(archivo, sheet_name=0, header=5)
+            
+            # Normalizar nombres de columnas
+            columnas = df.columns.tolist()
+            
+            # Buscar columnas por nombre
+            col_fecha = None
+            col_mov = None
+            col_credito = None
+            
+            for col in columnas:
+                col_lower = col.lower() if isinstance(col, str) else ''
+                if 'fecha' in col_lower:
+                    col_fecha = col
+                elif 'movimiento' in col_lower:
+                    col_mov = col
+                elif 'crédito' in col_lower or 'credito' in col_lower:
+                    col_credito = col
+            
+            if col_credito:
+                for idx, row in df.iterrows():
+                    monto = convertir_monto_argentino(row.get(col_credito, 0))
+                    
+                    # Solo incluir si es un ingreso (monto > 0)
+                    if monto > 0:
+                        # Obtener fecha
+                        fecha_val = str(row.get(col_fecha, '')) if col_fecha else ''
+                        
+                        # Obtener descripción
+                        desc_val = str(row.get(col_mov, '')).strip() if col_mov else ''
+                        desc_val = ' '.join(desc_val.split())  # Limpiar saltos de línea
+                        
+                        # Detectar categoría
+                        categoria = detectar_categoria(desc_val)
+                        
+                        movimientos.append({
+                            'fecha': fecha_val,
+                            'descripcion': desc_val[:150],
+                            'monto': monto,
+                            'monto_ars': None,  # Argentina no necesita conversión
+                            'banco': 'galicia',
+                            'categoria': categoria,
+                            'tasas': None
+                        })
+        
+        else:
+            # Para otros bancos: lógica genérica
+            df = pd.read_excel(archivo, sheet_name=0)
+            columnas = df.columns.tolist()
+            
+            col_fecha = None
+            col_desc = None
+            col_credito = None
+            
+            for col in columnas:
+                col_lower = col.lower() if isinstance(col, str) else ''
+                if 'fecha' in col_lower:
+                    col_fecha = col
+                elif 'desc' in col_lower or 'movimiento' in col_lower:
+                    col_desc = col
+                elif 'crédito' in col_lower or 'abono' in col_lower:
+                    col_credito = col
+            
+            if col_credito:
+                for idx, row in df.iterrows():
+                    monto = convertir_monto_argentino(row.get(col_credito, 0))
+                    if monto > 0:
+                        fecha = str(row.get(col_fecha, '')) if col_fecha else ''
+                        desc = str(row.get(col_desc, '')).strip() if col_desc else ''
+                        movimientos.append({
+                            'fecha': fecha,
+                            'descripcion': desc[:150],
+                            'monto': monto,
+                            'monto_ars': None,
+                            'banco': banco,
+                            'categoria': detectar_categoria(desc),
+                            'tasas': None
+                        })
+        
+        return movimientos
+        
+    except Exception as e:
+        print(f"Error al leer Excel: {e}")
+        import traceback
+        traceback.print_exc()
+        return []
+
+st.set_page_config(page_title="Ingresos Familiares", layout="wide")
+
+# Cargar datos desde JSON al iniciar
+datos_iniciales = cargar_datos()
+
+if 'movimientos' not in st.session_state:
+    st.session_state.movimientos = datos_iniciales.get('movimientos', [])
+
+if 'activos' not in st.session_state:
+    st.session_state.activos = datos_iniciales.get('activos', [])
+
+if 'usuarios' not in st.session_state:
+    st.session_state.usuarios = ['Usuario 1', 'Usuario 2', 'Usuario 3']
+
+BANCO_PATTERNS = {
+    'galicia': ['CRÉDITO', 'ACREDITACIÓN', 'ABONO', 'neto', 'haberes'],
+    'santander_chile': ['DEPÓSITO', 'ABONO', 'TRANSFERENCIA RECIBIDA'],
+    'icbc': ['ACREDITACIÓN', 'CR', 'DEPÓSITO'],
+    'mercadopago': ['Entrada', 'RECIBIDO', 'COBRO', '+'],
+    'bbva': ['ABONO', 'DEPÓSITO', 'CRÉDITO'],
+}
+
+CATEGORIAS = {
+    'sueldo': ['sueldo', 'haberes', 'neto', 'remuneración', 'salario', 'nómina'],
+    'alquiler': ['alquiler', 'renta', 'inquilino', 'cobro alquiler'],
+    'intereses': ['interés', 'rendimiento', 'ganancia', 'fondo mutuo', 'renta'],
+    'inversion': ['dividendo', 'acción', 'bono', 'plazo fijo', 'valorización'],
+    'transferencia': ['transferencia', 'depósito', 'entrada', 'recibido'],
+    'otro': [],
+}
+
+
+def detectar_banco(texto):
+    texto_lower = texto.lower()
+    for banco, keywords in BANCO_PATTERNS.items():
+        for kw in keywords:
+            if kw.lower() in texto_lower:
+                return banco
+    return 'otro'
+
+
+def detectar_categoria(descripcion):
+    desc_lower = descripcion.lower()
+    for cat, palabras in CATEGORIAS.items():
+        for palabra in palabras:
+            if palabra in desc_lower:
+                return cat
+    return 'otro'
+
+
+def extraer_montos(texto):
+    """Extrae montos en diferentes formatos: $1.000, 1.000.000, 1000000"""
+    montos = []
+    
+    # Formato con $: $1.000, $1.000.000
+    patron_dolar = r'\$[\d.,]+'
+    matches = re.findall(patron_dolar, texto)
+    for m in matches:
+        valor = m.replace('$', '').replace('.', '').replace(',', '.')
+        try:
+            montos.append(float(valor))
+        except:
+            pass
+    
+    # Formato chileno sin $: 1.000.000 (puntos como separador de miles)
+    # Usar lookahead/lookbehind para números con formato de miles
+    patron_chileno = r'(?<!\d)\d{1,3}\.\d{3}(?:\.\d{3})*(?!\d)'
+    matches = re.findall(patron_chileno, texto)
+    for m in matches:
+        valor = m.replace('.', '')
+        try:
+            montos.append(float(valor))
+        except:
+            pass
+    
+    # Formato simple: 1000000 o 1000,50
+    patron_simple = r'(?<!\d)(\d{4,7})(?:,(\d{2}))?(?!\d)'
+    matches = re.findall(patron_simple, texto)
+    for m in matches:
+        if m[1]:
+            valor = f"{m[0]}.{m[1]}"
+        else:
+            valor = m[0]
+        try:
+            montos.append(float(valor))
+        except:
+            pass
+    
+    return montos
+
+
+def extraer_fechas(texto):
+    patrones = [
+        r'\d{2}/\d{2}/\d{4}',   # 25/02/2026
+        r'\d{2}-\d{2}-\d{4}',   # 25-02-2026
+        r'\d{4}/\d{2}/\d{2}',   # 2026/02/25
+        r'\d{2}/\d{2}',          # 25/02 (sin año)
+    ]
+    fechas = []
+    for patron in patrones:
+        matches = re.findall(patron, texto)
+        for m in matches:
+            for fmt in ['%d/%m/%Y', '%d-%m-%Y', '%Y/%m/%d', '%d/%m']:
+                try:
+                    if fmt == '%d/%m':
+                        fecha = datetime.strptime(m, fmt)
+                        fecha = fecha.replace(year=datetime.now().year)
+                    else:
+                        fecha = datetime.strptime(m, fmt)
+                    fechas.append(fecha)
+                    break
+                except:
+                    pass
+    return fechas
+
+
+def parsear_texto(texto):
+    movimientos = []
+    lineas = texto.split('\n')
+    
+    es_santander = 'santander' in texto.lower() or 'cartola' in texto.lower()
+    
+    INGRESO_KEYWORDS = [
+        'crédito', 'credito', 'acredit', 'abono', 'depósito', 'deposito',
+        'entrada', 'recibido', 'cobro', 'haberes', 'sueldo', 'neto',
+        'remuneración', 'renta', 'alquiler', 'interés', 'interes',
+        'rendimiento', 'ganancia', 'dividendo', 'fondo mutuo',
+        'valorización', 'incremento', 'cobrado', 'pago recibido',
+        'transferencia recibida', 'depósito recibido', 'depósito a la vista',
+        'deposito', 'deposit', 'abonos', 'pago proveedor'
+    ]
+    
+    GASTO_KEYWORDS = [
+        'pago a', 'transf a',
+        'debito', 'débito',
+        'compra', 'extracción', 'extraccion', 'retiro', 'cargo', 'comisión',
+        'comision', 'impuesto', 'servicio', 'factura', 'suscripción', 'suscripcion',
+        'movimiento', 'salida', 'pagado', 'a pagar', 'cheque', 'cheques',
+        'mantencion', 'mantención', 'com.mant'
+    ]
+    
+    # Para Santander: procesar líneas con FECHA + siguientes líneas para montos
+    if es_santander:
+        i = 0
+        while i < len(lineas):
+            linea = lineas[i]
+            linea_lower = linea.lower()
+            
+            # Buscar línea con fecha
+            fechas = extraer_fechas(linea)
+            if not fechas:
+                i += 1
+                continue
+            
+            # Verificar si es gasto: tiene "transf a" o "pago a"
+            tiene_transf_enviada = 'transf a' in linea_lower or 'pago a' in linea_lower
+            
+            # Verificar si es ingreso
+            es_ingreso = any(kw in linea_lower for kw in INGRESO_KEYWORDS)
+            
+            # Para Santander Chile: el monto puede estar en siguientes líneas
+            if tiene_transf_enviada:
+                i += 1
+                continue
+            
+            if not es_ingreso:
+                i += 1
+                continue
+            
+            # Buscar monto en líneas siguientes (puede estar 1-3 líneas después)
+            monto_encontrado = None
+            for j in range(1, 5):
+                if i + j >= len(lineas):
+                    break
+                sig_linea = lineas[i + j]
+                montos_sig = extraer_montos(sig_linea)
+                if montos_sig:
+                    # Tomar el monto válido (> 1000, no muy grande para ser saldo)
+                    monto_valido = [m for m in montos_sig if m > 1000]
+                    if monto_valido:
+                        monto_encontrado = min(monto_valido)  # El abono es menor que el saldo
+                        break
+            
+            if monto_encontrado:
+                fecha_str = fechas[0].strftime('%Y-%m-%d')
+                resultado = convertir_clp_a_ars(monto_encontrado, fecha_str)
+                
+                monto_ars = monto_encontrado
+                usdt_clp, usdt_ars = None, None
+                if resultado[0]:
+                    monto_ars = resultado[0]
+                    usdt_clp = resultado[1]
+                    usdt_ars = resultado[2]
+                
+                # Guardar el monto en ARS como monto principal (para mostrar y totalizar)
+                movimientos.append({
+                    'fecha': fecha_str,
+                    'descripcion': linea[:150],
+                    'monto': monto_ars,  # Valor en ARS para mostrar
+                    'monto_original_clp': monto_encontrado,  # Guardar CLP original
+                    'banco': 'santander_chile',
+                    'categoria': detectar_categoria(linea),
+                    'tasas': f"USDT CLP: {usdt_clp}, USDT ARS: {usdt_ars}" if usdt_clp else None
+                })
+            
+            i += 1
+        
+        return movimientos
+    
+    # Para otros bancos: lógica original
+    for linea in lineas:
+        if not linea.strip():
+            continue
+            
+        linea_lower = linea.lower()
+        
+        monto = extraer_montos(linea)
+        fecha = extraer_fechas(linea)
+        
+        if not monto or not fecha:
+            continue
+        
+        es_gasto = any(kw in linea_lower for kw in GASTO_KEYWORDS)
+        if es_gasto:
+            continue
+        
+        es_ingreso = any(kw in linea_lower for kw in INGRESO_KEYWORDS)
+        tiene_mas = '+' in linea
+        
+        if es_ingreso or tiene_mas:
+            monto_max = max(monto)
+            
+            if monto_max > 0:
+                fecha_str = fecha[0].strftime('%Y-%m-%d')
+                
+                movimientos.append({
+                    'fecha': fecha_str,
+                    'descripcion': linea[:150],
+                    'monto': monto_max,
+                    'monto_ars': None,
+                    'banco': detectar_banco(linea),
+                    'categoria': detectar_categoria(linea),
+                })
+    
+    return movimientos
+
+
+def main():
+    st.title("Gestor de Ingresos Familiares")
+    
+    # Inicializar datos en session state si no existen
+    if 'datos' not in st.session_state:
+        st.session_state.datos = cargar_datos()
+    
+    # Selector de mes
+    meses_disponibles = list(st.session_state.datos.get('meses', {}).keys())
+    if not meses_disponibles:
+        meses_disponibles = ['2026-02']  # Mes por defecto
+    
+    # Ordenar meses
+    meses_disponibles = sorted(meses_disponibles)
+    
+    st.sidebar.header("Periodo")
+    mes_seleccionado = st.sidebar.selectbox(
+        "Seleccionar Mes",
+        meses_disponibles,
+        index=len(meses_disponibles) - 1
+    )
+    
+    # Agregar nuevo mes
+    if st.sidebar.button("+ Agregar Mes"):
+        nuevo_mes = st.sidebar.text_input("Nuevo mes (YYYY-MM)")
+        if nuevo_mes:
+            if nuevo_mes not in st.session_state.datos.get('meses', {}):
+                st.session_state.datos.setdefault('meses', {})[nuevo_mes] = {
+                    'ingresos_bancarios': [],
+                    'egresos': [],
+                    'ganancia_fondos': 0,
+                    'plusvalia_propiedades': 0,
+                    'ajustes': []
+                }
+                guardar_datos(st.session_state.datos)
+                st.rerun()
+    
+    # Menú principal
+    menu = st.sidebar.selectbox(
+        "Menú",
+        ["Dashboard", "Cargar Extracto", "Cargar Fondos Mutuos", "Movimientos", "Egresos", "Propiedades", "Activos", "Ajustes", "Exportar"]
+    )
+    
+    if menu == "Dashboard":
+        mostrar_dashboard(mes_seleccionado)
+    elif menu == "Cargar Extracto":
+        cargar_extracto(mes_seleccionado)
+    elif menu == "Cargar Fondos Mutuos":
+        cargar_fondos_mutuos(mes_seleccionado)
+    elif menu == "Movimientos":
+        mostrar_movimientos(mes_seleccionado)
+    elif menu == "Egresos":
+        mostrar_egresos(mes_seleccionado)
+    elif menu == "Propiedades":
+        mostrar_propiedades(mes_seleccionado)
+    elif menu == "Activos":
+        mostrar_activos()
+    elif menu == "Ajustes":
+        mostrar_ajustes(mes_seleccionado)
+    elif menu == "Exportar":
+        exportar_datos()
+
+
+def mostrar_dashboard(mes):
+    st.header(f"Dashboard - {mes}")
+    
+    datos = st.session_state.datos
+    mes_data = datos.get('meses', {}).get(mes, {
+        'ingresos_bancarios': [],
+        'ganancia_fondos': 0,
+        'plusvalia_propiedades': 0,
+        'ajustes': []
+    })
+    
+    # Obtener tasas de cambio para el mes
+    usd_clp, usdt_ars = obtener_precios_historicos(mes)
+    if not usd_clp:
+        usd_clp = 900  #默认值
+    if not usdt_ars:
+        usdt_ars = 1500  #默认值
+    
+    # Convertir ingresos bancarios a ARS
+    def convertir_a_ars(movimiento):
+        monto = movimiento.get('monto', 0)
+        # Si ya tiene monto_original_clp, es porque viene de Santander Chile en CLP
+        if 'monto_original_clp' in movimiento and movimiento['monto_original_clp']:
+            clp = movimiento['monto_original_clp']
+            return (clp / usd_clp) * usdt_ars
+        # Si tiene campo banco y es ARS (Galicia), ya está en ARS
+        elif movimiento.get('banco') == 'galicia':
+            return monto  # Ya está en ARS
+        else:
+            return monto  # Por defecto asume ARS
+    
+    # Calcular totales del mes (todos en ARS)
+    total_ingresos_bancarios = sum(convertir_a_ars(m) for m in mes_data.get('ingresos_bancarios', []))
+    
+    # Ganancia fondos mutuos (del mes) - ya viene en ARS
+    total_ganancia_fondos = mes_data.get('ganancia_fondos', 0)
+    
+    # Plusvalía propiedades (del mes)
+    total_plusvalia = mes_data.get('plusvalia_propiedades', 0)
+    
+    # Ajustes (pueden ser en ARS o CLP)
+    def convertir_ajuste_a_ars(ajuste):
+        monto = ajuste.get('monto', 0)
+        moneda = ajuste.get('moneda', 'ARS')
+        if moneda == 'CLP':
+            return (monto / usd_clp) * usdt_ars
+        elif moneda == 'USD':
+            return monto * usdt_ars
+        return monto
+    
+    total_ajustes = sum(convertir_ajuste_a_ars(a) for a in mes_data.get('ajustes', []))
+    
+    # Total del mes
+    total_mes = total_ingresos_bancarios + total_ganancia_fondos + total_plusvalia + total_ajustes
+    
+    # Mostrar métricas
+    col1, col2, col3, col4, col5 = st.columns(5)
+    
+    col1.metric("Ingresos Bancarios (ARS)", f"${total_ingresos_bancarios:,.0f}")
+    col2.metric("Ganancia Fondos Mutuos", f"${total_ganancia_fondos:,.0f}", 
+                delta=f"{total_ganancia_fondos:,.0f}")
+    col3.metric("Plusvalía Propiedades", f"${total_plusvalia:,.0f}", 
+                delta=f"{total_plusvalia:,.0f}")
+    col4.metric("Ajustes", f"${total_ajustes:,.0f}", 
+                delta=f"{total_ajustes:,.0f}")
+    col5.metric("TOTAL MES (ARS)", f"${total_mes:,.0f}", 
+                delta=f"{total_mes:,.0f}")
+    
+    # Mostrar tasas usadas
+    st.caption(f"Tasas usadas: USDT/CLP: {usd_clp:.2f}, USDT/ARS: {usdt_ars:.2f}")
+    
+    st.divider()
+    
+    # Resumen de activos
+    st.subheader("Resumen de Activos")
+    activos = datos.get('activos', [])
+    
+    if activos:
+        fondos = [a for a in activos if a.get('tipo') == 'fondo_mutuo']
+        propiedades = [a for a in activos if a.get('tipo') == 'propiedad']
+        
+        col1, col2, col3 = st.columns(3)
+        total_fondos = sum(a.get('valor_final_ars', 0) for a in fondos)
+        total_props = sum(a.get('valor_tasacion_ars', 0) for a in propiedades)
+        
+        col1.metric("Total Fondos Mutuos", f"${total_fondos:,.0f}")
+        col2.metric("Total Propiedades", f"${total_props:,.0f}")
+        col3.metric("Total Activos", f"${total_fondos + total_props:,.0f}")
+    
+    # Detalles por categoría
+    if activos:
+        activos = datos.get('activos', [])
+        propiedades = [a for a in activos if a.get('tipo') == 'propiedad']
+        if propiedades:
+            st.subheader("Propiedades")
+            df_props = pd.DataFrame(propiedades)
+            cols_to_show = ['nombre', 'zona', 'm2', 'valor_tasacion_ars']
+            available = [c for c in cols_to_show if c in df_props.columns]
+            if available:
+                st.dataframe(df_props[available])
+
+
+def mostrar_movimientos(mes):
+    st.header(f"Movimientos - {mes}")
+    
+    datos = st.session_state.datos
+    ingresos = datos.get('meses', {}).get(mes, {}).get('ingresos_bancarios', [])
+    
+    if ingresos:
+        # Obtener tasas de cambio
+        usd_clp, usdt_ars = obtener_precios_historicos(mes)
+        if not usd_clp:
+            usd_clp = 900
+        if not usdt_ars:
+            usdt_ars = 1500
+        
+        # Función para convertir a ARS
+        def convertir_a_ars(movimiento):
+            monto = movimiento.get('monto', 0)
+            if 'monto_original_clp' in movimiento and movimiento['monto_original_clp']:
+                clp = movimiento['monto_original_clp']
+                return (clp / usd_clp) * usdt_ars
+            return monto  # Ya está en ARS
+        
+        # Convertir todos los montos a ARS para mostrar
+        for m in ingresos:
+            m['monto_ars'] = convertir_a_ars(m)
+        
+        df = pd.DataFrame(ingresos)
+        
+        # Filtros
+        col1, col2 = st.columns(2)
+        with col1:
+            if 'banco' in df.columns:
+                bancos = ["Todos"] + list(df['banco'].unique().tolist())
+                filtro_banco = st.selectbox("Filtrar por banco", bancos)
+            else:
+                filtro_banco = "Todos"
+        with col2:
+            if 'categoria' in df.columns:
+                categorias = ["Todos"] + list(df['categoria'].unique().tolist())
+                filtro_categoria = st.selectbox("Filtrar por categoría", categorias)
+            else:
+                filtro_categoria = "Todos"
+        
+        # Aplicar filtros
+        if filtro_banco != "Todos":
+            df = df[df['banco'] == filtro_banco]
+        if filtro_categoria != "Todos":
+            df = df[df['categoria'] == filtro_categoria]
+        
+        # Asegurar que df es DataFrame
+        if not isinstance(df, pd.DataFrame):
+            df = pd.DataFrame(df)
+        
+        # Calcular total en ARS
+        total = df['monto_ars'].sum() if 'monto_ars' in df.columns else 0
+        st.metric("Total Ingresos (ARS)", f"${total:,.0f}")
+        
+        # Mostrar tabla con montos originales y en ARS
+        cols_to_show = ['fecha', 'descripcion', 'banco', 'monto', 'monto_ars']
+        available = [c for c in cols_to_show if c in df.columns]
+        if available:
+            df_display = df[available].copy()
+            if 'monto' in df_display.columns:
+                df_display['monto'] = df_display['monto'].apply(lambda x: f"${x:,.2f}")
+            if 'monto_ars' in df_display.columns:
+                df_display['monto_ars'] = df_display['monto_ars'].apply(lambda x: f"${x:,.0f}")
+            st.dataframe(df_display)
+        
+        # Mostrar tasas usadas
+        st.caption(f"Tasas: USDT/CLP: {usd_clp:.2f}, USDT/ARS: {usdt_ars:.2f}")
+        
+        # Limpiar
+        if st.button("Limpiar Movimientos"):
+            datos.get('meses', {}).setdefault(mes, {})['ingresos_bancarios'] = []
+            guardar_datos(datos)
+            st.rerun()
+    else:
+        st.info("No hay movimientos bancarios para este mes")
+
+
+# Categorías para egresos
+CATEGORIAS_EGRESOS = {
+    'impuestos': ['arca', 'api', 'tgi', 'brassey', 'monotributo', 'afip', 'agna'],
+    'servicios': ['prepaga', 'salud', 'jubil', 'caja', 'luz', 'edemsa', 'gas', 'gasnor', 'agua', 'movistar', 'flow', 'adt', 'seguro', 'seguros', 'personal'],
+    'comercios': {
+        'combustible': ['y PF', 'ypf', 'shell', 'axion', 'estacion', 'petro', 'oil', 'plus', 'refinor'],
+        'carniceria': ['carniceria', 'carnicería', 'carne', 'fiambreria', 'polleria'],
+        'panaderia': ['panaderia', 'panadería', 'pan', 'factoria'],
+        'supermercado': ['supermercado', 'super', 'disco', 'coto', 'changomas', 'vea', 'jumbo', 'carrefour', 'walmart'],
+        'farmacia': ['farmacia', 'farma', 'salcobrand', 'mefar', 'deluxe'],
+        'pintureria': ['pintureria', 'pinturería', 'colibri', 'pintu'],
+        'verduleria': ['verduleria', 'verdulería', 'verduro', 'fruteria'],
+        'restaurant': ['restaurant', 'resto', 'pizza', 'burger', 'mcdonald', 'kfc', 'helado'],
+        'indumentaria': ['ropa', 'indumentaria', 'zara', 'unisport', 'nike', 'adidas'],
+        'ferreteria': ['ferreteria', 'ferretería', 'ferre'],
+        'automovil': ['gomeri', 'mecanica', 'mecánica', 'lubricentro', 'grua'],
+        'otros': []
+    },
+    'otros': ['transf', 'familia', 'transporte', 'taxi', 'uber', 'combis', 'otros']
+}
+
+# Diccionario de comerciantes conocidos
+COMERCIOS_CONOCIDOS = {
+    'miguel': {'categoria': 'comercios', 'subcategoria': 'combustible', 'gasto': 'Estación de Servicio'},
+    'juan': {'categoria': 'comercios', 'subcategoria': 'carniceria', 'gasto': 'Carnicería'},
+    'pepe': {'categoria': 'comercios', 'subcategoria': 'panaderia', 'gasto': 'Panadería'},
+    'gge alfa park': {'categoria': 'comercios', 'subcategoria': 'restaurant', 'gasto': 'GGE Alfa Park'},
+    'instituto gamma': {'categoria': 'servicios', 'subcategoria': 'salud', 'gasto': 'Instituto Gamma'},
+    'gamma': {'categoria': 'servicios', 'subcategoria': 'salud', 'gasto': 'Instituto Gamma'},
+    'rosati damian': {'categoria': 'comercios', 'subcategoria': 'restaurant', 'gasto': 'Pizzería Rosati'},
+    'la gran argentina': {'categoria': 'comercios', 'subcategoria': 'restaurant', 'gasto': 'La Gran Argentina'},
+    'sebastian montene': {'categoria': 'comercios', 'subcategoria': 'indumentaria', 'gasto': 'Indumentaria'},
+    'pluspagos': {'categoria': 'servicios', 'subcategoria': 'bancos', 'gasto': 'PlusPagos'},
+    'estacionamiento ocampo': {'categoria': 'servicios', 'subcategoria': 'estacionamiento', 'gasto': 'Estacionamiento Ocampo'},
+    'tu quincho': {'categoria': 'servicios', 'subcategoria': 'alquiler', 'gasto': 'Quincho'},
+    'diego rey': {'categoria': 'comercios', 'subcategoria': 'restaurant', 'gasto': 'Diego Rey'},
+    'pinturerias colibri': {'categoria': 'comercios', 'subcategoria': 'pintureria', 'gasto': 'Pinturerías Colibrí'},
+    'panaderia sc ii': {'categoria': 'comercios', 'subcategoria': 'panaderia', 'gasto': 'Panadería SC II'},
+    'remo franco': {'categoria': 'comercios', 'subcategoria': 'indumentaria', 'gasto': 'Remo Franco SRL'},
+    'correcto': None,  # Ignorar
+    'historial': None,  # Ignorar
+    'pago con': None,  # Ignorar
+    'fecha': None,  # Ignorar
+    'todos los': None,  # Ignorar
+}
+
+
+def detectar_fuente(nombre_archivo):
+    """Detecta la fuente de pago desde el nombre del archivo"""
+    nombre = nombre_archivo.lower()
+    
+    # Fuentes ordenadas por prioridad (más específico primero)
+    fuentes = [
+        ('tarjeta_debito_galicia_gustavo', ['tarjeta', 'galicia', 'gustavo'], 3),
+        ('mercadopago_gustavo', ['mercadopago', 'gustavo'], 2),
+        ('bybit_qr_gustavo', ['bybit', 'qr', 'gustavo'], 3),
+        ('bybit_tarjeta_gustavo', ['bybit', 'tarjeta', 'gustavo'], 3),
+        ('tarjeta_debito_icbc_veronica', ['tarjeta', 'icbc', 'veronica'], 3),
+        ('mercadopago_veronica', ['mercadopago', 'veronica'], 2),
+        ('bybit_qr_veronica', ['bybit', 'qr', 'veronica'], 3),
+        ('bybit_tarjeta_veronica', ['bybit', 'tarjeta', 'veronica'], 3),
+        ('binance_qr_veronica', ['binance', 'qr', 'veronica'], 3),
+        ('mercadopago_sol', ['mercadopago', 'sol'], 2),
+        ('bybit_tarjeta_sol', ['bybit', 'tarjeta', 'sol'], 3),
+        ('bybit_qr_sol', ['bybit', 'qr', 'sol'], 3),
+        ('tarjeta_debito_galicia', ['tarjeta', 'galicia'], 2),
+        ('mercadopago', ['mercadopago'], 1),
+        ('bybit_qr', ['bybit', 'qr'], 2),
+        ('bybit_tarjeta', ['bybit', 'tarjeta'], 2),
+        ('icbc', ['icbc'], 1),
+        ('binance', ['binance'], 1),
+    ]
+    
+    mejor_fuente = 'desconocido'
+    mejor_puntaje = 0
+    
+    for fuente, keywords, peso in fuentes:
+        matches = sum(1 for kw in keywords if kw in nombre)
+        if matches > 0:
+            puntaje = matches * peso
+            if puntaje > mejor_puntaje:
+                mejor_puntaje = puntaje
+                mejor_fuente = fuente
+    
+    return mejor_fuente
+
+
+def categorizar_gasto(descripcion, datos=None):
+    """Categoriza automáticamente un gasto según la descripción usando búsqueda web si es necesario"""
+    import re
+    
+    # Clean the description - remove extra whitespace, newlines, tabs
+    desc_limpia = ' '.join(descripcion.split())
+    nombre_limpio = desc_limpia.split('  ')[0].split(' - ')[0].split('\t')[0].strip()
+    
+    # First check known commerce
+    for conocido, info in COMERCIOS_CONOCIDOS.items():
+        if info is None:
+            continue
+        if conocido in nombre_limpio.lower():
+            return info['categoria'], info['subcategoria'], info['gasto']
+    
+    # Check by keywords in local dictionary
+    for categoria, keywords in CATEGORIAS_EGRESOS.items():
+        if categoria == 'comercios':
+            for subcategoria, palabras in keywords.items():
+                for palabra in palabras:
+                    if palabra in nombre_limpio.lower():
+                        return 'comercios', subcategoria, nombre_limpio.title()
+        else:
+            for palabra in keywords:
+                if palabra in nombre_limpio.lower():
+                    return categoria, categoria, nombre_limpio.title()
+    
+    # Try web search for unknown commerce
+    resultado_web = buscar_comercio_en_web(nombre_limpio)
+    titulo_web, confianza = resultado_web if resultado_web else (None, 0)
+    if titulo_web and confianza >= 0.70:  # Reduced threshold for better recall
+        titulo_lower = titulo_web.lower()
+        
+        # Check web categories
+        for categoria, subcats in CATEGORIAS_WEB.items():
+            if categoria == 'comercios':
+                for subcategoria, palabras in subcats.items():
+                    for palabra in palabras:
+                        if palabra in titulo_lower:
+                            if datos is not None and nombre_limpio.lower() not in COMERCIOS_CONOCIDOS:
+                                COMERCIOS_CONOCIDOS[nombre_limpio.lower()] = {
+                                    'categoria': 'comercios', 'subcategoria': subcategoria, 'gasto': nombre_limpio.title()
+                                }
+                            return 'comercios', subcategoria, nombre_limpio.title()
+            elif categoria == 'servicios':
+                for subcategoria, palabras in subcats.items():
+                    for palabra in palabras:
+                        if palabra in titulo_lower:
+                            if datos is not None and nombre_limpio.lower() not in COMERCIOS_CONOCIDOS:
+                                COMERCIOS_CONOCIDOS[nombre_limpio.lower()] = {
+                                    'categoria': 'servicios', 'subcategoria': subcategoria, 'gasto': nombre_limpio.title()
+                                }
+                            return 'servicios', subcategoria, nombre_limpio.title()
+            else:
+                for palabra in subcats:
+                    if palabra in titulo_lower:
+                        if datos is not None and nombre_limpio.lower() not in COMERCIOS_CONOCIDOS:
+                            COMERCIOS_CONOCIDOS[nombre_limpio.lower()] = {
+                                'categoria': categoria, 'subcategoria': categoria, 'gasto': nombre_limpio.title()
+                            }
+                        return categoria, categoria, nombre_limpio.title()
+    
+    # Final fallback - try to infer from description words
+    desc_words = nombre_limpio.lower().split()
+    
+    # Check for common patterns in description
+    if any(word in desc_words for word in ['hospital', 'clinica', 'sanatorio', 'medico', 'doctor', 'salud', 'gamma']):
+        return 'servicios', 'salud', nombre_limpio.title()
+    elif any(word in desc_words for word in ['supermercado', 'hiper', 'carrefour', 'walmart', 'jumbo', 'disco', 'vea', 'coto', 'market']):
+        return 'comercios', 'supermercado', nombre_limpio.title()
+    elif any(word in desc_words for word in ['restaurant', 'pizza', 'burger', 'bar', 'cafe', 'comida']):
+        return 'comercios', 'restaurant', nombre_limpio.title()
+    elif any(word in desc_words for word in ['farmacia', 'farmacity']):
+        return 'comercios', 'farmacia', nombre_limpio.title()
+    elif any(word in desc_words for word in ['shell', 'ypf', 'axion', 'estacion', 'combustible', 'nafta']):
+        return 'comercios', 'combustible', nombre_limpio.title()
+    elif any(word in desc_words for word in ['municipal', 'gobierno', 'ministerio', 'impuesto', 'tasa', 'afip', 'dgi']):
+        return 'impuestos', 'impuestos', nombre_limpio.title()
+    elif any(word in desc_words for word in ['universidad', 'colegio', 'escuela', 'educacion']):
+        return 'servicios', 'educacion', nombre_limpio.title()
+    elif any(word in desc_words for word in ['uber', 'cabify', 'taxi', 'remis', 'transporte']):
+        return 'servicios', 'transporte', nombre_limpio.title()
+    elif any(word in desc_words for word in ['bane', 'galicia', 'santander', 'bbva', 'banco']):
+        return 'servicios', 'bancos', nombre_limpio.title()
+    elif any(word in desc_words for word in ['internet', 'movistar', 'claro', 'personal', 'wifi']):
+        return 'servicios', 'internet', nombre_limpio.title()
+    elif any(word in desc_words for word in ['luz', 'edesur', 'edenor', 'gas', 'metrogas']):
+        return 'servicios', 'servicios_basicos', nombre_limpio.title()
+    elif any(word in desc_words for word in ['netflix', 'spotify', 'youtube', 'suscripcion']):
+        return 'suscripciones', 'entretenimiento', nombre_limpio.title()
+    elif any(word in desc_words for word in ['gimnasio', 'fitness', 'club']):
+        return 'servicios', 'deporte', nombre_limpio.title()
+    elif any(word in desc_words for word in ['peluqueria', 'barberia', 'salon', 'belleza']):
+        return 'servicios', 'belleza', nombre_limpio.title()
+    elif any(word in desc_words for word in ['veterinaria', 'vet', 'mascota', 'pet']):
+        return 'servicios', 'veterinaria', nombre_limpio.title()
+    elif any(word in desc_words for word in ['optica', 'lentes', 'vision']):
+        return 'comercios', 'optica', nombre_limpio.title()
+    elif any(word in desc_words for word in ['alquiler', 'propiedad', 'inmobiliaria']):
+        return 'servicios', 'alquiler', nombre_limpio.title()
+    elif any(word in desc_words for word in ['pinturer', 'pintura', 'color']):
+        return 'comercios', 'pintureria', nombre_limpio.title()
+    elif any(word in desc_words for word in ['panaderia', 'bakery', 'pan']):
+        return 'comercios', 'panaderia', nombre_limpio.title()
+    elif any(word in desc_words for word in ['carniceria', 'carnes', 'polleria']):
+        return 'comercios', 'carniceria', nombre_limpio.title()
+    elif any(word in desc_words for word in ['indumentaria', 'ropa', 'zara', 'nike', 'adidas']):
+        return 'comercios', 'indumentaria', nombre_limpio.title()
+    elif any(word in desc_words for word in ['electronica', 'tecnologia', 'samsung', 'lg', 'sony']):
+        return 'comercios', 'electronica', nombre_limpio.title()
+    elif any(word in desc_words for word in ['bazar', 'regalo', 'regaleria']):
+        return 'comercios', 'bazar', nombre_limpio.title()
+    elif any(word in desc_words for word in ['heladeria', 'helado', 'freddo', 'persicco']):
+        return 'comercios', 'heladeria', nombre_limpio.title()
+    elif any(word in desc_words for word in ['verduleria', 'fruteria', 'fruta', 'verdura']):
+        return 'comercios', 'verduleria', nombre_limpio.title()
+    elif any(word in desc_words for word in ['almacen', 'kiosko', 'kiosco', 'mercadito']):
+        return 'comercios', 'almacen', nombre_limpio.title()
+    elif any(word in desc_words for word in ['libreria', 'libro', 'papelería']):
+        return 'comercios', 'libreria', nombre_limpio.title()
+    elif any(word in desc_words for word in ['joyeria', 'relojes', 'accesorios']):
+        return 'comercios', 'joyeria', nombre_limpio.title()
+    elif any(word in desc_words for word in ['floreria', 'flores', 'jardineria']):
+        return 'comercios', 'floreria', nombre_limpio.title()
+    elif any(word in desc_words for word in ['electrodomesticos', 'lavarropas', 'heladera']):
+        return 'comercios', 'electrodomesticos', nombre_limpio.title()
+    elif any(word in desc_words for word in ['deportes', 'deportivo', 'indumentaria deportiva']):
+        return 'comercios', 'deportes', nombre_limpio.title()
+    elif any(word in desc_words for word in ['libros', 'papelería', 'cuadernos']):
+        return 'comercios', 'libreria', nombre_limpio.title()
+    elif any(word in desc_words for word in ['textil', 'textiles', 'teleria']):
+        return 'comercios', 'textil', nombre_limpio.title()
+    elif any(word in desc_words for word in ['muebles', 'mobiliaria', 'decocion']):
+        return 'comercios', 'muebles', nombre_limpio.title()
+    elif any(word in desc_words for word in ['joyeria', 'bisuteria', 'relojes']):
+        return 'comercios', 'joyeria', nombre_limpio.title()
+    
+    # If we still don't know, return as others
+    return 'otros', 'otros', nombre_limpio.title()
+
+
+def mostrar_egresos(mes_actual):
+    st.header("Egresos")
+    
+    datos = st.session_state.datos
+    
+    # Selector de mes para cargar egresos
+    meses_disponibles = list(datos.get('meses', {}).keys())
+    if not meses_disponibles:
+        meses_disponibles = ['2026-02']
+    meses_disponibles = sorted(meses_disponibles)
+    
+    mes_para_cargar = st.selectbox(
+        "Mes para cargar egresos",
+        meses_disponibles,
+        index=len(meses_disponibles) - 1
+    )
+    
+    egresos = datos.get('meses', {}).get(mes_actual, {}).get('egresos', [])
+    
+    # Subir archivo
+    st.subheader(f"Cargar Egresos - {mes_para_cargar}")
+    archivo = st.file_uploader(
+        "Seleccionar archivo de egresos (imagen, PDF o texto)",
+        type=['jpg', 'jpeg', 'png', 'pdf', 'txt']
+    )
+    
+    if archivo:
+        fuente = detectar_fuente(archivo.name)
+        st.info(f"Fuente detectada: {fuente}")
+        
+        if st.button("Procesar Egresos"):
+            with st.spinner("Procesando egresos..."):
+                texto = ""
+                
+                # Determinar tipo de archivo
+                file_name = archivo.name.lower()
+                
+                if file_name.endswith(('.jpg', '.jpeg', '.png')):
+                    if EASYOCR_AVAILABLE:
+                        archivo.seek(0)
+                        try:
+                            import easyocr
+                            reader = easyocr.Reader(['es', 'en'], gpu=False)
+                            results = reader.readtext(archivo.read())
+                            for (bbox, text, prob) in results:
+                                texto += text + "\n"
+                        except Exception as e:
+                            st.error(f"Error con EasyOCR: {e}")
+                    else:
+                        st.warning("EasyOCR no está instalado")
+                elif file_name.endswith('.pdf'):
+                    if PDF_AVAILABLE:
+                        archivo.seek(0)
+                        try:
+                            import pymupdf
+                            doc = pymupdf.open(stream=archivo.read(), filetype="pdf")
+                            for page in doc:
+                                texto += page.get_text() + "\n"
+                            doc.close()
+                        except Exception as e:
+                            st.error(f"Error con PDF: {e}")
+                    else:
+                        st.warning("PyMuPDF no está instalado")
+                else:
+                    texto = archivo.read().decode('utf-8')
+                
+                if texto:
+                    st.success("Texto extraído")
+                    
+                    with st.expander("DEBUG: Texto OCR extraído"):
+                        st.text_area("Texto raw", texto, height=200)
+                    
+                    # Parsear gastos
+                    import re
+                    gastos = []
+                    lineas = texto.split('\n')
+                    
+                    st.info(f"Líneas encontradas: {len(lineas)}")
+                    
+                    # Pattern 1: Amount ARS Description (monto al inicio)
+                    # Example: "10,150.00 ARS GGE ALFA PARK - restaurant"
+                    amount_ars_pattern1 = re.compile(r'([\d.,]+)\s*ARS\s*(.+)', re.IGNORECASE)
+                    # Pattern 2: Description Amount ARS (monto al final, más común en el OCR)
+                    # Example: "GGE ALFA PARK\n10,150.00 ARS"
+                    amount_ars_pattern2 = re.compile(r'(.+?)\s*([\d.,]+)\s*ARS', re.IGNORECASE)
+                    fecha_pattern = re.compile(r'(\d{4}-\d{2}-\d{2}|\d{2}/\d{2}/\d{4}|\d{2}-\d{2}-\d{4})')
+                    
+                    # Textos a ignorar
+                    ignorados = ['historial', 'correcto', 'pago con', 'fecha', 'todos los', 
+                                 'tipos', 'estados', 'qr', 'con qr', 'sin']
+                    
+                    debug_info = []
+                    
+                    # Process lines looking for ARS amounts - the format in the OCR is:
+                    # Line N: Commerce name
+                    # Line N+1: Amount ARS
+                    # Line N+2: Date info
+                    i = 0
+                    while i < len(lineas):
+                        linea = lineas[i].strip()
+                        if not linea:
+                         i += 1
+                         
+                         debe_ignorar = any(ig.lower() in linea.lower() for ig in ignorados)
+                        if debe_ignorar:
+                            i += 1
+                            continue
+                        
+                        # Look for ARS pattern in current line (should be like "18,000.00 ARS")
+                        ars_match = None
+                        for pattern in [amount_ars_pattern1, amount_ars_pattern2]:
+                            match = pattern.search(linea)
+                            if match:
+                                ars_match = match
+                                break
+                        
+                        if ars_match:
+                            # Found amount with ARS in this line
+                            # Extract the amount
+                            if ars_match == amount_ars_pattern1:
+                                # Pattern 1: Amount ARS Description
+                                monto_str = ars_match.group(1).replace(',', '')
+                                # Description would be in group 2, but in our format it's often empty or just date info
+                                potencial_descripcion = ars_match.group(2).strip()
+                            else:
+                                # Pattern 2: Description Amount ARS
+                                # Description would be in group 1, amount in group 2
+                                potencial_descripcion = ars_match.group(1).strip()
+                                monto_str = ars_match.group(2).replace(',', '')
+                            
+                            try:
+                                # Clean the monto string - keep only digits, commas, dots
+                                cleaned_monto = ''.join(c for c in monto_str if c.isdigit() or c in ',.')
+                                
+                                # Smart format detection for amounts
+                                if cleaned_monto:
+                                    # Count separators
+                                    dot_count = cleaned_monto.count('.')
+                                    comma_count = cleaned_monto.count(',')
+                                    
+                                    # European format: dot as thousands, comma as decimal (e.g., 18.000,00)
+                                    # US format: comma as thousands, dot as decimal (e.g., 18,000.00)
+                                    if dot_count > 0 and comma_count > 0:
+                                        # Both separators present - check which is last
+                                        last_dot = cleaned_monto.rfind('.')
+                                        last_comma = cleaned_monto.rfind(',')
+                                        if last_comma > last_dot:
+                                            # Comma is last separator -> European format
+                                            cleaned_monto = cleaned_monto.replace('.', '').replace(',', '.')
+                                        else:
+                                            # Dot is last separator -> US format
+                                            cleaned_monto = cleaned_monto.replace(',', '')
+                                    elif comma_count > 0 and dot_count == 0:
+                                        # Only commas - could be thousands separator or decimal
+                                        # Heuristic: if comma followed by exactly 3 digits at end, it's thousands
+                                        if len(cleaned_monto) >= 4 and cleaned_monto[-4] == ',' and cleaned_monto[-3:].isdigit():
+                                            # Likely thousands separator: remove commas
+                                            cleaned_monto = cleaned_monto.replace(',', '')
+                                        else:
+                                            # Likely decimal separator: replace comma with dot
+                                            cleaned_monto = cleaned_monto.replace(',', '.')
+                                    elif dot_count > 0 and comma_count == 0:
+                                        # Only dots - could be thousands separator or decimal
+                                        # Heuristic: if dot followed by exactly 3 digits at end, it's thousands
+                                        if len(cleaned_monto) >= 4 and cleaned_monto[-4] == '.' and cleaned_monto[-3:].isdigit():
+                                            # Likely thousands separator: remove dots
+                                            cleaned_monto = cleaned_monto.replace('.', '')
+                                    
+                                    monto = float(cleaned_monto)
+                                    debug_info.append(f"Línea con monto ARS: '{linea[:60]}...' -> monto_str: '{monto_str}' -> cleaned: '{cleaned_monto}' -> monto: {monto}")
+                                
+                                if monto > 100:
+                                    # Get the commerce name - it should be in the PREVIOUS line
+                                    gasto_desc = ""
+                                    if i > 0:
+                                        prev_linea = lineas[i-1].strip()
+                                        # Check if previous line is not ignored and doesn't contain ARS itself
+                                        prev_ignore = any(ig.lower() in prev_linea.lower() for ig in ignorados)
+                                        prev_has_ars = bool(amount_ars_pattern1.search(prev_linea) or amount_ars_pattern2.search(prev_linea))
+                                        if not prev_ignore and not prev_has_ars and len(prev_linea) > 2:
+                                            gasto_desc = prev_linea
+                                            debug_info.append(f"  -> Usando línea anterior como descripción: '{gasto_desc}'")
+                                    
+                                    # If we still don't have a good description, try the potencial_descripcion from the regex
+                                    if not gasto_desc or len(gasto_desc) < 3:
+                                        if potencial_descripcion and len(potencial_descripcion) >= 3:
+                                            # Clean it up
+                                            gasto_desc = potencial_descripcion.strip()
+                                            gasto_desc = gasto_desc.replace('con QR', '').replace('Pago con', '').replace('Pago', '').replace('OR', '').replace('QR', '').strip()
+                                            if gasto_desc:
+                                                debug_info.append(f"  -> Usando descripción del patrón regex: '{gasto_desc}'")
+                                    
+                                    # Final cleanup
+                                    if gasto_desc:
+                                        gasto_desc = gasto_desc.strip()
+                                        gasto = gasto_desc
+                                        categoria, subcategoria, gasto_final = categorizar_gasto(gasto, datos)
+                                        debug_info.append(f"  -> Categorizado: {categoria}/{subcategoria} = {gasto_final}")
+                                        
+                                        # Buscar fecha en líneas cercanas (anterior, actual, siguiente)
+                                        fecha = ""
+                                        for j in range(max(0, i-2), min(i+3, len(lineas))):
+                                            fecha_match = fecha_pattern.search(lineas[j])
+                                            if fecha_match:
+                                                fecha = fecha_match.group(1)
+                                                break
+                                        
+                                        if monto > 0:
+                                            gastos.append({
+                                                'fecha': fecha,
+                                                'gasto': gasto_final,
+                                                'monto': monto,
+                                                'moneda': 'ARS',
+                                                'fuente': fuente,
+                                                'categoria': categoria,
+                                                'subcategoria': subcategoria
+                                            })
+                                        else:
+                                            debug_info.append(f"  -> Monto cero o negativo, ignorado")
+                                    else:
+                                        debug_info.append(f"  -> Descripción vacía después de limpieza, ignorado")
+                                else:
+                                    debug_info.append(f"  -> Monto demasiado pequeño ({monto}), ignorado")
+                            except ValueError as e:
+                                debug_info.append(f"  ERROR al convertir monto '{monto_str}' (limpio: '{cleaned_monto}'): {e}")
+                            except Exception as e:
+                                debug_info.append(f"  ERROR inesperado al procesar monto: {e}")
+                        else:
+                            # No ARS pattern, maybe log for debugging
+                            if any(c.isdigit() for c in linea):  # line contains digits but no ARS
+                                debug_info.append(f"Línea con dígitos pero sin ARS: '{linea[:50]}...'")
+                          
+                          i += 1
+                          
+                          debe_ignorar = any(ig.lower() in linea.lower() for ig in ignorados)
+                          if debe_ignorar:
+                              i += 1
+                              continue
+                        
+                        # Look for ARS pattern in current line
+                        ars_match = None
+                        matched_pattern = None
+                        for pattern in [amount_ars_pattern1, amount_ars_pattern2]:
+                            match = pattern.search(linea)
+                            if match:
+                                ars_match = match
+                                matched_pattern = pattern
+                                break
+                        
+                        if ars_match:
+                            # Found amount with ARS, extract it
+                            if matched_pattern == amount_ars_pattern1:
+                                # Pattern 1: Amount ARS Description
+                                monto_str = ars_match.group(1).replace(',', '')
+                                descripcion = ars_match.group(2).strip()
+                            else:
+                                # Pattern 2: Description Amount ARS
+                                descripcion = ars_match.group(1).strip()
+                                monto_str = ars_match.group(2).replace(',', '')
+                            
+                            try:
+                                # Clean the monto string - keep only digits, commas, dots
+                                cleaned_monto = ''.join(c for c in monto_str if c.isdigit() or c in ',.')
+                                
+                                # Smart format detection for amounts
+                                if cleaned_monto:
+                                    # Count separators
+                                    dot_count = cleaned_monto.count('.')
+                                    comma_count = cleaned_monto.count(',')
+                                    
+                                    # European format: dot as thousands, comma as decimal (e.g., 18.000,00)
+                                    # US format: comma as thousands, dot as decimal (e.g., 18,000.00)
+                                    if dot_count > 0 and comma_count > 0:
+                                        # Both separators present - check which is last
+                                        last_dot = cleaned_monto.rfind('.')
+                                        last_comma = cleaned_monto.rfind(',')
+                                        if last_comma > last_dot:
+                                            # Comma is last separator -> European format
+                                            cleaned_monto = cleaned_monto.replace('.', '').replace(',', '.')
+                                        else:
+                                            # Dot is last separator -> US format
+                                            cleaned_monto = cleaned_monto.replace(',', '')
+                                    elif comma_count > 0 and dot_count == 0:
+                                        # Only commas - could be thousands separator or decimal
+                                        # Heuristic: if comma followed by exactly 3 digits at end, it's thousands
+                                        if len(cleaned_monto) >= 4 and cleaned_monto[-4] == ',' and cleaned_monto[-3:].isdigit():
+                                            # Likely thousands separator: remove commas
+                                            cleaned_monto = cleaned_monto.replace(',', '')
+                                        else:
+                                            # Likely decimal separator: replace comma with dot
+                                            cleaned_monto = cleaned_monto.replace(',', '.')
+                                    elif dot_count > 0 and comma_count == 0:
+                                        # Only dots - could be thousands separator or decimal
+                                        # Heuristic: if dot followed by exactly 3 digits at end, it's thousands
+                                        if len(cleaned_monto) >= 4 and cleaned_monto[-4] == '.' and cleaned_monto[-3:].isdigit():
+                                            # Likely thousands separator: remove dots
+                                            cleaned_monto = cleaned_monto.replace('.', '')
+                                        # Else keep as is (could be decimal like 18.00)
+                                
+                                monto = float(cleaned_monto)
+                                debug_info.append(f"Línea con monto ARS: '{linea[:60]}...' -> monto_str: '{monto_str}' -> cleaned: '{cleaned_monto}' -> monto: {monto}, descrip: '{descripcion[:30]}...'")
+                                
+                                if monto > 100:
+                                    # Try to get a meaningful description - check context
+                                    gasto_desc = descripcion
+                                    
+                                    # If description is weak, look at surrounding lines
+                                    if not gasto_desc or len(gasto_desc) < 3 or gasto_desc.lower() in ['con qr', 'pago con', 'pago', 'or']:
+                                        # Check previous line
+                                        if i > 0:
+                                            prev_linea = lineas[i-1].strip()
+                                            prev_ignore = any(ig.lower() in prev_linea.lower() for ig in ignorados)
+                                            prev_has_ars = 'ars' in prev_linea.lower()
+                                            if not prev_ignore and not prev_has_ars and len(prev_linea) > 2:
+                                                gasto_desc = prev_linea
+                                                debug_info.append(f"  -> Usando línea anterior como descripción: '{gasto_desc}'")
+                                        
+                                        # Check next line if still needed
+                                        if (not gasto_desc or len(gasto_desc) < 3) and i < len(lineas) - 1:
+                                            next_linea = lineas[i+1].strip()
+                                            next_ignore = any(ig.lower() in next_linea.lower() for ig in ignorados)
+                                            next_has_ars = 'ars' in next_linea.lower()
+                                            if not next_ignore and not next_has_ars and len(next_linea) > 2:
+                                                gasto_desc = next_linea
+                                                debug_info.append(f"  -> Usando línea siguiente como descripción: '{gasto_desc}'")
+                                    
+                                    # Clean up the description
+                                    gasto_desc = gasto_desc.strip()
+                                    # Remove common suffixes/prefixes that aren't part of the commerce name
+                                    gasto_desc = gasto_desc.replace('con QR', '').replace('Pago con', '').replace('Pago', '').replace('OR', '').replace('QR', '').strip()
+                                    
+                                    if gasto_desc:
+                                        gasto = gasto_desc
+                                        categoria, subcategoria, gasto_final = categorizar_gasto(gasto, datos)
+                                        debug_info.append(f"  -> Categorizado: {categoria}/{subcategoria} = {gasto_final}")
+                                        
+                                        # Buscar fecha en líneas cercanas (anterior, actual, siguiente)
+                                        fecha = ""
+                                        for j in range(max(0, i-2), min(i+3, len(lineas))):
+                                            fecha_match = fecha_pattern.search(lineas[j])
+                                            if fecha_match:
+                                                fecha = fecha_match.group(1)
+                                                break
+                                        
+                                        if monto > 0:
+                                            gastos.append({
+                                                'fecha': fecha,
+                                                'gasto': gasto_final,
+                                                'monto': monto,
+                                                'moneda': 'ARS',
+                                                'fuente': fuente,
+                                                'categoria': categoria,
+                                                'subcategoria': subcategoria
+                                            })
+                                        else:
+                                            debug_info.append(f"  -> Monto cero o negativo, ignorado")
+                                    else:
+                                        debug_info.append(f"  -> Descripción vacía después de limpieza, ignorado")
+                                else:
+                                    debug_info.append(f"  -> Monto demasiado pequeño ({monto}), ignorado")
+                            except ValueError as e:
+                                debug_info.append(f"  ERROR al convertir monto '{monto_str}' (limpio: '{cleaned_monto}'): {e}")
+                            except Exception as e:
+                                debug_info.append(f"  ERROR inesperado al procesar monto: {e}")
+                        else:
+                            # No ARS pattern, maybe log for debugging
+                            if any(c.isdigit() for c in linea):  # line contains digits but no ARS
+                                debug_info.append(f"Línea con dígitos pero sin ARS: '{linea[:50]}...'")
+                        
+                        i += 1
+                    
+                    with st.expander("DEBUG: Procesamiento"):
+                        for info in debug_info:
+                            st.text(info)
+                        st.info(f"Total gastos detectados: {len(gastos)}")
+                    
+                    if gastos:
+                        st.success(f"Se detectaron {len(gastos)} gastos")
+                        
+                        df_preview = pd.DataFrame(gastos)[['fecha', 'gasto', 'monto', 'categoria', 'subcategoria']]
+                        df_preview = df_preview.rename(columns={'gasto': 'GASTO'})
+                        st.dataframe(df_preview)
+                        
+                        # Calcular totales
+                        total_egresos = sum(g['monto'] for g in gastos)
+                        st.metric("Total Egresos", f"${total_egresos:,.2f} ARS")
+                        
+                        # Guardar
+                        if st.button("Guardar Egresos"):
+                            egresos_existentes = datos.get('meses', {}).setdefault(mes_para_cargar, {}).get('egresos', [])
+                            egresos_existentes.extend(gastos)
+                            datos.get('meses', {}).setdefault(mes_para_cargar, {})['egresos'] = egresos_existentes
+                            guardar_datos(datos)
+                            st.success(f"Egresos guardados para {mes_para_cargar}")
+                            st.rerun()
+                    else:
+                        st.warning("No se detectaron gastos en el archivo")
+    
+    # Mostrar egresos del mes seleccionado
+    st.divider()
+    st.subheader(f"Egresos de {mes_actual}")
+    
+    if egresos:
+        df = pd.DataFrame(egresos)
+        
+        # Totales
+        total = sum(e.get('monto', 0) for e in egresos)
+        st.metric("Total Egresos del Mes", f"${total:,.2f} ARS")
+        
+        # Por categoría
+        if 'categoria' in df.columns:
+            st.subheader("Por Categoría")
+            por_cat = df.groupby('categoria')['monto'].sum()
+            st.bar_chart(por_cat)
+        
+        # Tabla
+        df_display = df[['fecha', 'gasto', 'monto', 'categoria', 'subcategoria', 'fuente']].copy()
+        df_display = df_display.rename(columns={'gasto': 'GASTO'})
+        st.dataframe(df_display)
+    else:
+        st.info("No hay egresos cargados para este mes")
+
+
+def mostrar_propiedades(mes):
+    st.header("Propiedades")
+    
+    datos = st.session_state.datos
+    activos = datos.get('activos', [])
+    propiedades = [a for a in activos if a.get('tipo') == 'propiedad']
+    
+    # Agregar propiedad (una vez)
+    st.subheader("Agregar Propiedad")
+    
+    with st.form("agregar_propiedad"):
+        col1, col2 = st.columns(2)
+        with col1:
+            nombre = st.text_input("Nombre de la propiedad")
+            tipo = st.selectbox("Tipo", ["departamento", "casa"])
+            zona = st.selectbox("Zona", [
+                "Centro", "Macrocentro", "Barrio Inglés", "Pichincha", "Abasto", 
+                "Martin", "Facultades", "Puerto Norte", "Barrio Tigre", 
+                "Rosario Norte", "Alvear", "San Martín", "General Paz",
+                "Sur", "Norte", "Oeste", "Otro"
+            ])
+        with col2:
+            m2 = st.number_input("Metros cuadrados (m²)", min_value=0)
+            dormitorios = st.number_input("Dormitorios", min_value=0, max_value=10)
+            baños = st.number_input("Baños", min_value=0, max_value=10)
+            antiguedad = st.number_input("Antigüedad (años)", min_value=0)
+        
+        estado = st.selectbox("Estado", ["excelente", "bueno", "regular"])
+        cochera = st.checkbox("Cochera")
+        patio = st.checkbox("Patio")
+        
+        submitted = st.form_submit_button("Guardar Propiedad")
+        
+        if submitted and nombre:
+            # Verificar si ya existe
+            existe = any(a.get('nombre') == nombre and a.get('tipo') == 'propiedad' for a in activos)
+            if existe:
+                st.warning(f"La propiedad '{nombre}' ya existe")
+            else:
+                propiedad = {
+                    'id': len(activos) + 1,
+                    'tipo': 'propiedad',
+                    'nombre': nombre,
+                    'tipo_inmueble': tipo,
+                    'zona': zona,
+                    'm2': m2,
+                    'dormitorios': dormitorios,
+                    'baños': baños,
+                    'antiguedad': antiguedad,
+                    'estado': estado,
+                    'cochera': cochera,
+                    'patio': patio,
+                    'valor_tasacion_usd': 0,
+                    'valor_tasacion_ars': 0,
+                    'valor_anterior_ars': 0
+                }
+                activos.append(propiedad)
+                datos['activos'] = activos
+                guardar_datos(datos)
+                st.success(f"Propiedad '{nombre}' guardada como activo")
+                st.rerun()
+    
+    # Mostrar propiedades existentes
+    if propiedades:
+        st.subheader("Propiedades Registradas")
+        df = pd.DataFrame(propiedades)
+        cols = ['nombre', 'tipo_inmueble', 'zona', 'm2', 'dormitorios', 'baños', 'antiguedad']
+        available = [c for c in cols if c in df.columns]
+        st.dataframe(df[available])
+    
+    # Actualizar tasación mensual
+    st.subheader("Actualizar Tasación Mensual")
+    st.info("Actualiza el valor de tasación en USD para calcular la plusvalía del mes")
+    
+    for prop in propiedades:
+        col1, col2, col3 = st.columns([2, 2, 1])
+        with col1:
+            st.write(f"**{prop['nombre']}** ({prop.get('zona', '')}) - {prop.get('m2', 0)}m²")
+        with col2:
+            nuevo_valor = st.number_input(
+                f"Valor USD",
+                min_value=0.0,
+                value=float(prop.get('valor_tasacion_usd', 0)),
+                key=f"tasacion_{prop['id']}"
+            )
+        with col3:
+            if st.button(f"Actualizar", key=f"btn_{prop['id']}"):
+                # Guardar valor anterior
+                prop['valor_anterior_ars'] = prop.get('valor_tasacion_ars', 0)
+                # Actualizar nuevo valor
+                prop['valor_tasacion_usd'] = nuevo_valor
+                prop['valor_tasacion_ars'] = nuevo_valor * 1500  # Aproximación
+                
+                datos['activos'] = activos
+                
+                # Calcular plusvalía del mes
+                plusvalia = prop['valor_tasacion_ars'] - prop['valor_anterior_ars']
+                datos.setdefault('meses', {}).setdefault(mes, {}).setdefault('plusvalia_propiedades', 0)
+                datos['meses'][mes]['plusvalia_propiedades'] = plusvalia
+                
+                guardar_datos(datos)
+                st.success(f"Tasación actualizada. Plusvalía: ${plusvalia:,.0f}")
+                st.rerun()
+    
+    # Mostrar plusvalía total
+    if propiedades:
+        total_plusvalia = sum(
+            prop.get('valor_tasacion_ars', 0) - prop.get('valor_anterior_ars', 0) 
+            for prop in propiedades
+        )
+        st.metric("Plusvalía Total Propiedades", f"${total_plusvalia:,.0f}")
+
+
+def mostrar_ajustes(mes):
+    st.header("Ajustes Manuales")
+    
+    datos = st.session_state.datos
+    ajustes = datos.get('meses', {}).get(mes, {}).get('ajustes', [])
+    
+    st.info("Agrega ajustes manuales como aportes en efectivo, correcciones o ajustes de cambio")
+    
+    with st.form("agregar_ajuste"):
+        col1, col2 = st.columns(2)
+        with col1:
+            tipo = st.selectbox("Tipo", ["aporte_efectivo", "correccion", "ajuste_cambio"])
+            descripcion = st.text_input("Descripción")
+        with col2:
+            monto = st.number_input("Monto", min_value=0.0)
+            moneda = st.selectbox("Moneda", ["ARS", "USD", "CLP"])
+        
+        submitted = st.form_submit_button("Agregar Ajuste")
+        
+        if submitted and descripcion and monto > 0:
+            ajuste = {
+                'tipo': tipo,
+                'descripcion': descripcion,
+                'monto': monto,
+                'moneda': moneda,
+                'fecha': datetime.now().strftime('%Y-%m-%d')
+            }
+            ajustes.append(ajuste)
+            datos.setdefault('meses', {}).setdefault(mes, {})['ajustes'] = ajustes
+            guardar_datos(datos)
+            st.success("Ajuste agregado")
+            st.rerun()
+    
+    # Mostrar ajustes
+    if ajustes:
+        st.subheader("Ajustes del Mes")
+        df = pd.DataFrame(ajustes)
+        st.dataframe(df)
+        
+        total = sum(a.get('monto', 0) for a in ajustes)
+        st.metric("Total Ajustes", f"${total:,.0f}")
+        
+        # Eliminar ajuste
+        if st.button("Limpiar Ajustes"):
+            datos.setdefault('meses', {}).setdefault(mes, {})['ajustes'] = []
+            guardar_datos(datos)
+            st.rerun()
+
+
+def cargar_extracto(mes):
+    st.header("Cargar Extracto Bancario")
+    
+    # Input para valor USD/CLP
+    col1, col2 = st.columns(2)
+    with col1:
+        usd_clp_input = st.number_input(
+            "Valor USD/CLP (tipo de cambio)",
+            min_value=0.0,
+            value=st.session_state.usd_clp,
+            step=10.0,
+            help="Ingresa el valor de 1 USD en CLP. Para febrero 2026, aproximadamente 1050-1100 CLP"
+        )
+    if usd_clp_input != st.session_state.usd_clp:
+        st.session_state.usd_clp = usd_clp_input
+        st.rerun()
+    
+    st.info("Sube tu extracto bancario (PDF, Excel, imagen o texto). El sistema detectará los ingresos automáticamente.")
+    
+    archivo = st.file_uploader(
+        "Seleccionar archivo",
+        type=['jpg', 'jpeg', 'png', 'pdf', 'txt', 'xlsx', 'xls']
+    )
+    
+    if archivo:
+        texto = None
+        
+        # Determinar tipo de archivo por MIME o extensión
+        file_type = archivo.type
+        file_name = archivo.name.lower() if archivo.name else ""
+        
+        # Si el tipo MIME no es preciso, usar la extensión
+        if not file_type or file_type == "application/octet-stream":
+            if file_name.endswith('.pdf'):
+                file_type = "application/pdf"
+            elif file_name.endswith(('.jpg', '.jpeg', '.png', '.bmp')):
+                file_type = "image/jpeg"
+            elif file_name.endswith('.txt'):
+                file_type = "text/plain"
+            elif file_name.endswith(('.xlsx', '.xls')):
+                file_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        
+        if file_type == "text/plain":
+            texto = archivo.read().decode('utf-8')
+        elif file_type == "application/pdf":
+            if PDF_AVAILABLE:
+                # Input para password si el PDF está encriptado
+                pdf_password = None
+                if file_name.endswith('.pdf'):
+                    pdf_password = st.text_input("Password del PDF (si está encriptado)", type="password")
+                
+                with st.spinner("Extrayendo texto del PDF..."):
+                    archivo.seek(0)
+                    texto = extraer_texto_pdf(archivo, pdf_password)
+                if texto:
+                    st.success("Texto extraído del PDF")
+                else:
+                    st.error("No se pudo extraer texto del PDF")
+            else:
+                st.warning("PyMuPDF no está instalado. Puedes pegar el texto manualmente.")
+        elif file_type and file_type.startswith('image/'):
+            if EASYOCR_AVAILABLE:
+                with st.spinner("Extrayendo texto de la imagen (puede tomar unos segundos)..."):
+                    archivo.seek(0)
+                    texto = extraer_texto_imagen(archivo)
+                if texto:
+                    st.success("Texto extraído de la imagen")
+                else:
+                    st.error("No se pudo extraer texto de la imagen")
+            else:
+                st.warning("EasyOCR no está instalado. Puedes pegar el texto manualmente.")
+        elif 'excel' in file_type or file_name.endswith(('.xlsx', '.xls')):
+            with st.spinner("Extrayendo movimientos del Excel..."):
+                archivo.seek(0)
+                # Detectar banco por nombre de archivo
+                banco = 'galicia'
+                if 'santander' in file_name:
+                    banco = 'santander_chile'
+                elif 'icbc' in file_name:
+                    banco = 'icbc'
+                elif 'mercadopago' in file_name or 'mp' in file_name:
+                    banco = 'mercadopago'
+                
+                movimientos_excel = extraer_movimientos_excel(archivo, banco)
+            
+            if movimientos_excel and len(movimientos_excel) > 0:
+                st.success(f"Movimientos extraídos del Excel: {len(movimientos_excel)} ingresos")
+                
+                # Mostrar preview
+                df_prev = pd.DataFrame(movimientos_excel)
+                st.dataframe(df_prev)
+                
+                if st.button("Guardar Movimientos"):
+                    datos = st.session_state.datos
+                    ingresos = datos.get('meses', {}).setdefault(mes, {}).get('ingresos_bancarios', [])
+                    ingresos.extend(movimientos_excel)
+                    datos.setdefault('meses', {})[mes]['ingresos_bancarios'] = ingresos
+                    guardar_datos(datos)
+                    st.success("Movimientos guardados correctamente")
+            else:
+                st.error("No se pudieron extraer movimientos del Excel")
+        else:
+            st.warning("Tipo de archivo no reconocido. Puedes pegar el texto manualmente.")
+        
+        if not texto:
+            texto = st.text_area("Pega el texto del extracto aquí:", height=200)
+        
+        if texto:
+            with st.expander("Ver texto extraído"):
+                st.text(texto[:5000] + "..." if len(texto) > 5000 else texto)
+            
+            movimientos = parsear_texto(texto)
+            
+            if movimientos:
+                st.success(f"Se detectaron {len(movimientos)} ingresos")
+                
+                df_prev = pd.DataFrame(movimientos)
+                st.dataframe(df_prev)
+                
+                if st.button("Guardar Movimientos"):
+                    datos = st.session_state.datos
+                    ingresos = datos.get('meses', {}).setdefault(mes, {}).get('ingresos_bancarios', [])
+                    ingresos.extend(movimientos)
+                    datos.setdefault('meses', {})[mes]['ingresos_bancarios'] = ingresos
+                    guardar_datos(datos)
+                    st.success("Movimientos guardados correctamente")
+            else:
+                st.warning("No se detectaron ingresos en el texto")
+
+
+def exportar_datos():
+    st.header("Exportar Datos")
+    
+    datos = st.session_state.datos
+    
+    # Exportar JSON
+    if st.button("Exportar JSON"):
+        json_str = json.dumps(datos, ensure_ascii=False, indent=2)
+        st.download_button(
+            label="Descargar JSON",
+            data=json_str,
+            file_name="ingresos_familiares.json",
+            mime="application/json"
+        )
+    
+    # Exportar Excel por mes
+    st.subheader("Exportar por Mes")
+    meses = list(datos.get('meses', {}).keys())
+    if meses:
+        mes_seleccionado = st.selectbox("Seleccionar mes para exportar", meses)
+        
+        if st.button("Exportar Mes a Excel"):
+            mes_data = datos['meses'][mes_seleccionado]
+            
+            with pd.ExcelWriter(f'ingresos_{mes_seleccionado}.xlsx', engine='openpyxl') as writer:
+                if mes_data.get('ingresos_bancarios'):
+                    pd.DataFrame(mes_data['ingresos_bancarios']).to_excel(writer, sheet_name='Ingresos', index=False)
+                if mes_data.get('fondos_mutuos'):
+                    pd.DataFrame(mes_data['fondos_mutuos']).to_excel(writer, sheet_name='Fondos', index=False)
+                if mes_data.get('propiedades'):
+                    pd.DataFrame(mes_data['propiedades']).to_excel(writer, sheet_name='Propiedades', index=False)
+                if mes_data.get('ajustes'):
+                    pd.DataFrame(mes_data['ajustes']).to_excel(writer, sheet_name='Ajustes', index=False)
+            
+            with open(f'ingresos_{mes_seleccionado}.xlsx', 'rb') as f:
+                st.download_button(
+                    label="Descargar Excel",
+                    data=f,
+                    file_name=f'ingresos_{mes_seleccionado}.xlsx',
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+    else:
+        st.warning("No hay datos para exportar")
+
+
+def cargar_fondos_mutuos(mes):
+    st.header("Cargar Fondos Mutuos (Santander Chile)")
+    
+    st.info("Sube el PDF de cartola de fondos mutuos. Se detectarán automáticamente los fondos y se guardarán como activos.")
+    
+    archivo = st.file_uploader(
+        "Seleccionar archivo PDF de fondos mutuos",
+        type=['pdf']
+    )
+    
+    if archivo:
+        pdf_password = st.text_input("Password del PDF (si está encriptado)", type="password")
+        
+        if st.button("Extraer Fondos"):
+            with st.spinner("Extrayendo fondos mutuos..."):
+                archivo.seek(0)
+                fondos, total_ars, fecha, total_ganancia_ars = extraer_fondos_mutuos(archivo, pdf_password)
+            
+            if fondos:
+                st.success(f"Fondos extraídos correctamente (fecha: {fecha})")
+                
+                # Mostrar totales
+                col1, col2 = st.columns(2)
+                col1.metric("Valor Final Total (ARS)", f"${total_ars:,.0f}")
+                col2.metric("Ganancia del Período (ARS)", f"${total_ganancia_ars:,.0f}", 
+                           delta=f"{total_ganancia_ars:,.0f}")
+                
+                # Mostrar dataframe
+                df_fondos = pd.DataFrame(fondos)
+                st.dataframe(df_fondos[['nombre', 'moneda', 'valor_inicial', 'valor_final', 'ganancia', 'ganancia_ars']])
+                
+                if st.button("Guardar como Activos"):
+                    datos = st.session_state.datos
+                    activos = datos.get('activos', [])
+                    
+                    for fondo in fondos:
+                        # Verificar si ya existe
+                        existe = any(a.get('nombre') == fondo['nombre'] and a.get('tipo') == 'fondo_mutuo' for a in activos)
+                        if not existe:
+                            activos.append({
+                                'id': len(activos) + 1,
+                                'tipo': 'fondo_mutuo',
+                                'nombre': fondo['nombre'],
+                                'moneda_original': fondo['moneda'],
+                                'valor_inicial': fondo['valor_inicial'],
+                                'valor_final': fondo['valor_final'],
+                                'valor_final_ars': fondo['valor_final_ars'],
+                                'ganancia': fondo['ganancia'],
+                                'ganancia_ars': fondo['ganancia_ars'],
+                                'fecha': fecha,
+                                'tasas': fondo['tasas']
+                            })
+                    
+                    datos['activos'] = activos
+                    
+                    # Registrar ganancia del mes
+                    datos.setdefault('meses', {}).setdefault(mes, {}).setdefault('ganancia_fondos', 0)
+                    datos['meses'][mes]['ganancia_fondos'] = total_ganancia_ars
+                    
+                    guardar_datos(datos)
+                    st.success(f"Fondos guardados como activos. Ganancia registrada para {mes}")
+            else:
+                st.error("No se pudieron extraer fondos del PDF")
+
+
+def mostrar_activos():
+    st.header("Activos")
+    
+    datos = st.session_state.datos
+    activos = datos.get('activos', [])
+    
+    if not activos:
+        st.info("No hay activos cargados. Ve a 'Cargar Fondos Mutuos' o 'Propiedades' para agregar.")
+        return
+    
+    # Separar por tipo
+    fondos = [a for a in activos if a.get('tipo') == 'fondo_mutuo']
+    propiedades = [a for a in activos if a.get('tipo') == 'propiedad']
+    otros = [a for a in activos if a.get('tipo') not in ['fondo_mutuo', 'propiedad']]
+    
+    # Totales
+    total_fondos_ars = sum(a.get('valor_final_ars', 0) for a in fondos)
+    total_propiedades_ars = sum(a.get('valor_actual_ars', 0) for a in propiedades)
+    
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Total Fondos Mutuos", f"${total_fondos_ars:,.0f}")
+    col2.metric("Total Propiedades", f"${total_propiedades_ars:,.0f}")
+    col3.metric("Total Activos", f"${total_fondos_ars + total_propiedades_ars:,.0f}")
+    
+    # Fondos Mutuos
+    if fondos:
+        st.subheader("Fondos Mutuos")
+        df_fondos = pd.DataFrame(fondos)
+        cols = ['nombre', 'moneda_original', 'valor_final', 'ganancia', 'valor_final_ars', 'ganancia_ars', 'fecha']
+        available = [c for c in cols if c in df_fondos.columns]
+        st.dataframe(df_fondos[available])
+        
+        # Total ganancia
+        total_ganancia = sum(a.get('ganancia_ars', 0) for a in fondos)
+        st.metric("Ganancia Total Fondos", f"${total_ganancia:,.0f}", delta=f"{total_ganancia:,.0f}")
+    
+    # Propiedades
+    if propiedades:
+        st.subheader("Propiedades")
+        df_props = pd.DataFrame(propiedades)
+        cols = ['nombre', 'zona', 'm2', 'valor_actual_ars']
+        available = [c for c in cols if c in df_props.columns]
+        st.dataframe(df_props[available])
+    
+    # Otros
+    if otros:
+        st.subheader("Otros Activos")
+        df_otros = pd.DataFrame(otros)
+        st.dataframe(df_otros)
+    
+    # Eliminar activo
+    if st.button("Eliminar Activo"):
+        st.info("Funcionalidad de eliminación en desarrollo")
+
+
+if __name__ == "__main__":
+    main()

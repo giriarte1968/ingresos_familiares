@@ -1,0 +1,9 @@
+
+  You can now view your Streamlit app in your browser.
+
+  Local URL: http://localhost:8503
+  Network URL: http://192.168.1.6:8503
+
+Using CPU. Note: This module is much faster with a GPU.
+C:\Users\Gustavo\anaconda3\envs\oracle_windows\Lib\site-packages\torch\utils\data\dataloader.py:775: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
