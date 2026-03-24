@@ -849,6 +849,23 @@ def main():
                 guardar_datos(st.session_state.datos)
                 st.rerun()
     
+    st.sidebar.divider()
+    
+    # Selectores globales de owner y medio_pago
+    OWNERS = ["Gustavo", "Vero"]
+    MEDIOS_PAGO = ["Banco Galicia", "ICBC", "QR Binance", "QR Bybit", "Tarjeta Prepaga Bybit", "Visa", "Mastercard", "Efectivo", "Mercado Pago", "Otro"]
+    
+    if 'owner_default' not in st.session_state:
+        st.session_state.owner_default = OWNERS[0]
+    if 'medio_pago_default' not in st.session_state:
+        st.session_state.medio_pago_default = MEDIOS_PAGO[0]
+    
+    owner_sel = st.sidebar.selectbox("Owner", OWNERS, index=OWNERS.index(st.session_state.owner_default) if st.session_state.owner_default in OWNERS else 0, key="sel_owner")
+    medio_sel = st.sidebar.selectbox("Medio de Pago", MEDIOS_PAGO, index=MEDIOS_PAGO.index(st.session_state.medio_pago_default) if st.session_state.medio_pago_default in MEDIOS_PAGO else 0, key="sel_medio")
+    
+    st.session_state.owner_default = owner_sel
+    st.session_state.medio_pago_default = medio_sel
+    
     # Menú principal
     menu = st.sidebar.selectbox(
         "Menú",
@@ -1598,8 +1615,8 @@ def mostrar_egresos():
                                     'fuente': 'ICBC JPG',
                                     'categoria': cat,
                                     'subcategoria': sub,
-                                    'owner': 'Vero',
-                                    'medio_pago': 'ICBC',
+                                    'owner': st.session_state.get('owner_default', 'Vero'),
+                                    'medio_pago': st.session_state.get('medio_pago_default', 'ICBC'),
                                     'u_id': generar_id()
                                 })
 
@@ -1837,8 +1854,8 @@ def mostrar_egresos():
                                             'fuente': fuente,
                                             'categoria': categoria,
                                             'subcategoria': subcategoria,
-                                            'owner': 'Gustavo',
-                                            'medio_pago': 'Banco Galicia',
+                                            'owner': st.session_state.get('owner_default', 'Gustavo'),
+                                            'medio_pago': st.session_state.get('medio_pago_default', 'Banco Galicia'),
                                             'u_id': generar_id()
                                         })
                                     else:
@@ -2265,6 +2282,36 @@ def mostrar_ajustes(mes):
         if st.button("Limpiar Ajustes"):
             datos.setdefault('meses', {}).setdefault(mes, {})['ajustes'] = []
             guardar_datos(datos)
+            st.rerun()
+    
+    st.divider()
+    st.subheader("Zona de Peligro")
+    st.warning("Estas acciones son irreversibles.")
+    
+    col_b1, col_b2 = st.columns(2)
+    with col_b1:
+        if st.button("Borrar Periodo Actual", type="primary"):
+            if mes in datos.get('meses', {}):
+                datos['meses'][mes] = {
+                    'ingresos_bancarios': [],
+                    'egresos': [],
+                    'ganancia_fondos': 0,
+                    'plusvalia_propiedades': 0,
+                    'ajustes': []
+                }
+                guardar_datos(datos)
+                st.success(f"Datos del periodo {mes} eliminados.")
+                st.rerun()
+    
+    with col_b2:
+        if st.button("Borrar TODOS los Datos", type="primary"):
+            datos_limpios = {
+                'usd_clp': st.session_state.datos.get('usd_clp', 0),
+                'meses': {}
+            }
+            st.session_state.datos = datos_limpios
+            guardar_datos(datos_limpios)
+            st.success("Todos los datos fueron eliminados.")
             st.rerun()
 
 
