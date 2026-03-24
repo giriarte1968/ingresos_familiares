@@ -1440,11 +1440,25 @@ def mostrar_egresos():
     OWNERS = ["Gustavo", "Vero"]
     MEDIOS_PAGO = ["Banco Galicia", "ICBC", "QR Binance", "QR Bybit", "Tarjeta Prepaga Bybit", "Visa", "Mastercard", "Efectivo", "Mercado Pago", "Otro"]
     
-    col_o, col_m = st.columns(2)
+    col_o, col_m, col_b = st.columns([2, 2, 1])
     with col_o:
         owner_egreso = st.selectbox("Owner", OWNERS, key="owner_egreso_sel")
     with col_m:
         medio_egreso = st.selectbox("Medio de Pago", MEDIOS_PAGO, key="medio_egreso_sel")
+    with col_b:
+        st.write("")
+        if st.button("Borrar Periodo", key="btn_borrar_periodo"):
+            datos['meses'][mes_seleccionado] = {
+                'ingresos_bancarios': [],
+                'egresos': [],
+                'ajustes': [],
+                'ganancia_fondos': 0,
+                'plusvalia_propiedades': 0
+            }
+            guardar_datos(datos)
+            st.session_state.datos = datos
+            st.success(f"Periodo {mes_seleccionado} borrado.")
+            st.rerun()
     
     egresos = datos.get('meses', {}).get(mes_seleccionado, {}).get('egresos', [])
     
@@ -1962,16 +1976,8 @@ def mostrar_egresos():
             egreso_id = f"egreso_{idx}_{egreso.get('fecha', '')[:10]}_{egreso.get('monto', 0)}"
             egreso_id = egreso_id.replace('.', '_').replace('-', '_')
             
-            has_comprobante = 'sub_pagos' in egreso and egreso['sub_pagos']
-            sub_pagos = egreso.get('sub_pagos', [])
+            col2, col3, col4, col5, col6 = st.columns([1, 2, 1, 1, 1])
             
-            col1, col2, col3, col4, col5, col6 = st.columns([1, 1, 2, 1, 1, 1])
-            
-            with col1:
-                if has_comprobante:
-                    st.checkbox("Comp.", value=True, disabled=True, key=f"chk_{egreso_id}_t")
-                else:
-                    st.checkbox("Comp.", value=False, disabled=True, key=f"chk_{egreso_id}_f")
             with col2:
                 st.text(egreso.get('fecha', '-')[:10])
             with col3:
