@@ -849,23 +849,6 @@ def main():
                 guardar_datos(st.session_state.datos)
                 st.rerun()
     
-    st.sidebar.divider()
-    
-    # Selectores globales de owner y medio_pago
-    OWNERS = ["Gustavo", "Vero"]
-    MEDIOS_PAGO = ["Banco Galicia", "ICBC", "QR Binance", "QR Bybit", "Tarjeta Prepaga Bybit", "Visa", "Mastercard", "Efectivo", "Mercado Pago", "Otro"]
-    
-    if 'owner_default' not in st.session_state:
-        st.session_state.owner_default = OWNERS[0]
-    if 'medio_pago_default' not in st.session_state:
-        st.session_state.medio_pago_default = MEDIOS_PAGO[0]
-    
-    owner_sel = st.sidebar.selectbox("Owner", OWNERS, index=OWNERS.index(st.session_state.owner_default) if st.session_state.owner_default in OWNERS else 0, key="sel_owner")
-    medio_sel = st.sidebar.selectbox("Medio de Pago", MEDIOS_PAGO, index=MEDIOS_PAGO.index(st.session_state.medio_pago_default) if st.session_state.medio_pago_default in MEDIOS_PAGO else 0, key="sel_medio")
-    
-    st.session_state.owner_default = owner_sel
-    st.session_state.medio_pago_default = medio_sel
-    
     # Menú principal
     menu = st.sidebar.selectbox(
         "Menú",
@@ -1453,6 +1436,16 @@ def mostrar_egresos():
                 else:
                     st.warning("El mes ya existe")
     
+    # Selectores de owner y medio de pago para los egresos
+    OWNERS = ["Gustavo", "Vero"]
+    MEDIOS_PAGO = ["Banco Galicia", "ICBC", "QR Binance", "QR Bybit", "Tarjeta Prepaga Bybit", "Visa", "Mastercard", "Efectivo", "Mercado Pago", "Otro"]
+    
+    col_o, col_m = st.columns(2)
+    with col_o:
+        owner_egreso = st.selectbox("Owner", OWNERS, key="owner_egreso_sel")
+    with col_m:
+        medio_egreso = st.selectbox("Medio de Pago", MEDIOS_PAGO, key="medio_egreso_sel")
+    
     egresos = datos.get('meses', {}).get(mes_seleccionado, {}).get('egresos', [])
     
     # Subir archivo
@@ -1615,8 +1608,8 @@ def mostrar_egresos():
                                     'fuente': 'ICBC JPG',
                                     'categoria': cat,
                                     'subcategoria': sub,
-                                    'owner': st.session_state.get('owner_default', 'Vero'),
-                                    'medio_pago': st.session_state.get('medio_pago_default', 'ICBC'),
+                                    'owner': 'Vero',
+                                    'medio_pago': 'ICBC',
                                     'u_id': generar_id()
                                 })
 
@@ -1854,8 +1847,8 @@ def mostrar_egresos():
                                             'fuente': fuente,
                                             'categoria': categoria,
                                             'subcategoria': subcategoria,
-                                            'owner': st.session_state.get('owner_default', 'Gustavo'),
-                                            'medio_pago': st.session_state.get('medio_pago_default', 'Banco Galicia'),
+                                            'owner': owner_egreso,
+                                            'medio_pago': medio_egreso,
                                             'u_id': generar_id()
                                         })
                                     else:
