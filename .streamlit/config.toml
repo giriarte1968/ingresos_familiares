@@ -1,6 +1,5 @@
 [server]
 headless = true
-maxCachedMessageAge = 100
 enableCORS = false
 enableXsrfProtection = false
 
