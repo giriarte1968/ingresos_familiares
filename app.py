@@ -88,27 +88,272 @@ def get_ocr_reader():
     return _ocr_reader
 
 
-def buscar_comercio_en_web(nombre_comercio):
-    """Busca información de un comercio en la web usando DuckDuckGo"""
-    import re
+@st.cache_data(ttl=86400*7)  # Cache por 7 días
+def buscar_comercio_en_web(nombre_comercio, ciudad="Rosario Argentina"):
+    """Busca información de un comercio en DuckDuckGo y analiza múltiples resultados"""
     try:
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         }
-        busqueda = f"{nombre_comercio} Argentina"
+        
+        # Búsqueda con contexto geográfico
+        busqueda = f"{nombre_comercio} {ciudad}"
         url = f"https://html.duckduckgo.com/html/?q={quote(busqueda)}"
         
         response = requests.get(url, headers=headers, timeout=10)
-        if response.status_code == 200:
-            html = response.text
-            titulos = re.findall(r'<a class="result__a"[^>]*href[^>]*>([^<]+)</a>', html, re.IGNORECASE)
-            if titulos:
-                mejor_titulo = titulos[0].strip()
-                return mejor_titulo, 0.85
-        return None, 0
+        if response.status_code != 200:
+            return None, 0, None, None
+        
+        html = response.text
+        
+        # Extraer títulos (hasta 5 resultados)
+        titulos = re.findall(
+            r'<a class="result__a"[^>]*>(.+?)</a>', 
+            html, re.IGNORECASE
+        )[:5]
+        
+        # Extraer snippets/descripciones
+        snippets = re.findall(
+            r'<a class="result__snippet"[^>]*>(.+?)</a>', 
+            html, re.IGNORECASE
+        )[:5]
+        
+        # Limpiar HTML de los textos
+        def limpiar_html(texto):
+            texto = re.sub(r'<[^>]+>', ' ', texto)
+            texto = texto.replace('&amp;', '&').replace('&quot;', '"')
+            texto = texto.replace('&#x27;', "'").replace('&lt;', '<')
+            texto = texto.replace('&gt;', '>').replace('&nbsp;', ' ')
+            return ' '.join(texto.split()).strip()
+        
+        titulos = [limpiar_html(t) for t in titulos]
+        snippets = [limpiar_html(s) for s in snippets]
+        
+        # Combinar todo el texto encontrado
+        texto_completo = ' '.join(titulos + snippets).lower()
+        
+        if not texto_completo.strip():
+            return None, 0, None, None
+        
+        # Mapeo exhaustivo de palabras clave a categorías
+        MAPEO_WEB = {
+            # Comercios - Gastronomía
+            ('comercios', 'restaurant'): [
+                'restaurant', 'restaurante', 'resto', 'pizza', 'pizzeria', 
+                'pizzería', 'burger', 'hamburgues', 'parrilla', 'grill',
+                'bar ', 'pub ', 'cerveceria', 'cervecería', 'comida',
+                'gastronomia', 'gastronomía', 'cocina', 'sushi',
+                'empanada', 'lomiteria', 'lomitería', 'rotiseria',
+                'rotisería', 'fast food', 'delivery', 'cafeteria',
+                'cafetería', 'coffee', 'brunch', 'bistro', 'cantina',
+                'bodegon', 'bodegón', 'tenedor libre'
+            ],
+            ('comercios', 'supermercado'): [
+                'supermercado', 'hiper', 'hipermercado', 'autoservicio',
+                'mayorista', 'minorista', 'almacen', 'almacén',
+                'market', 'grocery', 'alimentos', 'comestibles',
+                'fiambreria', 'fiambrería', 'dietética', 'dietetica',
+                'productos alimenticios'
+            ],
+            ('comercios', 'farmacia'): [
+                'farmacia', 'farmacéutica', 'farmaceutica', 'drogueria',
+                'droguería', 'medicamento', 'perfumeria', 'perfumería',
+                'cosmetic', 'salcobrand'
+            ],
+            ('comercios', 'combustible'): [
+                'estacion de servicio', 'estación de servicio',
+                'combustible', 'nafta', 'gasoil', 'gnc', 'shell',
+                'ypf', 'axion', 'oil', 'petro', 'refinor', 'puma energy'
+            ],
+            ('comercios', 'indumentaria'): [
+                'ropa', 'indumentaria', 'textil', 'calzado', 'zapateria',
+                'zapatería', 'zapato', 'vestir', 'moda', 'fashion',
+                'remera', 'pantalon', 'pantalón', 'camisa', 'campera',
+                'jean', 'deportiva', 'outfit', 'boutique', 'tienda de ropa',
+                'confeccion', 'confección', 'talles', 'sastreria',
+                'sastrería', 'uniformes', 'lenceria', 'lencería'
+            ],
+            ('comercios', 'panaderia'): [
+                'panaderia', 'panadería', 'panificadora', 'bakery',
+                'facturas', 'medialunas', 'pasteleria', 'pastelería',
+                'confiteria', 'confitería', 'tortas', 'dulces'
+            ],
+            ('comercios', 'carniceria'): [
+                'carniceria', 'carnicería', 'carnes', 'frigorífico',
+                'frigorifico', 'polleria', 'pollería', 'chacinado',
+                'embutido'
+            ],
+            ('comercios', 'ferreteria'): [
+                'ferreteria', 'ferretería', 'herramienta', 'tornilleria',
+                'tornillería', 'bulonera', 'herraje', 'cerrajeria',
+                'cerrajería'
+            ],
+            ('comercios', 'pintureria'): [
+                'pintureria', 'pinturería', 'pintura', 'pinturas',
+                'revestimiento', 'impermeabilizante', 'latex', 'esmalte',
+                'color', 'colorimetria'
+            ],
+            ('comercios', 'bazar'): [
+                'bazar', 'regaleria', 'regalería', 'regalo', 'menaje',
+                'hogar', 'decoracion', 'decoración', 'deco ',
+                'artículos para el hogar', 'articulos para el hogar',
+                'parrilla', 'asado', 'accesorio para parrilla',
+                'artículos de parrilla', 'articulos de parrilla',
+                'quincho', 'carbón', 'carbon', 'leña', 'accesorios cocina'
+            ],
+            ('comercios', 'electronica'): [
+                'electronica', 'electrónica', 'tecnologia', 'tecnología',
+                'celular', 'telefono', 'teléfono', 'computadora',
+                'notebook', 'informatica', 'informática', 'gaming',
+                'audio', 'video', 'tv ', 'televisor', 'consola'
+            ],
+            ('comercios', 'heladeria'): [
+                'heladeria', 'heladería', 'helado', 'helados',
+                'freddo', 'persicco', 'ice cream'
+            ],
+            ('comercios', 'verduleria'): [
+                'verduleria', 'verdulería', 'fruteria', 'frutería',
+                'fruta', 'verdura', 'orgánico', 'organico'
+            ],
+            ('comercios', 'optica'): [
+                'optica', 'óptica', 'lentes', 'anteojos', 'gafas',
+                'oftalmolog', 'vision', 'visión', 'contacto'
+            ],
+            ('comercios', 'veterinaria'): [
+                'veterinaria', 'veterinario', 'mascota', 'pet shop',
+                'petshop', 'animal', 'canino', 'felino', 'alimento mascota'
+            ],
+            ('comercios', 'libreria'): [
+                'libreria', 'librería', 'papeleria', 'papelería',
+                'libro', 'editorial', 'cuaderno', 'artículos escolares'
+            ],
+            ('comercios', 'muebleria'): [
+                'mueble', 'muebleria', 'mueblería', 'amoblamientos',
+                'colchon', 'colchón', 'sommier', 'carpinteria',
+                'carpintería', 'aberturas'
+            ],
+            ('comercios', 'automotor'): [
+                'gomeria', 'gomería', 'neumatico', 'neumático', 'taller',
+                'mecanica', 'mecánica', 'repuesto', 'autoparte',
+                'lubricentro', 'alineacion', 'alineación', 'balanceo',
+                'chapa', 'pintura automotor', 'lavadero'
+            ],
+            
+            # Servicios
+            ('servicios', 'salud'): [
+                'clinica', 'clínica', 'hospital', 'sanatorio', 'medico',
+                'médico', 'doctor', 'salud', 'diagnostico', 'diagnóstico',
+                'laboratorio', 'análisis', 'analisis', 'imagenes',
+                'imágenes', 'radiologia', 'radiología', 'ecografia',
+                'ecografía', 'odontolog', 'dental', 'kinesio',
+                'fisioterapia', 'psicolog', 'nutricion', 'nutrición',
+                'prepaga', 'obra social', 'gamma', 'instituto medico'
+            ],
+            ('servicios', 'educacion'): [
+                'universidad', 'facultad', 'colegio', 'escuela',
+                'instituto', 'curso', 'capacitacion', 'capacitación',
+                'idioma', 'academia', 'taller educativo', 'jardin',
+                'jardín', 'guarderia', 'guardería'
+            ],
+            ('servicios', 'servicios_publicos'): [
+                'edesur', 'edenor', 'edemsa', 'epe ', 'empresa provincial de energía',
+                'metrogas', 'gasnor', 'litoral gas', 'gas natural',
+                'agua', 'aguas santafesinas', 'aysa', 'assa',
+                'luz', 'electricidad', 'energía eléctrica', 'energia electrica',
+                'gas ', 'servicio público', 'servicio publico'
+            ],
+            ('servicios', 'telecomunicaciones'): [
+                'movistar', 'claro', 'personal', 'telecom', 'telefonica',
+                'telefónica', 'internet', 'wifi', 'fibra optica',
+                'fibra óptica', 'flow', 'cablevision', 'cablevisión',
+                'directv', 'telecentro', 'iplan'
+            ],
+            ('servicios', 'seguros'): [
+                'seguro', 'aseguradora', 'sancor', 'la segunda',
+                'san cristobal', 'san cristóbal', 'mapfre', 'zurich',
+                'rivadavia', 'federacion patronal', 'federación patrimonial',
+                'meridional', 'prevencion', 'prevención'
+            ],
+            ('servicios', 'seguridad'): [
+                'adt', 'alarma', 'monitoreo', 'vigilancia', 'seguridad',
+                'prosegur', 'securitas', 'camaras', 'cámaras'
+            ],
+            ('servicios', 'estacionamiento'): [
+                'estacionamiento', 'parking', 'cochera', 'garage',
+                'playa de estacionamiento'
+            ],
+            ('servicios', 'peluqueria'): [
+                'peluqueria', 'peluquería', 'barberia', 'barbería',
+                'salon de belleza', 'salón de belleza', 'estetica',
+                'estética', 'spa', 'uñas', 'manicura'
+            ],
+            ('servicios', 'transporte'): [
+                'uber', 'cabify', 'didi', 'taxi', 'remis', 'remise',
+                'transporte', 'flete', 'mudanza', 'encomienda'
+            ],
+            ('servicios', 'alquiler'): [
+                'alquiler', 'inmobiliaria', 'propiedad', 'inquilino',
+                'arrendamiento', 'locacion', 'locación'
+            ],
+            ('servicios', 'gimnasio'): [
+                'gimnasio', 'gym', 'fitness', 'crossfit', 'pilates',
+                'yoga', 'natacion', 'natación', 'club deportivo',
+                'entrenamiento'
+            ],
+            ('servicios', 'bancos'): [
+                'banco', 'comision bancaria', 'comisión bancaria',
+                'mantenimiento cuenta', 'cargo bancario',
+                'cargo por servicio'
+            ],
+            
+            # Impuestos
+            ('impuestos', 'impuestos'): [
+                'municipalidad', 'gobierno', 'ministerio', 'afip', 'arca',
+                'dgi', 'api', 'rentas', 'tasa', 'impuesto', 'tributo',
+                'monotributo', 'iibb', 'ingresos brutos', 'tgi',
+                'contribucion', 'contribución', 'canon', 'sellado',
+                'patente', 'inmobiliario', 'automotor impuesto'
+            ],
+            
+            # Suscripciones
+            ('suscripciones', 'streaming'): [
+                'netflix', 'spotify', 'disney', 'amazon prime', 'hbo',
+                'paramount', 'star+', 'youtube premium', 'apple tv',
+                'crunchyroll', 'deezer', 'tidal'
+            ],
+            ('suscripciones', 'software'): [
+                'google one', 'icloud', 'dropbox', 'microsoft 365',
+                'adobe', 'chatgpt', 'canva', 'suscripcion', 'suscripción'
+            ],
+        }
+        
+        # Buscar en todos los textos encontrados
+        mejor_categoria = None
+        mejor_subcategoria = None
+        mejor_puntaje = 0
+        
+        for (categoria, subcategoria), palabras in MAPEO_WEB.items():
+            puntaje = 0
+            for palabra in palabras:
+                if palabra in texto_completo:
+                    peso = len(palabra.split())
+                    puntaje += peso
+            
+            if puntaje > mejor_puntaje:
+                mejor_puntaje = puntaje
+                mejor_categoria = categoria
+                mejor_subcategoria = subcategoria
+        
+        if mejor_puntaje > 0:
+            confianza = min(0.95, 0.60 + (mejor_puntaje * 0.10))
+            resultado_texto = f"{mejor_categoria}/{mejor_subcategoria} (score:{mejor_puntaje})"
+            return resultado_texto, confianza, mejor_categoria, mejor_subcategoria
+        
+        return None, 0, None, None
+        
     except Exception as e:
         print(f"Error buscando comercio: {e}")
-        return None, 0
+        return None, 0, None, None
 
 
 CATEGORIAS_WEB = {
@@ -1091,16 +1336,23 @@ COMERCIOS_CONOCIDOS = {
     'sebastian montene': {'categoria': 'comercios', 'subcategoria': 'indumentaria', 'gasto': 'Indumentaria'},
     'pluspagos': {'categoria': 'servicios', 'subcategoria': 'bancos', 'gasto': 'PlusPagos'},
     'estacionamiento ocampo': {'categoria': 'servicios', 'subcategoria': 'estacionamiento', 'gasto': 'Estacionamiento Ocampo'},
-    'tu quincho': {'categoria': 'servicios', 'subcategoria': 'alquiler', 'gasto': 'Quincho'},
+    'tu quincho': {'categoria': 'comercios', 'subcategoria': 'bazar', 'gasto': 'Tu Quincho'},
     'diego rey': {'categoria': 'comercios', 'subcategoria': 'restaurant', 'gasto': 'Diego Rey'},
     'pinturerias colibri': {'categoria': 'comercios', 'subcategoria': 'pintureria', 'gasto': 'Pinturerías Colibrí'},
     'panaderia sc ii': {'categoria': 'comercios', 'subcategoria': 'panaderia', 'gasto': 'Panadería SC II'},
     'remo franco': {'categoria': 'comercios', 'subcategoria': 'indumentaria', 'gasto': 'Remo Franco SRL'},
-    'correcto': None,  # Ignorar
-    'historial': None,  # Ignorar
-    'pago con': None,  # Ignorar
-    'fecha': None,  # Ignorar
-    'todos los': None,  # Ignorar
+    'epe': {'categoria': 'servicios', 'subcategoria': 'servicios_publicos', 'gasto': 'EPE (Energía)'},
+    'aguas santafesinas': {'categoria': 'servicios', 'subcategoria': 'servicios_publicos', 'gasto': 'Aguas Santafesinas'},
+    'movistar': {'categoria': 'servicios', 'subcategoria': 'telecomunicaciones', 'gasto': 'Movistar'},
+    'personal': {'categoria': 'servicios', 'subcategoria': 'telecomunicaciones', 'gasto': 'Personal'},
+    'adt': {'categoria': 'servicios', 'subcategoria': 'seguridad', 'gasto': 'ADT Seguridad'},
+    'municipalidad': {'categoria': 'impuestos', 'subcategoria': 'impuestos', 'gasto': 'Municipalidad'},
+    'cargo por servicio': {'categoria': 'servicios', 'subcategoria': 'bancos', 'gasto': 'Cargo Bancario'},
+    'correcto': None,
+    'historial': None,
+    'pago con': None,
+    'fecha': None,
+    'todos los': None,
 }
 
 
@@ -1145,143 +1397,49 @@ def detectar_fuente(nombre_archivo):
 
 
 def categorizar_gasto(descripcion, datos=None):
-    """Categoriza automáticamente un gasto según la descripción usando búsqueda web si es necesario"""
-    import re
+    """Categoriza un gasto: 1) conocidos, 2) keywords, 3) web search"""
     
-    # Clean the description - remove extra whitespace, newlines, tabs
+    # Limpiar descripción
     desc_limpia = ' '.join(descripcion.split())
     nombre_limpio = desc_limpia.split('  ')[0].split(' - ')[0].split('\t')[0].strip()
+    nombre_lower = nombre_limpio.lower()
     
-    # First check known commerce
+    # ========== PASO 1: Comercios conocidos (instantáneo) ==========
     for conocido, info in COMERCIOS_CONOCIDOS.items():
         if info is None:
             continue
-        if conocido in nombre_limpio.lower():
+        if conocido in nombre_lower:
             return info['categoria'], info['subcategoria'], info['gasto']
     
-    # Check by keywords in local dictionary
+    # ========== PASO 2: Keywords locales (instantáneo) ==========
     for categoria, keywords in CATEGORIAS_EGRESOS.items():
         if categoria == 'comercios':
             for subcategoria, palabras in keywords.items():
                 for palabra in palabras:
-                    if palabra in nombre_limpio.lower():
+                    if palabra in nombre_lower:
                         return 'comercios', subcategoria, nombre_limpio.title()
         else:
-            for palabra in keywords:
-                if palabra in nombre_limpio.lower():
-                    return categoria, categoria, nombre_limpio.title()
-    
-    # Try web search for unknown commerce
-    resultado_web = buscar_comercio_en_web(nombre_limpio)
-    titulo_web, confianza = resultado_web if resultado_web else (None, 0)
-    if titulo_web and confianza >= 0.70:  # Reduced threshold for better recall
-        titulo_lower = titulo_web.lower()
-        
-        # Check web categories
-        for categoria, subcats in CATEGORIAS_WEB.items():
-            if categoria == 'comercios':
-                for subcategoria, palabras in subcats.items():
-                    for palabra in palabras:
-                        if palabra in titulo_lower:
-                            if datos is not None and nombre_limpio.lower() not in COMERCIOS_CONOCIDOS:
-                                COMERCIOS_CONOCIDOS[nombre_limpio.lower()] = {
-                                    'categoria': 'comercios', 'subcategoria': subcategoria, 'gasto': nombre_limpio.title()
-                                }
-                            return 'comercios', subcategoria, nombre_limpio.title()
-            elif categoria == 'servicios':
-                for subcategoria, palabras in subcats.items():
-                    for palabra in palabras:
-                        if palabra in titulo_lower:
-                            if datos is not None and nombre_limpio.lower() not in COMERCIOS_CONOCIDOS:
-                                COMERCIOS_CONOCIDOS[nombre_limpio.lower()] = {
-                                    'categoria': 'servicios', 'subcategoria': subcategoria, 'gasto': nombre_limpio.title()
-                                }
-                            return 'servicios', subcategoria, nombre_limpio.title()
-            else:
-                for palabra in subcats:
-                    if palabra in titulo_lower:
-                        if datos is not None and nombre_limpio.lower() not in COMERCIOS_CONOCIDOS:
-                            COMERCIOS_CONOCIDOS[nombre_limpio.lower()] = {
-                                'categoria': categoria, 'subcategoria': categoria, 'gasto': nombre_limpio.title()
-                            }
+            if isinstance(keywords, list):
+                for palabra in keywords:
+                    if palabra in nombre_lower:
                         return categoria, categoria, nombre_limpio.title()
     
-    # Final fallback - try to infer from description words
-    desc_words = nombre_limpio.lower().split()
+    # ========== PASO 3: Búsqueda web (con cache) ==========
+    resultado = buscar_comercio_en_web(nombre_limpio)
     
-    # Check for common patterns in description
-    if any(word in desc_words for word in ['hospital', 'clinica', 'sanatorio', 'medico', 'doctor', 'salud', 'gamma']):
-        return 'servicios', 'salud', nombre_limpio.title()
-    elif any(word in desc_words for word in ['supermercado', 'hiper', 'carrefour', 'walmart', 'jumbo', 'disco', 'vea', 'coto', 'market']):
-        return 'comercios', 'supermercado', nombre_limpio.title()
-    elif any(word in desc_words for word in ['restaurant', 'pizza', 'burger', 'bar', 'cafe', 'comida']):
-        return 'comercios', 'restaurant', nombre_limpio.title()
-    elif any(word in desc_words for word in ['farmacia', 'farmacity']):
-        return 'comercios', 'farmacia', nombre_limpio.title()
-    elif any(word in desc_words for word in ['shell', 'ypf', 'axion', 'estacion', 'combustible', 'nafta']):
-        return 'comercios', 'combustible', nombre_limpio.title()
-    elif any(word in desc_words for word in ['municipal', 'gobierno', 'ministerio', 'impuesto', 'tasa', 'afip', 'dgi']):
-        return 'impuestos', 'impuestos', nombre_limpio.title()
-    elif any(word in desc_words for word in ['universidad', 'colegio', 'escuela', 'educacion']):
-        return 'servicios', 'educacion', nombre_limpio.title()
-    elif any(word in desc_words for word in ['uber', 'cabify', 'taxi', 'remis', 'transporte']):
-        return 'servicios', 'transporte', nombre_limpio.title()
-    elif any(word in desc_words for word in ['bane', 'galicia', 'santander', 'bbva', 'banco']):
-        return 'servicios', 'bancos', nombre_limpio.title()
-    elif any(word in desc_words for word in ['internet', 'movistar', 'claro', 'personal', 'wifi']):
-        return 'servicios', 'internet', nombre_limpio.title()
-    elif any(word in desc_words for word in ['luz', 'edesur', 'edenor', 'gas', 'metrogas']):
-        return 'servicios', 'servicios_basicos', nombre_limpio.title()
-    elif any(word in desc_words for word in ['netflix', 'spotify', 'youtube', 'suscripcion']):
-        return 'suscripciones', 'entretenimiento', nombre_limpio.title()
-    elif any(word in desc_words for word in ['gimnasio', 'fitness', 'club']):
-        return 'servicios', 'deporte', nombre_limpio.title()
-    elif any(word in desc_words for word in ['peluqueria', 'barberia', 'salon', 'belleza']):
-        return 'servicios', 'belleza', nombre_limpio.title()
-    elif any(word in desc_words for word in ['veterinaria', 'vet', 'mascota', 'pet']):
-        return 'servicios', 'veterinaria', nombre_limpio.title()
-    elif any(word in desc_words for word in ['optica', 'lentes', 'vision']):
-        return 'comercios', 'optica', nombre_limpio.title()
-    elif any(word in desc_words for word in ['alquiler', 'propiedad', 'inmobiliaria']):
-        return 'servicios', 'alquiler', nombre_limpio.title()
-    elif any(word in desc_words for word in ['pinturer', 'pintura', 'color']):
-        return 'comercios', 'pintureria', nombre_limpio.title()
-    elif any(word in desc_words for word in ['panaderia', 'bakery', 'pan']):
-        return 'comercios', 'panaderia', nombre_limpio.title()
-    elif any(word in desc_words for word in ['carniceria', 'carnes', 'polleria']):
-        return 'comercios', 'carniceria', nombre_limpio.title()
-    elif any(word in desc_words for word in ['indumentaria', 'ropa', 'zara', 'nike', 'adidas']):
-        return 'comercios', 'indumentaria', nombre_limpio.title()
-    elif any(word in desc_words for word in ['electronica', 'tecnologia', 'samsung', 'lg', 'sony']):
-        return 'comercios', 'electronica', nombre_limpio.title()
-    elif any(word in desc_words for word in ['bazar', 'regalo', 'regaleria']):
-        return 'comercios', 'bazar', nombre_limpio.title()
-    elif any(word in desc_words for word in ['heladeria', 'helado', 'freddo', 'persicco']):
-        return 'comercios', 'heladeria', nombre_limpio.title()
-    elif any(word in desc_words for word in ['verduleria', 'fruteria', 'fruta', 'verdura']):
-        return 'comercios', 'verduleria', nombre_limpio.title()
-    elif any(word in desc_words for word in ['almacen', 'kiosko', 'kiosco', 'mercadito']):
-        return 'comercios', 'almacen', nombre_limpio.title()
-    elif any(word in desc_words for word in ['libreria', 'libro', 'papelería']):
-        return 'comercios', 'libreria', nombre_limpio.title()
-    elif any(word in desc_words for word in ['joyeria', 'relojes', 'accesorios']):
-        return 'comercios', 'joyeria', nombre_limpio.title()
-    elif any(word in desc_words for word in ['floreria', 'flores', 'jardineria']):
-        return 'comercios', 'floreria', nombre_limpio.title()
-    elif any(word in desc_words for word in ['electrodomesticos', 'lavarropas', 'heladera']):
-        return 'comercios', 'electrodomesticos', nombre_limpio.title()
-    elif any(word in desc_words for word in ['deportes', 'deportivo', 'indumentaria deportiva']):
-        return 'comercios', 'deportes', nombre_limpio.title()
-    elif any(word in desc_words for word in ['libros', 'papelería', 'cuadernos']):
-        return 'comercios', 'libreria', nombre_limpio.title()
-    elif any(word in desc_words for word in ['textil', 'textiles', 'teleria']):
-        return 'comercios', 'textil', nombre_limpio.title()
-    elif any(word in desc_words for word in ['muebles', 'mobiliaria', 'decocion']):
-        return 'comercios', 'muebles', nombre_limpio.title()
-    elif any(word in desc_words for word in ['joyeria', 'bisuteria', 'relojes']):
-        return 'comercios', 'joyeria', nombre_limpio.title()
+    if resultado and len(resultado) >= 4:
+        texto_resultado, confianza, cat_web, subcat_web = resultado
+        
+        if confianza >= 0.60 and cat_web and subcat_web:
+            # Guardar en conocidos para próximas veces
+            COMERCIOS_CONOCIDOS[nombre_lower] = {
+                'categoria': cat_web,
+                'subcategoria': subcat_web,
+                'gasto': nombre_limpio.title()
+            }
+            return cat_web, subcat_web, nombre_limpio.title()
     
-    # If we still don't know, return as others
+    # ========== PASO 4: Fallback ==========
     return 'otros', 'otros', nombre_limpio.title()
 
 
