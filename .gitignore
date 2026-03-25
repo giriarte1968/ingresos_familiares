@@ -1,0 +1,16 @@
+# Data files (personal info)
+datos.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Streamlit
+.streamlit/
+
+# Environment
+.env
+.venv/
+env/
