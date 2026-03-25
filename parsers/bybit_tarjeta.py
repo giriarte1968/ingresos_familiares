@@ -220,6 +220,10 @@ def procesar_bybit_tarjeta(archivo, owner, medio_pago, datos, categorizar_fn=Non
             if not nombre_comercio or len(nombre_comercio) < 2:
                 continue
             
+            # Si no tiene fecha válida, NO cargar
+            if not fecha_gasto:
+                continue
+            
             nombre_lower = nombre_comercio.lower()
             if any(ig in nombre_lower for ig in ['historial', 'correcto', 'total', 'saldo', 'disponible']):
                 continue
