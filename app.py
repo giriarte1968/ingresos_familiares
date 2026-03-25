@@ -1408,10 +1408,12 @@ def mostrar_egresos():
     
     col1, col2 = st.columns([3, 1])
     with col1:
+        default_idx = meses_disponibles.index(st.session_state.mes_egresos_actual) if st.session_state.mes_egresos_actual in meses_disponibles else len(meses_disponibles) - 1
         mes_seleccionado = st.selectbox(
             "Mes",
             meses_disponibles,
-            index=len(meses_disponibles) - 1
+            index=default_idx,
+            key="sel_mes_egresos"
         )
         st.session_state.mes_egresos_actual = mes_seleccionado
     
@@ -1628,22 +1630,21 @@ def mostrar_egresos():
                                 })
 
                             if gastos_icbc:
-                                st.success(f"Se detectaron {len(gastos_icbc)} gastos de ICBC")
+                                st.success(f"Se detectaron {len(gastos_icbc)} gastos")
                                 df_icbc = pd.DataFrame(gastos_icbc)[['fecha', 'gasto', 'monto', 'categoria', 'subcategoria', 'owner', 'medio_pago']]
                                 st.dataframe(df_icbc.rename(columns={'gasto': 'GASTO'}))
                                 total_icbc = sum(g['monto'] for g in gastos_icbc)
-                                st.metric("Total Egresos ICBC", f"${total_icbc:,.2f} ARS")
+                                st.metric("Total Egresos", f"${total_icbc:,.2f} ARS")
 
-                                if st.button("Guardar Egresos ICBC"):
+                                if st.button("Guardar Egresos"):
                                     egresos_existentes = datos.get('meses', {}).setdefault(mes_seleccionado, {}).get('egresos', [])
                                     egresos_existentes.extend(gastos_icbc)
                                     datos.get('meses', {}).setdefault(mes_seleccionado, {})['egresos'] = egresos_existentes
-                                    st.session_state.datos = datos
                                     guardar_datos(datos)
-                                    st.success(f"Egresos ICBC guardados para {mes_seleccionado}")
+                                    st.success(f"Egresos guardados para {mes_seleccionado}")
                                     st.rerun()
                             else:
-                                st.warning("No se detectaron gastos en el JPG de ICBC")
+                                st.warning("No se detectaron gastos en el JPG")
 
                         except Exception as e:
                             st.error(f"Error procesando ICBC JPG: {e}")
@@ -1942,7 +1943,6 @@ def mostrar_egresos():
                             egresos_existentes = datos.get('meses', {}).setdefault(mes_seleccionado, {}).get('egresos', [])
                             egresos_existentes.extend(gastos)
                             datos.get('meses', {}).setdefault(mes_seleccionado, {})['egresos'] = egresos_existentes
-                            st.session_state.datos = datos
                             guardar_datos(datos)
                             st.success(f"Egresos guardados para {mes_seleccionado}")
                             st.rerun()
