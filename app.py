@@ -2172,18 +2172,53 @@ def mostrar_egresos():
         col1, col2 = st.columns([1, 1])
         with col1:
             if st.button("💾 Guardar Egresos", type="primary", width='stretch'):
-                mes_data = datos.setdefault('meses', {}).setdefault(mes_seleccionado, {})
-                if 'egresos' not in mes_data:
-                    mes_data['egresos'] = []
+                # Recargar datos frescos desde disco antes de agregar
+                datos_frescos = cargar_datos()
                 
-                mes_data['egresos'].extend(gastos)
+                # Obtener egresos existentes del mes
+                mes_data = datos_frescos.setdefault('meses', {}).setdefault(mes_seleccionado, {
+                    'ingresos_bancarios': [],
+                    'egresos': [],
+                    'ajustes': [],
+                    'ganancia_fondos': 0,
+                    'plusvalia_propiedades': 0
+                })
                 
-                st.session_state.datos = datos
-                guardar_datos(datos)
+                egresos_existentes = mes_data.get('egresos', [])
                 
+                # Deduplicar: no agregar si ya existe mismo gasto+monto+fecha
+                nuevos = []
+                for g in gastos:
+                    duplicado = False
+                    for e in egresos_existentes:
+                        mismo_gasto = e.get('gasto', '').lower() == g.get('gasto', '').lower()
+                        mismo_monto = abs(e.get('monto', 0) - g.get('monto', 0)) < 0.01
+                        misma_fecha = e.get('fecha', '') == g.get('fecha', '')
+                        if mismo_gasto and mismo_monto and misma_fecha:
+                            duplicado = True
+                            break
+                    if not duplicado:
+                        nuevos.append(g)
+                
+                # AGREGAR a los existentes (no reemplazar)
+                egresos_existentes.extend(nuevos)
+                mes_data['egresos'] = egresos_existentes
+                
+                # Guardar en disco y actualizar session state
+                guardar_datos(datos_frescos)
+                st.session_state.datos = datos_frescos
+                
+                # Limpiar temporal
                 st.session_state.egresos_procesados_temp = None
                 
-                st.success(f"✅ {len(gastos)} egresos guardados correctamente para {mes_seleccionado}")
+                if nuevos:
+                    st.success(f"✅ {len(nuevos)} egresos nuevos guardados para {mes_seleccionado}")
+                    if len(nuevos) < len(gastos):
+                        st.info(f"ℹ️ {len(gastos) - len(nuevos)} egresos duplicados fueron ignorados")
+                else:
+                    st.warning("Todos los egresos ya existían, no se agregaron duplicados")
+                
+                time.sleep(1.5)
                 st.rerun()
 
         with col2:
