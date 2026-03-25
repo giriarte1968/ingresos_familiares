@@ -2,11 +2,9 @@
 headless = true
 enableCORS = false
 enableXsrfProtection = false
-websocketMaxMessageSize = 10485760
 
 [client]
 showErrorDetails = true
 
 [browser]
-serverAddress = "localhost"
 gatherUsageStats = false
