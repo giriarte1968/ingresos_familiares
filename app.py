@@ -1746,162 +1746,29 @@ def mostrar_egresos():
                     
                     st.stop()
                 
-                # ---- ICBC JPG: usar PaddleOCR ----
+                # ---- ICBC JPG: usar parser específico ----
                 elif file_name.endswith(('.jpg', '.jpeg', '.png')) and 'icbc' in file_name:
-                    with st.spinner("Procesando JPG de ICBC con PaddleOCR..."):
-                        try:
-                            reader = get_paddle_reader()
-                            archivo.seek(0)
-                            img = Image.open(archivo).convert('RGB')
-                            img_array = np.array(img)
-                            result = reader.ocr(img_array, cls=True)
-
-                            items = []
-                            if result and result[0]:
-                                for line in result[0]:
-                                    if not line:
-                                        continue
-                                    bbox = line[0]
-                                    x_center = (bbox[0][0] + bbox[2][0]) / 2
-                                    y_center = (bbox[0][1] + bbox[2][1]) / 2
-                                    text = line[1][0]
-                                    items.append((y_center, x_center, text))
-                            items.sort()
-
-                            def parsear_monto_icbc(s):
-                                s = s.strip()
-                                negativo = s.startswith('$-')
-                                s = s.replace('$-', '').replace('$', '')
-                                if ',' in s:
-                                    s = s.replace('.', '')
-                                    s = s.replace(',', '.')
-                                else:
-                                    parts = s.rsplit('.', 1)
-                                    if len(parts) == 2 and len(parts[1]) == 2:
-                                        s = parts[0].replace('.', '') + '.' + parts[1]
-                                    else:
-                                        s = s.replace('.', '')
-                                try:
-                                    v = float(s)
-                                except:
-                                    return 0.0
-                                return -abs(v) if negativo else abs(v)
-
-                            def parsear_fecha_icbc(s):
-                                m = re.match(r'(\d{1,2})-([A-Za-z]{3})-(\d{4})', s.strip())
-                                if not m:
-                                    return ''
-                                dia = int(m.group(1))
-                                mes_str = m.group(2)
-                                anio = int(m.group(3))
-                                mm = {'Jan':'01','Feb':'02','Mar':'03','Abr':'04','May':'05','Jun':'06',
-                                      'Jul':'07','Aug':'08','Sep':'09','Oct':'10','Nov':'11','Dec':'12',
-                                      'Ene':'01','Ago':'08','Dic':'12'}
-                                mes_num = mm.get(mes_str.title()[:3].capitalize())
-                                if mes_num is None:
-                                    return ''
-                                if not (1 <= dia <= 31 and 1900 <= anio <= 2100):
-                                    return ''
-                                return f"{anio}-{mes_num}-{dia:02d}"
-
-                            gastos_icbc = []
-                            comercios_json = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'comercios_conocidos.json'), encoding='utf-8'))
-
-                            for i, (y_curr, x_curr, t_curr) in enumerate(items):
-                                if y_curr < 50:
-                                    continue
-
-                                monto = parsear_monto_icbc(t_curr)
-                                if monto == 0.0:
-                                    continue
-
-                                if monto > 0 and ('reintegro' in t_curr.lower() or 'liquidacion' in t_curr.lower() or 'credito' in t_curr.lower()):
-                                    continue
-
-                                desc_parts = []
-
-                                for y2, x2, t2 in items:
-                                    if abs(y2 - y_curr) < 5 and x2 < 200 and t2 and not re.match(r'^\d[\d\-]+$', t2) and not re.match(r'^\d{1,2}-[A-Za-z]{3}-\d{4}$', t2.strip()):
-                                        desc_parts.append(t2.strip())
-
-                                if not desc_parts:
-                                    for y2, x2, t2 in items:
-                                        if 0 < y_curr - y2 < 25 and x2 < 200 and t2 and not re.match(r'^\d[\d\-]+$', t2) and not re.match(r'^\d{1,2}-[A-Za-z]{3}-\d{4}$', t2.strip()):
-                                            desc_parts.append(t2.strip())
-
-                                fecha_gasto = ''
-                                for y2, x2, t2 in items:
-                                    if 0 < y2 - y_curr < 25 and re.match(r'^\d{1,2}-[A-Za-z]{3}-\d{4}$', t2.strip()):
-                                        fecha_gasto = parsear_fecha_icbc(t2)
-                                        break
-
-                                if not desc_parts:
-                                    continue
-
-                                desc = ' '.join(desc_parts)
-                                dlow = desc.lower()
-                                if not dlow.strip():
-                                    continue
-                                if 'cuenta' in dlow or 'banco' in dlow or 'saldo' in dlow:
-                                    continue
-                                if 'liquidacion' in dlow:
-                                    continue
-                                if 'reintegro' in dlow:
-                                    continue
-                                if 'total' in dlow or abs(monto) > 100000:
-                                    continue
-
-                                if 'spotify' in dlow or 'dlocal spotify' in dlow:
-                                    monto = 981.49
-                                    cat, sub, g = 'servicios', 'suscripciones', 'Spotify'
-                                elif 'arca' in dlow or 'pago arca' in dlow:
-                                    cat, sub, g = 'impuestos', 'impuestos', 'Monotributo'
-                                elif 'iva' in dlow or ('impuesto' in dlow and 'valor' in dlow):
-                                    cat, sub, g = 'impuestos', 'impuestos', 'IVA'
-                                elif 'operaciones banel' in dlow:
-                                    cat, sub, g = 'otros', 'otros', 'Operaciones Bancarias'
-                                elif 'debito inmediato' in dlow:
-                                    cat, sub, g = 'otros', 'otros', 'Debito Inmediato'
-                                elif 'com rechazo' in dlow or 'rechazo deb' in dlow:
-                                    cat, sub, g = 'otros', 'otros', 'Comision Rechazo Debito'
-                                elif 'transf mobil' in dlow or 'transf mobile' in dlow:
-                                    cat, sub, g = 'otros', 'otros', 'Transferencia Mobil'
-                                elif 'sancor' in dlow:
-                                    cat, sub, g = 'servicios', 'seguros', 'Sancor'
-                                elif 'polibot' in dlow:
-                                    cat, sub, g = 'comercios', 'indumentaria', 'Polibot'
-                                elif 'havanna' in dlow:
-                                    cat, sub, g = 'comercios', 'restaurant', 'Havanna'
-                                else:
-                                    mk = next((k for k in comercios_json if k.lower() in dlow), None)
-                                    if mk:
-                                        cat, sub, g = comercios_json[mk]['categoria'], comercios_json[mk]['subcategoria'], comercios_json[mk]['gasto']
-                                    else:
-                                        cat, sub, _ = categorizar_gasto(desc, datos)
-                                        g = desc
-
-                                gastos_icbc.append({
-                                    'fecha': fecha_gasto,
-                                    'gasto': g,
-                                    'monto': abs(monto),
-                                    'moneda': 'ARS',
-                                    'fuente': 'ICBC JPG',
-                                    'categoria': cat,
-                                    'subcategoria': sub,
-                                    'owner': 'Vero',
-                                    'medio_pago': 'ICBC',
-                                    'u_id': generar_id()
-                                })
-
-                            if gastos_icbc:
-                                st.session_state.egresos_procesados_temp = gastos_icbc
-                                st.rerun()
-                            else:
-                                st.warning("No se detectaron gastos en el JPG")
-
-                        except Exception as e:
-                            st.error(f"Error procesando ICBC JPG: {e}")
-                        st.stop()
+                    from parsers.icbc import procesar_icbc
+                    
+                    with st.spinner("Procesando JPG de ICBC con parser específico..."):
+                        gastos, texto_debug, error = procesar_icbc(
+                            archivo, owner_egreso, medio_egreso, datos
+                        )
+                        
+                        if texto_debug:
+                            with st.expander("DEBUG: Texto OCR ICBC"):
+                                st.text(texto_debug)
+                        
+                        if error:
+                            st.error(error)
+                        elif gastos:
+                            st.session_state.egresos_procesados_temp = gastos
+                            st.success(f"Se detectaron {len(gastos)} egresos de ICBC")
+                            st.rerun()
+                        else:
+                            st.warning("No se detectaron gastos en la imagen")
+                    
+                    st.stop()
                 
                 elif file_name.endswith(('.jpg', '.jpeg', '.png')):
                     if EASYOCR_AVAILABLE:
