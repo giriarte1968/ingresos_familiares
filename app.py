@@ -1355,6 +1355,8 @@ COMERCIOS_CONOCIDOS = {
     
     # Estacionamiento
     'estacionamiento ocampo': {'categoria': 'servicios', 'subcategoria': 'estacionamiento', 'gasto': 'Estacionamiento Ocampo'},
+    'merpago*tran': {'categoria': 'servicios', 'subcategoria': 'estacionamiento', 'gasto': 'Estacionamiento Tránsito Rosario'},
+    'merpago': {'categoria': 'servicios', 'subcategoria': 'estacionamiento', 'gasto': 'Estacionamiento Tránsito Rosario'},
     
     # Bazar / Artículos parrilla
     'tu quincho': {'categoria': 'comercios', 'subcategoria': 'bazar', 'gasto': 'Tu Quincho'},
@@ -1690,8 +1692,32 @@ def mostrar_egresos():
                 # Determinar tipo de archivo
                 file_name = archivo.name.lower()
                 
+                # ---- BYBIT TARJETA JPG ----
+                if file_name.endswith(('.jpg', '.jpeg', '.png')) and 'bybit' in file_name and 'tarjeta' in file_name:
+                    from parsers.bybit_tarjeta import procesar_bybit_tarjeta
+                    
+                    with st.spinner("Procesando JPG de Bybit Tarjeta..."):
+                        gastos, texto_debug, error = procesar_bybit_tarjeta(
+                            archivo, owner_egreso, medio_egreso, datos, categorizar_gasto
+                        )
+                        
+                        if texto_debug:
+                            with st.expander("DEBUG: Texto OCR Bybit Tarjeta"):
+                                st.text(texto_debug)
+                        
+                        if error:
+                            st.error(error)
+                        elif gastos:
+                            st.session_state.egresos_procesados_temp = gastos
+                            st.success(f"Se detectaron {len(gastos)} gastos de Bybit Tarjeta")
+                            st.rerun()
+                        else:
+                            st.warning("No se detectaron gastos en la imagen")
+                    
+                    st.stop()
+                
                 # ---- ICBC JPG: usar PaddleOCR ----
-                if file_name.endswith(('.jpg', '.jpeg', '.png')) and 'icbc' in file_name:
+                elif file_name.endswith(('.jpg', '.jpeg', '.png')) and 'icbc' in file_name:
                     with st.spinner("Procesando JPG de ICBC con PaddleOCR..."):
                         try:
                             reader = get_paddle_reader()
