@@ -1629,14 +1629,20 @@ def mostrar_egresos():
     OWNERS = ["Gustavo", "Vero"]
     MEDIOS_PAGO = ["Banco Galicia", "ICBC", "QR Binance", "QR Bybit", "Tarjeta Prepaga Bybit", "Visa", "Mastercard", "Efectivo", "Mercado Pago", "Otro"]
     
-    col_o, col_m, col_b = st.columns([2, 2, 1])
+    col_o, col_m, col_p = st.columns([2, 2, 1])
+    
     with col_o:
-        owner_egreso = st.selectbox("Owner", OWNERS, key="owner_egreso_sel")
+        owners_with_todos = ["TODOS"] + OWNERS
+        owner_egreso = st.selectbox("Owner", owners_with_todos, index=0, key="owner_egreso_selector")
+    
     with col_m:
-        medio_egreso = st.selectbox("Medio de Pago", MEDIOS_PAGO, key="medio_egreso_sel")
-    with col_b:
+        medios_con_todos = ["TODOS"] + MEDIOS_PAGO
+        medio_egreso = st.selectbox("Medio de Pago", medios_con_todos, index=0, key="medio_pago_selector")
+    
+    with col_p:
         st.write("")
-        if st.button("Borrar Periodo", key="btn_borrar_periodo"):
+        st.write("")
+        if st.button("Borrar Periodo", key="btn_borrar_periodo", type="primary"):
             datos['meses'][mes_seleccionado] = {
                 'ingresos_bancarios': [],
                 'egresos': [],
@@ -1652,7 +1658,20 @@ def mostrar_egresos():
     # ====================== CARGA DE EGRESOS ======================
     st.subheader(f"Cargar Egresos - {mes_seleccionado}")
     
-    egresos = datos.get('meses', {}).get(mes_seleccionado, {}).get('egresos', [])
+    # Cargar todos los egresos del mes
+    egresos_completos = datos.get('meses', {}).get(mes_seleccionado, {}).get('egresos', [])
+    
+    # Filtrar por owner y medio de pago
+    egresos = []
+    for egreso in egresos_completos:
+        matches_owner = (owner_egreso == "TODOS") or (egreso.get('owner', '') == owner_egreso)
+        matches_medio = (medio_egreso == "TODOS") or (egreso.get('medio_pago', '') == medio_egreso)
+        
+        if matches_owner and matches_medio:
+            egresos.append(egreso)
+    
+    if len(egresos) != len(egresos_completos):
+        st.caption(f"Mostrando {len(egresos)} de {len(egresos_completos)} egresos")
     
     archivo = st.file_uploader(
         "Seleccionar archivo de egresos (imagen, PDF o texto)",
@@ -2227,22 +2246,24 @@ def mostrar_egresos():
                 "Sub-Categoría": st.column_config.TextColumn(width="small"),
             }
         )
-        
-        # ---- SECCION: DESGLOSAR PAGOS (SUB-PAGOS) ----
-        st.divider()
-        st.subheader("Desglosar Pago (Sub-pagos)")
-        
-        # Solo pagos que se pueden desglosar (no son hijos, no tienen subpagos aun)
-        pagos_divisibles = [
-            e for e in egresos
-            if not e.get('parent_id')
-            and not e.get('sub_pagos')
-            and e.get('monto', 0) > 0
-        ]
-        
-        if not pagos_divisibles:
-            st.info("No hay pagos disponibles para desglosar.")
-        else:
+    else:
+        st.info("No hay egresos que coincidan con los filtros seleccionados")
+    
+    # ---- SECCION: DESGLOSAR PAGOS (SUB-PAGOS) ----
+    st.divider()
+    st.subheader("Desglosar Pago (Sub-pagos)")
+    
+    # Solo pagos que se pueden desglosar (no son hijos, no tienen subpagos aun)
+    pagos_divisibles = [
+        e for e in egresos
+        if not e.get('parent_id')
+        and not e.get('sub_pagos')
+        and e.get('monto', 0) > 0
+    ]
+    
+    if not pagos_divisibles:
+        st.info("No hay pagos disponibles para desglosar.")
+    else:
             opciones = {
                 e.get('u_id', f"idx_{i}"): f"{e.get('fecha','-')[:10]} | {e.get('gasto','-')} | ${e.get('monto',0):,.2f} | {e.get('owner','-')}"
                 for i, e in enumerate(egresos)
@@ -2356,9 +2377,6 @@ def mostrar_egresos():
                             
                             st.success(f"Pago desglosado en {len(hijos)} sub-pagos.")
                             st.rerun()
-    
-    else:
-        st.info("No hay egresos cargados para este mes")
 
 
 def mostrar_propiedades(mes):
