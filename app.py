@@ -1390,14 +1390,6 @@ def mostrar_egresos():
         meses_disponibles = ['2026-02']
     meses_disponibles = sorted(meses_disponibles)
     
-    # Obtener mes actual desde session_state o usar el ultimo
-    if 'mes_egresos_actual' not in st.session_state:
-        st.session_state.mes_egresos_actual = meses_disponibles[-1] if meses_disponibles else '2026-02'
-    
-    # Si el mes seleccionado no existe, usar el ultimo disponible
-    if st.session_state.mes_egresos_actual not in meses_disponibles:
-        st.session_state.mes_egresos_actual = meses_disponibles[-1]
-    
     # Inicializar session state para sub-pagos si no existe
     if 'subpagos_por_egreso' not in st.session_state:
         st.session_state.subpagos_por_egreso = {}
@@ -1408,14 +1400,16 @@ def mostrar_egresos():
     
     col1, col2 = st.columns([3, 1])
     with col1:
-        default_idx = meses_disponibles.index(st.session_state.mes_egresos_actual) if st.session_state.mes_egresos_actual in meses_disponibles else len(meses_disponibles) - 1
+        current_val = st.session_state.get("sel_mes_egresos")
+        if current_val not in meses_disponibles:
+            current_val = meses_disponibles[-1] if meses_disponibles else "2026-02"
+        default_idx = meses_disponibles.index(current_val) if current_val in meses_disponibles else 0
         mes_seleccionado = st.selectbox(
             "Mes",
             meses_disponibles,
             index=default_idx,
             key="sel_mes_egresos"
         )
-        st.session_state.mes_egresos_actual = mes_seleccionado
     
     with col2:
         st.write("")  # Espaciador
@@ -1432,7 +1426,7 @@ def mostrar_egresos():
                         'plusvalia_propiedades': 0
                     }
                     guardar_datos(datos)
-                    st.session_state.mes_egresos_actual = nuevo_mes
+                    st.session_state["sel_mes_egresos"] = nuevo_mes
                     st.success(f"Mes {nuevo_mes} creado")
                     st.rerun()
                 else:

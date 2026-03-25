@@ -1,0 +1,8 @@
+[server]
+headless = true
+maxCachedMessageAge = 100
+enableCORS = false
+enableXsrfProtection = false
+
+[client]
+showErrorDetails = true
