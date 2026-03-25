@@ -1380,9 +1380,15 @@ def extraer_subpagos_desde_comprobante(reader, comprobante) -> list[dict]:
 def mostrar_egresos():
     st.header("Egresos")
     
-    # Recargar datos desde JSON
-    datos = cargar_datos()
-    st.session_state.datos = datos
+    # Usar siempre session_state como fuente principal
+    if 'datos' not in st.session_state:
+        st.session_state.datos = cargar_datos()
+    
+    datos = st.session_state.datos
+    
+    # Inicializar session state para egresos procesados temporalmente
+    if 'egresos_procesados_temp' not in st.session_state:
+        st.session_state.egresos_procesados_temp = None
     
     # Selector de mes
     meses_disponibles = list(datos.get('meses', {}).keys())
@@ -1456,13 +1462,15 @@ def mostrar_egresos():
             st.success(f"Periodo {mes_seleccionado} borrado.")
             st.rerun()
     
+    # ====================== CARGA DE EGRESOS ======================
+    st.subheader(f"Cargar Egresos - {mes_seleccionado}")
+    
     egresos = datos.get('meses', {}).get(mes_seleccionado, {}).get('egresos', [])
     
-    # Subir archivo
-    st.subheader(f"Cargar Egresos - {mes_seleccionado}")
     archivo = st.file_uploader(
         "Seleccionar archivo de egresos (imagen, PDF o texto)",
-        type=['jpg', 'jpeg', 'png', 'pdf', 'txt']
+        type=['jpg', 'jpeg', 'png', 'pdf', 'txt'],
+        key=f"uploader_{mes_seleccionado}"
     )
     
     if archivo:
@@ -1624,19 +1632,8 @@ def mostrar_egresos():
                                 })
 
                             if gastos_icbc:
-                                st.success(f"Se detectaron {len(gastos_icbc)} gastos")
-                                df_icbc = pd.DataFrame(gastos_icbc)[['fecha', 'gasto', 'monto', 'categoria', 'subcategoria', 'owner', 'medio_pago']]
-                                st.dataframe(df_icbc.rename(columns={'gasto': 'GASTO'}))
-                                total_icbc = sum(g['monto'] for g in gastos_icbc)
-                                st.metric("Total Egresos", f"${total_icbc:,.2f} ARS")
-
-                                if st.button("Guardar Egresos"):
-                                    egresos_existentes = datos.get('meses', {}).setdefault(mes_seleccionado, {}).get('egresos', [])
-                                    egresos_existentes.extend(gastos_icbc)
-                                    datos.get('meses', {}).setdefault(mes_seleccionado, {})['egresos'] = egresos_existentes
-                                    guardar_datos(datos)
-                                    st.success(f"Egresos guardados para {mes_seleccionado}")
-                                    st.rerun()
+                                st.session_state.egresos_procesados_temp = gastos_icbc
+                                st.rerun()
                             else:
                                 st.warning("No se detectaron gastos en el JPG")
 
@@ -1922,26 +1919,45 @@ def mostrar_egresos():
                         st.info(f"Total gastos detectados: {len(gastos)}")
                     
                     if gastos:
-                        st.success(f"Se detectaron {len(gastos)} gastos")
-                        
-                        df_preview = pd.DataFrame(gastos)[['fecha', 'gasto', 'monto', 'categoria', 'subcategoria']]
-                        df_preview = df_preview.rename(columns={'gasto': 'GASTO'})
-                        st.dataframe(df_preview)
-                        
-                        # Calcular totales
-                        total_egresos = sum(g['monto'] for g in gastos)
-                        st.metric("Total Egresos", f"${total_egresos:,.2f} ARS")
-                        
-                        # Guardar
-                        if st.button("Guardar Egresos"):
-                            egresos_existentes = datos.get('meses', {}).setdefault(mes_seleccionado, {}).get('egresos', [])
-                            egresos_existentes.extend(gastos)
-                            datos.get('meses', {}).setdefault(mes_seleccionado, {})['egresos'] = egresos_existentes
-                            guardar_datos(datos)
-                            st.success(f"Egresos guardados para {mes_seleccionado}")
-                            st.rerun()
+                        st.session_state.egresos_procesados_temp = gastos
+                        st.rerun()
                     else:
                         st.warning("No se detectaron gastos en el archivo")
+    
+    # ==================== MOSTRAR PREVIEW DE EGRESOS PROCESADOS ====================
+    if st.session_state.egresos_procesados_temp:
+        gastos = st.session_state.egresos_procesados_temp
+        
+        st.success(f"✅ {len(gastos)} egresos listos para guardar")
+        
+        df_preview = pd.DataFrame(gastos)[['fecha', 'gasto', 'monto', 'categoria', 'subcategoria']]
+        df_preview = df_preview.rename(columns={'gasto': 'GASTO'})
+        st.dataframe(df_preview, use_container_width=True)
+        
+        total = sum(g['monto'] for g in gastos)
+        st.metric("Total a guardar", f"${total:,.2f} ARS")
+
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            if st.button("💾 Guardar Egresos", type="primary", use_container_width=True):
+                mes_data = datos.setdefault('meses', {}).setdefault(mes_seleccionado, {})
+                if 'egresos' not in mes_data:
+                    mes_data['egresos'] = []
+                
+                mes_data['egresos'].extend(gastos)
+                
+                st.session_state.datos = datos
+                guardar_datos(datos)
+                
+                st.session_state.egresos_procesados_temp = None
+                
+                st.success(f"✅ {len(gastos)} egresos guardados correctamente para {mes_seleccionado}")
+                st.rerun()
+
+        with col2:
+            if st.button("❌ Cancelar", use_container_width=True):
+                st.session_state.egresos_procesados_temp = None
+                st.rerun()
     
     # Mostrar egresos del mes seleccionado
     st.divider()
