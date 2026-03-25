@@ -1507,7 +1507,6 @@ def extraer_subpagos_desde_comprobante(reader, comprobante) -> list[dict]:
     Usa OCR del comprobante para inferir sub-pagos.
     Retorna lista de dicts con monto/fecha/medio_pago/descripcion.
     """
-    import re
     
     try:
         if hasattr(comprobante, 'read'):
@@ -1940,7 +1939,6 @@ def mostrar_egresos():
                         st.text_area("Texto raw", texto, height=200)
                     
                     # Parsear gastos
-                    import re
                     gastos = []
                     lineas = texto.split('\n')
                     
