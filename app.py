@@ -1964,13 +1964,44 @@ def mostrar_egresos():
     st.subheader(f"Egresos de {mes_seleccionado}")
     
     if egresos:
+        # ====================== LIMPIAR Y RECATEGORIZAR EGRESOS ======================
+        CORRECIONES_SUBCATEGORIA = {
+            'Sebastian Hacio Montene': {'categoria': 'comercios', 'subcategoria': 'indumentaria'},
+            'Diego Alberto Rey': {'categoria': 'comercios', 'subcategoria': 'restaurant'},
+            'Remo Franco SRL': {'categoria': 'comercios', 'subcategoria': 'indumentaria'},
+            'Quincho': {'categoria': 'servicios', 'subcategoria': 'alquiler'},
+            'Tu quincho': {'categoria': 'servicios', 'subcategoria': 'alquiler'},
+            'MUNICIPALIDAD DE ROSARIO': {'categoria': 'impuestos', 'subcategoria': 'impuestos'},
+            'EPE': {'categoria': 'servicios', 'subcategoria': 'servicios_publicos'},
+            'CARGO POR SERVICIO': {'categoria': 'servicios', 'subcategoria': 'bancos'},
+            'MOVISTAR': {'categoria': 'servicios', 'subcategoria': 'telefonia'},
+            'ADT': {'categoria': 'servicios', 'subcategoria': 'seguridad'},
+            'AGUAS SANTAFESINAS': {'categoria': 'servicios', 'subcategoria': 'servicios_publicos'},
+            'PERSONAL': {'categoria': 'servicios', 'subcategoria': 'telefonia'},
+            'Instituto Gamma': {'categoria': 'servicios', 'subcategoria': 'salud'},
+        }
+        
+        for egreso in egresos:
+            gasto = egreso.get('gasto', '')
+            for clave, valores in CORRECIONES_SUBCATEGORIA.items():
+                if clave.lower() in gasto.lower():
+                    egreso['categoria'] = valores['categoria']
+                    egreso['subcategoria'] = valores['subcategoria']
+                    break
+            if egreso.get('categoria') == 'otros':
+                categoria, subcategoria, _ = categorizar_gasto(gasto, datos)
+                egreso['categoria'] = categoria
+                egreso['subcategoria'] = subcategoria
+        
+        datos.get('meses', {}).setdefault(mes_seleccionado, {})['egresos'] = egresos
+        guardar_datos(datos)
+        
+        # ====================== MOSTRAR EGRESOS ======================
         df = pd.DataFrame(egresos)
         
-        # Totales
         total = sum(e.get('monto', 0) for e in egresos)
         st.metric("Total Egresos del Mes", f"${total:,.2f} ARS")
         
-        # Por categoría
         if 'categoria' in df.columns and 'monto' in df.columns:
             try:
                 st.subheader("Por Categoría")
@@ -1979,25 +2010,36 @@ def mostrar_egresos():
             except Exception:
                 pass
         
-        # Tabla con checkboxes para Comprobantes
+        # ====================== TABLA DE DETALLE DE EGRESOS ======================
         st.subheader("Detalle de Egresos")
         
-        for idx, egreso in enumerate(egresos):
-            egreso_id = f"egreso_{idx}_{egreso.get('fecha', '')[:10]}_{egreso.get('monto', 0)}"
-            egreso_id = egreso_id.replace('.', '_').replace('-', '_')
-            
-            col2, col3, col4, col5, col6 = st.columns([1, 2, 1, 1, 1])
-            
-            with col2:
-                st.text(egreso.get('fecha', '-')[:10])
-            with col3:
-                st.text(egreso.get('gasto', '-'))
-            with col4:
-                st.text(f"${egreso.get('monto', 0):,.2f}")
-            with col5:
-                st.text(egreso.get('categoria', '-'))
-            with col6:
-                st.text(egreso.get('owner', ''))
+        df_egresos = pd.DataFrame(egresos)
+        columnas_mostrar = ['fecha', 'gasto', 'monto', 'categoria', 'subcategoria']
+        
+        for col in columnas_mostrar:
+            if col not in df_egresos.columns:
+                df_egresos[col] = ''
+        
+        df_display = df_egresos[columnas_mostrar].copy()
+        df_display.columns = ['Fecha', 'Gasto', 'Monto (ARS)', 'Categoría', 'Sub-Categoría']
+        
+        if 'Monto (ARS)' in df_display.columns:
+            df_display['Monto (ARS)'] = df_display['Monto (ARS)'].apply(
+                lambda x: f"${x:,.2f}" if pd.notna(x) and x > 0 else '-'
+            )
+        
+        st.dataframe(
+            df_display,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "Fecha": st.column_config.TextColumn(width="small"),
+                "Gasto": st.column_config.TextColumn(width="medium"),
+                "Monto (ARS)": st.column_config.TextColumn(width="small"),
+                "Categoría": st.column_config.TextColumn(width="small"),
+                "Sub-Categoría": st.column_config.TextColumn(width="small"),
+            }
+        )
         
         # ---- SECCION: DESGLOSAR PAGOS (SUB-PAGOS) ----
         st.divider()
