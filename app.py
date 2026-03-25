@@ -2090,14 +2090,14 @@ def mostrar_egresos():
         
         df_preview = pd.DataFrame(gastos)[['fecha', 'gasto', 'monto', 'categoria', 'subcategoria']]
         df_preview = df_preview.rename(columns={'gasto': 'GASTO'})
-        st.dataframe(df_preview, use_container_width=True)
+        st.dataframe(df_preview, width='stretch')
         
         total = sum(g['monto'] for g in gastos)
         st.metric("Total a guardar", f"${total:,.2f} ARS")
 
         col1, col2 = st.columns([1, 1])
         with col1:
-            if st.button("💾 Guardar Egresos", type="primary", use_container_width=True):
+            if st.button("💾 Guardar Egresos", type="primary", width='stretch'):
                 mes_data = datos.setdefault('meses', {}).setdefault(mes_seleccionado, {})
                 if 'egresos' not in mes_data:
                     mes_data['egresos'] = []
@@ -2113,7 +2113,7 @@ def mostrar_egresos():
                 st.rerun()
 
         with col2:
-            if st.button("❌ Cancelar", use_container_width=True):
+            if st.button("❌ Cancelar", width='stretch'):
                 st.session_state.egresos_procesados_temp = None
                 st.rerun()
     
@@ -2188,7 +2188,7 @@ def mostrar_egresos():
         
         st.dataframe(
             df_display,
-            use_container_width=True,
+            width='stretch',
             hide_index=True,
             column_config={
                 "Fecha": st.column_config.TextColumn(width="small"),
@@ -2279,7 +2279,7 @@ def mostrar_egresos():
                         st.session_state.pop('sp_parent_id', None)
                         st.rerun()
                 with col_conf:
-                    if st.button("Confirmar Division", key="btn_confirmar_sp", type="primary", use_container_width=True):
+                    if st.button("Confirmar Division", key="btn_confirmar_sp", type="primary", width='stretch'):
                         if pago_original:
                             # Obtener campos del padre
                             padre_fecha = pago_original.get('fecha', '')
