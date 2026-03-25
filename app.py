@@ -44,14 +44,42 @@ def cargar_datos():
     return {'activos': [], 'meses': {}}
 
 
-def guardar_datos(datos):
+def guardar_datos(datos, silent=False):
     """Guarda datos a JSON y actualiza session state"""
     try:
+        # Contar egresos que se van a guardar
+        total_egresos = 0
+        for mes, mes_data in datos.get('meses', {}).items():
+            cant = len(mes_data.get('egresos', []))
+            total_egresos += cant
+        
+        # LOG: quién está llamando a guardar_datos
+        import traceback
+        stack = traceback.extract_stack()
+        caller = stack[-2]  # Quien llamó a guardar_datos
+        print(f"[GUARDAR] Llamado desde {caller.filename}:{caller.lineno} en {caller.name}")
+        print(f"[GUARDAR] Total egresos a guardar: {total_egresos}")
+        
+        # Si estamos guardando 0 egresos y ya había datos, NO guardar
+        if total_egresos == 0:
+            import os
+            if os.path.exists(DATOS_FILE):
+                with open(DATOS_FILE, 'r', encoding='utf-8') as f:
+                    datos_disco = json.load(f)
+                total_disco = 0
+                for mes, mes_data in datos_disco.get('meses', {}).items():
+                    total_disco += len(mes_data.get('egresos', []))
+                if total_disco > 0:
+                    print(f"[GUARDAR] ⚠️ BLOQUEADO: Intentando guardar 0 egresos pero disco tiene {total_disco}")
+                    return  # NO sobreescribir
+        
         with open(DATOS_FILE, 'w', encoding='utf-8') as f:
             json.dump(datos, f, ensure_ascii=False, indent=2)
-        # Actualizar session state
+        
         if 'datos' in st.session_state:
             st.session_state.datos = datos
+        
+        print(f"[GUARDAR] ✅ Guardado OK: {total_egresos} egresos")
     except Exception as e:
         print(f"Error guardando datos: {e}")
 
@@ -1569,11 +1597,9 @@ def extraer_subpagos_desde_comprobante(reader, comprobante) -> list[dict]:
 def mostrar_egresos():
     st.header("Egresos")
     
-    # Usar siempre session_state como fuente principal
-    if 'datos' not in st.session_state:
-        st.session_state.datos = cargar_datos()
-    
-    datos = st.session_state.datos
+    # SIEMPRE leer desde disco como fuente de verdad
+    datos = cargar_datos()
+    st.session_state.datos = datos
     
     # Inicializar session state para egresos procesados temporalmente
     if 'egresos_procesados_temp' not in st.session_state:
@@ -1605,6 +1631,11 @@ def mostrar_egresos():
             index=default_idx,
             key="sel_mes_egresos"
         )
+    
+    # Limpiar debug info al cambiar de mes
+    debug_info = st.session_state.get('debug_guardado')
+    if debug_info is None or debug_info.get('mes') != mes_seleccionado:
+        st.session_state.debug_guardado = None
     
     with col2:
         st.write("")  # Espaciador
@@ -2172,25 +2203,70 @@ def mostrar_egresos():
         col1, col2 = st.columns([1, 1])
         with col1:
             if st.button("💾 Guardar Egresos", type="primary", width='stretch'):
-                # Recargar datos frescos desde disco antes de agregar
-                datos_frescos = cargar_datos()
+                # 1. Leer datos FRESCOS desde disco
+                datos_disco = cargar_datos()
                 
-                # Obtener egresos existentes del mes
-                mes_data = datos_frescos.setdefault('meses', {}).setdefault(mes_seleccionado, {
-                    'ingresos_bancarios': [],
-                    'egresos': [],
-                    'ajustes': [],
-                    'ganancia_fondos': 0,
-                    'plusvalia_propiedades': 0
-                })
+                # 2. Asegurar estructura del mes
+                if 'meses' not in datos_disco:
+                    datos_disco['meses'] = {}
+                if mes_seleccionado not in datos_disco['meses']:
+                    datos_disco['meses'][mes_seleccionado] = {
+                        'ingresos_bancarios': [],
+                        'egresos': [],
+                        'ajustes': [],
+                        'ganancia_fondos': 0,
+                        'plusvalia_propiedades': 0
+                    }
+                if 'egresos' not in datos_disco['meses'][mes_seleccionado]:
+                    datos_disco['meses'][mes_seleccionado]['egresos'] = []
                 
-                egresos_existentes = mes_data.get('egresos', [])
+                # 3.5 FILTRAR por periodo seleccionado
+                mes_year, mes_month = mes_seleccionado.split('-')
+                gastos_del_periodo = []
+                gastos_sin_fecha = []
+                gastos_otro_periodo = []
                 
-                # Deduplicar: no agregar si ya existe mismo gasto+monto+fecha
+                for g in gastos:
+                    fecha_g = g.get('fecha', '')
+                    if fecha_g:
+                        match_fecha = re.search(r'(\d{4})-(\d{2})', fecha_g)
+                        if match_fecha:
+                            g_year, g_month = match_fecha.groups()
+                            if g_year == mes_year and g_month == mes_month:
+                                gastos_del_periodo.append(g)
+                            else:
+                                gastos_otro_periodo.append(g)
+                        else:
+                            gastos_sin_fecha.append(g)
+                    else:
+                        gastos_sin_fecha.append(g)
+                
+                if gastos_otro_periodo:
+                    st.warning(f"⚠️ {len(gastos_otro_periodo)} egresos son de otro periodo y NO se guardarán:")
+                    for g in gastos_otro_periodo:
+                        st.caption(f"  • {g.get('fecha', '')} - {g.get('gasto', '')} - ${g.get('monto', 0):,.2f}")
+                
+                if gastos_sin_fecha:
+                    st.info(f"ℹ️ {len(gastos_sin_fecha)} egresos sin fecha se guardarán en {mes_seleccionado}:")
+                    for g in gastos_sin_fecha:
+                        st.caption(f"  • {g.get('gasto', '')} - ${g.get('monto', 0):,.2f}")
+                
+                gastos = gastos_del_periodo + gastos_sin_fecha
+                
+                if not gastos:
+                    st.error(f"No hay egresos para el periodo {mes_seleccionado}")
+                    st.session_state.egresos_procesados_temp = None
+                    st.stop()
+                
+                # 3. DEBUG: guardar estado actual
+                egresos_en_disco = datos_disco['meses'][mes_seleccionado]['egresos']
+                debug_antes = len(egresos_en_disco)
+                
+                # 4. Deduplicar nuevos vs existentes
                 nuevos = []
                 for g in gastos:
                     duplicado = False
-                    for e in egresos_existentes:
+                    for e in egresos_en_disco:
                         mismo_gasto = e.get('gasto', '').lower() == g.get('gasto', '').lower()
                         mismo_monto = abs(e.get('monto', 0) - g.get('monto', 0)) < 0.01
                         misma_fecha = e.get('fecha', '') == g.get('fecha', '')
@@ -2200,31 +2276,62 @@ def mostrar_egresos():
                     if not duplicado:
                         nuevos.append(g)
                 
-                # AGREGAR a los existentes (no reemplazar)
-                egresos_existentes.extend(nuevos)
-                mes_data['egresos'] = egresos_existentes
+                # 5. AGREGAR nuevos a los existentes
+                egresos_en_disco.extend(nuevos)
+                datos_disco['meses'][mes_seleccionado]['egresos'] = egresos_en_disco
                 
-                # Guardar en disco y actualizar session state
-                guardar_datos(datos_frescos)
-                st.session_state.datos = datos_frescos
+                debug_despues = len(egresos_en_disco)
                 
-                # Limpiar temporal
+                # 6. Guardar a disco
+                guardar_datos(datos_disco)
+                
+                # 7. Verificar que se guardó bien
+                datos_verificacion = cargar_datos()
+                egresos_verificacion = datos_verificacion.get('meses', {}).get(mes_seleccionado, {}).get('egresos', [])
+                debug_verificacion = len(egresos_verificacion)
+                
+                # Guardar debug en session state para mostrar persistentemente
+                st.session_state.debug_guardado = {
+                    'antes': debug_antes,
+                    'despues': debug_despues,
+                    'verificacion': debug_verificacion,
+                    'mes': mes_seleccionado
+                }
+                
+                # 8. Actualizar session state
+                st.session_state.datos = datos_verificacion
+                
+                # 9. Limpiar temporal
                 st.session_state.egresos_procesados_temp = None
                 
                 if nuevos:
                     st.success(f"✅ {len(nuevos)} egresos nuevos guardados para {mes_seleccionado}")
                     if len(nuevos) < len(gastos):
-                        st.info(f"ℹ️ {len(gastos) - len(nuevos)} egresos duplicados fueron ignorados")
+                        st.info(f"ℹ️ {len(gastos) - len(nuevos)} duplicados ignorados")
                 else:
-                    st.warning("Todos los egresos ya existían, no se agregaron duplicados")
+                    st.warning("Todos los egresos ya existían")
                 
-                time.sleep(1.5)
+                time.sleep(3)
                 st.rerun()
 
         with col2:
             if st.button("❌ Cancelar", width='stretch'):
                 st.session_state.egresos_procesados_temp = None
                 st.rerun()
+    
+    # Mostrar debug persistente si hay info guardada
+    if st.session_state.get('debug_guardado'):
+        debug = st.session_state.debug_guardado
+        if debug.get('mes') == mes_seleccionado:
+            st.divider()
+            st.subheader("📋 DEBUG - Último Guardado")
+            st.write(f"**Egresos en disco ANTES:** {debug.get('antes', 0)}")
+            st.write(f"**Egresos en disco DESPUÉS de agregar:** {debug.get('despues', 0)}")
+            st.write(f"**Verificación (persistencia):** {debug.get('verificacion', 0)}")
+            if debug.get('antes') == debug.get('verificacion'):
+                st.success("✅ Datos correctamente persistidos")
+            else:
+                st.error("❌ ERROR: Los datos no se persistieron correctamente")
     
     # Mostrar egresos del mes seleccionado
     st.divider()
@@ -2260,8 +2367,8 @@ def mostrar_egresos():
                 egreso['categoria'] = categoria
                 egreso['subcategoria'] = subcategoria
         
-        datos.get('meses', {}).setdefault(mes_seleccionado, {})['egresos'] = egresos
-        guardar_datos(datos)
+        # NO guardar a disco - solo actualizar en memoria para mostrar
+        # (los datos ya fueron guardados correctamente en el botón)
         
         # ====================== MOSTRAR EGRESOS ======================
         df = pd.DataFrame(egresos)

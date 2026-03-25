@@ -60,17 +60,18 @@ def extraer_fecha_bybit(texto):
 
 
 def limpiar_nombre_comercio(nombre):
-    """Limpia nombres de comercio del formato Bybit"""
+    """Limpia nombres de comercio del formato Bybit. 
+    Retorna (nombre_limpio, nombre_para_categorizar)"""
     nombre = nombre.strip()
     
     if 'MERPAGO' in nombre.upper():
-        return 'Estacionamiento Tránsito Rosario'
+        return 'Estacionamiento Tránsito Rosario', 'merpago*tran'
     
     nombre = re.sub(r'[*]+', '', nombre)
     nombre = re.sub(r'\.{3,}', '', nombre)
     nombre = nombre.strip(' -.*')
     
-    return nombre
+    return nombre, nombre
 
 
 def procesar_bybit_tarjeta(archivo, owner, medio_pago, datos, categorizar_fn=None):
@@ -162,13 +163,37 @@ def procesar_bybit_tarjeta(archivo, owner, medio_pago, datos, categorizar_fn=Non
                         if it['x_left'] < ars_item['x_left'] and len(texto_it) > 1:
                             nombre_comercio = texto_it
             
+            # Buscar fecha: en cualquier línea cercana (arriba o abajo, dentro de 100px)
+            mejor_fecha = ''
+            menor_distancia = 999
             for it in items:
-                dist_y = it['y'] - y_ars
-                if 10 < dist_y < 80:
+                dist_y = abs(it['y'] - y_ars)
+                if dist_y < 100 and dist_y > 0:
                     fecha_encontrada = extraer_fecha_bybit(it['text'])
-                    if fecha_encontrada:
-                        fecha_gasto = fecha_encontrada
-                        break
+                    if fecha_encontrada and dist_y < menor_distancia:
+                        mejor_fecha = fecha_encontrada
+                        menor_distancia = dist_y
+            
+            # Si no encontró cerca, buscar en la misma línea
+            if not mejor_fecha:
+                for it in items:
+                    if abs(it['y'] - y_ars) < 20:
+                        fecha_encontrada = extraer_fecha_bybit(it['text'])
+                        if fecha_encontrada:
+                            mejor_fecha = fecha_encontrada
+                            break
+            
+            # Si aún no encontró, buscar con formato alternativo
+            if not mejor_fecha:
+                for it in items:
+                    dist_y = abs(it['y'] - y_ars)
+                    if dist_y < 100:
+                        m = re.search(r'(\d{4})\D?(\d{2})\D?(\d{2})\s+\d{2}[:.]\d{2}', it['text'])
+                        if m:
+                            mejor_fecha = f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
+                            break
+            
+            fecha_gasto = mejor_fecha
             
             if not nombre_comercio or len(nombre_comercio) < 2:
                 continue
@@ -177,10 +202,14 @@ def procesar_bybit_tarjeta(archivo, owner, medio_pago, datos, categorizar_fn=Non
             if any(ig in nombre_lower for ig in ['historial', 'correcto', 'total', 'saldo', 'disponible']):
                 continue
             
-            nombre_limpio = limpiar_nombre_comercio(nombre_comercio)
+            nombre_limpio, nombre_categorizar = limpiar_nombre_comercio(nombre_comercio)
             
             if categorizar_fn:
-                cat, subcat, gasto_final = categorizar_fn(nombre_limpio, datos)
+                cat, subcat, gasto_final = categorizar_fn(nombre_categorizar, datos)
+                if cat == 'otros':
+                    cat, subcat, gasto_final = categorizar_fn(nombre_limpio, datos)
+                if gasto_final == nombre_categorizar.title():
+                    gasto_final = nombre_limpio
             else:
                 cat, subcat, gasto_final = 'otros', 'otros', nombre_limpio.title()
             
