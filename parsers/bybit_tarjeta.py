@@ -49,13 +49,29 @@ def parsear_monto_bybit(texto_monto):
 
 
 def extraer_fecha_bybit(texto):
-    """Extrae fecha de '2026-03-14 14:01:05' o '20260314'"""
-    m = re.search(r'(\d{4}-\d{2}-\d{2})', texto)
-    if m:
-        return m.group(1)
-    m = re.search(r'(\d{4})(\d{2})(\d{2})', texto)
+    """Extrae fecha de múltiples formatos Bybit"""
+    # Formato: 2026-03-14 14:01:05
+    m = re.search(r'(\d{4})-(\d{2})-(\d{2})\s+\d{2}[:.]\d{2}', texto)
     if m:
         return f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
+    
+    # Formato: 2026-03-14 (sin hora)
+    m = re.search(r'(\d{4})-(\d{2})-(\d{2})', texto)
+    if m:
+        return m.group(0)
+    
+    # Formato: 2026.03.14
+    m = re.search(r'(\d{4})\.(\d{2})\.(\d{2})', texto)
+    if m:
+        return f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
+    
+    # Formato compacto: 20260314
+    m = re.search(r'(\d{4})(\d{2})(\d{2})\s+\d{2}', texto)
+    if m:
+        year, month, day = m.group(1), m.group(2), m.group(3)
+        if 2020 <= int(year) <= 2030 and 1 <= int(month) <= 12 and 1 <= int(day) <= 31:
+            return f"{year}-{month}-{day}"
+    
     return ''
 
 
@@ -163,32 +179,38 @@ def procesar_bybit_tarjeta(archivo, owner, medio_pago, datos, categorizar_fn=Non
                         if it['x_left'] < ars_item['x_left'] and len(texto_it) > 1:
                             nombre_comercio = texto_it
             
-            # Buscar fecha: en cualquier línea cercana (arriba o abajo, dentro de 100px)
+            # Buscar fecha: asociada a este gasto
+            # La fecha está DEBAJO del nombre/monto, generalmente 2-3 líneas después
+            # Puede estar bastante lejos en Y (hasta 150px)
+            fecha_gasto = ''
+            
+            # Estrategia 1: buscar fecha debajo del monto (Y mayor)
             mejor_fecha = ''
             menor_distancia = 999
             for it in items:
-                dist_y = abs(it['y'] - y_ars)
-                if dist_y < 100 and dist_y > 0:
+                dist_y = it['y'] - y_ars  # Solo buscar DEBAJO
+                if 5 < dist_y < 150:
                     fecha_encontrada = extraer_fecha_bybit(it['text'])
                     if fecha_encontrada and dist_y < menor_distancia:
                         mejor_fecha = fecha_encontrada
                         menor_distancia = dist_y
             
-            # Si no encontró cerca, buscar en la misma línea
-            if not mejor_fecha:
-                for it in items:
-                    if abs(it['y'] - y_ars) < 20:
-                        fecha_encontrada = extraer_fecha_bybit(it['text'])
-                        if fecha_encontrada:
-                            mejor_fecha = fecha_encontrada
-                            break
-            
-            # Si aún no encontró, buscar con formato alternativo
+            # Estrategia 2: si no encontró, buscar ARRIBA también
             if not mejor_fecha:
                 for it in items:
                     dist_y = abs(it['y'] - y_ars)
-                    if dist_y < 100:
-                        m = re.search(r'(\d{4})\D?(\d{2})\D?(\d{2})\s+\d{2}[:.]\d{2}', it['text'])
+                    if 5 < dist_y < 150:
+                        fecha_encontrada = extraer_fecha_bybit(it['text'])
+                        if fecha_encontrada and dist_y < menor_distancia:
+                            mejor_fecha = fecha_encontrada
+                            menor_distancia = dist_y
+            
+            # Estrategia 3: buscar texto con formato fecha+hora
+            if not mejor_fecha:
+                for it in items:
+                    dist_y = abs(it['y'] - y_ars)
+                    if dist_y < 200:
+                        m = re.search(r'(\d{4})[.-](\d{2})[.-](\d{2})\s+\d{2}[:.]\d{2}', it['text'])
                         if m:
                             mejor_fecha = f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
                             break
