@@ -234,6 +234,19 @@ def procesar_bybit_tarjeta(archivo, owner, medio_pago, datos, categorizar_fn=Non
                 seen.add(key)
                 gastos_dedup.append(g)
         
+        # Debug extra: mostrar fechas encontradas
+        fechas_debug = []
+        for it in items:
+            fecha_test = extraer_fecha_bybit(it['text'])
+            if fecha_test:
+                fechas_debug.append(f"y={it['y']:.0f} | {it['text']} -> {fecha_test}")
+        
+        if fechas_debug:
+            texto_debug += "\n\n=== FECHAS DETECTADAS ===\n"
+            texto_debug += "\n".join(fechas_debug)
+        else:
+            texto_debug += "\n\n=== NO SE DETECTARON FECHAS ==="
+        
         if not gastos_dedup:
             return [], texto_debug, "No se detectaron gastos"
         
