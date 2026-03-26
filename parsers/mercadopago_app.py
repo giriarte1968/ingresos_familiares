@@ -1,10 +1,6 @@
 """
-Parser para capturas de app móvil MercadoPago.
-Formato:
-Fecha
-Transferencia enviada / Compra / etc
-Descripción
-$ -1.700
+Parser definitivo para capturas app MercadoPago móvil.
+Optimizado para OCR real.
 """
 import re
 from parsers.base import (
@@ -15,25 +11,26 @@ from parsers.base import (
 
 
 def parsear_monto_app(texto):
-    """
-    Montos sin ARS:
-      $ -3.000
-      $ -900
-      - $ 1.600
-    """
-    s = texto.strip()
-    s = s.replace('$', '').replace(' ', '')
+    texto = texto.strip()
+    if '$' not in texto:
+        return 0.0
 
-    # Remover signo negativo al final para float()
-    if s.startswith('-'):
-        negativo = True
+    s = texto.replace('$', '').replace(' ', '')
+
+    negativo = s.startswith('-')
+    if negativo:
         s = s[1:]
-    else:
-        negativo = False
+
+    # Limpiar OCR raro
+    s = s.replace('°', '')
+    s = s.replace('o', '0')
+    s = s.replace('O', '0')
+    s = s.replace('s', '5') if re.match(r'^\d+\.\d+s\d*$', s) else s
 
     if ',' in s:
         s = s.replace('.', '').replace(',', '.')
     else:
+        # Si tiene un solo punto y 2 decimales, dejarlo
         parts = s.rsplit('.', 1)
         if len(parts) == 2 and len(parts[1]) == 2:
             pass
@@ -42,134 +39,129 @@ def parsear_monto_app(texto):
 
     try:
         monto = float(s)
-        return monto if not negativo else -monto
+        return -monto if negativo else monto
     except:
         return 0.0
 
 
 def parsear_fecha_app(texto):
-    """
-    Fechas:
-      18 feb
-      27 fehrero
-    """
-    meses_short = {
-        'ene': '01', 'feb': '02', 'mar': '03', 'abr': '04', 'may': '05', 'jun': '06',
-        'jul': '07', 'ago': '08', 'sep': '09', 'oct': '10', 'nov': '11', 'dic': '12',
-    }
-    m = re.search(r'(\d{1,2})\s+([a-z]+)', texto.lower().strip())
+    t = texto.strip().lower()
+
+    m = re.search(r'(\d{1,2})\s*(de\s+)?(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre|ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)', t)
     if m:
         dia = m.group(1).zfill(2)
-        mes_str = m.group(2)
-        mes = meses_short.get(mes_str[:3])
+        mes_txt = m.group(3)[:3]
+        meses = {
+            'ene': '01', 'feb': '02', 'mar': '03', 'abr': '04',
+            'may': '05', 'jun': '06', 'jul': '07', 'ago': '08',
+            'sep': '09', 'oct': '10', 'nov': '11', 'dic': '12'
+        }
+        mes = meses.get(mes_txt)
         if mes:
-            # Asumir año actual o 2026
             return f"2026-{mes}-{dia}"
+
     return ''
 
 
-def es_linea_fecha(texto):
-    return bool(parsear_fecha_app(texto))
-
-
-def es_linea_monto(texto):
-    return '$' in texto and bool(re.search(r'\$?\s*-?\s*[\d.,]+', texto))
-
-
-def es_transferencia(texto):
-    t = texto.lower()
-    return 'transferencia enviada' in t or 'transferencia' in t
-
-
-def es_monto(texto):
-    return '$' in texto and bool(re.search(r'[\d.,]+', texto))
+def normalizar_texto(texto):
+    return ' '.join(texto.strip().split())
 
 
 def procesar_mercadopago_app(archivo, owner, medio_pago, datos, categorizar_gasto_fn=None):
-    """
-    Procesa captura de app móvil MercadoPago.
-    """
     items, texto_debug = imagen_a_items_paddle(archivo)
 
     if not items:
         return [], texto_debug, "No se pudo leer la imagen"
 
     gastos = []
+    fecha_actual = ''
+
+    # Ordenados por Y
+    items = sorted(items, key=lambda x: x['y'])
+
     i = 0
-
     while i < len(items):
-        item = items[i]
-        y_actual = item['y']
+        texto = normalizar_texto(items[i]['text'])
+        y = items[i]['y']
 
-        # Buscar fecha arriba o misma línea
-        fecha = ''
-        fecha_y = 9999
-        for j in range(i - 3, i + 1):
-            if 0 <= j < len(items):
-                f = parsear_fecha_app(items[j]['text'])
-                if f:
-                    fecha = f
-                    fecha_y = items[j]['y']
-                    break
-
-        if not fecha:
+        # 1. detectar fecha de sección
+        fecha_detectada = parsear_fecha_app(texto)
+        if fecha_detectada:
+            fecha_actual = fecha_detectada
             i += 1
             continue
 
-        # Buscar descripción entre fecha y monto
-        descripcion_lines = []
-        for j in range(i + 1, i + 4):
-            if j < len(items):
-                texto = items[j]['text'].strip().lower()
-                if es_monto(items[j]['text']) or abs(items[j]['y'] - y_actual) > 50:
+        # 2. detectar tipo de movimiento relevante
+        t_low = texto.lower()
+        if 'transferencia enviada' in t_low or 'pago' == t_low or 'pago de servicio' in t_low:
+            tipo_mov = texto
+
+            # 3. buscar descripción en la línea siguiente cercana
+            descripcion = ''
+            monto = 0.0
+
+            # siguiente línea útil = descripción
+            j = i + 1
+            while j < len(items):
+                texto_j = normalizar_texto(items[j]['text'])
+                if items[j]['y'] - y > 40:
                     break
-                if texto not in ['', 'transferencia enviada', 'compra', 'pago']:
-                    descripcion_lines.append(items[j]['text'].strip())
 
-        descripcion = ' '.join(descripcion_lines).strip()
-        if not descripcion:
-            i += 1
-            continue
+                # si tiene monto, no es descripción
+                if '$' not in texto_j and not parsear_fecha_app(texto_j):
+                    if texto_j.lower() not in ['10resultados', 'buscar']:
+                        descripcion = texto_j
+                        break
+                j += 1
 
-        # Buscar monto cerca
-        monto = 0
-        monto_y = 9999
-        for j in range(i, i + 5):
-            if j < len(items):
-                m = parsear_monto_app(items[j]['text'])
-                if m > 0 or m < -1:  # monto válido
-                    if abs(items[j]['y'] - y_actual) < 40:
-                        monto = m
-                        monto_y = items[j]['y']
+            # 4. buscar monto en misma línea del tipo de movimiento o líneas cercanas
+            for k in range(i, min(i + 3, len(items))):
+                if abs(items[k]['y'] - y) <= 20:
+                    m = parsear_monto_app(items[k]['text'])
+                    if m < 0:
+                        monto = abs(m)
                         break
 
-        if monto >= 0:
-            i += 1
-            continue
+            # fallback: buscar monto un poco más abajo si OCR lo separó
+            if monto == 0:
+                for k in range(i, min(i + 4, len(items))):
+                    if items[k]['y'] - y <= 30:
+                        m = parsear_monto_app(items[k]['text'])
+                        if m < 0:
+                            monto = abs(m)
+                            break
 
-        monto_abs = abs(monto)
+            # solo guardar si hay fecha + descripcion + monto
+            if fecha_actual and descripcion and monto > 0:
+                if categorizar_gasto_fn:
+                    cat, subcat, gasto_final = categorizar_gasto_fn(descripcion, datos)
+                else:
+                    cat, subcat, gasto_final = categorizar_gasto_parser(descripcion, datos)
 
-        cat, subcat, gasto_final = categorizar_gasto_parser(descripcion, datos)
-
-        gastos.append({
-            'fecha': fecha,
-            'gasto': gasto_final,
-            'monto': monto_abs,
-            'moneda': 'ARS',
-            'fuente': 'MercadoPago App',
-            'categoria': cat,
-            'subcategoria': subcat,
-            'owner': owner,
-            'medio_pago': medio_pago or 'Mercado Pago App',
-            'u_id': generar_id()
-        })
+                gastos.append({
+                    'fecha': fecha_actual,
+                    'gasto': gasto_final,
+                    'monto': monto,
+                    'moneda': 'ARS',
+                    'fuente': 'MercadoPago App',
+                    'categoria': cat,
+                    'subcategoria': subcat,
+                    'owner': owner,
+                    'medio_pago': medio_pago or 'Mercado Pago',
+                    'u_id': generar_id()
+                })
 
         i += 1
 
+    # Deduplicar
     seen = set()
     gastos_dedup = []
     for g in gastos:
-        key = (g.get('fecha', ''), g.get('gasto', '').lower(), round(g.get('monto', 0), 2))
+        key = (
+            g.get('fecha', ''),
+            g.get('gasto', '').lower(),
+            round(g.get('monto', 0), 2)
+        )
         if key not in seen:
             seen.add(key)
             gastos_dedup.append(g)
