@@ -1,6 +1,6 @@
 """
 Parser para Resúmenes de Cuenta MercadoPago en PDF.
-Formato detectado: extracción vertical por bloques:
+Formato vertical:
     Fecha
     Descripción (1 o más líneas)
     ID operación
@@ -20,12 +20,6 @@ def parsear_fecha_mercadopago(texto):
 
 
 def parsear_monto_mercadopago(texto):
-    """
-    Ejemplos:
-      $ -1.700,00
-      $ 500,00
-      $ 2.839,60
-    """
     s = texto.strip()
     s = s.replace('$', '').replace(' ', '')
 
@@ -57,24 +51,53 @@ def es_monto(texto):
     return '$' in texto and bool(re.search(r'[-\d.,]+', texto))
 
 
-def es_saldo(texto):
-    # saldo tiene formato igual al monto, pero aparece justo después del valor
-    return es_monto(texto)
-
-
 def limpiar_descripcion(descripcion):
     d = ' '.join(descripcion.split())
     d = d.replace('Transferencia enviada', '').strip()
     d = d.replace('Transferencia recibida', '').strip()
-    d = d.replace('Dinero retirado misión', 'Dinero retirado misión').strip()
-    d = d.replace('Dinero reservado misión', 'Dinero reservado misión').strip()
+    d = d.replace('Pago ', '').strip()
     return d
 
 
+def es_linea_basura(texto):
+    t = texto.strip().lower()
+
+    if not t:
+        return True
+
+    if re.match(r'^\d+/\d+$', t):
+        return True
+
+    if t in ['fecha', 'descripción', 'descripcion', 'valor', 'saldo']:
+        return True
+
+    if t in ['operación', 'operacion']:
+        return True
+
+    if t == 'id de la':
+        return True
+
+    if any(x in t for x in [
+        'resumen de cuenta',
+        'detalle de movimientos',
+        'saldo inicial',
+        'saldo final',
+        'entradas:',
+        'salidas:',
+        'periodo:',
+        'cvu:',
+        'cuit/ cuil',
+        'fecha de generación',
+        'mercado libre s.r.l.',
+        'encuentra nuestros canales',
+        'www.mercadopago.com.ar'
+    ]):
+        return True
+
+    return False
+
+
 def procesar_mercadopago_pdf(archivo, owner, medio_pago, datos, categorizar_gasto_fn=None):
-    """
-    Procesa Resumen MercadoPago PDF con estructura vertical.
-    """
     try:
         import pymupdf
 
@@ -89,92 +112,105 @@ def procesar_mercadopago_pdf(archivo, owner, medio_pago, datos, categorizar_gast
             texto += page.get_text() + "\n"
         doc.close()
 
-        texto_debug = texto
-        lineas = [l.strip() for l in texto.split('\n') if l.strip()]
+        debug_lines = []
+        debug_lines.append("=== TEXTO ORIGINAL ===")
+        debug_lines.append(texto)
+
+        lineas_crudas = [l.strip() for l in texto.split('\n')]
+        lineas = [l for l in lineas_crudas if not es_linea_basura(l)]
+
+        debug_lines.append("\n=== LINEAS LIMPIAS ===")
+        for idx, l in enumerate(lineas):
+            debug_lines.append(f"{idx:03d}: {l}")
 
         gastos = []
-
         i = 0
+
         while i < len(lineas):
             linea = lineas[i]
 
-            # Buscar inicio de bloque por fecha
             if not es_fecha(linea):
                 i += 1
                 continue
 
             fecha = parsear_fecha_mercadopago(linea)
-            if not fecha:
-                i += 1
-                continue
+            debug_lines.append(f"\n[BLOQUE] Fecha detectada: {fecha} en línea {i}")
 
             j = i + 1
             descripcion_partes = []
 
-            # Acumular descripción hasta encontrar ID operación
             while j < len(lineas) and not es_id_operacion(lineas[j]):
-                # cortar si aparece otra fecha inesperada
                 if es_fecha(lineas[j]):
                     break
                 descripcion_partes.append(lineas[j])
                 j += 1
 
+            debug_lines.append(f"  Descripción partes: {descripcion_partes}")
+
             if j >= len(lineas):
+                debug_lines.append("  -> bloque abortado: no llegó a ID")
                 i += 1
                 continue
 
-            # ID operación
             if not es_id_operacion(lineas[j]):
+                debug_lines.append(f"  -> bloque abortado: no encontró ID en línea {j}, valor='{lineas[j]}'")
                 i += 1
                 continue
+
             id_operacion = lineas[j]
+            debug_lines.append(f"  ID operación: {id_operacion}")
             j += 1
 
             if j >= len(lineas):
+                debug_lines.append("  -> bloque abortado: no llegó a valor")
                 i += 1
                 continue
 
-            # Valor
             if not es_monto(lineas[j]):
+                debug_lines.append(f"  -> bloque abortado: valor inválido en línea {j}, valor='{lineas[j]}'")
                 i += 1
                 continue
+
             valor_txt = lineas[j]
             valor = parsear_monto_mercadopago(valor_txt)
+            debug_lines.append(f"  Valor: {valor_txt} -> {valor}")
             j += 1
 
             if j >= len(lineas):
+                debug_lines.append("  -> bloque abortado: no llegó a saldo")
                 i += 1
                 continue
 
-            # Saldo
-            if not es_saldo(lineas[j]):
+            if not es_monto(lineas[j]):
+                debug_lines.append(f"  -> bloque abortado: saldo inválido en línea {j}, valor='{lineas[j]}'")
                 i += 1
                 continue
+
             saldo_txt = lineas[j]
+            debug_lines.append(f"  Saldo: {saldo_txt}")
             j += 1
 
             descripcion = limpiar_descripcion(' '.join(descripcion_partes))
+            debug_lines.append(f"  Descripción limpia: {descripcion}")
 
             if not descripcion:
+                debug_lines.append("  -> bloque descartado: descripción vacía")
                 i = j
                 continue
 
-            # Solo egresos: valor negativo
             if valor >= 0:
+                debug_lines.append("  -> bloque descartado: no es egreso")
                 i = j
                 continue
 
             monto_abs = abs(valor)
-
-            # Filtrar cosas que no queremos como egreso real si querés
             dlow = descripcion.lower()
 
-            # Casos especiales MercadoPago
             if 'rendimientos' in dlow:
+                debug_lines.append("  -> bloque descartado: rendimiento")
                 i = j
                 continue
 
-            # Categorización
             if categorizar_gasto_fn:
                 cat, subcat, gasto_final = categorizar_gasto_fn(descripcion, datos)
             else:
@@ -193,9 +229,9 @@ def procesar_mercadopago_pdf(archivo, owner, medio_pago, datos, categorizar_gast
                 'u_id': generar_id()
             })
 
+            debug_lines.append(f"  -> egreso agregado: {fecha} | {gasto_final} | {monto_abs}")
             i = j
 
-        # Deduplicar
         seen = set()
         gastos_dedup = []
         for g in gastos:
@@ -203,6 +239,10 @@ def procesar_mercadopago_pdf(archivo, owner, medio_pago, datos, categorizar_gast
             if key not in seen:
                 seen.add(key)
                 gastos_dedup.append(g)
+
+        debug_lines.append(f"\n=== TOTAL EGRESOS DETECTADOS: {len(gastos_dedup)} ===")
+
+        texto_debug = "\n".join(debug_lines)
 
         if not gastos_dedup:
             return [], texto_debug, "No se detectaron egresos en el PDF"
