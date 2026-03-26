@@ -1,16 +1,31 @@
 """
-Parser para Resúmenes de Cuenta MercadoPago en formato PDF.
-Lee texto nativo PDF, no usa OCR.
+Parser para Resúmenes de Cuenta MercadoPago en PDF.
+Formato detectado: extracción vertical por bloques:
+    Fecha
+    Descripción (1 o más líneas)
+    ID operación
+    Valor
+    Saldo
 """
 import re
-from parsers.base import (
-    categorizar_gasto_parser,
-    generar_id,
-)
+from parsers.base import categorizar_gasto_parser, generar_id
+
+
+def parsear_fecha_mercadopago(texto):
+    m = re.match(r'(\d{2})-(\d{2})-(\d{4})$', texto.strip())
+    if not m:
+        return ''
+    dia, mes, anio = m.groups()
+    return f"{anio}-{mes}-{dia}"
 
 
 def parsear_monto_mercadopago(texto):
-    """Ejemplos: $ -1.700,00 / $ 500,00"""
+    """
+    Ejemplos:
+      $ -1.700,00
+      $ 500,00
+      $ 2.839,60
+    """
     s = texto.strip()
     s = s.replace('$', '').replace(' ', '')
 
@@ -25,26 +40,47 @@ def parsear_monto_mercadopago(texto):
 
     try:
         return float(s)
-    except (ValueError, TypeError):
+    except:
         return 0.0
 
 
-def parsear_fecha_mercadopago(texto):
-    """Ejemplo: 07-01-2026 -> 2026-01-07"""
-    m = re.match(r'(\d{2})-(\d{2})-(\d{4})', texto.strip())
-    if not m:
-        return ''
-    dia, mes, anio = m.groups()
-    return f"{anio}-{mes}-{dia}"
+def es_fecha(texto):
+    return bool(re.match(r'^\d{2}-\d{2}-\d{4}$', texto.strip()))
+
+
+def es_id_operacion(texto):
+    t = texto.strip()
+    return t.isdigit() and len(t) >= 8
+
+
+def es_monto(texto):
+    return '$' in texto and bool(re.search(r'[-\d.,]+', texto))
+
+
+def es_saldo(texto):
+    # saldo tiene formato igual al monto, pero aparece justo después del valor
+    return es_monto(texto)
+
+
+def limpiar_descripcion(descripcion):
+    d = ' '.join(descripcion.split())
+    d = d.replace('Transferencia enviada', '').strip()
+    d = d.replace('Transferencia recibida', '').strip()
+    d = d.replace('Dinero retirado misión', 'Dinero retirado misión').strip()
+    d = d.replace('Dinero reservado misión', 'Dinero reservado misión').strip()
+    return d
 
 
 def procesar_mercadopago_pdf(archivo, owner, medio_pago, datos, categorizar_gasto_fn=None):
-    """Procesa Resumen de Cuenta MercadoPago PDF."""
+    """
+    Procesa Resumen MercadoPago PDF con estructura vertical.
+    """
     try:
         import pymupdf
 
         if hasattr(archivo, 'seek'):
             archivo.seek(0)
+
         pdf_bytes = archivo.read()
         doc = pymupdf.open(stream=pdf_bytes, filetype="pdf")
 
@@ -54,61 +90,89 @@ def procesar_mercadopago_pdf(archivo, owner, medio_pago, datos, categorizar_gast
         doc.close()
 
         texto_debug = texto
+        lineas = [l.strip() for l in texto.split('\n') if l.strip()]
 
-        lineas = texto.split('\n')
         gastos = []
 
-        # Buscar inicio de la tabla
-        inicio_tabla = None
-        for i, linea in enumerate(lineas):
-            if 'DETALLE DE MOVIMIENTOS' in linea:
-                inicio_tabla = i + 4
-                break
-
-        if inicio_tabla is None:
-            return [], texto_debug, "No se encontró la tabla de movimientos"
-
-        # Recorrer filas de la tabla
-        i = inicio_tabla
+        i = 0
         while i < len(lineas):
-            linea = lineas[i].strip()
+            linea = lineas[i]
 
-            if not linea:
+            # Buscar inicio de bloque por fecha
+            if not es_fecha(linea):
                 i += 1
                 continue
 
-            # Fin de la tabla
-            if 'Saldo final' in linea or 'TOTAL' in linea:
-                break
-
-            # Patrón de fila válida: fecha DD-MM-AAAA
-            if not re.match(r'^\d{2}-\d{2}-\d{4}', linea):
+            fecha = parsear_fecha_mercadopago(linea)
+            if not fecha:
                 i += 1
                 continue
 
-            partes = linea.split()
-            fecha_raw = partes[0]
-            fecha = parsear_fecha_mercadopago(fecha_raw)
+            j = i + 1
+            descripcion_partes = []
 
-            # Buscar monto al final
-            monto_match = re.search(r'\$\s*[-\d.,]+', linea)
-            if not monto_match:
+            # Acumular descripción hasta encontrar ID operación
+            while j < len(lineas) and not es_id_operacion(lineas[j]):
+                # cortar si aparece otra fecha inesperada
+                if es_fecha(lineas[j]):
+                    break
+                descripcion_partes.append(lineas[j])
+                j += 1
+
+            if j >= len(lineas):
                 i += 1
                 continue
 
-            monto_raw = monto_match.group(0)
-            monto = parsear_monto_mercadopago(monto_raw)
+            # ID operación
+            if not es_id_operacion(lineas[j]):
+                i += 1
+                continue
+            id_operacion = lineas[j]
+            j += 1
 
-            # Solo egresos (monto negativo)
-            if monto >= 0:
+            if j >= len(lineas):
                 i += 1
                 continue
 
-            monto_abs = abs(monto)
+            # Valor
+            if not es_monto(lineas[j]):
+                i += 1
+                continue
+            valor_txt = lineas[j]
+            valor = parsear_monto_mercadopago(valor_txt)
+            j += 1
 
-            # Limpiar descripción
-            descripcion_raw = linea[len(fecha_raw):monto_match.start()].strip()
-            descripcion = descripcion_raw.replace('Transferencia enviada', '').replace('Transferencia', '').replace('Compra', '').replace('Pago', '').strip()
+            if j >= len(lineas):
+                i += 1
+                continue
+
+            # Saldo
+            if not es_saldo(lineas[j]):
+                i += 1
+                continue
+            saldo_txt = lineas[j]
+            j += 1
+
+            descripcion = limpiar_descripcion(' '.join(descripcion_partes))
+
+            if not descripcion:
+                i = j
+                continue
+
+            # Solo egresos: valor negativo
+            if valor >= 0:
+                i = j
+                continue
+
+            monto_abs = abs(valor)
+
+            # Filtrar cosas que no queremos como egreso real si querés
+            dlow = descripcion.lower()
+
+            # Casos especiales MercadoPago
+            if 'rendimientos' in dlow:
+                i = j
+                continue
 
             # Categorización
             if categorizar_gasto_fn:
@@ -129,12 +193,21 @@ def procesar_mercadopago_pdf(archivo, owner, medio_pago, datos, categorizar_gast
                 'u_id': generar_id()
             })
 
-            i += 1
+            i = j
 
-        if not gastos:
+        # Deduplicar
+        seen = set()
+        gastos_dedup = []
+        for g in gastos:
+            key = (g.get('fecha', ''), g.get('gasto', '').lower(), round(g.get('monto', 0), 2))
+            if key not in seen:
+                seen.add(key)
+                gastos_dedup.append(g)
+
+        if not gastos_dedup:
             return [], texto_debug, "No se detectaron egresos en el PDF"
 
-        return gastos, texto_debug, None
+        return gastos_dedup, texto_debug, None
 
     except Exception as e:
         import traceback
