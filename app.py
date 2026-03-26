@@ -1377,25 +1377,33 @@ def detectar_fuente(nombre_archivo):
     """Detecta la fuente de pago desde el nombre del archivo"""
     nombre = nombre_archivo.lower()
     
-    # Fuentes ordenadas por prioridad (más específico primero)
     fuentes = [
+        # Galicia
         ('tarjeta_debito_galicia_gustavo', ['tarjeta', 'galicia', 'gustavo'], 3),
-        ('mercadopago_gustavo', ['mercadopago', 'gustavo'], 2),
+        ('tarjeta_debito_galicia', ['tarjeta', 'galicia'], 2),
+        
+        # MercadoPago - más keywords
+        ('mercadopago_gustavo', ['mercadopago', 'mercado', 'mp', 'pago', 'gustavo'], 3),
+        ('mercadopago_veronica', ['mercadopago', 'mercado', 'mp', 'pago', 'veronica'], 3),
+        ('mercadopago_sol', ['mercadopago', 'mercado', 'mp', 'pago', 'sol'], 3),
+        ('mercadopago', ['mercadopago', 'mercado', 'mp', 'pago'], 2),
+        
+        # Bybit
         ('bybit_qr_gustavo', ['bybit', 'qr', 'gustavo'], 3),
         ('bybit_tarjeta_gustavo', ['bybit', 'tarjeta', 'gustavo'], 3),
-        ('tarjeta_debito_icbc_veronica', ['tarjeta', 'icbc', 'veronica'], 3),
-        ('mercadopago_veronica', ['mercadopago', 'veronica'], 2),
         ('bybit_qr_veronica', ['bybit', 'qr', 'veronica'], 3),
         ('bybit_tarjeta_veronica', ['bybit', 'tarjeta', 'veronica'], 3),
-        ('binance_qr_veronica', ['binance', 'qr', 'veronica'], 3),
-        ('mercadopago_sol', ['mercadopago', 'sol'], 2),
-        ('bybit_tarjeta_sol', ['bybit', 'tarjeta', 'sol'], 3),
         ('bybit_qr_sol', ['bybit', 'qr', 'sol'], 3),
-        ('tarjeta_debito_galicia', ['tarjeta', 'galicia'], 2),
-        ('mercadopago', ['mercadopago'], 1),
+        ('bybit_tarjeta_sol', ['bybit', 'tarjeta', 'sol'], 3),
         ('bybit_qr', ['bybit', 'qr'], 2),
         ('bybit_tarjeta', ['bybit', 'tarjeta'], 2),
+        
+        # ICBC
+        ('tarjeta_debito_icbc_veronica', ['tarjeta', 'icbc', 'veronica'], 3),
         ('icbc', ['icbc'], 1),
+        
+        # Binance
+        ('binance_qr_veronica', ['binance', 'qr', 'veronica'], 3),
         ('binance', ['binance'], 1),
     ]
     
@@ -1837,6 +1845,31 @@ def mostrar_egresos():
                             st.rerun()
                         else:
                             st.warning("No se detectaron gastos en la imagen")
+                    
+                    st.stop()
+
+                # ---- MERCADOPAGO APP JPG ----
+                if 'mercadopago' in file_name.lower() or 'mercado' in file_name.lower() or 'mp' in file_name.lower():
+                    from parsers.mercadopago_app import procesar_mercadopago_app
+                    
+                    gastos, texto_debug, error = procesar_mercadopago_app(
+                        archivo, owner_egreso, medio_egreso, datos, categorizar_gasto
+                    )
+                    
+                    st.info(f"DEBUG: Fuente = {detectar_fuente(archivo.name)}")
+                    
+                    if texto_debug:
+                        with st.expander("DEBUG: Texto OCR MercadoPago App", expanded=True):
+                            st.text(texto_debug)
+                    
+                    if error:
+                        st.error(error)
+                    elif gastos:
+                        st.session_state.egresos_procesados_temp = gastos
+                        st.success(f"Se detectaron {len(gastos)} egresos desde MercadoPago App")
+                        st.rerun()
+                    else:
+                        st.warning("No se detectaron egresos")
                     
                     st.stop()
                 
