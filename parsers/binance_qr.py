@@ -146,10 +146,10 @@ def procesar_binance_qr(archivo, owner, medio_pago, datos, categorizar_gasto_fn=
 
         nombre_lower = nombre.lower().strip()
         if 'caja de prevision social' in nombre_lower:
-            if abs(monto) >= 300000:
-                cat, subcat, gasto_final = 'servicios', 'salud', 'Caja de Previsión Social'
+            if abs(monto) > 500000:
+                cat, subcat, gasto_final = 'servicios', 'salud', 'Caja de Prevision Social (Salud)'
             else:
-                cat, subcat, gasto_final = 'servicios', 'jubilacion', 'Caja de Previsión Social'
+                cat, subcat, gasto_final = 'servicios', 'jubilacion', 'Caja de Prevision Social (Jubilacion)'
         else:
             if categorizar_gasto_fn:
                 cat, subcat, gasto_final = categorizar_gasto_fn(nombre, datos)
