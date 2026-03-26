@@ -1358,6 +1358,12 @@ COMERCIOS_CONOCIDOS = {
     # Impuestos
     'municipalidad': {'categoria': 'impuestos', 'subcategoria': 'impuestos', 'gasto': 'Municipalidad'},
     
+    # Familia
+    'sol belen iriarte rojo': {'categoria': 'otros', 'subcategoria': 'familia', 'gasto': 'Sol Belén Iriarte Rojo'},
+    'tomas lautaro iriarte rojo': {'categoria': 'otros', 'subcategoria': 'familia', 'gasto': 'Tomás Lautaro Iriarte Rojo'},
+    'magdalena soler': {'categoria': 'otros', 'subcategoria': 'familia', 'gasto': 'Magdalena Soler'},
+    'soc': {'categoria': 'otros', 'subcategoria': 'familia', 'gasto': 'SOC'},
+    
     # Ignorar (basura del OCR)
     'correcto': None,
     'historial': None,
@@ -1434,6 +1440,21 @@ def categorizar_gasto(descripcion, datos=None):
                 for palabra in keywords:
                     if palabra in nombre_lower:
                         return categoria, categoria, nombre_limpio.title()
+    
+    # ========== PASO 2.5: Reglas específicas familiares ==========
+    if any(nombre in nombre_lower for nombre in [
+        'sol belen iriarte rojo',
+        'tomas lautaro iriarte rojo',
+        'magdalena soler',
+        'soc'
+    ]):
+        return 'otros', 'familia', nombre_limpio.title()
+
+    if 'percepcion' in nombre_lower or 'percepción' in nombre_lower:
+        return 'impuestos', 'impuestos', nombre_limpio.title()
+
+    if 'uber' in nombre_lower:
+        return 'servicios', 'transporte', nombre_limpio.title()
     
     # ========== PASO 3: Búsqueda web (con cache) ==========
     resultado = buscar_comercio_en_web(nombre_limpio)
@@ -1658,8 +1679,8 @@ def mostrar_egresos():
         st.caption(f"Mostrando {len(egresos)} de {len(egresos_completos)} egresos")
     
     archivo = st.file_uploader(
-        "Seleccionar archivo de egresos (imagen, PDF o texto)",
-        type=['jpg', 'jpeg', 'png', 'pdf', 'txt'],
+        "Seleccionar archivo de egresos (imagen, PDF, texto o Excel)",
+        type=['jpg', 'jpeg', 'png', 'pdf', 'txt', 'xlsx', 'xls'],
         key=f"uploader_{mes_seleccionado}"
     )
     
@@ -1673,6 +1694,33 @@ def mostrar_egresos():
                 
                 # Determinar tipo de archivo
                 file_name = archivo.name.lower()
+                
+                # ---- GALICIA EXCEL ----
+                if file_name.endswith(('.xlsx', '.xls')):
+                    try:
+                        from parsers.galicia_excel import extraer_egresos_galicia_excel
+
+                        archivo.seek(0)
+                        gastos_excel = extraer_egresos_galicia_excel(
+                            archivo=archivo,
+                            categorizar_gasto_fn=categorizar_gasto,
+                            datos=datos,
+                            owner=owner_egreso,
+                            medio_pago=medio_egreso,
+                            generar_id_fn=generar_id
+                        )
+
+                        if gastos_excel:
+                            st.session_state.egresos_procesados_temp = gastos_excel
+                            st.success(f"Se detectaron {len(gastos_excel)} egresos desde Excel Galicia")
+                            st.rerun()
+                        else:
+                            st.warning("No se detectaron egresos en el Excel")
+
+                    except Exception as e:
+                        st.error(f"Error procesando Excel Galicia: {e}")
+
+                    st.stop()
                 
                 # ---- BYBIT TARJETA JPG ----
                 if file_name.endswith(('.jpg', '.jpeg', '.png')) and 'bybit' in file_name and 'tarjeta' in file_name:

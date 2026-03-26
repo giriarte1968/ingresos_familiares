@@ -1,6 +1,6 @@
 """
 Parser de Excel para Banco Galicia.
-Extrae ingresos bancarios desde archivo Excel.
+Extrae ingresos o egresos desde archivo Excel.
 """
 import pandas as pd
 
@@ -16,6 +16,7 @@ def convertir_monto_argentino(valor):
     if not valor_str:
         return 0.0
 
+    valor_str = valor_str.replace(' ', '')
     valor_limpio = valor_str.replace('.', '').replace(',', '.')
     try:
         return float(valor_limpio)
@@ -23,16 +24,15 @@ def convertir_monto_argentino(valor):
         return 0.0
 
 
-def detectar_categoria(descripcion):
-    """Versión simple local para ingresos Excel."""
+def detectar_categoria_ingreso(descripcion):
     desc_lower = descripcion.lower()
 
     categorias = {
         'sueldo': ['sueldo', 'haberes', 'neto', 'remuneración', 'salario', 'nómina'],
         'alquiler': ['alquiler', 'renta', 'inquilino', 'cobro alquiler'],
-        'intereses': ['interés', 'rendimiento', 'ganancia', 'fondo mutuo', 'renta'],
+        'intereses': ['interés', 'interes', 'rendimiento', 'ganancia', 'fondo mutuo', 'capitalizado'],
         'inversion': ['dividendo', 'acción', 'bono', 'plazo fijo', 'valorización'],
-        'transferencia': ['transferencia', 'depósito', 'entrada', 'recibido'],
+        'transferencia': ['transferencia', 'depósito', 'deposito', 'entrada', 'recibido'],
         'otro': [],
     }
 
@@ -44,7 +44,7 @@ def detectar_categoria(descripcion):
 
 
 def extraer_movimientos_galicia_excel(archivo):
-    """Extrae movimientos de un Excel de Banco Galicia."""
+    """Extrae INGRESOS desde un Excel de Banco Galicia."""
     movimientos = []
 
     try:
@@ -69,15 +69,15 @@ def extraer_movimientos_galicia_excel(archivo):
                 monto = convertir_monto_argentino(row.get(col_credito, 0))
 
                 if monto > 0:
-                    fecha_val = str(row.get(col_fecha, '')) if col_fecha else ''
+                    fecha_val = str(row.get(col_fecha, '')).strip() if col_fecha else ''
                     desc_val = str(row.get(col_mov, '')).strip() if col_mov else ''
                     desc_val = ' '.join(desc_val.split())
 
-                    categoria = detectar_categoria(desc_val)
+                    categoria = detectar_categoria_ingreso(desc_val)
 
                     movimientos.append({
                         'fecha': fecha_val,
-                        'descripcion': desc_val[:150],
+                        'descripcion': desc_val[:200],
                         'monto': monto,
                         'monto_ars': None,
                         'banco': 'galicia',
@@ -88,7 +88,76 @@ def extraer_movimientos_galicia_excel(archivo):
         return movimientos
 
     except Exception as e:
-        print(f"Error al leer Excel Galicia: {e}")
+        print(f"Error al leer Excel Galicia (ingresos): {e}")
+        import traceback
+        traceback.print_exc()
+        return []
+
+
+def extraer_egresos_galicia_excel(archivo, categorizar_gasto_fn=None, datos=None,
+                                  owner='Gustavo', medio_pago='Banco Galicia', generar_id_fn=None):
+    """Extrae EGRESOS desde un Excel de Banco Galicia."""
+    egresos = []
+
+    try:
+        df = pd.read_excel(archivo, sheet_name=0, header=5)
+        columnas = df.columns.tolist()
+
+        col_fecha = None
+        col_mov = None
+        col_debito = None
+
+        for col in columnas:
+            col_lower = col.lower() if isinstance(col, str) else ''
+            if 'fecha' in col_lower:
+                col_fecha = col
+            elif 'movimiento' in col_lower:
+                col_mov = col
+            elif 'débito' in col_lower or 'debito' in col_lower:
+                col_debito = col
+
+        if not col_debito:
+            return []
+
+        for _, row in df.iterrows():
+            monto = convertir_monto_argentino(row.get(col_debito, 0))
+
+            if monto >= 0:
+                continue
+
+            fecha_val = str(row.get(col_fecha, '')).strip() if col_fecha else ''
+            desc_val = str(row.get(col_mov, '')).strip() if col_mov else ''
+            desc_val = ' '.join(desc_val.split())
+
+            if not desc_val:
+                continue
+
+            monto_abs = abs(monto)
+
+            if categorizar_gasto_fn:
+                categoria, subcategoria, gasto_final = categorizar_gasto_fn(desc_val, datos)
+            else:
+                categoria, subcategoria, gasto_final = 'otros', 'otros', desc_val[:200]
+
+            egreso = {
+                'fecha': fecha_val[:10] if fecha_val else '',
+                'gasto': gasto_final,
+                'monto': monto_abs,
+                'moneda': 'ARS',
+                'fuente': 'Galicia Excel',
+                'categoria': categoria,
+                'subcategoria': subcategoria,
+                'owner': owner,
+                'medio_pago': medio_pago,
+                'u_id': generar_id_fn() if generar_id_fn else None
+            }
+
+            egresos.append(egreso)
+
+        return egresos
+
+    except Exception as e:
+        print(f"Error al leer Excel Galicia (egresos): {e}")
         import traceback
         traceback.print_exc()
         return []
