@@ -1593,16 +1593,28 @@ def mostrar_egresos():
     
     col1, col2 = st.columns([3, 1])
     with col1:
-        current_val = st.session_state.get("sel_mes_egresos")
-        if current_val not in meses_disponibles:
-            current_val = meses_disponibles[-1] if meses_disponibles else "2026-02"
-        default_idx = meses_disponibles.index(current_val) if current_val in meses_disponibles else 0
+        # Si hay un mes pendiente de selección, usarlo como índice inicial
+        mes_default = st.session_state.get("pending_mes_egresos")
+
+        if mes_default in meses_disponibles:
+            index_default = meses_disponibles.index(mes_default)
+        elif st.session_state.get('mes_egresos_actual') in meses_disponibles:
+            index_default = meses_disponibles.index(st.session_state.get('mes_egresos_actual'))
+        else:
+            index_default = len(meses_disponibles) - 1
+
         mes_seleccionado = st.selectbox(
             "Mes",
             meses_disponibles,
-            index=default_idx,
+            index=index_default,
             key="sel_mes_egresos"
         )
+
+        # Limpiar pendiente después de usarlo
+        if "pending_mes_egresos" in st.session_state:
+            del st.session_state["pending_mes_egresos"]
+
+        st.session_state.mes_egresos_actual = mes_seleccionado
     
     # Limpiar debug info al cambiar de mes
     debug_info = st.session_state.get('debug_guardado')
@@ -1624,7 +1636,11 @@ def mostrar_egresos():
                         'plusvalia_propiedades': 0
                     }
                     guardar_datos(datos)
-                    st.session_state["sel_mes_egresos"] = nuevo_mes
+                    
+                    # Marcar intención de seleccionar el nuevo mes en el próximo rerun
+                    st.session_state.mes_egresos_actual = nuevo_mes
+                    st.session_state["pending_mes_egresos"] = nuevo_mes
+
                     st.success(f"Mes {nuevo_mes} creado")
                     st.rerun()
                 else:
@@ -1695,6 +1711,33 @@ def mostrar_egresos():
                 # Determinar tipo de archivo
                 file_name = archivo.name.lower()
                 
+                # ---- MERCADOPAGO APP (JPG/PNG) ----
+                if file_name.endswith(('.jpg', '.jpeg', '.png')) and 'mercadopago' in file_name:
+                    from parsers.mercadopago_app import procesar_mercadopago_app
+
+                    gastos, texto_debug, error = procesar_mercadopago_app(
+                        archivo=archivo,
+                        owner=owner_egreso,
+                        medio_pago=medio_egreso,
+                        datos=datos,
+                        categorizar_gasto_fn=categorizar_gasto
+                    )
+
+                    if texto_debug:
+                        with st.expander("DEBUG: Texto OCR MercadoPago App"):
+                            st.text(texto_debug)
+
+                    if error:
+                        st.error(error)
+                    elif gastos:
+                        st.session_state.egresos_procesados_temp = gastos
+                        st.success(f"Se detectaron {len(gastos)} egresos desde MercadoPago App")
+                        st.rerun()
+                    else:
+                        st.warning("No se detectaron egresos")
+
+                    st.stop()
+
                 # ---- MERCADOPAGO PDF ----
                 if file_name.endswith('.pdf') and 'mercadopago' in file_name:
                     from parsers.mercadopago_pdf import procesar_mercadopago_pdf
