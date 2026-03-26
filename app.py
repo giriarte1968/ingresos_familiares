@@ -1873,6 +1873,29 @@ def mostrar_egresos():
                     
                     st.stop()
                 
+                # ---- BINANCE QR JPG ----
+                if file_name.endswith(('.jpg', '.jpeg', '.png')) and 'binance' in file_name.lower():
+                    from parsers.binance_qr import procesar_binance_qr
+
+                    gastos, texto_debug, error = procesar_binance_qr(
+                        archivo, owner_egreso, medio_egreso, datos, categorizar_gasto
+                    )
+
+                    if texto_debug:
+                        with st.expander("DEBUG: Texto OCR Binance QR", expanded=True):
+                            st.text(texto_debug)
+
+                    if error:
+                        st.error(error)
+                    elif gastos:
+                        st.session_state.egresos_procesados_temp = gastos
+                        st.success(f"Se detectaron {len(gastos)} egresos desde Binance QR")
+                        st.rerun()
+                    else:
+                        st.warning("No se detectaron egresos Binance QR")
+
+                    st.stop()
+
                 elif file_name.endswith(('.jpg', '.jpeg', '.png')):
                     if EASYOCR_AVAILABLE:
                         archivo.seek(0)
