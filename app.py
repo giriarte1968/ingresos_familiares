@@ -1695,6 +1695,33 @@ def mostrar_egresos():
                 # Determinar tipo de archivo
                 file_name = archivo.name.lower()
                 
+                # ---- MERCADOPAGO PDF ----
+                if file_name.endswith('.pdf') and 'mercadopago' in file_name:
+                    from parsers.mercadopago_pdf import procesar_mercadopago_pdf
+
+                    gastos, texto_debug, error = procesar_mercadopago_pdf(
+                        archivo=archivo,
+                        owner=owner_egreso,
+                        medio_pago=medio_egreso,
+                        datos=datos,
+                        categorizar_gasto_fn=categorizar_gasto
+                    )
+
+                    if texto_debug:
+                        with st.expander("DEBUG: Texto PDF MercadoPago", expanded=True):
+                            st.text(texto_debug)
+
+                    if error:
+                        st.error(error)
+                    elif gastos:
+                        st.session_state.egresos_procesados_temp = gastos
+                        st.success(f"Se detectaron {len(gastos)} egresos desde MercadoPago PDF")
+                        st.rerun()
+                    else:
+                        st.warning("No se detectaron egresos en el PDF")
+
+                    st.stop()
+                
                 # ---- GALICIA EXCEL ----
                 if file_name.endswith(('.xlsx', '.xls')):
                     try:
