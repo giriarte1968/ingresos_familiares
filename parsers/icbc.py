@@ -152,7 +152,11 @@ def procesar_icbc(archivo, owner, medio_pago, datos):
             cat, subcat, g = 'servicios', 'suscripciones', 'Spotify'
         elif 'arca' in dlow or 'pago arca' in dlow:
             cat, subcat, g = 'impuestos', 'impuestos', 'Monotributo'
-        elif 'iva' in dlow or 'impuesto al valor' in dlow:
+        elif (
+            'iva' in dlow
+            or 'impuesto al valor' in dlow
+            or 'impuesto al valor agregado' in dlow
+        ):
             cat, subcat, g = 'impuestos', 'impuestos', 'IVA'
         elif 'operaciones banel' in dlow:
             cat, subcat, g = 'servicios', 'bancos', 'Operaciones Bancarias'
@@ -160,7 +164,7 @@ def procesar_icbc(archivo, owner, medio_pago, datos):
             cat, subcat, g = 'otros', 'otros', 'Débito Inmediato'
         elif 'com rechazo' in dlow or 'rechazo deb' in dlow:
             cat, subcat, g = 'servicios', 'bancos', 'Comisión Rechazo Débito'
-        elif 'transf mobile' in dlow:
+        elif 'transf. mobile' in dlow or 'transf mobile' in dlow:
             cat, subcat, g = 'otros', 'otros', 'Transferencia Mobile'
         elif 'sancor' in dlow:
             cat, subcat, g = 'servicios', 'seguros', 'Sancor Seguros'

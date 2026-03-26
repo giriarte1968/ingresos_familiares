@@ -743,95 +743,47 @@ def convertir_monto_argentino(valor):
 
 def extraer_movimientos_excel(archivo, banco='galicia'):
     """Extrae movimientos de un archivo Excel - retorna lista de diccionarios"""
-    movimientos = []
-    
     try:
-        # Detectar banco por contenido o nombre
-        es_galicia = banco == 'galicia' or 'galicia' in banco.lower()
-        
-        if es_galicia:
-            # Leer Excel con header=5 (las columnas están en la fila 6)
-            df = pd.read_excel(archivo, sheet_name=0, header=5)
-            
-            # Normalizar nombres de columnas
-            columnas = df.columns.tolist()
-            
-            # Buscar columnas por nombre
-            col_fecha = None
-            col_mov = None
-            col_credito = None
-            
-            for col in columnas:
-                col_lower = col.lower() if isinstance(col, str) else ''
-                if 'fecha' in col_lower:
-                    col_fecha = col
-                elif 'movimiento' in col_lower:
-                    col_mov = col
-                elif 'crédito' in col_lower or 'credito' in col_lower:
-                    col_credito = col
-            
-            if col_credito:
-                for idx, row in df.iterrows():
-                    monto = convertir_monto_argentino(row.get(col_credito, 0))
-                    
-                    # Solo incluir si es un ingreso (monto > 0)
-                    if monto > 0:
-                        # Obtener fecha
-                        fecha_val = str(row.get(col_fecha, '')) if col_fecha else ''
-                        
-                        # Obtener descripción
-                        desc_val = str(row.get(col_mov, '')).strip() if col_mov else ''
-                        desc_val = ' '.join(desc_val.split())  # Limpiar saltos de línea
-                        
-                        # Detectar categoría
-                        categoria = detectar_categoria(desc_val)
-                        
-                        movimientos.append({
-                            'fecha': fecha_val,
-                            'descripcion': desc_val[:150],
-                            'monto': monto,
-                            'monto_ars': None,  # Argentina no necesita conversión
-                            'banco': 'galicia',
-                            'categoria': categoria,
-                            'tasas': None
-                        })
-        
-        else:
-            # Para otros bancos: lógica genérica
-            df = pd.read_excel(archivo, sheet_name=0)
-            columnas = df.columns.tolist()
-            
-            col_fecha = None
-            col_desc = None
-            col_credito = None
-            
-            for col in columnas:
-                col_lower = col.lower() if isinstance(col, str) else ''
-                if 'fecha' in col_lower:
-                    col_fecha = col
-                elif 'desc' in col_lower or 'movimiento' in col_lower:
-                    col_desc = col
-                elif 'crédito' in col_lower or 'abono' in col_lower:
-                    col_credito = col
-            
-            if col_credito:
-                for idx, row in df.iterrows():
-                    monto = convertir_monto_argentino(row.get(col_credito, 0))
-                    if monto > 0:
-                        fecha = str(row.get(col_fecha, '')) if col_fecha else ''
-                        desc = str(row.get(col_desc, '')).strip() if col_desc else ''
-                        movimientos.append({
-                            'fecha': fecha,
-                            'descripcion': desc[:150],
-                            'monto': monto,
-                            'monto_ars': None,
-                            'banco': banco,
-                            'categoria': detectar_categoria(desc),
-                            'tasas': None
-                        })
-        
+        if banco == 'galicia' or 'galicia' in banco.lower():
+            from parsers.galicia_excel import extraer_movimientos_galicia_excel
+            return extraer_movimientos_galicia_excel(archivo)
+
+        # Para otros bancos: lógica genérica
+        movimientos = []
+        df = pd.read_excel(archivo, sheet_name=0)
+        columnas = df.columns.tolist()
+
+        col_fecha = None
+        col_desc = None
+        col_credito = None
+
+        for col in columnas:
+            col_lower = col.lower() if isinstance(col, str) else ''
+            if 'fecha' in col_lower:
+                col_fecha = col
+            elif 'desc' in col_lower or 'movimiento' in col_lower:
+                col_desc = col
+            elif 'crédito' in col_lower or 'abono' in col_lower:
+                col_credito = col
+
+        if col_credito:
+            for _, row in df.iterrows():
+                monto = convertir_monto_argentino(row.get(col_credito, 0))
+                if monto > 0:
+                    fecha = str(row.get(col_fecha, '')) if col_fecha else ''
+                    desc = str(row.get(col_desc, '')).strip() if col_desc else ''
+                    movimientos.append({
+                        'fecha': fecha,
+                        'descripcion': desc[:150],
+                        'monto': monto,
+                        'monto_ars': None,
+                        'banco': banco,
+                        'categoria': detectar_categoria(desc),
+                        'tasas': None
+                    })
+
         return movimientos
-        
+
     except Exception as e:
         print(f"Error al leer Excel: {e}")
         import traceback

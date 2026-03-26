@@ -1,2 +1,3 @@
 from parsers.bybit_tarjeta import procesar_bybit_tarjeta
 from parsers.icbc import procesar_icbc
+from parsers.galicia_excel import extraer_movimientos_galicia_excel
