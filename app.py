@@ -1888,9 +1888,30 @@ def mostrar_egresos():
                     if error:
                         st.error(error)
                     elif gastos:
-                        st.session_state.egresos_procesados_temp = gastos
-                        st.success(f"Se detectaron {len(gastos)} egresos desde Binance QR")
-                        st.rerun()
+                        # FILTRAR por período seleccionado ANTES del preview
+                        gastos_filtrados = []
+                        gastos_descartados = []
+
+                        for g in gastos:
+                            fecha_g = g.get('fecha', '')
+                            if fecha_g and fecha_g.startswith(mes_seleccionado):
+                                gastos_filtrados.append(g)
+                            else:
+                                gastos_descartados.append(g)
+
+                        if gastos_descartados:
+                            st.warning(
+                                f"Se descartaron {len(gastos_descartados)} egresos fuera del período {mes_seleccionado}"
+                            )
+
+                        if gastos_filtrados:
+                            st.session_state.egresos_procesados_temp = gastos_filtrados
+                            st.success(
+                                f"Se detectaron {len(gastos_filtrados)} egresos desde Binance QR para {mes_seleccionado}"
+                            )
+                            st.rerun()
+                        else:
+                            st.warning(f"No se detectaron egresos para el período {mes_seleccionado}")
                     else:
                         st.warning("No se detectaron egresos Binance QR")
 

@@ -108,15 +108,23 @@ def procesar_binance_qr(archivo, owner, medio_pago, datos, categorizar_gasto_fn=
         nombre_partes = []
         for it in items:
             if it['x_right'] < x_monto:
-                if -25 <= (it['y'] - y_monto) <= 55:
+                # mismo bloque vertical
+                if -30 <= (it['y'] - y_monto) <= 65:
                     t = it['text'].strip()
                     if not es_linea_fecha(t) and not es_linea_estado(t) and not es_linea_etiqueta(t) and not es_linea_monto(t):
                         if len(t) > 1:
                             nombre_partes.append((it['y'], t))
 
         nombre_partes = sorted(nombre_partes, key=lambda x: x[0])
+
+        # Unir líneas del mismo nombre
         nombre = ' '.join([p[1] for p in nombre_partes]).strip()
         nombre = re.sub(r'\s+', ' ', nombre).strip()
+
+        # Normalizaciones específicas OCR Binance
+        nombre_upper = nombre.upper()
+        if 'CAJA DE PREVISION' in nombre_upper and ('SOCIAL' in nombre_upper or nombre_upper.endswith('SOC')):
+            nombre = 'Caja de Previsión Social'
 
         fecha = ''
         for it in items:
@@ -129,6 +137,11 @@ def procesar_binance_qr(archivo, owner, medio_pago, datos, categorizar_gasto_fn=
         if not nombre or len(nombre) < 2:
             continue
         if not fecha:
+            continue
+
+        # Evitar nombres parciales / basura
+        nombre_lower = nombre.lower().strip()
+        if nombre_lower in ['social', 'soc', 'completado', 'descontado']:
             continue
 
         nombre_lower = nombre.lower().strip()
