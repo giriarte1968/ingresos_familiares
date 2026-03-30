@@ -1358,19 +1358,20 @@ COMERCIOS_CONOCIDOS = {
     # Impuestos
     'municipalidad': {'categoria': 'impuestos', 'subcategoria': 'impuestos', 'gasto': 'Municipalidad'},
     
-    # Familia
-    'sol belen iriarte rojo': {'categoria': 'otros', 'subcategoria': 'familia', 'gasto': 'Sol Belén Iriarte Rojo'},
-    'tomas lautaro iriarte rojo': {'categoria': 'otros', 'subcategoria': 'familia', 'gasto': 'Tomás Lautaro Iriarte Rojo'},
-    'magdalena soler': {'categoria': 'otros', 'subcategoria': 'familia', 'gasto': 'Magdalena Soler'},
-    'soc': {'categoria': 'otros', 'subcategoria': 'familia', 'gasto': 'SOC'},
+    # Familia - hijos
+    'sol belen iriarte rojo': {'categoria': 'familia', 'subcategoria': 'hijos', 'gasto': 'Sol Belén Iriarte Rojo'},
+    'tomas lautaro iriarte rojo': {'categoria': 'familia', 'subcategoria': 'hijos', 'gasto': 'Tomás Lautaro Iriarte Rojo'},
+    'veronica rojo': {'categoria': 'familia', 'subcategoria': 'esposa', 'gasto': 'Verónica Rojo'},
+    
+    # Familia - SOC
+    'magdalena soler': {'categoria': 'familia', 'subcategoria': 'soc', 'gasto': 'Magdalena Soler'},
+    'soc': {'categoria': 'familia', 'subcategoria': 'soc', 'gasto': 'SOC'},
+    'zurcher carlos augusto': {'categoria': 'familia', 'subcategoria': 'soc', 'gasto': 'Zurcher Carlos Augusto'},
+    'zurcher': {'categoria': 'familia', 'subcategoria': 'soc', 'gasto': 'Zurcher'},
     
     # Peluquería (transferencia recurrente Galicia)
     'nrjx': {'categoria': 'servicios', 'subcategoria': 'peluqueria', 'gasto': 'Peluquería'},
     '20441772913': {'categoria': 'servicios', 'subcategoria': 'peluqueria', 'gasto': 'Peluquería'},
-    
-    # SOC (Zurcher Carlos Augusto)
-    'zurcher carlos augusto': {'categoria': 'otros', 'subcategoria': 'familia', 'gasto': 'SOC'},
-    'zurcher': {'categoria': 'otros', 'subcategoria': 'familia', 'gasto': 'SOC'},
     
     # Colegio Santa María (educación)
     'col s maris': {'categoria': 'servicios', 'subcategoria': 'educacion', 'gasto': 'Colegio Santa María'},
