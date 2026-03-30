@@ -1364,6 +1364,18 @@ COMERCIOS_CONOCIDOS = {
     'magdalena soler': {'categoria': 'otros', 'subcategoria': 'familia', 'gasto': 'Magdalena Soler'},
     'soc': {'categoria': 'otros', 'subcategoria': 'familia', 'gasto': 'SOC'},
     
+    # Peluquería (transferencia recurrente Galicia)
+    'nrjx': {'categoria': 'servicios', 'subcategoria': 'peluqueria', 'gasto': 'Peluquería'},
+    '20441772913': {'categoria': 'servicios', 'subcategoria': 'peluqueria', 'gasto': 'Peluquería'},
+    
+    # SOC (Zurcher Carlos Augusto)
+    'zurcher carlos augusto': {'categoria': 'otros', 'subcategoria': 'familia', 'gasto': 'SOC'},
+    'zurcher': {'categoria': 'otros', 'subcategoria': 'familia', 'gasto': 'SOC'},
+    
+    # Colegio Santa María (educación)
+    'col s maris': {'categoria': 'servicios', 'subcategoria': 'educacion', 'gasto': 'Colegio Santa María'},
+    'maris': {'categoria': 'servicios', 'subcategoria': 'educacion', 'gasto': 'Colegio Santa María'},
+    
     # Ignorar (basura del OCR)
     'correcto': None,
     'historial': None,
