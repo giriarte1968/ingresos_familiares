@@ -2467,24 +2467,26 @@ def mostrar_egresos():
                 with col_conf:
                     if st.button("Confirmar Division", key="btn_confirmar_sp", type="primary", width='stretch'):
                         if pago_original:
-                            # Obtener campos del padre
                             padre_fecha = pago_original.get('fecha', '')
                             padre_owner = pago_original.get('owner', '')
                             padre_medio = pago_original.get('medio_pago', '')
                             padre_moneda = pago_original.get('moneda', 'ARS')
                             padre_fuente = pago_original.get('fuente', '')
                             
-                            # Eliminar padre de egresos
-                            if pago_original in egresos:
-                                egresos.remove(pago_original)
+                            # 1. Leer datos FRESCOS desde disco
+                            datos_disco = cargar_datos()
+                            egresos_disco = datos_disco.get('meses', {}).get(mes_seleccionado, {}).get('egresos', [])
                             
-                            # Crear hijos
+                            # 2. Eliminar padre de los egresos en disco
+                            egresos_disco = [e for e in egresos_disco if e.get('u_id') != pago_id]
+                            
+                            # 3. Crear hijos
                             hijos = []
                             for sp in subpagos_rev:
                                 desc_sp = sp.get('descripcion', '').strip()
                                 monto_sp = sp.get('monto', 0)
                                 if desc_sp and monto_sp > 0:
-                                    cat, subcat, _ = categorizar_gasto(desc_sp, datos)
+                                    cat, subcat, _ = categorizar_gasto(desc_sp, datos_disco)
                                     hijos.append({
                                         'u_id': generar_id(),
                                         'parent_id': pago_id,
@@ -2499,16 +2501,15 @@ def mostrar_egresos():
                                         'medio_pago': padre_medio,
                                     })
                             
-                            # Agregar hijos
-                            egresos.extend(hijos)
+                            # 4. Agregar hijos a los egresos de disco
+                            egresos_disco.extend(hijos)
                             
-                            # Persistir - leer datos frescos desde disco
-                            datos_disco = cargar_datos()
-                            datos_disco.get('meses', {}).setdefault(mes_seleccionado, {})['egresos'] = egresos
+                            # 5. Guardar en disco
+                            datos_disco['meses'][mes_seleccionado]['egresos'] = egresos_disco
                             guardar_datos(datos_disco)
                             st.session_state.datos = datos_disco
                             
-                            # Limpiar estado temporal
+                            # 6. Limpiar estado temporal
                             st.session_state.pop('sp_tmp', None)
                             st.session_state.pop('sp_parent_id', None)
                             
