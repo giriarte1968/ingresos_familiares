@@ -1380,6 +1380,27 @@ COMERCIOS_CONOCIDOS = {
     'cencosud': {'categoria': 'comercios', 'subcategoria': 'supermercado', 'gasto': 'Cencosud'},
     'fravega': {'categoria': 'comercios', 'subcategoria': 'electronica', 'gasto': 'Frávega'},
     
+    # ICBC - Seguros
+    'federacion': {'categoria': 'servicios', 'subcategoria': 'seguros', 'gasto': 'Federación Patronal'},
+    'pago federacion': {'categoria': 'servicios', 'subcategoria': 'seguros', 'gasto': 'Federación Patronal'},
+    
+    # ICBC - Impuestos
+    'iva serv': {'categoria': 'impuestos', 'subcategoria': 'impuestos', 'gasto': 'IVA Servicios Digitales'},
+    'iva serv dig': {'categoria': 'impuestos', 'subcategoria': 'impuestos', 'gasto': 'IVA Servicios Digitales'},
+    'percepcion td': {'categoria': 'impuestos', 'subcategoria': 'impuestos', 'gasto': 'Percepción'},
+    'percepcion': {'categoria': 'impuestos', 'subcategoria': 'impuestos', 'gasto': 'Percepción'},
+    
+    # ICBC - Seguros Previsión
+    'pago prev.seg': {'categoria': 'servicios', 'subcategoria': 'seguros', 'gasto': 'Previsión Seguros'},
+    'prev.seg': {'categoria': 'servicios', 'subcategoria': 'seguros', 'gasto': 'Previsión Seguros'},
+    
+    # Suscripciones
+    'netflix': {'categoria': 'servicios', 'subcategoria': 'suscripciones', 'gasto': 'Netflix'},
+    'cpa. netflix': {'categoria': 'servicios', 'subcategoria': 'suscripciones', 'gasto': 'Netflix'},
+    
+    # Herrero
+    'herrero': {'categoria': 'comercios', 'subcategoria': 'otros', 'gasto': 'Herrero SRL'},
+    
     # Ignorar (basura del OCR)
     'correcto': None,
     'historial': None,

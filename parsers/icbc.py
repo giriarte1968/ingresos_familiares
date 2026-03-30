@@ -101,6 +101,11 @@ def procesar_icbc(archivo, owner, medio_pago, datos):
 
         if '$' not in texto:
             continue
+        
+        # Verificar si es monto negativo (egreso) o positivo (ingreso)
+        if '-' not in texto:
+            # Monto positivo = ingreso, skip
+            continue
 
         monto = parsear_monto_icbc(texto)
         if monto <= 0:
@@ -139,7 +144,7 @@ def procesar_icbc(archivo, owner, medio_pago, datos):
             continue
 
         dlow = descripcion.lower()
-        if any(kw in dlow for kw in ['liquidacion', 'reintegro', 'acreditacion', 'credito']):
+        if any(kw in dlow for kw in ['liquidacion', 'reintegro', 'acreditacion', 'credito', 'transferencia push']):
             continue
 
         if monto < 1.0:
@@ -172,6 +177,18 @@ def procesar_icbc(archivo, owner, medio_pago, datos):
             cat, subcat, g = 'comercios', 'indumentaria', 'Polibot'
         elif 'havanna' in dlow:
             cat, subcat, g = 'comercios', 'restaurant', 'Havanna'
+        elif 'federacion' in dlow or 'pago federacion' in dlow:
+            cat, subcat, g = 'servicios', 'seguros', 'Federación Patronal'
+        elif 'prev.seg' in dlow or 'pago prev.seg' in dlow:
+            cat, subcat, g = 'servicios', 'seguros', 'Previsión Seguros'
+        elif 'iva serv' in dlow:
+            cat, subcat, g = 'impuestos', 'impuestos', 'IVA Servicios Digitales'
+        elif 'percepcion' in dlow:
+            cat, subcat, g = 'impuestos', 'impuestos', 'Percepción'
+        elif 'netflix' in dlow or 'cpa. netflix' in dlow:
+            cat, subcat, g = 'servicios', 'suscripciones', 'Netflix'
+        elif 'herrero' in dlow:
+            cat, subcat, g = 'comercios', 'otros', 'Herrero SRL'
         else:
             mk = next((k for k in comercios_json if k.lower() in dlow), None)
             if mk:
