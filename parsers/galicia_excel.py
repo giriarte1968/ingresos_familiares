@@ -2,7 +2,31 @@
 Parser de Excel para Banco Galicia.
 Extrae ingresos o egresos desde archivo Excel.
 """
+import re
 import pandas as pd
+
+
+def normalizar_fecha_galicia(fecha_raw):
+    """Normaliza fecha a formato YYYY-MM-DD"""
+    if not fecha_raw:
+        return ''
+    
+    fecha_str = str(fecha_raw).strip()
+    
+    # Formato DD/MM/YYYY o DD-MM-YYYY
+    m = re.match(r'(\d{2})[/-](\d{2})[/-](\d{4})', fecha_str)
+    if m:
+        return f"{m.group(3)}-{m.group(2)}-{m.group(1)}"
+    
+    # Formato YYYY-MM-DD (ya normalizado)
+    if re.match(r'\d{4}-\d{2}-\d{2}', fecha_str):
+        return fecha_str[:10]
+    
+    # Pandas Timestamp
+    if hasattr(fecha_raw, 'strftime'):
+        return fecha_raw.strftime('%Y-%m-%d')
+    
+    return fecha_str[:10]
 
 
 def convertir_monto_argentino(valor):
@@ -69,7 +93,8 @@ def extraer_movimientos_galicia_excel(archivo):
                 monto = convertir_monto_argentino(row.get(col_credito, 0))
 
                 if monto > 0:
-                    fecha_val = str(row.get(col_fecha, '')).strip() if col_fecha else ''
+                    fecha_raw = row.get(col_fecha, '') if col_fecha else ''
+                    fecha_val = normalizar_fecha_galicia(fecha_raw)
                     desc_val = str(row.get(col_mov, '')).strip() if col_mov else ''
                     desc_val = ' '.join(desc_val.split())
 
@@ -125,7 +150,8 @@ def extraer_egresos_galicia_excel(archivo, categorizar_gasto_fn=None, datos=None
             if monto >= 0:
                 continue
 
-            fecha_val = str(row.get(col_fecha, '')).strip() if col_fecha else ''
+            fecha_raw = row.get(col_fecha, '') if col_fecha else ''
+            fecha_val = normalizar_fecha_galicia(fecha_raw)
             desc_val = str(row.get(col_mov, '')).strip() if col_mov else ''
             desc_val = ' '.join(desc_val.split())
 
@@ -140,7 +166,7 @@ def extraer_egresos_galicia_excel(archivo, categorizar_gasto_fn=None, datos=None
                 categoria, subcategoria, gasto_final = 'otros', 'otros', desc_val[:200]
 
             egreso = {
-                'fecha': fecha_val[:10] if fecha_val else '',
+                'fecha': fecha_val if fecha_val else '',
                 'gasto': gasto_final,
                 'monto': monto_abs,
                 'moneda': 'ARS',
