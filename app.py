@@ -1365,7 +1365,6 @@ COMERCIOS_CONOCIDOS = {
     
     # Familia - SOC
     'magdalena soler': {'categoria': 'familia', 'subcategoria': 'soc', 'gasto': 'Magdalena Soler'},
-    'soc': {'categoria': 'familia', 'subcategoria': 'soc', 'gasto': 'SOC'},
     'zurcher carlos augusto': {'categoria': 'familia', 'subcategoria': 'soc', 'gasto': 'Zurcher Carlos Augusto'},
     'zurcher': {'categoria': 'familia', 'subcategoria': 'soc', 'gasto': 'Zurcher'},
     

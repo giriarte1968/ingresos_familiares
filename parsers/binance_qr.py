@@ -136,9 +136,14 @@ def procesar_binance_qr(archivo, owner, medio_pago, datos, categorizar_gasto_fn=
         nombre = re.sub(r'\s+', ' ', nombre).strip()
 
         # Normalizaciones específicas OCR Binance
-        nombre_upper = nombre.upper()
-        if 'CAJA DE PREVISION' in nombre_upper and ('SOCIAL' in nombre_upper or nombre_upper.endswith('SOC')):
-            nombre = 'Caja de Previsión Social'
+        nombre_upper = nombre.upper().strip()
+        
+        # Unir "CAJA DE PREVISION" + "SOCIAL" si están separados
+        if 'CAJA DE PREVISION' in nombre_upper:
+            nombre = 'Caja de Prevision Social'
+        elif nombre_upper in ['SOCIAL', 'SOC']:
+            # "SOCIAL" suelto = probablemente segunda línea de "CAJA DE PREVISION SOCIAL"
+            nombre = 'Caja de Prevision Social'
 
         fecha = ''
         for it in items:
@@ -155,7 +160,7 @@ def procesar_binance_qr(archivo, owner, medio_pago, datos, categorizar_gasto_fn=
 
         # Evitar nombres parciales / basura
         nombre_lower = nombre.lower().strip()
-        if nombre_lower in ['social', 'soc', 'completado', 'descontado', 'enviar', 'tiempo de espera']:
+        if nombre_lower in ['completado', 'descontado', 'enviar', 'tiempo de espera']:
             continue
 
         nombre_lower = nombre.lower().strip()
