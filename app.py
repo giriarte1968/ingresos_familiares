@@ -1584,25 +1584,31 @@ def extraer_subpagos_desde_comprobante(reader, comprobante) -> list[dict]:
 
 
 def filtrar_y_guardar_temp(gastos, mes_seleccionado):
-    """Filtra gastos por período y guarda en session_state para preview"""
-    gastos_del_mes = [
-        g for g in gastos 
-        if not g.get('fecha') or str(g.get('fecha', '')).startswith(mes_seleccionado)
-    ]
-    gastos_fuera = [
-        g for g in gastos 
-        if g.get('fecha') and not str(g.get('fecha', '')).startswith(mes_seleccionado)
-    ]
-    
+    """Filtra gastos por período y los deja listos para preview"""
+    gastos_del_mes = []
+    gastos_fuera = []
+
+    for g in gastos:
+        fecha = str(g.get('fecha', '')).strip()
+
+        # Solo guardar en preview los del mes seleccionado
+        if fecha.startswith(mes_seleccionado):
+            gastos_del_mes.append(g)
+        else:
+            gastos_fuera.append(g)
+
+    # Guardar SIEMPRE el resultado filtrado para que el preview lo muestre
+    st.session_state.egresos_procesados_temp = gastos_del_mes
+
     if gastos_fuera:
         st.warning(f"⚠️ {len(gastos_fuera)} egresos descartados (fuera de {mes_seleccionado})")
-    
+
     if gastos_del_mes:
-        st.session_state.egresos_procesados_temp = gastos_del_mes
-        st.success(f"Se detectaron {len(gastos_del_mes)} egresos para {mes_seleccionado}")
-        st.rerun()
+        st.success(f"✅ {len(gastos_del_mes)} egresos listos para guardar")
     else:
         st.warning(f"No hay egresos para {mes_seleccionado}")
+
+    st.rerun()
 
 
 
@@ -2196,24 +2202,36 @@ def mostrar_egresos():
                         st.warning("No se detectaron gastos en el archivo")
     
     # ==================== MOSTRAR PREVIEW DE EGRESOS PROCESADOS ====================
-    if st.session_state.egresos_procesados_temp:
-        gastos = st.session_state.egresos_procesados_temp
-        
-        st.success(f"✅ {len(gastos)} egresos listos para guardar")
-        
-        df_preview = pd.DataFrame(gastos)[['fecha', 'gasto', 'monto', 'categoria', 'subcategoria']]
+    gastos_temp = st.session_state.get('egresos_procesados_temp', [])
+
+    if gastos_temp:
+        st.success(f"✅ {len(gastos_temp)} egresos listos para guardar")
+
+        df_preview = pd.DataFrame(gastos_temp)
+
+        # Asegurar columnas
+        columnas_preview = ['fecha', 'gasto', 'monto', 'categoria', 'subcategoria']
+        for col in columnas_preview:
+            if col not in df_preview.columns:
+                df_preview[col] = ''
+
+        df_preview = df_preview[columnas_preview].copy()
         df_preview = df_preview.rename(columns={'gasto': 'GASTO'})
-        st.dataframe(df_preview, width='stretch')
-        
-        total = sum(g['monto'] for g in gastos)
+
+        st.dataframe(df_preview, use_container_width=True)
+
+        total = sum(g.get('monto', 0) for g in gastos_temp)
         st.metric("Total a guardar", f"${total:,.2f} ARS")
 
         col1, col2 = st.columns([1, 1])
+
         with col1:
-            if st.button("💾 Guardar Egresos", type="primary", width='stretch'):
+            if st.button("💾 Guardar Egresos", type="primary", use_container_width=True):
+                gastos = gastos_temp  # usar los del preview
+
                 # 1. Leer datos FRESCOS desde disco
                 datos_disco = cargar_datos()
-                
+
                 # 2. Asegurar estructura del mes
                 if 'meses' not in datos_disco:
                     datos_disco['meses'] = {}
@@ -2227,50 +2245,10 @@ def mostrar_egresos():
                     }
                 if 'egresos' not in datos_disco['meses'][mes_seleccionado]:
                     datos_disco['meses'][mes_seleccionado]['egresos'] = []
-                
-                # 3.5 FILTRAR por periodo seleccionado
-                mes_year, mes_month = mes_seleccionado.split('-')
-                gastos_del_periodo = []
-                gastos_sin_fecha = []
-                gastos_otro_periodo = []
-                
-                for g in gastos:
-                    fecha_g = g.get('fecha', '')
-                    if fecha_g:
-                        match_fecha = re.search(r'(\d{4})-(\d{2})', fecha_g)
-                        if match_fecha:
-                            g_year, g_month = match_fecha.groups()
-                            if g_year == mes_year and g_month == mes_month:
-                                gastos_del_periodo.append(g)
-                            else:
-                                gastos_otro_periodo.append(g)
-                        else:
-                            gastos_sin_fecha.append(g)
-                    else:
-                        gastos_sin_fecha.append(g)
-                
-                if gastos_otro_periodo:
-                    st.warning(f"⚠️ {len(gastos_otro_periodo)} egresos son de otro periodo y NO se guardarán:")
-                    for g in gastos_otro_periodo:
-                        st.caption(f"  • {g.get('fecha', '')} - {g.get('gasto', '')} - ${g.get('monto', 0):,.2f}")
-                
-                if gastos_sin_fecha:
-                    st.info(f"ℹ️ {len(gastos_sin_fecha)} egresos sin fecha se guardarán en {mes_seleccionado}:")
-                    for g in gastos_sin_fecha:
-                        st.caption(f"  • {g.get('gasto', '')} - ${g.get('monto', 0):,.2f}")
-                
-                gastos = gastos_del_periodo + gastos_sin_fecha
-                
-                if not gastos:
-                    st.error(f"No hay egresos para el periodo {mes_seleccionado}")
-                    st.session_state.egresos_procesados_temp = None
-                    st.stop()
-                
-                # 3. DEBUG: guardar estado actual
+
                 egresos_en_disco = datos_disco['meses'][mes_seleccionado]['egresos']
-                debug_antes = len(egresos_en_disco)
-                
-                # 4. Deduplicar nuevos vs existentes
+
+                # 3. Deduplicar nuevos vs existentes
                 nuevos = []
                 for g in gastos:
                     duplicado = False
@@ -2283,48 +2261,26 @@ def mostrar_egresos():
                             break
                     if not duplicado:
                         nuevos.append(g)
-                
-                # 5. AGREGAR nuevos a los existentes
+
+                # 4. Guardar
                 egresos_en_disco.extend(nuevos)
                 datos_disco['meses'][mes_seleccionado]['egresos'] = egresos_en_disco
-                
-                debug_despues = len(egresos_en_disco)
-                
-                # 6. Guardar a disco
                 guardar_datos(datos_disco)
-                
-                # 7. Verificar que se guardó bien
-                datos_verificacion = cargar_datos()
-                egresos_verificacion = datos_verificacion.get('meses', {}).get(mes_seleccionado, {}).get('egresos', [])
-                debug_verificacion = len(egresos_verificacion)
-                
-                # Guardar debug en session state para mostrar persistentemente
-                st.session_state.debug_guardado = {
-                    'antes': debug_antes,
-                    'despues': debug_despues,
-                    'verificacion': debug_verificacion,
-                    'mes': mes_seleccionado
-                }
-                
-                # 8. Actualizar session state
-                st.session_state.datos = datos_verificacion
-                
-                # 9. Limpiar temporal
-                st.session_state.egresos_procesados_temp = None
-                
+
+                # 5. Actualizar sesión
+                st.session_state.datos = datos_disco
+                st.session_state.egresos_procesados_temp = []
+
                 if nuevos:
-                    st.success(f"✅ {len(nuevos)} egresos nuevos guardados para {mes_seleccionado}")
-                    if len(nuevos) < len(gastos):
-                        st.info(f"ℹ️ {len(gastos) - len(nuevos)} duplicados ignorados")
+                    st.success(f"✅ {len(nuevos)} egresos guardados para {mes_seleccionado}")
                 else:
-                    st.warning("Todos los egresos ya existían")
-                
-                time.sleep(3)
+                    st.warning("No se guardaron nuevos egresos (todos eran duplicados)")
+
                 st.rerun()
 
         with col2:
-            if st.button("❌ Cancelar", width='stretch'):
-                st.session_state.egresos_procesados_temp = None
+            if st.button("❌ Cancelar", use_container_width=True):
+                st.session_state.egresos_procesados_temp = []
                 st.rerun()
     
     # Mostrar debug persistente si hay info guardada
