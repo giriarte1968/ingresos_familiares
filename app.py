@@ -1583,7 +1583,26 @@ def extraer_subpagos_desde_comprobante(reader, comprobante) -> list[dict]:
         return [], ""
 
 
-
+def filtrar_y_guardar_temp(gastos, mes_seleccionado):
+    """Filtra gastos por período y guarda en session_state para preview"""
+    gastos_del_mes = [
+        g for g in gastos 
+        if not g.get('fecha') or str(g.get('fecha', '')).startswith(mes_seleccionado)
+    ]
+    gastos_fuera = [
+        g for g in gastos 
+        if g.get('fecha') and not str(g.get('fecha', '')).startswith(mes_seleccionado)
+    ]
+    
+    if gastos_fuera:
+        st.warning(f"⚠️ {len(gastos_fuera)} egresos descartados (fuera de {mes_seleccionado})")
+    
+    if gastos_del_mes:
+        st.session_state.egresos_procesados_temp = gastos_del_mes
+        st.success(f"Se detectaron {len(gastos_del_mes)} egresos para {mes_seleccionado}")
+        st.rerun()
+    else:
+        st.warning(f"No hay egresos para {mes_seleccionado}")
 
 
 
@@ -1751,9 +1770,7 @@ def mostrar_egresos():
                     if error:
                         st.error(error)
                     elif gastos:
-                        st.session_state.egresos_procesados_temp = gastos
-                        st.success(f"Se detectaron {len(gastos)} egresos desde MercadoPago App")
-                        st.rerun()
+                        filtrar_y_guardar_temp(gastos, mes_seleccionado)
                     else:
                         st.warning("No se detectaron egresos")
 
@@ -1772,20 +1789,18 @@ def mostrar_egresos():
                     )
 
                     if texto_debug:
-                        with st.expander("DEBUG: Texto PDF MercadoPago", expanded=True):
+                        with st.expander("DEBUG: PDF MercadoPago", expanded=True):
                             st.text(texto_debug)
 
                     if error:
                         st.error(error)
                     elif gastos:
-                        st.session_state.egresos_procesados_temp = gastos
-                        st.success(f"Se detectaron {len(gastos)} egresos desde MercadoPago PDF")
-                        st.rerun()
+                        filtrar_y_guardar_temp(gastos, mes_seleccionado)
                     else:
                         st.warning("No se detectaron egresos en el PDF")
 
                     st.stop()
-                
+
                 # ---- GALICIA EXCEL ----
                 if file_name.endswith(('.xlsx', '.xls')):
                     try:
@@ -1802,9 +1817,7 @@ def mostrar_egresos():
                         )
 
                         if gastos_excel:
-                            st.session_state.egresos_procesados_temp = gastos_excel
-                            st.success(f"Se detectaron {len(gastos_excel)} egresos desde Excel Galicia")
-                            st.rerun()
+                            filtrar_y_guardar_temp(gastos_excel, mes_seleccionado)
                         else:
                             st.warning("No se detectaron egresos en el Excel")
 
@@ -1829,9 +1842,7 @@ def mostrar_egresos():
                         if error:
                             st.error(error)
                         elif gastos:
-                            st.session_state.egresos_procesados_temp = gastos
-                            st.success(f"Se detectaron {len(gastos)} gastos de Bybit Tarjeta")
-                            st.rerun()
+                            filtrar_y_guardar_temp(gastos, mes_seleccionado)
                         else:
                             st.warning("No se detectaron gastos en la imagen")
                     
@@ -1853,9 +1864,7 @@ def mostrar_egresos():
                         if error:
                             st.error(error)
                         elif gastos:
-                            st.session_state.egresos_procesados_temp = gastos
-                            st.success(f"Se detectaron {len(gastos)} egresos de ICBC")
-                            st.rerun()
+                            filtrar_y_guardar_temp(gastos, mes_seleccionado)
                         else:
                             st.warning("No se detectaron gastos en la imagen")
                     
@@ -1878,9 +1887,7 @@ def mostrar_egresos():
                     if error:
                         st.error(error)
                     elif gastos:
-                        st.session_state.egresos_procesados_temp = gastos
-                        st.success(f"Se detectaron {len(gastos)} egresos desde MercadoPago App")
-                        st.rerun()
+                        filtrar_y_guardar_temp(gastos, mes_seleccionado)
                     else:
                         st.warning("No se detectaron egresos")
                     
@@ -1901,30 +1908,7 @@ def mostrar_egresos():
                     if error:
                         st.error(error)
                     elif gastos:
-                        # FILTRAR por período seleccionado ANTES del preview
-                        gastos_filtrados = []
-                        gastos_descartados = []
-
-                        for g in gastos:
-                            fecha_g = g.get('fecha', '')
-                            if fecha_g and fecha_g.startswith(mes_seleccionado):
-                                gastos_filtrados.append(g)
-                            else:
-                                gastos_descartados.append(g)
-
-                        if gastos_descartados:
-                            st.warning(
-                                f"Se descartaron {len(gastos_descartados)} egresos fuera del período {mes_seleccionado}"
-                            )
-
-                        if gastos_filtrados:
-                            st.session_state.egresos_procesados_temp = gastos_filtrados
-                            st.success(
-                                f"Se detectaron {len(gastos_filtrados)} egresos desde Binance QR para {mes_seleccionado}"
-                            )
-                            st.rerun()
-                        else:
-                            st.warning(f"No se detectaron egresos para el período {mes_seleccionado}")
+                        filtrar_y_guardar_temp(gastos, mes_seleccionado)
                     else:
                         st.warning("No se detectaron egresos Binance QR")
 
@@ -2207,8 +2191,7 @@ def mostrar_egresos():
                         st.info(f"Total gastos detectados: {len(gastos)}")
                     
                     if gastos:
-                        st.session_state.egresos_procesados_temp = gastos
-                        st.rerun()
+                        filtrar_y_guardar_temp(gastos, mes_seleccionado)
                     else:
                         st.warning("No se detectaron gastos en el archivo")
     
