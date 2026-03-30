@@ -2502,10 +2502,11 @@ def mostrar_egresos():
                             # Agregar hijos
                             egresos.extend(hijos)
                             
-                            # Persistir
-                            datos.get('meses', {}).setdefault(mes_seleccionado, {})['egresos'] = egresos
-                            st.session_state.datos = datos
-                            guardar_datos(datos)
+                            # Persistir - leer datos frescos desde disco
+                            datos_disco = cargar_datos()
+                            datos_disco.get('meses', {}).setdefault(mes_seleccionado, {})['egresos'] = egresos
+                            guardar_datos(datos_disco)
+                            st.session_state.datos = datos_disco
                             
                             # Limpiar estado temporal
                             st.session_state.pop('sp_tmp', None)
