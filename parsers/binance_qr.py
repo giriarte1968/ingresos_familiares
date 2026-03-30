@@ -71,6 +71,11 @@ def es_linea_monto(texto):
     return 'ARS' in texto.upper() and bool(re.search(r'[\d,\.]+', texto))
 
 
+def es_linea_monto_usdt(texto):
+    t = texto.strip().upper()
+    return 'USDT' in t and bool(re.search(r'[\d,\.]+', texto))
+
+
 def es_linea_fecha(texto):
     return bool(parsear_fecha_binance(texto))
 
@@ -111,9 +116,18 @@ def procesar_binance_qr(archivo, owner, medio_pago, datos, categorizar_gasto_fn=
                 # mismo bloque vertical
                 if -30 <= (it['y'] - y_monto) <= 65:
                     t = it['text'].strip()
-                    if not es_linea_fecha(t) and not es_linea_estado(t) and not es_linea_etiqueta(t) and not es_linea_monto(t):
-                        if len(t) > 1:
-                            nombre_partes.append((it['y'], t))
+                    tlow = t.lower()
+                    # Ignorar líneas USDT, montos, estados, fechas, envíos
+                    if (not es_linea_fecha(t) 
+                        and not es_linea_estado(t) 
+                        and not es_linea_etiqueta(t) 
+                        and not es_linea_monto(t)
+                        and not es_linea_monto_usdt(t)
+                        and 'usdt' not in tlow
+                        and 'enviar' not in tlow
+                        and 'tiempo de espera' not in tlow
+                        and len(t) > 1):
+                        nombre_partes.append((it['y'], t))
 
         nombre_partes = sorted(nombre_partes, key=lambda x: x[0])
 
@@ -141,7 +155,7 @@ def procesar_binance_qr(archivo, owner, medio_pago, datos, categorizar_gasto_fn=
 
         # Evitar nombres parciales / basura
         nombre_lower = nombre.lower().strip()
-        if nombre_lower in ['social', 'soc', 'completado', 'descontado']:
+        if nombre_lower in ['social', 'soc', 'completado', 'descontado', 'enviar', 'tiempo de espera']:
             continue
 
         nombre_lower = nombre.lower().strip()

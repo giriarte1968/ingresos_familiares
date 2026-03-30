@@ -1377,6 +1377,10 @@ COMERCIOS_CONOCIDOS = {
     'col s maris': {'categoria': 'servicios', 'subcategoria': 'educacion', 'gasto': 'Colegio Santa María'},
     'maris': {'categoria': 'servicios', 'subcategoria': 'educacion', 'gasto': 'Colegio Santa María'},
     
+    # Supermercados y tiendas
+    'cencosud': {'categoria': 'comercios', 'subcategoria': 'supermercado', 'gasto': 'Cencosud'},
+    'fravega': {'categoria': 'comercios', 'subcategoria': 'electronica', 'gasto': 'Frávega'},
+    
     # Ignorar (basura del OCR)
     'correcto': None,
     'historial': None,
