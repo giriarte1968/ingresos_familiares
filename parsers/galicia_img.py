@@ -349,6 +349,18 @@ def procesar_galicia_img(archivo, owner, medio_pago, datos, categorizar_gasto_fn
         if monto_abs < 1:
             continue
 
+        # Si descripción es genérica, agregar monto para diferenciar
+        DESCRIPCIONES_GENERICAS = [
+            'transferencia a terceros',
+            'transferencia',
+            'debito automatico',
+            'débito automático',
+            'pago',
+            'cargo',
+        ]
+        if desc.strip().lower() in DESCRIPCIONES_GENERICAS:
+            desc = f"{desc} (${monto_abs:,.0f})"
+
         if categorizar_gasto_fn:
             cat, subcat, gasto_final = categorizar_gasto_fn(desc, datos)
         else:

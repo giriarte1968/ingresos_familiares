@@ -204,12 +204,12 @@ def mostrar_reportes(mes_preseleccionado=None):
     r1, r2, r3 = st.columns(3)
 
     with r1:
-        st.caption("Por gasto")
+        st.caption("Por gasto + fecha")
         gasto_summary = (
-            df_filtrado.groupby("gasto", dropna=False)["monto"]
-            .agg(["sum", "count"])
-            .sort_values("sum", ascending=False)
-            .rename(columns={"sum": "Total", "count": "Cantidad"})
+            df_filtrado.groupby(['gasto', 'fecha'], dropna=False)['monto']
+            .agg(['sum', 'count'])
+            .sort_values('sum', ascending=False)
+            .rename(columns={'sum': 'Total', 'count': 'Cantidad'})
         )
         st.dataframe(gasto_summary, use_container_width=True)
 
