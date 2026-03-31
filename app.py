@@ -1237,21 +1237,26 @@ def mostrar_dashboard(mes):
     
     total_ajustes = sum(convertir_ajuste_a_ars(a) for a in mes_data.get('ajustes', []))
     
+    # Plusvalía ADRs (del mes)
+    total_plusvalia_adrs = mes_data.get('plusvalia_adrs', 0)
+    
     # Total del mes
-    total_mes = total_ingresos_bancarios + total_ganancia_fondos + total_plusvalia + total_ajustes
+    total_mes = total_ingresos_bancarios + total_ganancia_fondos + total_plusvalia + total_plusvalia_adrs + total_ajustes
     
     # Mostrar métricas
-    col1, col2, col3, col4, col5 = st.columns(5)
+    col1, col2, col3, col4, col5, col6 = st.columns(6)
     
-    col1.metric("Ingresos Bancarios (ARS)", f"${total_ingresos_bancarios:,.0f}")
-    col2.metric("Ganancia Fondos Mutuos", f"${total_ganancia_fondos:,.0f}", 
-                delta=f"{total_ganancia_fondos:,.0f}")
-    col3.metric("Plusvalía Propiedades", f"${total_plusvalia:,.0f}", 
-                delta=f"{total_plusvalia:,.0f}")
-    col4.metric("Ajustes", f"${total_ajustes:,.0f}", 
-                delta=f"{total_ajustes:,.0f}")
-    col5.metric("TOTAL MES (ARS)", f"${total_mes:,.0f}", 
-                delta=f"{total_mes:,.0f}")
+    col1.metric("Ingresos Bancarios", f"${total_ingresos_bancarios:,.0f}")
+    col2.metric("Gan. Fondos Mutuos", f"${total_ganancia_fondos:,.0f}", 
+                delta=f"${total_ganancia_fondos:,.0f}")
+    col3.metric("Plusv. Propiedades", f"${total_plusvalia:,.0f}", 
+                delta=f"${total_plusvalia:,.0f}")
+    col4.metric("Plusv. ADRs", f"${total_plusvalia_adrs:,.0f}", 
+                delta=f"${total_plusvalia_adrs:,.0f}")
+    col5.metric("Ajustes", f"${total_ajustes:,.0f}", 
+                delta=f"${total_ajustes:,.0f}")
+    col6.metric("TOTAL MES", f"${total_mes:,.0f}", 
+                delta=f"${total_mes:,.0f}")
     
     # Mostrar tasas usadas
     st.caption(f"Tasas usadas: USDT/CLP: {usd_clp:.2f}, USDT/ARS: {usdt_ars:.2f}")
@@ -3854,23 +3859,46 @@ def mostrar_activos():
                 adrs_disco = [a for a in activos_disco if a.get('tipo') == 'adr']
 
                 usdt_ars_actual = obtener_usdt_ars_binance() or usdt_ars
+
+                # Determinar mes actual para plusvalía
+                mes_actual = datetime.now().strftime('%Y-%m')
+
                 actualizados = 0
+                plusvalia_mes_total_usd = 0
+                plusvalia_mes_total_ars = 0
 
                 progress = st.progress(0)
                 for i, adr in enumerate(adrs_disco):
                     ticker = adr.get('ticker', '')
-                    precio, _, nombre = obtener_precio_adr(ticker)
+                    precio_nuevo, _, nombre = obtener_precio_adr(ticker)
 
-                    if precio and precio > 0:
+                    if precio_nuevo and precio_nuevo > 0:
                         cantidad_acc = adr.get('cantidad', 0)
                         precio_compra_acc = adr.get('precio_compra_usd', 0)
 
-                        adr['precio_actual_usd'] = precio
-                        adr['valor_actual_usd'] = cantidad_acc * precio
-                        adr['valor_actual_ars'] = cantidad_acc * precio * usdt_ars_actual
-                        adr['ganancia_usd'] = (precio - precio_compra_acc) * cantidad_acc
-                        adr['ganancia_ars'] = adr['ganancia_usd'] * usdt_ars_actual
-                        adr['ganancia_pct'] = ((precio / precio_compra_acc) - 1) * 100 if precio_compra_acc > 0 else 0
+                        # Precio anterior para plusvalía mensual
+                        precio_anterior = adr.get('precio_mes_anterior_usd')
+                        if precio_anterior is None or precio_anterior <= 0:
+                            precio_anterior = adr.get('precio_actual_usd', precio_compra_acc)
+
+                        # Plusvalía del mes para este ADR
+                        plusvalia_adr_usd = (precio_nuevo - precio_anterior) * cantidad_acc
+                        plusvalia_adr_ars = plusvalia_adr_usd * usdt_ars_actual
+
+                        plusvalia_mes_total_usd += plusvalia_adr_usd
+                        plusvalia_mes_total_ars += plusvalia_adr_ars
+
+                        # Actualizar campos del ADR
+                        adr['precio_mes_anterior_usd'] = adr.get('precio_actual_usd', precio_compra_acc)
+                        adr['precio_actual_usd'] = precio_nuevo
+                        adr['valor_actual_usd'] = cantidad_acc * precio_nuevo
+                        adr['valor_actual_ars'] = cantidad_acc * precio_nuevo * usdt_ars_actual
+                        adr['ganancia_total_usd'] = (precio_nuevo - precio_compra_acc) * cantidad_acc
+                        adr['ganancia_total_ars'] = adr['ganancia_total_usd'] * usdt_ars_actual
+                        adr['ganancia_total_pct'] = ((precio_nuevo / precio_compra_acc) - 1) * 100 if precio_compra_acc > 0 else 0
+                        adr['plusvalia_mes_usd'] = plusvalia_adr_usd
+                        adr['plusvalia_mes_ars'] = plusvalia_adr_ars
+                        adr['plusvalia_mes_pct'] = ((precio_nuevo / precio_anterior) - 1) * 100 if precio_anterior > 0 else 0
                         adr['ultima_actualizacion'] = datetime.now().strftime('%Y-%m-%d %H:%M')
                         if nombre:
                             adr['nombre'] = nombre
@@ -3879,24 +3907,39 @@ def mostrar_activos():
                     progress.progress((i + 1) / len(adrs_disco))
                     time.sleep(0.5)
 
+                # Guardar plusvalía del mes en datos.meses
+                datos_disco.setdefault('meses', {}).setdefault(mes_actual, {
+                    'ingresos_bancarios': [], 'egresos': [], 'ajustes': [],
+                    'ganancia_fondos': 0, 'plusvalia_propiedades': 0, 'plusvalia_adrs': 0
+                })
+                datos_disco['meses'][mes_actual]['plusvalia_adrs'] = plusvalia_mes_total_ars
+                datos_disco['meses'][mes_actual]['plusvalia_adrs_usd'] = plusvalia_mes_total_usd
+
                 guardar_datos(datos_disco)
                 st.session_state.datos = datos_disco
-                st.success(f"✅ {actualizados}/{len(adrs_disco)} ADRs actualizados (USDT/ARS: {usdt_ars_actual:,.2f})")
+                st.success(
+                    f"✅ {actualizados}/{len(adrs_disco)} ADRs actualizados\n\n"
+                    f"Plusvalía del mes: USD {plusvalia_mes_total_usd:,.2f} / "
+                    f"ARS {plusvalia_mes_total_ars:,.0f}\n\n"
+                    f"USDT/ARS: {usdt_ars_actual:,.2f}"
+                )
                 st.rerun()
 
             st.subheader("Cartera de ADRs")
 
             for adr in adrs:
-                ganancia_pct = adr.get('ganancia_pct', 0)
-                color = "🟢" if ganancia_pct >= 0 else "🔴"
+                ganancia_total_pct = adr.get('ganancia_total_pct', 0)
+                plusvalia_mes_pct = adr.get('plusvalia_mes_pct', 0)
+                color_total = "🟢" if ganancia_total_pct >= 0 else "🔴"
+                color_mes = "🟢" if plusvalia_mes_pct >= 0 else "🔴"
 
                 with st.container():
-                    c1, c2, c3, c4, c5, c6 = st.columns([1.5, 1, 1, 1.5, 1.5, 0.5])
+                    c1, c2, c3, c4, c5, c6, c7 = st.columns([1.5, 0.8, 1, 1.2, 1.5, 1.5, 0.5])
 
-                    c1.markdown(f"**{color} {adr.get('ticker', '')}**")
+                    c1.markdown(f"**{color_total} {adr.get('ticker', '')}**")
                     c1.caption(f"{adr.get('nombre', '')}")
 
-                    c2.metric("Cantidad", f"{adr.get('cantidad', 0):,.0f}")
+                    c2.metric("Cant", f"{adr.get('cantidad', 0):,.0f}")
 
                     c3.metric(
                         "Precio USD",
@@ -3906,17 +3949,24 @@ def mostrar_activos():
 
                     c4.metric(
                         "Valor USD",
-                        f"${adr.get('valor_actual_usd', 0):,.2f}",
-                        delta=f"${adr.get('ganancia_usd', 0):,.2f}"
+                        f"${adr.get('valor_actual_usd', 0):,.2f}"
                     )
 
+                    # Ganancia total (desde compra)
                     c5.metric(
-                        "Valor ARS",
-                        f"${adr.get('valor_actual_ars', 0):,.0f}",
-                        delta=f"{ganancia_pct:+.1f}%"
+                        "Gan. Total",
+                        f"${adr.get('ganancia_total_usd', 0):,.2f}",
+                        delta=f"{ganancia_total_pct:+.1f}% desde compra"
                     )
 
-                    with c6:
+                    # Plusvalía del mes
+                    c6.metric(
+                        f"{color_mes} Plusv. Mes",
+                        f"${adr.get('plusvalia_mes_usd', 0):,.2f}",
+                        delta=f"{plusvalia_mes_pct:+.1f}% este mes"
+                    )
+
+                    with c7:
                         if st.button("🗑", key=f"del_adr_{adr.get('id')}"):
                             datos_disco = cargar_datos()
                             datos_disco['activos'] = [
@@ -3929,21 +3979,32 @@ def mostrar_activos():
                             st.rerun()
 
                     st.divider()
+                            st.success(f"ADR {adr.get('ticker')} eliminado")
+                            st.rerun()
+
+                    st.divider()
 
             # Totales ADRs
             total_valor_usd = sum(a.get('valor_actual_usd', 0) for a in adrs)
-            total_ganancia_usd = sum(a.get('ganancia_usd', 0) for a in adrs)
+            total_ganancia_total_usd = sum(a.get('ganancia_total_usd', 0) for a in adrs)
+            total_plusvalia_mes_usd = sum(a.get('plusvalia_mes_usd', 0) for a in adrs)
             total_valor_ars = sum(a.get('valor_actual_ars', 0) for a in adrs)
-            total_ganancia_ars = sum(a.get('ganancia_ars', 0) for a in adrs)
+            total_ganancia_total_ars = sum(a.get('ganancia_total_ars', 0) for a in adrs)
+            total_plusvalia_mes_ars = sum(a.get('plusvalia_mes_ars', 0) for a in adrs)
 
             st.subheader("Totales ADRs")
-            t1, t2, t3, t4 = st.columns(4)
+            t1, t2, t3 = st.columns(3)
             t1.metric("Valor Total USD", f"${total_valor_usd:,.2f}")
-            t2.metric("Ganancia USD", f"${total_ganancia_usd:,.2f}",
-                      delta=f"${total_ganancia_usd:,.2f}")
-            t3.metric("Valor Total ARS", f"${total_valor_ars:,.0f}")
-            t4.metric("Ganancia ARS", f"${total_ganancia_ars:,.0f}",
-                      delta=f"${total_ganancia_ars:,.0f}")
+            t2.metric(
+                "Ganancia Total (desde compra)",
+                f"USD {total_ganancia_total_usd:,.2f}",
+                delta=f"ARS {total_ganancia_total_ars:,.0f}"
+            )
+            t3.metric(
+                "Plusvalía del Mes",
+                f"USD {total_plusvalia_mes_usd:,.2f}",
+                delta=f"ARS {total_plusvalia_mes_ars:,.0f}"
+            )
 
             # ---- DIVIDENDOS ----
             st.subheader("Registrar Dividendo")
