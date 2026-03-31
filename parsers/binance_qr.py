@@ -80,9 +80,16 @@ def es_linea_fecha(texto):
     return bool(parsear_fecha_binance(texto))
 
 
-def es_linea_estado(texto):
+def es_linea_estado_valido(texto):
+    """Detecta estados de pago EXITOSO"""
     t = texto.strip().lower()
-    return 'completado' in t or 'completed' in t
+    return 'correcto' in t or 'completed' in t or 'aprobado' in t
+
+
+def es_linea_estado_error(texto):
+    """Detecta estados de error o pendiente"""
+    t = texto.strip().lower()
+    return any(x in t for x in ['error', 'tiempo de espera', 'pendiente', 'rechazado', 'fallido'])
 
 
 def es_linea_etiqueta(texto):
@@ -145,13 +152,32 @@ def procesar_binance_qr(archivo, owner, medio_pago, datos, categorizar_gasto_fn=
             # "SOCIAL" suelto = probablemente segunda línea de "CAJA DE PREVISION SOCIAL"
             nombre = 'Caja de Prevision Social'
 
+        # Buscar fecha y validar estado
         fecha = ''
+        estado_ok = False
+        tiene_error = False
+        
         for it in items:
-            if 10 <= (it['y'] - y_monto) <= 100:
-                f = parsear_fecha_binance(it['text'])
-                if f:
-                    fecha = f
+            dist_y = it['y'] - y_monto
+            if 10 <= dist_y <= 100:
+                texto_it = it['text'].strip()
+                
+                # Detectar fecha
+                if es_linea_fecha(texto_it):
+                    fecha = parsear_fecha_binance(texto_it)
+                
+                # Detectar estado válido
+                if es_linea_estado_valido(texto_it):
+                    estado_ok = True
+                
+                # Detectar error (esto invalida el pago inmediatamente)
+                if es_linea_estado_error(texto_it):
+                    tiene_error = True
                     break
+        
+        # Si tiene error o no tiene estado válido, descartar
+        if tiene_error or not estado_ok:
+            continue
 
         if not nombre or len(nombre) < 2:
             continue
