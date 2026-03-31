@@ -3016,82 +3016,314 @@ def mostrar_propiedades(mes):
         st.metric("Plusvalía Total Propiedades", f"${total_plusvalia:,.0f}")
 
 
-def mostrar_ajustes(mes):
-    st.header("Ajustes Manuales")
-    
+def mostrar_ajustes(mes_from_sidebar):
+    st.header("Ajustes Manuales y Efectivo")
+
     datos = st.session_state.datos
-    ajustes = datos.get('meses', {}).get(mes, {}).get('ajustes', [])
-    
-    st.info("Agrega ajustes manuales como aportes en efectivo, correcciones o ajustes de cambio")
-    
-    with st.form("agregar_ajuste"):
-        col1, col2 = st.columns(2)
-        with col1:
-            tipo = st.selectbox("Tipo", ["aporte_efectivo", "correccion", "ajuste_cambio"])
-            descripcion = st.text_input("Descripción")
-        with col2:
-            monto = st.number_input("Monto", min_value=0.0)
-            moneda = st.selectbox("Moneda", ["ARS", "USD", "CLP"])
-        
-        submitted = st.form_submit_button("Agregar Ajuste")
-        
-        if submitted and descripcion and monto > 0:
-            ajuste = {
-                'tipo': tipo,
-                'descripcion': descripcion,
-                'monto': monto,
-                'moneda': moneda,
-                'fecha': datetime.now().strftime('%Y-%m-%d')
-            }
-            ajustes.append(ajuste)
-            datos.setdefault('meses', {}).setdefault(mes, {})['ajustes'] = ajustes
-            guardar_datos(datos)
-            st.success("Ajuste agregado")
-            st.rerun()
-    
-    # Mostrar ajustes
-    if ajustes:
-        st.subheader("Ajustes del Mes")
-        df = pd.DataFrame(ajustes)
-        st.dataframe(df)
-        
-        total = sum(a.get('monto', 0) for a in ajustes)
-        st.metric("Total Ajustes", f"${total:,.0f}")
-        
-        # Eliminar ajuste
-        if st.button("Limpiar Ajustes"):
-            datos.setdefault('meses', {}).setdefault(mes, {})['ajustes'] = []
-            guardar_datos(datos)
-            st.rerun()
-    
+
+    # ====== SELECTOR DE PERIODO PROPIO ======
+    meses_disponibles = sorted(datos.get('meses', {}).keys())
+    if not meses_disponibles:
+        meses_disponibles = [mes_from_sidebar or '2026-03']
+
+    if mes_from_sidebar in meses_disponibles:
+        default_idx = meses_disponibles.index(mes_from_sidebar)
+    else:
+        default_idx = len(meses_disponibles) - 1
+
+    mes = st.selectbox(
+        "Periodo para este ajuste",
+        meses_disponibles,
+        index=default_idx,
+        key="ajuste_periodo_selector"
+    )
+
+    # Asegurar estructura del mes
+    if mes not in datos.get('meses', {}):
+        datos.setdefault('meses', {})[mes] = {
+            'ingresos_bancarios': [],
+            'egresos': [],
+            'ganancia_fondos': 0,
+            'plusvalia_propiedades': 0,
+            'ajustes': []
+        }
+
+    ajustes = datos['meses'][mes].get('ajustes', [])
+
+    # ====== TABS: EFECTIVO vs OTROS AJUSTES ======
+    tab_efectivo, tab_ajuste, tab_ver = st.tabs([
+        "💵 Efectivo (Ingreso/Egreso)",
+        "🔧 Ajuste Manual",
+        "📋 Ver Ajustes del Periodo"
+    ])
+
+    # ====== TAB EFECTIVO ======
+    with tab_efectivo:
+        st.subheader(f"Registrar Movimiento en Efectivo — {mes}")
+        st.info("Usá esta sección para cargar ingresos o egresos en efectivo que no aparecen en extractos bancarios.")
+
+        OWNERS = ["Gustavo", "Vero", "Sol", "Tomas"]
+
+        with st.form("form_efectivo", clear_on_submit=True):
+            col1, col2 = st.columns(2)
+
+            with col1:
+                direccion = st.radio(
+                    "Tipo de movimiento",
+                    ["Egreso", "Ingreso"],
+                    horizontal=True
+                )
+                owner_ef = st.selectbox("¿Quién?", OWNERS, key="ef_owner")
+
+                # Fecha dentro del periodo
+                anio, mes_num = mes.split('-')
+                import calendar
+                ultimo_dia = calendar.monthrange(int(anio), int(mes_num))[1]
+                fecha_ef = st.date_input(
+                    "Fecha",
+                    value=datetime(int(anio), int(mes_num), min(15, ultimo_dia)),
+                    min_value=datetime(int(anio), int(mes_num), 1),
+                    max_value=datetime(int(anio), int(mes_num), ultimo_dia),
+                    key="ef_fecha"
+                )
+
+            with col2:
+                descripcion_ef = st.text_input("Descripción", placeholder="Ej: Compra verdulería, Regalo cumple, etc.")
+                monto_ef = st.number_input("Monto ($ARS)", min_value=0.0, step=100.0, key="ef_monto")
+
+                # Categoría rápida para egresos
+                if direccion == "Egreso":
+                    cat_rapida = st.selectbox("Categoría", [
+                        "comercios/supermercado",
+                        "comercios/restaurant",
+                        "comercios/carniceria",
+                        "comercios/panaderia",
+                        "comercios/verduleria",
+                        "comercios/farmacia",
+                        "comercios/combustible",
+                        "comercios/indumentaria",
+                        "comercios/ferreteria",
+                        "comercios/bazar",
+                        "comercios/otros",
+                        "servicios/salud",
+                        "servicios/transporte",
+                        "servicios/educacion",
+                        "servicios/peluqueria",
+                        "servicios/otros",
+                        "familia/hijos",
+                        "familia/transferencia",
+                        "impuestos/impuestos",
+                        "otros/otros",
+                        "(auto-detectar)"
+                    ], index=21, key="ef_cat")  # default: auto-detectar
+                else:
+                    cat_rapida = st.selectbox("Categoría ingreso", [
+                        "sueldo",
+                        "alquiler",
+                        "honorarios",
+                        "venta",
+                        "prestamo",
+                        "regalo",
+                        "otro"
+                    ], key="ef_cat_ing")
+
+            submitted = st.form_submit_button("Guardar Movimiento Efectivo", type="primary")
+
+            if submitted and monto_ef > 0 and descripcion_ef.strip():
+                fecha_str = fecha_ef.strftime('%Y-%m-%d')
+
+                if direccion == "Egreso":
+                    # Categorizar
+                    if cat_rapida == "(auto-detectar)":
+                        cat, subcat, gasto_final = categorizar_gasto(descripcion_ef, datos)
+                    else:
+                        partes = cat_rapida.split('/')
+                        cat = partes[0]
+                        subcat = partes[1] if len(partes) > 1 else partes[0]
+                        gasto_final = descripcion_ef.strip().title()
+
+                    egreso = {
+                        'fecha': fecha_str,
+                        'gasto': gasto_final,
+                        'monto': monto_ef,
+                        'moneda': 'ARS',
+                        'fuente': 'Efectivo',
+                        'categoria': cat,
+                        'subcategoria': subcat,
+                        'owner': owner_ef,
+                        'medio_pago': 'Efectivo',
+                        'u_id': generar_id()
+                    }
+
+                    # Guardar como egreso del mes
+                    datos_disco = cargar_datos()
+                    datos_disco.setdefault('meses', {}).setdefault(mes, {
+                        'ingresos_bancarios': [], 'egresos': [], 'ajustes': [],
+                        'ganancia_fondos': 0, 'plusvalia_propiedades': 0
+                    })
+                    datos_disco['meses'][mes].setdefault('egresos', []).append(egreso)
+                    guardar_datos(datos_disco)
+                    st.session_state.datos = datos_disco
+                    st.success(f"Egreso efectivo guardado: {gasto_final} ${monto_ef:,.2f} ({owner_ef})")
+                    st.rerun()
+
+                else:  # Ingreso
+                    ingreso = {
+                        'fecha': fecha_str,
+                        'descripcion': descripcion_ef.strip(),
+                        'monto': monto_ef,
+                        'monto_ars': None,
+                        'banco': 'efectivo',
+                        'categoria': cat_rapida,
+                        'tasas': None,
+                        'owner': owner_ef
+                    }
+
+                    datos_disco = cargar_datos()
+                    datos_disco.setdefault('meses', {}).setdefault(mes, {
+                        'ingresos_bancarios': [], 'egresos': [], 'ajustes': [],
+                        'ganancia_fondos': 0, 'plusvalia_propiedades': 0
+                    })
+                    datos_disco['meses'][mes].setdefault('ingresos_bancarios', []).append(ingreso)
+                    guardar_datos(datos_disco)
+                    st.session_state.datos = datos_disco
+                    st.success(f"Ingreso efectivo guardado: {descripcion_ef} ${monto_ef:,.2f} ({owner_ef})")
+                    st.rerun()
+
+            elif submitted:
+                st.warning("Completá descripción y monto mayor a 0")
+
+    # ====== TAB AJUSTE MANUAL ======
+    with tab_ajuste:
+        st.subheader(f"Ajuste Manual — {mes}")
+        st.info("Para correcciones, ajustes de tipo de cambio u otros conceptos no bancarios.")
+
+        with st.form("form_ajuste", clear_on_submit=True):
+            col1, col2 = st.columns(2)
+            with col1:
+                tipo_aj = st.selectbox("Tipo", [
+                    "aporte_efectivo", "correccion", "ajuste_cambio",
+                    "devolucion", "prestamo", "otro"
+                ])
+                descripcion_aj = st.text_input("Descripción", key="aj_desc")
+            with col2:
+                monto_aj = st.number_input("Monto", min_value=0.0, key="aj_monto")
+                moneda_aj = st.selectbox("Moneda", ["ARS", "USD", "CLP"])
+                signo_aj = st.radio("Signo", ["Positivo (+)", "Negativo (-)"], horizontal=True)
+
+            submitted_aj = st.form_submit_button("Agregar Ajuste")
+
+            if submitted_aj and descripcion_aj and monto_aj > 0:
+                monto_final = monto_aj if "Positivo" in signo_aj else -monto_aj
+
+                ajuste = {
+                    'tipo': tipo_aj,
+                    'descripcion': descripcion_aj,
+                    'monto': monto_final,
+                    'moneda': moneda_aj,
+                    'fecha': datetime.now().strftime('%Y-%m-%d'),
+                    'periodo': mes
+                }
+
+                datos_disco = cargar_datos()
+                datos_disco.setdefault('meses', {}).setdefault(mes, {
+                    'ingresos_bancarios': [], 'egresos': [], 'ajustes': [],
+                    'ganancia_fondos': 0, 'plusvalia_propiedades': 0
+                })
+                datos_disco['meses'][mes].setdefault('ajustes', []).append(ajuste)
+                guardar_datos(datos_disco)
+                st.session_state.datos = datos_disco
+                st.success(f"Ajuste guardado: {descripcion_aj} {moneda_aj} {monto_final:,.2f}")
+                st.rerun()
+
+    # ====== TAB VER AJUSTES ======
+    with tab_ver:
+        st.subheader(f"Ajustes y Efectivo del Periodo — {mes}")
+
+        # Mostrar ajustes
+        ajustes_mes = datos.get('meses', {}).get(mes, {}).get('ajustes', [])
+        if ajustes_mes:
+            st.caption(f"{len(ajustes_mes)} ajustes")
+            df_aj = pd.DataFrame(ajustes_mes)
+            st.dataframe(df_aj, use_container_width=True)
+
+            total_aj = sum(a.get('monto', 0) for a in ajustes_mes)
+            st.metric("Total Ajustes", f"${total_aj:,.2f}")
+        else:
+            st.info("Sin ajustes manuales")
+
+        # Mostrar egresos en efectivo del mes
+        egresos_mes = datos.get('meses', {}).get(mes, {}).get('egresos', [])
+        efectivo_egresos = [e for e in egresos_mes if e.get('medio_pago') == 'Efectivo']
+
+        if efectivo_egresos:
+            st.divider()
+            st.caption(f"{len(efectivo_egresos)} egresos en efectivo")
+            df_ef = pd.DataFrame(efectivo_egresos)
+            cols = ['fecha', 'gasto', 'monto', 'categoria', 'subcategoria', 'owner']
+            available = [c for c in cols if c in df_ef.columns]
+            st.dataframe(df_ef[available], use_container_width=True)
+
+            total_ef = sum(e.get('monto', 0) for e in efectivo_egresos)
+            st.metric("Total Egresos Efectivo", f"${total_ef:,.2f}")
+
+        # Mostrar ingresos en efectivo del mes
+        ingresos_mes = datos.get('meses', {}).get(mes, {}).get('ingresos_bancarios', [])
+        efectivo_ingresos = [i for i in ingresos_mes if i.get('banco') == 'efectivo']
+
+        if efectivo_ingresos:
+            st.divider()
+            st.caption(f"{len(efectivo_ingresos)} ingresos en efectivo")
+            df_ing = pd.DataFrame(efectivo_ingresos)
+            cols = ['fecha', 'descripcion', 'monto', 'categoria', 'owner']
+            available = [c for c in cols if c in df_ing.columns]
+            st.dataframe(df_ing[available], use_container_width=True)
+
+            total_ing = sum(i.get('monto', 0) for i in efectivo_ingresos)
+            st.metric("Total Ingresos Efectivo", f"${total_ing:,.2f}")
+
+        if not ajustes_mes and not efectivo_egresos and not efectivo_ingresos:
+            st.info("No hay movimientos de efectivo ni ajustes para este periodo")
+
+    # ====== ZONA DE PELIGRO ======
     st.divider()
     st.subheader("Zona de Peligro")
     st.warning("Estas acciones son irreversibles.")
-    
-    col_b1, col_b2 = st.columns(2)
+
+    col_b1, col_b2, col_b3 = st.columns(3)
+
     with col_b1:
-        if st.button("Borrar Periodo Actual", type="primary"):
-            if mes in datos.get('meses', {}):
-                datos['meses'][mes] = {
+        if st.button("Limpiar Ajustes del Periodo", type="secondary"):
+            datos_disco = cargar_datos()
+            if mes in datos_disco.get('meses', {}):
+                datos_disco['meses'][mes]['ajustes'] = []
+                guardar_datos(datos_disco)
+                st.session_state.datos = datos_disco
+                st.success(f"Ajustes de {mes} eliminados")
+                st.rerun()
+
+    with col_b2:
+        if st.button("Borrar Periodo Completo", type="primary"):
+            datos_disco = cargar_datos()
+            if mes in datos_disco.get('meses', {}):
+                datos_disco['meses'][mes] = {
                     'ingresos_bancarios': [],
                     'egresos': [],
                     'ganancia_fondos': 0,
                     'plusvalia_propiedades': 0,
                     'ajustes': []
                 }
-                guardar_datos(datos)
-                st.success(f"Datos del periodo {mes} eliminados.")
+                guardar_datos(datos_disco)
+                st.session_state.datos = datos_disco
+                st.success(f"Periodo {mes} borrado")
                 st.rerun()
-    
-    with col_b2:
+
+    with col_b3:
         if st.button("Borrar TODOS los Datos", type="primary"):
-            datos_limpios = {
-                'usd_clp': st.session_state.datos.get('usd_clp', 0),
-                'meses': {}
-            }
-            st.session_state.datos = datos_limpios
+            datos_limpios = {'activos': [], 'meses': {}}
             guardar_datos(datos_limpios)
-            st.success("Todos los datos fueron eliminados.")
+            st.session_state.datos = datos_limpios
+            st.success("Todos los datos eliminados")
             st.rerun()
 
 
