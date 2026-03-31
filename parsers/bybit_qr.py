@@ -1,7 +1,6 @@
 """
 Parser para screenshots de historial QR de Bybit.
 SOLO captura pagos con estado "Correcto".
-Rechaza: Error, Tiempo de espera, Pendiente, Rechazado.
 """
 import re
 import time
@@ -37,9 +36,7 @@ def parsear_monto_qr(texto):
 def extraer_fecha_qr(texto):
     m = re.search(r'(\d{4}-\d{2}-\d{2})\s*(\d{2}:\d{2}:\d{2})?', texto)
     if m:
-        fecha = m.group(1)
-        hora = m.group(2) if m.group(2) else ''
-        return fecha, hora
+        return m.group(1), m.group(2) if m.group(2) else ''
     return '', ''
 
 
@@ -66,8 +63,9 @@ def es_estado_error(texto):
 
 
 def limpiar_nombre(nombre):
-    nombre = re.sub(r'\s+', ' ', nombre.strip())
-    return nombre
+    if not nombre:
+        return ''
+    return re.sub(r'\s+', ' ', nombre.strip())
 
 
 def procesar_bybit_qr(archivo, owner, medio_pago, datos, categorizar_fn=None):
@@ -97,22 +95,14 @@ def procesar_bybit_qr(archivo, owner, medio_pago, datos, categorizar_fn=None):
                 x_right = bbox[2][0]
                 y = (bbox[0][1] + bbox[2][1]) / 2
                 text = line[1][0].strip()
-                items.append({
-                    'y': y,
-                    'x_left': x_left,
-                    'x_right': x_right,
-                    'text': text,
-                })
+                items.append({'y': y, 'x_left': x_left, 'x_right': x_right, 'text': text})
 
         items.sort(key=lambda i: i['y'])
 
-        texto_debug = "\n".join(
-            f"y={it['y']:.0f} | {it['text']}"
-            for it in items
-        )
+        texto_debug = "\n".join(f"y={it['y']:.0f} | {it['text']}" for it in items)
 
         if not items:
-            return [], texto_debug, "No se detectó texto en la imagen"
+            return [], texto_debug, "No se detectó texto"
 
         gastos = []
         procesados_y = set()
@@ -122,7 +112,6 @@ def procesar_bybit_qr(archivo, owner, medio_pago, datos, categorizar_fn=None):
 
             if not es_linea_monto_ars(texto):
                 continue
-
             if item['y'] in procesados_y:
                 continue
 
@@ -134,6 +123,7 @@ def procesar_bybit_qr(archivo, owner, medio_pago, datos, categorizar_fn=None):
             x_monto = item['x_left']
             procesados_y.add(y_monto)
 
+            # VALIDAR ESTADO - Rango 150px
             estado_correcto = False
             estado_error = False
             hora_transaccion = ''
@@ -154,31 +144,31 @@ def procesar_bybit_qr(archivo, owner, medio_pago, datos, categorizar_fn=None):
                     if hora:
                         hora_transaccion = hora
             
+            # DESCARTAR si tiene error o no tiene estado "Correcto"
             if estado_error or not estado_correcto:
                 continue
-            
-            # Debug temporal para Farmacia Cubells
-            if 'farmacia' in nombre.lower() or 'cubells' in nombre.lower():
-                print(f"[DEBUG FARMACIA] Nombre: {nombre}, Estado Correcto: {estado_correcto}, Estado Error: {estado_error}, Fecha: {fecha_completa}")
 
+            # BUSCAR NOMBRE - Inicializar siempre
             nombre = ''
+            
             for it in items:
                 if abs(it['y'] - y_monto) < 18:
                     if it['x_left'] < x_monto:
                         t = it['text'].strip().lower()
                         if len(t) > 1 and 'usdt' not in t and 'recibir' not in t and 'enviar' not in t:
                             nombre = it['text'].strip()
+                            break
 
             if not nombre:
                 for it in items:
                     dist = y_monto - it['y']
                     if 0 < dist < 25:
                         t = it['text'].strip().lower()
-                        if (len(t) > 2 and 'usdt' not in t and 'recibir' not in t 
-                            and 'enviar' not in t and 'correcto' not in t and 'error' not in t):
+                        if len(t) > 2 and 'usdt' not in t and 'recibir' not in t and 'enviar' not in t and 'correcto' not in t and 'error' not in t:
                             nombre = it['text'].strip()
                             break
 
+            # BUSCAR FECHA
             fecha_completa = ''
             for it in items:
                 dist_y = it['y'] - y_monto
@@ -191,6 +181,7 @@ def procesar_bybit_qr(archivo, owner, medio_pago, datos, categorizar_fn=None):
                                 hora_transaccion = hora
                         break
 
+            # VALIDACIONES FINALES
             nombre = limpiar_nombre(nombre)
 
             if not nombre or len(nombre) < 2:
@@ -223,6 +214,7 @@ def procesar_bybit_qr(archivo, owner, medio_pago, datos, categorizar_fn=None):
                 '_unique_key': unique_id
             })
 
+        # Deduplicar
         seen = set()
         gastos_dedup = []
         for g in gastos:
@@ -240,4 +232,4 @@ def procesar_bybit_qr(archivo, owner, medio_pago, datos, categorizar_fn=None):
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return [], "", f"Error procesando Bybit QR: {str(e)}"
+        return [], "", f"Error: {str(e)}"
