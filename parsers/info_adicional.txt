@@ -1,0 +1,498 @@
+# ============================================
+# INFO ADICIONAL - Archivo de análisis
+# ============================================
+
+# ============================================
+# 1. ESTRUCTURA DE CARPETAS
+# ============================================
+
+ingresos_familiares_st/
+├── .git/
+├── .streamlit/
+│   └── config.toml
+├── __pycache__/
+├── parsers/
+│   ├── __init__.py
+│   ├── base.py                    (Funciones compartidas: OCR, categorización)
+│   ├── binance_qr.py               (Parser QR Binance)
+│   ├── bybit_qr.py                 (Parser QR Bybit)
+│   ├── bybit_tarjeta.py            (Parser Tarjeta Bybit)
+│   ├── galicia_excel.py            (Parser Excel Galicia)
+│   ├── icbc.py                     (Parser ICBC)
+│   ├── mercadopago_app.py          (Parser App MercadoPago)
+│   ├── mercadopago_pdf.py          (Parser PDF MercadoPago)
+│   └── todos_los_parsers.txt       (Todos los parsers combinados - análisis)
+├── ui/
+│   ├── __init__.py
+│   └── reportes.py                 (Módulo de Reportes)
+├── app.py                          (App principal Streamlit)
+├── launch.bat                      (Script de lanzamiento)
+├── datos.json                      (Datos persistentes)
+├── comercios_conocidos.json        (Mappings de categorización)
+├── subpagos.py                     (Módulo de sub-pagos)
+└── requirements.txt                (Dependencias)
+
+
+# ============================================
+# 2. SUBPAGOS.PY COMPLETO
+# ============================================
+
+"""
+Módulo de Sub-pagos para el Gestor de Ingresos Familiares.
+Maneja la extracción OCR de tickets y la división de pagos padre en sub-pagos hijos.
+"""
+import io
+import re
+import time
+import random
+import numpy as np
+from PIL import Image
+
+
+def generar_id():
+    """Genera un ID único."""
+    ts = int(time.time() * 1000)
+    rnd = ''.join(random.choice('0123456789abcdef') for _ in range(6))
+    return f"ts_{ts}_{rnd}"
+
+
+def get_paddle_reader_safe():
+    """Instancia PaddleOCR de forma lazy y segura."""
+    try:
+        from paddleocr import PaddleOCR
+        reader = PaddleOCR(use_angle_cls=True, lang='es', show_log=False)
+        return reader
+    except Exception:
+        return None
+
+
+def extraer_subpagos(comprobante, datos=None):
+    """
+    Usa PaddleOCR para extraer sub-pagos de un ticket Santa Fe Servicios.
+    Retorna (lista_de_subpagos, texto_raw).
+
+    Patron del ticket:
+      Linea 1: descripcion (MOVISTAR, ADT, EPE, etc.)
+      Linea 2: IMPORTE: o EMPORTE: (etiqueta)
+      Linea 3: monto (66154.05)
+
+    Filtros: deduplicacion (4 chars desc + monto), monto < 1 (ruido).
+    """
+    reader = get_paddle_reader_safe()
+    if reader is None:
+        return [], "PaddleOCR no disponible"
+
+    try:
+        if hasattr(comprobante, 'read'):
+            comprobante.seek(0)
+            img_bytes = comprobante.read()
+            img = Image.open(io.BytesIO(img_bytes)).convert('RGB')
+        else:
+            img = Image.open(comprobante).convert('RGB')
+
+        img_array = np.array(img)
+        result = reader.ocr(img_array, cls=True)
+
+        texto = ""
+        if result and result[0]:
+            for line in result[0]:
+                if line:
+                    texto += line[1][0] + "\n"
+
+        lineas = texto.split('\n')
+        sub_pagos = []
+        seen = set()
+
+        label_keywords = [
+            'IMPORTE', 'EMPORTE', 'MPORTE', 'MONTO', 'TOTAL',
+            'NRO.', 'NRO TRANSACC', 'NRO.TRANSACC', 'NRO TRANSACCI',
+            'FECHA', 'HORA', 'SUC.', 'TERM.', 'CAJERO', 'ID:',
+            'COPIA', 'APROBADA', 'FORMADEPAGOQR', 'CAJERO:',
+            'NRO.REF.', 'NRO.REF'
+        ]
+        header_keywords = [
+            'santa fe servicios', 'pago de servicios', 'copia cliente',
+            'resumen', 'total desglosado'
+        ]
+
+        for i, linea in enumerate(lineas):
+            linea = linea.strip()
+            if not linea:
+                continue
+
+            linea_upper = linea.upper()
+            linea_lower = linea.lower()
+
+            if any(k in linea_upper for k in label_keywords):
+                continue
+            if any(h in linea_lower for h in header_keywords):
+                continue
+            if re.match(r'^[\d\s.,\-/:]+$', linea):
+                continue
+            if len(linea) < 2:
+                continue
+            if re.search(r'\d[A-Za-z]|[A-Za-z]\d', linea):
+                continue
+
+            tiene_importe = False
+            for offset in range(1, 3):
+                if i + offset < len(lineas):
+                    sig = lineas[i + offset].strip().upper()
+                    if 'IMPORTE' in sig or 'EMPORTE' in sig or 'MPORTE' in sig:
+                        tiene_importe = True
+                        break
+
+            if not tiene_importe:
+                continue
+
+            monto_encontrado = None
+            for offset in range(1, 4):
+                if i + offset < len(lineas):
+                    sig = lineas[i + offset].strip()
+                    m = re.search(r'\$?\s*(\d+)\.(\d+)', sig)
+                    if m:
+                        try:
+                            monto_encontrado = float(m.group(1) + '.' + m.group(2))
+                            break
+                        except ValueError:
+                            pass
+                    m2 = re.search(r'\$?\s*([\d,]+)', sig)
+                    if m2 and monto_encontrado is None:
+                        try:
+                            monto_encontrado = float(m2.group(1).replace(',', '').replace('$', ''))
+                            break
+                        except ValueError:
+                            pass
+
+            if monto_encontrado is None or monto_encontrado < 1:
+                continue
+
+            key = (linea.lower()[:4], round(monto_encontrado, 2))
+            if key in seen:
+                continue
+            seen.add(key)
+
+            sub_pagos.append({
+                'monto': monto_encontrado,
+                'descripcion': linea.strip(),
+                'fecha': ''
+            })
+
+        return sub_pagos, texto
+
+    except Exception as e:
+        return [], str(e)
+
+
+def procesar_subpagos(pago_original, subpagos_rev, datos, mes_seleccionado):
+    """
+    Procesa la división de un pago padre en sub-pagos hijos.
+
+    Args:
+        pago_original: dict con los campos del pago padre (fecha, owner, medio_pago, fuente, moneda)
+        subpagos_rev: lista de dicts con {descripcion, monto} ya revisados por el usuario
+        datos: diccionario de datos (para categorizar_gasto)
+        mes_seleccionado: string "YYYY-MM" del mes actual
+
+    Returns:
+        lista de hijos creados (para persistir en UI)
+    """
+    from app import generar_id, categorizar_gasto, guardar_datos, st
+
+    if not pago_original or not subpagos_rev:
+        return []
+
+    padre_fecha = pago_original.get('fecha', '')
+    padre_owner = pago_original.get('owner', '')
+    padre_medio = pago_original.get('medio_pago', '')
+    padre_moneda = pago_original.get('moneda', 'ARS')
+    padre_fuente = pago_original.get('fuente', '')
+    pago_id = pago_original.get('u_id', '')
+
+    hijos = []
+    for sp in subpagos_rev:
+        desc_sp = sp.get('descripcion', '').strip()
+        monto_sp = sp.get('monto', 0)
+        if desc_sp and monto_sp > 0:
+            cat, subcat, _ = categorizar_gasto(desc_sp, datos)
+            hijos.append({
+                'u_id': generar_id(),
+                'parent_id': pago_id,
+                'fecha': padre_fecha,
+                'gasto': desc_sp,
+                'monto': monto_sp,
+                'moneda': padre_moneda,
+                'fuente': padre_fuente or 'Santa Fe Servicios',
+                'categoria': cat,
+                'subcategoria': subcat,
+                'owner': padre_owner,
+                'medio_pago': padre_medio,
+            })
+
+    return hijos
+
+
+# ============================================
+# 3. UI/REPORTES.PY COMPLETO
+# ============================================
+
+import streamlit as st
+import pandas as pd
+import json
+import os
+
+DATOS_FILE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'datos.json')
+
+def cargar_datos():
+    try:
+        if os.path.exists(DATOS_FILE):
+            with open(DATOS_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+    except Exception as e:
+        print(f"Error cargando datos: {e}")
+    return {'meses': {}}
+
+def mostrar_reportes(mes):
+    st.header(f"Reportes - {mes}")
+    
+    datos = cargar_datos()
+    mes_data = datos.get('meses', {}).get(mes, {})
+    egresos = mes_data.get('egresos', [])
+    
+    if not egresos:
+        st.info("No hay egresos registrados para este mes")
+        return
+    
+    df = pd.DataFrame(egresos)
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("Total Egresos", f"${df['monto'].sum():,.0f}")
+    with col2:
+        st.metric("Cantidad", len(df))
+    
+    df['medio_owner'] = df['medio_pago'].astype(str) + ' - ' + df['owner'].astype(str)
+    
+    st.subheader("Gasto vs Medio de Pago + Owner")
+    pivot = pd.pivot_table(
+        df,
+        values='monto',
+        index='gasto',
+        columns='medio_owner',
+        aggfunc='sum',
+        fill_value=0
+    )
+    st.dataframe(pivot.style.format("${:,.0f}"))
+    
+    st.subheader("Categoría vs Medio de Pago + Owner")
+    pivot_cat = pd.pivot_table(
+        df,
+        values='monto',
+        index='categoria',
+        columns='medio_owner',
+        aggfunc='sum',
+        fill_value=0
+    )
+    st.dataframe(pivot_cat.style.format("${:,.0f}"))
+    
+    st.subheader("Detalle por Gasto")
+    gasto_summary = df.groupby('gasto')['monto'].agg(['sum', 'count']).sort_values('sum', ascending=False)
+    gasto_summary.columns = ['Total', 'Cantidad']
+    st.dataframe(gasto_summary.style.format("${:,.0f}"))
+    
+    st.subheader("Detalle por Categoría")
+    cat_summary = df.groupby('categoria')['monto'].agg(['sum', 'count']).sort_values('sum', ascending=False)
+    cat_summary.columns = ['Total', 'Cantidad']
+    st.dataframe(cat_summary.style.format("${:,.0f}"))
+    
+    st.subheader("Detalle por Medio de Pago + Owner")
+    medio_summary = df.groupby('medio_owner')['monto'].agg(['sum', 'count']).sort_values('sum', ascending=False)
+    medio_summary.columns = ['Total', 'Cantidad']
+    st.dataframe(medio_summary.style.format("${:,.0f}"))
+
+
+# ============================================
+# 4. COMERCIOS_CONOCIDOS.JSON
+# ============================================
+
+{
+    "tomas lautaro iriarte rojo": {"categoria": "familia", "subcategoria": "hijos", "gasto": "Tomas Lautaro Iriarte Rojo"},
+    "sol belen iriarte rojo": {"categoria": "familia", "subcategoria": "hijos", "gasto": "Sol Belen Iriarte Rojo"},
+    "magdalena Soler": {"categoria": "familia", "subcategoria": "SOC", "gasto": "Magdalena Soler - Sociedad San Juan"},
+    "matias": {"categoria": "comercios", "subcategoria": "belleza", "gasto": "Matias - Peluqueria"},
+    "transitorosari": {"categoria": "comercios", "subcategoria": "belleza", "gasto": "Peluqueria Transitorosari"},
+    "remo franco": {"categoria": "comercios", "subcategoria": "ferreteria", "gasto": "Remo Franco"},
+    "miguel": {"categoria": "comercios", "subcategoria": "combustible", "gasto": "Estacion de Servicio"},
+    "juan": {"categoria": "comercios", "subcategoria": "carniceria", "gasto": "Carniceria"},
+    "pepe": {"categoria": "comercios", "subcategoria": "panaderia", "gasto": "Panaderia"},
+    "carrefour": {"categoria": "comercios", "subcategoria": "supermercado", "gasto": "Carrefour"},
+    "coto": {"categoria": "comercios", "subcategoria": "supermercado", "gasto": "Coto"},
+    "ypf": {"categoria": "comercios", "subcategoria": "combustible", "gasto": "YPF"},
+    "shell": {"categoria": "comercios", "subcategoria": "combustible", "gasto": "Shell"},
+    "farmacity": {"categoria": "comercios", "subcategoria": "farmacia", "gasto": "Farmacity"},
+    "movistar": {"categoria": "servicios", "subcategoria": "internet", "gasto": "Movistar"},
+    "claro": {"categoria": "servicios", "subcategoria": "internet", "gasto": "Claro"},
+    "epe": {"categoria": "servicios", "subcategoria": "servicios_basicos", "gasto": "EPE"},
+    "aguas": {"categoria": "servicios", "subcategoria": "servicios_basicos", "gasto": "Aguas Santafesinas"},
+    "netflix": {"categoria": "servicios", "subcategoria": "suscripciones", "gasto": "Netflix"},
+    "spotify": {"categoria": "servicios", "subcategoria": "suscripciones", "gasto": "Spotify"},
+    "polibot": {"categoria": "comercios", "subcategoria": "indumentaria", "gasto": "Polibot"},
+    "sancor": {"categoria": "servicios", "subcategoria": "seguros", "gasto": "Sancor"},
+    "havanna": {"categoria": "comercios", "subcategoria": "restaurant", "gasto": "Havanna"},
+    "osde": {"categoria": "servicios", "subcategoria": "salud", "gasto": "OSDE"},
+    "swiss": {"categoria": "servicios", "subcategoria": "salud", "gasto": "Swiss Medical"},
+    "galicia": {"categoria": "servicios", "subcategoria": "bancos", "gasto": "Banco Galicia"},
+    "santander": {"categoria": "servicios", "subcategoria": "bancos", "gasto": "Banco Santander"},
+    "visa": {"categoria": "servicios", "subcategoria": "tarjetas", "gasto": "Tarjeta Visa"},
+    "mastercard": {"categoria": "servicios", "subcategoria": "tarjetas", "gasto": "Tarjeta Mastercard"}
+}
+
+
+# ============================================
+# 5. DATOS.JSON DE EJEMPLO (ANONIMIZADO)
+# ============================================
+
+{
+  "activos": [
+    {
+      "id": 1,
+      "tipo": "fondo_mutuo",
+      "nombre": "FONDO_MUTUO_1",
+      "moneda_original": "CLP",
+      "valor_inicial": 17956793.0,
+      "valor_final": 18022355.0,
+      "valor_final_ars": 30372349.93,
+      "ganancia": 65562.0,
+      "ganancia_ars": 110489.0,
+      "fecha": "2026-02-28",
+      "tasas": "USDT/CLP: 873.69, USDT/ARS: 1472.40"
+    },
+    {
+      "id": 2,
+      "tipo": "fondo_mutuo",
+      "nombre": "FONDO_MUTUO_2",
+      "moneda_original": "USD",
+      "valor_inicial": 47700.12,
+      "valor_final": 48121.57,
+      "valor_final_ars": 70854199.67,
+      "ganancia": 421.45,
+      "ganancia_ars": 620542.98,
+      "fecha": "2026-02-28",
+      "tasas": "USDT/CLP: 873.69, USDT/ARS: 1472.40"
+    }
+  ],
+  "meses": {
+    "2026-02": {
+      "ingresos_bancarios": [],
+      "egresos": [
+        {
+          "fecha": "2026-02-20",
+          "gasto": "Gasto_001",
+          "monto": 4238.67,
+          "moneda": "ARS",
+          "fuente": "ICBC JPG",
+          "categoria": "impuestos",
+          "subcategoria": "impuestos",
+          "owner": "Vero",
+          "medio_pago": "ICBC",
+          "u_id": "ts_1774483035589_fca532"
+        },
+        {
+          "fecha": "2026-02-15",
+          "gasto": "Gasto_002",
+          "monto": 15000.00,
+          "moneda": "ARS",
+          "fuente": "Bybit QR",
+          "categoria": "comercios",
+          "subcategoria": "restaurant",
+          "owner": "Gustavo",
+          "medio_pago": "QR Bybit",
+          "u_id": "ts_1774483035590_abc123"
+        },
+        {
+          "fecha": "2026-02-10",
+          "gasto": "Gasto_003",
+          "monto": 85000.00,
+          "moneda": "ARS",
+          "fuente": "Binance QR",
+          "categoria": "servicios",
+          "subcategoria": "salud",
+          "owner": "Tomas",
+          "medio_pago": "QR Binance",
+          "u_id": "ts_1774483035591_def456"
+        }
+      ],
+      "ganancia_fondos": 232000.0,
+      "plusvalia_propiedades": 0,
+      "ajustes": []
+    },
+    "2026-03": {
+      "ingresos_bancarios": [],
+      "egresos": [
+        {
+          "fecha": "2026-03-05",
+          "gasto": "Gasto_101",
+          "monto": 5200.00,
+          "moneda": "ARS",
+          "fuente": "MercadoPago App",
+          "categoria": "servicios",
+          "subcategoria": "internet",
+          "owner": "Vero",
+          "medio_pago": "Mercado Pago",
+          "u_id": "ts_1774483035600_ghi789"
+        }
+      ],
+      "ganancia_fondos": 180000.0,
+      "plusvalia_propiedades": 0,
+      "ajustes": []
+    }
+  }
+}
+
+
+# ============================================
+# 6. RESUMEN DE CAMPOS DE EGRESO
+# ============================================
+
+# Estructura de un egreso:
+{
+    "fecha": "YYYY-MM-DD",
+    "gasto": "Nombre del gasto",
+    "monto": 12345.67,
+    "moneda": "ARS",
+    "fuente": "ICBC JPG | Bybit QR | Binance QR | MercadoPago App | Galicia Excel",
+    "categoria": "impuestos | servicios | comercios | familia | otros",
+    "subcategoria": "impuestos | salud | bancos | supermercado | etc",
+    "owner": "Gustavo | Vero | Tomas | Sol",
+    "medio_pago": "ICBC | QR Bybit | QR Binance | Mercado Pago | Banco Galicia",
+    "u_id": "ts_timestamp_random"
+}
+
+# Estructura de un activo:
+{
+    "id": 1,
+    "tipo": "fondo_mutuo",
+    "nombre": "Nombre del fondo",
+    "moneda_original": "CLP | USD",
+    "valor_inicial": 1000000.0,
+    "valor_final": 1100000.0,
+    "valor_final_ars": 15000000.0,
+    "ganancia": 100000.0,
+    "ganancia_ars": 1400000.0,
+    "fecha": "YYYY-MM-DD",
+    "tasas": "USDT/CLP: 873.69, USDT/ARS: 1472.40"
+}
+
+# Estructura de un mes:
+{
+    "ingresos_bancarios": [...],
+    "egresos": [...],
+    "ganancia_fondos": 0,
+    "plusvalia_propiedades": 0,
+    "ajustes": []
+}
+
+
+# ============================================
+# FIN DEL ARCHIVO
+# ============================================
