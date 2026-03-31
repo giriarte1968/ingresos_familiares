@@ -127,6 +127,8 @@ def procesar_bybit_qr(archivo, owner, medio_pago, datos, categorizar_fn=None):
             estado_correcto = False
             estado_error = False
             hora_transaccion = ''
+            dist_correcto = 999
+            dist_error = 999
             
             for it in items:
                 dist_y = it['y'] - y_monto
@@ -136,13 +138,22 @@ def procesar_bybit_qr(archivo, owner, medio_pago, datos, categorizar_fn=None):
                     
                     if es_estado_correcto(texto_lower):
                         estado_correcto = True
+                        dist_correcto = dist_y
+                    
                     if es_estado_error(texto_lower):
                         estado_error = True
-                        break
+                        dist_error = dist_y
                     
                     _, hora = extraer_fecha_qr(texto_it)
                     if hora:
                         hora_transaccion = hora
+            
+            # Si encontró ambos estados, el más cercano al monto gana
+            if estado_correcto and estado_error:
+                if dist_correcto < dist_error:
+                    estado_error = False
+                else:
+                    estado_correcto = False
             
             if estado_error or not estado_correcto:
                 continue
