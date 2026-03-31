@@ -1850,7 +1850,7 @@ def mostrar_egresos():
                     st.warning("El mes ya existe")
     
     # Selectores de owner y medio de pago para los egresos
-    OWNERS = ["Gustavo", "Vero"]
+    OWNERS = ["Gustavo", "Vero", "Sol"]
     MEDIOS_PAGO = ["Banco Galicia", "ICBC", "QR Binance", "QR Bybit", "Tarjeta Prepaga Bybit", "Visa", "Mastercard", "Efectivo", "Mercado Pago", "Otro"]
     
     col_o, col_m, col_p = st.columns([2, 2, 1])
