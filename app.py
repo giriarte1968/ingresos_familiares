@@ -384,6 +384,87 @@ def buscar_comercio_en_web(nombre_comercio, ciudad="Rosario Argentina"):
         return None, 0, None, None
 
 
+@st.cache_data(ttl=86400*30)
+def buscar_comercio_cuit_online(nombre_comercio):
+    """Busca un comercio en CUIT Online (datos AFIP) para obtener su actividad económica"""
+    try:
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+        
+        url = f"https://www.cuitonline.com/search?q={quote(nombre_comercio)}"
+        response = requests.get(url, headers=headers, timeout=10)
+        
+        if response.status_code != 200:
+            return None, 0, None, None
+        
+        html = response.text
+        
+        actividad = ''
+        
+        act_match = re.search(r'(?:actividad|act\.?\s*principal)[:\s]*([^<\n]+)', html, re.IGNORECASE)
+        if act_match:
+            actividad = act_match.group(1).strip().lower()
+        
+        if not actividad:
+            detalle_match = re.search(r'href="(/detalle/[^"]+)"', html)
+            if detalle_match:
+                url_detalle = f"https://www.cuitonline.com{detalle_match.group(1)}"
+                resp_detalle = requests.get(url_detalle, headers=headers, timeout=10)
+                if resp_detalle.status_code == 200:
+                    html_detalle = resp_detalle.text
+                    act_match = re.search(r'(?:actividad|act\.?\s*principal)[:\s]*([^<\n]+)', html_detalle, re.IGNORECASE)
+                    if act_match:
+                        actividad = act_match.group(1).strip().lower()
+        
+        if not actividad:
+            return None, 0, None, None
+        
+        MAPEO_ACTIVIDADES_AFIP = {
+            ('comercios', 'combustible'): ['combustible', 'nafta', 'gasoil', 'estacion de servicio', 'estación de servicio', 'lubricante', 'gnc'],
+            ('comercios', 'supermercado'): ['supermercado', 'hipermercado', 'autoservicio', 'almacen', 'almacén', 'comestible', 'alimento', 'minimercado', 'venta al por menor de alimentos'],
+            ('comercios', 'farmacia'): ['farmacia', 'farmacéutic', 'farmaceutic', 'medicamento', 'drogueria', 'droguería', 'productos medicinales'],
+            ('comercios', 'restaurant'): ['restaurant', 'gastronomia', 'gastronomía', 'comida', 'bar ', 'cafeteria', 'cafetería', 'servicio de comidas', 'elaboracion de comidas'],
+            ('comercios', 'indumentaria'): ['indumentaria', 'ropa', 'textil', 'calzado', 'vestimenta', 'confeccion', 'confección', 'prendas de vestir'],
+            ('comercios', 'ferreteria'): ['ferreteria', 'ferretería', 'herramienta', 'herraje', 'artículos de ferretería'],
+            ('comercios', 'pintureria'): ['pintureria', 'pinturería', 'pintura', 'revestimiento'],
+            ('comercios', 'panaderia'): ['panaderia', 'panadería', 'panificacion', 'panificación', 'productos de panaderia'],
+            ('comercios', 'carniceria'): ['carniceria', 'carnicería', 'carne', 'frigorífico', 'frigorifico', 'matadero'],
+            ('comercios', 'electronica'): ['electronica', 'electrónica', 'computacion', 'computación', 'informatica', 'informática', 'electrodomestico'],
+            ('comercios', 'libreria'): ['libreria', 'librería', 'papeleria', 'papelería', 'artículos de librería'],
+            ('comercios', 'veterinaria'): ['veterinaria', 'mascota', 'animal', 'pet shop', 'alimento para animales'],
+            ('servicios', 'salud'): ['salud', 'medic', 'clinic', 'clínic', 'hospital', 'sanatorio', 'laboratorio', 'diagnóstico', 'diagnostico', 'odontolog', 'kinesio'],
+            ('servicios', 'educacion'): ['educacion', 'educación', 'enseñanza', 'escuela', 'colegio', 'universidad', 'instituto'],
+            ('servicios', 'seguros'): ['seguro', 'aseguradora', 'reaseguro', 'prevision'],
+            ('servicios', 'transporte'): ['transporte', 'logistica', 'logística', 'flete', 'encomienda', 'mudanza'],
+            ('impuestos', 'impuestos'): ['recaudacion', 'recaudación', 'impositiv', 'tributari', 'fiscal'],
+        }
+        
+        mejor_cat = None
+        mejor_subcat = None
+        mejor_puntaje = 0
+        
+        for (categoria, subcategoria), palabras in MAPEO_ACTIVIDADES_AFIP.items():
+            puntaje = 0
+            for palabra in palabras:
+                if palabra in actividad:
+                    puntaje += len(palabra.split())
+            if puntaje > mejor_puntaje:
+                mejor_puntaje = puntaje
+                mejor_cat = categoria
+                mejor_subcat = subcategoria
+        
+        if mejor_puntaje > 0:
+            confianza = min(0.98, 0.80 + (mejor_puntaje * 0.05))
+            return actividad, confianza, mejor_cat, mejor_subcat
+        
+        return actividad, 0.3, None, None
+        
+    except Exception as e:
+        print(f"Error buscando en CUIT Online: {e}")
+        return None, 0, None, None
+
+
 CATEGORIAS_WEB = {
     'comercios': {
         'supermercado': ['supermercado', 'hiper', 'atomo', 'changomas', 'carrefour', 'walmart', 'jumbo', 'disco', 'vea', 'coto'],
@@ -1535,7 +1616,20 @@ def categorizar_gasto(descripcion, datos=None):
     if 'uber' in nombre_lower:
         return 'servicios', 'transporte', nombre_limpio.title()
     
-    # ========== PASO 3: Búsqueda web (con cache) ==========
+    # ========== PAS0 3: Búsqueda CUIT Online (alta confianza) ==========
+    resultado_cuit = buscar_comercio_cuit_online(nombre_limpio)
+    
+    if resultado_cuit and len(resultado_cuit) >= 4:
+        actividad, confianza, cat_cuit, subcat_cuit = resultado_cuit
+        if confianza >= 0.70 and cat_cuit and subcat_cuit:
+            COMERCIOS_CONOCIDOS[nombre_lower] = {
+                'categoria': cat_cuit,
+                'subcategoria': subcat_cuit,
+                'gasto': nombre_limpio.title()
+            }
+            return cat_cuit, subcat_cuit, nombre_limpio.title()
+    
+    # ========== Paso 4: Búsqueda DuckDuckGo (confianza media) ==========
     resultado = buscar_comercio_en_web(nombre_limpio)
     
     if resultado and len(resultado) >= 4:
@@ -1550,7 +1644,7 @@ def categorizar_gasto(descripcion, datos=None):
             }
             return cat_web, subcat_web, nombre_limpio.title()
     
-    # ========== PASO 4: Fallback ==========
+    # ========== PASO 5: Fallback ==========
     return 'otros', 'otros', nombre_limpio.title()
 
 
