@@ -1890,6 +1890,28 @@ def mostrar_egresos():
 
                     st.stop()
                 
+                # ---- BYBIT QR JPG ----
+                if file_name.endswith(('.jpg', '.jpeg', '.png')) and 'bybit' in file_name and 'qr' in file_name:
+                    from parsers.bybit_qr import procesar_bybit_qr
+                    
+                    with st.spinner("Procesando JPG de Bybit QR..."):
+                        gastos, texto_debug, error = procesar_bybit_qr(
+                            archivo, owner_egreso, medio_egreso, datos, categorizar_gasto
+                        )
+                        
+                        if texto_debug:
+                            with st.expander("DEBUG: Texto OCR Bybit QR"):
+                                st.text(texto_debug)
+                        
+                        if error:
+                            st.error(error)
+                        elif gastos:
+                            filtrar_y_guardar_temp(gastos, mes_seleccionado)
+                        else:
+                            st.warning("No se detectaron gastos en la imagen")
+                    
+                    st.stop()
+
                 # ---- BYBIT TARJETA JPG ----
                 if file_name.endswith(('.jpg', '.jpeg', '.png')) and 'bybit' in file_name and 'tarjeta' in file_name:
                     from parsers.bybit_tarjeta import procesar_bybit_tarjeta
