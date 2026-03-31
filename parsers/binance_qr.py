@@ -82,7 +82,30 @@ def es_linea_fecha(texto):
 
 def es_linea_estado(texto):
     t = texto.strip().lower()
-    return 'completado' in t or 'completed' in t
+    
+    # Estados que indican pago EXITOSO
+    if 'correcto' in t or 'completed' in t or 'completado' in t or 'aprobado' in t:
+        return True
+    
+    return False
+
+
+def es_linea_estado_error(texto):
+    """Detecta estados de error o pendiente"""
+    t = texto.strip().lower()
+    
+    if 'error' in t:
+        return True
+    if 'tiempo de espera' in t:
+        return True
+    if 'pendiente' in t:
+        return True
+    if 'rechazado' in t:
+        return True
+    if 'fallido' in t:
+        return True
+    
+    return False
 
 
 def es_linea_etiqueta(texto):
@@ -125,6 +148,7 @@ def procesar_binance_qr(archivo, owner, medio_pago, datos, categorizar_gasto_fn=
                         and not es_linea_monto_usdt(t)
                         and 'usdt' not in tlow
                         and 'enviar' not in tlow
+                        and 'recibir' not in tlow
                         and 'tiempo de espera' not in tlow
                         and len(t) > 1):
                         nombre_partes.append((it['y'], t))
@@ -146,12 +170,23 @@ def procesar_binance_qr(archivo, owner, medio_pago, datos, categorizar_gasto_fn=
             nombre = 'Caja de Prevision Social'
 
         fecha = ''
+        estado_valido = False
+        
         for it in items:
-            if 10 <= (it['y'] - y_monto) <= 100:
+            dist_y = it['y'] - y_monto
+            if 10 <= dist_y <= 100:
                 f = parsear_fecha_binance(it['text'])
                 if f:
                     fecha = f
+                if es_linea_estado(it['text']):
+                    estado_valido = True
+                if es_linea_estado_error(it['text']):
+                    estado_valido = False
                     break
+        
+        # Si no tiene estado "Correcto" o tiene estado de error, descartar
+        if not estado_valido:
+            continue
 
         if not nombre or len(nombre) < 2:
             continue

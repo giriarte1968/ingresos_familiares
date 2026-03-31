@@ -1401,6 +1401,40 @@ COMERCIOS_CONOCIDOS = {
     # Herrero
     'herrero': {'categoria': 'comercios', 'subcategoria': 'otros', 'gasto': 'Herrero SRL'},
     
+    # Carnicería
+    'meneghini': {'categoria': 'comercios', 'subcategoria': 'carniceria', 'gasto': 'Carnicería Meneghini'},
+    'victor meneghini': {'categoria': 'comercios', 'subcategoria': 'carniceria', 'gasto': 'Carnicería Meneghini'},
+    
+    # Mascotas
+    'mascotas del oeste': {'categoria': 'comercios', 'subcategoria': 'veterinaria', 'gasto': 'Mascotas Del Oeste'},
+    'mascotas': {'categoria': 'comercios', 'subcategoria': 'veterinaria', 'gasto': 'Mascotas'},
+    
+    # Combustible
+    'ypf herrero': {'categoria': 'comercios', 'subcategoria': 'combustible', 'gasto': 'YPF Herrero'},
+    'ypf': {'categoria': 'comercios', 'subcategoria': 'combustible', 'gasto': 'YPF'},
+    
+    # Panadería
+    'aldana panaderias': {'categoria': 'comercios', 'subcategoria': 'panaderia', 'gasto': 'Aldana Panaderías'},
+    'aldana': {'categoria': 'comercios', 'subcategoria': 'panaderia', 'gasto': 'Aldana Panaderías'},
+    
+    # Supermercado
+    'super gloria': {'categoria': 'comercios', 'subcategoria': 'supermercado', 'gasto': 'Super Gloria'},
+    'suc coto': {'categoria': 'comercios', 'subcategoria': 'supermercado', 'gasto': 'Coto'},
+    'coto c.i.c.s.a': {'categoria': 'comercios', 'subcategoria': 'supermercado', 'gasto': 'Coto'},
+    
+    # Farmacia
+    'farmacia ceschin': {'categoria': 'comercios', 'subcategoria': 'farmacia', 'gasto': 'Farmacia Ceschin'},
+    'ceschin': {'categoria': 'comercios', 'subcategoria': 'farmacia', 'gasto': 'Farmacia Ceschin'},
+    'farmacia cubells': {'categoria': 'comercios', 'subcategoria': 'farmacia', 'gasto': 'Farmacia Cubells'},
+    'cubells': {'categoria': 'comercios', 'subcategoria': 'farmacia', 'gasto': 'Farmacia Cubells'},
+    
+    # Librería
+    'la libreria del cole': {'categoria': 'comercios', 'subcategoria': 'libreria', 'gasto': 'La Librería del Cole'},
+    'libreria del cole': {'categoria': 'comercios', 'subcategoria': 'libreria', 'gasto': 'La Librería del Cole'},
+    
+    # Almacén/Despensa
+    'la despensa': {'categoria': 'comercios', 'subcategoria': 'almacen', 'gasto': 'La Despensa'},
+    
     # Ignorar (basura del OCR)
     'correcto': None,
     'historial': None,
