@@ -140,7 +140,7 @@ def procesar_bybit_qr(archivo, owner, medio_pago, datos, categorizar_fn=None):
             
             for it in items:
                 dist_y = it['y'] - y_monto
-                if 0 < dist_y < 100:
+                if 0 < dist_y < 150:
                     texto_it = it['text'].strip()
                     texto_lower = texto_it.lower()
                     
@@ -156,6 +156,10 @@ def procesar_bybit_qr(archivo, owner, medio_pago, datos, categorizar_fn=None):
             
             if estado_error or not estado_correcto:
                 continue
+            
+            # Debug temporal para Farmacia Cubells
+            if 'farmacia' in nombre.lower() or 'cubells' in nombre.lower():
+                print(f"[DEBUG FARMACIA] Nombre: {nombre}, Estado Correcto: {estado_correcto}, Estado Error: {estado_error}, Fecha: {fecha_completa}")
 
             nombre = ''
             for it in items:
@@ -178,7 +182,7 @@ def procesar_bybit_qr(archivo, owner, medio_pago, datos, categorizar_fn=None):
             fecha_completa = ''
             for it in items:
                 dist_y = it['y'] - y_monto
-                if 5 < dist_y < 100:
+                if 5 < dist_y < 150:
                     if es_linea_fecha(it['text']):
                         fecha, hora = extraer_fecha_qr(it['text'])
                         if fecha:
