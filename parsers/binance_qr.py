@@ -68,7 +68,11 @@ def parsear_fecha_binance(texto):
 
 
 def es_linea_monto(texto):
-    return 'ARS' in texto.upper() and bool(re.search(r'[\d,\.]+', texto))
+    t = texto.upper()
+    # Rechazar ingresos (Recibir = money coming IN)
+    if 'RECIBIR' in t:
+        return False
+    return 'ARS' in t and bool(re.search(r'[\d,\.]+', texto))
 
 
 def es_linea_monto_usdt(texto):
@@ -124,14 +128,15 @@ def procesar_binance_qr(archivo, owner, medio_pago, datos, categorizar_gasto_fn=
                 if -30 <= (it['y'] - y_monto) <= 65:
                     t = it['text'].strip()
                     tlow = t.lower()
-                    # Ignorar líneas USDT, montos, estados, fechas, envíos
+                    # Ignorar líneas USDT, montos, estados, fechas, envíos, ingresos
                     if (not es_linea_fecha(t) 
-                        and not es_linea_estado(t) 
+                        and not es_linea_estado_valido(t) 
                         and not es_linea_etiqueta(t) 
                         and not es_linea_monto(t)
                         and not es_linea_monto_usdt(t)
                         and 'usdt' not in tlow
                         and 'enviar' not in tlow
+                        and 'recibir' not in tlow
                         and 'tiempo de espera' not in tlow
                         and len(t) > 1):
                         nombre_partes.append((it['y'], t))
@@ -156,11 +161,17 @@ def procesar_binance_qr(archivo, owner, medio_pago, datos, categorizar_gasto_fn=
         fecha = ''
         estado_ok = False
         tiene_error = False
+        es_ingreso = False
         
         for it in items:
             dist_y = it['y'] - y_monto
             if 10 <= dist_y <= 100:
                 texto_it = it['text'].strip()
+                tlow = texto_it.lower()
+                
+                # Detectar si es ingreso (Recibir)
+                if 'recibir' in tlow:
+                    es_ingreso = True
                 
                 # Detectar fecha
                 if es_linea_fecha(texto_it):
@@ -175,8 +186,8 @@ def procesar_binance_qr(archivo, owner, medio_pago, datos, categorizar_gasto_fn=
                     tiene_error = True
                     break
         
-        # Si tiene error o no tiene estado válido, descartar
-        if tiene_error or not estado_ok:
+        # Descartar si es ingreso, tiene error, o no tiene estado válido
+        if es_ingreso or tiene_error or not estado_ok:
             continue
 
         if not nombre or len(nombre) < 2:
