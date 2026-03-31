@@ -123,7 +123,7 @@ def procesar_bybit_qr(archivo, owner, medio_pago, datos, categorizar_fn=None):
             x_monto = item['x_left']
             procesados_y.add(y_monto)
 
-            # VALIDAR ESTADO - Rango 150px
+            # 1. VALIDAR ESTADO - Rango 150px
             estado_correcto = False
             estado_error = False
             hora_transaccion = ''
@@ -144,11 +144,10 @@ def procesar_bybit_qr(archivo, owner, medio_pago, datos, categorizar_fn=None):
                     if hora:
                         hora_transaccion = hora
             
-            # DESCARTAR si tiene error o no tiene estado "Correcto"
             if estado_error or not estado_correcto:
                 continue
 
-            # BUSCAR NOMBRE - Inicializar siempre
+            # 2. BUSCAR NOMBRE - Inicializar SIEMPRE
             nombre = ''
             
             for it in items:
@@ -168,7 +167,7 @@ def procesar_bybit_qr(archivo, owner, medio_pago, datos, categorizar_fn=None):
                             nombre = it['text'].strip()
                             break
 
-            # BUSCAR FECHA
+            # 3. BUSCAR FECHA
             fecha_completa = ''
             for it in items:
                 dist_y = it['y'] - y_monto
@@ -181,7 +180,7 @@ def procesar_bybit_qr(archivo, owner, medio_pago, datos, categorizar_fn=None):
                                 hora_transaccion = hora
                         break
 
-            # VALIDACIONES FINALES
+            # 4. VALIDACIONES FINALES
             nombre = limpiar_nombre(nombre)
 
             if not nombre or len(nombre) < 2:
@@ -193,6 +192,7 @@ def procesar_bybit_qr(archivo, owner, medio_pago, datos, categorizar_fn=None):
             if any(x in nlow for x in ['historial de pagos', 'todos los tipos', 'todos los estados', 'fecha', 'pagado']):
                 continue
 
+            # 5. CATEGORIZAR
             if categorizar_fn:
                 cat, subcat, gasto_final = categorizar_fn(nombre, datos)
             else:
@@ -214,7 +214,7 @@ def procesar_bybit_qr(archivo, owner, medio_pago, datos, categorizar_fn=None):
                 '_unique_key': unique_id
             })
 
-        # Deduplicar
+        # 6. DEDUPLICAR
         seen = set()
         gastos_dedup = []
         for g in gastos:
