@@ -1367,25 +1367,118 @@ def mostrar_movimientos(mes):
         st.info("No hay movimientos bancarios para este mes")
 
 
-# Categorías para egresos
+# Nuevas keywords más exhaustivas para CATEGORIAS_EGRESOS
 CATEGORIAS_EGRESOS = {
-    'impuestos': ['arca', 'api', 'tgi', 'brassey', 'monotributo', 'afip', 'agna'],
-    'servicios': ['prepaga', 'salud', 'jubil', 'caja', 'luz', 'edemsa', 'gas', 'gasnor', 'agua', 'movistar', 'flow', 'adt', 'seguro', 'seguros', 'personal'],
+    'impuestos': ['arca', 'api', 'tgi', 'brassey', 'monotributo', 'afip', 'agna',
+                  'percepcion', 'percepción', 'iibb', 'ingresos brutos', 'rentas',
+                  'municipalidad', 'tasa', 'tributo', 'sellado', 'patente'],
+    'servicios': {
+        'salud': ['clinica', 'clínica', 'hospital', 'sanatorio', 'medico', 'médico',
+                  'doctor', 'salud', 'diagnostico', 'diagnóstico', 'laboratorio',
+                  'cirugía', 'cirugia', 'odontolog', 'dental', 'kinesio', 'fisioterapia',
+                  'psicolog', 'nutricion', 'nutrición', 'prepaga', 'obra social',
+                  'gamma', 'instituto medico', 'osde', 'swiss medical', 'galeno',
+                  'medife', 'omint', 'radiolog'],
+        'veterinaria': ['veterinari', 'cirugia rex', 'cirugia vet',
+                        'castración', 'castracion', 'vacuna mascota'],
+        'servicios_publicos': ['edesur', 'edenor', 'edemsa', 'epe', 'epec',
+                               'empresa provincial', 'metrogas', 'gasnor',
+                               'litoral gas', 'litoralgas', 'gas natural',
+                               'aguas santafesinas', 'aysa', 'assa',
+                               'gas s a', 'gas sa', 'electricidad', 'energía',
+                               'energia', 'servicio publico', 'servicio público'],
+        'telecomunicaciones': ['movistar', 'claro', 'personal', 'telecom',
+                               'telefonica', 'telefónica', 'internet', 'wifi',
+                               'fibra optica', 'flow', 'cablevision', 'cablevisión',
+                               'directv', 'telecentro', 'iplan'],
+        'seguros': ['seguro', 'aseguradora', 'sancor', 'la segunda',
+                    'san cristobal', 'san cristóbal', 'mapfre', 'zurich',
+                    'rivadavia', 'federacion patronal', 'meridional',
+                    'prevencion', 'prevención', 'prev seg'],
+        'seguridad': ['adt', 'alarma', 'monitoreo', 'vigilancia', 'prosegur',
+                      'securitas', 'camaras de seguridad'],
+        'estacionamiento': ['estacionamiento', 'parking', 'cochera', 'garage',
+                            'playa de estacionamiento', 'merpago tran', 'transito'],
+        'peluqueria': ['peluqueria', 'peluquería', 'barberia', 'barbería',
+                       'salon de belleza', 'salón de belleza', 'estetica',
+                       'estética', 'spa', 'uñas', 'manicura', 'nuria'],
+        'transporte': ['uber', 'cabify', 'didi', 'taxi', 'remis', 'remise',
+                       'transporte', 'flete', 'mudanza', 'encomienda', 'combis'],
+        'educacion': ['universidad', 'facultad', 'colegio', 'escuela',
+                      'instituto', 'curso', 'capacitacion', 'capacitación',
+                      'idioma', 'academia', 'jardin', 'jardín', 'guarderia',
+                      'guardería'],
+        'suscripciones': ['netflix', 'spotify', 'disney', 'amazon prime', 'hbo',
+                          'paramount', 'star+', 'youtube premium', 'apple tv',
+                          'crunchyroll', 'chatgpt', 'canva', 'google one',
+                          'icloud', 'dropbox', 'microsoft 365', 'adobe'],
+        'bancos': ['banco', 'comision bancaria', 'comisión bancaria',
+                   'mantenimiento cuenta', 'cargo bancario', 'cargo por servicio',
+                   'pluspagos'],
+        'alquiler': ['alquiler', 'inmobiliaria', 'propiedad', 'inquilino',
+                     'arrendamiento', 'locacion', 'locación'],
+        'gimnasio': ['gimnasio', 'gym', 'fitness', 'crossfit', 'pilates',
+                     'yoga', 'natacion', 'natación', 'club deportivo'],
+    },
     'comercios': {
-        'combustible': ['y PF', 'ypf', 'shell', 'axion', 'estacion', 'petro', 'oil', 'plus', 'refinor'],
-        'carniceria': ['carniceria', 'carnicería', 'carne', 'fiambreria', 'polleria'],
-        'panaderia': ['panaderia', 'panadería', 'pan', 'factoria'],
-        'supermercado': ['supermercado', 'super', 'disco', 'coto', 'changomas', 'vea', 'jumbo', 'carrefour', 'walmart'],
-        'farmacia': ['farmacia', 'farma', 'salcobrand', 'mefar', 'deluxe'],
-        'pintureria': ['pintureria', 'pinturería', 'colibri', 'pintu'],
-        'verduleria': ['verduleria', 'verdulería', 'verduro', 'fruteria'],
-        'restaurant': ['restaurant', 'resto', 'pizza', 'burger', 'mcdonald', 'kfc', 'helado'],
-        'indumentaria': ['ropa', 'indumentaria', 'zara', 'unisport', 'nike', 'adidas'],
-        'ferreteria': ['ferreteria', 'ferretería', 'ferre'],
-        'automovil': ['gomeri', 'mecanica', 'mecánica', 'lubricentro', 'grua'],
+        'combustible': ['ypf', 'shell', 'axion', 'estacion de servicio',
+                        'estación de servicio', 'petro', 'oil', 'refinor',
+                        'puma energy', 'gnc', 'nafta', 'gasoil', 'combustible'],
+        'carniceria': ['carniceria', 'carnicería', 'carne', 'fiambreria',
+                       'fiambrería', 'polleria', 'pollería', 'chacinado',
+                       'embutido', 'meneghini'],
+        'panaderia': ['panaderia', 'panadería', 'panificadora', 'bakery',
+                      'facturas', 'medialunas', 'pasteleria', 'pastelería',
+                      'confiteria', 'confitería', 'tortas', 'aldana'],
+        'supermercado': ['supermercado', 'hiper', 'hipermercado', 'autoservicio',
+                         'mayorista', 'minorista', 'almacen', 'almacén',
+                         'market', 'grocery', 'alimentos', 'comestibles',
+                         'dietética', 'dietetica', 'coto', 'changomas',
+                         'carrefour', 'walmart', 'jumbo', 'disco', 'vea',
+                         'cencosud', 'super gloria', 'despensa', 'aldea market'],
+        'farmacia': ['farmacia', 'farmacéutica', 'farmaceutica', 'drogueria',
+                     'droguería', 'medicamento', 'perfumeria', 'perfumería',
+                     'cosmetic', 'salcobrand', 'farmacity', 'ceschin', 'cubells'],
+        'pintureria': ['pintureria', 'pinturería', 'pintura', 'pinturas',
+                       'revestimiento', 'colibri', 'pintu'],
+        'verduleria': ['verduleria', 'verdulería', 'fruteria', 'frutería',
+                       'fruta', 'verdura', 'orgánico', 'organico'],
+        'restaurant': ['restaurant', 'restaurante', 'resto', 'pizza', 'pizzeria',
+                       'pizzería', 'burger', 'hamburgues', 'parrilla', 'grill',
+                       'bar', 'pub', 'cerveceria', 'cervecería', 'comida',
+                       'gastronomia', 'gastronomía', 'cocina', 'sushi',
+                       'empanada', 'lomiteria', 'lomitería', 'rotiseria',
+                       'rotisería', 'fast food', 'cafeteria', 'cafetería',
+                       'coffee', 'brunch', 'bistro', 'cantina', 'bodegon',
+                       'bodegón', 'tenedor libre', 'heladeria', 'heladería',
+                       'helado', 'freddo', 'havanna', 'gianduia', 'nuria',
+                       'fisherton'],
+        'indumentaria': ['ropa', 'indumentaria', 'textil', 'calzado', 'zapateria',
+                         'zapatería', 'zapato', 'vestir', 'moda', 'fashion',
+                         'boutique', 'tienda de ropa', 'confeccion', 'confección',
+                         'talles', 'sastreria', 'sastrería', 'uniformes',
+                         'lenceria', 'lencería', 'unisport', 'polibot',
+                         'monacle', 'monocle'],
+        'optica': ['optica', 'óptica', 'lentes', 'anteojos', 'gafas', 'vision',
+                   'visión'],
+        'veterinaria_comercio': ['veterinaria', 'veterinario', 'mascota', 'pet shop',
+                        'petshop', 'alimento mascota'],
+        'libreria': ['libreria', 'librería', 'papeleria', 'papelería',
+                     'libro', 'editorial', 'cuaderno', 'artículos escolares'],
+        'ferreteria': ['ferreteria', 'ferretería', 'herramienta', 'tornilleria',
+                       'tornillería', 'bulonera', 'herraje', 'cerrajeria',
+                       'cerrajería', 'remo franco'],
+        'electronica': ['electronica', 'electrónica', 'tecnologia', 'tecnología',
+                        'celular', 'computadora', 'notebook', 'informatica',
+                        'informática', 'gaming', 'fravega'],
+        'bazar': ['bazar', 'regaleria', 'regalería', 'regalo', 'menaje',
+                  'hogar', 'decoracion', 'decoración', 'tu quincho', 'quincho'],
+        'automotor': ['gomeria', 'gomería', 'neumatico', 'neumático', 'taller',
+                      'mecanica', 'mecánica', 'repuesto', 'autoparte',
+                      'lubricentro', 'lavadero', 'chapa y pintura'],
         'otros': []
     },
-    'otros': ['transf', 'familia', 'transporte', 'taxi', 'uber', 'combis', 'otros']
+    'otros': ['transf', 'familia', 'otros']
 }
 
 # Diccionario de comerciantes conocidos
@@ -1589,50 +1682,136 @@ def normalizar_texto(s: str) -> str:
     return s
 
 
+# ====== HEURÍSTICAS DE INFERENCIA POR NOMBRE ======
+
+# Patrones que indican nombre de persona (transferencia)
+PATRON_NOMBRE_PERSONA = re.compile(
+    r'^[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+\s+'      # Nombre (capitalizado)
+    r'(?:[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+\s+)*'   # Segundo nombre (opcional)
+    r'[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+$'          # Apellido
+)
+
+# Sufijos corporativos que indican empresa
+SUFIJOS_EMPRESA = ['s a', 'sa', 'sas', 's r l', 'srl', 'ltda', 'inc']
+
+# Palabras que indican tipo de comercio incluso sin match exacto
+INFERENCIA_CONTEXTO = {
+    ('comercios', 'supermercado'): ['market', 'almacen', 'grocery', 'tienda', 'store', 'shop'],
+    ('comercios', 'restaurant'): ['resto', 'cocina', 'grill', 'food', 'eat', 'cuisine', 'gastro', 'deli'],
+    ('comercios', 'farmacia'): ['farma', 'pharm', 'drug', 'botica'],
+    ('comercios', 'indumentaria'): ['wear', 'fashion', 'style', 'outfit', 'cloth', 'textile'],
+    ('comercios', 'optica'): ['optic', 'vision', 'lens', 'eye', 'glass'],
+    ('comercios', 'veterinaria'): ['vet', 'pet', 'animal', 'mascota'],
+    ('servicios', 'salud'): ['clinic', 'medic', 'health', 'salud', 'cirug', 'dental', 'odonto',
+                              'fisio', 'kinesio', 'nutri', 'psico', 'lab', 'diagnos'],
+    ('servicios', 'servicios_publicos'): ['gas s', 'energia', 'electric', 'agua'],
+    ('servicios', 'educacion'): ['school', 'academy', 'academ', 'educa', 'learn', 'college'],
+}
+
+
+def _pre_normalizar_ocr(texto: str) -> str:
+    """Corrige errores comunes de OCR: palabras pegadas, caracteres basura."""
+    if not texto:
+        return texto
+
+    # Insertar espacio antes de mayúscula pegada: "LitoralGas" -> "Litoral Gas"
+    resultado = re.sub(r'([a-záéíóúñ])([A-ZÁÉÍÓÚÑ])', r'\1 \2', texto)
+
+    # Separar letras pegadas a puntos: "s.A" -> "s.a."
+    resultado = re.sub(r'\.([A-Z])', r'. \1', resultado)
+
+    # Separar "sA" -> "s a"
+    resultado = re.sub(r'([sS])([aA])$', r's a', resultado)
+
+    # Limpiar espacios múltiples
+    resultado = re.sub(r'\s+', ' ', resultado).strip()
+
+    return resultado
+
+
+def _es_nombre_persona(nombre: str) -> bool:
+    """Detecta si un texto parece nombre de persona"""
+    nombre = nombre.strip()
+    nombre_lower = nombre.lower()
+
+    # Si tiene sufijo corporativo, NO es persona
+    for sufijo in SUFIJOS_EMPRESA:
+        if nombre_lower.endswith(sufijo) or f' {sufijo}' in nombre_lower:
+            return False
+
+    # Verificar patrón Nombre Apellido
+    if PATRON_NOMBRE_PERSONA.match(nombre):
+        palabras = nombre.split()
+        if 2 <= len(palabras) <= 4:
+            if all(p[0].isupper() and p[1:].islower() for p in palabras if len(p) > 1):
+                if not any(c.isdigit() for c in nombre):
+                    return True
+
+    return False
+
+
+def _inferir_por_contexto(nombre_norm: str) -> tuple:
+    """Intenta inferir categoría por palabras parciales en el nombre"""
+    for (cat, subcat), palabras in INFERENCIA_CONTEXTO.items():
+        for palabra in palabras:
+            if palabra in nombre_norm:
+                return cat, subcat
+    return None, None
+
+
 def categorizar_gasto(descripcion, datos=None):
-    """Categoriza un gasto: 1) conocidos, 2) keywords, 3) web search"""
+    """Categoriza un gasto: 1) pre-normalizar OCR, 2) conocidos, 3) keywords, 4) web search"""
     
     # Limpiar descripción
     desc_limpia = ' '.join(descripcion.split())
-    nombre_limpio = desc_limpia.split('  ')[0].split(' - ')[0].split('\t')[0].strip()
+    nombre_crudo = desc_limpia.split('  ')[0].split(' - ')[0].split('\t')[0].strip()
+
+    # 0) PRE-NORMALIZAR OCR
+    nombre_limpio = _pre_normalizar_ocr(nombre_crudo)
     nombre_norm = normalizar_texto(nombre_limpio)
     
-    # ========== PASO 1: Comercios conocidos (instantáneo) ==========
+    if not nombre_norm:
+        return 'otros', 'otros', nombre_crudo.title() or 'Sin descripcion'
+    
+    # 1) Comercios conocidos
     for conocido, info in COMERCIOS_CONOCIDOS.items():
         if info is None:
             continue
-        if normalizar_texto(conocido) in nombre_norm:
+        conocido_norm = normalizar_texto(conocido)
+        if conocido_norm and conocido_norm in nombre_norm:
             return info['categoria'], info['subcategoria'], info['gasto']
     
-    # ========== PASO 2: Keywords locales (instantáneo) ==========
+    # 2) Keywords locales
     for categoria, keywords in CATEGORIAS_EGRESOS.items():
-        if categoria == 'comercios':
+        if isinstance(keywords, dict):
+            # servicios y comercios tienen subcategorías
             for subcategoria, palabras in keywords.items():
                 for palabra in palabras:
                     if normalizar_texto(palabra) in nombre_norm:
-                        return 'comercios', subcategoria, nombre_limpio.title()
-        else:
-            if isinstance(keywords, list):
-                for palabra in keywords:
-                    if normalizar_texto(palabra) in nombre_norm:
-                        return categoria, categoria, nombre_limpio.title()
+                        return categoria, subcategoria, nombre_limpio.title()
+        elif isinstance(keywords, list):
+            # impuestos, otros (listas planas)
+            for palabra in keywords:
+                if normalizar_texto(palabra) in nombre_norm:
+                    return categoria, categoria, nombre_limpio.title()
     
-    # ========== PASO 2.5: Reglas específicas familiares ==========
+    # 3) Reglas específicas familiares
     if any(nombre in nombre_norm for nombre in [
-        'sol belen iriarte rojo',
-        'tomas lautaro iriarte rojo',
-        'magdalena soler',
-        'soc'
+        'sol belen iriarte', 'tomas lautaro iriarte',
+        'veronica rojo', 'magdalena soler', 'zurcher'
     ]):
-        return 'otros', 'familia', nombre_limpio.title()
+        return 'familia', 'familia', nombre_limpio.title()
 
-    if 'percepcion' in nombre_norm or 'percepción' in nombre_norm:
-        return 'impuestos', 'impuestos', nombre_limpio.title()
+    # 4) Inferencia por contexto
+    cat_inf, subcat_inf = _inferir_por_contexto(nombre_norm)
+    if cat_inf and subcat_inf:
+        return cat_inf, subcat_inf, nombre_limpio.title()
 
-    if 'uber' in nombre_norm:
-        return 'servicios', 'transporte', nombre_limpio.title()
+    # 5) Detección de nombre de persona
+    if _es_nombre_persona(nombre_limpio):
+        return 'familia', 'transferencia', nombre_limpio.title()
     
-    # ========== PAS0 3: Búsqueda CUIT Online (alta confianza) ==========
+    # 6) Búsqueda CUIT Online
     resultado_cuit = buscar_comercio_cuit_online(nombre_limpio)
     
     if resultado_cuit and len(resultado_cuit) >= 4:
@@ -1645,14 +1824,13 @@ def categorizar_gasto(descripcion, datos=None):
             }
             return cat_cuit, subcat_cuit, nombre_limpio.title()
     
-    # ========== Paso 4: Búsqueda DuckDuckGo (confianza media) ==========
+    # 7) Búsqueda DuckDuckGo
     resultado = buscar_comercio_en_web(nombre_limpio)
     
     if resultado and len(resultado) >= 4:
         texto_resultado, confianza, cat_web, subcat_web = resultado
         
         if confianza >= 0.60 and cat_web and subcat_web:
-            # Guardar en conocidos para próximas veces
             COMERCIOS_CONOCIDOS[nombre_norm] = {
                 'categoria': cat_web,
                 'subcategoria': subcat_web,
@@ -1660,7 +1838,7 @@ def categorizar_gasto(descripcion, datos=None):
             }
             return cat_web, subcat_web, nombre_limpio.title()
     
-    # ========== PASO 5: Fallback ==========
+    # 8) Fallback
     return 'otros', 'otros', nombre_limpio.title()
 
 
