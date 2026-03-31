@@ -2153,6 +2153,28 @@ def mostrar_egresos():
 
                     st.stop()
 
+                # ---- GALICIA IMG ----
+                if file_name.endswith(('.jpg', '.jpeg', '.png')) and 'galicia' in file_name:
+                    from parsers.galicia_img import procesar_galicia_img
+
+                    with st.spinner("Procesando imagen Galicia..."):
+                        gastos, texto_debug, error = procesar_galicia_img(
+                            archivo, owner_egreso, medio_egreso, datos, categorizar_gasto
+                        )
+
+                        if texto_debug:
+                            with st.expander("DEBUG: Texto OCR Galicia IMG"):
+                                st.text(texto_debug)
+
+                        if error:
+                            st.error(error)
+                        elif gastos:
+                            filtrar_y_guardar_temp(gastos, mes_seleccionado)
+                        else:
+                            st.warning("No se detectaron egresos en la imagen")
+
+                    st.stop()
+
                 # ---- GALICIA EXCEL ----
                 if file_name.endswith(('.xlsx', '.xls')):
                     try:
