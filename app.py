@@ -1158,7 +1158,7 @@ def main():
     # Menú principal
     menu = st.sidebar.selectbox(
         "Menú",
-        ["Dashboard", "Cargar Extracto", "Cargar Fondos Mutuos", "Movimientos", "Egresos", "Propiedades", "Activos", "Ajustes", "Exportar"]
+        ["Dashboard", "Cargar Extracto", "Cargar Fondos Mutuos", "Movimientos", "Egresos", "Propiedades", "Activos", "Ajustes", "Reportes", "Exportar"]
     )
     
     if menu == "Dashboard":
@@ -1177,6 +1177,9 @@ def main():
         mostrar_activos()
     elif menu == "Ajustes":
         mostrar_ajustes(mes_seleccionado)
+    elif menu == "Reportes":
+        from ui.reportes import mostrar_reportes
+        mostrar_reportes(mes_seleccionado)
     elif menu == "Exportar":
         exportar_datos()
 
