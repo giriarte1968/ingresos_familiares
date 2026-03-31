@@ -3064,21 +3064,56 @@ def mostrar_ajustes(mes_from_sidebar):
 
         OWNERS = ["Gustavo", "Vero", "Sol", "Tomas"]
 
+        CATEGORIAS_EGRESO_EFECTIVO = [
+            "(auto-detectar)",
+            "comercios/supermercado",
+            "comercios/restaurant",
+            "comercios/carniceria",
+            "comercios/panaderia",
+            "comercios/verduleria",
+            "comercios/farmacia",
+            "comercios/combustible",
+            "comercios/indumentaria",
+            "comercios/ferreteria",
+            "comercios/bazar",
+            "comercios/otros",
+            "servicios/salud",
+            "servicios/transporte",
+            "servicios/educacion",
+            "servicios/peluqueria",
+            "servicios/otros",
+            "familia/hijos",
+            "familia/transferencia",
+            "impuestos/impuestos",
+            "otros/otros",
+        ]
+
+        CATEGORIAS_INGRESO_EFECTIVO = [
+            "sueldo",
+            "alquiler",
+            "honorarios",
+            "venta",
+            "prestamo",
+            "regalo",
+            "otro",
+        ]
+
+        # Fecha: limitar al periodo seleccionado
+        import calendar
+        anio, mes_num = mes.split('-')
+        ultimo_dia = calendar.monthrange(int(anio), int(mes_num))[1]
+
         with st.form("form_efectivo", clear_on_submit=True):
+            direccion = st.radio(
+                "Tipo de movimiento",
+                ["Egreso", "Ingreso"],
+                horizontal=True
+            )
+
             col1, col2 = st.columns(2)
 
             with col1:
-                direccion = st.radio(
-                    "Tipo de movimiento",
-                    ["Egreso", "Ingreso"],
-                    horizontal=True
-                )
                 owner_ef = st.selectbox("¿Quién?", OWNERS, key="ef_owner")
-
-                # Fecha dentro del periodo
-                anio, mes_num = mes.split('-')
-                import calendar
-                ultimo_dia = calendar.monthrange(int(anio), int(mes_num))[1]
                 fecha_ef = st.date_input(
                     "Fecha",
                     value=datetime(int(anio), int(mes_num), min(15, ultimo_dia)),
@@ -3088,110 +3123,99 @@ def mostrar_ajustes(mes_from_sidebar):
                 )
 
             with col2:
-                descripcion_ef = st.text_input("Descripción", placeholder="Ej: Compra verdulería, Regalo cumple, etc.")
-                monto_ef = st.number_input("Monto ($ARS)", min_value=0.0, step=100.0, key="ef_monto")
+                descripcion_ef = st.text_input(
+                    "Descripción",
+                    placeholder="Ej: Compra verdulería, Regalo cumple, etc.",
+                    key="ef_desc"
+                )
+                monto_ef = st.number_input(
+                    "Monto ($ARS)",
+                    min_value=0.0,
+                    step=100.0,
+                    key="ef_monto"
+                )
 
-                # Categoría rápida para egresos
-                if direccion == "Egreso":
-                    cat_rapida = st.selectbox("Categoría", [
-                        "comercios/supermercado",
-                        "comercios/restaurant",
-                        "comercios/carniceria",
-                        "comercios/panaderia",
-                        "comercios/verduleria",
-                        "comercios/farmacia",
-                        "comercios/combustible",
-                        "comercios/indumentaria",
-                        "comercios/ferreteria",
-                        "comercios/bazar",
-                        "comercios/otros",
-                        "servicios/salud",
-                        "servicios/transporte",
-                        "servicios/educacion",
-                        "servicios/peluqueria",
-                        "servicios/otros",
-                        "familia/hijos",
-                        "familia/transferencia",
-                        "impuestos/impuestos",
-                        "otros/otros",
-                        "(auto-detectar)"
-                    ], index=21, key="ef_cat")  # default: auto-detectar
+            # Ambos selectbox siempre visibles, el usuario usa el que corresponda
+            cat_col1, cat_col2 = st.columns(2)
+            with cat_col1:
+                cat_rapida_egreso = st.selectbox(
+                    "Categoría (si es egreso)",
+                    CATEGORIAS_EGRESO_EFECTIVO,
+                    index=0,
+                    key="ef_cat_egreso"
+                )
+            with cat_col2:
+                cat_rapida_ingreso = st.selectbox(
+                    "Categoría (si es ingreso)",
+                    CATEGORIAS_INGRESO_EFECTIVO,
+                    index=0,
+                    key="ef_cat_ingreso"
+                )
+
+            submitted = st.form_submit_button("💾 Guardar Movimiento Efectivo", type="primary")
+
+        # Procesar FUERA del form pero usando los valores
+        if submitted and monto_ef > 0 and descripcion_ef.strip():
+            fecha_str = fecha_ef.strftime('%Y-%m-%d')
+
+            if direccion == "Egreso":
+                if cat_rapida_egreso == "(auto-detectar)":
+                    cat, subcat, gasto_final = categorizar_gasto(descripcion_ef, datos)
                 else:
-                    cat_rapida = st.selectbox("Categoría ingreso", [
-                        "sueldo",
-                        "alquiler",
-                        "honorarios",
-                        "venta",
-                        "prestamo",
-                        "regalo",
-                        "otro"
-                    ], key="ef_cat_ing")
+                    partes = cat_rapida_egreso.split('/')
+                    cat = partes[0]
+                    subcat = partes[1] if len(partes) > 1 else partes[0]
+                    gasto_final = descripcion_ef.strip().title()
 
-            submitted = st.form_submit_button("Guardar Movimiento Efectivo", type="primary")
+                egreso = {
+                    'fecha': fecha_str,
+                    'gasto': gasto_final,
+                    'monto': monto_ef,
+                    'moneda': 'ARS',
+                    'fuente': 'Efectivo',
+                    'categoria': cat,
+                    'subcategoria': subcat,
+                    'owner': owner_ef,
+                    'medio_pago': 'Efectivo',
+                    'u_id': generar_id()
+                }
 
-            if submitted and monto_ef > 0 and descripcion_ef.strip():
-                fecha_str = fecha_ef.strftime('%Y-%m-%d')
+                datos_disco = cargar_datos()
+                datos_disco.setdefault('meses', {}).setdefault(mes, {
+                    'ingresos_bancarios': [], 'egresos': [], 'ajustes': [],
+                    'ganancia_fondos': 0, 'plusvalia_propiedades': 0
+                })
+                datos_disco['meses'][mes].setdefault('egresos', []).append(egreso)
+                guardar_datos(datos_disco)
+                st.session_state.datos = datos_disco
+                st.success(f"✅ Egreso efectivo guardado: {gasto_final} ${monto_ef:,.2f} ({owner_ef})")
+                st.rerun()
 
-                if direccion == "Egreso":
-                    # Categorizar
-                    if cat_rapida == "(auto-detectar)":
-                        cat, subcat, gasto_final = categorizar_gasto(descripcion_ef, datos)
-                    else:
-                        partes = cat_rapida.split('/')
-                        cat = partes[0]
-                        subcat = partes[1] if len(partes) > 1 else partes[0]
-                        gasto_final = descripcion_ef.strip().title()
+            else:  # Ingreso
+                ingreso = {
+                    'fecha': fecha_str,
+                    'descripcion': descripcion_ef.strip(),
+                    'monto': monto_ef,
+                    'monto_ars': None,
+                    'banco': 'efectivo',
+                    'categoria': cat_rapida_ingreso,
+                    'tasas': None,
+                    'owner': owner_ef
+                }
 
-                    egreso = {
-                        'fecha': fecha_str,
-                        'gasto': gasto_final,
-                        'monto': monto_ef,
-                        'moneda': 'ARS',
-                        'fuente': 'Efectivo',
-                        'categoria': cat,
-                        'subcategoria': subcat,
-                        'owner': owner_ef,
-                        'medio_pago': 'Efectivo',
-                        'u_id': generar_id()
-                    }
+                datos_disco = cargar_datos()
+                datos_disco.setdefault('meses', {}).setdefault(mes, {
+                    'ingresos_bancarios': [], 'egresos': [], 'ajustes': [],
+                    'ganancia_fondos': 0, 'plusvalia_propiedades': 0
+                })
+                datos_disco['meses'][mes].setdefault('ingresos_bancarios', []).append(ingreso)
+                guardar_datos(datos_disco)
+                st.session_state.datos = datos_disco
+                st.success(f"✅ Ingreso efectivo guardado: {descripcion_ef} ${monto_ef:,.2f} ({owner_ef})")
+                st.rerun()
 
-                    # Guardar como egreso del mes
-                    datos_disco = cargar_datos()
-                    datos_disco.setdefault('meses', {}).setdefault(mes, {
-                        'ingresos_bancarios': [], 'egresos': [], 'ajustes': [],
-                        'ganancia_fondos': 0, 'plusvalia_propiedades': 0
-                    })
-                    datos_disco['meses'][mes].setdefault('egresos', []).append(egreso)
-                    guardar_datos(datos_disco)
-                    st.session_state.datos = datos_disco
-                    st.success(f"Egreso efectivo guardado: {gasto_final} ${monto_ef:,.2f} ({owner_ef})")
-                    st.rerun()
-
-                else:  # Ingreso
-                    ingreso = {
-                        'fecha': fecha_str,
-                        'descripcion': descripcion_ef.strip(),
-                        'monto': monto_ef,
-                        'monto_ars': None,
-                        'banco': 'efectivo',
-                        'categoria': cat_rapida,
-                        'tasas': None,
-                        'owner': owner_ef
-                    }
-
-                    datos_disco = cargar_datos()
-                    datos_disco.setdefault('meses', {}).setdefault(mes, {
-                        'ingresos_bancarios': [], 'egresos': [], 'ajustes': [],
-                        'ganancia_fondos': 0, 'plusvalia_propiedades': 0
-                    })
-                    datos_disco['meses'][mes].setdefault('ingresos_bancarios', []).append(ingreso)
-                    guardar_datos(datos_disco)
-                    st.session_state.datos = datos_disco
-                    st.success(f"Ingreso efectivo guardado: {descripcion_ef} ${monto_ef:,.2f} ({owner_ef})")
-                    st.rerun()
-
-            elif submitted:
-                st.warning("Completá descripción y monto mayor a 0")
+        elif submitted:
+            st.warning("Completá descripción y monto mayor a 0")
 
     # ====== TAB AJUSTE MANUAL ======
     with tab_ajuste:
