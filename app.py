@@ -3098,11 +3098,6 @@ def mostrar_ajustes(mes_from_sidebar):
             "otro",
         ]
 
-        # Fecha: limitar al periodo seleccionado
-        import calendar
-        anio, mes_num = mes.split('-')
-        ultimo_dia = calendar.monthrange(int(anio), int(mes_num))[1]
-
         with st.form("form_efectivo", clear_on_submit=True):
             direccion = st.radio(
                 "Tipo de movimiento",
@@ -3116,9 +3111,7 @@ def mostrar_ajustes(mes_from_sidebar):
                 owner_ef = st.selectbox("¿Quién?", OWNERS, key="ef_owner")
                 fecha_ef = st.date_input(
                     "Fecha",
-                    value=datetime(int(anio), int(mes_num), min(15, ultimo_dia)),
-                    min_value=datetime(int(anio), int(mes_num), 1),
-                    max_value=datetime(int(anio), int(mes_num), ultimo_dia),
+                    value=datetime.now(),
                     key="ef_fecha"
                 )
 
