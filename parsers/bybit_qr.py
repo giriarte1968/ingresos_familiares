@@ -35,10 +35,12 @@ def parsear_monto_qr(texto):
 
 
 def extraer_fecha_qr(texto):
-    m = re.search(r'(\d{4}-\d{2}-\d{2})', texto)
+    m = re.search(r'(\d{4}-\d{2}-\d{2})\s*(\d{2}:\d{2}:\d{2})?', texto)
     if m:
-        return m.group(1)
-    return ''
+        fecha = m.group(1)
+        hora = m.group(2) if m.group(2) else ''
+        return fecha, hora
+    return '', ''
 
 
 def es_linea_monto_ars(texto):
@@ -50,7 +52,7 @@ def es_linea_monto_ars(texto):
 
 def es_linea_fecha(texto):
     t = texto.strip().lower()
-    return ('pago con qr' in t or 'enviar' in t) and bool(extraer_fecha_qr(texto))
+    return ('pago con qr' in t or 'enviar' in t) and bool(re.search(r'\d{4}-\d{2}-\d{2}', t))
 
 
 def es_estado_correcto(texto):
@@ -134,16 +136,23 @@ def procesar_bybit_qr(archivo, owner, medio_pago, datos, categorizar_fn=None):
 
             estado_correcto = False
             estado_error = False
+            hora_transaccion = ''
             
             for it in items:
                 dist_y = it['y'] - y_monto
-                if 0 < dist_y < 60:
-                    texto_it = it['text'].strip().lower()
-                    if es_estado_correcto(texto_it):
+                if 0 < dist_y < 100:
+                    texto_it = it['text'].strip()
+                    texto_lower = texto_it.lower()
+                    
+                    if es_estado_correcto(texto_lower):
                         estado_correcto = True
-                    if es_estado_error(texto_it):
+                    if es_estado_error(texto_lower):
                         estado_error = True
                         break
+                    
+                    _, hora = extraer_fecha_qr(texto_it)
+                    if hora:
+                        hora_transaccion = hora
             
             if estado_error or not estado_correcto:
                 continue
@@ -166,19 +175,23 @@ def procesar_bybit_qr(archivo, owner, medio_pago, datos, categorizar_fn=None):
                             nombre = it['text'].strip()
                             break
 
-            fecha = ''
+            fecha_completa = ''
             for it in items:
                 dist_y = it['y'] - y_monto
-                if 5 < dist_y < 60:
+                if 5 < dist_y < 100:
                     if es_linea_fecha(it['text']):
-                        fecha = extraer_fecha_qr(it['text'])
+                        fecha, hora = extraer_fecha_qr(it['text'])
+                        if fecha:
+                            fecha_completa = fecha
+                            if hora and not hora_transaccion:
+                                hora_transaccion = hora
                         break
 
             nombre = limpiar_nombre(nombre)
 
             if not nombre or len(nombre) < 2:
                 continue
-            if not fecha:
+            if not fecha_completa:
                 continue
 
             nlow = nombre.lower()
@@ -190,8 +203,10 @@ def procesar_bybit_qr(archivo, owner, medio_pago, datos, categorizar_fn=None):
             else:
                 cat, subcat, gasto_final = 'otros', 'otros', nombre.title()
 
+            unique_id = f"{fecha_completa}_{hora_transaccion}_{nombre}_{monto}"
+            
             gastos.append({
-                'fecha': fecha,
+                'fecha': f"{fecha_completa} {hora_transaccion}" if hora_transaccion else fecha_completa,
                 'gasto': gasto_final,
                 'monto': monto,
                 'moneda': 'ARS',
@@ -200,15 +215,17 @@ def procesar_bybit_qr(archivo, owner, medio_pago, datos, categorizar_fn=None):
                 'subcategoria': subcat,
                 'owner': owner,
                 'medio_pago': medio_pago or 'QR Bybit',
-                'u_id': generar_id()
+                'u_id': generar_id(),
+                '_unique_key': unique_id
             })
 
         seen = set()
         gastos_dedup = []
         for g in gastos:
-            key = (g.get('fecha', ''), g.get('gasto', '').lower(), round(g.get('monto', 0), 2))
+            key = g.get('_unique_key', '')
             if key not in seen:
                 seen.add(key)
+                g.pop('_unique_key', None)
                 gastos_dedup.append(g)
 
         if not gastos_dedup:
