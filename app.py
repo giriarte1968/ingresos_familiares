@@ -1479,8 +1479,10 @@ COMERCIOS_CONOCIDOS = {
     'netflix': {'categoria': 'servicios', 'subcategoria': 'suscripciones', 'gasto': 'Netflix'},
     'cpa. netflix': {'categoria': 'servicios', 'subcategoria': 'suscripciones', 'gasto': 'Netflix'},
     
-    # Herrero
-    'herrero': {'categoria': 'comercios', 'subcategoria': 'otros', 'gasto': 'Herrero SRL'},
+    # Herrero - Combustible
+    'herrero srl': {'categoria': 'comercios', 'subcategoria': 'combustible', 'gasto': 'Estación Herrero'},
+    'herrero': {'categoria': 'comercios', 'subcategoria': 'combustible', 'gasto': 'Estación Herrero'},
+    'cpa. herrero': {'categoria': 'comercios', 'subcategoria': 'combustible', 'gasto': 'Estación Herrero'},
     
     # Carnicería
     'meneghini': {'categoria': 'comercios', 'subcategoria': 'carniceria', 'gasto': 'Carnicería Meneghini'},
