@@ -10,21 +10,30 @@ DATOS_FILE = os.path.join(
 
 
 def cargar_datos():
-    """
-    Prioriza session_state para mantener consistencia con la app en ejecución.
-    Si no existe, lee desde disco.
-    """
-    try:
-        if "datos" in st.session_state and isinstance(st.session_state.datos, dict):
+    """Usa la misma fuente que egresos: session_state primero, disco fallback"""
+    if 'datos' in st.session_state and isinstance(st.session_state.datos, dict):
+        # Verificar que tiene contenido
+        meses = st.session_state.datos.get('meses', {})
+        total = sum(len(m.get('egresos', [])) for m in meses.values())
+        if total > 0:
             return st.session_state.datos
 
-        if os.path.exists(DATOS_FILE):
-            with open(DATOS_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
+    # Fallback: disco
+    try:
+        import os, json
+        ruta = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            'datos.json'
+        )
+        if os.path.exists(ruta):
+            with open(ruta, 'r', encoding='utf-8') as f:
+                datos_disco = json.load(f)
+                st.session_state.datos = datos_disco
+                return datos_disco
     except Exception as e:
-        st.error(f"Error cargando datos para reportes: {e}")
+        st.error(f"Error leyendo datos: {e}")
 
-    return {"meses": {}}
+    return {'meses': {}}
 
 
 def _obtener_meses_ordenados(datos):
