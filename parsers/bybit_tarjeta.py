@@ -75,6 +75,30 @@ def extraer_fecha_bybit(texto):
     return ''
 
 
+def es_linea_estado(texto):
+    """Detecta estados de pago exitoso"""
+    t = texto.strip().lower()
+    if 'correcto' in t or 'completed' in t or 'completado' in t or 'aprobado' in t:
+        return True
+    return False
+
+
+def es_linea_estado_error(texto):
+    """Detecta estados de error o pendiente"""
+    t = texto.strip().lower()
+    if 'error' in t:
+        return True
+    if 'tiempo de espera' in t:
+        return True
+    if 'pendiente' in t:
+        return True
+    if 'rechazado' in t:
+        return True
+    if 'fallido' in t:
+        return True
+    return False
+
+
 def limpiar_nombre_comercio(nombre):
     """Limpia nombres de comercio del formato Bybit. 
     Retorna (nombre_limpio, nombre_para_categorizar)"""
@@ -168,14 +192,16 @@ def procesar_bybit_tarjeta(archivo, owner, medio_pago, datos, categorizar_fn=Non
                 
                 if dist_y < 20:
                     texto_it = it['text'].strip()
+                    texto_lower = texto_it.lower()
                     
                     es_monto = 'ARS' in texto_it.upper()
                     es_pago = texto_it.lower() == 'pago'
                     es_tarjeta = '****' in texto_it
                     es_fecha = bool(re.match(r'^\d{4}-\d{2}-\d{2}', texto_it))
                     es_basura = texto_it.lower() in ['con', '-', 'or', 'qr']
+                    es_recibir = 'recibir' in texto_lower
                     
-                    if not any([es_monto, es_pago, es_tarjeta, es_fecha, es_basura]):
+                    if not any([es_monto, es_pago, es_tarjeta, es_fecha, es_basura, es_recibir]):
                         if it['x_left'] < ars_item['x_left'] and len(texto_it) > 1:
                             nombre_comercio = texto_it
             
@@ -216,6 +242,18 @@ def procesar_bybit_tarjeta(archivo, owner, medio_pago, datos, categorizar_fn=Non
                             break
             
             fecha_gasto = mejor_fecha
+            
+            # Validar estado del pago
+            estado_valido = True
+            for it in items:
+                dist_y = it['y'] - y_ars
+                if 5 < dist_y < 150:
+                    if es_linea_estado_error(it['text']):
+                        estado_valido = False
+                        break
+            
+            if not estado_valido:
+                continue
             
             if not nombre_comercio or len(nombre_comercio) < 2:
                 continue
