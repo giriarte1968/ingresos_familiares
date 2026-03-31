@@ -10,6 +10,7 @@ import requests
 from urllib.parse import quote
 import time
 import json
+import unicodedata
 
 from subpagos import extraer_subpagos, generar_id
 
@@ -1578,19 +1579,29 @@ def detectar_fuente(nombre_archivo):
     return mejor_fuente
 
 
+def normalizar_texto(s: str) -> str:
+    """Normaliza texto para comparación: minúsculas, sin acentos, sin símbolos."""
+    s = (s or "").strip().lower()
+    s = unicodedata.normalize("NFKD", s)
+    s = "".join(c for c in s if not unicodedata.combining(c))
+    s = re.sub(r"[^a-z0-9\s]", " ", s)
+    s = re.sub(r"\s+", " ", s).strip()
+    return s
+
+
 def categorizar_gasto(descripcion, datos=None):
     """Categoriza un gasto: 1) conocidos, 2) keywords, 3) web search"""
     
     # Limpiar descripción
     desc_limpia = ' '.join(descripcion.split())
     nombre_limpio = desc_limpia.split('  ')[0].split(' - ')[0].split('\t')[0].strip()
-    nombre_lower = nombre_limpio.lower()
+    nombre_norm = normalizar_texto(nombre_limpio)
     
     # ========== PASO 1: Comercios conocidos (instantáneo) ==========
     for conocido, info in COMERCIOS_CONOCIDOS.items():
         if info is None:
             continue
-        if conocido in nombre_lower:
+        if normalizar_texto(conocido) in nombre_norm:
             return info['categoria'], info['subcategoria'], info['gasto']
     
     # ========== PASO 2: Keywords locales (instantáneo) ==========
@@ -1598,16 +1609,16 @@ def categorizar_gasto(descripcion, datos=None):
         if categoria == 'comercios':
             for subcategoria, palabras in keywords.items():
                 for palabra in palabras:
-                    if palabra in nombre_lower:
+                    if normalizar_texto(palabra) in nombre_norm:
                         return 'comercios', subcategoria, nombre_limpio.title()
         else:
             if isinstance(keywords, list):
                 for palabra in keywords:
-                    if palabra in nombre_lower:
+                    if normalizar_texto(palabra) in nombre_norm:
                         return categoria, categoria, nombre_limpio.title()
     
     # ========== PASO 2.5: Reglas específicas familiares ==========
-    if any(nombre in nombre_lower for nombre in [
+    if any(nombre in nombre_norm for nombre in [
         'sol belen iriarte rojo',
         'tomas lautaro iriarte rojo',
         'magdalena soler',
@@ -1615,10 +1626,10 @@ def categorizar_gasto(descripcion, datos=None):
     ]):
         return 'otros', 'familia', nombre_limpio.title()
 
-    if 'percepcion' in nombre_lower or 'percepción' in nombre_lower:
+    if 'percepcion' in nombre_norm or 'percepción' in nombre_norm:
         return 'impuestos', 'impuestos', nombre_limpio.title()
 
-    if 'uber' in nombre_lower:
+    if 'uber' in nombre_norm:
         return 'servicios', 'transporte', nombre_limpio.title()
     
     # ========== PAS0 3: Búsqueda CUIT Online (alta confianza) ==========
@@ -1627,7 +1638,7 @@ def categorizar_gasto(descripcion, datos=None):
     if resultado_cuit and len(resultado_cuit) >= 4:
         actividad, confianza, cat_cuit, subcat_cuit = resultado_cuit
         if confianza >= 0.70 and cat_cuit and subcat_cuit:
-            COMERCIOS_CONOCIDOS[nombre_lower] = {
+            COMERCIOS_CONOCIDOS[nombre_norm] = {
                 'categoria': cat_cuit,
                 'subcategoria': subcat_cuit,
                 'gasto': nombre_limpio.title()
@@ -1642,7 +1653,7 @@ def categorizar_gasto(descripcion, datos=None):
         
         if confianza >= 0.60 and cat_web and subcat_web:
             # Guardar en conocidos para próximas veces
-            COMERCIOS_CONOCIDOS[nombre_lower] = {
+            COMERCIOS_CONOCIDOS[nombre_norm] = {
                 'categoria': cat_web,
                 'subcategoria': subcat_web,
                 'gasto': nombre_limpio.title()
