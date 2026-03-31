@@ -3608,59 +3608,427 @@ def cargar_fondos_mutuos(mes):
                 st.error("No se pudieron extraer fondos del PDF")
 
 
+@st.cache_data(ttl=3600)
+def obtener_precio_adr(ticker):
+    """Obtiene precio actual de un ADR desde Yahoo Finance API REST"""
+    try:
+        url = f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}"
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+        params = {
+            'interval': '1d',
+            'range': '5d'
+        }
+        response = requests.get(url, headers=headers, params=params, timeout=10)
+
+        if response.status_code != 200:
+            return None, None, None
+
+        data = response.json()
+        result = data.get('chart', {}).get('result', [])
+
+        if not result:
+            return None, None, None
+
+        meta = result[0].get('meta', {})
+        precio = meta.get('regularMarketPrice', 0)
+        moneda = meta.get('currency', 'USD')
+        nombre = meta.get('shortName', ticker)
+
+        return precio, moneda, nombre
+
+    except Exception as e:
+        print(f"Error obteniendo precio {ticker}: {e}")
+        return None, None, None
+
+
+@st.cache_data(ttl=86400)
+def obtener_precio_adr_historico(ticker, fecha):
+    """Obtiene precio de cierre de un ADR en una fecha específica"""
+    try:
+        fecha_obj = datetime.strptime(fecha, '%Y-%m-%d')
+        ts_inicio = int((fecha_obj - pd.Timedelta(days=3)).timestamp())
+        ts_fin = int((fecha_obj + pd.Timedelta(days=2)).timestamp())
+
+        url = f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}"
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+        params = {
+            'period1': ts_inicio,
+            'period2': ts_fin,
+            'interval': '1d'
+        }
+        response = requests.get(url, headers=headers, params=params, timeout=10)
+
+        if response.status_code != 200:
+            return None
+
+        data = response.json()
+        result = data.get('chart', {}).get('result', [])
+
+        if not result:
+            return None
+
+        closes = result[0].get('indicators', {}).get('quote', [{}])[0].get('close', [])
+        timestamps = result[0].get('timestamp', [])
+
+        if not closes or not timestamps:
+            return None
+
+        ts_objetivo = int(fecha_obj.timestamp())
+        mejor_precio = None
+        menor_diff = float('inf')
+
+        for ts, precio in zip(timestamps, closes):
+            if precio is None:
+                continue
+            diff = abs(ts - ts_objetivo)
+            if diff < menor_diff:
+                menor_diff = diff
+                mejor_precio = precio
+
+        return mejor_precio
+
+    except Exception as e:
+        print(f"Error obteniendo precio histórico {ticker}: {e}")
+        return None
+
+
 def mostrar_activos():
     st.header("Activos")
-    
+
     datos = st.session_state.datos
     activos = datos.get('activos', [])
-    
-    if not activos:
-        st.info("No hay activos cargados. Ve a 'Cargar Fondos Mutuos' o 'Propiedades' para agregar.")
-        return
-    
+
     # Separar por tipo
     fondos = [a for a in activos if a.get('tipo') == 'fondo_mutuo']
     propiedades = [a for a in activos if a.get('tipo') == 'propiedad']
-    otros = [a for a in activos if a.get('tipo') not in ['fondo_mutuo', 'propiedad']]
-    
-    # Totales
+    adrs = [a for a in activos if a.get('tipo') == 'adr']
+    otros = [a for a in activos if a.get('tipo') not in ['fondo_mutuo', 'propiedad', 'adr']]
+
+    # Obtener USDT/ARS actual para conversiones
+    usdt_ars = obtener_usdt_ars_binance() or 1500
+
+    # ====== RESUMEN GENERAL ======
+    st.subheader("Resumen General")
+
     total_fondos_ars = sum(a.get('valor_final_ars', 0) for a in fondos)
-    total_propiedades_ars = sum(a.get('valor_actual_ars', 0) for a in propiedades)
-    
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Total Fondos Mutuos", f"${total_fondos_ars:,.0f}")
-    col2.metric("Total Propiedades", f"${total_propiedades_ars:,.0f}")
-    col3.metric("Total Activos", f"${total_fondos_ars + total_propiedades_ars:,.0f}")
-    
-    # Fondos Mutuos
-    if fondos:
-        st.subheader("Fondos Mutuos")
-        df_fondos = pd.DataFrame(fondos)
-        cols = ['nombre', 'moneda_original', 'valor_final', 'ganancia', 'valor_final_ars', 'ganancia_ars', 'fecha']
-        available = [c for c in cols if c in df_fondos.columns]
-        st.dataframe(df_fondos[available])
-        
-        # Total ganancia
-        total_ganancia = sum(a.get('ganancia_ars', 0) for a in fondos)
-        st.metric("Ganancia Total Fondos", f"${total_ganancia:,.0f}", delta=f"{total_ganancia:,.0f}")
-    
-    # Propiedades
-    if propiedades:
-        st.subheader("Propiedades")
-        df_props = pd.DataFrame(propiedades)
-        cols = ['nombre', 'zona', 'm2', 'valor_actual_ars']
-        available = [c for c in cols if c in df_props.columns]
-        st.dataframe(df_props[available])
-    
-    # Otros
+    total_propiedades_ars = sum(a.get('valor_tasacion_ars', 0) for a in propiedades)
+    total_adrs_ars = sum(a.get('valor_actual_ars', 0) for a in adrs)
+
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Fondos Mutuos", f"${total_fondos_ars:,.0f}")
+    c2.metric("Propiedades", f"${total_propiedades_ars:,.0f}")
+    c3.metric("ADRs", f"${total_adrs_ars:,.0f}")
+    c4.metric("TOTAL ACTIVOS", f"${total_fondos_ars + total_propiedades_ars + total_adrs_ars:,.0f}")
+
+    st.caption(f"Tasa USDT/ARS: {usdt_ars:,.2f}")
+
+    # ====== TABS POR TIPO ======
+    tab_fondos, tab_props, tab_adrs = st.tabs([
+        f"📈 Fondos Mutuos ({len(fondos)})",
+        f"🏠 Propiedades ({len(propiedades)})",
+        f"📊 ADRs ({len(adrs)})"
+    ])
+
+    # ====== TAB FONDOS MUTUOS ======
+    with tab_fondos:
+        if fondos:
+            df_fondos = pd.DataFrame(fondos)
+            cols = ['nombre', 'moneda_original', 'valor_final', 'ganancia',
+                    'valor_final_ars', 'ganancia_ars', 'fecha']
+            available = [c for c in cols if c in df_fondos.columns]
+            st.dataframe(df_fondos[available], use_container_width=True, hide_index=True)
+
+            total_ganancia = sum(a.get('ganancia_ars', 0) for a in fondos)
+            st.metric("Ganancia Total Fondos", f"${total_ganancia:,.0f}",
+                      delta=f"${total_ganancia:,.0f}")
+        else:
+            st.info("No hay fondos mutuos. Cargalos desde 'Cargar Fondos Mutuos'.")
+
+    # ====== TAB PROPIEDADES ======
+    with tab_props:
+        if propiedades:
+            df_props = pd.DataFrame(propiedades)
+            cols = ['nombre', 'zona', 'm2', 'valor_tasacion_usd', 'valor_tasacion_ars']
+            available = [c for c in cols if c in df_props.columns]
+            st.dataframe(df_props[available], use_container_width=True, hide_index=True)
+        else:
+            st.info("No hay propiedades. Cargalas desde 'Propiedades'.")
+
+    # ====== TAB ADRs ======
+    with tab_adrs:
+        st.subheader("ADRs / Acciones")
+
+        # ---- AGREGAR ADR ----
+        with st.expander("➕ Agregar ADR", expanded=not bool(adrs)):
+            TICKERS_COMUNES = [
+                "", "BBAR", "GGAL", "YPF", "PAM", "SUPV", "BMA", "CRESY",
+                "CEPU", "EDN", "LOMA", "TEO", "TGS", "IRS", "MELI", "GLOB",
+                "(otro)"
+            ]
+
+            with st.form("form_agregar_adr", clear_on_submit=True):
+                col1, col2 = st.columns(2)
+
+                with col1:
+                    ticker_sel = st.selectbox("Ticker (comunes)", TICKERS_COMUNES, index=0)
+                    ticker_manual = st.text_input(
+                        "Ticker manual (si no está en la lista)",
+                        placeholder="Ej: AAPL, MSFT, TSLA"
+                    )
+                    cantidad = st.number_input("Cantidad de acciones", min_value=0.0,
+                                               step=1.0, key="adr_cant")
+
+                with col2:
+                    precio_compra = st.number_input("Precio de compra (USD)",
+                                                     min_value=0.0, step=0.01,
+                                                     key="adr_precio")
+                    fecha_compra = st.date_input("Fecha de compra", key="adr_fecha")
+                    broker = st.selectbox("Broker", [
+                        "Santander Chile", "IOL", "Bull Market", "Balanz",
+                        "PPI", "Cocos Capital", "Otro"
+                    ])
+
+                submitted_adr = st.form_submit_button("💾 Agregar ADR", type="primary")
+
+            if submitted_adr:
+                ticker = ticker_manual.strip().upper() if ticker_manual.strip() else ticker_sel
+                if not ticker or ticker == "(otro)":
+                    st.warning("Ingresá un ticker válido")
+                elif cantidad <= 0 or precio_compra <= 0:
+                    st.warning("Cantidad y precio deben ser mayores a 0")
+                else:
+                    existe = any(
+                        a.get('ticker') == ticker and a.get('tipo') == 'adr'
+                        for a in activos
+                    )
+                    if existe:
+                        st.warning(f"El ADR {ticker} ya existe. Editalo o eliminalo primero.")
+                    else:
+                        precio_actual, moneda, nombre_empresa = obtener_precio_adr(ticker)
+
+                        if precio_actual is None:
+                            st.warning(f"No se pudo obtener precio para {ticker}. Se guarda con precio de compra.")
+                            precio_actual = precio_compra
+                            nombre_empresa = ticker
+
+                        valor_actual_usd = cantidad * precio_actual
+                        valor_compra_usd = cantidad * precio_compra
+                        ganancia_usd = valor_actual_usd - valor_compra_usd
+
+                        nuevo_adr = {
+                            'id': len(activos) + 1,
+                            'tipo': 'adr',
+                            'ticker': ticker,
+                            'nombre': nombre_empresa or ticker,
+                            'broker': broker,
+                            'cantidad': cantidad,
+                            'precio_compra_usd': precio_compra,
+                            'fecha_compra': fecha_compra.strftime('%Y-%m-%d'),
+                            'precio_actual_usd': precio_actual,
+                            'valor_compra_usd': valor_compra_usd,
+                            'valor_actual_usd': valor_actual_usd,
+                            'valor_actual_ars': valor_actual_usd * usdt_ars,
+                            'ganancia_usd': ganancia_usd,
+                            'ganancia_ars': ganancia_usd * usdt_ars,
+                            'ganancia_pct': ((precio_actual / precio_compra) - 1) * 100 if precio_compra > 0 else 0,
+                            'ultima_actualizacion': datetime.now().strftime('%Y-%m-%d %H:%M'),
+                            'dividendos': []
+                        }
+
+                        datos_disco = cargar_datos()
+                        datos_disco.setdefault('activos', []).append(nuevo_adr)
+                        guardar_datos(datos_disco)
+                        st.session_state.datos = datos_disco
+                        st.success(f"✅ ADR {ticker} agregado: {cantidad} acciones a USD {precio_compra:.2f}")
+                        st.rerun()
+
+        # ---- MOSTRAR ADRs ----
+        if adrs:
+            if st.button("🔄 Actualizar Cotizaciones", type="primary"):
+                datos_disco = cargar_datos()
+                activos_disco = datos_disco.get('activos', [])
+                adrs_disco = [a for a in activos_disco if a.get('tipo') == 'adr']
+
+                usdt_ars_actual = obtener_usdt_ars_binance() or usdt_ars
+                actualizados = 0
+
+                progress = st.progress(0)
+                for i, adr in enumerate(adrs_disco):
+                    ticker = adr.get('ticker', '')
+                    precio, _, nombre = obtener_precio_adr(ticker)
+
+                    if precio and precio > 0:
+                        cantidad_acc = adr.get('cantidad', 0)
+                        precio_compra_acc = adr.get('precio_compra_usd', 0)
+
+                        adr['precio_actual_usd'] = precio
+                        adr['valor_actual_usd'] = cantidad_acc * precio
+                        adr['valor_actual_ars'] = cantidad_acc * precio * usdt_ars_actual
+                        adr['ganancia_usd'] = (precio - precio_compra_acc) * cantidad_acc
+                        adr['ganancia_ars'] = adr['ganancia_usd'] * usdt_ars_actual
+                        adr['ganancia_pct'] = ((precio / precio_compra_acc) - 1) * 100 if precio_compra_acc > 0 else 0
+                        adr['ultima_actualizacion'] = datetime.now().strftime('%Y-%m-%d %H:%M')
+                        if nombre:
+                            adr['nombre'] = nombre
+                        actualizados += 1
+
+                    progress.progress((i + 1) / len(adrs_disco))
+                    time.sleep(0.5)
+
+                guardar_datos(datos_disco)
+                st.session_state.datos = datos_disco
+                st.success(f"✅ {actualizados}/{len(adrs_disco)} ADRs actualizados (USDT/ARS: {usdt_ars_actual:,.2f})")
+                st.rerun()
+
+            st.subheader("Cartera de ADRs")
+
+            for adr in adrs:
+                ganancia_pct = adr.get('ganancia_pct', 0)
+                color = "🟢" if ganancia_pct >= 0 else "🔴"
+
+                with st.container():
+                    c1, c2, c3, c4, c5, c6 = st.columns([1.5, 1, 1, 1.5, 1.5, 0.5])
+
+                    c1.markdown(f"**{color} {adr.get('ticker', '')}**")
+                    c1.caption(f"{adr.get('nombre', '')}")
+
+                    c2.metric("Cantidad", f"{adr.get('cantidad', 0):,.0f}")
+
+                    c3.metric(
+                        "Precio USD",
+                        f"${adr.get('precio_actual_usd', 0):,.2f}",
+                        delta=f"compra: ${adr.get('precio_compra_usd', 0):,.2f}"
+                    )
+
+                    c4.metric(
+                        "Valor USD",
+                        f"${adr.get('valor_actual_usd', 0):,.2f}",
+                        delta=f"${adr.get('ganancia_usd', 0):,.2f}"
+                    )
+
+                    c5.metric(
+                        "Valor ARS",
+                        f"${adr.get('valor_actual_ars', 0):,.0f}",
+                        delta=f"{ganancia_pct:+.1f}%"
+                    )
+
+                    with c6:
+                        if st.button("🗑", key=f"del_adr_{adr.get('id')}"):
+                            datos_disco = cargar_datos()
+                            datos_disco['activos'] = [
+                                a for a in datos_disco.get('activos', [])
+                                if not (a.get('tipo') == 'adr' and a.get('ticker') == adr.get('ticker'))
+                            ]
+                            guardar_datos(datos_disco)
+                            st.session_state.datos = datos_disco
+                            st.success(f"ADR {adr.get('ticker')} eliminado")
+                            st.rerun()
+
+                    st.divider()
+
+            # Totales ADRs
+            total_valor_usd = sum(a.get('valor_actual_usd', 0) for a in adrs)
+            total_ganancia_usd = sum(a.get('ganancia_usd', 0) for a in adrs)
+            total_valor_ars = sum(a.get('valor_actual_ars', 0) for a in adrs)
+            total_ganancia_ars = sum(a.get('ganancia_ars', 0) for a in adrs)
+
+            st.subheader("Totales ADRs")
+            t1, t2, t3, t4 = st.columns(4)
+            t1.metric("Valor Total USD", f"${total_valor_usd:,.2f}")
+            t2.metric("Ganancia USD", f"${total_ganancia_usd:,.2f}",
+                      delta=f"${total_ganancia_usd:,.2f}")
+            t3.metric("Valor Total ARS", f"${total_valor_ars:,.0f}")
+            t4.metric("Ganancia ARS", f"${total_ganancia_ars:,.0f}",
+                      delta=f"${total_ganancia_ars:,.0f}")
+
+            # ---- DIVIDENDOS ----
+            st.subheader("Registrar Dividendo")
+
+            tickers_adr = [a.get('ticker', '') for a in adrs]
+
+            with st.form("form_dividendo", clear_on_submit=True):
+                cd1, cd2, cd3 = st.columns(3)
+                with cd1:
+                    div_ticker = st.selectbox("ADR", tickers_adr, key="div_ticker")
+                with cd2:
+                    div_monto_por_accion = st.number_input(
+                        "Dividendo por acción (USD)",
+                        min_value=0.0, step=0.01, key="div_monto"
+                    )
+                with cd3:
+                    div_fecha = st.date_input("Fecha de pago", key="div_fecha")
+
+                submitted_div = st.form_submit_button("💰 Registrar Dividendo")
+
+            if submitted_div and div_ticker and div_monto_por_accion > 0:
+                datos_disco = cargar_datos()
+
+                for activo in datos_disco.get('activos', []):
+                    if activo.get('tipo') == 'adr' and activo.get('ticker') == div_ticker:
+                        cantidad_acc = activo.get('cantidad', 0)
+                        total_div_usd = div_monto_por_accion * cantidad_acc
+
+                        dividendo = {
+                            'fecha': div_fecha.strftime('%Y-%m-%d'),
+                            'monto_por_accion_usd': div_monto_por_accion,
+                            'total_usd': total_div_usd,
+                            'total_ars': total_div_usd * usdt_ars,
+                            'cantidad_acciones': cantidad_acc
+                        }
+
+                        activo.setdefault('dividendos', []).append(dividendo)
+
+                        mes_div = div_fecha.strftime('%Y-%m')
+                        datos_disco.setdefault('meses', {}).setdefault(mes_div, {
+                            'ingresos_bancarios': [], 'egresos': [], 'ajustes': [],
+                            'ganancia_fondos': 0, 'plusvalia_propiedades': 0
+                        })
+                        datos_disco['meses'][mes_div].setdefault('ingresos_bancarios', []).append({
+                            'fecha': div_fecha.strftime('%Y-%m-%d'),
+                            'descripcion': f"Dividendo {div_ticker} ({cantidad_acc} acc x USD {div_monto_por_accion})",
+                            'monto': total_div_usd * usdt_ars,
+                            'monto_ars': total_div_usd * usdt_ars,
+                            'banco': 'dividendos',
+                            'categoria': 'inversion',
+                            'tasas': f"USDT/ARS: {usdt_ars:.2f}",
+                            'owner': 'Gustavo'
+                        })
+
+                        guardar_datos(datos_disco)
+                        st.session_state.datos = datos_disco
+                        st.success(
+                            f"✅ Dividendo registrado: {div_ticker} "
+                            f"USD {total_div_usd:,.2f} (ARS {total_div_usd * usdt_ars:,.0f})"
+                        )
+                        st.rerun()
+
+            # Historial de dividendos
+            todos_dividendos = []
+            for adr in adrs:
+                for div in adr.get('dividendos', []):
+                    row = dict(div)
+                    row['ticker'] = adr.get('ticker', '')
+                    todos_dividendos.append(row)
+
+            if todos_dividendos:
+                st.caption("Historial de dividendos")
+                df_div = pd.DataFrame(todos_dividendos)
+                cols_div = ['fecha', 'ticker', 'monto_por_accion_usd', 'total_usd', 'total_ars']
+                available_div = [c for c in cols_div if c in df_div.columns]
+                st.dataframe(df_div[available_div], use_container_width=True, hide_index=True)
+
+        else:
+            st.info("No hay ADRs cargados. Usá el formulario de arriba para agregar.")
+
+    # ====== OTROS ======
     if otros:
         st.subheader("Otros Activos")
         df_otros = pd.DataFrame(otros)
-        st.dataframe(df_otros)
-    
-    # Eliminar activo
-    if st.button("Eliminar Activo"):
-        st.info("Funcionalidad de eliminación en desarrollo")
+        st.dataframe(df_otros, use_container_width=True, hide_index=True)
 
 
 if __name__ == "__main__":
