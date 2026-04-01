@@ -1,0 +1,1810 @@
+# ============================================
+# TODOS LOS PARSERS - Archivo de análisis
+# ============================================
+
+# ============================================
+# parsers/base.py
+# ============================================
+
+"""
+Funciones compartidas entre todos los parsers.
+OCR, categorización, utilidades.
+"""
+import re
+import os
+import json
+import time
+import random
+import numpy as np
+from PIL import Image
+import io
+
+
+# ====================== ID ======================
+
+def generar_id():
+    """Genera un ID único"""
+    ts = int(time.time() * 1000)
+    rnd = ''.join(random.choice('0123456789abcdef') for _ in range(6))
+    return f"ts_{ts}_{rnd}"
+
+
+# ====================== COMERCIOS CONOCIDOS ======================
+
+COMERCIOS_CONOCIDOS = {
+    'miguel': {'categoria': 'comercios', 'subcategoria': 'combustible', 'gasto': 'Estación de Servicio'},
+    'juan': {'categoria': 'comercios', 'subcategoria': 'carniceria', 'gasto': 'Carnicería'},
+    'pepe': {'categoria': 'comercios', 'subcategoria': 'panaderia', 'gasto': 'Panadería'},
+    'gge alfa park': {'categoria': 'comercios', 'subcategoria': 'restaurant', 'gasto': 'GGE Alfa Park'},
+    'instituto gamma': {'categoria': 'servicios', 'subcategoria': 'salud', 'gasto': 'Instituto Gamma'},
+    'gamma': {'categoria': 'servicios', 'subcategoria': 'salud', 'gasto': 'Instituto Gamma'},
+    'rosati damian': {'categoria': 'comercios', 'subcategoria': 'restaurant', 'gasto': 'Pizzería Rosati'},
+    'la gran argentina': {'categoria': 'comercios', 'subcategoria': 'restaurant', 'gasto': 'La Gran Argentina'},
+    'sebastian montene': {'categoria': 'comercios', 'subcategoria': 'indumentaria', 'gasto': 'Indumentaria'},
+    'pluspagos': {'categoria': 'servicios', 'subcategoria': 'bancos', 'gasto': 'PlusPagos'},
+    'estacionamiento ocampo': {'categoria': 'servicios', 'subcategoria': 'estacionamiento', 'gasto': 'Estacionamiento Ocampo'},
+    'tu quincho': {'categoria': 'comercios', 'subcategoria': 'bazar', 'gasto': 'Tu Quincho'},
+    'diego rey': {'categoria': 'comercios', 'subcategoria': 'restaurant', 'gasto': 'Diego Rey'},
+    'pinturerias colibri': {'categoria': 'comercios', 'subcategoria': 'pintureria', 'gasto': 'Pinturerías Colibrí'},
+    'panaderia sc ii': {'categoria': 'comercios', 'subcategoria': 'panaderia', 'gasto': 'Panadería SC II'},
+    'remo franco': {'categoria': 'comercios', 'subcategoria': 'indumentaria', 'gasto': 'Remo Franco SRL'},
+    'epe': {'categoria': 'servicios', 'subcategoria': 'servicios_publicos', 'gasto': 'EPE (Energía)'},
+    'aguas santafesinas': {'categoria': 'servicios', 'subcategoria': 'servicios_publicos', 'gasto': 'Aguas Santafesinas'},
+    'movistar': {'categoria': 'servicios', 'subcategoria': 'telecomunicaciones', 'gasto': 'Movistar'},
+    'personal': {'categoria': 'servicios', 'subcategoria': 'telecomunicaciones', 'gasto': 'Personal'},
+    'adt': {'categoria': 'servicios', 'subcategoria': 'seguridad', 'gasto': 'ADT Seguridad'},
+    'municipalidad': {'categoria': 'impuestos', 'subcategoria': 'impuestos', 'gasto': 'Municipalidad'},
+    'cargo por servicio': {'categoria': 'servicios', 'subcategoria': 'bancos', 'gasto': 'Cargo Bancario'},
+    'merpago*tran': {'categoria': 'servicios', 'subcategoria': 'estacionamiento', 'gasto': 'Estacionamiento Tránsito Rosario'},
+    'merpago': {'categoria': 'servicios', 'subcategoria': 'estacionamiento', 'gasto': 'Estacionamiento Tránsito Rosario'},
+    'correcto': None,
+    'historial': None,
+    'pago con': None,
+    'fecha': None,
+    'todos los': None,
+}
+
+CATEGORIAS_EGRESOS = {
+    'impuestos': ['arca', 'api', 'tgi', 'brassey', 'monotributo', 'afip', 'agna'],
+    'servicios': ['prepaga', 'salud', 'jubil', 'caja', 'luz', 'edemsa', 'gas', 'gasnor', 'agua', 'movistar', 'flow', 'adt', 'seguro', 'seguros', 'personal'],
+    'comercios': {
+        'combustible': ['ypf', 'shell', 'axion', 'estacion', 'petro', 'oil', 'plus', 'refinor'],
+        'carniceria': ['carniceria', 'carnicería', 'carne', 'fiambreria', 'polleria'],
+        'panaderia': ['panaderia', 'panadería', 'pan', 'factoria'],
+        'supermercado': ['supermercado', 'super', 'disco', 'coto', 'changomas', 'vea', 'jumbo', 'carrefour', 'walmart'],
+        'farmacia': ['farmacia', 'farma', 'salcobrand', 'mefar', 'deluxe'],
+        'pintureria': ['pintureria', 'pinturería', 'colibri', 'pintu'],
+        'verduleria': ['verduleria', 'verdulería', 'verduro', 'fruteria'],
+        'restaurant': ['restaurant', 'resto', 'pizza', 'burger', 'mcdonald', 'kfc', 'helado'],
+        'indumentaria': ['ropa', 'indumentaria', 'zara', 'unisport', 'nike', 'adidas'],
+        'ferreteria': ['ferreteria', 'ferretería', 'ferre'],
+        'automovil': ['gomeri', 'mecanica', 'mecánica', 'lubricentro', 'grua'],
+        'bazar': ['bazar', 'quincho', 'parrilla', 'asado'],
+        'otros': []
+    },
+    'otros': ['transf', 'familia', 'transporte', 'taxi', 'uber', 'combis', 'otros']
+}
+
+
+def cargar_comercios_json():
+    """Carga comercios_conocidos.json si existe"""
+    try:
+        ruta = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'comercios_conocidos.json')
+        if os.path.exists(ruta):
+            with open(ruta, encoding='utf-8') as f:
+                return json.load(f)
+    except Exception:
+        pass
+    return {}
+
+
+def categorizar_gasto_parser(descripcion, datos=None):
+    """Categoriza un gasto"""
+    desc_limpia = ' '.join(descripcion.split())
+    nombre_limpio = desc_limpia.split('  ')[0].split(' - ')[0].split('\t')[0].strip()
+    nombre_lower = nombre_limpio.lower()
+
+    for conocido, info in COMERCIOS_CONOCIDOS.items():
+        if info is None:
+            continue
+        if conocido in nombre_lower:
+            return info['categoria'], info['subcategoria'], info['gasto']
+
+    for categoria, keywords in CATEGORIAS_EGRESOS.items():
+        if categoria == 'comercios':
+            for subcategoria, palabras in keywords.items():
+                for palabra in palabras:
+                    if palabra in nombre_lower:
+                        return 'comercios', subcategoria, nombre_limpio.title()
+        else:
+            if isinstance(keywords, list):
+                for palabra in keywords:
+                    if palabra in nombre_lower:
+                        return categoria, categoria, nombre_limpio.title()
+
+    return 'otros', 'otros', nombre_limpio.title()
+
+
+# ====================== OCR ======================
+
+_paddle_reader = None
+
+def get_paddle_reader():
+    global _paddle_reader
+    if _paddle_reader is None:
+        try:
+            import paddleocr
+            _paddle_reader = paddleocr.PaddleOCR(use_angle_cls=True, lang='es', show_log=False)
+        except Exception:
+            return None
+    return _paddle_reader
+
+
+def imagen_a_items_paddle(archivo):
+    """Lee una imagen con PaddleOCR y retorna items ordenados"""
+    reader = get_paddle_reader()
+    if reader is None:
+        return [], "PaddleOCR no disponible"
+
+    if hasattr(archivo, 'seek'):
+        archivo.seek(0)
+    if hasattr(archivo, 'read'):
+        img_bytes = archivo.read()
+        img = Image.open(io.BytesIO(img_bytes)).convert('RGB')
+    else:
+        img = Image.open(archivo).convert('RGB')
+
+    img_array = np.array(img)
+    result = reader.ocr(img_array, cls=True)
+
+    items = []
+    if result and result[0]:
+        for line in result[0]:
+            if not line:
+                continue
+            bbox = line[0]
+            x_left = bbox[0][0]
+            x_right = bbox[2][0]
+            items.append({
+                'y': (bbox[0][1] + bbox[2][1]) / 2,
+                'x_left': x_left,
+                'x_center': (x_left + x_right) / 2,
+                'x_right': x_right,
+                'text': line[1][0].strip(),
+                'conf': line[1][1]
+            })
+
+    items.sort(key=lambda i: i['y'])
+
+    texto_debug = "\n".join(
+        f"y={it['y']:.0f} x={it['x_left']:.0f}-{it['x_right']:.0f} | {it['text']}"
+        for it in items
+    )
+
+    return items, texto_debug
+
+
+# ============================================
+# parsers/galicia_excel.py
+# ============================================
+
+"""
+Parser de Excel para Banco Galicia.
+Extrae ingresos o egresos desde archivo Excel.
+"""
+import re
+import pandas as pd
+
+
+def normalizar_fecha_galicia(fecha_raw):
+    """Normaliza fecha a formato YYYY-MM-DD"""
+    if not fecha_raw:
+        return ''
+    
+    fecha_str = str(fecha_raw).strip()
+    
+    # Formato DD/MM/YYYY o DD-MM-YYYY
+    m = re.match(r'(\d{2})[/-](\d{2})[/-](\d{4})', fecha_str)
+    if m:
+        return f"{m.group(3)}-{m.group(2)}-{m.group(1)}"
+    
+    # Formato YYYY-MM-DD (ya normalizado)
+    if re.match(r'\d{4}-\d{2}-\d{2}', fecha_str):
+        return fecha_str[:10]
+    
+    # Pandas Timestamp
+    if hasattr(fecha_raw, 'strftime'):
+        return fecha_raw.strftime('%Y-%m-%d')
+    
+    return fecha_str[:10]
+
+
+def convertir_monto_argentino(valor):
+    """Convierte monto formato argentino a float: 260.000,00 -> 260000.00"""
+    if pd.isna(valor):
+        return 0.0
+    if isinstance(valor, (int, float)):
+        return float(valor)
+
+    valor_str = str(valor).strip()
+    if not valor_str:
+        return 0.0
+
+    valor_str = valor_str.replace(' ', '')
+    valor_limpio = valor_str.replace('.', '').replace(',', '.')
+    try:
+        return float(valor_limpio)
+    except:
+        return 0.0
+
+
+def detectar_categoria_ingreso(descripcion):
+    desc_lower = descripcion.lower()
+
+    categorias = {
+        'sueldo': ['sueldo', 'haberes', 'neto', 'remuneración', 'salario', 'nómina'],
+        'alquiler': ['alquiler', 'renta', 'inquilino', 'cobro alquiler'],
+        'intereses': ['interés', 'interes', 'rendimiento', 'ganancia', 'fondo mutuo', 'capitalizado'],
+        'inversion': ['dividendo', 'acción', 'bono', 'plazo fijo', 'valorización'],
+        'transferencia': ['transferencia', 'depósito', 'deposito', 'entrada', 'recibido'],
+        'otro': [],
+    }
+
+    for cat, palabras in categorias.items():
+        for palabra in palabras:
+            if palabra in desc_lower:
+                return cat
+    return 'otro'
+
+
+def extraer_movimientos_galicia_excel(archivo):
+    """Extrae INGRESOS desde un Excel de Banco Galicia."""
+    movimientos = []
+
+    try:
+        df = pd.read_excel(archivo, sheet_name=0, header=5)
+        columnas = df.columns.tolist()
+
+        col_fecha = None
+        col_mov = None
+        col_credito = None
+
+        for col in columnas:
+            col_lower = col.lower() if isinstance(col, str) else ''
+            if 'fecha' in col_lower:
+                col_fecha = col
+            elif 'movimiento' in col_lower:
+                col_mov = col
+            elif 'crédito' in col_lower or 'credito' in col_lower:
+                col_credito = col
+
+        if col_credito:
+            for _, row in df.iterrows():
+                monto = convertir_monto_argentino(row.get(col_credito, 0))
+
+                if monto > 0:
+                    fecha_raw = row.get(col_fecha, '') if col_fecha else ''
+                    fecha_val = normalizar_fecha_galicia(fecha_raw)
+                    desc_val = str(row.get(col_mov, '')).strip() if col_mov else ''
+                    desc_val = ' '.join(desc_val.split())
+
+                    categoria = detectar_categoria_ingreso(desc_val)
+
+                    movimientos.append({
+                        'fecha': fecha_val,
+                        'descripcion': desc_val[:200],
+                        'monto': monto,
+                        'monto_ars': None,
+                        'banco': 'galicia',
+                        'categoria': categoria,
+                        'tasas': None
+                    })
+
+        return movimientos
+
+    except Exception as e:
+        print(f"Error al leer Excel Galicia (ingresos): {e}")
+        import traceback
+        traceback.print_exc()
+        return []
+
+
+def extraer_egresos_galicia_excel(archivo, categorizar_gasto_fn=None, datos=None,
+                                  owner='Gustavo', medio_pago='Banco Galicia', generar_id_fn=None):
+    """Extrae EGRESOS desde un Excel de Banco Galicia."""
+    egresos = []
+
+    try:
+        df = pd.read_excel(archivo, sheet_name=0, header=5)
+        columnas = df.columns.tolist()
+
+        col_fecha = None
+        col_mov = None
+        col_debito = None
+
+        for col in columnas:
+            col_lower = col.lower() if isinstance(col, str) else ''
+            if 'fecha' in col_lower:
+                col_fecha = col
+            elif 'movimiento' in col_lower:
+                col_mov = col
+            elif 'débito' in col_lower or 'debito' in col_lower:
+                col_debito = col
+
+        if not col_debito:
+            return []
+
+        for _, row in df.iterrows():
+            monto = convertir_monto_argentino(row.get(col_debito, 0))
+
+            if monto >= 0:
+                continue
+
+            fecha_raw = row.get(col_fecha, '') if col_fecha else ''
+            fecha_val = normalizar_fecha_galicia(fecha_raw)
+            desc_val = str(row.get(col_mov, '')).strip() if col_mov else ''
+            desc_val = ' '.join(desc_val.split())
+
+            if not desc_val:
+                continue
+
+            monto_abs = abs(monto)
+
+            if categorizar_gasto_fn:
+                categoria, subcategoria, gasto_final = categorizar_gasto_fn(desc_val, datos)
+            else:
+                categoria, subcategoria, gasto_final = 'otros', 'otros', desc_val[:200]
+
+            egreso = {
+                'fecha': fecha_val if fecha_val else '',
+                'gasto': gasto_final,
+                'monto': monto_abs,
+                'moneda': 'ARS',
+                'fuente': 'Galicia Excel',
+                'categoria': categoria,
+                'subcategoria': subcategoria,
+                'owner': owner,
+                'medio_pago': medio_pago,
+                'u_id': generar_id_fn() if generar_id_fn else None
+            }
+
+            egresos.append(egreso)
+
+        return egresos
+
+    except Exception as e:
+        print(f"Error al leer Excel Galicia (egresos): {e}")
+        import traceback
+        traceback.print_exc()
+        return []
+
+
+# ============================================
+# parsers/icbc.py
+# ============================================
+
+"""
+Parser para screenshots de app ICBC Argentina.
+Formato actual 2026:
+    LÍNEA 1: DESCRIPCIÓN                  $ -MONTO
+    LÍNEA 2: DD-Mes-AAAA
+"""
+import re
+import time
+import random
+import io
+import numpy as np
+from PIL import Image
+from parsers.base import (
+    imagen_a_items_paddle,
+    categorizar_gasto_parser,
+    generar_id,
+    cargar_comercios_json,
+    COMERCIOS_CONOCIDOS
+)
+
+
+def parsear_monto_icbc(texto):
+    """
+    Ejemplos:
+      $ -42.386,74
+      $ -4.981,49
+      $ 6,60
+    """
+    s = texto.strip()
+    s = s.replace('$', '').replace('-', '').strip()
+
+    if ',' in s:
+        s = s.replace('.', '').replace(',', '.')
+    else:
+        parts = s.rsplit('.', 1)
+        if len(parts) == 2 and len(parts[1]) == 2:
+            pass
+        else:
+            s = s.replace('.', '')
+
+    try:
+        return abs(float(s))
+    except (ValueError, TypeError):
+        return 0.0
+
+
+def parsear_fecha_icbc(texto):
+    """
+    Ejemplo:
+      20-Feb-2026
+    Devuelve:
+      2026-02-20
+    """
+    m = re.match(r'(\d{1,2})-([A-Za-z]{3})-(\d{4})', texto.strip())
+    if not m:
+        return ''
+
+    dia = int(m.group(1))
+    mes_str = m.group(2)
+    anio = int(m.group(3))
+
+    meses = {
+        'Ene': '01', 'Feb': '02', 'Mar': '03', 'Abr': '04',
+        'May': '05', 'Jun': '06', 'Jul': '07', 'Ago': '08',
+        'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dic': '12',
+    }
+
+    mes_num = meses.get(mes_str.title()[:3])
+    if mes_num is None:
+        return ''
+    if not (1 <= dia <= 31 and 2020 <= anio <= 2030):
+        return ''
+
+    return f"{anio}-{mes_num}-{dia:02d}"
+
+
+def procesar_icbc(archivo, owner, medio_pago, datos):
+    """
+    Procesa screenshot de app ICBC Argentina.
+
+    Args:
+        archivo: imagen
+        owner: Gustavo/Vero/etc
+        medio_pago: medio seleccionado
+        datos: datos app
+
+    Returns:
+        tuple: (gastos, texto_debug, error)
+    """
+    items, texto_debug = imagen_a_items_paddle(archivo)
+
+    if not items:
+        return [], texto_debug, "No se pudo leer la imagen"
+
+    comercios_json = cargar_comercios_json()
+    gastos = []
+
+    lineas_monto = []
+    for idx, item in enumerate(items):
+        texto = item['text']
+
+        if '$' not in texto:
+            continue
+        
+        # Verificar si es monto negativo (egreso) o positivo (ingreso)
+        if '-' not in texto:
+            # Monto positivo = ingreso, skip
+            continue
+
+        monto = parsear_monto_icbc(texto)
+        if monto <= 0:
+            continue
+
+        lineas_monto.append((idx, item, monto))
+
+    for idx_monto, item_monto, monto in lineas_monto:
+        y_monto = item_monto['y']
+
+        descripcion = ''
+        for it in items:
+            dist_y = abs(it['y'] - y_monto)
+
+            if dist_y < 15:
+                if it['x_right'] < item_monto['x_left']:
+                    t = it['text'].strip()
+                    if '$' not in t and len(t) > 2:
+                        descripcion = t
+
+        if not descripcion:
+            if idx_monto > 0:
+                it_arriba = items[idx_monto - 1]
+                t = it_arriba['text'].strip()
+                if '$' not in t and len(t) > 2:
+                    descripcion = t
+
+        fecha = ''
+        if idx_monto + 1 < len(items):
+            item_debajo = items[idx_monto + 1]
+            fecha = parsear_fecha_icbc(item_debajo['text'])
+
+        if not descripcion or len(descripcion) < 2:
+            continue
+        if not fecha:
+            continue
+
+        dlow = descripcion.lower()
+        if any(kw in dlow for kw in ['liquidacion', 'reintegro', 'acreditacion', 'credito', 'transferencia push']):
+            continue
+
+        if monto < 1.0:
+            continue
+
+        if any(x in dlow for x in ['cuentas', 'movimientos', 'saldo', 'disponible']):
+            continue
+
+        if 'spotify' in dlow or 'dlocal spotify' in dlow:
+            cat, subcat, g = 'servicios', 'suscripciones', 'Spotify'
+        elif 'arca' in dlow or 'pago arca' in dlow:
+            cat, subcat, g = 'impuestos', 'impuestos', 'Monotributo'
+        elif (
+            'iva' in dlow
+            or 'impuesto al valor' in dlow
+            or 'impuesto al valor agregado' in dlow
+        ):
+            cat, subcat, g = 'impuestos', 'impuestos', 'IVA'
+        elif 'operaciones banel' in dlow:
+            cat, subcat, g = 'servicios', 'bancos', 'Operaciones Bancarias'
+        elif 'debito inmediato' in dlow:
+            cat, subcat, g = 'otros', 'otros', 'Débito Inmediato'
+        elif 'com rechazo' in dlow or 'rechazo deb' in dlow:
+            cat, subcat, g = 'servicios', 'bancos', 'Comisión Rechazo Débito'
+        elif 'transf. mobile' in dlow or 'transf mobile' in dlow:
+            cat, subcat, g = 'otros', 'otros', 'Transferencia Mobile'
+        elif 'sancor' in dlow:
+            cat, subcat, g = 'servicios', 'seguros', 'Sancor Seguros'
+        elif 'polibot' in dlow:
+            cat, subcat, g = 'comercios', 'indumentaria', 'Polibot'
+        elif 'havanna' in dlow:
+            cat, subcat, g = 'comercios', 'restaurant', 'Havanna'
+        elif 'federacion' in dlow or 'pago federacion' in dlow:
+            cat, subcat, g = 'servicios', 'seguros', 'Federación Patronal'
+        elif 'prev.seg' in dlow or 'pago prev.seg' in dlow:
+            cat, subcat, g = 'servicios', 'seguros', 'Previsión Seguros'
+        elif 'iva serv' in dlow:
+            cat, subcat, g = 'impuestos', 'impuestos', 'IVA Servicios Digitales'
+        elif 'percepcion' in dlow:
+            cat, subcat, g = 'impuestos', 'impuestos', 'Percepción'
+        elif 'netflix' in dlow or 'cpa. netflix' in dlow:
+            cat, subcat, g = 'servicios', 'suscripciones', 'Netflix'
+        elif 'herrero' in dlow:
+            cat, subcat, g = 'comercios', 'otros', 'Herrero SRL'
+        else:
+            mk = next((k for k in comercios_json if k.lower() in dlow), None)
+            if mk:
+                cat = comercios_json[mk]['categoria']
+                subcat = comercios_json[mk]['subcategoria']
+                g = comercios_json[mk]['gasto']
+            else:
+                cat, subcat, g = categorizar_gasto_parser(descripcion, datos)
+
+        gastos.append({
+            'fecha': fecha,
+            'gasto': g,
+            'monto': monto,
+            'moneda': 'ARS',
+            'fuente': 'ICBC JPG',
+            'categoria': cat,
+            'subcategoria': subcat,
+            'owner': owner or 'Vero',
+            'medio_pago': medio_pago or 'ICBC',
+            'u_id': generar_id()
+        })
+
+    if not gastos:
+        return [], texto_debug, "No se detectaron gastos"
+
+    return gastos, texto_debug, None
+
+
+# ============================================
+# parsers/bybit_qr.py
+# ============================================
+
+"""
+Parser para screenshots de historial QR de Bybit.
+SOLO captura pagos con estado "Correcto".
+"""
+import re
+import time
+import random
+import io
+import numpy as np
+from PIL import Image
+
+
+def generar_id():
+    ts = int(time.time() * 1000)
+    rnd = ''.join(random.choice('0123456789abcdef') for _ in range(6))
+    return f"ts_{ts}_{rnd}"
+
+
+def get_paddle_reader():
+    try:
+        import paddleocr
+        return paddleocr.PaddleOCR(use_angle_cls=True, lang='es', show_log=False)
+    except ImportError:
+        return None
+
+
+def parsear_monto_qr(texto):
+    s = texto.strip().upper().replace('ARS', '').strip()
+    s = s.replace(',', '')
+    try:
+        return float(s)
+    except:
+        return 0.0
+
+
+def extraer_fecha_qr(texto):
+    m = re.search(r'(\d{4}-\d{2}-\d{2})\s*(\d{2}:\d{2}:\d{2})?', texto)
+    if m:
+        return m.group(1), m.group(2) if m.group(2) else ''
+    return '', ''
+
+
+def es_linea_monto_ars(texto):
+    t = texto.upper()
+    if 'RECIBIR' in t:
+        return False
+    return 'ARS' in t and bool(re.search(r'[\d,.]+\s*ARS', t))
+
+
+def es_linea_fecha(texto):
+    t = texto.strip().lower()
+    return ('pago con qr' in t or 'enviar' in t) and bool(re.search(r'\d{4}-\d{2}-\d{2}', t))
+
+
+def es_estado_correcto(texto):
+    t = texto.strip().lower()
+    return 'correcto' in t or 'completado' in t or 'aprobado' in t
+
+
+def es_estado_error(texto):
+    t = texto.strip().lower()
+    return any(x in t for x in ['error', 'tiempo de espera', 'pendiente', 'rechazado', 'fallido'])
+
+
+def limpiar_nombre(nombre):
+    if not nombre:
+        return ''
+    return re.sub(r'\s+', ' ', nombre.strip())
+
+
+def procesar_bybit_qr(archivo, owner, medio_pago, datos, categorizar_fn=None):
+    reader = get_paddle_reader()
+    if reader is None:
+        return [], "", "PaddleOCR no disponible"
+
+    try:
+        if hasattr(archivo, 'seek'):
+            archivo.seek(0)
+        if hasattr(archivo, 'read'):
+            img_bytes = archivo.read()
+            img = Image.open(io.BytesIO(img_bytes)).convert('RGB')
+        else:
+            img = Image.open(archivo).convert('RGB')
+
+        img_array = np.array(img)
+        result = reader.ocr(img_array, cls=True)
+
+        items = []
+        if result and result[0]:
+            for line in result[0]:
+                if not line:
+                    continue
+                bbox = line[0]
+                x_left = bbox[0][0]
+                x_right = bbox[2][0]
+                y = (bbox[0][1] + bbox[2][1]) / 2
+                text = line[1][0].strip()
+                items.append({'y': y, 'x_left': x_left, 'x_right': x_right, 'text': text})
+
+        items.sort(key=lambda i: i['y'])
+
+        texto_debug = "\n".join(f"y={it['y']:.0f} | {it['text']}" for it in items)
+
+        if not items:
+            return [], texto_debug, "No se detectó texto"
+
+        gastos = []
+        procesados_y = set()
+
+        for i, item in enumerate(items):
+            texto = item['text']
+
+            if not es_linea_monto_rs(texto):
+                continue
+            if item['y'] in procesados_y:
+                continue
+
+            monto = parsear_monto_qr(texto)
+            if monto <= 0:
+                continue
+
+            y_monto = item['y']
+            x_monto = item['x_left']
+            procesados_y.add(y_monto)
+
+            # 1. VALIDAR ESTADO - Rango 150px
+            estado_correcto = False
+            estado_error = False
+            hora_transaccion = ''
+            dist_correcto = 999
+            dist_error = 999
+            
+            for it in items:
+                dist_y = it['y'] - y_monto
+                if 0 < dist_y < 150:
+                    texto_it = it['text'].strip()
+                    texto_lower = texto_it.lower()
+                    
+                    if es_estado_correcto(texto_lower):
+                        estado_correcto = True
+                        dist_correcto = dist_y
+                    
+                    if es_estado_error(texto_lower):
+                        estado_error = True
+                        dist_error = dist_y
+                    
+                    _, hora = extraer_fecha_qr(texto_it)
+                    if hora:
+                        hora_transaccion = hora
+            
+            # Si encontró ambos estados, el más cercano al monto gana
+            if estado_correcto and estado_error:
+                if dist_correcto < dist_error:
+                    estado_error = False
+                else:
+                    estado_correcto = False
+            
+            if estado_error or not estado_correcto:
+                continue
+
+            # 2. BUSCAR NOMBRE - Inicializar SIEMPRE
+            nombre = ''
+            
+            for it in items:
+                if abs(it['y'] - y_monto) < 18:
+                    if it['x_left'] < x_monto:
+                        t = it['text'].strip().lower()
+                        if len(t) > 1 and 'usdt' not in t and 'recibir' not in t and 'enviar' not in t:
+                            nombre = it['text'].strip()
+                            break
+
+            if not nombre:
+                for it in items:
+                    dist = y_monto - it['y']
+                    if 0 < dist < 25:
+                        t = it['text'].strip().lower()
+                        if len(t) > 2 and 'usdt' not in t and 'recibir' not in t and 'enviar' not in t and 'correcto' not in t and 'error' not in t:
+                            nombre = it['text'].strip()
+                            break
+
+            # 3. BUSCAR FECHA
+            fecha_completa = ''
+            for it in items:
+                dist_y = it['y'] - y_monto
+                if 5 < dist_y < 150:
+                    if es_linea_fecha(it['text']):
+                        fecha, hora = extraer_fecha_qr(it['text'])
+                        if fecha:
+                            fecha_completa = fecha
+                            if hora and not hora_transaccion:
+                                hora_transaccion = hora
+                        break
+
+            # 4. VALIDACIONES FINALES
+            nombre = limpiar_nombre(nombre)
+
+            if not nombre or len(nombre) < 2:
+                continue
+            if not fecha_completa:
+                continue
+
+            nlow = nombre.lower()
+            if any(x in nlow for x in ['historial de pagos', 'todos los tipos', 'todos los estados', 'fecha', 'pagado']):
+                continue
+
+            # 5. CATEGORIZAR
+            if categorizar_fn:
+                cat, subcat, gasto_final = categorizar_fn(nombre, datos)
+            else:
+                cat, subcat, gasto_final = 'otros', 'otros', nombre.title()
+
+            unique_id = f"{fecha_completa}_{hora_transaccion}_{nombre}_{monto}"
+            
+            gastos.append({
+                'fecha': f"{fecha_completa} {hora_transaccion}" if hora_transaccion else fecha_completa,
+                'gasto': gasto_final,
+                'monto': monto,
+                'moneda': 'ARS',
+                'fuente': 'Bybit QR',
+                'categoria': cat,
+                'subcategoria': subcat,
+                'owner': owner,
+                'medio_pago': medio_pago or 'QR Bybit',
+                'u_id': generar_id(),
+                '_unique_key': unique_id
+            })
+
+        # 6. DEDUPLICAR
+        seen = set()
+        gastos_dedup = []
+        for g in gastos:
+            key = g.get('_unique_key', '')
+            if key not in seen:
+                seen.add(key)
+                g.pop('_unique_key', None)
+                gastos_dedup.append(g)
+
+        if not gastos_dedup:
+            return [], texto_debug, "No se detectaron gastos QR"
+
+        return gastos_dedup, texto_debug, None
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return [], "", f"Error: {str(e)}"
+
+
+# ============================================
+# parsers/bybit_tarjeta.py
+# ============================================
+
+"""
+Parser para screenshots de Bybit Tarjeta Prepaga.
+
+Formato del ticket:
+    Comercio                    - MONTO ARS
+    con **** NNNN                      Pago
+    YYYY-MM-DD HH:MM:SS
+"""
+import re
+import time
+import random
+import numpy as np
+from PIL import Image
+import io
+
+
+def generar_id():
+    ts = int(time.time() * 1000)
+    rnd = ''.join(random.choice('0123456789abcdef') for _ in range(6))
+    return f"ts_{ts}_{rnd}"
+
+
+def get_paddle_reader():
+    try:
+        import paddleocr
+        return paddleocr.PaddleOCR(use_angle_cls=True, lang='es', show_log=False)
+    except ImportError:
+        return None
+
+
+def parsear_monto_bybit(texto_monto):
+    """Parsea montos Bybit: '- 6.999,93 ARS' o '468,50 ARS'"""
+    s = texto_monto.strip()
+    s = s.replace('ARS', '').replace('-', '').strip()
+    
+    if ',' in s:
+        s = s.replace('.', '').replace(',', '.')
+    else:
+        parts = s.rsplit('.', 1)
+        if len(parts) == 2 and len(parts[1]) == 2:
+            pass
+        else:
+            s = s.replace('.', '')
+    
+    try:
+        return abs(float(s))
+    except (ValueError, TypeError):
+        return 0.0
+
+
+def extraer_fecha_bybit(texto):
+    """Extrae fecha de múltiples formatos Bybit"""
+    # Formato: 2026-03-14 14:01:05
+    m = re.search(r'(\d{4})-(\d{2})-(\d{2})\s+\d{2}[:.]\d{2}', texto)
+    if m:
+        return f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
+    
+    # Formato: 2026-03-14 (sin hora)
+    m = re.search(r'(\d{4})-(\d{2})-(\d{2})', texto)
+    if m:
+        return m.group(0)
+    
+    # Formato: 2026.03.14
+    m = re.search(r'(\d{4})\.(\d{2})\.(\d{2})', texto)
+    if m:
+        return f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
+    
+    # Formato compacto: 20260314
+    m = re.search(r'(\d{4})(\d{2})(\d{2})\s+\d{2}', texto)
+    if m:
+        year, month, day = m.group(1), m.group(2), m.group(3)
+        if 2020 <= int(year) <= 2030 and 1 <= int(month) <= 12 and 1 <= int(day) <= 31:
+            return f"{year}-{month}-{day}"
+    
+    return ''
+
+
+def es_linea_estado(texto):
+    """Detecta estados de pago exitoso"""
+    t = texto.strip().lower()
+    if 'correcto' in t or 'completed' in t or 'completado' in t or 'aprobado' in t:
+        return True
+    return False
+
+
+def es_linea_estado_error(texto):
+    """Detecta estados de error o pendiente"""
+    t = texto.strip().lower()
+    if 'error' in t:
+        return True
+    if 'tiempo de espera' in t:
+        return True
+    if 'pendiente' in t:
+        return True
+    if 'rechazado' in t:
+        return True
+    if 'fallido' in t:
+        return True
+    return False
+
+
+def limpiar_nombre_comercio(nombre):
+    """Limpia nombres de comercio del formato Bybit. 
+    Retorna (nombre_limpio, nombre_para_categorizar)"""
+    nombre = nombre.strip()
+    
+    if 'MERPAGO' in nombre.upper():
+        return 'Estacionamiento Tránsito Rosario', 'merpago*tran'
+    
+    nombre = re.sub(r'[*]+', '', nombre)
+    nombre = re.sub(r'\.{3,}', '', nombre)
+    nombre = nombre.strip(' -.*')
+    
+    return nombre, nombre
+
+
+def procesar_bybit_tarjeta(archivo, owner, medio_pago, datos, categorizar_fn=None):
+    """
+    Procesa screenshot de Bybit Tarjeta Prepaga.
+    
+    Args:
+        archivo: archivo subido (st.UploadedFile)
+        owner: string con el owner
+        medio_pago: string con el medio de pago
+        datos: diccionario de datos de la app
+        categorizar_fn: función categorizar_gasto de app.py
+    
+    Returns:
+        tuple: (lista_gastos, texto_debug, mensaje_error)
+    """
+    reader = get_paddle_reader()
+    if reader is None:
+        return [], "", "PaddleOCR no disponible"
+    
+    try:
+        if hasattr(archivo, 'seek'):
+            archivo.seek(0)
+        if hasattr(archivo, 'read'):
+            img_bytes = archivo.read()
+            img = Image.open(io.BytesIO(img_bytes)).convert('RGB')
+        else:
+            img = Image.open(archivo).convert('RGB')
+        
+        img_array = np.array(img)
+        result = reader.ocr(img_array, cls=True)
+        
+        items = []
+        if result and result[0]:
+            for line in result[0]:
+                if not line:
+                    continue
+                bbox = line[0]
+                x_left = bbox[0][0]
+                x_right = bbox[2][0]
+                items.append({
+                    'y': (bbox[0][1] + bbox[2][1]) / 2,
+                    'x_left': x_left,
+                    'x_center': (x_left + x_right) / 2,
+                    'x_right': x_right,
+                    'text': line[1][0].strip(),
+                    'conf': line[1][1]
+                })
+        
+        items.sort(key=lambda i: i['y'])
+        
+        texto_debug = "\n".join(
+            f"y={it['y']:.0f} x={it['x_left']:.0f}-{it['x_right']:.0f} | {it['text']}"
+            for it in items
+        )
+        
+        if not items:
+            return [], texto_debug, "No se detectó texto en la imagen"
+        
+        gastos = []
+        lineas_ars = []
+        
+        for idx, it in enumerate(items):
+            if 'ARS' in it['text'].upper():
+                lineas_ars.append((idx, it))
+        
+        for ars_idx, ars_item in lineas_ars:
+            monto = parsear_monto_bybit(ars_item['text'])
+            if monto < 1:
+                continue
+            
+            y_ars = ars_item['y']
+            nombre_comercio = ''
+            fecha_gasto = ''
+            
+            for it in items:
+                dist_y = abs(it['y'] - y_ars)
+                
+                if dist_y < 20:
+                    texto_it = it['text'].strip()
+                    texto_lower = texto_it.lower()
+                    
+                    es_monto = 'ARS' in texto_it.upper()
+                    es_pago = texto_it.lower() == 'pago'
+                    es_tarjeta = '****' in texto_it
+                    es_fecha = bool(re.match(r'^\d{4}-\d{2}-\d{2}', texto_it))
+                    es_basura = texto_it.lower() in ['con', '-', 'or', 'qr']
+                    es_recibir = 'recibir' in texto_lower
+                    
+                    if not any([es_monto, es_pago, es_tarjeta, es_fecha, es_basura, es_recibir]):
+                        if it['x_left'] < ars_item['x_left'] and len(texto_it) > 1:
+                            nombre_comercio = texto_it
+            
+            # Buscar fecha: asociada a este gasto
+            # La fecha está DEBAJO del nombre/monto, generalmente 2-3 líneas después
+            # Puede estar bastante lejos en Y (hasta 150px)
+            fecha_gasto = ''
+            
+            # Estrategia 1: buscar fecha debajo del monto (Y mayor)
+            mejor_fecha = ''
+            menor_distancia = 999
+            for it in items:
+                dist_y = it['y'] - y_ars  # Solo buscar DEBAJO
+                if 5 < dist_y < 150:
+                    fecha_encontrada = extraer_fecha_bybit(it['text'])
+                    if fecha_encontrada and dist_y < menor_distancia:
+                        mejor_fecha = fecha_encontrada
+                        menor_distancia = dist_y
+            
+            # Estrategia 2: si no encontró, buscar ARRIBA también
+            if not mejor_fecha:
+                for it in items:
+                    dist_y = abs(it['y'] - y_ars)
+                    if 5 < dist_y < 150:
+                        fecha_encontrada = extraer_fecha_bybit(it['text'])
+                        if fecha_encontrada and dist_y < menor_distancia:
+                            mejor_fecha = fecha_encontrada
+                            menor_distancia = dist_y
+            
+            # Estrategia 3: buscar texto con formato fecha+hora
+            if not mejor_fecha:
+                for it in items:
+                    dist_y = abs(it['y'] - y_ars)
+                    if dist_y < 200:
+                        m = re.search(r'(\d{4})[.-](\d{2})[.-](\d{2})\s+\d{2}[:.]\d{2}', it['text'])
+                        if m:
+                            mejor_fecha = f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
+                            break
+            
+            fecha_gasto = mejor_fecha
+            
+            # Validar estado del pago
+            estado_valido = True
+            for it in items:
+                dist_y = it['y'] - y_ars
+                if 5 < dist_y < 150:
+                    if es_linea_estado_error(it['text']):
+                        estado_valido = False
+                        break
+            
+            if not estado_valido:
+                continue
+            
+            if not nombre_comercio or len(nombre_comercio) < 2:
+                continue
+            
+            # Si no tiene fecha válida, NO cargar
+            if not fecha_gasto:
+                continue
+            
+            nombre_lower = nombre_comercio.lower()
+            if any(ig in nombre_lower for ig in ['historial', 'correcto', 'total', 'saldo', 'disponible']):
+                continue
+            
+            nombre_limpio, nombre_categorizar = limpiar_nombre_comercio(nombre_comercio)
+            
+            if categorizar_fn:
+                cat, subcat, gasto_final = categorizar_fn(nombre_categorizar, datos)
+                if cat == 'otros':
+                    cat, subcat, gasto_final = categorizar_fn(nombre_limpio, datos)
+                if gasto_final == nombre_categorizar.title():
+                    gasto_final = nombre_limpio
+            else:
+                cat, subcat, gasto_final = 'otros', 'otros', nombre_limpio.title()
+            
+            gastos.append({
+                'fecha': fecha_gasto,
+                'gasto': gasto_final,
+                'monto': monto,
+                'moneda': 'ARS',
+                'fuente': 'Bybit Tarjeta',
+                'categoria': cat,
+                'subcategoria': subcat,
+                'owner': owner,
+                'medio_pago': medio_pago or 'Tarjeta Prepaga Bybit',
+                'u_id': generar_id()
+            })
+        
+        seen = set()
+        gastos_dedup = []
+        for g in gastos:
+            key = (g['gasto'].lower()[:10], round(g['monto'], 2))
+            if key not in seen:
+                seen.add(key)
+                gastos_dedup.append(g)
+        
+        # Debug extra: mostrar fechas encontradas
+        fechas_debug = []
+        for it in items:
+            fecha_test = extraer_fecha_bybit(it['text'])
+            if fecha_test:
+                fechas_debug.append(f"y={it['y']:.0f} | {it['text']} -> {fecha_test}")
+        
+        if fechas_debug:
+            texto_debug += "\n\n=== FECHAS DETECTADAS ===\n"
+            texto_debug += "\n".join(fechas_debug)
+        else:
+            texto_debug += "\n\n=== NO SE DETECTARON FECHAS ==="
+        
+        if not gastos_dedup:
+            return [], texto_debug, "No se detectaron gastos"
+        
+        return gastos_dedup, texto_debug, None
+    
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return [], "", f"Error procesando Bybit Tarjeta: {str(e)}"
+
+
+# ============================================
+# parsers/binance_qr.py
+# ============================================
+
+"""
+Parser para historial QR de Binance.
+Formato:
+    NOMBRE (1 o 2 líneas)     -MONTO ARS
+    etiqueta opcional         (Descontado)
+    FECHA HORA
+    estado                    (Completado)
+"""
+import re
+from parsers.base import (
+    imagen_a_items_paddle,
+    categorizar_gasto_parser,
+    generar_id,
+)
+
+
+def parsear_monto_binance(texto):
+    """
+    Ejemplos:
+      -713,314 ARS
+      -158,883.63 ARS
+      -155,381.05 ARS
+      -33,524 ARS
+    """
+    t = texto.strip().upper()
+    if 'ARS' not in t:
+        return 0.0
+
+    m = re.search(r'-\s*([\d,\.]+)\s*ARS', t)
+    if not m:
+        m = re.search(r'([\d,\.]+)\s*ARS', t)
+        if not m:
+            return 0.0
+        negativo = False
+    else:
+        negativo = True
+
+    s = m.group(1)
+
+    if ',' in s and '.' in s:
+        s = s.replace(',', '')
+    elif ',' in s and '.' not in s:
+        s = s.replace(',', '')
+    elif '.' in s and ',' not in s:
+        parts = s.rsplit('.', 1)
+        if len(parts) == 2 and len(parts[1]) == 2:
+            pass
+        else:
+            s = s.replace('.', '')
+
+    try:
+        val = float(s)
+        return -val if negativo else val
+    except:
+        return 0.0
+
+
+def parsear_fecha_binance(texto):
+    m = re.search(r'(\d{4}-\d{2}-\d{2})\s+\d{2}:\d{2}:\d{2}', texto.strip())
+    if m:
+        return m.group(1)
+
+    m = re.search(r'(\d{4}-\d{2}-\d{2})', texto.strip())
+    if m:
+        return m.group(1)
+
+    return ''
+
+
+def es_linea_monto(texto):
+    t = texto.upper()
+    # Rechazar ingresos (Recibir = money coming IN)
+    if 'RECIBIR' in t:
+        return False
+    return 'ARS' in t and bool(re.search(r'[\d,\.]+', texto))
+
+
+def es_linea_monto_usdt(texto):
+    t = texto.strip().upper()
+    return 'USDT' in t and bool(re.search(r'[\d,\.]+', texto))
+
+
+def es_linea_fecha(texto):
+    return bool(parsear_fecha_binance(texto))
+
+
+def es_linea_estado_valido(texto):
+    """Detecta estados de pago EXITOSO"""
+    t = texto.strip().lower()
+    return 'correcto' in t or 'completed' in t or 'aprobado' in t
+
+
+def es_linea_estado_error(texto):
+    """Detecta estados de error o pendiente"""
+    t = texto.strip().lower()
+    return any(x in t for x in ['error', 'tiempo de espera', 'pendiente', 'rechazado', 'fallido'])
+
+
+def es_linea_etiqueta(texto):
+    t = texto.strip().lower()
+    return 'descontado' in t or 'discounted' in t
+
+
+def procesar_binance_qr(archivo, owner, medio_pago, datos, categorizar_gasto_fn=None):
+    items, texto_debug = imagen_a_items_paddle(archivo)
+
+    if not items:
+        return [], texto_debug, "No se pudo leer la imagen"
+
+    gastos = []
+
+    for idx, item in enumerate(items):
+        texto = item['text'].strip()
+        if not es_linea_monto(texto):
+            continue
+
+        monto = parsear_monto_binance(texto)
+        if monto >= 0:
+            continue
+
+        y_monto = item['y']
+        x_monto = item['x_left']
+
+        nombre_partes = []
+        for it in items:
+            if it['x_right'] < x_monto:
+                # mismo bloque vertical
+                if -30 <= (it['y'] - y_monto) <= 65:
+                    t = it['text'].strip()
+                    tlow = t.lower()
+                    # Ignorar líneas USDT, montos, estados, fechas, envíos, ingresos
+                    if (not es_linea_fecha(t) 
+                        and not es_linea_estado_valido(t) 
+                        and not es_linea_etiqueta(t) 
+                        and not es_linea_monto(t)
+                        and not es_linea_monto_usdt(t)
+                        and 'usdt' not in tlow
+                        and 'enviar' not in tlow
+                        and 'recibir' not in tlow
+                        and 'tiempo de espera' not in tlow
+                        and len(t) > 1):
+                        nombre_partes.append((it['y'], t))
+
+        nombre_partes = sorted(nombre_partes, key=lambda x: x[0])
+
+        # Unir líneas del mismo nombre
+        nombre = ' '.join([p[1] for p in nombre_partes]).strip()
+        nombre = re.sub(r'\s+', ' ', nombre).strip()
+
+        # Normalizaciones específicas OCR Binance
+        nombre_upper = nombre.upper().strip()
+        
+        # Unir "CAJA DE PREVISION" + "SOCIAL" si están separados
+        if 'CAJA DE PREVISION' in nombre_upper:
+            nombre = 'Caja de Prevision Social'
+        elif nombre_upper in ['SOCIAL', 'SOC']:
+            # "SOCIAL" suelto = probablemente segunda línea de "CAJA DE PREVISION SOCIAL"
+            nombre = 'Caja de Prevision Social'
+
+        # Buscar fecha y validar estado
+        fecha = ''
+        estado_ok = False
+        tiene_error = False
+        es_ingreso = False
+        
+        for it in items:
+            dist_y = it['y'] - y_monto
+            if 10 <= dist_y <= 100:
+                texto_it = it['text'].strip()
+                tlow = texto_it.lower()
+                
+                # Detectar si es ingreso (Recibir)
+                if 'recibir' in tlow:
+                    es_ingreso = True
+                
+                # Detectar fecha
+                if es_linea_fecha(texto_it):
+                    fecha = parsear_fecha_binance(texto_it)
+                
+                # Detectar estado válido
+                if es_linea_estado_valido(texto_it):
+                    estado_ok = True
+                
+                # Detectar error (esto invalida el pago inmediatamente)
+                if es_linea_estado_error(texto_it):
+                    tiene_error = True
+                    break
+        
+        # Descartar si es ingreso, tiene error, o no tiene estado válido
+        if es_ingreso or tiene_error or not estado_ok:
+            continue
+
+        if not nombre or len(nombre) < 2:
+            continue
+        if not fecha:
+            continue
+
+        # Evitar nombres parciales / basura
+        nombre_lower = nombre.lower().strip()
+        if nombre_lower in ['completado', 'descontado', 'enviar', 'tiempo de espera']:
+            continue
+
+        nombre_lower = nombre.lower().strip()
+        if 'caja de prevision social' in nombre_lower:
+            if abs(monto) > 500000:
+                cat, subcat, gasto_final = 'servicios', 'salud', 'Caja de Prevision Social (Salud)'
+            else:
+                cat, subcat, gasto_final = 'servicios', 'jubilacion', 'Caja de Prevision Social (Jubilacion)'
+        else:
+            if categorizar_gasto_fn:
+                cat, subcat, gasto_final = categorizar_gasto_fn(nombre, datos)
+            else:
+                cat, subcat, gasto_final = categorizar_gasto_parser(nombre, datos)
+
+        gastos.append({
+            'fecha': fecha,
+            'gasto': gasto_final,
+            'monto': abs(monto),
+            'moneda': 'ARS',
+            'fuente': 'Binance QR',
+            'categoria': cat,
+            'subcategoria': subcat,
+            'owner': owner,
+            'medio_pago': medio_pago or 'QR Binance',
+            'u_id': generar_id()
+        })
+
+    seen = set()
+    gastos_dedup = []
+    for g in gastos:
+        key = (
+            g.get('fecha', ''),
+            g.get('gasto', '').lower(),
+            round(g.get('monto', 0), 2)
+        )
+        if key not in seen:
+            seen.add(key)
+            gastos_dedup.append(g)
+
+    if not gastos_dedup:
+        return [], texto_debug, "No se detectaron egresos Binance QR"
+
+    return gastos_dedup, texto_debug, None
+
+
+# ============================================
+# parsers/mercadopago_app.py
+# ============================================
+
+"""
+Parser definitivo para capturas app MercadoPago móvil.
+Optimizado para OCR real.
+"""
+import re
+from parsers.base import (
+    imagen_a_items_paddle,
+    categorizar_gasto_parser,
+    generar_id,
+)
+
+
+def parsear_monto_app(texto):
+    texto = texto.strip()
+    if '$' not in texto:
+        return 0.0
+
+    s = texto.replace('$', '').replace(' ', '')
+
+    negativo = s.startswith('-')
+    if negativo:
+        s = s[1:]
+
+    # Limpiar OCR raro
+    s = s.replace('°', '')
+    s = s.replace('o', '0')
+    s = s.replace('O', '0')
+    s = s.replace('s', '5') if re.match(r'^\d+\.\d+s\d*$', s) else s
+
+    if ',' in s:
+        s = s.replace('.', '').replace(',', '.')
+    else:
+        # Si tiene un solo punto y 2 decimales, dejarlo
+        parts = s.rsplit('.', 1)
+        if len(parts) == 2 and len(parts[1]) == 2:
+            pass
+        else:
+            s = s.replace('.', '')
+
+    try:
+        monto = float(s)
+        return -monto if negativo else monto
+    except:
+        return 0.0
+
+
+def parsear_fecha_app(texto):
+    t = texto.strip().lower()
+
+    m = re.search(r'(\d{1,2})\s*(de\s+)?(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre|ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)', t)
+    if m:
+        dia = m.group(1).zfill(2)
+        mes_txt = m.group(3)[:3]
+        meses = {
+            'ene': '01', 'feb': '02', 'mar': '03', 'abr': '04',
+            'may': '05', 'jun': '06', 'jul': '07', 'ago': '08',
+            'sep': '09', 'oct': '10', 'nov': '11', 'dic': '12'
+        }
+        mes = meses.get(mes_txt)
+        if mes:
+            return f"2026-{mes}-{dia}"
+
+    return ''
+
+
+def normalizar_texto(texto):
+    return ' '.join(texto.strip().split())
+
+
+def procesar_mercadopago_app(archivo, owner, medio_pago, datos, categorizar_gasto_fn=None):
+    items, texto_debug = imagen_a_items_paddle(archivo)
+
+    if not items:
+        return [], texto_debug, "No se pudo leer la imagen"
+
+    gastos = []
+    fecha_actual = ''
+
+    # Ordenados por Y
+    items = sorted(items, key=lambda x: x['y'])
+
+    i = 0
+    while i < len(items):
+        texto = normalizar_texto(items[i]['text'])
+        y = items[i]['y']
+
+        # 1. detectar fecha de sección
+        fecha_detectada = parsear_fecha_app(texto)
+        if fecha_detectada:
+            fecha_actual = fecha_detectada
+            i += 1
+            continue
+
+        # 2. detectar tipo de movimiento relevante
+        t_low = texto.lower()
+        if 'transferencia enviada' in t_low or 'pago' == t_low or 'pago de servicio' in t_low:
+            tipo_mov = texto
+
+            # 3. buscar descripción en la línea siguiente cercana
+            descripcion = ''
+            monto = 0.0
+
+            # siguiente línea útil = descripción
+            j = i + 1
+            while j < len(items):
+                texto_j = normalizar_texto(items[j]['text'])
+                if items[j]['y'] - y > 40:
+                    break
+
+                # si tiene monto, no es descripción
+                if '$' not in texto_j and not parsear_fecha_app(texto_j):
+                    if texto_j.lower() not in ['10resultados', 'buscar']:
+                        descripcion = texto_j
+                        break
+                j += 1
+
+            # 4. buscar monto en misma línea del tipo de movimiento o líneas cercanas
+            for k in range(i, min(i + 3, len(items))):
+                if abs(items[k]['y'] - y) <= 20:
+                    m = parsear_monto_app(items[k]['text'])
+                    if m < 0:
+                        monto = abs(m)
+                        break
+
+            # fallback: buscar monto un poco más abajo si OCR lo separó
+            if monto == 0:
+                for k in range(i, min(i + 4, len(items))):
+                    if items[k]['y'] - y <= 30:
+                        m = parsear_monto_app(items[k]['text'])
+                        if m < 0:
+                            monto = abs(m)
+                            break
+
+            # solo guardar si hay fecha + descripcion + monto
+            if fecha_actual and descripcion and monto > 0:
+                if categorizar_gasto_fn:
+                    cat, subcat, gasto_final = categorizar_gasto_fn(descripcion, datos)
+                else:
+                    cat, subcat, gasto_final = categorizar_gasto_parser(descripcion, datos)
+
+                gastos.append({
+                    'fecha': fecha_actual,
+                    'gasto': gasto_final,
+                    'monto': monto,
+                    'moneda': 'ARS',
+                    'fuente': 'MercadoPago App',
+                    'categoria': cat,
+                    'subcategoria': subcat,
+                    'owner': owner,
+                    'medio_pago': medio_pago or 'Mercado Pago',
+                    'u_id': generar_id()
+                })
+
+        i += 1
+
+    # Deduplicar
+    seen = set()
+    gastos_dedup = []
+    for g in gastos:
+        key = (
+            g.get('fecha', ''),
+            g.get('gasto', '').lower(),
+            round(g.get('monto', 0), 2)
+        )
+        if key not in seen:
+            seen.add(key)
+            gastos_dedup.append(g)
+
+    if not gastos_dedup:
+        return [], texto_debug, "No se detectaron egresos"
+
+    return gastos_dedup, texto_debug, None
+
+
+# ============================================
+# parsers/mercadopago_pdf.py
+# ============================================
+
+"""
+Parser definitivo para Resúmenes MercadoPago PDF.
+Funciona con estructura vertical y multi-línea.
+"""
+import re
+from parsers.base import categorizar_gasto_parser, generar_id
+
+
+def parsear_fecha_mercadopago(texto):
+    m = re.match(r'(\d{2})-(\d{2})-(\d{4})', texto.strip())
+    if m:
+        dia, mes, anio = m.groups()
+        return f"{anio}-{mes}-{dia}"
+    return ''
+
+
+def parsear_monto_mercadopago(texto):
+    s = texto.strip().replace('$', '').replace(' ', '')
+    if ',' in s:
+        s = s.replace('.', '').replace(',', '.')
+    try:
+        return float(s)
+    except:
+        return 0.0
+
+
+def es_fecha(texto):
+    return bool(parsear_fecha_mercadopago(texto))
+
+
+def es_id_operacion(texto):
+    t = texto.strip()
+    return t.isdigit() and len(t) >= 8
+
+
+def es_monto(texto):
+    return '$' in texto
+
+
+def limpiar_descripcion(descripcion_lines):
+    """Limpia y une líneas de descripción"""
+    d = []
+    for line in descripcion_lines:
+        line = line.strip()
+        if line:
+            d.append(line)
+    d = ' '.join(d)
+    d = re.sub(r'Transferencia enviada\s+', '', d)
+    d = re.sub(r'Transferencia recibida\s+', '', d)
+    d = re.sub(r'\s+', ' ', d).strip()
+    return d
+
+
+def procesar_mercadopago_pdf(archivo, owner, medio_pago, datos, categorizar_gasto_fn=None):
+    try:
+        import pymupdf
+
+        if hasattr(archivo, 'seek'):
+            archivo.seek(0)
+        pdf_bytes = archivo.read()
+        doc = pymupdf.open(stream=pdf_bytes, filetype="pdf")
+
+        texto = ""
+        for page in doc:
+            texto += page.get_text() + "\n"
+        doc.close()
+
+        # Convertir a líneas limpias
+        lineas_crudas = [l.strip() for l in texto.split('\n') if l.strip()]
+        lineas = lineas_crudas[:]
+
+        # Filtrar líneas basura conocidas
+        lineas_limpias = []
+        for l in lineas_crudas:
+            t = l.lower()
+            if any(bad in t for bad in ['/4', 'fecha', 'descripción', 'operación', 'valor', 'saldo', 'resumen de cuenta', 'detalle de movimientos', 'saldo inicial', 'saldo final', 'mercado libre', 'www.mercadopago']):
+                continue
+            lineas_limpias.append(l)
+
+        gastos = []
+
+        i = 0
+        while i < len(lineas_limpias):
+            linea = lineas_limpias[i]
+
+            # Buscar fecha
+            if not es_fecha(linea):
+                i += 1
+                continue
+
+            fecha = parsear_fecha_mercadopago(linea)
+            if not fecha:
+                i += 1
+                continue
+
+            # Juntar descripción hasta encontrar ID
+            descripcion_lines = []
+            i += 1
+            while i < len(lineas_limpias):
+                linea_next = lineas_limpias[i]
+
+                if es_id_operacion(linea_next):
+                    break
+
+                if es_fecha(linea_next):
+                    i -= 1
+                    break
+
+                descripcion_lines.append(linea_next)
+                i += 1
+
+            descripcion = limpiar_descripcion(descripcion_lines)
+
+            if not descripcion:
+                i += 1
+                continue
+
+            # ID operación
+            if i >= len(lineas_limpias):
+                break
+
+            id_operacion = lineas_limpias[i]
+            if not es_id_operacion(id_operacion):
+                i += 1
+                continue
+            i += 1
+
+            # Valor
+            if i >= len(lineas_limpias):
+                break
+
+            valor_txt = lineas_limpias[i]
+            valor = parsear_monto_mercadopago(valor_txt)
+            if not es_monto(valor_txt):
+                i += 1
+                continue
+            i += 1
+
+            # Saldo
+            if i >= len(lineas_limpias):
+                break
+
+            saldo_txt = lineas_limpias[i]
+            if not es_monto(saldo_txt):
+                i += 1
+                continue
+            i += 1
+
+            # Solo egresos
+            if valor >= 0:
+                continue
+
+            monto_abs = abs(valor)
+
+            if monto_abs < 1.0:
+                continue
+
+            cat, subcat, gasto_final = categorizar_gasto_parser(descripcion, datos)
+
+            gastos.append({
+                'fecha': fecha,
+                'gasto': gasto_final,
+                'monto': monto_abs,
+                'moneda': 'ARS',
+                'fuente': 'MercadoPago PDF',
+                'categoria': cat,
+                'subcategoria': subcat,
+                'owner': owner,
+                'medio_pago': medio_pago or 'Mercado Pago',
+                'u_id': generar_id()
+            })
+
+        # Deduplicar
+        seen = set()
+        gastos_dedup = []
+        for g in gastos:
+            key = (g.get('fecha', ''), g.get('gasto', '').lower(), round(g.get('monto', 0), 2))
+            if key not in seen:
+                seen.add(key)
+                gastos_dedup.append(g)
+
+        if not gastos_dedup:
+            return [], texto, "No se detectaron egresos"
+
+        return gastos_dedup, texto, None
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return [], "", f"Error: {str(e)}"
+
+
+# ============================================
+# FIN DEL ARCHIVO
+# ============================================

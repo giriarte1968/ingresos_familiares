@@ -3928,8 +3928,19 @@ def mostrar_activos():
             st.subheader("Cartera de ADRs")
 
             for adr in adrs:
-                ganancia_total_pct = adr.get('ganancia_total_pct', 0)
-                plusvalia_mes_pct = adr.get('plusvalia_mes_pct', 0)
+                cantidad = adr.get('cantidad', 0)
+                precio_compra = adr.get('precio_compra_usd', 0)
+                precio_actual = adr.get('precio_actual_usd', 0)
+                precio_mes_anterior = adr.get('precio_mes_anterior_usd') or adr.get('precio_actual_usd') or precio_compra
+                
+                valor_actual = cantidad * precio_actual
+                valor_compra = cantidad * precio_compra
+                ganancia_total_usd = valor_actual - valor_compra
+                ganancia_total_pct = ((precio_actual / precio_compra) - 1) * 100 if precio_compra > 0 else 0
+                
+                plusvalia_mes_usd = (precio_actual - precio_mes_anterior) * cantidad
+                plusvalia_mes_pct = ((precio_actual / precio_mes_anterior) - 1) * 100 if precio_mes_anterior > 0 else 0
+                
                 color_total = "🟢" if ganancia_total_pct >= 0 else "🔴"
                 color_mes = "🟢" if plusvalia_mes_pct >= 0 else "🔴"
 
@@ -3949,20 +3960,20 @@ def mostrar_activos():
 
                     c4.metric(
                         "Valor USD",
-                        f"${adr.get('valor_actual_usd', 0):,.2f}"
+                        f"${valor_actual:,.2f}"
                     )
 
                     # Ganancia total (desde compra)
                     c5.metric(
                         "Gan. Total",
-                        f"${adr.get('ganancia_total_usd', 0):,.2f}",
+                        f"${ganancia_total_usd:,.2f}",
                         delta=f"{ganancia_total_pct:+.1f}% desde compra"
                     )
 
                     # Plusvalía del mes
                     c6.metric(
                         f"{color_mes} Plusv. Mes",
-                        f"${adr.get('plusvalia_mes_usd', 0):,.2f}",
+                        f"${plusvalia_mes_usd:,.2f}",
                         delta=f"{plusvalia_mes_pct:+.1f}% este mes"
                     )
 
@@ -3981,12 +3992,22 @@ def mostrar_activos():
                     st.divider()
 
             # Totales ADRs
-            total_valor_usd = sum(a.get('valor_actual_usd', 0) for a in adrs)
-            total_ganancia_total_usd = sum(a.get('ganancia_total_usd', 0) for a in adrs)
-            total_plusvalia_mes_usd = sum(a.get('plusvalia_mes_usd', 0) for a in adrs)
-            total_valor_ars = sum(a.get('valor_actual_ars', 0) for a in adrs)
-            total_ganancia_total_ars = sum(a.get('ganancia_total_ars', 0) for a in adrs)
-            total_plusvalia_mes_ars = sum(a.get('plusvalia_mes_ars', 0) for a in adrs)
+            usdt_ars = st.session_state.get('usdt_ars', 800000)
+            
+            total_valor_usd = sum(a.get('cantidad', 0) * a.get('precio_actual_usd', 0) for a in adrs)
+            total_valor_compra_usd = sum(a.get('cantidad', 0) * a.get('precio_compra_usd', 0) for a in adrs)
+            total_ganancia_total_usd = total_valor_usd - total_valor_compra_usd
+            total_ganancia_total_ars = total_ganancia_total_usd * usdt_ars
+            
+            total_plusvalia_mes_usd = 0
+            for a in adrs:
+                cantidad = a.get('cantidad', 0)
+                precio_actual = a.get('precio_actual_usd', 0)
+                precio_mes_anterior = a.get('precio_mes_anterior_usd') or a.get('precio_actual_usd') or a.get('precio_compra_usd', 0)
+                total_plusvalia_mes_usd += (precio_actual - precio_mes_anterior) * cantidad
+            
+            total_plusvalia_mes_ars = total_plusvalia_mes_usd * usdt_ars
+            total_valor_ars = total_valor_usd * usdt_ars
 
             st.subheader("Totales ADRs")
             t1, t2, t3 = st.columns(3)
