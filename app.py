@@ -3842,7 +3842,10 @@ def obtener_precio_adr_historico(ticker, fecha):
 def mostrar_activos():
     st.header("Activos")
 
-    datos = st.session_state.datos
+    # Siempre leer fresco desde disco para tener cierres actualizados
+    datos_disco = cargar_datos()
+    st.session_state.datos = datos_disco
+    datos = datos_disco
     activos = datos.get('activos', [])
 
     # Parche: inicializar precio_mes_anterior_usd en ADRs que no lo tienen
@@ -3851,7 +3854,6 @@ def mostrar_activos():
         if a.get('tipo') == 'adr' and not a.get('precio_mes_anterior_usd')
     ]
     if adrs_sin_anterior:
-        datos_disco = cargar_datos()
         for activo in datos_disco.get('activos', []):
             if activo.get('tipo') == 'adr' and not activo.get('precio_mes_anterior_usd'):
                 activo['precio_mes_anterior_usd'] = activo.get('precio_compra_usd', 0)
@@ -4230,13 +4232,18 @@ def mostrar_activos():
                 ganancia_total_usd = valor_actual - valor_compra
                 ganancia_total_pct = ((precio_actual / precio_compra) - 1) * 100 if precio_compra > 0 else 0
                 
-                # Plusvalía mes: leer del historial de cierres
-                mes_actual_adr = datetime.now().strftime('%Y-%m')
+                # Plusvalía mes: leer del historial de cierres (último disponible)
                 cierres_adr = adr.get('cierres', [])
+                mes_actual_adr = datetime.now().strftime('%Y-%m')
+                
+                # Buscar cierre del mes actual, o el último disponible
                 cierre_actual = next(
                     (c for c in cierres_adr if c.get('mes') == mes_actual_adr),
                     None
                 )
+                if not cierre_actual and cierres_adr:
+                    # Usar el último cierre disponible
+                    cierre_actual = sorted(cierres_adr, key=lambda c: c.get('mes', ''))[-1]
 
                 if cierre_actual:
                     plusvalia_mes_usd = cierre_actual.get('plusvalia_usd', 0)
@@ -4246,6 +4253,7 @@ def mostrar_activos():
                     tiene_cierre = True
                 else:
                     plusvalia_mes_usd = 0
+                    plusvalia_mes_ars = 0
                     plusvalia_mes_pct = 0
                     tiene_cierre = False
                 
