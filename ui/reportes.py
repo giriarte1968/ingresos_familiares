@@ -203,6 +203,36 @@ def _colectar_ingresos(datos, periodo):
     return df
 
 
+def _convertir_ingreso_clp_a_ars(ingreso, periodo_mes):
+    """Convierte un ingreso CLP a ARS usando la tasa de la FECHA del ingreso"""
+    monto = ingreso.get('monto', 0)
+
+    if ingreso.get('monto_original_clp') and ingreso.get('banco') == 'santander_chile':
+        clp = ingreso['monto_original_clp']
+        fecha_ingreso = ingreso.get('fecha', periodo_mes)
+
+        try:
+            from app import obtener_precios_historicos
+            usd_clp, usdt_ars = obtener_precios_historicos(fecha_ingreso)
+        except:
+            usd_clp = 925
+            usdt_ars = 1465
+
+        if not usd_clp:
+            usd_clp = 925
+        if not usdt_ars:
+            try:
+                from app import obtener_usdt_ars_binance
+                usdt_ars = obtener_usdt_ars_binance() or 1465
+            except:
+                usdt_ars = 1465
+
+        monto_ars = (clp / usd_clp) * usdt_ars
+        return monto_ars
+
+    return monto
+
+
 def mostrar_reportes(mes_preseleccionado=None):
     st.header("Reportes")
 
@@ -242,14 +272,19 @@ def mostrar_reportes(mes_preseleccionado=None):
         if df_ing.empty:
             st.warning(f"No hay ingresos para {periodo}")
         else:
-            total = df_ing['monto'].sum()
+            # Convertir CLP a ARS usando tasa de fecha del ingreso
+            df_ing['monto_convertido'] = df_ing.apply(
+                lambda row: _convertir_ingreso_clp_a_ars(row, periodo), axis=1
+            )
+
+            total = df_ing['monto_convertido'].sum()
             cantidad = len(df_ing)
 
-            bancarios = df_ing[df_ing['tipo_ingreso'] == 'bancario']['monto'].sum()
-            fondos = df_ing[df_ing['tipo_ingreso'] == 'fondos_mutuos']['monto'].sum()
-            plusv_prop = df_ing[df_ing['tipo_ingreso'] == 'plusvalia_propiedades']['monto'].sum()
-            plusv_adrs = df_ing[df_ing['tipo_ingreso'] == 'plusvalia_adrs']['monto'].sum()
-            ajustes_pos = df_ing[df_ing['tipo_ingreso'] == 'ajuste']['monto'].sum()
+            bancarios = df_ing[df_ing['tipo_ingreso'] == 'bancario']['monto_convertido'].sum()
+            fondos = df_ing[df_ing['tipo_ingreso'] == 'fondos_mutuos']['monto_convertido'].sum()
+            plusv_prop = df_ing[df_ing['tipo_ingreso'] == 'plusvalia_propiedades']['monto_convertido'].sum()
+            plusv_adrs = df_ing[df_ing['tipo_ingreso'] == 'plusvalia_adrs']['monto_convertido'].sum()
+            ajustes_pos = df_ing[df_ing['tipo_ingreso'] == 'ajuste']['monto_convertido'].sum()
 
             st.subheader("Resumen de Ingresos")
             m1, m2, m3 = st.columns(3)
@@ -293,12 +328,12 @@ def mostrar_reportes(mes_preseleccionado=None):
                 g1, g2 = st.columns(2)
                 with g1:
                     st.caption("Por tipo de ingreso")
-                    serie_tipo = df_ing_f.groupby('tipo_ingreso', dropna=False)['monto'].sum().sort_values(ascending=False)
+                    serie_tipo = df_ing_f.groupby('tipo_ingreso', dropna=False)['monto_convertido'].sum().sort_values(ascending=False)
                     st.bar_chart(serie_tipo)
 
                 with g2:
                     st.caption("Por categoria")
-                    serie_cat = df_ing_f.groupby('categoria', dropna=False)['monto'].sum().sort_values(ascending=False)
+                    serie_cat = df_ing_f.groupby('categoria', dropna=False)['monto_convertido'].sum().sort_values(ascending=False)
                     st.bar_chart(serie_cat)
 
                 st.subheader("Rankings")
@@ -307,7 +342,7 @@ def mostrar_reportes(mes_preseleccionado=None):
                 with rk1:
                     st.caption("Por descripcion")
                     ing_desc = (
-                        df_ing_f.groupby('descripcion', dropna=False)['monto']
+                        df_ing_f.groupby('descripcion', dropna=False)['monto_convertido']
                         .agg(['sum', 'count'])
                         .sort_values('sum', ascending=False)
                         .rename(columns={'sum': 'Total', 'count': 'Cant'})
@@ -317,7 +352,7 @@ def mostrar_reportes(mes_preseleccionado=None):
                 with rk2:
                     st.caption("Por banco/fuente")
                     ing_banco = (
-                        df_ing_f.groupby('banco', dropna=False)['monto']
+                        df_ing_f.groupby('banco', dropna=False)['monto_convertido']
                         .agg(['sum', 'count'])
                         .sort_values('sum', ascending=False)
                         .rename(columns={'sum': 'Total', 'count': 'Cant'})
@@ -325,12 +360,18 @@ def mostrar_reportes(mes_preseleccionado=None):
                     st.dataframe(ing_banco, use_container_width=True)
 
                 st.subheader("Detalle de Ingresos")
-                cols_det = ['periodo', 'fecha', 'descripcion', 'monto', 'banco',
-                            'categoria', 'owner', 'tipo_ingreso']
+                df_ing_f['monto_mostrar'] = df_ing_f.apply(
+                    lambda r: f"${r['monto_convertido']:,.0f} (original: ${r['monto']:,.0f})" 
+                    if r.get('monto_original_clp') and r.get('banco') == 'santander_chile' 
+                    else f"${r['monto']:,.0f}", axis=1
+                )
+                cols_det = ['periodo', 'fecha', 'descripcion', 'monto_mostrar', 'monto_convertido', 'banco',
+                            'categoria', 'owner', 'tipo_ingreso', 'monto_original_clp']
                 cols_disp = [c for c in cols_det if c in df_ing_f.columns]
                 st.dataframe(df_ing_f[cols_disp], use_container_width=True, hide_index=True)
 
-                csv_ing = df_ing_f[cols_disp].to_csv(index=False).encode('utf-8')
+                csv_ing = df_ing_f[['periodo', 'fecha', 'descripcion', 'monto_convertido', 'banco',
+                            'categoria', 'owner', 'tipo_ingreso', 'monto_original_clp']].to_csv(index=False).encode('utf-8')
                 st.download_button(
                     "Descargar CSV Ingresos",
                     data=csv_ing,
@@ -441,7 +482,15 @@ def mostrar_reportes(mes_preseleccionado=None):
         df_ing = _colectar_ingresos(datos, periodo)
         df_eg = _colectar_egresos(datos, periodo)
 
-        total_ingresos = df_ing['monto'].sum() if not df_ing.empty else 0
+        # Convertir CLP a ARS en ingresos
+        if not df_ing.empty:
+            df_ing['monto_convertido'] = df_ing.apply(
+                lambda row: _convertir_ingreso_clp_a_ars(row, periodo), axis=1
+            )
+        else:
+            df_ing['monto_convertido'] = []
+
+        total_ingresos = df_ing['monto_convertido'].sum() if not df_ing.empty else 0
         total_egresos = df_eg['monto'].sum() if not df_eg.empty else 0
         balance = total_ingresos - total_egresos
 
@@ -464,12 +513,18 @@ def mostrar_reportes(mes_preseleccionado=None):
             for m in sorted(datos.get('meses', {}).keys()):
                 mes_data = datos['meses'][m]
 
-                ing_bancarios = sum(i.get('monto', 0) for i in mes_data.get('ingresos_bancarios', []))
+                # Convertir ingresos a ARS usando tasa de fecha
+                ing_bancarios_ars = 0
+                for i in mes_data.get('ingresos_bancarios', []):
+                    ing = dict(i)
+                    ing['periodo'] = m
+                    ing_bancarios_ars += _convertir_ingreso_clp_a_ars(ing, m)
+
                 gan_fondos = mes_data.get('ganancia_fondos', 0) or 0
                 plusv_prop = mes_data.get('plusvalia_propiedades', 0) or 0
                 plusv_adrs = mes_data.get('plusvalia_adrs', 0) or 0
                 ajustes_pos = sum(a.get('monto', 0) for a in mes_data.get('ajustes', []) if a.get('monto', 0) > 0)
-                total_ing_mes = ing_bancarios + gan_fondos + plusv_prop + plusv_adrs + ajustes_pos
+                total_ing_mes = ing_bancarios_ars + gan_fondos + plusv_prop + plusv_adrs + ajustes_pos
 
                 total_eg_mes = sum(e.get('monto', 0) for e in mes_data.get('egresos', []))
                 balance_mes = total_ing_mes - total_eg_mes
@@ -496,8 +551,8 @@ def mostrar_reportes(mes_preseleccionado=None):
 
             with comp1:
                 st.caption("Ingresos por tipo")
-                if 'tipo_ingreso' in df_ing.columns:
-                    comp_ing = df_ing.groupby('tipo_ingreso', dropna=False)['monto'].sum().sort_values(ascending=False)
+                if 'tipo_ingreso' in df_ing.columns and 'monto_convertido' in df_ing.columns:
+                    comp_ing = df_ing.groupby('tipo_ingreso', dropna=False)['monto_convertido'].sum().sort_values(ascending=False)
                     st.bar_chart(comp_ing)
 
             with comp2:
