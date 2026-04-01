@@ -4006,8 +4006,27 @@ def mostrar_activos():
 
         # ---- MOSTRAR ADRs ----
         if adrs:
+            # Selector de mes para visualizar plusvalía
+            meses_con_cierres = set()
+            for a in adrs:
+                for c in a.get('cierres', []):
+                    meses_con_cierres.add(c.get('mes', ''))
+            meses_con_cierres = sorted([m for m in meses_con_cierres if m], reverse=True)
+
+            meses_disponibles = sorted(datos.get('meses', {}).keys(), reverse=True)
+            if not meses_disponibles:
+                meses_disponibles = [datetime.now().strftime('%Y-%m')]
+
             # Botones de acción
             col_btn1, col_btn2 = st.columns([1, 1])
+
+            # Mes seleccionado para visualización (fuera de las columnas para acceso global)
+            mes_seleccionado = st.selectbox(
+                "Mes para visualizar",
+                meses_disponibles,
+                index=0,
+                key="sel_mes_visualizar_adr"
+            )
             
             with col_btn1:
                 if st.button("🔄 Actualizar Cotizaciones", type="primary"):
@@ -4083,17 +4102,7 @@ def mostrar_activos():
                     st.rerun()
 
             with col_btn2:
-                # Selector de mes a cerrar
-                meses_disponibles = sorted(datos.get('meses', {}).keys(), reverse=True)
-                if not meses_disponibles:
-                    meses_disponibles = [datetime.now().strftime('%Y-%m')]
-
-                mes_cerrar = st.selectbox(
-                    "Mes a cerrar",
-                    meses_disponibles,
-                    index=0,
-                    key="sel_mes_cerrar_adr"
-                )
+                mes_cerrar = mes_seleccionado
 
                 if st.button("📅 Cerrar Mes (fijar precios)", type="secondary"):
                     datos_disco = cargar_datos()
@@ -4232,13 +4241,12 @@ def mostrar_activos():
                 ganancia_total_usd = valor_actual - valor_compra
                 ganancia_total_pct = ((precio_actual / precio_compra) - 1) * 100 if precio_compra > 0 else 0
                 
-                # Plusvalía mes: leer del historial de cierres (último disponible)
+                # Plusvalía mes: leer del historial de cierres del mes seleccionado
                 cierres_adr = adr.get('cierres', [])
-                mes_actual_adr = datetime.now().strftime('%Y-%m')
                 
-                # Buscar cierre del mes actual, o el último disponible
+                # Buscar cierre del mes seleccionado
                 cierre_actual = next(
-                    (c for c in cierres_adr if c.get('mes') == mes_actual_adr),
+                    (c for c in cierres_adr if c.get('mes') == mes_seleccionado),
                     None
                 )
                 if not cierre_actual and cierres_adr:
@@ -4308,8 +4316,6 @@ def mostrar_activos():
                     st.divider()
 
             # Totales ADRs - leer desde cierres guardados del mes seleccionado
-            mes_actual = datetime.now().strftime('%Y-%m')
-
             total_valor_usd = 0
             total_ganancia_total_usd = 0
             total_plusvalia_mes_usd = 0
@@ -4326,7 +4332,7 @@ def mostrar_activos():
                 # Plusvalía del mes: leer del historial de cierres
                 cierres = adr.get('cierres', [])
                 cierre_mes = next(
-                    (c for c in cierres if c.get('mes') == mes_actual),
+                    (c for c in cierres if c.get('mes') == mes_seleccionado),
                     None
                 )
                 if cierre_mes:
@@ -4345,7 +4351,7 @@ def mostrar_activos():
                 delta=f"ARS {total_ganancia_total_ars:,.0f}"
             )
             t3.metric(
-                f"Plusvalía {mes_actual}",
+                f"Plusvalía {mes_seleccionado}",
                 f"USD {total_plusvalia_mes_usd:,.2f}",
                 delta=f"ARS {total_plusvalia_mes_ars:,.0f}"
             )
