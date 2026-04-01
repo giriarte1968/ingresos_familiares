@@ -4224,15 +4224,30 @@ def mostrar_activos():
                 cantidad = adr.get('cantidad', 0)
                 precio_compra = adr.get('precio_compra_usd', 0)
                 precio_actual = adr.get('precio_actual_usd', 0)
-                precio_mes_anterior = adr.get('precio_mes_anterior_usd') or adr.get('precio_actual_usd') or precio_compra
                 
                 valor_actual = cantidad * precio_actual
                 valor_compra = cantidad * precio_compra
                 ganancia_total_usd = valor_actual - valor_compra
                 ganancia_total_pct = ((precio_actual / precio_compra) - 1) * 100 if precio_compra > 0 else 0
                 
-                plusvalia_mes_usd = (precio_actual - precio_mes_anterior) * cantidad
-                plusvalia_mes_pct = ((precio_actual / precio_mes_anterior) - 1) * 100 if precio_mes_anterior > 0 else 0
+                # Plusvalía mes: leer del historial de cierres
+                mes_actual_adr = _dt.now().strftime('%Y-%m')
+                cierres_adr = adr.get('cierres', [])
+                cierre_actual = next(
+                    (c for c in cierres_adr if c.get('mes') == mes_actual_adr),
+                    None
+                )
+
+                if cierre_actual:
+                    plusvalia_mes_usd = cierre_actual.get('plusvalia_usd', 0)
+                    plusvalia_mes_ars = cierre_actual.get('plusvalia_ars', 0)
+                    p_anterior = cierre_actual.get('precio_inicio_usd', precio_compra)
+                    plusvalia_mes_pct = ((precio_actual / p_anterior) - 1) * 100 if p_anterior > 0 else 0
+                    tiene_cierre = True
+                else:
+                    plusvalia_mes_usd = 0
+                    plusvalia_mes_pct = 0
+                    tiene_cierre = False
                 
                 color_total = "🟢" if ganancia_total_pct >= 0 else "🔴"
                 color_mes = "🟢" if plusvalia_mes_pct >= 0 else "🔴"
@@ -4284,23 +4299,35 @@ def mostrar_activos():
 
                     st.divider()
 
-            # Totales ADRs
-            usdt_ars = st.session_state.get('usdt_ars', 800000)
-            
-            total_valor_usd = sum(a.get('cantidad', 0) * a.get('precio_actual_usd', 0) for a in adrs)
-            total_valor_compra_usd = sum(a.get('cantidad', 0) * a.get('precio_compra_usd', 0) for a in adrs)
-            total_ganancia_total_usd = total_valor_usd - total_valor_compra_usd
-            total_ganancia_total_ars = total_ganancia_total_usd * usdt_ars
-            
+            # Totales ADRs - leer desde cierres guardados del mes seleccionado
+            from datetime import datetime as _dt
+            mes_actual = _dt.now().strftime('%Y-%m')
+
+            total_valor_usd = 0
+            total_ganancia_total_usd = 0
             total_plusvalia_mes_usd = 0
-            for a in adrs:
-                cantidad = a.get('cantidad', 0)
-                precio_actual = a.get('precio_actual_usd', 0)
-                precio_mes_anterior = a.get('precio_mes_anterior_usd') or a.get('precio_actual_usd') or a.get('precio_compra_usd', 0)
-                total_plusvalia_mes_usd += (precio_actual - precio_mes_anterior) * cantidad
-            
-            total_plusvalia_mes_ars = total_plusvalia_mes_usd * usdt_ars
+            total_plusvalia_mes_ars = 0
+
+            for adr in adrs:
+                cant = adr.get('cantidad', 0)
+                p_actual = adr.get('precio_actual_usd', 0)
+                p_compra = adr.get('precio_compra_usd', 0)
+
+                total_valor_usd += cant * p_actual
+                total_ganancia_total_usd += (p_actual - p_compra) * cant
+
+                # Plusvalía del mes: leer del historial de cierres
+                cierres = adr.get('cierres', [])
+                cierre_mes = next(
+                    (c for c in cierres if c.get('mes') == mes_actual),
+                    None
+                )
+                if cierre_mes:
+                    total_plusvalia_mes_usd += cierre_mes.get('plusvalia_usd', 0)
+                    total_plusvalia_mes_ars += cierre_mes.get('plusvalia_ars', 0)
+
             total_valor_ars = total_valor_usd * usdt_ars
+            total_ganancia_total_ars = total_ganancia_total_usd * usdt_ars
 
             st.subheader("Totales ADRs")
             t1, t2, t3 = st.columns(3)
@@ -4311,30 +4338,37 @@ def mostrar_activos():
                 delta=f"ARS {total_ganancia_total_ars:,.0f}"
             )
             t3.metric(
-                "Plusvalía del Mes",
+                f"Plusvalía {mes_actual}",
                 f"USD {total_plusvalia_mes_usd:,.2f}",
                 delta=f"ARS {total_plusvalia_mes_ars:,.0f}"
             )
 
-            # Historial de cierres por mes
+            # Mostrar también selector de mes para ver plusvalía histórica
+            st.subheader("Plusvalía por Mes")
             todos_cierres = []
             for adr in adrs:
                 for cierre in adr.get('cierres', []):
-                    row = dict(cierre)
-                    row['ticker'] = adr.get('ticker', '')
-                    todos_cierres.append(row)
+                    todos_cierres.append({
+                        'Mes': cierre.get('mes', ''),
+                        'Ticker': adr.get('ticker', ''),
+                        'Cant': adr.get('cantidad', 0),
+                        'Precio Inicio USD': cierre.get('precio_inicio_usd', 0),
+                        'Precio Cierre USD': cierre.get('precio_cierre_usd', 0),
+                        'Plusvalía USD': cierre.get('plusvalia_usd', 0),
+                        'Plusvalía ARS': cierre.get('plusvalia_ars', 0),
+                    })
 
             if todos_cierres:
-                st.subheader("Historial de Cierres Mensuales")
                 df_cierres = pd.DataFrame(todos_cierres)
-                cols_cierre = ['mes', 'ticker', 'cantidad', 'precio_inicio_usd',
-                               'precio_cierre_usd', 'plusvalia_usd', 'plusvalia_ars']
-                available_cierre = [c for c in cols_cierre if c in df_cierres.columns]
-                st.dataframe(
-                    df_cierres[available_cierre].sort_values(['mes', 'ticker'], ascending=[False, True]),
-                    use_container_width=True,
-                    hide_index=True
-                )
+                df_cierres = df_cierres.sort_values(['Mes', 'Ticker'], ascending=[False, True])
+                st.dataframe(df_cierres, use_container_width=True, hide_index=True)
+
+                # Resumen por mes
+                st.caption("Resumen por mes")
+                resumen_mes = df_cierres.groupby('Mes')[['Plusvalía USD', 'Plusvalía ARS']].sum()
+                st.dataframe(resumen_mes, use_container_width=True)
+            else:
+                st.info("No hay cierres mensuales. Usá 'Cerrar Mes' para registrar.")
 
             # ---- DIVIDENDOS ----
             st.subheader("Registrar Dividendo")
