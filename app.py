@@ -3510,25 +3510,49 @@ def cargar_extracto(mes):
                     if error:
                         st.error(error)
                     elif ingresos:
+                        # Guardar en session_state para persistir entre reruns
+                        st.session_state['ingresos_santander'] = ingresos
+                        st.session_state['ingresos_santander_debug'] = texto_debug
                         st.success(f"✅ {len(ingresos)} ingresos detectados")
                         df_ing = pd.DataFrame(ingresos)
                         st.dataframe(df_ing[['fecha', 'descripcion', 'monto', 'banco']])
 
                         total_clp = sum(i.get('monto', 0) for i in ingresos)
                         st.metric("Total Ingresos (CLP)", f"${total_clp:,.0f}")
-
-                        if st.button("Guardar Ingresos"):
-                            datos_disco = cargar_datos()
-                            datos_disco.setdefault('meses', {}).setdefault(mes, {
-                                'ingresos_bancarios': [], 'egresos': [], 'ajustes': [],
-                                'ganancia_fondos': 0, 'plusvalia_propiedades': 0
-                            })
-                            datos_disco['meses'][mes].setdefault('ingresos_bancarios', []).extend(ingresos)
-                            guardar_datos(datos_disco)
-                            st.session_state.datos = datos_disco
-                            st.success(f"✅ {len(ingresos)} ingresos guardados en {mes}")
                     else:
                         st.warning("No se detectaron ingresos en la cartola")
+
+                # Mostrar ingresos guardados en session_state y botón de guardar
+                if 'ingresos_santander' in st.session_state and st.session_state['ingresos_santander']:
+                    ingresos = st.session_state['ingresos_santander']
+                    texto_debug = st.session_state.get('ingresos_santander_debug', '')
+
+                    if texto_debug:
+                        with st.expander("DEBUG: Procesamiento Santander Chile"):
+                            st.text(texto_debug)
+
+                    st.success(f"✅ {len(ingresos)} ingresos listos para guardar")
+                    df_ing = pd.DataFrame(ingresos)
+                    st.dataframe(df_ing[['fecha', 'descripcion', 'monto', 'banco']])
+
+                    total_clp = sum(i.get('monto', 0) for i in ingresos)
+                    st.metric("Total Ingresos (CLP)", f"${total_clp:,.0f}")
+
+                    if st.button("Guardar Ingresos", key="guardar_ingresos_santander"):
+                        datos_disco = cargar_datos()
+                        datos_disco.setdefault('meses', {}).setdefault(mes, {
+                            'ingresos_bancarios': [], 'egresos': [], 'ajustes': [],
+                            'ganancia_fondos': 0, 'plusvalia_propiedades': 0
+                        })
+                        datos_disco['meses'][mes].setdefault('ingresos_bancarios', []).extend(ingresos)
+                        guardar_datos(datos_disco)
+                        st.session_state.datos = datos_disco
+                        st.success(f"✅ {len(ingresos)} ingresos guardados en {mes}")
+                        # Limpiar session_state
+                        del st.session_state['ingresos_santander']
+                        if 'ingresos_santander_debug' in st.session_state:
+                            del st.session_state['ingresos_santander_debug']
+                        st.rerun()
 
                 return
         elif file_type == "application/pdf":
