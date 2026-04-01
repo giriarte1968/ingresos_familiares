@@ -11,6 +11,7 @@ from urllib.parse import quote
 import time
 import json
 import unicodedata
+import calendar
 
 from subpagos import extraer_subpagos, generar_id
 
@@ -3853,77 +3854,219 @@ def mostrar_activos():
 
         # ---- MOSTRAR ADRs ----
         if adrs:
-            if st.button("🔄 Actualizar Cotizaciones", type="primary"):
-                datos_disco = cargar_datos()
-                activos_disco = datos_disco.get('activos', [])
-                adrs_disco = [a for a in activos_disco if a.get('tipo') == 'adr']
+            # Botones de acción
+            col_btn1, col_btn2 = st.columns([1, 1])
+            
+            with col_btn1:
+                if st.button("🔄 Actualizar Cotizaciones", type="primary"):
+                    datos_disco = cargar_datos()
+                    activos_disco = datos_disco.get('activos', [])
+                    adrs_disco = [a for a in activos_disco if a.get('tipo') == 'adr']
 
-                usdt_ars_actual = obtener_usdt_ars_binance() or usdt_ars
+                    usdt_ars_actual = obtener_usdt_ars_binance() or usdt_ars
 
-                # Determinar mes actual para plusvalía
-                mes_actual = datetime.now().strftime('%Y-%m')
+                    # Determinar mes actual para plusvalía
+                    mes_actual = datetime.now().strftime('%Y-%m')
 
-                actualizados = 0
-                plusvalia_mes_total_usd = 0
-                plusvalia_mes_total_ars = 0
+                    actualizados = 0
+                    plusvalia_mes_total_usd = 0
+                    plusvalia_mes_total_ars = 0
 
-                progress = st.progress(0)
-                for i, adr in enumerate(adrs_disco):
-                    ticker = adr.get('ticker', '')
-                    precio_nuevo, _, nombre = obtener_precio_adr(ticker)
+                    progress = st.progress(0)
+                    for i, adr in enumerate(adrs_disco):
+                        ticker = adr.get('ticker', '')
+                        precio_nuevo, _, nombre = obtener_precio_adr(ticker)
 
-                    if precio_nuevo and precio_nuevo > 0:
-                        cantidad_acc = adr.get('cantidad', 0)
-                        precio_compra_acc = adr.get('precio_compra_usd', 0)
+                        if precio_nuevo and precio_nuevo > 0:
+                            cantidad_acc = adr.get('cantidad', 0)
+                            precio_compra_acc = adr.get('precio_compra_usd', 0)
 
-                        # Precio anterior para plusvalía mensual
-                        precio_anterior = adr.get('precio_mes_anterior_usd')
-                        if precio_anterior is None or precio_anterior <= 0:
-                            precio_anterior = adr.get('precio_actual_usd', precio_compra_acc)
+                            # Precio anterior para plusvalía mensual
+                            precio_anterior = adr.get('precio_mes_anterior_usd')
+                            if precio_anterior is None or precio_anterior <= 0:
+                                precio_anterior = adr.get('precio_actual_usd', precio_compra_acc)
 
-                        # Plusvalía del mes para este ADR
-                        plusvalia_adr_usd = (precio_nuevo - precio_anterior) * cantidad_acc
-                        plusvalia_adr_ars = plusvalia_adr_usd * usdt_ars_actual
+                            # Plusvalía del mes para este ADR
+                            plusvalia_adr_usd = (precio_nuevo - precio_anterior) * cantidad_acc
+                            plusvalia_adr_ars = plusvalia_adr_usd * usdt_ars_actual
 
-                        plusvalia_mes_total_usd += plusvalia_adr_usd
-                        plusvalia_mes_total_ars += plusvalia_adr_ars
+                            plusvalia_mes_total_usd += plusvalia_adr_usd
+                            plusvalia_mes_total_ars += plusvalia_adr_ars
 
-                        # Actualizar campos del ADR
-                        adr['precio_mes_anterior_usd'] = adr.get('precio_actual_usd', precio_compra_acc)
-                        adr['precio_actual_usd'] = precio_nuevo
-                        adr['valor_actual_usd'] = cantidad_acc * precio_nuevo
-                        adr['valor_actual_ars'] = cantidad_acc * precio_nuevo * usdt_ars_actual
-                        adr['ganancia_total_usd'] = (precio_nuevo - precio_compra_acc) * cantidad_acc
-                        adr['ganancia_total_ars'] = adr['ganancia_total_usd'] * usdt_ars_actual
-                        adr['ganancia_total_pct'] = ((precio_nuevo / precio_compra_acc) - 1) * 100 if precio_compra_acc > 0 else 0
-                        adr['plusvalia_mes_usd'] = plusvalia_adr_usd
-                        adr['plusvalia_mes_ars'] = plusvalia_adr_ars
-                        adr['plusvalia_mes_pct'] = ((precio_nuevo / precio_anterior) - 1) * 100 if precio_anterior > 0 else 0
-                        adr['ultima_actualizacion'] = datetime.now().strftime('%Y-%m-%d %H:%M')
-                        if nombre:
-                            adr['nombre'] = nombre
-                        actualizados += 1
+                            # Actualizar campos del ADR
+                            adr['precio_mes_anterior_usd'] = adr.get('precio_actual_usd', precio_compra_acc)
+                            adr['precio_actual_usd'] = precio_nuevo
+                            adr['valor_actual_usd'] = cantidad_acc * precio_nuevo
+                            adr['valor_actual_ars'] = cantidad_acc * precio_nuevo * usdt_ars_actual
+                            adr['ganancia_total_usd'] = (precio_nuevo - precio_compra_acc) * cantidad_acc
+                            adr['ganancia_total_ars'] = adr['ganancia_total_usd'] * usdt_ars_actual
+                            adr['ganancia_total_pct'] = ((precio_nuevo / precio_compra_acc) - 1) * 100 if precio_compra_acc > 0 else 0
+                            adr['plusvalia_mes_usd'] = plusvalia_adr_usd
+                            adr['plusvalia_mes_ars'] = plusvalia_adr_ars
+                            adr['plusvalia_mes_pct'] = ((precio_nuevo / precio_anterior) - 1) * 100 if precio_anterior > 0 else 0
+                            adr['ultima_actualizacion'] = datetime.now().strftime('%Y-%m-%d %H:%M')
+                            if nombre:
+                                adr['nombre'] = nombre
+                            actualizados += 1
 
-                    progress.progress((i + 1) / len(adrs_disco))
-                    time.sleep(0.5)
+                        progress.progress((i + 1) / len(adrs_disco))
+                        time.sleep(0.5)
 
-                # Guardar plusvalía del mes en datos.meses
-                datos_disco.setdefault('meses', {}).setdefault(mes_actual, {
-                    'ingresos_bancarios': [], 'egresos': [], 'ajustes': [],
-                    'ganancia_fondos': 0, 'plusvalia_propiedades': 0, 'plusvalia_adrs': 0
-                })
-                datos_disco['meses'][mes_actual]['plusvalia_adrs'] = plusvalia_mes_total_ars
-                datos_disco['meses'][mes_actual]['plusvalia_adrs_usd'] = plusvalia_mes_total_usd
+                    # Guardar plusvalía del mes en datos.meses
+                    datos_disco.setdefault('meses', {}).setdefault(mes_actual, {
+                        'ingresos_bancarios': [], 'egresos': [], 'ajustes': [],
+                        'ganancia_fondos': 0, 'plusvalia_propiedades': 0, 'plusvalia_adrs': 0
+                    })
+                    datos_disco['meses'][mes_actual]['plusvalia_adrs'] = plusvalia_mes_total_ars
+                    datos_disco['meses'][mes_actual]['plusvalia_adrs_usd'] = plusvalia_mes_total_usd
 
-                guardar_datos(datos_disco)
-                st.session_state.datos = datos_disco
-                st.success(
-                    f"✅ {actualizados}/{len(adrs_disco)} ADRs actualizados\n\n"
-                    f"Plusvalía del mes: USD {plusvalia_mes_total_usd:,.2f} / "
-                    f"ARS {plusvalia_mes_total_ars:,.0f}\n\n"
-                    f"USDT/ARS: {usdt_ars_actual:,.2f}"
+                    guardar_datos(datos_disco)
+                    st.session_state.datos = datos_disco
+                    st.success(
+                        f"✅ {actualizados}/{len(adrs_disco)} ADRs actualizados\n\n"
+                        f"Plusvalía del mes: USD {plusvalia_mes_total_usd:,.2f} / "
+                        f"ARS {plusvalia_mes_total_ars:,.0f}\n\n"
+                        f"USDT/ARS: {usdt_ars_actual:,.2f}"
+                    )
+                    st.rerun()
+
+            with col_btn2:
+                # Selector de mes a cerrar
+                meses_disponibles = sorted(datos.get('meses', {}).keys(), reverse=True)
+                if not meses_disponibles:
+                    meses_disponibles = [datetime.now().strftime('%Y-%m')]
+
+                mes_cerrar = st.selectbox(
+                    "Mes a cerrar",
+                    meses_disponibles,
+                    index=0,
+                    key="sel_mes_cerrar_adr"
                 )
-                st.rerun()
+
+                if st.button("📅 Cerrar Mes (fijar precios)", type="secondary"):
+                    datos_disco = cargar_datos()
+                    activos_disco = datos_disco.get('activos', [])
+                    adrs_disco = [a for a in activos_disco if a.get('tipo') == 'adr']
+
+                    usdt_ars_actual = obtener_usdt_ars_binance() or usdt_ars
+
+                    # Calcular último día del mes a cerrar
+                    anio_c, mes_c = mes_cerrar.split('-')
+                    ultimo_dia = calendar.monthrange(int(anio_c), int(mes_c))[1]
+                    fecha_cierre = f"{anio_c}-{mes_c}-{ultimo_dia:02d}"
+
+                    # Calcular último día del mes anterior
+                    if int(mes_c) == 1:
+                        anio_ant = str(int(anio_c) - 1)
+                        mes_ant = '12'
+                    else:
+                        anio_ant = anio_c
+                        mes_ant = str(int(mes_c) - 1).zfill(2)
+                    ultimo_dia_ant = calendar.monthrange(int(anio_ant), int(mes_ant))[1]
+                    fecha_inicio = f"{anio_ant}-{mes_ant}-{ultimo_dia_ant:02d}"
+
+                    plusvalia_mes_total_usd = 0
+                    detalle_cierre = []
+
+                    progress = st.progress(0)
+                    for i, adr in enumerate(adrs_disco):
+                        ticker = adr.get('ticker', '')
+                        cantidad_acc = adr.get('cantidad', 0)
+                        precio_compra = adr.get('precio_compra_usd', 0)
+                        fecha_compra = adr.get('fecha_compra', '')
+
+                        # ---- PRECIO DE CIERRE DEL MES ----
+                        precio_cierre = obtener_precio_adr_historico(ticker, fecha_cierre)
+
+                        if not precio_cierre or precio_cierre <= 0:
+                            precio_cierre = adr.get('precio_actual_usd', 0)
+
+                        # ---- PRECIO INICIO DEL MES (cierre mes anterior) ----
+                        precio_inicio = None
+
+                        # 1. Buscar en historial de cierres previos
+                        cierres = adr.get('cierres', [])
+                        mes_anterior_key = f"{anio_ant}-{mes_ant}"
+                        for cierre in cierres:
+                            if cierre.get('mes') == mes_anterior_key:
+                                precio_inicio = cierre.get('precio_cierre_usd')
+                                break
+
+                        # 2. Si no hay cierre previo, buscar histórico en Yahoo
+                        if not precio_inicio or precio_inicio <= 0:
+                            if fecha_compra and fecha_compra <= fecha_inicio:
+                                precio_inicio = obtener_precio_adr_historico(ticker, fecha_inicio)
+
+                        # 3. Si compró durante el mes a cerrar, usar precio de compra
+                        if not precio_inicio or precio_inicio <= 0:
+                            if fecha_compra and fecha_compra.startswith(mes_cerrar):
+                                precio_inicio = precio_compra
+                            elif fecha_compra and fecha_compra > fecha_inicio:
+                                precio_inicio = precio_compra
+                            else:
+                                precio_inicio = precio_compra
+
+                        # ---- CALCULAR PLUSVALÍA ----
+                        plusvalia_adr = (precio_cierre - precio_inicio) * cantidad_acc
+                        plusvalia_mes_total_usd += plusvalia_adr
+
+                        # Rotar precio para siguiente mes
+                        adr['precio_mes_anterior_usd'] = precio_cierre
+                        adr['precio_actual_usd'] = precio_cierre
+
+                        # Guardar historial
+                        if 'cierres' not in adr:
+                            adr['cierres'] = []
+
+                        # Evitar duplicar cierre del mismo mes
+                        adr['cierres'] = [c for c in adr['cierres'] if c.get('mes') != mes_cerrar]
+                        adr['cierres'].append({
+                            'mes': mes_cerrar,
+                            'precio_inicio_usd': precio_inicio,
+                            'precio_cierre_usd': precio_cierre,
+                            'plusvalia_usd': plusvalia_adr,
+                            'plusvalia_ars': plusvalia_adr * usdt_ars_actual,
+                            'cantidad': cantidad_acc,
+                            'fecha_calculo': datetime.now().strftime('%Y-%m-%d %H:%M')
+                        })
+
+                        detalle_cierre.append({
+                            'Ticker': ticker,
+                            'Cant': cantidad_acc,
+                            'Precio Inicio': f"${precio_inicio:,.2f}",
+                            'Precio Cierre': f"${precio_cierre:,.2f}",
+                            'Plusvalía USD': f"${plusvalia_adr:,.2f}",
+                        })
+
+                        adr['ultima_actualizacion'] = datetime.now().strftime('%Y-%m-%d %H:%M')
+
+                        progress.progress((i + 1) / len(adrs_disco))
+                        time.sleep(0.5)
+
+                    # Guardar plusvalía en el mes
+                    plusvalia_mes_total_ars = plusvalia_mes_total_usd * usdt_ars_actual
+
+                    datos_disco.setdefault('meses', {}).setdefault(mes_cerrar, {
+                        'ingresos_bancarios': [], 'egresos': [], 'ajustes': [],
+                        'ganancia_fondos': 0, 'plusvalia_propiedades': 0
+                    })
+                    datos_disco['meses'][mes_cerrar]['plusvalia_adrs'] = plusvalia_mes_total_ars
+                    datos_disco['meses'][mes_cerrar]['plusvalia_adrs_usd'] = plusvalia_mes_total_usd
+
+                    guardar_datos(datos_disco)
+                    st.session_state.datos = datos_disco
+
+                    # Mostrar detalle del cierre
+                    st.success(
+                        f"✅ Mes {mes_cerrar} cerrado\n\n"
+                        f"Plusvalía total: USD {plusvalia_mes_total_usd:,.2f} / "
+                        f"ARS {plusvalia_mes_total_ars:,.0f}"
+                    )
+
+                    df_cierre = pd.DataFrame(detalle_cierre)
+                    st.dataframe(df_cierre, use_container_width=True, hide_index=True)
+
+                    st.rerun()
 
             st.subheader("Cartera de ADRs")
 
@@ -4022,6 +4165,26 @@ def mostrar_activos():
                 f"USD {total_plusvalia_mes_usd:,.2f}",
                 delta=f"ARS {total_plusvalia_mes_ars:,.0f}"
             )
+
+            # Historial de cierres por mes
+            todos_cierres = []
+            for adr in adrs:
+                for cierre in adr.get('cierres', []):
+                    row = dict(cierre)
+                    row['ticker'] = adr.get('ticker', '')
+                    todos_cierres.append(row)
+
+            if todos_cierres:
+                st.subheader("Historial de Cierres Mensuales")
+                df_cierres = pd.DataFrame(todos_cierres)
+                cols_cierre = ['mes', 'ticker', 'cantidad', 'precio_inicio_usd',
+                               'precio_cierre_usd', 'plusvalia_usd', 'plusvalia_ars']
+                available_cierre = [c for c in cols_cierre if c in df_cierres.columns]
+                st.dataframe(
+                    df_cierres[available_cierre].sort_values(['mes', 'ticker'], ascending=[False, True]),
+                    use_container_width=True,
+                    hide_index=True
+                )
 
             # ---- DIVIDENDOS ----
             st.subheader("Registrar Dividendo")
