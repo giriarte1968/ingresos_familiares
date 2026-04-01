@@ -3845,6 +3845,20 @@ def mostrar_activos():
     datos = st.session_state.datos
     activos = datos.get('activos', [])
 
+    # Parche: inicializar precio_mes_anterior_usd en ADRs que no lo tienen
+    adrs_sin_anterior = [
+        a for a in activos
+        if a.get('tipo') == 'adr' and not a.get('precio_mes_anterior_usd')
+    ]
+    if adrs_sin_anterior:
+        datos_disco = cargar_datos()
+        for activo in datos_disco.get('activos', []):
+            if activo.get('tipo') == 'adr' and not activo.get('precio_mes_anterior_usd'):
+                activo['precio_mes_anterior_usd'] = activo.get('precio_compra_usd', 0)
+        guardar_datos(datos_disco)
+        st.session_state.datos = datos_disco
+        activos = datos_disco.get('activos', [])
+
     # Separar por tipo
     fondos = [a for a in activos if a.get('tipo') == 'fondo_mutuo']
     propiedades = [a for a in activos if a.get('tipo') == 'propiedad']
@@ -3972,14 +3986,13 @@ def mostrar_activos():
                             'precio_compra_usd': precio_compra,
                             'fecha_compra': fecha_compra.strftime('%Y-%m-%d'),
                             'precio_actual_usd': precio_actual,
+                            'precio_mes_anterior_usd': precio_compra,
                             'valor_compra_usd': valor_compra_usd,
                             'valor_actual_usd': valor_actual_usd,
                             'valor_actual_ars': valor_actual_usd * usdt_ars,
-                            'ganancia_usd': ganancia_usd,
-                            'ganancia_ars': ganancia_usd * usdt_ars,
-                            'ganancia_pct': ((precio_actual / precio_compra) - 1) * 100 if precio_compra > 0 else 0,
                             'ultima_actualizacion': datetime.now().strftime('%Y-%m-%d %H:%M'),
-                            'dividendos': []
+                            'dividendos': [],
+                            'cierres': []
                         }
 
                         datos_disco = cargar_datos()
