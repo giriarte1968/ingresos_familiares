@@ -4231,7 +4231,7 @@ def mostrar_activos():
                 ganancia_total_pct = ((precio_actual / precio_compra) - 1) * 100 if precio_compra > 0 else 0
                 
                 # Plusvalía mes: leer del historial de cierres
-                mes_actual_adr = _dt.now().strftime('%Y-%m')
+                mes_actual_adr = datetime.now().strftime('%Y-%m')
                 cierres_adr = adr.get('cierres', [])
                 cierre_actual = next(
                     (c for c in cierres_adr if c.get('mes') == mes_actual_adr),
@@ -4300,8 +4300,7 @@ def mostrar_activos():
                     st.divider()
 
             # Totales ADRs - leer desde cierres guardados del mes seleccionado
-            from datetime import datetime as _dt
-            mes_actual = _dt.now().strftime('%Y-%m')
+            mes_actual = datetime.now().strftime('%Y-%m')
 
             total_valor_usd = 0
             total_ganancia_total_usd = 0
