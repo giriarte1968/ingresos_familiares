@@ -3488,6 +3488,48 @@ def cargar_extracto(mes):
         
         if file_type == "text/plain":
             texto = archivo.read().decode('utf-8')
+        
+        # Detectar si es Santander Chile PDF
+        if file_type == "application/pdf" and ('santander' in file_name or 'cartola' in file_name):
+            if PDF_AVAILABLE:
+                pdf_password = st.text_input("Password del PDF (si está encriptado)", type="password")
+
+                if st.button("Procesar Extracto Santander Chile"):
+                    with st.spinner("Procesando cartola Santander Chile..."):
+                        from parsers.santander_chile_pdf import procesar_santander_chile_pdf
+                        archivo.seek(0)
+                        ingresos, _, texto_debug, error = procesar_santander_chile_pdf(
+                            archivo, None, None, datos, categorizar_gasto, pdf_password or None
+                        )
+
+                    if texto_debug:
+                        with st.expander("DEBUG: Procesamiento Santander Chile"):
+                            st.text(texto_debug)
+
+                    if error:
+                        st.error(error)
+                    elif ingresos:
+                        st.success(f"✅ {len(ingresos)} ingresos detectados")
+                        df_ing = pd.DataFrame(ingresos)
+                        st.dataframe(df_ing[['fecha', 'descripcion', 'monto', 'banco']])
+
+                        total_clp = sum(i.get('monto', 0) for i in ingresos)
+                        st.metric("Total Ingresos (CLP)", f"${total_clp:,.0f}")
+
+                        if st.button("Guardar Ingresos"):
+                            datos_disco = cargar_datos()
+                            datos_disco.setdefault('meses', {}).setdefault(mes, {
+                                'ingresos_bancarios': [], 'egresos': [], 'ajustes': [],
+                                'ganancia_fondos': 0, 'plusvalia_propiedades': 0
+                            })
+                            datos_disco['meses'][mes].setdefault('ingresos_bancarios', []).extend(ingresos)
+                            guardar_datos(datos_disco)
+                            st.session_state.datos = datos_disco
+                            st.success(f"✅ {len(ingresos)} ingresos guardados en {mes}")
+                    else:
+                        st.warning("No se detectaron ingresos en la cartola")
+
+                return
         elif file_type == "application/pdf":
             if PDF_AVAILABLE:
                 # Input para password si el PDF está encriptado
