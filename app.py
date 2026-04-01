@@ -3979,10 +3979,6 @@ def mostrar_activos():
                             st.rerun()
 
                     st.divider()
-                            st.success(f"ADR {adr.get('ticker')} eliminado")
-                            st.rerun()
-
-                    st.divider()
 
             # Totales ADRs
             total_valor_usd = sum(a.get('valor_actual_usd', 0) for a in adrs)
