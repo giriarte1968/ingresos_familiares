@@ -3240,17 +3240,21 @@ def mostrar_ajustes(mes_from_sidebar):
         elif submitted:
             st.warning("Completá descripción y monto mayor a 0")
 
-    # ====== TAB AJUSTE MANUAL ======
+    # ====== TAB AJUSTE MANUAL - SIMPLIFICADO ======
     with tab_ajuste:
         st.subheader(f"Ajuste Manual — {mes}")
-        st.info("Para correcciones, ajustes de tipo de cambio u otros conceptos no bancarios.")
+        st.info(
+            "Para correcciones puntuales: "
+            "diferencias de cambio, devoluciones, préstamos, etc. "
+            "Se registran como ajuste contable, NO como egreso ni ingreso."
+        )
 
         with st.form("form_ajuste", clear_on_submit=True):
             col1, col2 = st.columns(2)
             with col1:
                 tipo_aj = st.selectbox("Tipo", [
-                    "aporte_efectivo", "correccion", "ajuste_cambio",
-                    "devolucion", "prestamo", "otro"
+                    "correccion", "devolucion", "ajuste_cambio",
+                    "prestamo", "otro"
                 ])
                 descripcion_aj = st.text_input("Descripción", key="aj_desc")
             with col2:
@@ -3260,28 +3264,28 @@ def mostrar_ajustes(mes_from_sidebar):
 
             submitted_aj = st.form_submit_button("Agregar Ajuste")
 
-            if submitted_aj and descripcion_aj and monto_aj > 0:
-                monto_final = monto_aj if "Positivo" in signo_aj else -monto_aj
+        if submitted_aj and descripcion_aj and monto_aj > 0:
+            monto_final = monto_aj if "Positivo" in signo_aj else -monto_aj
 
-                ajuste = {
-                    'tipo': tipo_aj,
-                    'descripcion': descripcion_aj,
-                    'monto': monto_final,
-                    'moneda': moneda_aj,
-                    'fecha': datetime.now().strftime('%Y-%m-%d'),
-                    'periodo': mes
-                }
+            ajuste = {
+                'tipo': tipo_aj,
+                'descripcion': descripcion_aj,
+                'monto': monto_final,
+                'moneda': moneda_aj,
+                'fecha': datetime.now().strftime('%Y-%m-%d'),
+                'periodo': mes
+            }
 
-                datos_disco = cargar_datos()
-                datos_disco.setdefault('meses', {}).setdefault(mes, {
-                    'ingresos_bancarios': [], 'egresos': [], 'ajustes': [],
-                    'ganancia_fondos': 0, 'plusvalia_propiedades': 0
-                })
-                datos_disco['meses'][mes].setdefault('ajustes', []).append(ajuste)
-                guardar_datos(datos_disco)
-                st.session_state.datos = datos_disco
-                st.success(f"Ajuste guardado: {descripcion_aj} {moneda_aj} {monto_final:,.2f}")
-                st.rerun()
+            datos_disco = cargar_datos()
+            datos_disco.setdefault('meses', {}).setdefault(mes, {
+                'ingresos_bancarios': [], 'egresos': [], 'ajustes': [],
+                'ganancia_fondos': 0, 'plusvalia_propiedades': 0
+            })
+            datos_disco['meses'][mes].setdefault('ajustes', []).append(ajuste)
+            guardar_datos(datos_disco)
+            st.session_state.datos = datos_disco
+            st.success(f"Ajuste guardado: {descripcion_aj} {moneda_aj} {monto_final:,.2f}")
+            st.rerun()
 
     # ====== TAB VER AJUSTES ======
     with tab_ver:
@@ -3337,10 +3341,10 @@ def mostrar_ajustes(mes_from_sidebar):
     st.subheader("Zona de Peligro")
     st.warning("Estas acciones son irreversibles.")
 
-    col_b1, col_b2, col_b3 = st.columns(3)
+    col_b1, col_b2, col_b3, col_b4 = st.columns(4)
 
     with col_b1:
-        if st.button("Limpiar Ajustes del Periodo", type="secondary"):
+        if st.button("🧹 Limpiar Ajustes", type="secondary"):
             datos_disco = cargar_datos()
             if mes in datos_disco.get('meses', {}):
                 datos_disco['meses'][mes]['ajustes'] = []
@@ -3350,7 +3354,30 @@ def mostrar_ajustes(mes_from_sidebar):
                 st.rerun()
 
     with col_b2:
-        if st.button("Borrar Periodo Completo", type="primary"):
+        if st.button("🧹 Limpiar Efectivo", type="secondary"):
+            datos_disco = cargar_datos()
+            if mes in datos_disco.get('meses', {}):
+                egresos = datos_disco['meses'][mes].get('egresos', [])
+                ingresos = datos_disco['meses'][mes].get('ingresos_bancarios', [])
+
+                egresos_efectivo = [e for e in egresos if e.get('medio_pago') == 'Efectivo']
+                ingresos_efectivo = [i for i in ingresos if i.get('banco') == 'efectivo']
+                cant_borrados = len(egresos_efectivo) + len(ingresos_efectivo)
+
+                datos_disco['meses'][mes]['egresos'] = [
+                    e for e in egresos if e.get('medio_pago') != 'Efectivo'
+                ]
+                datos_disco['meses'][mes]['ingresos_bancarios'] = [
+                    i for i in ingresos if i.get('banco') != 'efectivo'
+                ]
+
+                guardar_datos(datos_disco)
+                st.session_state.datos = datos_disco
+                st.success(f"{cant_borrados} movimientos en efectivo de {mes} eliminados")
+                st.rerun()
+
+    with col_b3:
+        if st.button("💣 Borrar Periodo Completo", type="primary"):
             datos_disco = cargar_datos()
             if mes in datos_disco.get('meses', {}):
                 datos_disco['meses'][mes] = {
@@ -3362,16 +3389,59 @@ def mostrar_ajustes(mes_from_sidebar):
                 }
                 guardar_datos(datos_disco)
                 st.session_state.datos = datos_disco
-                st.success(f"Periodo {mes} borrado")
+                st.success(f"Periodo {mes} borrado completamente")
                 st.rerun()
 
-    with col_b3:
-        if st.button("Borrar TODOS los Datos", type="primary"):
+    with col_b4:
+        if st.button("☢️ Borrar TODOS los Datos", type="primary"):
             datos_limpios = {'activos': [], 'meses': {}}
             guardar_datos(datos_limpios)
             st.session_state.datos = datos_limpios
             st.success("Todos los datos eliminados")
             st.rerun()
+
+    # ====== BORRAR EGRESOS INDIVIDUALES ======
+    st.divider()
+    st.subheader(f"Borrar Egresos Individuales — {mes}")
+
+    egresos_mes = datos.get('meses', {}).get(mes, {}).get('egresos', [])
+
+    if egresos_mes:
+        opciones_borrar = {}
+        for e in egresos_mes:
+            uid = e.get('u_id', '')
+            label = (
+                f"{e.get('fecha', '-')[:10]} | "
+                f"{e.get('gasto', '-')} | "
+                f"${e.get('monto', 0):,.2f} | "
+                f"{e.get('medio_pago', '-')} | "
+                f"{e.get('owner', '-')}"
+            )
+            opciones_borrar[uid] = label
+
+        seleccionados = st.multiselect(
+            "Seleccionar egresos a borrar",
+            options=list(opciones_borrar.keys()),
+            format_func=lambda x: opciones_borrar.get(x, x),
+            key="borrar_egresos_individual"
+        )
+
+        if seleccionados and st.button("🗑 Borrar Seleccionados", type="primary"):
+            datos_disco = cargar_datos()
+            egresos_disco = datos_disco.get('meses', {}).get(mes, {}).get('egresos', [])
+
+            antes = len(egresos_disco)
+            datos_disco['meses'][mes]['egresos'] = [
+                e for e in egresos_disco if e.get('u_id') not in seleccionados
+            ]
+            despues = len(datos_disco['meses'][mes]['egresos'])
+
+            guardar_datos(datos_disco)
+            st.session_state.datos = datos_disco
+            st.success(f"✅ {antes - despues} egresos eliminados de {mes}")
+            st.rerun()
+    else:
+        st.info(f"No hay egresos en {mes}")
 
 
 def cargar_extracto(mes):
