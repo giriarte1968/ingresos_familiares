@@ -370,8 +370,12 @@ def mostrar_reportes(mes_preseleccionado=None):
                 cols_disp = [c for c in cols_det if c in df_ing_f.columns]
                 st.dataframe(df_ing_f[cols_disp], use_container_width=True, hide_index=True)
 
-                csv_ing = df_ing_f[['periodo', 'fecha', 'descripcion', 'monto_convertido', 'banco',
-                            'categoria', 'owner', 'tipo_ingreso', 'monto_original_clp']].to_csv(index=False).encode('utf-8')
+                csv_cols = [c for c in [
+                    'periodo', 'fecha', 'descripcion', 'monto', 'monto_convertido',
+                    'banco', 'categoria', 'owner', 'tipo_ingreso', 'monto_original_clp'
+                ] if c in df_ing_f.columns]
+
+                csv_ing = df_ing_f[csv_cols].to_csv(index=False).encode('utf-8')
                 st.download_button(
                     "Descargar CSV Ingresos",
                     data=csv_ing,
