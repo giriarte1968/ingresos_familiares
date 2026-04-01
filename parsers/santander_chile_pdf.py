@@ -1,30 +1,34 @@
 """
 Parser para cartola Banco Santander Chile (PDF texto).
-Solo extrae INGRESOS (abonos, pagos proveedor, transferencias recibidas).
+Basado en la lógica original de parsear_texto() que ya funcionaba.
 """
 import re
 from parsers.base import generar_id
 
 
-def parsear_monto_chileno(texto):
-    s = texto.strip().replace('$', '').replace(' ', '')
-    if '.' in s and ',' not in s:
-        s = s.replace('.', '')
-    if ',' in s:
-        s = s.replace('.', '').replace(',', '.')
-    try:
-        return float(s)
-    except (ValueError, TypeError):
-        return 0.0
+def extraer_montos_chilenos(texto):
+    """Extrae montos en formato chileno: 1.000.000 o 55.719"""
+    montos = []
+    # Formato con puntos de miles: 2.764.046 o 55.719
+    patron = r'(?<!\d)(\d{1,3}(?:\.\d{3})+)(?!\d)'
+    matches = re.findall(patron, texto)
+    for m in matches:
+        valor = m.replace('.', '')
+        try:
+            val = float(valor)
+            if val >= 100:
+                montos.append(val)
+        except:
+            pass
+    return montos
 
 
-def extraer_fecha_santander(texto, anio_default='2026'):
-    m = re.match(r'(\d{2})/(\d{2})', texto.strip())
+def extraer_fecha_corta(texto):
+    """Extrae DD/MM y retorna como fecha"""
+    m = re.search(r'(\d{2})/(\d{2})', texto)
     if m:
-        dia = m.group(1)
-        mes = m.group(2)
-        return f"{anio_default}-{mes}-{dia}"
-    return ''
+        return m.group(1), m.group(2)
+    return None, None
 
 
 def procesar_santander_chile_pdf(archivo, owner, medio_pago, datos,
@@ -53,181 +57,160 @@ def procesar_santander_chile_pdf(archivo, owner, medio_pago, datos,
     except Exception as e:
         return [], [], "", f"Error leyendo PDF: {e}"
 
+    # Detectar año
+    anio = '2026'
+    m = re.search(r'(\d{2})/(\d{2})/(\d{4})', texto)
+    if m:
+        anio = m.group(3)
+
     lineas = texto.split('\n')
 
-    # Detectar año del extracto
-    anio = '2026'
-    for linea in lineas:
-        m = re.search(r'(\d{2})/(\d{2})/(\d{4})', linea)
-        if m:
-            anio = m.group(3)
-            break
+    INGRESO_KEYWORDS = [
+        'pago proveedor', 'depósito', 'deposito', 'abono',
+        'transferencia recibida', 'depósito a la vista',
+        'deposit', 'abonos'
+    ]
 
-    texto_debug = "=== TODAS LAS LÍNEAS ===\n"
-    for i, linea in enumerate(lineas):
-        if linea.strip():
-            texto_debug += f"{i:3d}: {linea}\n"
+    # "Transf." SIN "a" = transferencia recibida = ingreso
+    # "Transf a" = transferencia enviada = egreso
 
-    texto_debug += "\n=== PROCESAMIENTO ===\n"
+    EGRESO_KEYWORDS = [
+        'transf a ', 'pago a ', 'cobro', 'com.mant', 'com.',
+        'seguro de', 'mantencion', 'mantención'
+    ]
+
+    texto_debug = "=== PROCESAMIENTO SANTANDER CHILE ===\n"
 
     ingresos = []
-    egresos = []
     en_resumen = False
 
-    for linea in lineas:
-        linea_clean = linea.strip()
+    i = 0
+    while i < len(lineas):
+        linea = lineas[i].strip()
 
-        # Ignorar resumen de comisiones (duplicado)
-        if 'Resumen de Comisiones' in linea_clean or '****' in linea_clean:
+        # Ignorar resumen de comisiones
+        if 'Resumen de Comisiones' in linea or '****' in linea:
             en_resumen = True
+            i += 1
             continue
-        if 'MENSAJES' in linea_clean or 'INFORMACION' in linea_clean:
+        if 'MENSAJES' in linea or 'INFORMACION DE CUENTA' in linea:
             en_resumen = False
+            i += 1
             continue
         if en_resumen:
+            i += 1
             continue
 
-        # Solo procesar líneas que empiezan con DD/MM
-        if not re.match(r'^\d{2}/\d{2}', linea_clean):
+        # Solo líneas con fecha DD/MM al inicio
+        dia, mes_num = extraer_fecha_corta(linea)
+        if not dia or not mes_num:
+            i += 1
             continue
 
-        # Extraer fecha
-        fecha_match = re.match(r'(\d{2}/\d{2})', linea_clean)
-        if not fecha_match:
+        # Verificar que empieza con la fecha
+        if not re.match(r'^\d{2}/\d{2}', linea):
+            i += 1
             continue
-        fecha_raw = fecha_match.group(1)
-        fecha = extraer_fecha_santander(fecha_raw, anio)
 
-        # Extraer todos los números con formato de miles (X.XXX o X.XXX.XXX)
-        montos_encontrados = re.findall(r'(\d{1,3}(?:\.\d{3})+|\d{4,})', linea_clean)
-        montos = []
-        for m in montos_encontrados:
-            val = parsear_monto_chileno(m)
-            if val >= 100:
-                montos.append(val)
+        linea_lower = linea.lower()
+
+        # Verificar si es egreso (skip)
+        es_egreso = any(kw in linea_lower for kw in EGRESO_KEYWORDS)
+
+        # Verificar si es ingreso
+        es_ingreso = any(kw in linea_lower for kw in INGRESO_KEYWORDS)
+
+        # Caso especial: "Transf." sin "a" = ingreso recibido
+        if 'transf.' in linea_lower and 'transf a' not in linea_lower:
+            es_ingreso = True
+            es_egreso = False
+
+        # Si es egreso, skip
+        if es_egreso and not es_ingreso:
+            texto_debug += f"EGRESO (skip): {linea}\n"
+            i += 1
+            continue
+
+        if not es_ingreso:
+            texto_debug += f"NO MATCH: {linea}\n"
+            i += 1
+            continue
+
+        # Es ingreso - buscar monto
+        fecha_str = f"{anio}-{mes_num}-{dia}"
+
+        # Extraer montos de esta línea
+        montos = extraer_montos_chilenos(linea)
+
+        # Si no hay montos en esta línea, buscar en las siguientes
+        if not montos:
+            for j in range(1, 5):
+                if i + j >= len(lineas):
+                    break
+                sig = lineas[i + j].strip()
+                montos_sig = extraer_montos_chilenos(sig)
+                if montos_sig:
+                    montos = montos_sig
+                    break
 
         if not montos:
+            texto_debug += f"INGRESO SIN MONTO: {linea}\n"
+            i += 1
             continue
 
-        # El SALDO siempre es el último monto (el más grande generalmente)
-        saldo = montos[-1] if len(montos) >= 2 else 0
+        # Tomar el monto correcto:
+        # Si hay varios montos, el abono es generalmente el menor
+        # (el mayor suele ser el saldo)
+        if len(montos) >= 2:
+            monto = min(montos)
+        else:
+            monto = montos[0]
 
-        # Quitar saldo de la lista de montos operativos
-        montos_operativos = montos[:-1] if len(montos) >= 2 else montos
-
-        # Extraer descripción: todo entre sucursal y los montos
-        # Quitar fecha y sucursal del inicio
-        resto = linea_clean[5:].strip()  # Quitar DD/MM
-
+        # Extraer descripción limpia
+        desc = linea
+        # Quitar fecha
+        desc = re.sub(r'^\d{2}/\d{2}\s*', '', desc).strip()
         # Quitar sucursal
-        sucursales = ['Agustinas', 'G.Finanzas', 'OPER.', 'Huerfanos', 'Internet',
-                      'G .Finanzas', 'G. Finanzas']
-        for suc in sucursales:
-            if resto.startswith(suc):
-                resto = resto[len(suc):].strip()
+        for suc in ['Agustinas', 'G.Finanzas', 'G .Finanzas', 'OPER.', 'Huerfanos', 'Internet']:
+            if desc.startswith(suc):
+                desc = desc[len(suc):].strip()
                 break
-
-        # Quitar número de operación del inicio (10+ dígitos o con letras)
-        resto = re.sub(r'^\d{7,}[A-Za-z]?\s*', '', resto).strip()
-
+        # Quitar número de operación largo (sin puntos de miles)
+        desc = re.sub(r'^\d{7,}[A-Za-z]?\s*', '', desc).strip()
         # Quitar RUT
-        resto = re.sub(r'\d{1,2}\.\d{3}\.\d{3}-[\dkK]\s*', '', resto).strip()
-
-        # Quitar todos los montos del texto para obtener descripción limpia
-        desc = resto
-        for m_str in montos_encontrados:
-            desc = desc.replace(m_str, '').strip()
-
-        # Quitar número de documento (6 dígitos sueltos)
+        desc = re.sub(r'\d{1,2}\.\d{3}\.\d{3}-[\dkK]\s*', '', desc).strip()
+        # Quitar montos del texto
+        for m_raw in re.findall(r'\d{1,3}(?:\.\d{3})+', linea):
+            desc = desc.replace(m_raw, '').strip()
+        # Quitar número de documento (6 dígitos)
         desc = re.sub(r'\b\d{6}\b', '', desc).strip()
+        # Limpiar espacios
         desc = re.sub(r'\s+', ' ', desc).strip()
 
         if not desc or len(desc) < 3:
-            continue
+            desc = "Ingreso Santander"
 
-        texto_debug += f"\nLínea: {linea_clean}\n"
-        texto_debug += f"  Fecha: {fecha} | Desc: {desc} | Montos: {montos} | Saldo: {saldo}\n"
+        texto_debug += f"INGRESO: {fecha_str} | {desc} | ${monto:,.0f} CLP\n"
 
-        # Clasificar: ingreso o egreso
-        desc_lower = desc.lower()
+        ingresos.append({
+            'fecha': fecha_str,
+            'descripcion': desc,
+            'monto': monto,
+            'monto_original_clp': monto,
+            'banco': 'santander_chile',
+            'categoria': 'transferencia',
+            'tasas': None,
+            'owner': owner or 'Gustavo'
+        })
 
-        # EGRESOS claros
-        es_egreso = False
-        if 'transf a ' in desc_lower:
-            es_egreso = True
-        elif desc_lower.startswith('com.') or 'com.mant' in desc_lower:
-            es_egreso = True
-        elif 'cobro' in desc_lower:
-            es_egreso = True
-        elif 'seguro de' in desc_lower:
-            es_egreso = True
-
-        # INGRESOS claros
-        es_ingreso = False
-        if 'pago proveedor' in desc_lower:
-            es_ingreso = True
-        elif 'deposito' in desc_lower or 'depósito' in desc_lower:
-            es_ingreso = True
-        elif 'abono' in desc_lower:
-            es_ingreso = True
-        elif 'transf.' in desc_lower and 'transf a' not in desc_lower:
-            es_ingreso = True
-
-        # Si no se pudo clasificar por keywords, intentar por posición de columna
-        # En el extracto Santander: si tiene monto en columna DEPOSITOS = ingreso
-        # Esto se detecta porque el texto original muestra el monto más a la derecha
-        if not es_egreso and not es_ingreso:
-            # Default: si tiene montos operativos, es egreso
-            es_egreso = True
-
-        # Tomar el monto operativo (no el saldo)
-        monto = montos_operativos[0] if montos_operativos else 0
-
-        if monto < 100:
-            continue
-
-        texto_debug += f"  -> {'INGRESO' if es_ingreso else 'EGRESO'}: ${monto:,.0f}\n"
-
-        if es_ingreso:
-            ingresos.append({
-                'fecha': fecha,
-                'descripcion': desc,
-                'monto': monto,
-                'monto_original_clp': monto,
-                'banco': 'santander_chile',
-                'categoria': 'transferencia',
-                'tasas': None,
-                'owner': owner or 'Gustavo'
-            })
-        else:
-            if categorizar_gasto_fn:
-                cat, subcat, gasto_final = categorizar_gasto_fn(desc, datos)
-            else:
-                cat, subcat, gasto_final = 'otros', 'otros', desc
-
-            egresos.append({
-                'fecha': fecha,
-                'gasto': gasto_final,
-                'monto': monto,
-                'moneda': 'CLP',
-                'fuente': 'Santander Chile PDF',
-                'categoria': cat,
-                'subcategoria': subcat,
-                'owner': owner or 'Gustavo',
-                'medio_pago': medio_pago or 'Santander Chile',
-                'u_id': generar_id(),
-                'monto_original_clp': monto
-            })
+        i += 1
 
     texto_debug += f"\n=== RESULTADO ===\n"
-    texto_debug += f"Ingresos: {len(ingresos)}\n"
-    for i in ingresos:
-        texto_debug += f"  {i['fecha']} | {i['descripcion']} | ${i['monto']:,.0f} CLP\n"
-    texto_debug += f"Egresos: {len(egresos)}\n"
-    for e in egresos:
-        texto_debug += f"  {e['fecha']} | {e['gasto']} | ${e['monto']:,.0f} CLP\n"
+    texto_debug += f"Ingresos detectados: {len(ingresos)}\n"
+    for ing in ingresos:
+        texto_debug += f"  {ing['fecha']} | {ing['descripcion']} | ${ing['monto']:,.0f} CLP\n"
 
-    if not ingresos and not egresos:
-        return [], [], texto_debug, "No se detectaron movimientos"
+    if not ingresos:
+        return [], [], texto_debug, "No se detectaron ingresos"
 
-    return ingresos, egresos, texto_debug, None
+    return ingresos, [], texto_debug, None
