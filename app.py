@@ -3498,6 +3498,7 @@ def cargar_extracto(mes):
                     with st.spinner("Procesando cartola Santander Chile..."):
                         from parsers.santander_chile_pdf import procesar_santander_chile_pdf
                         archivo.seek(0)
+                        datos = st.session_state.datos
                         ingresos, _, texto_debug, error = procesar_santander_chile_pdf(
                             archivo, None, None, datos, categorizar_gasto, pdf_password or None
                         )
