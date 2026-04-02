@@ -3137,6 +3137,28 @@ def mostrar_propiedades(mes):
                 tendencia = resultado['tendencia']
                 confianza = resultado['nivel_confianza']
 
+                # Buscar tasación anterior para plusvalía real
+                tasaciones = prop.get('tasaciones', [])
+                tasacion_anterior = None
+                if tasaciones:
+                    tasaciones_ordenadas = sorted(tasaciones, key=lambda t: t.get('fecha', ''), reverse=True)
+                    for t in tasaciones_ordenadas:
+                        if t.get('fecha') < datetime.now().strftime('%Y-%m-%d'):
+                            tasacion_anterior = t
+                            break
+
+                # Calcular plusvalía real vs estimada
+                if tasacion_anterior:
+                    plusvalia_real_usd = valor_prop - tasacion_anterior.get('valor_usd', 0)
+                    plusvalia_real_pct = ((valor_prop / tasacion_anterior.get('valor_usd', 1)) - 1) * 100
+                    plusvalia_mes_anterior = tasacion_anterior.get('mes', mes)
+                    fuente_plusvalia = 'real'
+                else:
+                    plusvalia_real_usd = 0
+                    plusvalia_real_pct = resultado['plusvalia_mensual_pct']
+                    plusvalia_mes_anterior = 'estimado'
+                    fuente_plusvalia = 'estimado'
+
                 # Actualizar propiedad con valuación
                 for activo in datos.get('activos', []):
                     if activo.get('id') == prop['id']:
@@ -3145,7 +3167,6 @@ def mostrar_propiedades(mes):
                         activo['valor_m2_usd'] = valor_m2
                         activo['ultima_valuacion'] = datetime.now().strftime('%Y-%m-%d')
 
-                        # Registrar en historial
                         tasacion = {
                             'fecha': datetime.now().strftime('%Y-%m-%d'),
                             'valor_usd': valor_prop,
@@ -3156,32 +3177,67 @@ def mostrar_propiedades(mes):
                         }
                         activo.setdefault('tasaciones', []).append(tasacion)
 
+                # Guardar plusvalía en el mes
+                plusvalia_ars = plusvalia_real_usd * usdt_ars
+                datos.setdefault('meses', {}).setdefault(mes, {}).setdefault('plusvalia_propiedades', 0)
+                datos['meses'][mes]['plusvalia_propiedades'] = plusvalia_ars
+
                 guardar_datos(datos)
                 st.session_state.datos = datos
 
-                # Mostrar resultado
-                st.success(f"Valuación completada: USD {valor_prop:,.0f}")
+                # Guardar en session_state para persistencia
+                st.session_state[f"valuacion_{prop['id']}"] = {
+                    'resultado': resultado,
+                    'valor_m2': valor_m2,
+                    'valor_prop': valor_prop,
+                    'tendencia': tendencia,
+                    'confianza': confianza,
+                    'plusvalia_usd': plusvalia_real_usd,
+                    'plusvalia_pct': plusvalia_real_pct,
+                    'plusvalia_mes_anterior': plusvalia_mes_anterior,
+                    'fuente_plusvalia': fuente_plusvalia,
+                    'tasacion_anterior': tasacion_anterior,
+                    'mes_actual': mes,
+                }
+
+            # Mostrar resultados persistentes de valuación
+            valuacion = st.session_state.get(f"valuacion_{prop['id']}")
+            if valuacion:
+                st.success(f"Valuación {valuacion['mes_actual']}: USD {valuacion['valor_prop']:,.0f}")
                 col_v1, col_v2, col_v3, col_v4 = st.columns(4)
-                col_v1.metric("Valor m² (USD)", f"${valor_m2:,.0f}")
-                col_v2.metric("Valor Propiedad", f"${valor_prop:,.0f}")
-                col_v3.metric("Tendencia", {"alcista": "📈", "bajista": "📉", "neutral": "➡️"}.get(tendencia, "➡️"))
-                col_v4.metric("Confianza", {"alto": "🟢", "medio": "🟡", "bajo": "🔴"}.get(confianza, "🟡"))
+                col_v1.metric("Valor m² (USD)", f"${valuacion['valor_m2']:,.0f}")
+                col_v2.metric("Valor Propiedad", f"${valuacion['valor_prop']:,.0f}")
+                col_v3.metric("Tendencia", {"alcista": "📈", "bajista": "📉", "neutral": "➡️"}.get(valuacion['tendencia'], "➡️"))
+                col_v4.metric("Confianza", {"alto": "🟢", "medio": "🟡", "bajo": "🔴"}.get(valuacion['confianza'], "🟡"))
+
+                p_col1, p_col2 = st.columns(2)
+                p_col1.metric(
+                    f"Plusvalía vs {valuacion['plusvalia_mes_anterior']}",
+                    f"USD {valuacion['plusvalia_usd']:,.0f}",
+                    delta=f"{valuacion['plusvalia_pct']:+.2f}%",
+                    delta_color="normal"
+                )
+                p_col2.caption(f"Fuente: {valuacion['fuente_plusvalia']}")
 
                 with st.expander("Detalle de la valuación"):
-                    st.write(resultado['justificacion'])
-                    st.write(f"**Rango estimado:** {resultado['rango_m2']}")
-                    st.write(f"**Plusvalía mensual:** {resultado['plusvalia_mensual_pct']:+.2f}%")
-                    st.write(f"**Plusvalía acumulada:** {resultado['plusvalia_acumulada_pct']:+.2f}%")
+                    res = valuacion['resultado']
+                    st.write(res['justificacion'])
+                    st.write(f"**Rango estimado:** {res['rango_m2']}")
+                    st.write(f"**Plusvalía mensual (motor):** {res['plusvalia_mensual_pct']:+.2f}%")
+                    st.write(f"**Plusvalía acumulada:** {res['plusvalia_acumulada_pct']:+.2f}%")
 
-                    # Mostrar serie histórica
-                    serie = resultado.get('serie_mensual_m2', [])
+                    serie = res.get('serie_mensual_m2', [])
                     if serie:
                         st.caption("Serie histórica del m² (USD)")
                         df_serie = pd.DataFrame(serie)
                         df_serie.columns = ['Fecha', 'Valor m² USD', 'Fuente']
                         st.line_chart(df_serie.set_index('Fecha')['Valor m² USD'])
 
-                st.rerun()
+                if st.button("Cerrar valuación", key=f"close_val_{prop['id']}"):
+                    st.session_state[f"valuacion_{prop['id']}"] = None
+                    st.rerun()
+
+                st.divider()
 
             # Tasación manual
             st.caption("Tasación Manual")
