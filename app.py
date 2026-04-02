@@ -2974,7 +2974,22 @@ def mostrar_propiedades(mes):
 
     datos = st.session_state.datos
     
-    # 1. Selector de período local
+    # 1. Boton Actulizar Mercado Inmobiliario en Tiempo Real
+    c1, c2 = st.columns([3, 2])
+    with c2:
+        if st.button("🌐 Actualizar Base Mercado (Scraping)", help="Recalcula el valor referencial (Base Ciudad 2026) escaneando ofertas reales en la web hoy."):
+            with st.spinner("Consultando precio del m² en vivo desde Argenprop... (puede demorar unos segundos)"):
+                try:
+                    from parsers.mercado_inmobiliario import actualizar_base_ciudad_web
+                    nuevo_valor = actualizar_base_ciudad_web()
+                    if nuevo_valor:
+                        st.success(f"¡Base de tasación actualizada! Nuevo promedio general base p/ Rosario: USD {nuevo_valor}/m²")
+                    else:
+                        st.error("No se pudo extraer el valor del mercado en este momento.")
+                except Exception as e:
+                    st.error(f"Fallo al conectar con el portal inmobiliario: {e}")
+
+    # 2. Selector de período local
     meses_disponibles = sorted(datos.get('meses', {}).keys(), reverse=True)
     if meses_disponibles:
         idx_default = meses_disponibles.index(mes) if mes in meses_disponibles else 0
