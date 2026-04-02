@@ -2935,39 +2935,68 @@ def mostrar_egresos():
 
 def mostrar_propiedades(mes):
     st.header("Propiedades")
-    
+
     datos = st.session_state.datos
     activos = datos.get('activos', [])
     propiedades = [a for a in activos if a.get('tipo') == 'propiedad']
-    
-    # Agregar propiedad (una vez)
+
+    # Agregar propiedad (formulario expandido)
     st.subheader("Agregar Propiedad")
-    
+
     with st.form("agregar_propiedad"):
+        st.caption("Datos básicos")
         col1, col2 = st.columns(2)
         with col1:
             nombre = st.text_input("Nombre de la propiedad")
-            tipo = st.selectbox("Tipo", ["departamento", "casa"])
-            zona = st.selectbox("Zona", [
-                "Centro", "Macrocentro", "Barrio Inglés", "Pichincha", "Abasto", 
-                "Martin", "Facultades", "Puerto Norte", "Barrio Tigre", 
+            tipo = st.selectbox("Tipo", ["departamento", "casa", "local", "oficina", "terreno"])
+            zona = st.selectbox("Zona / Barrio", [
+                "Centro", "Macrocentro", "Barrio Inglés", "Pichincha", "Abasto",
+                "Martin", "Facultades", "Puerto Norte", "Barrio Tigre",
                 "Rosario Norte", "Alvear", "San Martín", "General Paz",
-                "Sur", "Norte", "Oeste", "Otro"
+                "Echesortu", "Fisherton", "Ruta 9", "Sur", "Norte", "Oeste", "Otro"
             ])
+            direccion = st.text_input("Dirección (opcional)")
         with col2:
-            m2 = st.number_input("Metros cuadrados (m²)", min_value=0)
+            m2 = st.number_input("Metros cuadrados (m²)", min_value=0, step=1)
+            m2_cubiertos = st.number_input("Metros cubiertos (m²)", min_value=0, step=1)
             dormitorios = st.number_input("Dormitorios", min_value=0, max_value=10)
             baños = st.number_input("Baños", min_value=0, max_value=10)
             antiguedad = st.number_input("Antigüedad (años)", min_value=0)
-        
-        estado = st.selectbox("Estado", ["excelente", "bueno", "regular"])
-        cochera = st.checkbox("Cochera")
-        patio = st.checkbox("Patio")
-        
+
+        st.caption("Características constructivas")
+        col3, col4 = st.columns(2)
+        with col3:
+            estado_detalle = st.selectbox("Estado detallado", [
+                "a estrenar", "reciclado", "bueno", "a refaccionar"
+            ])
+            piso = st.number_input("Piso (0 = planta baja)", min_value=0, max_value=30, value=0)
+            orientacion = st.selectbox("Orientación", [
+                "norte", "sur", "este", "oeste", "noreste", "noroeste", "noreste", "suroeste"
+            ])
+            calidad_edificio = st.selectbox("Calidad del edificio", [
+                "premium", "media", "economica"
+            ])
+        with col4:
+            amenities = st.multiselect("Amenities", [
+                "pileta", "SUM", "seguridad", "gimnasio", "sala de fiestas",
+                "lavadero", "parrilla", "jardin"
+            ])
+            cochera = st.checkbox("Cochera")
+            espacios_ext = st.multiselect("Espacios exteriores", [
+                "balcon", "patio", "terraza", "jardin_privado", "quinta"
+            ])
+
+        st.caption("Datos de compra")
+        col5, col6 = st.columns(2)
+        with col5:
+            valor_compra_usd = st.number_input("Valor de compra (USD)", min_value=0.0, step=1000.0)
+            fecha_compra = st.date_input("Fecha de compra", value=datetime(2020, 1, 1))
+        with col6:
+            moneda_compra = st.selectbox("Moneda de compra", ["USD", "ARS"])
+
         submitted = st.form_submit_button("Guardar Propiedad")
-        
+
         if submitted and nombre:
-            # Verificar si ya existe
             existe = any(a.get('nombre') == nombre and a.get('tipo') == 'propiedad' for a in activos)
             if existe:
                 st.warning(f"La propiedad '{nombre}' ya existe")
@@ -2978,69 +3007,104 @@ def mostrar_propiedades(mes):
                     'nombre': nombre,
                     'tipo_inmueble': tipo,
                     'zona': zona,
+                    'direccion': direccion,
                     'm2': m2,
+                    'm2_cubiertos': m2_cubiertos,
                     'dormitorios': dormitorios,
                     'baños': baños,
                     'antiguedad': antiguedad,
-                    'estado': estado,
+                    'estado_detalle': estado_detalle,
+                    'piso': piso,
+                    'orientacion': orientacion,
+                    'calidad_edificio': calidad_edificio,
+                    'amenities': amenities,
                     'cochera': cochera,
-                    'patio': patio,
+                    'espacios_exteriores': espacios_ext,
+                    'valor_compra_usd': valor_compra_usd,
+                    'fecha_compra': fecha_compra.strftime('%Y-%m-%d'),
+                    'moneda_compra': moneda_compra,
                     'valor_tasacion_usd': 0,
                     'valor_tasacion_ars': 0,
-                    'valor_anterior_ars': 0
+                    'valor_anterior_ars': 0,
+                    'valor_m2_usd': 0,
+                    'tasaciones': [],
+                    'ultima_valuacion': None
                 }
                 activos.append(propiedad)
                 datos['activos'] = activos
                 guardar_datos(datos)
                 st.success(f"Propiedad '{nombre}' guardada como activo")
                 st.rerun()
-    
+
     # Mostrar propiedades existentes
     if propiedades:
         st.subheader("Propiedades Registradas")
         df = pd.DataFrame(propiedades)
-        cols = ['nombre', 'tipo_inmueble', 'zona', 'm2', 'dormitorios', 'baños', 'antiguedad']
+        cols = ['nombre', 'tipo_inmueble', 'zona', 'm2', 'dormitorios', 'baños',
+                'estado_detalle', 'calidad_edificio', 'valor_tasacion_usd']
         available = [c for c in cols if c in df.columns]
-        st.dataframe(df[available])
-    
+        st.dataframe(df[available], use_container_width=True)
+
     # Actualizar tasación mensual
     st.subheader("Actualizar Tasación Mensual")
     st.info("Actualiza el valor de tasación en USD para calcular la plusvalía del mes")
-    
+
     for prop in propiedades:
-        col1, col2, col3 = st.columns([2, 2, 1])
-        with col1:
-            st.write(f"**{prop['nombre']}** ({prop.get('zona', '')}) - {prop.get('m2', 0)}m²")
-        with col2:
-            nuevo_valor = st.number_input(
-                f"Valor USD",
-                min_value=0.0,
-                value=float(prop.get('valor_tasacion_usd', 0)),
-                key=f"tasacion_{prop['id']}"
-            )
-        with col3:
-            if st.button(f"Actualizar", key=f"btn_{prop['id']}"):
-                # Guardar valor anterior
-                prop['valor_anterior_ars'] = prop.get('valor_tasacion_ars', 0)
-                # Actualizar nuevo valor
-                prop['valor_tasacion_usd'] = nuevo_valor
-                prop['valor_tasacion_ars'] = nuevo_valor * 1500  # Aproximación
-                
-                datos['activos'] = activos
-                
-                # Calcular plusvalía del mes
-                plusvalia = prop['valor_tasacion_ars'] - prop['valor_anterior_ars']
-                datos.setdefault('meses', {}).setdefault(mes, {}).setdefault('plusvalia_propiedades', 0)
-                datos['meses'][mes]['plusvalia_propiedades'] = plusvalia
-                
-                guardar_datos(datos)
-                st.success(f"Tasación actualizada. Plusvalía: ${plusvalia:,.0f}")
-                st.rerun()
-    
+        with st.container():
+            st.divider()
+            col1, col2, col3, col4 = st.columns([3, 2, 1, 1])
+            with col1:
+                st.write(f"**{prop['nombre']}**")
+                st.caption(
+                    f"{prop.get('zona', '')} | {prop.get('m2', 0)}m² | "
+                    f"{prop.get('estado_detalle', '')} | {prop.get('calidad_edificio', '')}"
+                )
+            with col2:
+                nuevo_valor = st.number_input(
+                    "Valor USD",
+                    min_value=0.0,
+                    value=float(prop.get('valor_tasacion_usd', 0)),
+                    key=f"tasacion_{prop['id']}"
+                )
+            with col3:
+                if st.button("Actualizar", key=f"btn_{prop['id']}"):
+                    prop['valor_anterior_ars'] = prop.get('valor_tasacion_ars', 0)
+                    prop['valor_tasacion_usd'] = nuevo_valor
+                    prop['valor_m2_usd'] = (nuevo_valor / prop.get('m2', 1)) if prop.get('m2', 0) > 0 else 0
+                    prop['valor_tasacion_ars'] = nuevo_valor * 1500
+
+                    # Registrar tasación en historial
+                    tasacion = {
+                        'fecha': datetime.now().strftime('%Y-%m-%d'),
+                        'valor_usd': nuevo_valor,
+                        'valor_ars': nuevo_valor * 1500,
+                        'valor_m2_usd': prop['valor_m2_usd'],
+                        'mes': mes
+                    }
+                    prop.setdefault('tasaciones', []).append(tasacion)
+                    prop['ultima_valuacion'] = datetime.now().strftime('%Y-%m-%d')
+
+                    datos['activos'] = activos
+
+                    plusvalia = prop['valor_tasacion_ars'] - prop['valor_anterior_ars']
+                    datos.setdefault('meses', {}).setdefault(mes, {}).setdefault('plusvalia_propiedades', 0)
+                    datos['meses'][mes]['plusvalia_propiedades'] = plusvalia
+
+                    guardar_datos(datos)
+                    st.success(f"Tasación actualizada. Plusvalía: ${plusvalia:,.0f}")
+                    st.rerun()
+            with col4:
+                if st.button("Eliminar", key=f"del_prop_{prop['id']}", type="secondary"):
+                    datos['activos'] = [a for a in activos if a.get('id') != prop['id']]
+                    guardar_datos(datos)
+                    st.session_state.datos = datos
+                    st.success(f"Propiedad '{prop['nombre']}' eliminada")
+                    st.rerun()
+
     # Mostrar plusvalía total
     if propiedades:
         total_plusvalia = sum(
-            prop.get('valor_tasacion_ars', 0) - prop.get('valor_anterior_ars', 0) 
+            prop.get('valor_tasacion_ars', 0) - prop.get('valor_anterior_ars', 0)
             for prop in propiedades
         )
         st.metric("Plusvalía Total Propiedades", f"${total_plusvalia:,.0f}")
