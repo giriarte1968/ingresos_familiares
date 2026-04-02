@@ -2940,6 +2940,8 @@ def mostrar_propiedades(mes):
     activos = datos.get('activos', [])
     propiedades = [a for a in activos if a.get('tipo') == 'propiedad']
 
+    usdt_ars = obtener_usdt_ars_binance() or 1500
+
     # Agregar propiedad (formulario expandido)
     st.subheader("Agregar Propiedad")
 
@@ -2971,7 +2973,7 @@ def mostrar_propiedades(mes):
             ])
             piso = st.number_input("Piso (0 = planta baja)", min_value=0, max_value=30, value=0)
             orientacion = st.selectbox("Orientación", [
-                "norte", "sur", "este", "oeste", "noreste", "noroeste", "noreste", "suroeste"
+                "norte", "sur", "este", "oeste", "noreste", "noroeste", "sureste", "suroeste"
             ])
             calidad_edificio = st.selectbox("Calidad del edificio", [
                 "premium", "media", "economica"
@@ -2990,7 +2992,7 @@ def mostrar_propiedades(mes):
         col5, col6 = st.columns(2)
         with col5:
             valor_compra_usd = st.number_input("Valor de compra (USD)", min_value=0.0, step=1000.0)
-            fecha_compra = st.date_input("Fecha de compra", value=datetime(2020, 1, 1))
+            fecha_compra = st.date_input("Fecha de compra", value=datetime(2020, 1, 1), min_value=datetime(2000, 1, 1))
         with col6:
             moneda_compra = st.selectbox("Moneda de compra", ["USD", "ARS"])
 
@@ -3001,7 +3003,8 @@ def mostrar_propiedades(mes):
             if existe:
                 st.warning(f"La propiedad '{nombre}' ya existe")
             else:
-                propiedad = {
+                from parsers.mercado_inmobiliario import valuar_propiedad
+                prop_data = {
                     'id': len(activos) + 1,
                     'tipo': 'propiedad',
                     'nombre': nombre,
@@ -3030,7 +3033,7 @@ def mostrar_propiedades(mes):
                     'tasaciones': [],
                     'ultima_valuacion': None
                 }
-                activos.append(propiedad)
+                activos.append(prop_data)
                 datos['activos'] = activos
                 guardar_datos(datos)
                 st.success(f"Propiedad '{nombre}' guardada como activo")
@@ -3045,41 +3048,169 @@ def mostrar_propiedades(mes):
         available = [c for c in cols if c in df.columns]
         st.dataframe(df[available], use_container_width=True)
 
-    # Actualizar tasación mensual
-    st.subheader("Actualizar Tasación Mensual")
-    st.info("Actualiza el valor de tasación en USD para calcular la plusvalía del mes")
-
+    # Sección: Valuación automática + Editar + Tasación manual
     for prop in propiedades:
         with st.container():
             st.divider()
-            col1, col2, col3, col4 = st.columns([3, 2, 1, 1])
-            with col1:
+
+            # Header de la propiedad
+            c_head1, c_head2, c_head3 = st.columns([3, 1, 1])
+            with c_head1:
                 st.write(f"**{prop['nombre']}**")
                 st.caption(
                     f"{prop.get('zona', '')} | {prop.get('m2', 0)}m² | "
                     f"{prop.get('estado_detalle', '')} | {prop.get('calidad_edificio', '')}"
                 )
-            with col2:
+            with c_head2:
+                if st.button("✏️ Editar", key=f"edit_prop_{prop['id']}"):
+                    st.session_state[f"edit_prop_{prop['id']}"] = True
+            with c_head3:
+                if st.button("🗑 Eliminar", key=f"del_prop_{prop['id']}", type="secondary"):
+                    datos['activos'] = [a for a in activos if a.get('id') != prop['id']]
+                    guardar_datos(datos)
+                    st.session_state.datos = datos
+                    st.success(f"Propiedad '{prop['nombre']}' eliminada")
+                    st.rerun()
+
+            # Formulario de edición
+            if st.session_state.get(f"edit_prop_{prop['id']}", False):
+                with st.form(f"form_edit_{prop['id']}"):
+                    st.caption("Editar datos de la propiedad")
+                    ec1, ec2 = st.columns(2)
+                    with ec1:
+                        e_nombre = st.text_input("Nombre", value=prop.get('nombre', ''), key=f"e_nombre_{prop['id']}")
+                        e_tipo = st.selectbox("Tipo", ["departamento", "casa", "local", "oficina", "terreno"],
+                                             index=["departamento", "casa", "local", "oficina", "terreno"].index(prop.get('tipo_inmueble', 'departamento')),
+                                             key=f"e_tipo_{prop['id']}")
+                        e_zona = st.selectbox("Zona / Barrio", [
+                            "Centro", "Macrocentro", "Barrio Inglés", "Pichincha", "Abasto",
+                            "Martin", "Facultades", "Puerto Norte", "Barrio Tigre",
+                            "Rosario Norte", "Alvear", "San Martín", "General Paz",
+                            "Echesortu", "Fisherton", "Ruta 9", "Sur", "Norte", "Oeste", "Otro"
+                        ], index=["Centro", "Macrocentro", "Barrio Inglés", "Pichincha", "Abasto",
+                            "Martin", "Facultades", "Puerto Norte", "Barrio Tigre",
+                            "Rosario Norte", "Alvear", "San Martín", "General Paz",
+                            "Echesortu", "Fisherton", "Ruta 9", "Sur", "Norte", "Oeste", "Otro"].index(prop.get('zona', 'Otro')),
+                            key=f"e_zona_{prop['id']}")
+                        e_m2 = st.number_input("Metros cuadrados (m²)", min_value=0, value=prop.get('m2', 0), key=f"e_m2_{prop['id']}")
+                    with ec2:
+                        e_dorm = st.number_input("Dormitorios", min_value=0, max_value=10, value=prop.get('dormitorios', 0), key=f"e_dorm_{prop['id']}")
+                        e_baños = st.number_input("Baños", min_value=0, max_value=10, value=prop.get('baños', 0), key=f"e_baños_{prop['id']}")
+                        e_estado = st.selectbox("Estado detallado", ["a estrenar", "reciclado", "bueno", "a refaccionar"],
+                                               index=["a estrenar", "reciclado", "bueno", "a refaccionar"].index(prop.get('estado_detalle', 'bueno')),
+                                               key=f"e_estado_{prop['id']}")
+                        e_calidad = st.selectbox("Calidad del edificio", ["premium", "media", "economica"],
+                                                index=["premium", "media", "economica"].index(prop.get('calidad_edificio', 'media')),
+                                                key=f"e_calidad_{prop['id']}")
+
+                    e_submit = st.form_submit_button("Guardar Cambios")
+                    if e_submit and e_nombre:
+                        for activo in datos.get('activos', []):
+                            if activo.get('id') == prop['id']:
+                                activo['nombre'] = e_nombre
+                                activo['tipo_inmueble'] = e_tipo
+                                activo['zona'] = e_zona
+                                activo['m2'] = e_m2
+                                activo['dormitorios'] = e_dorm
+                                activo['baños'] = e_baños
+                                activo['estado_detalle'] = e_estado
+                                activo['calidad_edificio'] = e_calidad
+                        guardar_datos(datos)
+                        st.session_state.datos = datos
+                        st.session_state[f"edit_prop_{prop['id']}"] = False
+                        st.success(f"Propiedad '{e_nombre}' actualizada")
+                        st.rerun()
+
+                if st.button("Cancelar edición", key=f"cancel_edit_{prop['id']}"):
+                    st.session_state[f"edit_prop_{prop['id']}"] = False
+                    st.rerun()
+                st.divider()
+
+            # Valuación automática del motor
+            st.caption("Valuación Automática")
+            if st.button("📊 Valuación Automática", key=f"valuar_{prop['id']}"):
+                from parsers.mercado_inmobiliario import valuar_propiedad
+                resultado = valuar_propiedad(prop)
+
+                valor_m2 = resultado['valor_m2_usd']
+                valor_prop = resultado['valor_propiedad_usd']
+                tendencia = resultado['tendencia']
+                confianza = resultado['nivel_confianza']
+
+                # Actualizar propiedad con valuación
+                for activo in datos.get('activos', []):
+                    if activo.get('id') == prop['id']:
+                        activo['valor_tasacion_usd'] = valor_prop
+                        activo['valor_tasacion_ars'] = valor_prop * usdt_ars
+                        activo['valor_m2_usd'] = valor_m2
+                        activo['ultima_valuacion'] = datetime.now().strftime('%Y-%m-%d')
+
+                        # Registrar en historial
+                        tasacion = {
+                            'fecha': datetime.now().strftime('%Y-%m-%d'),
+                            'valor_usd': valor_prop,
+                            'valor_ars': valor_prop * usdt_ars,
+                            'valor_m2_usd': valor_m2,
+                            'mes': mes,
+                            'fuente': 'motor_valuacion'
+                        }
+                        activo.setdefault('tasaciones', []).append(tasacion)
+
+                guardar_datos(datos)
+                st.session_state.datos = datos
+
+                # Mostrar resultado
+                st.success(f"Valuación completada: USD {valor_prop:,.0f}")
+                col_v1, col_v2, col_v3, col_v4 = st.columns(4)
+                col_v1.metric("Valor m² (USD)", f"${valor_m2:,.0f}")
+                col_v2.metric("Valor Propiedad", f"${valor_prop:,.0f}")
+                col_v3.metric("Tendencia", {"alcista": "📈", "bajista": "📉", "neutral": "➡️"}.get(tendencia, "➡️"))
+                col_v4.metric("Confianza", {"alto": "🟢", "medio": "🟡", "bajo": "🔴"}.get(confianza, "🟡"))
+
+                with st.expander("Detalle de la valuación"):
+                    st.write(resultado['justificacion'])
+                    st.write(f"**Rango estimado:** {resultado['rango_m2']}")
+                    st.write(f"**Plusvalía mensual:** {resultado['plusvalia_mensual_pct']:+.2f}%")
+                    st.write(f"**Plusvalía acumulada:** {resultado['plusvalia_acumulada_pct']:+.2f}%")
+
+                    # Mostrar serie histórica
+                    serie = resultado.get('serie_mensual_m2', [])
+                    if serie:
+                        st.caption("Serie histórica del m² (USD)")
+                        df_serie = pd.DataFrame(serie)
+                        df_serie.columns = ['Fecha', 'Valor m² USD', 'Fuente']
+                        st.line_chart(df_serie.set_index('Fecha')['Valor m² USD'])
+
+                st.rerun()
+
+            # Tasación manual
+            st.caption("Tasación Manual")
+            col_t1, col_t2, col_t3 = st.columns([3, 2, 1])
+            with col_t1:
+                st.write(f"Valor actual: **${prop.get('valor_tasacion_usd', 0):,.0f}** USD")
+                if prop.get('valor_m2_usd', 0) > 0:
+                    st.caption(f"Valor m²: ${prop['valor_m2_usd']:,.0f} USD")
+            with col_t2:
                 nuevo_valor = st.number_input(
-                    "Valor USD",
+                    "Nuevo valor USD",
                     min_value=0.0,
                     value=float(prop.get('valor_tasacion_usd', 0)),
                     key=f"tasacion_{prop['id']}"
                 )
-            with col3:
+            with col_t3:
                 if st.button("Actualizar", key=f"btn_{prop['id']}"):
                     prop['valor_anterior_ars'] = prop.get('valor_tasacion_ars', 0)
                     prop['valor_tasacion_usd'] = nuevo_valor
                     prop['valor_m2_usd'] = (nuevo_valor / prop.get('m2', 1)) if prop.get('m2', 0) > 0 else 0
-                    prop['valor_tasacion_ars'] = nuevo_valor * 1500
+                    prop['valor_tasacion_ars'] = nuevo_valor * usdt_ars
 
-                    # Registrar tasación en historial
                     tasacion = {
                         'fecha': datetime.now().strftime('%Y-%m-%d'),
                         'valor_usd': nuevo_valor,
-                        'valor_ars': nuevo_valor * 1500,
+                        'valor_ars': nuevo_valor * usdt_ars,
                         'valor_m2_usd': prop['valor_m2_usd'],
-                        'mes': mes
+                        'mes': mes,
+                        'fuente': 'manual'
                     }
                     prop.setdefault('tasaciones', []).append(tasacion)
                     prop['ultima_valuacion'] = datetime.now().strftime('%Y-%m-%d')
@@ -3092,13 +3223,6 @@ def mostrar_propiedades(mes):
 
                     guardar_datos(datos)
                     st.success(f"Tasación actualizada. Plusvalía: ${plusvalia:,.0f}")
-                    st.rerun()
-            with col4:
-                if st.button("Eliminar", key=f"del_prop_{prop['id']}", type="secondary"):
-                    datos['activos'] = [a for a in activos if a.get('id') != prop['id']]
-                    guardar_datos(datos)
-                    st.session_state.datos = datos
-                    st.success(f"Propiedad '{prop['nombre']}' eliminada")
                     st.rerun()
 
     # Mostrar plusvalía total
