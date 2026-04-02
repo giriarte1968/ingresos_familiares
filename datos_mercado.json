@@ -1,0 +1,613 @@
+{
+  "series": {
+    "Martin_departamento": [
+      {
+        "fecha": "2016-04",
+        "valor_m2": 994.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2016-05",
+        "valor_m2": 993.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2016-06",
+        "valor_m2": 994.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2016-07",
+        "valor_m2": 1004.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2016-08",
+        "valor_m2": 970.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2016-09",
+        "valor_m2": 1009.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2016-10",
+        "valor_m2": 977.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2016-11",
+        "valor_m2": 989.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2016-12",
+        "valor_m2": 975.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2017-01",
+        "valor_m2": 1021.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2017-02",
+        "valor_m2": 1036.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2017-03",
+        "valor_m2": 1006.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2017-04",
+        "valor_m2": 1038.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2017-05",
+        "valor_m2": 1003.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2017-06",
+        "valor_m2": 1022.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2017-07",
+        "valor_m2": 1038.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2017-08",
+        "valor_m2": 1018.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2017-09",
+        "valor_m2": 1009.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2017-10",
+        "valor_m2": 1038.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2017-11",
+        "valor_m2": 1033.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2017-12",
+        "valor_m2": 1027.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2018-01",
+        "valor_m2": 1038.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2018-02",
+        "valor_m2": 1066.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2018-03",
+        "valor_m2": 1050.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2018-04",
+        "valor_m2": 1030.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2018-05",
+        "valor_m2": 1054.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2018-06",
+        "valor_m2": 1042.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2018-07",
+        "valor_m2": 1053.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2018-08",
+        "valor_m2": 1043.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2018-09",
+        "valor_m2": 1048.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2018-10",
+        "valor_m2": 1053.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2018-11",
+        "valor_m2": 1066.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2018-12",
+        "valor_m2": 1068.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2019-01",
+        "valor_m2": 727.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2019-02",
+        "valor_m2": 717.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2019-03",
+        "valor_m2": 709.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2019-04",
+        "valor_m2": 720.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2019-05",
+        "valor_m2": 717.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2019-06",
+        "valor_m2": 712.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2019-07",
+        "valor_m2": 735.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2019-08",
+        "valor_m2": 726.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2019-09",
+        "valor_m2": 724.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2019-10",
+        "valor_m2": 730.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2019-11",
+        "valor_m2": 718.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2019-12",
+        "valor_m2": 712.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2020-01",
+        "valor_m2": 644.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2020-02",
+        "valor_m2": 644.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2020-03",
+        "valor_m2": 644.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2020-04",
+        "valor_m2": 660.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2020-05",
+        "valor_m2": 660.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2020-06",
+        "valor_m2": 641.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2020-07",
+        "valor_m2": 658.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2020-08",
+        "valor_m2": 661.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2020-09",
+        "valor_m2": 651.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2020-10",
+        "valor_m2": 658.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2020-11",
+        "valor_m2": 661.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2020-12",
+        "valor_m2": 659.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2021-01",
+        "valor_m2": 1247.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2021-02",
+        "valor_m2": 1275.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2021-03",
+        "valor_m2": 1244.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2021-04",
+        "valor_m2": 1255.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2021-05",
+        "valor_m2": 1263.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2021-06",
+        "valor_m2": 1257.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2021-07",
+        "valor_m2": 1278.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2021-08",
+        "valor_m2": 1260.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2021-09",
+        "valor_m2": 1279.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2021-10",
+        "valor_m2": 1238.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2021-11",
+        "valor_m2": 1259.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2021-12",
+        "valor_m2": 1248.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2022-01",
+        "valor_m2": 1342.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2022-02",
+        "valor_m2": 1325.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2022-03",
+        "valor_m2": 1318.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2022-04",
+        "valor_m2": 1312.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2022-05",
+        "valor_m2": 1326.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2022-06",
+        "valor_m2": 1328.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2022-07",
+        "valor_m2": 1302.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2022-08",
+        "valor_m2": 1327.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2022-09",
+        "valor_m2": 1322.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2022-10",
+        "valor_m2": 1303.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2022-11",
+        "valor_m2": 1328.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2022-12",
+        "valor_m2": 1350.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2023-01",
+        "valor_m2": 1399.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2023-02",
+        "valor_m2": 1405.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2023-03",
+        "valor_m2": 1420.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2023-04",
+        "valor_m2": 1390.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2023-05",
+        "valor_m2": 1401.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2023-06",
+        "valor_m2": 1398.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2023-07",
+        "valor_m2": 1404.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2023-08",
+        "valor_m2": 1405.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2023-09",
+        "valor_m2": 1419.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2023-10",
+        "valor_m2": 1406.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2023-11",
+        "valor_m2": 1375.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2023-12",
+        "valor_m2": 1386.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2024-01",
+        "valor_m2": 828.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2024-02",
+        "valor_m2": 833.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2024-03",
+        "valor_m2": 848.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2024-04",
+        "valor_m2": 830.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2024-05",
+        "valor_m2": 839.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2024-06",
+        "valor_m2": 846.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2024-07",
+        "valor_m2": 847.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2024-08",
+        "valor_m2": 858.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2024-09",
+        "valor_m2": 846.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2024-10",
+        "valor_m2": 841.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2024-11",
+        "valor_m2": 843.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2024-12",
+        "valor_m2": 858.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2025-01",
+        "valor_m2": 826.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2025-02",
+        "valor_m2": 814.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2025-03",
+        "valor_m2": 825.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2025-04",
+        "valor_m2": 840.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2025-05",
+        "valor_m2": 837.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2025-06",
+        "valor_m2": 810.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2025-07",
+        "valor_m2": 831.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2025-08",
+        "valor_m2": 826.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2025-09",
+        "valor_m2": 818.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2025-10",
+        "valor_m2": 831.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2025-11",
+        "valor_m2": 831.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2025-12",
+        "valor_m2": 822.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2026-01",
+        "valor_m2": 818.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2026-02",
+        "valor_m2": 800.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2026-03",
+        "valor_m2": 799.0,
+        "fuente": "estimado"
+      },
+      {
+        "fecha": "2026-04",
+        "valor_m2": 800.0,
+        "fuente": "estimado"
+      }
+    ]
+  },
+  "ultima_actualizacion": "2026-04-02",
+  "fuentes": {}
+}

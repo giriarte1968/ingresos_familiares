@@ -3132,7 +3132,7 @@ def mostrar_propiedades(mes):
                 from parsers.mercado_inmobiliario import valuar_propiedad
                 resultado = valuar_propiedad(prop)
 
-                valor_m2 = resultado['valor_m2_usd']
+                valor_m2 = resultado['valor_m2_actual_usd']
                 valor_prop = resultado['valor_propiedad_usd']
                 tendencia = resultado['tendencia']
                 confianza = resultado['nivel_confianza']
