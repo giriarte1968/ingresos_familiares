@@ -2937,6 +2937,20 @@ def mostrar_propiedades(mes):
     st.header("Propiedades")
 
     datos = st.session_state.datos
+    
+    # 1. Selector de período local
+    meses_disponibles = sorted(datos.get('meses', {}).keys(), reverse=True)
+    if meses_disponibles:
+        idx_default = meses_disponibles.index(mes) if mes in meses_disponibles else 0
+        mes_prop = st.selectbox(
+            "📅 Período de valuación y plusvalía",
+            meses_disponibles,
+            index=idx_default,
+            key="mes_prop_selector"
+        )
+    else:
+        mes_prop = mes
+
     activos = datos.get('activos', [])
     propiedades = [a for a in activos if a.get('tipo') == 'propiedad']
 
@@ -3137,13 +3151,15 @@ def mostrar_propiedades(mes):
                 tendencia = resultado['tendencia']
                 confianza = resultado['nivel_confianza']
 
-                # Buscar tasación anterior para plusvalía real
+                # Buscar tasación anterior para plusvalía real (mes anterior al seleccionado)
                 tasaciones = prop.get('tasaciones', [])
                 tasacion_anterior = None
                 if tasaciones:
-                    tasaciones_ordenadas = sorted(tasaciones, key=lambda t: t.get('fecha', ''), reverse=True)
+                    # Ordenar por mes descendente
+                    tasaciones_ordenadas = sorted(tasaciones, key=lambda t: t.get('mes', ''), reverse=True)
                     for t in tasaciones_ordenadas:
-                        if t.get('fecha') < datetime.now().strftime('%Y-%m-%d'):
+                        t_mes = t.get('mes', '')
+                        if t_mes and t_mes < mes_prop:
                             tasacion_anterior = t
                             break
 
@@ -3152,7 +3168,7 @@ def mostrar_propiedades(mes):
                     plusvalia_real_usd = valor_prop - tasacion_anterior.get('valor_usd', 0)
                     valor_anterior = tasacion_anterior.get('valor_usd') or 1
                     plusvalia_real_pct = ((valor_prop / valor_anterior) - 1) * 100
-                    plusvalia_mes_anterior = tasacion_anterior.get('mes', mes)
+                    plusvalia_mes_anterior = tasacion_anterior.get('mes', mes_prop)
                     fuente_plusvalia = 'real'
                 else:
                     plusvalia_real_usd = 0
@@ -3173,15 +3189,15 @@ def mostrar_propiedades(mes):
                             'valor_usd': valor_prop,
                             'valor_ars': valor_prop * usdt_ars,
                             'valor_m2_usd': valor_m2,
-                            'mes': mes,
+                            'mes': mes_prop,
                             'fuente': 'motor_valuacion'
                         }
                         activo.setdefault('tasaciones', []).append(tasacion)
 
-                # Guardar plusvalía en el mes
+                # Guardar plusvalía en el mes seleccionado LOCALMENTE
                 plusvalia_ars = plusvalia_real_usd * usdt_ars
-                datos.setdefault('meses', {}).setdefault(mes, {}).setdefault('plusvalia_propiedades', 0)
-                datos['meses'][mes]['plusvalia_propiedades'] = plusvalia_ars
+                datos.setdefault('meses', {}).setdefault(mes_prop, {}).setdefault('plusvalia_propiedades', 0)
+                datos['meses'][mes_prop]['plusvalia_propiedades'] = plusvalia_ars
 
                 guardar_datos(datos)
                 st.session_state.datos = datos
@@ -3198,7 +3214,7 @@ def mostrar_propiedades(mes):
                     'plusvalia_mes_anterior': plusvalia_mes_anterior,
                     'fuente_plusvalia': fuente_plusvalia,
                     'tasacion_anterior': tasacion_anterior,
-                    'mes_actual': mes,
+                    'mes_actual': mes_prop,
                 }
 
             # Mostrar resultados persistentes de valuación
@@ -3266,7 +3282,7 @@ def mostrar_propiedades(mes):
                         'valor_usd': nuevo_valor,
                         'valor_ars': nuevo_valor * usdt_ars,
                         'valor_m2_usd': prop['valor_m2_usd'],
-                        'mes': mes,
+                        'mes': mes_prop,
                         'fuente': 'manual'
                     }
                     prop.setdefault('tasaciones', []).append(tasacion)
@@ -3275,20 +3291,33 @@ def mostrar_propiedades(mes):
                     datos['activos'] = activos
 
                     plusvalia = prop['valor_tasacion_ars'] - prop['valor_anterior_ars']
-                    datos.setdefault('meses', {}).setdefault(mes, {}).setdefault('plusvalia_propiedades', 0)
-                    datos['meses'][mes]['plusvalia_propiedades'] = plusvalia
+                    datos.setdefault('meses', {}).setdefault(mes_prop, {}).setdefault('plusvalia_propiedades', 0)
+                    datos['meses'][mes_prop]['plusvalia_propiedades'] = plusvalia
 
                     guardar_datos(datos)
-                    st.success(f"Tasación actualizada. Plusvalía: ${plusvalia:,.0f}")
+                    st.success(f"Tasación actualizada para {mes_prop}. Plusvalía: ${plusvalia:,.0f}")
                     st.rerun()
 
-    # Mostrar plusvalía total
+    # Mostrar plusvalía total del mes seleccionado
     if propiedades:
-        total_plusvalia = sum(
-            prop.get('valor_tasacion_ars', 0) - prop.get('valor_anterior_ars', 0)
-            for prop in propiedades
-        )
-        st.metric("Plusvalía Total Propiedades", f"${total_plusvalia:,.0f}")
+        st.divider()
+        plusvalia_total_mes = datos.get('meses', {}).get(mes_prop, {}).get('plusvalia_propiedades', 0)
+        st.metric(f"Plusvalía Total Propiedades ({mes_prop})", f"${plusvalia_total_mes:,.0f} ARS")
+
+        with st.expander("📊 Historial de plusvalía por mes"):
+            hist = {
+                m: v.get('plusvalia_propiedades', 0)
+                for m, v in datos.get('meses', {}).items()
+                if v.get('plusvalia_propiedades', 0) != 0
+            }
+            if hist:
+                # Ordenar por clave (mes)
+                sorted_hist = sorted(hist.items())
+                df_hist = pd.DataFrame(sorted_hist, columns=['Mes', 'Plusvalía ARS'])
+                st.bar_chart(df_hist.set_index('Mes'))
+                st.table(df_hist)
+            else:
+                st.info("No hay datos de plusvalía guardados para mostrar en el historial.")
 
 
 def mostrar_ajustes(mes_from_sidebar):
