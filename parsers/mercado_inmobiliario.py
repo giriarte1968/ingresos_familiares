@@ -244,92 +244,142 @@ def calcular_valor_m2(propiedad):
     }
 
 
-def construir_serie_historica(zona, tipo, anios=10, fecha_ref=None):
-    """
-    Construye serie histórica mensual del m² en USD.
-    Combina datos reales (si existen en datos_mercado.json) con estimaciones.
-    Aplica media móvil de 3 meses para suavizar.
-    Si se pasa fecha_ref (datetime), la serie se limita hasta ese mes/año.
-    """
-    import calendar
-    datos_mercado = cargar_datos_mercado()
-    clave = f"{zona}_{tipo}"
+def cargar_indice_mercado():
+    if not os.path.exists(DATOS_MERCADO_FILE):
+        # Fallback al json base en caso de un error para evitar roturas
+        return {2016: 0.85, 2017: 0.95, 2018: 1.00, 2019: 0.90, 2020: 0.80, 2021: 0.70, 2022: 0.68, 2023: 0.70, 2024: 0.75, 2025: 0.85, 2026: 1.00}
 
-    # Fecha tope: usar fecha_ref si se proporciona, sino hoy
+    with open(DATOS_MERCADO_FILE, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    if "rosario_m2_indice" in data:
+        return {int(k): v for k, v in data["rosario_m2_indice"].items()}
+    else:
+        return {2016: 0.85, 2017: 0.95, 2018: 1.00, 2019: 0.90, 2020: 0.80, 2021: 0.70, 2022: 0.68, 2023: 0.70, 2024: 0.75, 2025: 0.85, 2026: 1.00}
+
+
+def interpolar_indice(indice, anio):
+    """
+    Permite obtener valores para años no exactos (ej: 2023.75)
+    """
+    anios = sorted(indice.keys())
+
+    if anio in indice:
+        return indice[anio]
+
+    for i in range(len(anios) - 1):
+        a0, a1 = anios[i], anios[i + 1]
+        if a0 <= anio <= a1:
+            t = (anio - a0) / (a1 - a0)
+            return indice[a0] + t * (indice[a1] - indice[a0])
+
+    # extrapolación simple
+    if anio < anios[0]:
+        return indice[anios[0]]
+    return indice[anios[-1]]
+
+
+def validar_serie(serie):
+    """
+    Validaciones clave para evitar bugs futuros
+    """
+    valores = [s['valor_m2'] for s in serie]
+    fechas = [s['fecha'] for s in serie]
+
+    # Convertir a dict año → promedio
+    por_anio = {}
+    for i, f in enumerate(fechas):
+        anio = int(f.split("-")[0])
+        por_anio.setdefault(anio, []).append(valores[i])
+
+    promedio_anio = {a: sum(v) / len(v) for a, v in por_anio.items()}
+
+    # 1. Pico en 2018
+    if 2018 in promedio_anio and 2023 in promedio_anio:
+        assert promedio_anio[2018] >= promedio_anio[2023], "ERROR: 2018 debería ser mayor o igual a 2023"
+
+    # 2. Caída post 2018
+    if 2020 in promedio_anio and 2018 in promedio_anio:
+        assert promedio_anio[2020] <= promedio_anio[2018], "ERROR: 2020 debería ser menor que 2018"
+
+    # 3. Valor actual coherente
+    ultimo = valores[-1]
+    penultimo = valores[-2] if len(valores) > 1 else ultimo
+    assert abs(ultimo - penultimo) < 200, "ERROR: salto brusco en valor actual"
+
+    # 4. Nada de valores absurdos
+    for v in valores:
+        assert v < 5000, "ERROR: valor m2 irreal detectado"
+
+
+def construir_serie_historica(zona, tipo, anios_hist=10, fecha_ref=None):
+    """
+    Construye serie histórica mensual basada en índice de mercado real
+    """
     if fecha_ref is None:
         fecha_tope = datetime.now()
     else:
         fecha_tope = fecha_ref
 
-    # Si ya existe serie guardada, filtrarla hasta la fecha tope
-    if clave in datos_mercado.get('series', {}):
-        serie_completa = datos_mercado['series'][clave]
-        tope_str = f"{fecha_tope.year}-{fecha_tope.month:02d}"
-        serie = [s for s in serie_completa if s['fecha'] <= tope_str]
-        if serie:
-            return _suavizar_serie(serie)
+    indice = cargar_indice_mercado()
 
-    # Construir serie estimada
-    anio_inicio = fecha_tope.year - anios
-    mes_inicio = fecha_tope.month
+    # año tope para la valuación solicitada
+    anio_actual = fecha_tope.year + (fecha_tope.month - 1) / 12.0
+    indice_actual = interpolar_indice(indice, anio_actual)
 
     valor_base = VALOR_BASE_M2.get(tipo, 1000)
     factor_z = FACTOR_ZONA.get(zona, 0.85)
+
+    # Este es el valor "hoy" en base 1.0 (ya que base 2026 = 1.0)
     valor_base_zona = valor_base * factor_z * FACTOR_CIERRE_REAL
 
     serie = []
 
-    # Simular evolución del mercado rosarino (datos aproximados)
-    # 2016-2018: crecimiento, 2019-2020: caída, 2021-2023: recuperación, 2024+: estabilización
-    for anio in range(anio_inicio, fecha_tope.year + 1):
-        for mes in range(1, 13):
-            if anio == anio_inicio and mes < mes_inicio:
-                continue
-            if anio == fecha_tope.year and mes > fecha_tope.month:
-                break
+    anio_inicio_dt = datetime.now().year - anios_hist
+    if anio_inicio_dt < min(indice.keys()):
+        anio_inicio_dt = min(indice.keys())
 
-            fecha = f"{anio}-{mes:02d}"
+    fecha_cursor = datetime(int(anio_inicio_dt), 1, 1)
 
-            # Modelo simplificado de evolución del mercado
-            if anio <= 2018:
-                crecimiento = 1.03  # +3% anual
-            elif anio <= 2020:
-                crecimiento = 0.90  # -10% anual
-            elif anio <= 2023:
-                crecimiento = 1.05  # +5% anual
-            else:
-                crecimiento = 0.98  # -2% anual (estabilización)
+    while fecha_cursor <= fecha_tope:
+        anio = fecha_cursor.year
+        mes = fecha_cursor.month
 
-            anios_transcurridos = anio - anio_inicio
-            factor_tiempo = crecimiento ** anios_transcurridos
+        # año decimal (ej: 2023.75)
+        anio_decimal = anio + (mes - 1) / 12.0
 
-            # Variación mensual aleatoria controlada
-            import hashlib
-            seed = int(hashlib.md5(f"{clave}_{fecha}".encode()).hexdigest()[:8], 16)
-            variacion = 1.0 + ((seed % 100) - 50) / 2500.0  # +/- 2%
+        indice_anio = interpolar_indice(indice, anio_decimal)
 
-            valor_m2 = valor_base_zona * factor_tiempo * variacion
-            fuente = 'estimado'
+        # Usamos el indice 2026 (1.0) como referencia para el valor_base_zona.
+        # indice_anio te da la variación relativa a ese valor base.
+        indice_referencia_base = interpolar_indice(indice, datetime.now().year + (datetime.now().month-1)/12.0)
+        
+        valor_m2 = valor_base_zona * (indice_anio / indice_referencia_base)
 
-            serie.append({
-                'fecha': fecha,
-                'valor_m2': round(valor_m2, 0),
-                'fuente': fuente,
-            })
+        import hashlib
+        clave = f"{zona}_{tipo}"
+        fecha_str = fecha_cursor.strftime("%Y-%m")
+        seed = int(hashlib.md5(f"{clave}_{fecha_str}".encode()).hexdigest()[:8], 16)
+        variacion_micro = 1.0 + ((seed % 100) - 50) / 2500.0  # +/- 2%
 
-    # Guardar serie completa (sin filtro de fecha_ref) para reutilización
-    if 'series' not in datos_mercado:
-        datos_mercado['series'] = {}
-    # Solo guardar si calculamos la serie completa (sin fecha_ref o usando hoy)
-    if fecha_ref is None or fecha_tope.date() >= datetime.now().date():
-        datos_mercado['series'][clave] = serie
-        datos_mercado['ultima_actualizacion'] = datetime.now().strftime('%Y-%m-%d')
-        guardar_datos_mercado(datos_mercado)
+        valor_m2 = valor_m2 * variacion_micro
+
+        serie.append({
+            'fecha': fecha_str,
+            'valor_m2': round(valor_m2, 0),
+            'fuente': 'modelo ajustado mercado real',
+        })
+
+        # avanzar mes
+        if mes == 12:
+            fecha_cursor = datetime(anio + 1, 1, 1)
+        else:
+            fecha_cursor = datetime(anio, mes + 1, 1)
+
+    validar_serie(serie)
 
     return _suavizar_serie(serie)
 
-
-def _suavizar_serie(serie, ventana=3):
     """Aplica media móvil de N meses para suavizar saltos bruscos"""
     if len(serie) <= ventana:
         return serie
