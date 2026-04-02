@@ -3062,8 +3062,8 @@ def mostrar_propiedades(mes):
                     f"{prop.get('estado_detalle', '')} | {prop.get('calidad_edificio', '')}"
                 )
             with c_head2:
-                if st.button("✏️ Editar", key=f"edit_prop_{prop['id']}"):
-                    st.session_state[f"edit_prop_{prop['id']}"] = True
+                if st.button("✏️ Editar", key=f"edit_btn_{prop['id']}"):
+                    st.session_state[f"editing_prop_{prop['id']}"] = True
             with c_head3:
                 if st.button("🗑 Eliminar", key=f"del_prop_{prop['id']}", type="secondary"):
                     datos['activos'] = [a for a in activos if a.get('id') != prop['id']]
@@ -3073,7 +3073,7 @@ def mostrar_propiedades(mes):
                     st.rerun()
 
             # Formulario de edición
-            if st.session_state.get(f"edit_prop_{prop['id']}", False):
+            if st.session_state.get(f"editing_prop_{prop['id']}", False):
                 with st.form(f"form_edit_{prop['id']}"):
                     st.caption("Editar datos de la propiedad")
                     ec1, ec2 = st.columns(2)
@@ -3117,12 +3117,12 @@ def mostrar_propiedades(mes):
                                 activo['calidad_edificio'] = e_calidad
                         guardar_datos(datos)
                         st.session_state.datos = datos
-                        st.session_state[f"edit_prop_{prop['id']}"] = False
+                        st.session_state[f"editing_prop_{prop['id']}"] = False
                         st.success(f"Propiedad '{e_nombre}' actualizada")
                         st.rerun()
 
                 if st.button("Cancelar edición", key=f"cancel_edit_{prop['id']}"):
-                    st.session_state[f"edit_prop_{prop['id']}"] = False
+                    st.session_state[f"editing_prop_{prop['id']}"] = False
                     st.rerun()
                 st.divider()
 
