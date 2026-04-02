@@ -1142,21 +1142,41 @@ def main():
         index=len(meses_disponibles) - 1
     )
     
-    # Agregar nuevo mes
-    if st.sidebar.button("+ Agregar Mes"):
-        nuevo_mes = st.sidebar.text_input("Nuevo mes (YYYY-MM)")
-        if nuevo_mes:
-            if nuevo_mes not in st.session_state.datos.get('meses', {}):
-                st.session_state.datos.setdefault('meses', {})[nuevo_mes] = {
+    # Agregar nuevo mes desde el sidebar
+    with st.sidebar.expander("+ Agregar Período"):
+        _anios = list(range(datetime.now().year, 2015, -1))
+        _meses_nombres = [
+            (1, "Enero"), (2, "Febrero"), (3, "Marzo"), (4, "Abril"),
+            (5, "Mayo"), (6, "Junio"), (7, "Julio"), (8, "Agosto"),
+            (9, "Septiembre"), (10, "Octubre"), (11, "Noviembre"), (12, "Diciembre")
+        ]
+        _sb_anio = st.selectbox("Año", _anios, key="sb_nuevo_anio")
+        _sb_mes_num = st.selectbox(
+            "Mes", [m[0] for m in _meses_nombres],
+            format_func=lambda x: dict(_meses_nombres)[x],
+            key="sb_nuevo_mes_num"
+        )
+        _nuevo_mes = f"{_sb_anio}-{_sb_mes_num:02d}"
+        st.caption(f"Período: {_nuevo_mes}")
+        if st.button("Crear Período", key="sb_crear_mes_btn"):
+            _datos_disco = cargar_datos()
+            if _nuevo_mes not in _datos_disco.get('meses', {}):
+                _datos_disco.setdefault('meses', {})[_nuevo_mes] = {
                     'ingresos_bancarios': [],
                     'egresos': [],
                     'ganancia_fondos': 0,
                     'plusvalia_propiedades': 0,
                     'ajustes': []
                 }
-                guardar_datos(st.session_state.datos)
+                # Escritura directa al JSON (bypass del guard de 0 egresos)
+                with open(DATOS_FILE, 'w', encoding='utf-8') as f:
+                    json.dump(_datos_disco, f, ensure_ascii=False, indent=2)
+                st.session_state.datos = _datos_disco
+                st.sidebar.success(f"✅ {_nuevo_mes} creado")
                 st.rerun()
-    
+            else:
+                st.sidebar.warning("El período ya existe")
+
     # Menú principal
     menu = st.sidebar.selectbox(
         "Menú",
