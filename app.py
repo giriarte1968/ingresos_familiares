@@ -3150,7 +3150,8 @@ def mostrar_propiedades(mes):
                 # Calcular plusvalía real vs estimada
                 if tasacion_anterior:
                     plusvalia_real_usd = valor_prop - tasacion_anterior.get('valor_usd', 0)
-                    plusvalia_real_pct = ((valor_prop / tasacion_anterior.get('valor_usd', 1)) - 1) * 100
+                    valor_anterior = tasacion_anterior.get('valor_usd') or 1
+                    plusvalia_real_pct = ((valor_prop / valor_anterior) - 1) * 100
                     plusvalia_mes_anterior = tasacion_anterior.get('mes', mes)
                     fuente_plusvalia = 'real'
                 else:
