@@ -3232,8 +3232,11 @@ def mostrar_propiedades(mes):
                     plusvalia_mes_anterior = tasacion_anterior.get('mes', mes_prop)
                     fuente_plusvalia = 'real'
                 else:
-                    plusvalia_real_usd = 0
                     plusvalia_real_pct = resultado['plusvalia_mensual_pct']
+                    if plusvalia_real_pct != 0:
+                        plusvalia_real_usd = valor_prop - (valor_prop / (1 + plusvalia_real_pct/100))
+                    else:
+                        plusvalia_real_usd = 0
                     plusvalia_mes_anterior = 'estimado'
                     fuente_plusvalia = 'estimado'
 

@@ -30,6 +30,13 @@ def interpolar_indice(indice, año):
 
     if año < años[0]:
         return indice[str(años[0])]
+        
+    if año > años[-1]:
+        # Extrapolar usando la tendencia de los últimos dos años
+        if len(años) >= 2:
+            pendiente = indice[str(años[-1])] - indice[str(años[-2])]
+            return indice[str(años[-1])] + pendiente * (año - años[-1])
+
     return indice[str(años[-1])]
 
 def obtener_factor_barrio(barrio, data):
