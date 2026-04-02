@@ -411,15 +411,21 @@ def valuar_propiedad(propiedad, fecha_ref=None):
     """
     Función principal: valúa una propiedad completa.
     Si se pasa fecha_ref (str 'YYYY-MM' o datetime), calcula el valor
-    al último día de ese mes en lugar de usar la fecha actual.
+    al último día de ese mes según la serie histórica del mercado.
     Retorna dict con todos los datos de valuación.
     """
     import calendar
     m2 = propiedad.get('m2', 0)
     tipo = propiedad.get('tipo_inmueble', 'departamento')
     zona = propiedad.get('zona', 'Otro')
+    estado = propiedad.get('estado_detalle', 'bueno')
+    calidad = propiedad.get('calidad_edificio', 'media')
+    piso = propiedad.get('piso', 0)
+    orientacion = propiedad.get('orientacion', 'este')
+    amenities = propiedad.get('amenities', [])
+    cochera = propiedad.get('cochera', False)
+    espacios_ext = propiedad.get('espacios_exteriores', [])
     fecha_compra = propiedad.get('fecha_compra', None)
-    valor_compra = propiedad.get('valor_compra_usd', 0)
 
     # Convertir fecha_ref a datetime si viene como string 'YYYY-MM'
     fecha_ref_dt = None
@@ -434,12 +440,61 @@ def valuar_propiedad(propiedad, fecha_ref=None):
         elif isinstance(fecha_ref, datetime):
             fecha_ref_dt = fecha_ref
 
-    # Calcular valor m²
-    resultado_m2 = calcular_valor_m2(propiedad)
-    valor_m2 = resultado_m2['valor_m2_usd']
-
     # Construir serie histórica hasta la fecha de referencia
     serie = construir_serie_historica(zona, tipo, fecha_ref=fecha_ref_dt)
+
+    if fecha_ref_dt and serie:
+        # ── MODO HISTÓRICO ──
+        # La serie ya contiene: valor_base * factor_zona * FACTOR_CIERRE_REAL
+        # Necesitamos aplicar encima los factores individuales de la propiedad.
+        valor_m2_serie_base = serie[-1]['valor_m2']   # valor en ese período (zona+tipo+cierre)
+
+        # Factores que NO están en la serie (son de la propiedad, no del mercado)
+        fe = FACTOR_ESTADO.get(estado, 1.00)
+        fc = FACTOR_CALIDAD.get(calidad, 1.00)
+        fp = factor_piso(piso)
+        fo = FACTOR_ORIENTACION.get(orientacion, 1.00)
+        amen_suma = min(sum(FACTOR_AMENITIES.get(a, 0) for a in amenities), 0.20)
+        fa = 1.0 + amen_suma
+        ext_suma = min(sum(FACTOR_EXTERIORES.get(e, 0) for e in espacios_ext), 0.15)
+        fext = 1.0 + ext_suma
+        fcoch = FACTOR_COCHERA if cochera else 1.0
+
+        # Valor m² histórico ajustado con características del inmueble
+        valor_m2 = round(valor_m2_serie_base * fe * fc * fp * fo * fa * fext * fcoch, 0)
+
+        rango_min = round(valor_m2 * 0.90, 0)
+        rango_max = round(valor_m2 * 1.10, 0)
+
+        # Confianza
+        factores_count = sum([
+            1 if zona != 'Otro' else 0,
+            1 if estado != 'bueno' else 0,
+            1 if calidad != 'media' else 0,
+            1 if piso > 0 else 0,
+            1 if orientacion != 'este' else 0,
+            1 if amenities else 0,
+            1 if cochera else 0,
+            1 if espacios_ext else 0,
+        ])
+        confianza = 'alto' if factores_count >= 5 else ('medio' if factores_count >= 3 else 'bajo')
+
+        justificacion = (
+            f"Valuación histórica al {serie[-1]['fecha']}. "
+            f"Valor m² de mercado ({zona}/{tipo}): USD {valor_m2_serie_base:,.0f}. "
+            f"Estado ({estado}): ×{fe:.2f}. Calidad ({calidad}): ×{fc:.2f}. "
+            f"Piso: ×{fp:.2f}. Amenities: +{amen_suma*100:.0f}%. "
+            f"Rango estimado: USD {rango_min:,.0f} - {rango_max:,.0f}/m²."
+        )
+        rango_str = f"USD {rango_min:,.0f} - {rango_max:,.0f}"
+
+    else:
+        # ── MODO ACTUAL ──
+        resultado_m2 = calcular_valor_m2(propiedad)
+        valor_m2 = resultado_m2['valor_m2_usd']
+        rango_str = f"USD {resultado_m2['rango_min']:,.0f} - {resultado_m2['rango_max']:,.0f}"
+        confianza = resultado_m2['confianza']
+        justificacion = resultado_m2['justificacion']
 
     # Calcular plusvalía
     plusvalia = calcular_plusvalia_serie(serie, fecha_compra)
@@ -449,14 +504,13 @@ def valuar_propiedad(propiedad, fecha_ref=None):
 
     return {
         'valor_m2_actual_usd': valor_m2,
-        'rango_m2': f"USD {resultado_m2['rango_min']:,.0f} - {resultado_m2['rango_max']:,.0f}",
+        'rango_m2': rango_str,
         'valor_propiedad_usd': round(valor_propiedad, 0),
         'serie_mensual_m2': serie,
         'plusvalia_mensual_pct': plusvalia['plusvalia_mensual_pct'],
         'plusvalia_acumulada_pct': plusvalia['plusvalia_acumulada_pct'],
         'tendencia': plusvalia['tendencia'],
-        'factores_aplicados': resultado_m2['factores_aplicados'],
-        'nivel_confianza': resultado_m2['confianza'],
-        'justificacion': resultado_m2['justificacion'],
+        'nivel_confianza': confianza,
+        'justificacion': justificacion,
         'fecha_valuacion': fecha_ref_dt.strftime('%Y-%m-%d') if fecha_ref_dt else datetime.now().strftime('%Y-%m-%d'),
     }
