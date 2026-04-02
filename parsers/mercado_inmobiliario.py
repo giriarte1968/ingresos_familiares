@@ -244,24 +244,34 @@ def calcular_valor_m2(propiedad):
     }
 
 
-def construir_serie_historica(zona, tipo, anios=10):
+def construir_serie_historica(zona, tipo, anios=10, fecha_ref=None):
     """
     Construye serie histórica mensual del m² en USD.
     Combina datos reales (si existen en datos_mercado.json) con estimaciones.
     Aplica media móvil de 3 meses para suavizar.
+    Si se pasa fecha_ref (datetime), la serie se limita hasta ese mes/año.
     """
+    import calendar
     datos_mercado = cargar_datos_mercado()
     clave = f"{zona}_{tipo}"
 
-    # Si ya existe serie, usarla
+    # Fecha tope: usar fecha_ref si se proporciona, sino hoy
+    if fecha_ref is None:
+        fecha_tope = datetime.now()
+    else:
+        fecha_tope = fecha_ref
+
+    # Si ya existe serie guardada, filtrarla hasta la fecha tope
     if clave in datos_mercado.get('series', {}):
-        serie = datos_mercado['series'][clave]
-        return _suavizar_serie(serie)
+        serie_completa = datos_mercado['series'][clave]
+        tope_str = f"{fecha_tope.year}-{fecha_tope.month:02d}"
+        serie = [s for s in serie_completa if s['fecha'] <= tope_str]
+        if serie:
+            return _suavizar_serie(serie)
 
     # Construir serie estimada
-    fecha_actual = datetime.now()
-    anio_inicio = fecha_actual.year - anios
-    mes_inicio = fecha_actual.month
+    anio_inicio = fecha_tope.year - anios
+    mes_inicio = fecha_tope.month
 
     valor_base = VALOR_BASE_M2.get(tipo, 1000)
     factor_z = FACTOR_ZONA.get(zona, 0.85)
@@ -270,12 +280,12 @@ def construir_serie_historica(zona, tipo, anios=10):
     serie = []
 
     # Simular evolución del mercado rosarino (datos aproximados)
-    # 2016-2018: crecimiento, 2019-2020: caída, 2021-2023: recuperación, 2024-2026: estabilización
-    for anio in range(anio_inicio, fecha_actual.year + 1):
+    # 2016-2018: crecimiento, 2019-2020: caída, 2021-2023: recuperación, 2024+: estabilización
+    for anio in range(anio_inicio, fecha_tope.year + 1):
         for mes in range(1, 13):
             if anio == anio_inicio and mes < mes_inicio:
                 continue
-            if anio == fecha_actual.year and mes > fecha_actual.month:
+            if anio == fecha_tope.year and mes > fecha_tope.month:
                 break
 
             fecha = f"{anio}-{mes:02d}"
@@ -307,12 +317,14 @@ def construir_serie_historica(zona, tipo, anios=10):
                 'fuente': fuente,
             })
 
-    # Guardar serie
+    # Guardar serie completa (sin filtro de fecha_ref) para reutilización
     if 'series' not in datos_mercado:
         datos_mercado['series'] = {}
-    datos_mercado['series'][clave] = serie
-    datos_mercado['ultima_actualizacion'] = datetime.now().strftime('%Y-%m-%d')
-    guardar_datos_mercado(datos_mercado)
+    # Solo guardar si calculamos la serie completa (sin fecha_ref o usando hoy)
+    if fecha_ref is None or fecha_tope.date() >= datetime.now().date():
+        datos_mercado['series'][clave] = serie
+        datos_mercado['ultima_actualizacion'] = datetime.now().strftime('%Y-%m-%d')
+        guardar_datos_mercado(datos_mercado)
 
     return _suavizar_serie(serie)
 
@@ -395,23 +407,39 @@ def calcular_plusvalia_serie(serie, fecha_compra=None):
     }
 
 
-def valuar_propiedad(propiedad):
+def valuar_propiedad(propiedad, fecha_ref=None):
     """
     Función principal: valúa una propiedad completa.
+    Si se pasa fecha_ref (str 'YYYY-MM' o datetime), calcula el valor
+    al último día de ese mes en lugar de usar la fecha actual.
     Retorna dict con todos los datos de valuación.
     """
+    import calendar
     m2 = propiedad.get('m2', 0)
     tipo = propiedad.get('tipo_inmueble', 'departamento')
     zona = propiedad.get('zona', 'Otro')
     fecha_compra = propiedad.get('fecha_compra', None)
     valor_compra = propiedad.get('valor_compra_usd', 0)
 
+    # Convertir fecha_ref a datetime si viene como string 'YYYY-MM'
+    fecha_ref_dt = None
+    if fecha_ref:
+        if isinstance(fecha_ref, str):
+            try:
+                anio, mes = int(fecha_ref[:4]), int(fecha_ref[5:7])
+                ultimo_dia = calendar.monthrange(anio, mes)[1]
+                fecha_ref_dt = datetime(anio, mes, ultimo_dia)
+            except Exception:
+                fecha_ref_dt = None
+        elif isinstance(fecha_ref, datetime):
+            fecha_ref_dt = fecha_ref
+
     # Calcular valor m²
     resultado_m2 = calcular_valor_m2(propiedad)
     valor_m2 = resultado_m2['valor_m2_usd']
 
-    # Construir serie histórica
-    serie = construir_serie_historica(zona, tipo)
+    # Construir serie histórica hasta la fecha de referencia
+    serie = construir_serie_historica(zona, tipo, fecha_ref=fecha_ref_dt)
 
     # Calcular plusvalía
     plusvalia = calcular_plusvalia_serie(serie, fecha_compra)
@@ -430,4 +458,5 @@ def valuar_propiedad(propiedad):
         'factores_aplicados': resultado_m2['factores_aplicados'],
         'nivel_confianza': resultado_m2['confianza'],
         'justificacion': resultado_m2['justificacion'],
+        'fecha_valuacion': fecha_ref_dt.strftime('%Y-%m-%d') if fecha_ref_dt else datetime.now().strftime('%Y-%m-%d'),
     }

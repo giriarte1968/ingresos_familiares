@@ -2032,8 +2032,22 @@ def mostrar_egresos():
         st.write("")  # Espaciador
         st.write("")  # Espaciador
         with st.expander("+ Nuevo Mes"):
-            nuevo_mes = st.text_input("Mes (ej: 2026-03)", key="nuevo_mes_input")
-            if st.button("Crear", key="crear_mes_btn") and nuevo_mes:
+            anios_opciones = list(range(datetime.now().year, 2015, -1))
+            meses_opciones = [
+                (1, "Enero"), (2, "Febrero"), (3, "Marzo"), (4, "Abril"),
+                (5, "Mayo"), (6, "Junio"), (7, "Julio"), (8, "Agosto"),
+                (9, "Septiembre"), (10, "Octubre"), (11, "Noviembre"), (12, "Diciembre")
+            ]
+            nuevo_anio = st.selectbox("Año", anios_opciones, key="nuevo_mes_anio")
+            nuevo_mes_num = st.selectbox(
+                "Mes",
+                [m[0] for m in meses_opciones],
+                format_func=lambda x: dict(meses_opciones)[x],
+                key="nuevo_mes_num"
+            )
+            nuevo_mes = f"{nuevo_anio}-{nuevo_mes_num:02d}"
+            st.caption(f"Período: {nuevo_mes}")
+            if st.button("Crear", key="crear_mes_btn"):
                 if nuevo_mes not in datos.get('meses', {}):
                     datos['meses'][nuevo_mes] = {
                         'ingresos_bancarios': [],
@@ -2043,11 +2057,8 @@ def mostrar_egresos():
                         'plusvalia_propiedades': 0
                     }
                     guardar_datos(datos)
-                    
-                    # Marcar intención de seleccionar el nuevo mes en el próximo rerun
                     st.session_state.mes_egresos_actual = nuevo_mes
                     st.session_state["pending_mes_egresos"] = nuevo_mes
-
                     st.success(f"Mes {nuevo_mes} creado")
                     st.rerun()
                 else:
@@ -3144,7 +3155,8 @@ def mostrar_propiedades(mes):
             st.caption("Valuación Automática")
             if st.button("📊 Valuación Automática", key=f"valuar_{prop['id']}"):
                 from parsers.mercado_inmobiliario import valuar_propiedad
-                resultado = valuar_propiedad(prop)
+                # Usar el último día del mes seleccionado como fecha de valuación
+                resultado = valuar_propiedad(prop, fecha_ref=mes_prop)
 
                 valor_m2 = resultado['valor_m2_actual_usd']
                 valor_prop = resultado['valor_propiedad_usd']
