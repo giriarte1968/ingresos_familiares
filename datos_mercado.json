@@ -23,9 +23,11 @@
   "factores_propiedad": {
     "estado": {
       "a_estrenar": 1.2,
-      "excelente": 1.1,
+      "excelente": 1.15,
+      "muy_bueno": 1.1,
       "bueno": 1.0,
-      "regular": 0.85
+      "regular": 0.85,
+      "a_refaccionar": 0.7
     },
     "calidad": {
       "premium": 1.25,
@@ -37,11 +39,51 @@
       "bajo": 1.0,
       "medio": 1.02,
       "alto": 1.04
+    },
+    "ventilacion": {
+      "cruzada": 1.05,
+      "simple": 1.0,
+      "ninguna": 0.97
+    },
+    "terminaciones_suelo": {
+      "madera_noble": 1.05,
+      "porcelanato": 1.03,
+      "ceramico": 1.0,
+      "estandar": 0.98
+    },
+    "distribucion_cocina": {
+      "independiente": 1.03,
+      "lavadero_sectorizado": 1.05,
+      "integrada": 1.0
+    },
+    "carpinteria": {
+      "dvh": 1.05,
+      "piso_techo": 1.08,
+      "estandar": 1.0
+    },
+    "orientacion": {
+      "norte": 1.06,
+      "noreste": 1.05,
+      "noroeste": 1.03,
+      "este": 1.01,
+      "oeste": 0.98,
+      "sur": 0.95
+    },
+    "detalles_categoria": {
+      "caldera_central": 0.03,
+      "radiadores": 0.02,
+      "seguridad_24hs": 0.04,
+      "totem_seguridad": 0.02,
+      "aberturas_premium": 0.03,
+      "balcon_terraza": 0.04,
+      "pileta": 0.05,
+      "sum": 0.03,
+      "gym": 0.02
     }
   },
   "metadata": {
     "base_ciudad_m2_2026": 1200,
-    "descripcion": "Modelo desacoplado",
-    "version": "2.0"
+    "descripcion": "Modelo avanzado desacoplado con detalles constructivos",
+    "version": "3.0"
   }
 }
