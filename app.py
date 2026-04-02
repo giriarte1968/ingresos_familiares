@@ -2048,18 +2048,23 @@ def mostrar_egresos():
             nuevo_mes = f"{nuevo_anio}-{nuevo_mes_num:02d}"
             st.caption(f"Período: {nuevo_mes}")
             if st.button("Crear", key="crear_mes_btn"):
-                if nuevo_mes not in datos.get('meses', {}):
-                    datos['meses'][nuevo_mes] = {
+                # Leer del disco para evitar el guard de guardar_datos (no depende de session_state)
+                datos_disco = cargar_datos()
+                if nuevo_mes not in datos_disco.get('meses', {}):
+                    datos_disco.setdefault('meses', {})[nuevo_mes] = {
                         'ingresos_bancarios': [],
                         'egresos': [],
                         'ajustes': [],
                         'ganancia_fondos': 0,
                         'plusvalia_propiedades': 0
                     }
-                    guardar_datos(datos)
+                    # Escritura directa al JSON (bypass del guard de 0 egresos)
+                    with open(DATOS_FILE, 'w', encoding='utf-8') as f:
+                        json.dump(datos_disco, f, ensure_ascii=False, indent=2)
+                    st.session_state.datos = datos_disco
                     st.session_state.mes_egresos_actual = nuevo_mes
                     st.session_state["pending_mes_egresos"] = nuevo_mes
-                    st.success(f"Mes {nuevo_mes} creado")
+                    st.success(f"✅ Mes {nuevo_mes} creado y guardado")
                     st.rerun()
                 else:
                     st.warning("El mes ya existe")
