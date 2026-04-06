@@ -3127,6 +3127,17 @@ def mostrar_propiedades(mes):
         with st.container():
             st.divider()
 
+            # Buscar valuación guardada para el período seleccionado
+            valuacion_periodo = None
+            for t in prop.get('tasaciones', []):
+                if t.get('mes') == mes_prop:
+                    valuacion_periodo = t
+                    break
+
+            # Determinar valores a mostrar (prioridad: valuación del período > último guardado)
+            valor_display = valuacion_periodo.get('valor_usd', 0) if valuacion_periodo else prop.get('valor_tasacion_usd', 0)
+            m2_display = valuacion_periodo.get('valor_m2_usd', 0) if valuacion_periodo else prop.get('valor_m2_usd', 0)
+
             # Header de la propiedad
             c_head1, c_head2, c_head3 = st.columns([3, 1, 1])
             with c_head1:
@@ -3135,6 +3146,8 @@ def mostrar_propiedades(mes):
                     f"{prop.get('zona', '')} | {prop.get('m2', 0)}m² | "
                     f"{prop.get('estado_detalle', '')} | {prop.get('calidad_edificio', '')}"
                 )
+                if valor_display > 0:
+                    st.metric(f"Valor ({mes_prop})", f"${valor_display:,.0f} USD")
             with c_head2:
                 if st.button("✏️ Editar", key=f"edit_btn_{prop['id']}"):
                     st.session_state[f"editing_prop_{prop['id']}"] = True
@@ -3307,9 +3320,9 @@ def mostrar_propiedades(mes):
                     'mes_actual': mes_prop,
                 }
 
-            # Mostrar resultados persistentes de valuación
+            # Mostrar resultados persistentes de valuación (session_state reciente)
             valuacion = st.session_state.get(f"valuacion_{prop['id']}")
-            if valuacion:
+            if valuacion and valuacion['mes_actual'] == mes_prop:
                 st.success(f"Valuación {valuacion['mes_actual']}: USD {valuacion['valor_prop']:,.0f}")
                 col_v1, col_v2, col_v3, col_v4 = st.columns(4)
                 col_v1.metric("Valor m² (USD)", f"${valuacion['valor_m2']:,.0f}")
@@ -3350,14 +3363,17 @@ def mostrar_propiedades(mes):
             st.caption("Tasación Manual")
             col_t1, col_t2, col_t3 = st.columns([3, 2, 1])
             with col_t1:
-                st.write(f"Valor actual: **${prop.get('valor_tasacion_usd', 0):,.0f}** USD")
-                if prop.get('valor_m2_usd', 0) > 0:
-                    st.caption(f"Valor m²: ${prop['valor_m2_usd']:,.0f} USD")
+                if valor_display > 0:
+                    st.write(f"Valor para {mes_prop}: **${valor_display:,.0f}** USD")
+                    if m2_display > 0:
+                        st.caption(f"Valor m²: ${m2_display:,.0f} USD")
+                else:
+                    st.write(f"Sin valuación para {mes_prop}")
             with col_t2:
                 nuevo_valor = st.number_input(
                     "Nuevo valor USD",
                     min_value=0.0,
-                    value=float(prop.get('valor_tasacion_usd', 0)),
+                    value=float(valor_display) if valor_display > 0 else 0.0,
                     key=f"tasacion_{prop['id']}"
                 )
             with col_t3:
