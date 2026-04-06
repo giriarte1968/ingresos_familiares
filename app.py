@@ -3020,7 +3020,8 @@ def mostrar_propiedades(mes):
                 "Centro", "Macrocentro", "Barrio Inglés", "Pichincha", "Abasto",
                 "Martin", "Facultades", "Puerto Norte", "Barrio Tigre",
                 "Rosario Norte", "Alvear", "San Martín", "General Paz",
-                "Echesortu", "Fisherton", "Ruta 9", "Sur", "Norte", "Oeste", "Otro"
+                "Echesortu", "Fisherton", "Ruta 9", "Sur", "Norte", "Oeste",
+                "República de la Sexta", "Otro"
             ])
             direccion = st.text_input("Dirección (opcional)")
         with col2:
@@ -3154,11 +3155,13 @@ def mostrar_propiedades(mes):
                             "Centro", "Macrocentro", "Barrio Inglés", "Pichincha", "Abasto",
                             "Martin", "Facultades", "Puerto Norte", "Barrio Tigre",
                             "Rosario Norte", "Alvear", "San Martín", "General Paz",
-                            "Echesortu", "Fisherton", "Ruta 9", "Sur", "Norte", "Oeste", "Otro"
+                            "Echesortu", "Fisherton", "Ruta 9", "Sur", "Norte", "Oeste",
+                            "República de la Sexta", "Otro"
                         ], index=["Centro", "Macrocentro", "Barrio Inglés", "Pichincha", "Abasto",
                             "Martin", "Facultades", "Puerto Norte", "Barrio Tigre",
                             "Rosario Norte", "Alvear", "San Martín", "General Paz",
-                            "Echesortu", "Fisherton", "Ruta 9", "Sur", "Norte", "Oeste", "Otro"].index(prop.get('zona', 'Otro')),
+                            "Echesortu", "Fisherton", "Ruta 9", "Sur", "Norte", "Oeste",
+                            "República de la Sexta", "Otro"].index(prop.get('zona', 'Otro')),
                             key=f"e_zona_{prop['id']}")
                         e_m2 = st.number_input("Metros cuadrados (m²)", min_value=0, value=prop.get('m2', 0), key=f"e_m2_{prop['id']}")
                     with ec2:
