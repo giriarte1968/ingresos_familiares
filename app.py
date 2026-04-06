@@ -12,6 +12,7 @@ import time
 import json
 import unicodedata
 import calendar
+import uuid
 
 from subpagos import extraer_subpagos, generar_id
 
@@ -3070,7 +3071,7 @@ def mostrar_propiedades(mes):
             else:
                 from parsers.mercado_inmobiliario import valuar_propiedad
                 prop_data = {
-                    'id': len(activos) + 1,
+                    'id': f"prop_{uuid.uuid4().hex[:8]}",
                     'tipo': 'propiedad',
                     'nombre': nombre,
                     'tipo_inmueble': tipo,
@@ -3105,6 +3106,10 @@ def mostrar_propiedades(mes):
                 activos.append(prop_data)
                 datos['activos'] = activos
                 guardar_datos(datos)
+                # Limpiar session_state de valuaciones para evitar datos stale
+                keys_to_clear = [k for k in st.session_state.keys() if k.startswith("valuacion_prop_")]
+                for k in keys_to_clear:
+                    del st.session_state[k]
                 st.success(f"Propiedad '{nombre}' guardada como activo")
                 st.rerun()
 
@@ -3138,6 +3143,9 @@ def mostrar_propiedades(mes):
                     datos['activos'] = [a for a in activos if a.get('id') != prop['id']]
                     guardar_datos(datos)
                     st.session_state.datos = datos
+                    # Limpiar valuación y edición de esta propiedad
+                    st.session_state.pop(f"valuacion_{prop['id']}", None)
+                    st.session_state.pop(f"editing_prop_{prop['id']}", None)
                     st.success(f"Propiedad '{prop['nombre']}' eliminada")
                     st.rerun()
 
