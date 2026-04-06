@@ -3008,69 +3008,68 @@ def mostrar_propiedades(mes):
 
     usdt_ars = obtener_usdt_ars_binance() or 1500
 
-    # Agregar propiedad (formulario expandido)
-    st.subheader("Agregar Propiedad")
+    # Agregar propiedad (formulario colapsable)
+    with st.expander("➕ Agregar Propiedad", expanded=False):
+        with st.form("agregar_propiedad"):
+            st.caption("Datos básicos")
+            col1, col2 = st.columns(2)
+            with col1:
+                nombre = st.text_input("Nombre de la propiedad")
+                tipo = st.selectbox("Tipo", ["departamento", "casa", "local", "oficina", "terreno"])
+                zona = st.selectbox("Zona / Barrio", [
+                    "Centro", "Macrocentro", "Barrio Inglés", "Pichincha", "Abasto",
+                    "Martin", "Facultades", "Puerto Norte", "Barrio Tigre",
+                    "Rosario Norte", "Alvear", "San Martín", "General Paz",
+                    "Echesortu", "Fisherton", "Ruta 9", "Sur", "Norte", "Oeste",
+                    "República de la Sexta", "Otro"
+                ])
+                direccion = st.text_input("Dirección (opcional)")
+            with col2:
+                m2 = st.number_input("Metros cuadrados (m²)", min_value=0, step=1)
+                m2_cubiertos = st.number_input("Metros cubiertos (m²)", min_value=0, step=1)
+                dormitorios = st.number_input("Dormitorios", min_value=0, max_value=10)
+                baños = st.number_input("Baños", min_value=0, max_value=10)
+                antiguedad = st.number_input("Antigüedad (años)", min_value=0)
 
-    with st.form("agregar_propiedad"):
-        st.caption("Datos básicos")
-        col1, col2 = st.columns(2)
-        with col1:
-            nombre = st.text_input("Nombre de la propiedad")
-            tipo = st.selectbox("Tipo", ["departamento", "casa", "local", "oficina", "terreno"])
-            zona = st.selectbox("Zona / Barrio", [
-                "Centro", "Macrocentro", "Barrio Inglés", "Pichincha", "Abasto",
-                "Martin", "Facultades", "Puerto Norte", "Barrio Tigre",
-                "Rosario Norte", "Alvear", "San Martín", "General Paz",
-                "Echesortu", "Fisherton", "Ruta 9", "Sur", "Norte", "Oeste",
-                "República de la Sexta", "Otro"
-            ])
-            direccion = st.text_input("Dirección (opcional)")
-        with col2:
-            m2 = st.number_input("Metros cuadrados (m²)", min_value=0, step=1)
-            m2_cubiertos = st.number_input("Metros cubiertos (m²)", min_value=0, step=1)
-            dormitorios = st.number_input("Dormitorios", min_value=0, max_value=10)
-            baños = st.number_input("Baños", min_value=0, max_value=10)
-            antiguedad = st.number_input("Antigüedad (años)", min_value=0)
+            st.caption("Características constructivas y de mercado")
+            col3, col4 = st.columns(2)
+            with col3:
+                estado_detalle = st.selectbox("Estado detallado", [
+                    "a estrenar", "excelente", "muy bueno", "bueno", "regular", "a refaccionar"
+                ], index=3)
+                piso = st.number_input("Piso (0 = planta baja)", min_value=0, max_value=30, value=0)
+                orientacion = st.selectbox("Orientación", [
+                    "norte", "noreste", "este", "sureste", "sur", "suroeste", "oeste", "noroeste"
+                ], index=2)
+                calidad_edificio = st.selectbox("Calidad del edificio", ["premium", "media", "economica"], index=1)
+                ventilacion = st.selectbox("Ventilación", ["cruzada", "simple", "ninguna"], index=1)
+            with col4:
+                terminaciones_suelo = st.selectbox("Terminaciones de suelo", ["madera_noble", "porcelanato", "ceramico", "estandar"], index=3)
+                distribucion_cocina = st.selectbox("Distribución de cocina", ["independiente", "lavadero_sectorizado", "integrada"], index=2)
+                carpinteria = st.selectbox("Carpintería / Vidrios", ["piso_techo", "dvh", "estandar"], index=2)
+                detalles_cat = st.multiselect("Detalles de Categoría / Amenities", [
+                    "caldera_central", "radiadores", "seguridad_24hs", "totem_seguridad",
+                    "aberturas_premium", "balcon_terraza", "pileta", "sum", "gym"
+                ])
+                cochera = st.checkbox("Cochera")
 
-        st.caption("Características constructivas y de mercado")
-        col3, col4 = st.columns(2)
-        with col3:
-            estado_detalle = st.selectbox("Estado detallado", [
-                "a estrenar", "excelente", "muy bueno", "bueno", "regular", "a refaccionar"
-            ], index=3)
-            piso = st.number_input("Piso (0 = planta baja)", min_value=0, max_value=30, value=0)
-            orientacion = st.selectbox("Orientación", [
-                "norte", "noreste", "este", "sureste", "sur", "suroeste", "oeste", "noroeste"
-            ], index=2)
-            calidad_edificio = st.selectbox("Calidad del edificio", ["premium", "media", "economica"], index=1)
-            ventilacion = st.selectbox("Ventilación", ["cruzada", "simple", "ninguna"], index=1)
-        with col4:
-            terminaciones_suelo = st.selectbox("Terminaciones de suelo", ["madera_noble", "porcelanato", "ceramico", "estandar"], index=3)
-            distribucion_cocina = st.selectbox("Distribución de cocina", ["independiente", "lavadero_sectorizado", "integrada"], index=2)
-            carpinteria = st.selectbox("Carpintería / Vidrios", ["piso_techo", "dvh", "estandar"], index=2)
-            detalles_cat = st.multiselect("Detalles de Categoría / Amenities", [
-                "caldera_central", "radiadores", "seguridad_24hs", "totem_seguridad",
-                "aberturas_premium", "balcon_terraza", "pileta", "sum", "gym"
-            ])
-            cochera = st.checkbox("Cochera")
+            st.caption("Datos de compra")
+            col5, col6 = st.columns(2)
+            with col5:
+                valor_compra_usd = st.number_input("Valor de compra (USD)", min_value=0.0, step=1000.0)
+                fecha_compra = st.date_input("Fecha de compra", value=datetime(2020, 1, 1), min_value=datetime(2000, 1, 1))
+            with col6:
+                moneda_compra = st.selectbox("Moneda de compra", ["USD", "ARS"])
 
-        st.caption("Datos de compra")
-        col5, col6 = st.columns(2)
-        with col5:
-            valor_compra_usd = st.number_input("Valor de compra (USD)", min_value=0.0, step=1000.0)
-            fecha_compra = st.date_input("Fecha de compra", value=datetime(2020, 1, 1), min_value=datetime(2000, 1, 1))
-        with col6:
-            moneda_compra = st.selectbox("Moneda de compra", ["USD", "ARS"])
+            submitted = st.form_submit_button("Guardar Propiedad")
 
-        submitted = st.form_submit_button("Guardar Propiedad")
-
-        if submitted and nombre:
-            existe = any(a.get('nombre') == nombre and a.get('tipo') == 'propiedad' for a in activos)
-            if existe:
-                st.warning(f"La propiedad '{nombre}' ya existe")
-            else:
-                from parsers.mercado_inmobiliario import valuar_propiedad
-                prop_data = {
+            if submitted and nombre:
+                existe = any(a.get('nombre') == nombre and a.get('tipo') == 'propiedad' for a in activos)
+                if existe:
+                    st.warning(f"La propiedad '{nombre}' ya existe")
+                else:
+                    from parsers.mercado_inmobiliario import valuar_propiedad
+                    prop_data = {
                     'id': f"prop_{uuid.uuid4().hex[:8]}",
                     'tipo': 'propiedad',
                     'nombre': nombre,
