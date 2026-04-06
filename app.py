@@ -3134,9 +3134,19 @@ def mostrar_propiedades(mes):
                     valuacion_periodo = t
                     break
 
-            # Determinar valores a mostrar (prioridad: valuación del período > último guardado)
-            valor_display = valuacion_periodo.get('valor_usd', 0) if valuacion_periodo else prop.get('valor_tasacion_usd', 0)
-            m2_display = valuacion_periodo.get('valor_m2_usd', 0) if valuacion_periodo else prop.get('valor_m2_usd', 0)
+            # Determinar valores a mostrar:
+            # 1. Si existe tasación guardada → usar esa
+            # 2. Si NO existe → calcular con motor histórico (serie real + interpolación)
+            if valuacion_periodo:
+                valor_display = valuacion_periodo.get('valor_usd', 0)
+                m2_display = valuacion_periodo.get('valor_m2_usd', 0)
+                fuente_valor = "guardada"
+            else:
+                from parsers.mercado_inmobiliario import valuar_propiedad
+                resultado = valuar_propiedad(prop, fecha_ref=mes_prop)
+                valor_display = resultado['valor_propiedad_usd']
+                m2_display = resultado['valor_m2_actual_usd']
+                fuente_valor = "calculado"
 
             # Header de la propiedad
             c_head1, c_head2, c_head3 = st.columns([3, 1, 1])
@@ -3148,6 +3158,8 @@ def mostrar_propiedades(mes):
                 )
                 if valor_display > 0:
                     st.metric(f"Valor ({mes_prop})", f"${valor_display:,.0f} USD")
+                    if fuente_valor == "calculado":
+                        st.caption("💡 Valor calculado (interpolación de serie histórica)")
             with c_head2:
                 if st.button("✏️ Editar", key=f"edit_btn_{prop['id']}"):
                     st.session_state[f"editing_prop_{prop['id']}"] = True
@@ -3364,9 +3376,12 @@ def mostrar_propiedades(mes):
             col_t1, col_t2, col_t3 = st.columns([3, 2, 1])
             with col_t1:
                 if valor_display > 0:
-                    st.write(f"Valor para {mes_prop}: **${valor_display:,.0f}** USD")
+                    origen = "(calculado)" if fuente_valor == "calculado" else "(guardado)"
+                    st.write(f"Valor para {mes_prop} {origen}: **${valor_display:,.0f}** USD")
                     if m2_display > 0:
                         st.caption(f"Valor m²: ${m2_display:,.0f} USD")
+                    if fuente_valor == "calculado":
+                        st.caption("💡 Interpolado de serie histórica real")
                 else:
                     st.write(f"Sin valuación para {mes_prop}")
             with col_t2:
