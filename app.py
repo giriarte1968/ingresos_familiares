@@ -3370,54 +3370,6 @@ def mostrar_propiedades(mes):
 
                 st.divider()
 
-            # Tasación manual
-            st.caption("Tasación Manual")
-            col_t1, col_t2, col_t3 = st.columns([3, 2, 1])
-            with col_t1:
-                if valor_display > 0:
-                    origen = "(calculado)" if fuente_valor == "calculado" else "(guardado)"
-                    st.write(f"Valor para {mes_prop} {origen}: **${valor_display:,.0f}** USD")
-                    if m2_display > 0:
-                        st.caption(f"Valor m²: ${m2_display:,.0f} USD")
-                    if fuente_valor == "calculado":
-                        st.caption("💡 Interpolado de serie histórica real")
-                else:
-                    st.write(f"Sin valuación para {mes_prop}")
-            with col_t2:
-                nuevo_valor = st.number_input(
-                    "Nuevo valor USD",
-                    min_value=0.0,
-                    value=float(valor_display) if valor_display > 0 else 0.0,
-                    key=f"tasacion_{prop['id']}"
-                )
-            with col_t3:
-                if st.button("Actualizar", key=f"btn_{prop['id']}"):
-                    prop['valor_anterior_ars'] = prop.get('valor_tasacion_ars', 0)
-                    prop['valor_tasacion_usd'] = nuevo_valor
-                    prop['valor_m2_usd'] = (nuevo_valor / prop.get('m2', 1)) if prop.get('m2', 0) > 0 else 0
-                    prop['valor_tasacion_ars'] = nuevo_valor * usdt_ars
-
-                    tasacion = {
-                        'fecha': datetime.now().strftime('%Y-%m-%d'),
-                        'valor_usd': nuevo_valor,
-                        'valor_ars': nuevo_valor * usdt_ars,
-                        'valor_m2_usd': prop['valor_m2_usd'],
-                        'mes': mes_prop,
-                        'fuente': 'manual'
-                    }
-                    prop.setdefault('tasaciones', []).append(tasacion)
-                    prop['ultima_valuacion'] = datetime.now().strftime('%Y-%m-%d')
-
-                    datos['activos'] = activos
-
-                    plusvalia = prop['valor_tasacion_ars'] - prop['valor_anterior_ars']
-                    datos.setdefault('meses', {}).setdefault(mes_prop, {}).setdefault('plusvalia_propiedades', 0)
-                    datos['meses'][mes_prop]['plusvalia_propiedades'] = plusvalia
-
-                    guardar_datos(datos)
-                    st.success(f"Tasación actualizada para {mes_prop}. Plusvalía: ${plusvalia:,.0f}")
-                    st.rerun()
-
     # Mostrar plusvalía total del mes seleccionado
     if propiedades:
         st.divider()
