@@ -1,15 +1,40 @@
-# ============================================
-# TODOS LOS PARSERS 2 - Referencia de llamadas
-# ============================================
-# Este archivo documenta TODAS las funciones de parsers
-# que se llaman desde app.py, con sus firmas y cómo se usan.
+﻿# ============================================
+# TODOS LOS PARSERS - Código completo
+# Generado: 2026-04-06 11:57
 # ============================================
 
+# ============================================
+# FILE: subpagos.py
+# ============================================
 
-# ============================================
-# 1. subpagos.py (raíz del proyecto)
-# ============================================
-# Import: from subpagos import extraer_subpagos, generar_id
+"""
+Módulo de Sub-pagos para el Gestor de Ingresos Familiares.
+Maneja la extracción OCR de tickets y la división de pagos padre en sub-pagos hijos.
+"""
+import io
+import re
+import time
+import random
+import numpy as np
+from PIL import Image
+
+
+def generar_id():
+    """Genera un ID único."""
+    ts = int(time.time() * 1000)
+    rnd = ''.join(random.choice('0123456789abcdef') for _ in range(6))
+    return f"ts_{ts}_{rnd}"
+
+
+def get_paddle_reader_safe():
+    """Instancia PaddleOCR de forma lazy y segura."""
+    try:
+        from paddleocr import PaddleOCR
+        reader = PaddleOCR(use_angle_cls=True, lang='es', show_log=False)
+        return reader
+    except Exception:
+        return None
+
 
 def extraer_subpagos(comprobante, datos=None):
     """
@@ -21,397 +46,3509 @@ def extraer_subpagos(comprobante, datos=None):
       Linea 2: IMPORTE: o EMPORTE: (etiqueta)
       Linea 3: monto (66154.05)
 
-    Args:
-        comprobante: archivo de imagen subido (UploadedFile o path)
-        datos: dict datos de la app (opcional, no usado actualmente)
-
-    Returns:
-        tuple: (lista_subpagos, texto_raw)
-        lista_subpagos = [{'monto': float, 'descripcion': str, 'fecha': str}, ...]
+    Filtros: deduplicacion (4 chars desc + monto), monto < 1 (ruido).
     """
+    reader = get_paddle_reader_safe()
+    if reader is None:
+        return [], "PaddleOCR no disponible"
 
-def generar_id():
-    """Genera un ID único basado en timestamp + random."""
-    # Retorna: str tipo "ts_1744000000000_a1b2c3"
+    try:
+        if hasattr(comprobante, 'read'):
+            comprobante.seek(0)
+            img_bytes = comprobante.read()
+            img = Image.open(io.BytesIO(img_bytes)).convert('RGB')
+        else:
+            img = Image.open(comprobante).convert('RGB')
+
+        img_array = np.array(img)
+        result = reader.ocr(img_array, cls=True)
+
+        texto = ""
+        if result and result[0]:
+            for line in result[0]:
+                if line:
+                    texto += line[1][0] + "\n"
+
+        lineas = texto.split('\n')
+        sub_pagos = []
+        seen = set()
+
+        label_keywords = [
+            'IMPORTE', 'EMPORTE', 'MPORTE', 'MONTO', 'TOTAL',
+            'NRO.', 'NRO TRANSACC', 'NRO.TRANSACC', 'NRO TRANSACCI',
+            'FECHA', 'HORA', 'SUC.', 'TERM.', 'CAJERO', 'ID:',
+            'COPIA', 'APROBADA', 'FORMADEPAGOQR', 'CAJERO:',
+            'NRO.REF.', 'NRO.REF'
+        ]
+        header_keywords = [
+            'santa fe servicios', 'pago de servicios', 'copia cliente',
+            'resumen', 'total desglosado'
+        ]
+
+        for i, linea in enumerate(lineas):
+            linea = linea.strip()
+            if not linea:
+                continue
+
+            linea_upper = linea.upper()
+            linea_lower = linea.lower()
+
+            if any(k in linea_upper for k in label_keywords):
+                continue
+            if any(h in linea_lower for h in header_keywords):
+                continue
+            if re.match(r'^[\d\s.,\-/:]+$', linea):
+                continue
+            if len(linea) < 2:
+                continue
+            if re.search(r'\d[A-Za-z]|[A-Za-z]\d', linea):
+                continue
+
+            tiene_importe = False
+            for offset in range(1, 3):
+                if i + offset < len(lineas):
+                    sig = lineas[i + offset].strip().upper()
+                    if 'IMPORTE' in sig or 'EMPORTE' in sig or 'MPORTE' in sig:
+                        tiene_importe = True
+                        break
+
+            if not tiene_importe:
+                continue
+
+            monto_encontrado = None
+            for offset in range(1, 4):
+                if i + offset < len(lineas):
+                    sig = lineas[i + offset].strip()
+                    m = re.search(r'\$?\s*(\d+)\.(\d+)', sig)
+                    if m:
+                        try:
+                            monto_encontrado = float(m.group(1) + '.' + m.group(2))
+                            break
+                        except ValueError:
+                            pass
+                    m2 = re.search(r'\$?\s*([\d,]+)', sig)
+                    if m2 and monto_encontrado is None:
+                        try:
+                            monto_encontrado = float(m2.group(1).replace(',', '').replace('$', ''))
+                            break
+                        except ValueError:
+                            pass
+
+            if monto_encontrado is None or monto_encontrado < 1:
+                continue
+
+            key = (linea.lower()[:4], round(monto_encontrado, 2))
+            if key in seen:
+                continue
+            seen.add(key)
+
+            sub_pagos.append({
+                'monto': monto_encontrado,
+                'descripcion': linea.strip(),
+                'fecha': ''
+            })
+
+        return sub_pagos, texto
+
+    except Exception as e:
+        return [], str(e)
+
 
 def procesar_subpagos(pago_original, subpagos_rev, datos, mes_seleccionado):
     """
-    Procesa la division de un pago padre en sub-pagos hijos.
-    Importa desde app.py: generar_id, categorizar_gasto, guardar_datos, st
+    Procesa la división de un pago padre en sub-pagos hijos.
 
     Args:
-        pago_original: dict con campos del pago padre (fecha, owner, medio_pago, fuente, moneda, u_id)
-        subpagos_rev: lista de dicts revisados por usuario [{'descripcion': str, 'monto': float}, ...]
-        datos: diccionario de datos de la app
-        mes_seleccionado: string "YYYY-MM"
+        pago_original: dict con los campos del pago padre (fecha, owner, medio_pago, fuente, moneda)
+        subpagos_rev: lista de dicts con {descripcion, monto} ya revisados por el usuario
+        datos: diccionario de datos (para categorizar_gasto)
+        mes_seleccionado: string "YYYY-MM" del mes actual
 
     Returns:
-        lista de hijos creados
+        lista de hijos creados (para persistir en UI)
     """
+    from app import generar_id, categorizar_gasto, guardar_datos, st
+
+    if not pago_original or not subpagos_rev:
+        return []
+
+    padre_fecha = pago_original.get('fecha', '')
+    padre_owner = pago_original.get('owner', '')
+    padre_medio = pago_original.get('medio_pago', '')
+    padre_moneda = pago_original.get('moneda', 'ARS')
+    padre_fuente = pago_original.get('fuente', '')
+    pago_id = pago_original.get('u_id', '')
+
+    hijos = []
+    for sp in subpagos_rev:
+        desc_sp = sp.get('descripcion', '').strip()
+        monto_sp = sp.get('monto', 0)
+        if desc_sp and monto_sp > 0:
+            cat, subcat, _ = categorizar_gasto(desc_sp, datos)
+            hijos.append({
+                'u_id': generar_id(),
+                'parent_id': pago_id,
+                'fecha': padre_fecha,
+                'gasto': desc_sp,
+                'monto': monto_sp,
+                'moneda': padre_moneda,
+                'fuente': padre_fuente or 'Santa Fe Servicios',
+                'categoria': cat,
+                'subcategoria': subcat,
+                'owner': padre_owner,
+                'medio_pago': padre_medio,
+            })
+
+    return hijos
+
 
 
 # ============================================
-# 2. parsers/base.py
+# FILE: base.py
 # ============================================
-# Funciones compartidas entre todos los parsers OCR.
+
+"""
+Funciones compartidas entre todos los parsers.
+OCR, categorización, utilidades.
+"""
+import re
+import os
+import json
+import time
+import random
+import numpy as np
+from PIL import Image
+import io
+
+
+# ====================== ID ======================
 
 def generar_id():
-    """Genera un ID unico (timestamp + random hex)."""
+    """Genera un ID único"""
+    ts = int(time.time() * 1000)
+    rnd = ''.join(random.choice('0123456789abcdef') for _ in range(6))
+    return f"ts_{ts}_{rnd}"
+
+
+# ====================== COMERCIOS CONOCIDOS ======================
+
+COMERCIOS_CONOCIDOS = {
+    'miguel': {'categoria': 'comercios', 'subcategoria': 'combustible', 'gasto': 'Estación de Servicio'},
+    'juan': {'categoria': 'comercios', 'subcategoria': 'carniceria', 'gasto': 'Carnicería'},
+    'pepe': {'categoria': 'comercios', 'subcategoria': 'panaderia', 'gasto': 'Panadería'},
+    'gge alfa park': {'categoria': 'comercios', 'subcategoria': 'restaurant', 'gasto': 'GGE Alfa Park'},
+    'instituto gamma': {'categoria': 'servicios', 'subcategoria': 'salud', 'gasto': 'Instituto Gamma'},
+    'gamma': {'categoria': 'servicios', 'subcategoria': 'salud', 'gasto': 'Instituto Gamma'},
+    'rosati damian': {'categoria': 'comercios', 'subcategoria': 'restaurant', 'gasto': 'Pizzería Rosati'},
+    'la gran argentina': {'categoria': 'comercios', 'subcategoria': 'restaurant', 'gasto': 'La Gran Argentina'},
+    'sebastian montene': {'categoria': 'comercios', 'subcategoria': 'indumentaria', 'gasto': 'Indumentaria'},
+    'pluspagos': {'categoria': 'servicios', 'subcategoria': 'bancos', 'gasto': 'PlusPagos'},
+    'estacionamiento ocampo': {'categoria': 'servicios', 'subcategoria': 'estacionamiento', 'gasto': 'Estacionamiento Ocampo'},
+    'tu quincho': {'categoria': 'comercios', 'subcategoria': 'bazar', 'gasto': 'Tu Quincho'},
+    'diego rey': {'categoria': 'comercios', 'subcategoria': 'restaurant', 'gasto': 'Diego Rey'},
+    'pinturerias colibri': {'categoria': 'comercios', 'subcategoria': 'pintureria', 'gasto': 'Pinturerías Colibrí'},
+    'panaderia sc ii': {'categoria': 'comercios', 'subcategoria': 'panaderia', 'gasto': 'Panadería SC II'},
+    'remo franco': {'categoria': 'comercios', 'subcategoria': 'indumentaria', 'gasto': 'Remo Franco SRL'},
+    'epe': {'categoria': 'servicios', 'subcategoria': 'servicios_publicos', 'gasto': 'EPE (Energía)'},
+    'aguas santafesinas': {'categoria': 'servicios', 'subcategoria': 'servicios_publicos', 'gasto': 'Aguas Santafesinas'},
+    'movistar': {'categoria': 'servicios', 'subcategoria': 'telecomunicaciones', 'gasto': 'Movistar'},
+    'personal': {'categoria': 'servicios', 'subcategoria': 'telecomunicaciones', 'gasto': 'Personal'},
+    'adt': {'categoria': 'servicios', 'subcategoria': 'seguridad', 'gasto': 'ADT Seguridad'},
+    'municipalidad': {'categoria': 'impuestos', 'subcategoria': 'impuestos', 'gasto': 'Municipalidad'},
+    'cargo por servicio': {'categoria': 'servicios', 'subcategoria': 'bancos', 'gasto': 'Cargo Bancario'},
+    'merpago*tran': {'categoria': 'servicios', 'subcategoria': 'estacionamiento', 'gasto': 'Estacionamiento Tránsito Rosario'},
+    'merpago': {'categoria': 'servicios', 'subcategoria': 'estacionamiento', 'gasto': 'Estacionamiento Tránsito Rosario'},
+    'correcto': None,
+    'historial': None,
+    'pago con': None,
+    'fecha': None,
+    'todos los': None,
+}
+
+CATEGORIAS_EGRESOS = {
+    'impuestos': ['arca', 'api', 'tgi', 'brassey', 'monotributo', 'afip', 'agna'],
+    'servicios': ['prepaga', 'salud', 'jubil', 'caja', 'luz', 'edemsa', 'gas', 'gasnor', 'agua', 'movistar', 'flow', 'adt', 'seguro', 'seguros', 'personal'],
+    'comercios': {
+        'combustible': ['ypf', 'shell', 'axion', 'estacion', 'petro', 'oil', 'plus', 'refinor'],
+        'carniceria': ['carniceria', 'carnicería', 'carne', 'fiambreria', 'polleria'],
+        'panaderia': ['panaderia', 'panadería', 'pan', 'factoria'],
+        'supermercado': ['supermercado', 'super', 'disco', 'coto', 'changomas', 'vea', 'jumbo', 'carrefour', 'walmart'],
+        'farmacia': ['farmacia', 'farma', 'salcobrand', 'mefar', 'deluxe'],
+        'pintureria': ['pintureria', 'pinturería', 'colibri', 'pintu'],
+        'verduleria': ['verduleria', 'verdulería', 'verduro', 'fruteria'],
+        'restaurant': ['restaurant', 'resto', 'pizza', 'burger', 'mcdonald', 'kfc', 'helado'],
+        'indumentaria': ['ropa', 'indumentaria', 'zara', 'unisport', 'nike', 'adidas'],
+        'ferreteria': ['ferreteria', 'ferretería', 'ferre'],
+        'automovil': ['gomeri', 'mecanica', 'mecánica', 'lubricentro', 'grua'],
+        'bazar': ['bazar', 'quincho', 'parrilla', 'asado'],
+        'otros': []
+    },
+    'otros': ['transf', 'familia', 'transporte', 'taxi', 'uber', 'combis', 'otros']
+}
+
 
 def cargar_comercios_json():
-    """Carga comercios_conocidos.json si existe."""
+    """Carga comercios_conocidos.json si existe"""
+    try:
+        ruta = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'comercios_conocidos.json')
+        if os.path.exists(ruta):
+            with open(ruta, encoding='utf-8') as f:
+                return json.load(f)
+    except Exception:
+        pass
+    return {}
+
 
 def categorizar_gasto_parser(descripcion, datos=None):
-    """
-    Categoriza un gasto usando COMERCIOS_CONOCIDOS y CATEGORIAS_EGRESOS.
-    Retorna: (categoria, subcategoria, gasto_final)
-    """
+    """Categoriza un gasto"""
+    desc_limpia = ' '.join(descripcion.split())
+    nombre_limpio = desc_limpia.split('  ')[0].split(' - ')[0].split('\t')[0].strip()
+    nombre_lower = nombre_limpio.lower()
+
+    for conocido, info in COMERCIOS_CONOCIDOS.items():
+        if info is None:
+            continue
+        if conocido in nombre_lower:
+            return info['categoria'], info['subcategoria'], info['gasto']
+
+    for categoria, keywords in CATEGORIAS_EGRESOS.items():
+        if categoria == 'comercios':
+            for subcategoria, palabras in keywords.items():
+                for palabra in palabras:
+                    if palabra in nombre_lower:
+                        return 'comercios', subcategoria, nombre_limpio.title()
+        else:
+            if isinstance(keywords, list):
+                for palabra in keywords:
+                    if palabra in nombre_lower:
+                        return categoria, categoria, nombre_limpio.title()
+
+    return 'otros', 'otros', nombre_limpio.title()
+
+
+# ====================== OCR ======================
+
+_paddle_reader = None
 
 def get_paddle_reader():
-    """Instancia PaddleOCR de forma lazy (singleton)."""
+    global _paddle_reader
+    if _paddle_reader is None:
+        try:
+            import paddleocr
+            _paddle_reader = paddleocr.PaddleOCR(use_angle_cls=True, lang='es', show_log=False)
+        except Exception:
+            return None
+    return _paddle_reader
+
 
 def imagen_a_items_paddle(archivo):
-    """
-    Lee una imagen con PaddleOCR y retorna items ordenados por Y.
-    Returns: (items, texto_debug)
-    items = [{'y': float, 'x_left': float, 'x_center': float, 'x_right': float, 'text': str, 'conf': float}, ...]
-    """
+    """Lee una imagen con PaddleOCR y retorna items ordenados"""
+    reader = get_paddle_reader()
+    if reader is None:
+        return [], "PaddleOCR no disponible"
+
+    if hasattr(archivo, 'seek'):
+        archivo.seek(0)
+    if hasattr(archivo, 'read'):
+        img_bytes = archivo.read()
+        img = Image.open(io.BytesIO(img_bytes)).convert('RGB')
+    else:
+        img = Image.open(archivo).convert('RGB')
+
+    img_array = np.array(img)
+    result = reader.ocr(img_array, cls=True)
+
+    items = []
+    if result and result[0]:
+        for line in result[0]:
+            if not line:
+                continue
+            bbox = line[0]
+            x_left = bbox[0][0]
+            x_right = bbox[2][0]
+            items.append({
+                'y': (bbox[0][1] + bbox[2][1]) / 2,
+                'x_left': x_left,
+                'x_center': (x_left + x_right) / 2,
+                'x_right': x_right,
+                'text': line[1][0].strip(),
+                'conf': line[1][1]
+            })
+
+    items.sort(key=lambda i: i['y'])
+
+    texto_debug = "\n".join(
+        f"y={it['y']:.0f} x={it['x_left']:.0f}-{it['x_right']:.0f} | {it['text']}"
+        for it in items
+    )
+
+    return items, texto_debug
+
 
 
 # ============================================
-# 3. parsers/galicia_excel.py
+# FILE: galicia_excel.py
 # ============================================
-# Import en app.py: from parsers.galicia_excel import extraer_movimientos_galicia_excel
-# Para egresos: from parsers.galicia_excel import extraer_egresos_galicia_excel
+
+"""
+Parser de Excel para Banco Galicia.
+Extrae ingresos o egresos desde archivo Excel.
+"""
+import re
+import pandas as pd
+
+
+def normalizar_fecha_galicia(fecha_raw):
+    """Normaliza fecha a formato YYYY-MM-DD"""
+    if not fecha_raw:
+        return ''
+    
+    fecha_str = str(fecha_raw).strip()
+    
+    # Formato DD/MM/YYYY o DD-MM-YYYY
+    m = re.match(r'(\d{2})[/-](\d{2})[/-](\d{4})', fecha_str)
+    if m:
+        return f"{m.group(3)}-{m.group(2)}-{m.group(1)}"
+    
+    # Formato YYYY-MM-DD (ya normalizado)
+    if re.match(r'\d{4}-\d{2}-\d{2}', fecha_str):
+        return fecha_str[:10]
+    
+    # Pandas Timestamp
+    if hasattr(fecha_raw, 'strftime'):
+        return fecha_raw.strftime('%Y-%m-%d')
+    
+    return fecha_str[:10]
+
+
+def convertir_monto_argentino(valor):
+    """Convierte monto formato argentino a float: 260.000,00 -> 260000.00"""
+    if pd.isna(valor):
+        return 0.0
+    if isinstance(valor, (int, float)):
+        return float(valor)
+
+    valor_str = str(valor).strip()
+    if not valor_str:
+        return 0.0
+
+    valor_str = valor_str.replace(' ', '')
+    valor_limpio = valor_str.replace('.', '').replace(',', '.')
+    try:
+        return float(valor_limpio)
+    except:
+        return 0.0
+
+
+def detectar_categoria_ingreso(descripcion):
+    desc_lower = descripcion.lower()
+
+    categorias = {
+        'sueldo': ['sueldo', 'haberes', 'neto', 'remuneración', 'salario', 'nómina'],
+        'alquiler': ['alquiler', 'renta', 'inquilino', 'cobro alquiler'],
+        'intereses': ['interés', 'interes', 'rendimiento', 'ganancia', 'fondo mutuo', 'capitalizado'],
+        'inversion': ['dividendo', 'acción', 'bono', 'plazo fijo', 'valorización'],
+        'transferencia': ['transferencia', 'depósito', 'deposito', 'entrada', 'recibido'],
+        'otro': [],
+    }
+
+    for cat, palabras in categorias.items():
+        for palabra in palabras:
+            if palabra in desc_lower:
+                return cat
+    return 'otro'
+
 
 def extraer_movimientos_galicia_excel(archivo):
-    """
-    Extrae INGRESOS desde un Excel de Banco Galicia.
-    Lee sheet 0, header=5, busca columna de credito.
+    """Extrae INGRESOS desde un Excel de Banco Galicia."""
+    movimientos = []
 
-    Args:
-        archivo: archivo Excel subido
+    try:
+        df = pd.read_excel(archivo, sheet_name=0, header=5)
+        columnas = df.columns.tolist()
 
-    Returns:
-        lista de movimientos = [{
-            'fecha': 'YYYY-MM-DD',
-            'descripcion': str,
-            'monto': float,
-            'monto_ars': None,
-            'banco': 'galicia',
-            'categoria': str (sueldo/alquiler/intereses/inversion/transferencia/otro),
-            'tasas': None
-        }, ...]
-    """
+        col_fecha = None
+        col_mov = None
+        col_credito = None
+
+        for col in columnas:
+            col_lower = col.lower() if isinstance(col, str) else ''
+            if 'fecha' in col_lower:
+                col_fecha = col
+            elif 'movimiento' in col_lower:
+                col_mov = col
+            elif 'crédito' in col_lower or 'credito' in col_lower:
+                col_credito = col
+
+        if col_credito:
+            for _, row in df.iterrows():
+                monto = convertir_monto_argentino(row.get(col_credito, 0))
+
+                if monto > 0:
+                    fecha_raw = row.get(col_fecha, '') if col_fecha else ''
+                    fecha_val = normalizar_fecha_galicia(fecha_raw)
+                    desc_val = str(row.get(col_mov, '')).strip() if col_mov else ''
+                    desc_val = ' '.join(desc_val.split())
+
+                    categoria = detectar_categoria_ingreso(desc_val)
+
+                    movimientos.append({
+                        'fecha': fecha_val,
+                        'descripcion': desc_val[:200],
+                        'monto': monto,
+                        'monto_ars': None,
+                        'banco': 'galicia',
+                        'categoria': categoria,
+                        'tasas': None
+                    })
+
+        return movimientos
+
+    except Exception as e:
+        print(f"Error al leer Excel Galicia (ingresos): {e}")
+        import traceback
+        traceback.print_exc()
+        return []
+
 
 def extraer_egresos_galicia_excel(archivo, categorizar_gasto_fn=None, datos=None,
-                                   owner='Gustavo', medio_pago='Banco Galicia', generar_id_fn=None):
-    """
-    Extrae EGRESOS desde un Excel de Banco Galicia.
-    Busca columna de debito, filtra montos negativos.
+                                  owner='Gustavo', medio_pago='Banco Galicia', generar_id_fn=None):
+    """Extrae EGRESOS desde un Excel de Banco Galicia."""
+    egresos = []
 
-    Args:
-        archivo: archivo Excel subido
-        categorizar_gasto_fn: funcion de app.py para categorizar
-        datos: dict datos de la app
-        owner: string owner
-        medio_pago: string medio de pago
-        generar_id_fn: funcion para generar IDs
+    try:
+        df = pd.read_excel(archivo, sheet_name=0, header=5)
+        columnas = df.columns.tolist()
 
-    Returns:
-        lista de egresos = [{
-            'fecha': 'YYYY-MM-DD',
-            'gasto': str,
-            'monto': float (absoluto),
-            'moneda': 'ARS',
-            'fuente': 'Galicia Excel',
-            'categoria': str,
-            'subcategoria': str,
-            'owner': str,
-            'medio_pago': str,
-            'u_id': str
-        }, ...]
-    """
+        col_fecha = None
+        col_mov = None
+        col_debito = None
+
+        for col in columnas:
+            col_lower = col.lower() if isinstance(col, str) else ''
+            if 'fecha' in col_lower:
+                col_fecha = col
+            elif 'movimiento' in col_lower:
+                col_mov = col
+            elif 'débito' in col_lower or 'debito' in col_lower:
+                col_debito = col
+
+        if not col_debito:
+            return []
+
+        for _, row in df.iterrows():
+            monto = convertir_monto_argentino(row.get(col_debito, 0))
+
+            if monto >= 0:
+                continue
+
+            fecha_raw = row.get(col_fecha, '') if col_fecha else ''
+            fecha_val = normalizar_fecha_galicia(fecha_raw)
+            desc_val = str(row.get(col_mov, '')).strip() if col_mov else ''
+            desc_val = ' '.join(desc_val.split())
+
+            if not desc_val:
+                continue
+
+            monto_abs = abs(monto)
+
+            if categorizar_gasto_fn:
+                categoria, subcategoria, gasto_final = categorizar_gasto_fn(desc_val, datos)
+            else:
+                categoria, subcategoria, gasto_final = 'otros', 'otros', desc_val[:200]
+
+            egreso = {
+                'fecha': fecha_val if fecha_val else '',
+                'gasto': gasto_final,
+                'monto': monto_abs,
+                'moneda': 'ARS',
+                'fuente': 'Galicia Excel',
+                'categoria': categoria,
+                'subcategoria': subcategoria,
+                'owner': owner,
+                'medio_pago': medio_pago,
+                'u_id': generar_id_fn() if generar_id_fn else None
+            }
+
+            egresos.append(egreso)
+
+        return egresos
+
+    except Exception as e:
+        print(f"Error al leer Excel Galicia (egresos): {e}")
+        import traceback
+        traceback.print_exc()
+        return []
+
 
 
 # ============================================
-# 4. parsers/mercadopago_app.py
+# FILE: mercadopago_app.py
 # ============================================
-# Import: from parsers.mercadopago_app import procesar_mercadopago_app
+
+"""
+Parser definitivo para capturas app MercadoPago móvil.
+Optimizado para OCR real.
+"""
+import re
+from parsers.base import (
+    imagen_a_items_paddle,
+    categorizar_gasto_parser,
+    generar_id,
+)
+
+
+def parsear_monto_app(texto):
+    texto = texto.strip()
+    if '$' not in texto:
+        return 0.0
+
+    s = texto.replace('$', '').replace(' ', '')
+
+    negativo = s.startswith('-')
+    if negativo:
+        s = s[1:]
+
+    # Limpiar OCR raro
+    s = s.replace('°', '')
+    s = s.replace('o', '0')
+    s = s.replace('O', '0')
+    s = s.replace('s', '5') if re.match(r'^\d+\.\d+s\d*$', s) else s
+
+    if ',' in s:
+        s = s.replace('.', '').replace(',', '.')
+    else:
+        # Si tiene un solo punto y 2 decimales, dejarlo
+        parts = s.rsplit('.', 1)
+        if len(parts) == 2 and len(parts[1]) == 2:
+            pass
+        else:
+            s = s.replace('.', '')
+
+    try:
+        monto = float(s)
+        return -monto if negativo else monto
+    except:
+        return 0.0
+
+
+def parsear_fecha_app(texto):
+    t = texto.strip().lower()
+
+    m = re.search(r'(\d{1,2})\s*(de\s+)?(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre|ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)', t)
+    if m:
+        dia = m.group(1).zfill(2)
+        mes_txt = m.group(3)[:3]
+        meses = {
+            'ene': '01', 'feb': '02', 'mar': '03', 'abr': '04',
+            'may': '05', 'jun': '06', 'jul': '07', 'ago': '08',
+            'sep': '09', 'oct': '10', 'nov': '11', 'dic': '12'
+        }
+        mes = meses.get(mes_txt)
+        if mes:
+            return f"2026-{mes}-{dia}"
+
+    return ''
+
+
+def normalizar_texto(texto):
+    return ' '.join(texto.strip().split())
+
 
 def procesar_mercadopago_app(archivo, owner, medio_pago, datos, categorizar_gasto_fn=None):
-    """
-    Parser definitivo para capturas app MercadoPago movil.
-    Detecta fechas de seccion (ej: "15 de febrero"), luego busca
-    "Transferencia enviada" / "Pago" / "Pago de servicio" + descripcion + monto negativo.
+    items, texto_debug = imagen_a_items_paddle(archivo)
 
-    Args:
-        archivo: imagen subida
-        owner: string
-        medio_pago: string
-        datos: dict datos app
-        categorizar_gasto_fn: funcion de app.py
+    if not items:
+        return [], texto_debug, "No se pudo leer la imagen"
 
-    Returns:
-        tuple: (gastos_dedup, texto_debug, error)
-    """
+    gastos = []
+    fecha_actual = ''
+
+    # Ordenados por Y
+    items = sorted(items, key=lambda x: x['y'])
+
+    i = 0
+    while i < len(items):
+        texto = normalizar_texto(items[i]['text'])
+        y = items[i]['y']
+
+        # 1. detectar fecha de sección
+        fecha_detectada = parsear_fecha_app(texto)
+        if fecha_detectada:
+            fecha_actual = fecha_detectada
+            i += 1
+            continue
+
+        # 2. detectar tipo de movimiento relevante
+        t_low = texto.lower()
+        if 'transferencia enviada' in t_low or 'pago' == t_low or 'pago de servicio' in t_low:
+            tipo_mov = texto
+
+            # 3. buscar descripción en la línea siguiente cercana
+            descripcion = ''
+            monto = 0.0
+
+            # siguiente línea útil = descripción
+            j = i + 1
+            while j < len(items):
+                texto_j = normalizar_texto(items[j]['text'])
+                if items[j]['y'] - y > 40:
+                    break
+
+                # si tiene monto, no es descripción
+                if '$' not in texto_j and not parsear_fecha_app(texto_j):
+                    if texto_j.lower() not in ['10resultados', 'buscar']:
+                        descripcion = texto_j
+                        break
+                j += 1
+
+            # 4. buscar monto en misma línea del tipo de movimiento o líneas cercanas
+            for k in range(i, min(i + 3, len(items))):
+                if abs(items[k]['y'] - y) <= 20:
+                    m = parsear_monto_app(items[k]['text'])
+                    if m < 0:
+                        monto = abs(m)
+                        break
+
+            # fallback: buscar monto un poco más abajo si OCR lo separó
+            if monto == 0:
+                for k in range(i, min(i + 4, len(items))):
+                    if items[k]['y'] - y <= 30:
+                        m = parsear_monto_app(items[k]['text'])
+                        if m < 0:
+                            monto = abs(m)
+                            break
+
+            # solo guardar si hay fecha + descripcion + monto
+            if fecha_actual and descripcion and monto > 0:
+                if categorizar_gasto_fn:
+                    cat, subcat, gasto_final = categorizar_gasto_fn(descripcion, datos)
+                else:
+                    cat, subcat, gasto_final = categorizar_gasto_parser(descripcion, datos)
+
+                gastos.append({
+                    'fecha': fecha_actual,
+                    'gasto': gasto_final,
+                    'monto': monto,
+                    'moneda': 'ARS',
+                    'fuente': 'MercadoPago App',
+                    'categoria': cat,
+                    'subcategoria': subcat,
+                    'owner': owner,
+                    'medio_pago': medio_pago or 'Mercado Pago',
+                    'u_id': generar_id()
+                })
+
+        i += 1
+
+    # Deduplicar
+    seen = set()
+    gastos_dedup = []
+    for g in gastos:
+        key = (
+            g.get('fecha', ''),
+            g.get('gasto', '').lower(),
+            round(g.get('monto', 0), 2)
+        )
+        if key not in seen:
+            seen.add(key)
+            gastos_dedup.append(g)
+
+    if not gastos_dedup:
+        return [], texto_debug, "No se detectaron egresos"
+
+    return gastos_dedup, texto_debug, None
+
 
 
 # ============================================
-# 5. parsers/mercadopago_pdf.py
+# FILE: mercadopago_pdf.py
 # ============================================
-# Import: from parsers.mercadopago_pdf import procesar_mercadopago_pdf
+
+"""
+Parser definitivo para Resúmenes MercadoPago PDF.
+Funciona con estructura vertical y multi-línea.
+"""
+import re
+from parsers.base import categorizar_gasto_parser, generar_id
+
+
+def parsear_fecha_mercadopago(texto):
+    m = re.match(r'(\d{2})-(\d{2})-(\d{4})', texto.strip())
+    if m:
+        dia, mes, anio = m.groups()
+        return f"{anio}-{mes}-{dia}"
+    return ''
+
+
+def parsear_monto_mercadopago(texto):
+    s = texto.strip().replace('$', '').replace(' ', '')
+    if ',' in s:
+        s = s.replace('.', '').replace(',', '.')
+    try:
+        return float(s)
+    except:
+        return 0.0
+
+
+def es_fecha(texto):
+    return bool(parsear_fecha_mercadopago(texto))
+
+
+def es_id_operacion(texto):
+    t = texto.strip()
+    return t.isdigit() and len(t) >= 8
+
+
+def es_monto(texto):
+    return '$' in texto
+
+
+def limpiar_descripcion(descripcion_lines):
+    """Limpia y une líneas de descripción"""
+    d = []
+    for line in descripcion_lines:
+        line = line.strip()
+        if line:
+            d.append(line)
+    d = ' '.join(d)
+    d = re.sub(r'Transferencia enviada\s+', '', d)
+    d = re.sub(r'Transferencia recibida\s+', '', d)
+    d = re.sub(r'\s+', ' ', d).strip()
+    return d
+
 
 def procesar_mercadopago_pdf(archivo, owner, medio_pago, datos, categorizar_gasto_fn=None):
-    """
-    Parser para resumenes MercadoPago PDF.
-    Estructura vertical: fecha -> descripcion (multi-linea) -> ID operacion -> valor -> saldo.
-    Usa PyMuPDF para extraer texto.
+    try:
+        import pymupdf
 
-    Args:
-        archivo: archivo PDF subido
-        owner: string
-        medio_pago: string
-        datos: dict datos app
-        categorizar_gasto_fn: funcion de app.py
+        if hasattr(archivo, 'seek'):
+            archivo.seek(0)
+        pdf_bytes = archivo.read()
+        doc = pymupdf.open(stream=pdf_bytes, filetype="pdf")
 
-    Returns:
-        tuple: (gastos_dedup, texto, error)
-    """
+        texto = ""
+        for page in doc:
+            texto += page.get_text() + "\n"
+        doc.close()
+
+        # Convertir a líneas limpias
+        lineas_crudas = [l.strip() for l in texto.split('\n') if l.strip()]
+        lineas = lineas_crudas[:]
+
+        # Filtrar líneas basura conocidas
+        lineas_limpias = []
+        for l in lineas_crudas:
+            t = l.lower()
+            if any(bad in t for bad in ['/4', 'fecha', 'descripción', 'operación', 'valor', 'saldo', 'resumen de cuenta', 'detalle de movimientos', 'saldo inicial', 'saldo final', 'mercado libre', 'www.mercadopago']):
+                continue
+            lineas_limpias.append(l)
+
+        gastos = []
+
+        i = 0
+        while i < len(lineas_limpias):
+            linea = lineas_limpias[i]
+
+            # Buscar fecha
+            if not es_fecha(linea):
+                i += 1
+                continue
+
+            fecha = parsear_fecha_mercadopago(linea)
+            if not fecha:
+                i += 1
+                continue
+
+            # Juntar descripción hasta encontrar ID
+            descripcion_lines = []
+            i += 1
+            while i < len(lineas_limpias):
+                linea_next = lineas_limpias[i]
+
+                if es_id_operacion(linea_next):
+                    break
+
+                if es_fecha(linea_next):
+                    i -= 1
+                    break
+
+                descripcion_lines.append(linea_next)
+                i += 1
+
+            descripcion = limpiar_descripcion(descripcion_lines)
+
+            if not descripcion:
+                i += 1
+                continue
+
+            # ID operación
+            if i >= len(lineas_limpias):
+                break
+
+            id_operacion = lineas_limpias[i]
+            if not es_id_operacion(id_operacion):
+                i += 1
+                continue
+            i += 1
+
+            # Valor
+            if i >= len(lineas_limpias):
+                break
+
+            valor_txt = lineas_limpias[i]
+            valor = parsear_monto_mercadopago(valor_txt)
+            if not es_monto(valor_txt):
+                i += 1
+                continue
+            i += 1
+
+            # Saldo
+            if i >= len(lineas_limpias):
+                break
+
+            saldo_txt = lineas_limpias[i]
+            if not es_monto(saldo_txt):
+                i += 1
+                continue
+            i += 1
+
+            # Solo egresos
+            if valor >= 0:
+                continue
+
+            monto_abs = abs(valor)
+
+            if monto_abs < 1.0:
+                continue
+
+            cat, subcat, gasto_final = categorizar_gasto_parser(descripcion, datos)
+
+            gastos.append({
+                'fecha': fecha,
+                'gasto': gasto_final,
+                'monto': monto_abs,
+                'moneda': 'ARS',
+                'fuente': 'MercadoPago PDF',
+                'categoria': cat,
+                'subcategoria': subcat,
+                'owner': owner,
+                'medio_pago': medio_pago or 'Mercado Pago',
+                'u_id': generar_id()
+            })
+
+        # Deduplicar
+        seen = set()
+        gastos_dedup = []
+        for g in gastos:
+            key = (g.get('fecha', ''), g.get('gasto', '').lower(), round(g.get('monto', 0), 2))
+            if key not in seen:
+                seen.add(key)
+                gastos_dedup.append(g)
+
+        if not gastos_dedup:
+            return [], texto, "No se detectaron egresos"
+
+        return gastos_dedup, texto, None
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return [], "", f"Error: {str(e)}"
+
 
 
 # ============================================
-# 6. parsers/galicia_img.py
+# FILE: galicia_img.py
 # ============================================
-# Import: from parsers.galicia_img import procesar_galicia_img
+
+"""
+Parser para screenshots de movimientos Banco Galicia (app o web).
+
+Formato visual:
+    FECHA (izq)          DESCRIPCION (centro)          MONTO (der)
+    30/03/2026           Transferencia A Terceros       -$125.000,00
+
+Reglas:
+- Monto negativo (-$) = egreso
+- Monto positivo ($) = ingreso
+- Formato argentino: puntos = miles, coma = decimales
+"""
+import re
+from parsers.base import (
+    imagen_a_items_paddle,
+    categorizar_gasto_parser,
+    generar_id,
+)
+
+
+def parsear_fecha_galicia(texto):
+    """
+    Formatos:
+      30/03/2026
+      30-03-2026
+      30/03/26
+    Retorna: 2026-03-30
+    """
+    texto = texto.strip()
+
+    # DD/MM/YYYY o DD-MM-YYYY
+    m = re.match(r'(\d{1,2})[/\-](\d{1,2})[/\-](\d{4})', texto)
+    if m:
+        dia = m.group(1).zfill(2)
+        mes = m.group(2).zfill(2)
+        anio = m.group(3)
+        if 1 <= int(dia) <= 31 and 1 <= int(mes) <= 12 and 2020 <= int(anio) <= 2030:
+            return f"{anio}-{mes}-{dia}"
+
+    # DD/MM/YY
+    m = re.match(r'(\d{1,2})[/\-](\d{1,2})[/\-](\d{2})', texto)
+    if m:
+        dia = m.group(1).zfill(2)
+        mes = m.group(2).zfill(2)
+        anio = f"20{m.group(3)}"
+        if 1 <= int(dia) <= 31 and 1 <= int(mes) <= 12:
+            return f"{anio}-{mes}-{dia}"
+
+    return ''
+
+
+def parsear_monto_galicia(texto):
+    """
+    Formato argentino:
+      -$125.000,00  -> -125000.00
+      $40.000,00    ->  40000.00
+      -$3.500       -> -3500.00
+      $1.234.567,89 ->  1234567.89
+
+    Retorna float con signo (negativo = egreso).
+    """
+    t = texto.strip()
+
+    # Detectar signo
+    negativo = '-' in t
+
+    # Limpiar todo excepto dígitos, puntos, comas
+    t = re.sub(r'[^\d.,]', '', t)
+
+    if not t:
+        return 0.0
+
+    # Formato argentino: puntos = miles, coma = decimal
+    if ',' in t:
+        t = t.replace('.', '').replace(',', '.')
+    else:
+        # Sin coma: puede ser "125.000" (miles) o "125000"
+        # Si tiene punto y los dígitos después del último punto son 3 -> separador miles
+        parts = t.split('.')
+        if len(parts) > 1 and len(parts[-1]) == 3:
+            t = t.replace('.', '')
+        elif len(parts) > 1 and len(parts[-1]) == 2:
+            # Podría ser decimal: 3500.50
+            t = t.replace('.', '', t.count('.') - 1)
+        else:
+            t = t.replace('.', '')
+
+    try:
+        valor = float(t)
+        return -valor if negativo else valor
+    except (ValueError, TypeError):
+        return 0.0
+
+
+def _es_linea_fecha(texto):
+    return bool(parsear_fecha_galicia(texto))
+
+
+def _es_linea_monto(texto):
+    t = texto.strip()
+    return bool(re.search(r'[\-]?\$[\d.,]+', t)) or bool(re.search(r'[\-]?\d+\.\d{3}', t))
+
+
+def _es_texto_basura(texto):
+    t = texto.strip().lower()
+    basura = [
+        'todos los movimientos', 'fecha', 'descripcion', 'descripción',
+        'monto', 'saldo', 'movimientos', 'filtrar', 'buscar', 'ver más',
+        'ver mas', 'cuenta', 'caja de ahorro', 'cuenta corriente',
+        'pesos', 'dolares', 'dólares', 'anterior', 'siguiente',
+        'inicio', 'menú', 'menu', 'cerrar', 'salir'
+    ]
+    return any(b in t for b in basura) or len(t) < 2
+
+
+def _agrupar_por_filas(items, tolerancia_y=20):
+    """
+    Agrupa items de OCR en filas por proximidad vertical.
+    Retorna lista de filas, cada fila es lista de items ordenados por x.
+    """
+    if not items:
+        return []
+
+    filas = []
+    fila_actual = [items[0]]
+    y_ref = items[0]['y']
+
+    for item in items[1:]:
+        if abs(item['y'] - y_ref) <= tolerancia_y:
+            fila_actual.append(item)
+        else:
+            fila_actual.sort(key=lambda i: i['x_left'])
+            filas.append(fila_actual)
+            fila_actual = [item]
+            y_ref = item['y']
+
+    if fila_actual:
+        fila_actual.sort(key=lambda i: i['x_left'])
+        filas.append(fila_actual)
+
+    return filas
+
+
+def _extraer_movimiento_de_fila(fila):
+    """
+    Dada una fila de items OCR ordenados por x_left,
+    intenta extraer (fecha, descripcion, monto).
+    Retorna dict o None.
+    """
+    if not fila:
+        return None
+
+    fecha = ''
+    descripcion_parts = []
+    monto = 0.0
+    monto_encontrado = False
+
+    for item in fila:
+        texto = item['text'].strip()
+
+        if not texto or _es_texto_basura(texto):
+            continue
+
+        # Intentar fecha
+        if not fecha:
+            f = parsear_fecha_galicia(texto)
+            if f:
+                fecha = f
+                continue
+
+        # Intentar monto (generalmente el más a la derecha)
+        if _es_linea_monto(texto):
+            m = parsear_monto_galicia(texto)
+            if m != 0:
+                monto = m
+                monto_encontrado = True
+                continue
+
+        # Lo demás es descripción
+        if texto and len(texto) > 1:
+            descripcion_parts.append(texto)
+
+    descripcion = ' '.join(descripcion_parts).strip()
+
+    if fecha and monto_encontrado and descripcion:
+        return {
+            'fecha': fecha,
+            'descripcion': descripcion,
+            'monto': monto
+        }
+
+    return None
+
+
+def _intentar_reconstruir_filas_sueltas(filas_raw, items):
+    """
+    Cuando OCR separa fecha/desc/monto en filas distintas,
+    reconstruye agrupando por proximidad.
+    """
+    movimientos = []
+    fechas_sueltas = []
+    descs_sueltas = []
+    montos_sueltos = []
+
+    for fila in filas_raw:
+        textos = [it['text'].strip() for it in fila]
+        texto_unido = ' '.join(textos)
+
+        tiene_fecha = any(parsear_fecha_galicia(t) for t in textos)
+        tiene_monto = any(_es_linea_monto(t) for t in textos)
+
+        if tiene_fecha and not tiene_monto:
+            for t in textos:
+                f = parsear_fecha_galicia(t)
+                if f:
+                    fechas_sueltas.append((f, fila[0]['y']))
+                    break
+
+        elif tiene_monto and not tiene_fecha:
+            for t in textos:
+                if _es_linea_monto(t):
+                    m = parsear_monto_galicia(t)
+                    if m != 0:
+                        montos_sueltos.append((m, fila[0]['y']))
+                        break
+
+        elif not tiene_fecha and not tiene_monto:
+            desc = ' '.join(t for t in textos if not _es_texto_basura(t) and len(t) > 1)
+            if desc:
+                descs_sueltas.append((desc, fila[0]['y']))
+
+    # Intentar emparejar fecha+desc+monto por cercanía en Y
+    usadas_desc = set()
+    usados_monto = set()
+
+    for fecha, y_fecha in fechas_sueltas:
+        mejor_desc = ''
+        mejor_desc_idx = -1
+        mejor_dist_desc = 999
+
+        for idx, (desc, y_desc) in enumerate(descs_sueltas):
+            if idx in usadas_desc:
+                continue
+            dist = abs(y_desc - y_fecha)
+            if dist < mejor_dist_desc and dist < 40:
+                mejor_dist_desc = dist
+                mejor_desc = desc
+                mejor_desc_idx = idx
+
+        mejor_monto = 0.0
+        mejor_monto_idx = -1
+        mejor_dist_monto = 999
+
+        for idx, (monto, y_monto) in enumerate(montos_sueltos):
+            if idx in usados_monto:
+                continue
+            dist = abs(y_monto - y_fecha)
+            if dist < mejor_dist_monto and dist < 40:
+                mejor_dist_monto = dist
+                mejor_monto = monto
+                mejor_monto_idx = idx
+
+        if mejor_desc and mejor_monto != 0:
+            movimientos.append({
+                'fecha': fecha,
+                'descripcion': mejor_desc,
+                'monto': mejor_monto
+            })
+            if mejor_desc_idx >= 0:
+                usadas_desc.add(mejor_desc_idx)
+            if mejor_monto_idx >= 0:
+                usados_monto.add(mejor_monto_idx)
+
+    return movimientos
+
 
 def procesar_galicia_img(archivo, owner, medio_pago, datos, categorizar_gasto_fn=None,
-                          solo_egresos=True):
+                         solo_egresos=True):
     """
-    Procesa screenshot de movimientos Banco Galicia (app o web).
-    Formato: FECHA (izq) | DESCRIPCION (centro) | MONTO (der)
-    Agrupa items OCR en filas, reconstruye filas sueltas.
+    Procesa screenshot de movimientos Banco Galicia.
 
     Args:
         archivo: imagen subida
-        owner: string
-        medio_pago: string
+        owner: string owner
+        medio_pago: string medio de pago
         datos: dict datos app
-        categorizar_gasto_fn: funcion de app.py
-        solo_egresos: True=solo negativos, False=todos
-
-    Returns:
-        tuple: (gastos_dedup, texto_debug, error)
-    """
-
-
-# ============================================
-# 7. parsers/bybit_qr.py
-# ============================================
-# Import: from parsers.bybit_qr import procesar_bybit_qr
-
-def procesar_bybit_qr(archivo, owner, medio_pago, datos, categorizar_gasto_fn=None):
-    """
-    Parser para screenshots de historial QR de Bybit.
-    SOLO captura pagos con estado "Correcto".
-    Busca linea ARS, valida estado correcto, busca nombre arriba y fecha abajo.
-
-    Args:
-        archivo: imagen subida
-        owner: string
-        medio_pago: string
-        datos: dict datos app
-        categorizar_gasto_fn: funcion de app.py
-
-    Returns:
-        tuple: (gastos_dedup, texto_debug, error)
-    """
-
-
-# ============================================
-# 8. parsers/bybit_tarjeta.py
-# ============================================
-# Import: from parsers.bybit_tarjeta import procesar_bybit_tarjeta
-
-def procesar_bybit_tarjeta(archivo, owner, medio_pago, datos, categorizar_gasto_fn=None):
-    """
-    Parser para screenshots de Bybit Tarjeta Prepaga.
-    Formato:
-        Comercio                    - MONTO ARS
-        con **** NNNN                      Pago
-        YYYY-MM-DD HH:MM:SS
-
-    Args:
-        archivo: imagen subida
-        owner: string
-        medio_pago: string
-        datos: dict datos app
-        categorizar_gasto_fn: funcion de app.py
-
-    Returns:
-        tuple: (gastos_dedup, texto_debug, error)
-    """
-
-
-# ============================================
-# 9. parsers/icbc.py
-# ============================================
-# Import: from parsers.icbc import procesar_icbc
-
-def procesar_icbc(archivo, owner, medio_pago, datos):
-    """
-    Procesa screenshot de app ICBC Argentina.
-    Formato:
-        LINEA 1: DESCRIPCION                  $ -MONTO
-        LINEA 2: DD-Mes-AAAA
-
-    NOTA: NO recibe categorizar_gasto_fn, usa categorizar_gasto_parser de base.py internamente.
-
-    Args:
-        archivo: imagen subida
-        owner: string
-        medio_pago: string
-        datos: dict datos app
+        categorizar_gasto_fn: función de categorización (de app.py)
+        solo_egresos: True = solo montos negativos, False = todos
 
     Returns:
         tuple: (gastos, texto_debug, error)
     """
+    items, texto_debug = imagen_a_items_paddle(archivo)
+
+    if not items:
+        return [], texto_debug, "No se pudo leer la imagen"
+
+    # Filtrar basura antes de agrupar
+    items_limpios = [it for it in items if not _es_texto_basura(it['text'])]
+
+    if not items_limpios:
+        return [], texto_debug, "No se detectó texto útil"
+
+    # Agrupar en filas
+    filas = _agrupar_por_filas(items_limpios)
+
+    texto_debug += "\n\n=== FILAS AGRUPADAS ===\n"
+    for idx, fila in enumerate(filas):
+        textos = [it['text'] for it in fila]
+        texto_debug += f"Fila {idx}: {' | '.join(textos)}\n"
+
+    # Estrategia 1: extraer de filas completas
+    movimientos = []
+    filas_sin_match = []
+
+    for fila in filas:
+        mov = _extraer_movimiento_de_fila(fila)
+        if mov:
+            movimientos.append(mov)
+        else:
+            filas_sin_match.append(fila)
+
+    # Estrategia 2: reconstruir filas sueltas
+    if filas_sin_match:
+        movimientos_extra = _intentar_reconstruir_filas_sueltas(filas_sin_match, items_limpios)
+        movimientos.extend(movimientos_extra)
+
+    texto_debug += f"\n=== MOVIMIENTOS DETECTADOS: {len(movimientos)} ===\n"
+    for mov in movimientos:
+        signo = "EGRESO" if mov['monto'] < 0 else "INGRESO"
+        texto_debug += f"  {mov['fecha']} | {mov['descripcion']} | ${mov['monto']:,.2f} ({signo})\n"
+
+    # Filtrar según tipo
+    if solo_egresos:
+        movimientos = [m for m in movimientos if m['monto'] < 0]
+    else:
+        movimientos = [m for m in movimientos if m['monto'] > 0]
+
+    if not movimientos:
+        tipo = "egresos" if solo_egresos else "ingresos"
+        return [], texto_debug, f"No se detectaron {tipo}"
+
+    # Construir gastos
+    gastos = []
+    for mov in movimientos:
+        desc = mov['descripcion']
+        monto_abs = abs(mov['monto'])
+
+        if monto_abs < 1:
+            continue
+
+        # Si descripción es genérica, agregar monto para diferenciar
+        DESCRIPCIONES_GENERICAS = [
+            'transferencia a terceros',
+            'transferencia',
+            'debito automatico',
+            'débito automático',
+            'pago',
+            'cargo',
+        ]
+        if desc.strip().lower() in DESCRIPCIONES_GENERICAS:
+            desc = f"{desc} (${monto_abs:,.0f})"
+
+        if categorizar_gasto_fn:
+            cat, subcat, gasto_final = categorizar_gasto_fn(desc, datos)
+        else:
+            cat, subcat, gasto_final = categorizar_gasto_parser(desc, datos)
+
+        gastos.append({
+            'fecha': mov['fecha'],
+            'gasto': gasto_final,
+            'monto': monto_abs,
+            'moneda': 'ARS',
+            'fuente': 'Galicia IMG',
+            'categoria': cat,
+            'subcategoria': subcat,
+            'owner': owner,
+            'medio_pago': medio_pago or 'Banco Galicia',
+            'u_id': generar_id()
+        })
+
+    # Deduplicar
+    seen = set()
+    gastos_dedup = []
+    for g in gastos:
+        key = (g['fecha'], g['gasto'].lower(), round(g['monto'], 2))
+        if key not in seen:
+            seen.add(key)
+            gastos_dedup.append(g)
+
+    if not gastos_dedup:
+        return [], texto_debug, "No se detectaron gastos después de deduplicar"
+
+    return gastos_dedup, texto_debug, None
 
 
 # ============================================
-# 10. parsers/binance_qr.py
+# FILE: bybit_qr.py
 # ============================================
-# Import: from parsers.binance_qr import procesar_binance_qr
+
+"""
+Parser para screenshots de historial QR de Bybit.
+SOLO captura pagos con estado "Correcto".
+"""
+import re
+import time
+import random
+import io
+import numpy as np
+from PIL import Image
+
+
+def generar_id():
+    ts = int(time.time() * 1000)
+    rnd = ''.join(random.choice('0123456789abcdef') for _ in range(6))
+    return f"ts_{ts}_{rnd}"
+
+
+def get_paddle_reader():
+    try:
+        import paddleocr
+        return paddleocr.PaddleOCR(use_angle_cls=True, lang='es', show_log=False)
+    except ImportError:
+        return None
+
+
+def parsear_monto_qr(texto):
+    s = texto.strip().upper().replace('ARS', '').strip()
+    s = s.replace(',', '')
+    try:
+        return float(s)
+    except:
+        return 0.0
+
+
+def extraer_fecha_qr(texto):
+    m = re.search(r'(\d{4}-\d{2}-\d{2})\s*(\d{2}:\d{2}:\d{2})?', texto)
+    if m:
+        return m.group(1), m.group(2) if m.group(2) else ''
+    return '', ''
+
+
+def es_linea_monto_ars(texto):
+    t = texto.upper()
+    if 'RECIBIR' in t:
+        return False
+    return 'ARS' in t and bool(re.search(r'[\d,.]+\s*ARS', t))
+
+
+def es_linea_fecha(texto):
+    t = texto.strip().lower()
+    return ('pago con qr' in t or 'enviar' in t) and bool(re.search(r'\d{4}-\d{2}-\d{2}', t))
+
+
+def es_estado_correcto(texto):
+    t = texto.strip().lower()
+    return 'correcto' in t or 'completado' in t or 'aprobado' in t
+
+
+def es_estado_error(texto):
+    t = texto.strip().lower()
+    return any(x in t for x in ['error', 'tiempo de espera', 'pendiente', 'rechazado', 'fallido'])
+
+
+def limpiar_nombre(nombre):
+    if not nombre:
+        return ''
+    return re.sub(r'\s+', ' ', nombre.strip())
+
+
+def procesar_bybit_qr(archivo, owner, medio_pago, datos, categorizar_fn=None):
+    reader = get_paddle_reader()
+    if reader is None:
+        return [], "", "PaddleOCR no disponible"
+
+    try:
+        if hasattr(archivo, 'seek'):
+            archivo.seek(0)
+        if hasattr(archivo, 'read'):
+            img_bytes = archivo.read()
+            img = Image.open(io.BytesIO(img_bytes)).convert('RGB')
+        else:
+            img = Image.open(archivo).convert('RGB')
+
+        img_array = np.array(img)
+        result = reader.ocr(img_array, cls=True)
+
+        items = []
+        if result and result[0]:
+            for line in result[0]:
+                if not line:
+                    continue
+                bbox = line[0]
+                x_left = bbox[0][0]
+                x_right = bbox[2][0]
+                y = (bbox[0][1] + bbox[2][1]) / 2
+                text = line[1][0].strip()
+                items.append({'y': y, 'x_left': x_left, 'x_right': x_right, 'text': text})
+
+        items.sort(key=lambda i: i['y'])
+
+        texto_debug = "\n".join(f"y={it['y']:.0f} | {it['text']}" for it in items)
+
+        if not items:
+            return [], texto_debug, "No se detectó texto"
+
+        gastos = []
+        procesados_y = set()
+
+        for i, item in enumerate(items):
+            texto = item['text']
+
+            if not es_linea_monto_ars(texto):
+                continue
+            if item['y'] in procesados_y:
+                continue
+
+            monto = parsear_monto_qr(texto)
+            if monto <= 0:
+                continue
+
+            y_monto = item['y']
+            x_monto = item['x_left']
+            procesados_y.add(y_monto)
+
+            # 1. VALIDAR ESTADO - Rango 150px
+            estado_correcto = False
+            estado_error = False
+            hora_transaccion = ''
+            dist_correcto = 999
+            dist_error = 999
+            
+            for it in items:
+                dist_y = it['y'] - y_monto
+                if 0 < dist_y < 150:
+                    texto_it = it['text'].strip()
+                    texto_lower = texto_it.lower()
+                    
+                    if es_estado_correcto(texto_lower):
+                        estado_correcto = True
+                        dist_correcto = dist_y
+                    
+                    if es_estado_error(texto_lower):
+                        estado_error = True
+                        dist_error = dist_y
+                    
+                    _, hora = extraer_fecha_qr(texto_it)
+                    if hora:
+                        hora_transaccion = hora
+            
+            # Si encontró ambos estados, el más cercano al monto gana
+            if estado_correcto and estado_error:
+                if dist_correcto < dist_error:
+                    estado_error = False
+                else:
+                    estado_correcto = False
+            
+            if estado_error or not estado_correcto:
+                continue
+
+            # 2. BUSCAR NOMBRE - Inicializar SIEMPRE
+            nombre = ''
+            
+            for it in items:
+                if abs(it['y'] - y_monto) < 18:
+                    if it['x_left'] < x_monto:
+                        t = it['text'].strip().lower()
+                        if len(t) > 1 and 'usdt' not in t and 'recibir' not in t and 'enviar' not in t:
+                            nombre = it['text'].strip()
+                            break
+
+            if not nombre:
+                for it in items:
+                    dist = y_monto - it['y']
+                    if 0 < dist < 25:
+                        t = it['text'].strip().lower()
+                        if len(t) > 2 and 'usdt' not in t and 'recibir' not in t and 'enviar' not in t and 'correcto' not in t and 'error' not in t:
+                            nombre = it['text'].strip()
+                            break
+
+            # 3. BUSCAR FECHA
+            fecha_completa = ''
+            for it in items:
+                dist_y = it['y'] - y_monto
+                if 5 < dist_y < 150:
+                    if es_linea_fecha(it['text']):
+                        fecha, hora = extraer_fecha_qr(it['text'])
+                        if fecha:
+                            fecha_completa = fecha
+                            if hora and not hora_transaccion:
+                                hora_transaccion = hora
+                        break
+
+            # 4. VALIDACIONES FINALES
+            nombre = limpiar_nombre(nombre)
+
+            if not nombre or len(nombre) < 2:
+                continue
+            if not fecha_completa:
+                continue
+
+            nlow = nombre.lower()
+            if any(x in nlow for x in ['historial de pagos', 'todos los tipos', 'todos los estados', 'fecha', 'pagado']):
+                continue
+
+            # 5. CATEGORIZAR
+            if categorizar_fn:
+                cat, subcat, gasto_final = categorizar_fn(nombre, datos)
+            else:
+                cat, subcat, gasto_final = 'otros', 'otros', nombre.title()
+
+            unique_id = f"{fecha_completa}_{hora_transaccion}_{nombre}_{monto}"
+            
+            gastos.append({
+                'fecha': f"{fecha_completa} {hora_transaccion}" if hora_transaccion else fecha_completa,
+                'gasto': gasto_final,
+                'monto': monto,
+                'moneda': 'ARS',
+                'fuente': 'Bybit QR',
+                'categoria': cat,
+                'subcategoria': subcat,
+                'owner': owner,
+                'medio_pago': medio_pago or 'QR Bybit',
+                'u_id': generar_id(),
+                '_unique_key': unique_id
+            })
+
+        # 6. DEDUPLICAR
+        seen = set()
+        gastos_dedup = []
+        for g in gastos:
+            key = g.get('_unique_key', '')
+            if key not in seen:
+                seen.add(key)
+                g.pop('_unique_key', None)
+                gastos_dedup.append(g)
+
+        if not gastos_dedup:
+            return [], texto_debug, "No se detectaron gastos QR"
+
+        return gastos_dedup, texto_debug, None
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return [], "", f"Error: {str(e)}"
+
+
+# ============================================
+# FILE: bybit_tarjeta.py
+# ============================================
+
+"""
+Parser para screenshots de Bybit Tarjeta Prepaga.
+
+Formato del ticket:
+    Comercio                    - MONTO ARS
+    con **** NNNN                      Pago
+    YYYY-MM-DD HH:MM:SS
+"""
+import re
+import time
+import random
+import numpy as np
+from PIL import Image
+import io
+
+
+def generar_id():
+    ts = int(time.time() * 1000)
+    rnd = ''.join(random.choice('0123456789abcdef') for _ in range(6))
+    return f"ts_{ts}_{rnd}"
+
+
+def get_paddle_reader():
+    try:
+        import paddleocr
+        return paddleocr.PaddleOCR(use_angle_cls=True, lang='es', show_log=False)
+    except ImportError:
+        return None
+
+
+def parsear_monto_bybit(texto_monto):
+    """Parsea montos Bybit: '- 6.999,93 ARS' o '468,50 ARS'"""
+    s = texto_monto.strip()
+    s = s.replace('ARS', '').replace('-', '').strip()
+    
+    if ',' in s:
+        s = s.replace('.', '').replace(',', '.')
+    else:
+        parts = s.rsplit('.', 1)
+        if len(parts) == 2 and len(parts[1]) == 2:
+            pass
+        else:
+            s = s.replace('.', '')
+    
+    try:
+        return abs(float(s))
+    except (ValueError, TypeError):
+        return 0.0
+
+
+def extraer_fecha_bybit(texto):
+    """Extrae fecha de múltiples formatos Bybit"""
+    # Formato: 2026-03-14 14:01:05
+    m = re.search(r'(\d{4})-(\d{2})-(\d{2})\s+\d{2}[:.]\d{2}', texto)
+    if m:
+        return f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
+    
+    # Formato: 2026-03-14 (sin hora)
+    m = re.search(r'(\d{4})-(\d{2})-(\d{2})', texto)
+    if m:
+        return m.group(0)
+    
+    # Formato: 2026.03.14
+    m = re.search(r'(\d{4})\.(\d{2})\.(\d{2})', texto)
+    if m:
+        return f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
+    
+    # Formato compacto: 20260314
+    m = re.search(r'(\d{4})(\d{2})(\d{2})\s+\d{2}', texto)
+    if m:
+        year, month, day = m.group(1), m.group(2), m.group(3)
+        if 2020 <= int(year) <= 2030 and 1 <= int(month) <= 12 and 1 <= int(day) <= 31:
+            return f"{year}-{month}-{day}"
+    
+    return ''
+
+
+def es_linea_estado(texto):
+    """Detecta estados de pago exitoso"""
+    t = texto.strip().lower()
+    if 'correcto' in t or 'completed' in t or 'completado' in t or 'aprobado' in t:
+        return True
+    return False
+
+
+def es_linea_estado_error(texto):
+    """Detecta estados de error o pendiente"""
+    t = texto.strip().lower()
+    if 'error' in t:
+        return True
+    if 'tiempo de espera' in t:
+        return True
+    if 'pendiente' in t:
+        return True
+    if 'rechazado' in t:
+        return True
+    if 'fallido' in t:
+        return True
+    return False
+
+
+def limpiar_nombre_comercio(nombre):
+    """Limpia nombres de comercio del formato Bybit. 
+    Retorna (nombre_limpio, nombre_para_categorizar)"""
+    nombre = nombre.strip()
+    
+    if 'MERPAGO' in nombre.upper():
+        return 'Estacionamiento Tránsito Rosario', 'merpago*tran'
+    
+    nombre = re.sub(r'[*]+', '', nombre)
+    nombre = re.sub(r'\.{3,}', '', nombre)
+    nombre = nombre.strip(' -.*')
+    
+    return nombre, nombre
+
+
+def procesar_bybit_tarjeta(archivo, owner, medio_pago, datos, categorizar_fn=None):
+    """
+    Procesa screenshot de Bybit Tarjeta Prepaga.
+    
+    Args:
+        archivo: archivo subido (st.UploadedFile)
+        owner: string con el owner
+        medio_pago: string con el medio de pago
+        datos: diccionario de datos de la app
+        categorizar_fn: función categorizar_gasto de app.py
+    
+    Returns:
+        tuple: (lista_gastos, texto_debug, mensaje_error)
+    """
+    reader = get_paddle_reader()
+    if reader is None:
+        return [], "", "PaddleOCR no disponible"
+    
+    try:
+        if hasattr(archivo, 'seek'):
+            archivo.seek(0)
+        if hasattr(archivo, 'read'):
+            img_bytes = archivo.read()
+            img = Image.open(io.BytesIO(img_bytes)).convert('RGB')
+        else:
+            img = Image.open(archivo).convert('RGB')
+        
+        img_array = np.array(img)
+        result = reader.ocr(img_array, cls=True)
+        
+        items = []
+        if result and result[0]:
+            for line in result[0]:
+                if not line:
+                    continue
+                bbox = line[0]
+                x_left = bbox[0][0]
+                x_right = bbox[2][0]
+                items.append({
+                    'y': (bbox[0][1] + bbox[2][1]) / 2,
+                    'x_left': x_left,
+                    'x_center': (x_left + x_right) / 2,
+                    'x_right': x_right,
+                    'text': line[1][0].strip(),
+                    'conf': line[1][1]
+                })
+        
+        items.sort(key=lambda i: i['y'])
+        
+        texto_debug = "\n".join(
+            f"y={it['y']:.0f} x={it['x_left']:.0f}-{it['x_right']:.0f} | {it['text']}"
+            for it in items
+        )
+        
+        if not items:
+            return [], texto_debug, "No se detectó texto en la imagen"
+        
+        gastos = []
+        lineas_ars = []
+        
+        for idx, it in enumerate(items):
+            if 'ARS' in it['text'].upper():
+                lineas_ars.append((idx, it))
+        
+        for ars_idx, ars_item in lineas_ars:
+            monto = parsear_monto_bybit(ars_item['text'])
+            if monto < 1:
+                continue
+            
+            y_ars = ars_item['y']
+            nombre_comercio = ''
+            fecha_gasto = ''
+            
+            for it in items:
+                dist_y = abs(it['y'] - y_ars)
+                
+                if dist_y < 20:
+                    texto_it = it['text'].strip()
+                    texto_lower = texto_it.lower()
+                    
+                    es_monto = 'ARS' in texto_it.upper()
+                    es_pago = texto_it.lower() == 'pago'
+                    es_tarjeta = '****' in texto_it
+                    es_fecha = bool(re.match(r'^\d{4}-\d{2}-\d{2}', texto_it))
+                    es_basura = texto_it.lower() in ['con', '-', 'or', 'qr']
+                    es_recibir = 'recibir' in texto_lower
+                    
+                    if not any([es_monto, es_pago, es_tarjeta, es_fecha, es_basura, es_recibir]):
+                        if it['x_left'] < ars_item['x_left'] and len(texto_it) > 1:
+                            nombre_comercio = texto_it
+            
+            # Buscar fecha: asociada a este gasto
+            # La fecha está DEBAJO del nombre/monto, generalmente 2-3 líneas después
+            # Puede estar bastante lejos en Y (hasta 150px)
+            fecha_gasto = ''
+            
+            # Estrategia 1: buscar fecha debajo del monto (Y mayor)
+            mejor_fecha = ''
+            menor_distancia = 999
+            for it in items:
+                dist_y = it['y'] - y_ars  # Solo buscar DEBAJO
+                if 5 < dist_y < 150:
+                    fecha_encontrada = extraer_fecha_bybit(it['text'])
+                    if fecha_encontrada and dist_y < menor_distancia:
+                        mejor_fecha = fecha_encontrada
+                        menor_distancia = dist_y
+            
+            # Estrategia 2: si no encontró, buscar ARRIBA también
+            if not mejor_fecha:
+                for it in items:
+                    dist_y = abs(it['y'] - y_ars)
+                    if 5 < dist_y < 150:
+                        fecha_encontrada = extraer_fecha_bybit(it['text'])
+                        if fecha_encontrada and dist_y < menor_distancia:
+                            mejor_fecha = fecha_encontrada
+                            menor_distancia = dist_y
+            
+            # Estrategia 3: buscar texto con formato fecha+hora
+            if not mejor_fecha:
+                for it in items:
+                    dist_y = abs(it['y'] - y_ars)
+                    if dist_y < 200:
+                        m = re.search(r'(\d{4})[.-](\d{2})[.-](\d{2})\s+\d{2}[:.]\d{2}', it['text'])
+                        if m:
+                            mejor_fecha = f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
+                            break
+            
+            fecha_gasto = mejor_fecha
+            
+            # Validar estado del pago
+            estado_valido = True
+            for it in items:
+                dist_y = it['y'] - y_ars
+                if 5 < dist_y < 150:
+                    if es_linea_estado_error(it['text']):
+                        estado_valido = False
+                        break
+            
+            if not estado_valido:
+                continue
+            
+            if not nombre_comercio or len(nombre_comercio) < 2:
+                continue
+            
+            # Si no tiene fecha válida, NO cargar
+            if not fecha_gasto:
+                continue
+            
+            nombre_lower = nombre_comercio.lower()
+            if any(ig in nombre_lower for ig in ['historial', 'correcto', 'total', 'saldo', 'disponible']):
+                continue
+            
+            nombre_limpio, nombre_categorizar = limpiar_nombre_comercio(nombre_comercio)
+            
+            if categorizar_fn:
+                cat, subcat, gasto_final = categorizar_fn(nombre_categorizar, datos)
+                if cat == 'otros':
+                    cat, subcat, gasto_final = categorizar_fn(nombre_limpio, datos)
+                if gasto_final == nombre_categorizar.title():
+                    gasto_final = nombre_limpio
+            else:
+                cat, subcat, gasto_final = 'otros', 'otros', nombre_limpio.title()
+            
+            gastos.append({
+                'fecha': fecha_gasto,
+                'gasto': gasto_final,
+                'monto': monto,
+                'moneda': 'ARS',
+                'fuente': 'Bybit Tarjeta',
+                'categoria': cat,
+                'subcategoria': subcat,
+                'owner': owner,
+                'medio_pago': medio_pago or 'Tarjeta Prepaga Bybit',
+                'u_id': generar_id()
+            })
+        
+        seen = set()
+        gastos_dedup = []
+        for g in gastos:
+            key = (g['gasto'].lower()[:10], round(g['monto'], 2))
+            if key not in seen:
+                seen.add(key)
+                gastos_dedup.append(g)
+        
+        # Debug extra: mostrar fechas encontradas
+        fechas_debug = []
+        for it in items:
+            fecha_test = extraer_fecha_bybit(it['text'])
+            if fecha_test:
+                fechas_debug.append(f"y={it['y']:.0f} | {it['text']} -> {fecha_test}")
+        
+        if fechas_debug:
+            texto_debug += "\n\n=== FECHAS DETECTADAS ===\n"
+            texto_debug += "\n".join(fechas_debug)
+        else:
+            texto_debug += "\n\n=== NO SE DETECTARON FECHAS ==="
+        
+        if not gastos_dedup:
+            return [], texto_debug, "No se detectaron gastos"
+        
+        return gastos_dedup, texto_debug, None
+    
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return [], "", f"Error procesando Bybit Tarjeta: {str(e)}"
+
+
+
+# ============================================
+# FILE: icbc.py
+# ============================================
+
+"""
+Parser para screenshots de app ICBC Argentina.
+Formato actual 2026:
+    LÍNEA 1: DESCRIPCIÓN                  $ -MONTO
+    LÍNEA 2: DD-Mes-AAAA
+"""
+import re
+import time
+import random
+import io
+import numpy as np
+from PIL import Image
+from parsers.base import (
+    imagen_a_items_paddle,
+    categorizar_gasto_parser,
+    generar_id,
+    cargar_comercios_json,
+    COMERCIOS_CONOCIDOS
+)
+
+
+def parsear_monto_icbc(texto):
+    """
+    Ejemplos:
+      $ -42.386,74
+      $ -4.981,49
+      $ 6,60
+    """
+    s = texto.strip()
+    s = s.replace('$', '').replace('-', '').strip()
+
+    if ',' in s:
+        s = s.replace('.', '').replace(',', '.')
+    else:
+        parts = s.rsplit('.', 1)
+        if len(parts) == 2 and len(parts[1]) == 2:
+            pass
+        else:
+            s = s.replace('.', '')
+
+    try:
+        return abs(float(s))
+    except (ValueError, TypeError):
+        return 0.0
+
+
+def parsear_fecha_icbc(texto):
+    """
+    Ejemplo:
+      20-Feb-2026
+    Devuelve:
+      2026-02-20
+    """
+    m = re.match(r'(\d{1,2})-([A-Za-z]{3})-(\d{4})', texto.strip())
+    if not m:
+        return ''
+
+    dia = int(m.group(1))
+    mes_str = m.group(2)
+    anio = int(m.group(3))
+
+    meses = {
+        'Ene': '01', 'Feb': '02', 'Mar': '03', 'Abr': '04',
+        'May': '05', 'Jun': '06', 'Jul': '07', 'Ago': '08',
+        'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dic': '12',
+    }
+
+    mes_num = meses.get(mes_str.title()[:3])
+    if mes_num is None:
+        return ''
+    if not (1 <= dia <= 31 and 2020 <= anio <= 2030):
+        return ''
+
+    return f"{anio}-{mes_num}-{dia:02d}"
+
+
+def procesar_icbc(archivo, owner, medio_pago, datos):
+    """
+    Procesa screenshot de app ICBC Argentina.
+
+    Args:
+        archivo: imagen
+        owner: Gustavo/Vero/etc
+        medio_pago: medio seleccionado
+        datos: datos app
+
+    Returns:
+        tuple: (gastos, texto_debug, error)
+    """
+    items, texto_debug = imagen_a_items_paddle(archivo)
+
+    if not items:
+        return [], texto_debug, "No se pudo leer la imagen"
+
+    comercios_json = cargar_comercios_json()
+    gastos = []
+
+    lineas_monto = []
+    for idx, item in enumerate(items):
+        texto = item['text']
+
+        if '$' not in texto:
+            continue
+        
+        # Verificar si es monto negativo (egreso) o positivo (ingreso)
+        if '-' not in texto:
+            # Monto positivo = ingreso, skip
+            continue
+
+        monto = parsear_monto_icbc(texto)
+        if monto <= 0:
+            continue
+
+        lineas_monto.append((idx, item, monto))
+
+    for idx_monto, item_monto, monto in lineas_monto:
+        y_monto = item_monto['y']
+
+        descripcion = ''
+        for it in items:
+            dist_y = abs(it['y'] - y_monto)
+
+            if dist_y < 15:
+                if it['x_right'] < item_monto['x_left']:
+                    t = it['text'].strip()
+                    if '$' not in t and len(t) > 2:
+                        descripcion = t
+
+        if not descripcion:
+            if idx_monto > 0:
+                it_arriba = items[idx_monto - 1]
+                t = it_arriba['text'].strip()
+                if '$' not in t and len(t) > 2:
+                    descripcion = t
+
+        fecha = ''
+        if idx_monto + 1 < len(items):
+            item_debajo = items[idx_monto + 1]
+            fecha = parsear_fecha_icbc(item_debajo['text'])
+
+        if not descripcion or len(descripcion) < 2:
+            continue
+        if not fecha:
+            continue
+
+        dlow = descripcion.lower()
+        if any(kw in dlow for kw in ['liquidacion', 'reintegro', 'acreditacion', 'credito', 'transferencia push']):
+            continue
+
+        if monto < 1.0:
+            continue
+
+        if any(x in dlow for x in ['cuentas', 'movimientos', 'saldo', 'disponible']):
+            continue
+
+        if 'spotify' in dlow or 'dlocal spotify' in dlow:
+            cat, subcat, g = 'servicios', 'suscripciones', 'Spotify'
+        elif 'arca' in dlow or 'pago arca' in dlow:
+            cat, subcat, g = 'impuestos', 'impuestos', 'Monotributo'
+        elif (
+            'iva' in dlow
+            or 'impuesto al valor' in dlow
+            or 'impuesto al valor agregado' in dlow
+        ):
+            cat, subcat, g = 'impuestos', 'impuestos', 'IVA'
+        elif 'operaciones banel' in dlow:
+            cat, subcat, g = 'servicios', 'bancos', 'Operaciones Bancarias'
+        elif 'debito inmediato' in dlow:
+            cat, subcat, g = 'otros', 'otros', 'Débito Inmediato'
+        elif 'com rechazo' in dlow or 'rechazo deb' in dlow:
+            cat, subcat, g = 'servicios', 'bancos', 'Comisión Rechazo Débito'
+        elif 'transf. mobile' in dlow or 'transf mobile' in dlow:
+            cat, subcat, g = 'otros', 'otros', 'Transferencia Mobile'
+        elif 'sancor' in dlow:
+            cat, subcat, g = 'servicios', 'seguros', 'Sancor Seguros'
+        elif 'polibot' in dlow:
+            cat, subcat, g = 'comercios', 'indumentaria', 'Polibot'
+        elif 'havanna' in dlow:
+            cat, subcat, g = 'comercios', 'restaurant', 'Havanna'
+        elif 'federacion' in dlow or 'pago federacion' in dlow:
+            cat, subcat, g = 'servicios', 'seguros', 'Federación Patronal'
+        elif 'prev.seg' in dlow or 'pago prev.seg' in dlow:
+            cat, subcat, g = 'servicios', 'seguros', 'Previsión Seguros'
+        elif 'iva serv' in dlow:
+            cat, subcat, g = 'impuestos', 'impuestos', 'IVA Servicios Digitales'
+        elif 'percepcion' in dlow:
+            cat, subcat, g = 'impuestos', 'impuestos', 'Percepción'
+        elif 'netflix' in dlow or 'cpa. netflix' in dlow:
+            cat, subcat, g = 'servicios', 'suscripciones', 'Netflix'
+        elif 'herrero' in dlow:
+            cat, subcat, g = 'comercios', 'otros', 'Herrero SRL'
+        else:
+            mk = next((k for k in comercios_json if k.lower() in dlow), None)
+            if mk:
+                cat = comercios_json[mk]['categoria']
+                subcat = comercios_json[mk]['subcategoria']
+                g = comercios_json[mk]['gasto']
+            else:
+                cat, subcat, g = categorizar_gasto_parser(descripcion, datos)
+
+        gastos.append({
+            'fecha': fecha,
+            'gasto': g,
+            'monto': monto,
+            'moneda': 'ARS',
+            'fuente': 'ICBC JPG',
+            'categoria': cat,
+            'subcategoria': subcat,
+            'owner': owner or 'Vero',
+            'medio_pago': medio_pago or 'ICBC',
+            'u_id': generar_id()
+        })
+
+    if not gastos:
+        return [], texto_debug, "No se detectaron gastos"
+
+    return gastos, texto_debug, None
+
+
+
+# ============================================
+# FILE: binance_qr.py
+# ============================================
+
+"""
+Parser para historial QR de Binance.
+Formato:
+    NOMBRE (1 o 2 líneas)     -MONTO ARS
+    etiqueta opcional         (Descontado)
+    FECHA HORA
+    estado                    (Completado)
+"""
+import re
+from parsers.base import (
+    imagen_a_items_paddle,
+    categorizar_gasto_parser,
+    generar_id,
+)
+
+
+def parsear_monto_binance(texto):
+    """
+    Ejemplos:
+      -713,314 ARS
+      -158,883.63 ARS
+      -155,381.05 ARS
+      -33,524 ARS
+    """
+    t = texto.strip().upper()
+    if 'ARS' not in t:
+        return 0.0
+
+    m = re.search(r'-\s*([\d,\.]+)\s*ARS', t)
+    if not m:
+        m = re.search(r'([\d,\.]+)\s*ARS', t)
+        if not m:
+            return 0.0
+        negativo = False
+    else:
+        negativo = True
+
+    s = m.group(1)
+
+    if ',' in s and '.' in s:
+        s = s.replace(',', '')
+    elif ',' in s and '.' not in s:
+        s = s.replace(',', '')
+    elif '.' in s and ',' not in s:
+        parts = s.rsplit('.', 1)
+        if len(parts) == 2 and len(parts[1]) == 2:
+            pass
+        else:
+            s = s.replace('.', '')
+
+    try:
+        val = float(s)
+        return -val if negativo else val
+    except:
+        return 0.0
+
+
+def parsear_fecha_binance(texto):
+    m = re.search(r'(\d{4}-\d{2}-\d{2})\s+\d{2}:\d{2}:\d{2}', texto.strip())
+    if m:
+        return m.group(1)
+
+    m = re.search(r'(\d{4}-\d{2}-\d{2})', texto.strip())
+    if m:
+        return m.group(1)
+
+    return ''
+
+
+def es_linea_monto(texto):
+    t = texto.upper()
+    # Rechazar ingresos (Recibir = money coming IN)
+    if 'RECIBIR' in t:
+        return False
+    return 'ARS' in t and bool(re.search(r'[\d,\.]+', texto))
+
+
+def es_linea_monto_usdt(texto):
+    t = texto.strip().upper()
+    return 'USDT' in t and bool(re.search(r'[\d,\.]+', texto))
+
+
+def es_linea_fecha(texto):
+    return bool(parsear_fecha_binance(texto))
+
+
+def es_linea_estado_valido(texto):
+    """Detecta estados de pago EXITOSO"""
+    t = texto.strip().lower()
+    return 'correcto' in t or 'completed' in t or 'aprobado' in t
+
+
+def es_linea_estado_error(texto):
+    """Detecta estados de error o pendiente"""
+    t = texto.strip().lower()
+    return any(x in t for x in ['error', 'tiempo de espera', 'pendiente', 'rechazado', 'fallido'])
+
+
+def es_linea_etiqueta(texto):
+    t = texto.strip().lower()
+    return 'descontado' in t or 'discounted' in t
+
 
 def procesar_binance_qr(archivo, owner, medio_pago, datos, categorizar_gasto_fn=None):
-    """
-    Parser para historial QR de Binance.
-    Formato:
-        NOMBRE (1 o 2 lineas)     -MONTO ARS
-        etiqueta opcional         (Descontado)
-        FECHA HORA
-        estado                    (Completado)
+    items, texto_debug = imagen_a_items_paddle(archivo)
 
-    Args:
-        archivo: imagen subida
-        owner: string
-        medio_pago: string
-        datos: dict datos app
-        categorizar_gasto_fn: funcion de app.py
+    if not items:
+        return [], texto_debug, "No se pudo leer la imagen"
 
-    Returns:
-        tuple: (gastos_dedup, texto_debug, error)
-    """
+    gastos = []
+
+    for idx, item in enumerate(items):
+        texto = item['text'].strip()
+        if not es_linea_monto(texto):
+            continue
+
+        monto = parsear_monto_binance(texto)
+        if monto >= 0:
+            continue
+
+        y_monto = item['y']
+        x_monto = item['x_left']
+
+        nombre_partes = []
+        for it in items:
+            if it['x_right'] < x_monto:
+                # mismo bloque vertical
+                if -30 <= (it['y'] - y_monto) <= 65:
+                    t = it['text'].strip()
+                    tlow = t.lower()
+                    # Ignorar líneas USDT, montos, estados, fechas, envíos, ingresos
+                    if (not es_linea_fecha(t) 
+                        and not es_linea_estado_valido(t) 
+                        and not es_linea_etiqueta(t) 
+                        and not es_linea_monto(t)
+                        and not es_linea_monto_usdt(t)
+                        and 'usdt' not in tlow
+                        and 'enviar' not in tlow
+                        and 'recibir' not in tlow
+                        and 'tiempo de espera' not in tlow
+                        and len(t) > 1):
+                        nombre_partes.append((it['y'], t))
+
+        nombre_partes = sorted(nombre_partes, key=lambda x: x[0])
+
+        # Unir líneas del mismo nombre
+        nombre = ' '.join([p[1] for p in nombre_partes]).strip()
+        nombre = re.sub(r'\s+', ' ', nombre).strip()
+
+        # Normalizaciones específicas OCR Binance
+        nombre_upper = nombre.upper().strip()
+        
+        # Unir "CAJA DE PREVISION" + "SOCIAL" si están separados
+        if 'CAJA DE PREVISION' in nombre_upper:
+            nombre = 'Caja de Prevision Social'
+        elif nombre_upper in ['SOCIAL', 'SOC']:
+            # "SOCIAL" suelto = probablemente segunda línea de "CAJA DE PREVISION SOCIAL"
+            nombre = 'Caja de Prevision Social'
+
+        # Buscar fecha y validar estado
+        fecha = ''
+        estado_ok = False
+        tiene_error = False
+        es_ingreso = False
+        
+        for it in items:
+            dist_y = it['y'] - y_monto
+            if 10 <= dist_y <= 100:
+                texto_it = it['text'].strip()
+                tlow = texto_it.lower()
+                
+                # Detectar si es ingreso (Recibir)
+                if 'recibir' in tlow:
+                    es_ingreso = True
+                
+                # Detectar fecha
+                if es_linea_fecha(texto_it):
+                    fecha = parsear_fecha_binance(texto_it)
+                
+                # Detectar estado válido
+                if es_linea_estado_valido(texto_it):
+                    estado_ok = True
+                
+                # Detectar error (esto invalida el pago inmediatamente)
+                if es_linea_estado_error(texto_it):
+                    tiene_error = True
+                    break
+        
+        # Descartar si es ingreso, tiene error, o no tiene estado válido
+        if es_ingreso or tiene_error or not estado_ok:
+            continue
+
+        if not nombre or len(nombre) < 2:
+            continue
+        if not fecha:
+            continue
+
+        # Evitar nombres parciales / basura
+        nombre_lower = nombre.lower().strip()
+        if nombre_lower in ['completado', 'descontado', 'enviar', 'tiempo de espera']:
+            continue
+
+        nombre_lower = nombre.lower().strip()
+        if 'caja de prevision social' in nombre_lower:
+            if abs(monto) > 500000:
+                cat, subcat, gasto_final = 'servicios', 'salud', 'Caja de Prevision Social (Salud)'
+            else:
+                cat, subcat, gasto_final = 'servicios', 'jubilacion', 'Caja de Prevision Social (Jubilacion)'
+        else:
+            if categorizar_gasto_fn:
+                cat, subcat, gasto_final = categorizar_gasto_fn(nombre, datos)
+            else:
+                cat, subcat, gasto_final = categorizar_gasto_parser(nombre, datos)
+
+        gastos.append({
+            'fecha': fecha,
+            'gasto': gasto_final,
+            'monto': abs(monto),
+            'moneda': 'ARS',
+            'fuente': 'Binance QR',
+            'categoria': cat,
+            'subcategoria': subcat,
+            'owner': owner,
+            'medio_pago': medio_pago or 'QR Binance',
+            'u_id': generar_id()
+        })
+
+    seen = set()
+    gastos_dedup = []
+    for g in gastos:
+        key = (
+            g.get('fecha', ''),
+            g.get('gasto', '').lower(),
+            round(g.get('monto', 0), 2)
+        )
+        if key not in seen:
+            seen.add(key)
+            gastos_dedup.append(g)
+
+    if not gastos_dedup:
+        return [], texto_debug, "No se detectaron egresos Binance QR"
+
+    return gastos_dedup, texto_debug, None
+
 
 
 # ============================================
-# 11. parsers/santander_chile_pdf.py
+# FILE: santander_chile_pdf.py
 # ============================================
-# Import: from parsers.santander_chile_pdf import procesar_santander_chile_pdf
 
-def procesar_santander_chile_pdf(archivo, _, __, datos, categorizar_gasto_fn=None, password=None):
-    """
-    Parser para cartola PDF de Santander Chile.
-    Reconstruccion de bloques multi-linea (PyMuPDF extrae columnas separadas).
-    Convierte CLP a ARS usando tipo de cambio historico.
+"""
+Parser para cartola Banco Santander Chile (PDF texto).
+Solo extrae INGRESOS.
+PyMuPDF extrae las columnas como líneas separadas.
+"""
+import re
+from parsers.base import generar_id
 
-    Args:
-        archivo: archivo PDF subido
-        _: placeholder (owner, no usado directamente)
-        __: placeholder (medio_pago, no usado directamente)
-        datos: dict datos app
-        categorizar_gasto_fn: funcion de app.py
-        password: password del PDF (opcional)
 
-    Returns:
-        tuple: (gastos_dedup, texto_debug, error)
-    """
+def extraer_montos_chilenos(texto):
+    """Extrae montos formato chileno: 2.764.046 o 55.719"""
+    montos = []
+    patron = r'(?<!\d)(\d{1,3}(?:\.\d{3})+)(?!\d)'
+    matches = re.findall(patron, texto)
+    for m in matches:
+        valor = m.replace('.', '')
+        try:
+            val = float(valor)
+            if val >= 100:
+                montos.append(val)
+        except:
+            pass
+    return montos
+
+
+def procesar_santander_chile_pdf(archivo, owner, medio_pago, datos,
+                                  categorizar_gasto_fn=None, password=None):
+    try:
+        import pymupdf
+    except ImportError:
+        return [], [], "", "PyMuPDF no disponible"
+
+    try:
+        if hasattr(archivo, 'seek'):
+            archivo.seek(0)
+        pdf_bytes = archivo.read()
+        doc = pymupdf.open(stream=pdf_bytes, filetype="pdf")
+
+        if doc.is_encrypted and password:
+            doc.authenticate(password)
+        elif doc.is_encrypted:
+            return [], [], "", "PDF encriptado. Ingresá la password."
+
+        texto = ""
+        for page in doc:
+            texto += page.get_text() + "\n"
+        doc.close()
+
+    except Exception as e:
+        return [], [], "", f"Error leyendo PDF: {e}"
+
+    # Detectar año
+    anio = '2026'
+    m = re.search(r'(\d{2})/(\d{2})/(\d{4})', texto)
+    if m:
+        anio = m.group(3)
+
+    lineas = [l.strip() for l in texto.split('\n') if l.strip()]
+
+    texto_debug = "=== LÍNEAS RAW ===\n"
+    for idx, linea in enumerate(lineas):
+        texto_debug += f"{idx:3d}: {linea}\n"
+
+    texto_debug += "\n=== RECONSTRUCCIÓN DE MOVIMIENTOS ===\n"
+
+    # Paso 1: Reconstruir bloques de movimiento
+    # Cada movimiento empieza con DD/MM seguido de sucursal
+    # Las líneas siguientes (hasta el próximo DD/MM) son parte del mismo movimiento
+    bloques = []
+    bloque_actual = []
+
+    en_resumen = False
+
+    for linea in lineas:
+        if 'Resumen de Comisiones' in linea or '****' in linea:
+            en_resumen = True
+            continue
+        if 'MENSAJES' in linea or 'INFORMACION DE CUENTA' in linea:
+            en_resumen = False
+            continue
+        if en_resumen:
+            continue
+
+        # Ignorar headers
+        if any(h in linea for h in [
+            'FECHA', 'SUCURSAL', 'DESCRIPCION', 'SALDOS', 'SALDO',
+            'DCTO', 'DEPOSITOS', 'CHEQUES', 'CARGOS', 'ABONOS',
+            'DETALLE DE MOVIMIENTOS', 'CARTOLA', 'DESDE', 'HASTA',
+            'PAGINA', 'CUENTA CORRIENTE', 'IRIARTE', 'gdiriarte',
+            'BANCO SANTANDER', 'EJECUTIVO', 'TELEFONO',
+            'HUERFANOS', 'dirección', 'Si su dirección', 'Nota:',
+            'MENSAJES', 'SR.CLIENTE', 'INFORMESE', 'INFORMACION',
+            'SALDO INICIAL', '0-000-', '0249-M', '38984',
+            'En caso de', 'aprobado'
+        ]):
+            continue
+
+        # ¿Es inicio de nuevo movimiento? (DD/MM + espacio + texto)
+        es_inicio = bool(re.match(r'^\d{2}/\d{2}\s', linea))
+
+        # También fechas largas DD/MM/YYYY son headers, no movimientos
+        if re.match(r'^\d{2}/\d{2}/\d{4}$', linea):
+            continue
+
+        if es_inicio:
+            if bloque_actual:
+                bloques.append(bloque_actual)
+            bloque_actual = [linea]
+        else:
+            if bloque_actual:
+                bloque_actual.append(linea)
+
+    if bloque_actual:
+        bloques.append(bloque_actual)
+
+    texto_debug += f"\nBloques encontrados: {len(bloques)}\n"
+
+    # Paso 2: Procesar cada bloque
+    INGRESO_KEYWORDS = [
+        'pago proveedor', 'depósito', 'deposito', 'abono',
+        'transferencia recibida'
+    ]
+
+    EGRESO_KEYWORDS = [
+        'transf a ', 'cobro', 'com.mant', 'com.',
+        'seguro de', 'mantencion', 'mantención'
+    ]
+
+    ingresos = []
+
+    for bloque in bloques:
+        texto_bloque = ' '.join(bloque).strip()
+        texto_lower = texto_bloque.lower()
+
+        # Extraer fecha
+        fecha_match = re.match(r'(\d{2})/(\d{2})', bloque[0])
+        if not fecha_match:
+            continue
+        dia = fecha_match.group(1)
+        mes_num = fecha_match.group(2)
+        fecha_str = f"{anio}-{mes_num}-{dia}"
+
+        # Clasificar
+        es_egreso = any(kw in texto_lower for kw in EGRESO_KEYWORDS)
+
+        es_ingreso = any(kw in texto_lower for kw in INGRESO_KEYWORDS)
+
+        # "Transf." sin "a" = recibida = ingreso
+        if 'transf.' in texto_lower and 'transf a' not in texto_lower:
+            es_ingreso = True
+            es_egreso = False
+
+        texto_debug += f"\nBloque: {texto_bloque}\n"
+        texto_debug += f"  es_ingreso={es_ingreso} es_egreso={es_egreso}\n"
+
+        if es_egreso and not es_ingreso:
+            texto_debug += f"  -> EGRESO (skip)\n"
+            continue
+
+        if not es_ingreso:
+            texto_debug += f"  -> NO MATCH (skip)\n"
+            continue
+
+        # Extraer montos de todo el bloque
+        montos = []
+        for linea_b in bloque:
+            montos.extend(extraer_montos_chilenos(linea_b))
+
+        if not montos:
+            texto_debug += f"  -> INGRESO SIN MONTO (skip)\n"
+            continue
+
+        # El monto del abono: si hay varios, el menor es el monto
+        # (el mayor suele ser saldo)
+        if len(montos) >= 2:
+            monto = min(montos)
+        else:
+            monto = montos[0]
+
+        # Extraer descripción
+        desc = texto_bloque
+        # Quitar fecha
+        desc = re.sub(r'^\d{2}/\d{2}\s*', '', desc).strip()
+        # Quitar sucursal
+        for suc in ['Agustinas', 'G.Finanzas', 'G .Finanzas', 'OPER.', 'Huerfanos', 'Internet']:
+            if desc.startswith(suc):
+                desc = desc[len(suc):].strip()
+                break
+        # Quitar número de operación (10+ dígitos sin puntos)
+        desc = re.sub(r'\b\d{7,}[A-Za-z]?\b', '', desc).strip()
+        # Quitar RUT
+        desc = re.sub(r'\d{1,2}\.\d{3}\.\d{3}-[\dkK]', '', desc).strip()
+        # Quitar montos
+        for m_raw in re.findall(r'\d{1,3}(?:\.\d{3})+', texto_bloque):
+            desc = desc.replace(m_raw, '').strip()
+        # Quitar número de documento (6 dígitos)
+        desc = re.sub(r'\b\d{6}\b', '', desc).strip()
+        # Limpiar
+        desc = re.sub(r'\s+', ' ', desc).strip()
+
+        if not desc or len(desc) < 3:
+            desc = "Ingreso Santander"
+
+        texto_debug += f"  -> INGRESO: {fecha_str} | {desc} | ${monto:,.0f} CLP\n"
+
+        ingresos.append({
+            'fecha': fecha_str,
+            'descripcion': desc,
+            'monto': monto,
+            'monto_original_clp': monto,
+            'banco': 'santander_chile',
+            'categoria': 'transferencia',
+            'tasas': None,
+            'owner': owner or 'Gustavo'
+        })
+
+    texto_debug += f"\n=== RESULTADO FINAL ===\n"
+    texto_debug += f"Ingresos: {len(ingresos)}\n"
+    for ing in ingresos:
+        texto_debug += f"  {ing['fecha']} | {ing['descripcion']} | ${ing['monto']:,.0f} CLP\n"
+
+    if not ingresos:
+        return [], [], texto_debug, "No se detectaron ingresos"
+
+    return ingresos, [], texto_debug, None
+
 
 
 # ============================================
-# 12. parsers/mercado_inmobiliario.py
+# FILE: mercado_inmobiliario.py
 # ============================================
-# Import: from parsers.mercado_inmobiliario import valuar_propiedad, actualizar_base_ciudad_web
 
-def valuar_propiedad(propiedad, fecha_ref=None):
-    """
-    Valua una propiedad usando el MODELO DESACOPLADO AVANZADO (v3.0).
+import json
+import os
+from datetime import datetime
 
-    Calcula:
-    - Valor m2 usando base_ciudad * indice_mercado * factores (zona, estado, calidad, piso, orientacion, amenities, etc.)
-    - Valor total = valor_m2 * m2
-    - Serie historica mensual con interpolacion + suavizado
-    - Plusvalia mensual y acumulada
-    - Tendencia (alcista/bajista/neutral)
+DATOS_MERCADO_FILE = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    'datos_mercado.json'
+)
 
-    Args:
-        propiedad: dict con datos de la propiedad (zona, m2, tipo_inmueble, estado_detalle, etc.)
-        fecha_ref: string "YYYY-MM" o datetime para la fecha de referencia (default: mes actual)
+def cargar_datos():
+    if not os.path.exists(DATOS_MERCADO_FILE):
+        raise FileNotFoundError("No existe datos_mercado.json")
 
-    Returns:
-        dict = {
-            'valor_m2_actual_usd': float,
-            'rango_m2': str (ej: "USD 1,200 - 1,400"),
-            'valor_propiedad_usd': float,
-            'serie_mensual_m2': [{'fecha': str, 'valor': float, 'fuente': str}, ...],
-            'plusvalia_mensual_pct': float,
-            'plusvalia_acumulada_pct': float,
-            'tendencia': str (alcista/bajista/neutral),
-            'factores_aplicados': dict,
-            'nivel_confianza': str (alto/medio/bajo),
-            'justificacion': str
-        }
-    """
+    with open(DATOS_MERCADO_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+def scrapear_m2_argenprop():
+    """ Obtenemos la media en venta en la calle de Rosario """
+    import requests
+    from bs4 import BeautifulSoup
+    import re
+    url = "https://www.argenprop.com/departamentos/venta/rosario/1-dormitorio"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept-Language": "es-ES,es;q=0.9"
+    }
+    
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
+    soup = BeautifulSoup(response.text, 'html.parser')
+    tarjetas = soup.find_all("div", class_="listing__item")
+    
+    valores_m2 = []
+    for tarjeta in tarjetas:
+        precio_tag = tarjeta.find("p", class_="card__price")
+        if not precio_tag or "USD" not in precio_tag.text:
+            continue
+        
+        precio_str = re.sub(r'[^\d]', '', precio_tag.text)
+        if not precio_str:
+            continue
+        precio = float(precio_str)
+        
+        features = tarjeta.find("ul", class_="card__main-features")
+        metros = None
+        if features:
+            for li in features.find_all("li"):
+                if "m²" in li.text and "cub" in li.text:
+                    m_str = re.sub(r'[^\d]', '', li.text)
+                    if m_str:
+                        metros = float(m_str)
+                        break
+        
+        if precio and metros and metros > 0:
+            valor_m2 = precio / metros
+            if 800 <= valor_m2 <= 3000:
+                valores_m2.append(valor_m2)
+
+    if not valores_m2:
+        return None
+        
+    return round(sum(valores_m2) / len(valores_m2), 0)
 
 def actualizar_base_ciudad_web():
+    """ Scrapea el promedio y lo inyecta como 'base_ciudad_m2_2026' en el JSON """
+    nuevo_valor = scrapear_m2_argenprop()
+    if nuevo_valor:
+        data = cargar_datos()
+        data["metadata"]["base_ciudad_m2_2026"] = nuevo_valor
+        with open(DATOS_MERCADO_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+        return nuevo_valor
+    return None
+
+
+def interpolar_indice(indice, año):
+    años = sorted(int(k) for k in indice.keys())
+
+    if año in indice:
+        return indice[str(año)]
+    if str(int(año)) in indice and año == int(año):
+        return indice[str(int(año))]
+
+    for i in range(len(años) - 1):
+        a0, a1 = años[i], años[i + 1]
+        if a0 <= año <= a1:
+            t = (año - a0) / (a1 - a0)
+            return indice[str(a0)] + t * (indice[str(a1)] - indice[str(a0)])
+
+    if año < años[0]:
+        return indice[str(años[0])]
+        
+    if año > años[-1]:
+        # Extrapolar usando la tendencia de los últimos dos años
+        if len(años) >= 2:
+            pendiente = indice[str(años[-1])] - indice[str(años[-2])]
+            return indice[str(años[-1])] + pendiente * (año - años[-1])
+
+    return indice[str(años[-1])]
+
+def obtener_factor_barrio(barrio, data):
+    barrio_norm = barrio.lower().strip().replace(" ", "_")
+    return data.get("factor_barrio", {}).get(barrio_norm, data.get("factor_barrio", {}).get("default", 1.00))
+
+def obtener_factor_piso(piso, data):
+    try:
+        piso = int(piso)
+    except:
+        piso = 1
+    p_fm = data["factores_propiedad"]["piso"]
+    if piso == 0:
+        return p_fm.get("pb", 0.95)
+    elif piso <= 3:
+        return p_fm.get("bajo", 1.00)
+    elif piso <= 6:
+        return p_fm.get("medio", 1.02)
+    else:
+        return p_fm.get("alto", 1.04)
+
+def calcular_valor_m2(prop_data, fecha):
     """
-    Actualiza el valor base de la ciudad (m2 USD) desde portales inmobiliarios.
-    Scrapea zonaprop.com.ar y otros portales para obtener precios actuales.
-
-    Returns:
-        dict con nuevo valor base y metadata, o None si falla
+    Calcula valor del m2 usando el MODELO DESACOPLADO AVANZADO (v3.0).
     """
+    data = cargar_datos()
+    f_p = data["factores_propiedad"]
+
+    # Base e Índice Temporal
+    indice = data["indice_mercado_rosario"]
+    base_ciudad = data["metadata"]["base_ciudad_m2_2026"]
+
+    if isinstance(fecha, str):
+        fecha_dt = datetime.strptime(fecha, "%Y-%m")
+    else:
+        fecha_dt = fecha
+
+    anio_decimal = fecha_dt.year + (fecha_dt.month - 1) / 12.0
+    
+    # Normalización al valor 'hoy' (2026 ref)
+    indice_actual = interpolar_indice(indice, 2026)
+    indice_fecha = interpolar_indice(indice, anio_decimal)
+    factor_tiempo = (indice_fecha / indice_actual)
+
+    # 1. Barrio
+    factor_barrio = obtener_factor_barrio(prop_data.get("zona", "default"), data)
+    
+    # 2. Estado y Antigüedad
+    # Aplicamos factor de estado directamente. 
+    # La antigüedad se puede tratar como un coeficiente adicional decreciente (ej: Ross-Heidecke simplificado)
+    estado_key = prop_data.get("estado_detalle", "bueno").lower().replace(" ", "_")
+    if "estrenar" in estado_key: estado_key = "a_estrenar"
+    factor_estado = f_p["estado"].get(estado_key, 1.00)
+    
+    antiguedad = prop_data.get("antiguedad", 0)
+    try:
+        antiguedad = int(antiguedad)
+    except:
+        antiguedad = 0
+    # Factor depreciación empírico básico: -0.5% anual a partir de los 10 años, tope -30%
+    if antiguedad > 10:
+        factor_antiguedad = max(1.0 - ((antiguedad - 10) * 0.005), 0.70)
+    else:
+        factor_antiguedad = 1.0
+        
+    # 3. Características Constructivas y Funcionales
+    factor_calidad = f_p["calidad"].get(prop_data.get("calidad_edificio", "media").lower(), 1.00)
+    factor_piso = obtener_factor_piso(prop_data.get("piso", 0), data)
+    
+    # Ventilación
+    vent_key = prop_data.get("ventilacion", "simple").lower().strip()
+    factor_vent = f_p["ventilacion"].get(vent_key, 1.00)
+    
+    # Suelos
+    suelo_key = prop_data.get("terminaciones_suelo", "estandar").lower().replace(" ", "_")
+    factor_suelo = f_p["terminaciones_suelo"].get(suelo_key, 1.00)
+    
+    # Cocina
+    cocina_key = prop_data.get("distribucion_cocina", "integrada").lower().replace(" ", "_")
+    factor_cocina = f_p["distribucion_cocina"].get(cocina_key, 1.00)
+    
+    # Carpintería
+    carp_key = prop_data.get("carpinteria", "estandar").lower().strip()
+    factor_carp = f_p["carpinteria"].get(carp_key, 1.00)
+    
+    # Orientación
+    orient_key = prop_data.get("orientacion", "este").lower().strip()
+    factor_orient = f_p["orientacion"].get(orient_key, 1.00)
+    
+    # Detalles ADICIONALES (Sumatoria de porcentajes)
+    detalles = prop_data.get("detalles_categoria", [])
+    suma_detalles = 0
+    for d in detalles:
+        d_key = d.lower().replace(" ", "_")
+        suma_detalles += f_p["detalles_categoria"].get(d_key, 0)
+    factor_detalles = 1.0 + suma_detalles
+
+    # FORMULA FINAL MULTIPLICATIVA
+    valor_m2 = (
+        base_ciudad
+        * factor_barrio
+        * factor_tiempo
+        * factor_estado
+        * factor_antiguedad
+        * factor_calidad
+        * factor_piso
+        * factor_vent
+        * factor_suelo
+        * factor_cocina
+        * factor_carp
+        * factor_orient
+        * factor_detalles
+    )
+
+    return round(valor_m2, 2)
+
+
+def construir_serie_historica(propiedad_data, anios=10, fecha_ref=None):
+    if fecha_ref is None:
+        fecha_tope = datetime.now()
+    else:
+        if isinstance(fecha_ref, str):
+            fecha_tope = datetime.strptime(fecha_ref, "%Y-%m")
+        else:
+            fecha_tope = fecha_ref
+
+    anio_inicio = fecha_tope.year - anios
+    fecha_cursor = datetime(anio_inicio, 1, 1)
+    
+    serie = []
+    while fecha_cursor <= fecha_tope:
+        fecha_str = fecha_cursor.strftime("%Y-%m")
+        val = calcular_valor_m2(propiedad_data, fecha_str)
+        serie.append({
+            "fecha": fecha_str,
+            "valor_m2": round(val, 0),
+            "fuente": "modelo desacoplado avanzado v3.0"
+        })
+        if fecha_cursor.month == 12:
+            fecha_cursor = datetime(fecha_cursor.year + 1, 1, 1)
+        else:
+            fecha_cursor = datetime(fecha_cursor.year, fecha_cursor.month + 1, 1)
+            
+    return serie
+
+
+def calcular_plusvalia_serie(serie, fecha_compra=None):
+    if not serie or len(serie) < 2:
+        return {'plusvalia_mensual_pct': 0, 'plusvalia_acumulada_pct': 0, 'tendencia': 'neutral'}
+
+    ultimo = serie[-1]['valor_m2']
+    penultimo = serie[-2]['valor_m2']
+    plusvalia_mensual = ((ultimo / penultimo) - 1) * 100 if penultimo > 0 else 0
+
+    if fecha_compra:
+        valor_compra_m2 = None
+        for s in serie:
+            if s['fecha'] >= fecha_compra:
+                valor_compra_m2 = s['valor_m2']
+                break
+        if valor_compra_m2 and valor_compra_m2 > 0:
+            plusvalia_acumulada = ((ultimo / valor_compra_m2) - 1) * 100
+        else:
+            primer_valor = serie[0]['valor_m2']
+            plusvalia_acumulada = ((ultimo / primer_valor) - 1) * 100 if primer_valor > 0 else 0
+    else:
+        primer_valor = serie[0]['valor_m2']
+        plusvalia_acumulada = ((ultimo / primer_valor) - 1) * 100 if primer_valor > 0 else 0
+
+    if len(serie) >= 6:
+        ultimos_6 = [s['valor_m2'] for s in serie[-6:]]
+        tendencia_valor = sum(ultimos_6) / len(ultimos_6)
+        if ultimo > tendencia_valor * 1.02:
+            tendencia = 'alcista'
+        elif ultimo < tendencia_valor * 0.98:
+            tendencia = 'bajista'
+        else:
+            tendencia = 'neutral'
+    else:
+        tendencia = 'alcista' if plusvalia_mensual > 0.5 else ('bajista' if plusvalia_mensual < -0.5 else 'neutral')
+
+    return {
+        'plusvalia_mensual_pct': round(plusvalia_mensual, 2),
+        'plusvalia_acumulada_pct': round(plusvalia_acumulada, 2),
+        'tendencia': tendencia,
+    }
+
+
+def valuar_propiedad(propiedad, fecha_ref=None):
+    m2 = propiedad.get("m2", 0)
+    fecha_compra = propiedad.get("fecha_compra", None)
+
+    fecha_ref_str = None
+    if fecha_ref:
+        if isinstance(fecha_ref, str):
+            fecha_ref_str = fecha_ref
+        elif isinstance(fecha_ref, datetime):
+            fecha_ref_str = fecha_ref.strftime("%Y-%m")
+    else:
+        fecha_ref_str = datetime.now().strftime("%Y-%m")
+
+    valor_m2 = calcular_valor_m2(propiedad, fecha_ref_str)
+    rango_min = valor_m2 * 0.90
+    rango_max = valor_m2 * 1.10
+
+    serie = construir_serie_historica(propiedad, anios=10, fecha_ref=fecha_ref_str)
+    plusvalia = calcular_plusvalia_serie(serie, fecha_compra)
+
+    valor_propiedad = valor_m2 * m2
+
+    justificacion = (
+        f"Valuación avanzada v3.0 al {fecha_ref_str}. "
+        f"Basado en detalles de categoría, antigüedad y modelo de mercado desacoplado. "
+        f"Rango estimado: USD {rango_min:,.0f} - {rango_max:,.0f}/m²."
+    )
+
+    return {
+        'valor_m2_actual_usd': valor_m2,
+        'rango_m2': f"USD {rango_min:,.0f} - {rango_max:,.0f}",
+        'valor_propiedad_usd': round(valor_propiedad, 0),
+        'serie_mensual_m2': serie,
+        'plusvalia_mensual_pct': plusvalia['plusvalia_mensual_pct'],
+        'plusvalia_acumulada_pct': plusvalia['plusvalia_acumulada_pct'],
+        'tendencia': plusvalia['tendencia'],
+        'factores_aplicados': {}, # No es necesario para el UI actual
+        'nivel_confianza': 'alto',
+        'justificacion': justificacion,
+        'fecha_valuacion': fecha_ref_str,
+    }
+
 
 
 # ============================================
-# 13. ui/reportes.py
+# FILE: reportes.py
 # ============================================
-# Import: from ui.reportes import mostrar_reportes
 
-def mostrar_reportes(mes_seleccionado):
-    """
-    Muestra la seccion de reportes con tabs:
-    - Resumen general
-    - Egresos por categoria
-    - Egresos por owner
-    - Ingresos
-    - Balance (Ingresos - Egresos)
-
-    Incluye metricas, graficos, tablas pivote, filtros y export CSV.
-
-    Args:
-        mes_seleccionado: string "YYYY-MM" del mes a reportear
-    """
+import streamlit as st
+import pandas as pd
 
 
-# ============================================
-# RESUMEN DE IMPORTS DESDE app.py
-# ============================================
-#
-# from subpagos import extraer_subpagos, generar_id
-# from parsers.galicia_excel import extraer_movimientos_galicia_excel
-# from parsers.galicia_excel import extraer_egresos_galicia_excel
-# from parsers.mercadopago_app import procesar_mercadopago_app
-# from parsers.mercadopago_pdf import procesar_mercadopago_pdf
-# from parsers.galicia_img import procesar_galicia_img
-# from parsers.bybit_qr import procesar_bybit_qr
-# from parsers.bybit_tarjeta import procesar_bybit_tarjeta
-# from parsers.icbc import procesar_icbc
-# from parsers.binance_qr import procesar_binance_qr
-# from parsers.santander_chile_pdf import procesar_santander_chile_pdf
-# from parsers.mercado_inmobiliario import valuar_propiedad, actualizar_base_ciudad_web
-# from ui.reportes import mostrar_reportes
-#
-# ============================================
-# FIN DEL ARCHIVO
-# ============================================
+def _obtener_datos():
+    if 'datos' in st.session_state and isinstance(st.session_state.datos, dict):
+        meses = st.session_state.datos.get('meses', {})
+        total = sum(
+            len(m.get('egresos', [])) + len(m.get('ingresos_bancarios', []))
+            for m in meses.values()
+        )
+        if total > 0:
+            return st.session_state.datos
+
+    try:
+        import os, json
+        ruta = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            'datos.json'
+        )
+        if os.path.exists(ruta):
+            with open(ruta, 'r', encoding='utf-8') as f:
+                datos_disco = json.load(f)
+                st.session_state.datos = datos_disco
+                return datos_disco
+    except Exception as e:
+        st.error(f"Error leyendo datos: {e}")
+
+    return {'meses': {}, 'activos': []}
+
+
+def _obtener_meses_ordenados(datos):
+    meses = list(datos.get('meses', {}).keys())
+    meses = [m for m in meses if isinstance(m, str) and len(m) >= 7]
+    return sorted(meses, reverse=True)
+
+
+def _colectar_egresos(datos, periodo):
+    meses_data = datos.get('meses', {})
+    registros = []
+
+    if periodo == "Todos los periodos":
+        for mes, mes_data in meses_data.items():
+            for e in mes_data.get('egresos', []):
+                row = dict(e)
+                row['periodo'] = mes
+                registros.append(row)
+    else:
+        for e in meses_data.get(periodo, {}).get('egresos', []):
+            row = dict(e)
+            row['periodo'] = periodo
+            registros.append(row)
+
+    if not registros:
+        return pd.DataFrame()
+
+    df = pd.DataFrame(registros)
+    for col in ['fecha', 'gasto', 'monto', 'moneda', 'fuente',
+                'categoria', 'subcategoria', 'owner', 'medio_pago', 'u_id', 'periodo']:
+        if col not in df.columns:
+            df[col] = ''
+
+    df['monto'] = pd.to_numeric(df['monto'], errors='coerce').fillna(0.0)
+    df['medio_owner'] = df['medio_pago'].astype(str) + ' - ' + df['owner'].astype(str)
+    return df
+
+
+def _colectar_ingresos(datos, periodo):
+    meses_data = datos.get('meses', {})
+    registros = []
+
+    if periodo == "Todos los periodos":
+        for mes, mes_data in meses_data.items():
+            for i in mes_data.get('ingresos_bancarios', []):
+                row = dict(i)
+                row['periodo'] = mes
+                row['tipo_ingreso'] = 'bancario'
+                registros.append(row)
+
+            gan_fondos = mes_data.get('ganancia_fondos', 0)
+            if gan_fondos and gan_fondos > 0:
+                registros.append({
+                    'periodo': mes,
+                    'fecha': f"{mes}-28",
+                    'descripcion': 'Ganancia Fondos Mutuos',
+                    'monto': gan_fondos,
+                    'banco': 'fondos_mutuos',
+                    'categoria': 'inversion',
+                    'owner': 'Gustavo',
+                    'tipo_ingreso': 'fondos_mutuos'
+                })
+
+            plusv_prop = mes_data.get('plusvalia_propiedades', 0)
+            if plusv_prop and plusv_prop > 0:
+                registros.append({
+                    'periodo': mes,
+                    'fecha': f"{mes}-28",
+                    'descripcion': 'Plusvalia Propiedades',
+                    'monto': plusv_prop,
+                    'banco': 'propiedades',
+                    'categoria': 'inversion',
+                    'owner': 'Gustavo',
+                    'tipo_ingreso': 'plusvalia_propiedades'
+                })
+
+            plusv_adrs = mes_data.get('plusvalia_adrs', 0)
+            if plusv_adrs and plusv_adrs > 0:
+                registros.append({
+                    'periodo': mes,
+                    'fecha': f"{mes}-28",
+                    'descripcion': 'Plusvalia ADRs',
+                    'monto': plusv_adrs,
+                    'banco': 'adrs',
+                    'categoria': 'inversion',
+                    'owner': 'Gustavo',
+                    'tipo_ingreso': 'plusvalia_adrs'
+                })
+
+            for aj in mes_data.get('ajustes', []):
+                monto_aj = aj.get('monto', 0)
+                if monto_aj > 0:
+                    registros.append({
+                        'periodo': mes,
+                        'fecha': aj.get('fecha', f"{mes}-15"),
+                        'descripcion': aj.get('descripcion', 'Ajuste'),
+                        'monto': monto_aj,
+                        'banco': 'ajuste',
+                        'categoria': aj.get('tipo', 'ajuste'),
+                        'owner': '',
+                        'tipo_ingreso': 'ajuste'
+                    })
+    else:
+        mes_data = meses_data.get(periodo, {})
+
+        for i in mes_data.get('ingresos_bancarios', []):
+            row = dict(i)
+            row['periodo'] = periodo
+            row['tipo_ingreso'] = 'bancario'
+            registros.append(row)
+
+        gan_fondos = mes_data.get('ganancia_fondos', 0)
+        if gan_fondos and gan_fondos > 0:
+            registros.append({
+                'periodo': periodo,
+                'fecha': f"{periodo}-28",
+                'descripcion': 'Ganancia Fondos Mutuos',
+                'monto': gan_fondos,
+                'banco': 'fondos_mutuos',
+                'categoria': 'inversion',
+                'owner': 'Gustavo',
+                'tipo_ingreso': 'fondos_mutuos'
+            })
+
+        plusv_prop = mes_data.get('plusvalia_propiedades', 0)
+        if plusv_prop and plusv_prop > 0:
+            registros.append({
+                'periodo': periodo,
+                'fecha': f"{periodo}-28",
+                'descripcion': 'Plusvalia Propiedades',
+                'monto': plusv_prop,
+                'banco': 'propiedades',
+                'categoria': 'inversion',
+                'owner': 'Gustavo',
+                'tipo_ingreso': 'plusvalia_propiedades'
+            })
+
+        plusv_adrs = mes_data.get('plusvalia_adrs', 0)
+        if plusv_adrs and plusv_adrs > 0:
+            registros.append({
+                'periodo': periodo,
+                'fecha': f"{periodo}-28",
+                'descripcion': 'Plusvalia ADRs',
+                'monto': plusv_adrs,
+                'banco': 'adrs',
+                'categoria': 'inversion',
+                'owner': 'Gustavo',
+                'tipo_ingreso': 'plusvalia_adrs'
+            })
+
+        for aj in mes_data.get('ajustes', []):
+            monto_aj = aj.get('monto', 0)
+            if monto_aj > 0:
+                registros.append({
+                    'periodo': periodo,
+                    'fecha': aj.get('fecha', f"{periodo}-15"),
+                    'descripcion': aj.get('descripcion', 'Ajuste'),
+                    'monto': monto_aj,
+                    'banco': 'ajuste',
+                    'categoria': aj.get('tipo', 'ajuste'),
+                    'owner': '',
+                    'tipo_ingreso': 'ajuste'
+                })
+
+    if not registros:
+        return pd.DataFrame()
+
+    df = pd.DataFrame(registros)
+    for col in ['fecha', 'descripcion', 'monto', 'banco', 'categoria', 'owner', 'periodo', 'tipo_ingreso']:
+        if col not in df.columns:
+            df[col] = ''
+
+    df['monto'] = pd.to_numeric(df['monto'], errors='coerce').fillna(0.0)
+    return df
+
+
+def _convertir_ingreso_clp_a_ars(ingreso, periodo_mes):
+    """Convierte un ingreso CLP a ARS usando la tasa de la FECHA del ingreso"""
+    monto = ingreso.get('monto', 0)
+
+    if ingreso.get('monto_original_clp') and ingreso.get('banco') == 'santander_chile':
+        clp = ingreso['monto_original_clp']
+        fecha_ingreso = ingreso.get('fecha', periodo_mes)
+
+        try:
+            from app import obtener_precios_historicos
+            usd_clp, usdt_ars = obtener_precios_historicos(fecha_ingreso)
+        except:
+            usd_clp = 925
+            usdt_ars = 1465
+
+        if not usd_clp:
+            usd_clp = 925
+        if not usdt_ars:
+            try:
+                from app import obtener_usdt_ars_binance
+                usdt_ars = obtener_usdt_ars_binance() or 1465
+            except:
+                usdt_ars = 1465
+
+        monto_ars = (clp / usd_clp) * usdt_ars
+        return monto_ars
+
+    return monto
+
+
+def mostrar_reportes(mes_preseleccionado=None):
+    st.header("Reportes")
+
+    datos = _obtener_datos()
+    meses = _obtener_meses_ordenados(datos)
+
+    if not meses:
+        st.info("No hay periodos cargados")
+        return
+
+    total_egresos = sum(len(datos.get('meses', {}).get(m, {}).get('egresos', [])) for m in meses)
+    total_ingresos = sum(len(datos.get('meses', {}).get(m, {}).get('ingresos_bancarios', [])) for m in meses)
+    st.caption(f"{len(meses)} periodos | {total_ingresos} ingresos bancarios | {total_egresos} egresos")
+
+    opciones_periodo = ["Todos los periodos"] + meses
+    if mes_preseleccionado in meses:
+        default_index = opciones_periodo.index(mes_preseleccionado)
+    else:
+        default_index = 0
+
+    periodo = st.selectbox(
+        "Seleccionar periodo",
+        opciones_periodo,
+        index=default_index,
+        key="reporte_periodo_selector"
+    )
+
+    tab_ingresos, tab_egresos, tab_balance = st.tabs([
+        "Ingresos",
+        "Egresos",
+        "Balance"
+    ])
+
+    with tab_ingresos:
+        df_ing = _colectar_ingresos(datos, periodo)
+
+        if df_ing.empty:
+            st.warning(f"No hay ingresos para {periodo}")
+        else:
+            # Convertir CLP a ARS usando tasa de fecha del ingreso
+            df_ing['monto_convertido'] = df_ing.apply(
+                lambda row: _convertir_ingreso_clp_a_ars(row, periodo), axis=1
+            )
+
+            total = df_ing['monto_convertido'].sum()
+            cantidad = len(df_ing)
+
+            bancarios = df_ing[df_ing['tipo_ingreso'] == 'bancario']['monto_convertido'].sum()
+            fondos = df_ing[df_ing['tipo_ingreso'] == 'fondos_mutuos']['monto_convertido'].sum()
+            plusv_prop = df_ing[df_ing['tipo_ingreso'] == 'plusvalia_propiedades']['monto_convertido'].sum()
+            plusv_adrs = df_ing[df_ing['tipo_ingreso'] == 'plusvalia_adrs']['monto_convertido'].sum()
+            ajustes_pos = df_ing[df_ing['tipo_ingreso'] == 'ajuste']['monto_convertido'].sum()
+
+            st.subheader("Resumen de Ingresos")
+            m1, m2, m3 = st.columns(3)
+            m1.metric("Total Ingresos", f"${total:,.0f}")
+            m2.metric("Cantidad Movimientos", f"{cantidad}")
+            m3.metric("Promedio", f"${total/cantidad:,.0f}" if cantidad > 0 else "$0")
+
+            st.subheader("Desglose por Tipo")
+            c1, c2, c3, c4, c5 = st.columns(5)
+            c1.metric("Bancarios", f"${bancarios:,.0f}")
+            c2.metric("Fondos Mutuos", f"${fondos:,.0f}")
+            c3.metric("Plusv. Propiedades", f"${plusv_prop:,.0f}")
+            c4.metric("Plusv. ADRs", f"${plusv_adrs:,.0f}")
+            c5.metric("Ajustes (+)", f"${ajustes_pos:,.0f}")
+
+            st.subheader("Filtros")
+            fc1, fc2 = st.columns(2)
+
+            with fc1:
+                tipos_ingreso = ["Todos"] + sorted([
+                    str(x) for x in df_ing['tipo_ingreso'].dropna().unique() if str(x).strip()
+                ])
+                filtro_tipo = st.selectbox("Tipo ingreso", tipos_ingreso, key="rep_ing_tipo")
+
+            with fc2:
+                bancos = ["Todos"] + sorted([
+                    str(x) for x in df_ing['banco'].dropna().unique() if str(x).strip()
+                ])
+                filtro_banco = st.selectbox("Fuente/Banco", bancos, key="rep_ing_banco")
+
+            df_ing_f = df_ing.copy()
+            if filtro_tipo != "Todos":
+                df_ing_f = df_ing_f[df_ing_f['tipo_ingreso'] == filtro_tipo]
+            if filtro_banco != "Todos":
+                df_ing_f = df_ing_f[df_ing_f['banco'] == filtro_banco]
+
+            if df_ing_f.empty:
+                st.info("No hay datos con los filtros seleccionados")
+            else:
+                st.subheader("Distribucion")
+                g1, g2 = st.columns(2)
+                with g1:
+                    st.caption("Por tipo de ingreso")
+                    serie_tipo = df_ing_f.groupby('tipo_ingreso', dropna=False)['monto_convertido'].sum().sort_values(ascending=False)
+                    st.bar_chart(serie_tipo)
+
+                with g2:
+                    st.caption("Por categoria")
+                    serie_cat = df_ing_f.groupby('categoria', dropna=False)['monto_convertido'].sum().sort_values(ascending=False)
+                    st.bar_chart(serie_cat)
+
+                st.subheader("Rankings")
+                rk1, rk2 = st.columns(2)
+
+                with rk1:
+                    st.caption("Por descripcion")
+                    ing_desc = (
+                        df_ing_f.groupby('descripcion', dropna=False)['monto_convertido']
+                        .agg(['sum', 'count'])
+                        .sort_values('sum', ascending=False)
+                        .rename(columns={'sum': 'Total', 'count': 'Cant'})
+                    )
+                    st.dataframe(ing_desc, use_container_width=True)
+
+                with rk2:
+                    st.caption("Por banco/fuente")
+                    ing_banco = (
+                        df_ing_f.groupby('banco', dropna=False)['monto_convertido']
+                        .agg(['sum', 'count'])
+                        .sort_values('sum', ascending=False)
+                        .rename(columns={'sum': 'Total', 'count': 'Cant'})
+                    )
+                    st.dataframe(ing_banco, use_container_width=True)
+
+                st.subheader("Detalle de Ingresos")
+                df_ing_f['monto_mostrar'] = df_ing_f.apply(
+                    lambda r: f"${r['monto_convertido']:,.0f} (original: ${r['monto']:,.0f})" 
+                    if r.get('monto_original_clp') and r.get('banco') == 'santander_chile' 
+                    else f"${r['monto']:,.0f}", axis=1
+                )
+                cols_det = ['periodo', 'fecha', 'descripcion', 'monto_mostrar', 'monto_convertido', 'banco',
+                            'categoria', 'owner', 'tipo_ingreso', 'monto_original_clp']
+                cols_disp = [c for c in cols_det if c in df_ing_f.columns]
+                st.dataframe(df_ing_f[cols_disp], use_container_width=True, hide_index=True)
+
+                csv_cols = [c for c in [
+                    'periodo', 'fecha', 'descripcion', 'monto', 'monto_convertido',
+                    'banco', 'categoria', 'owner', 'tipo_ingreso', 'monto_original_clp'
+                ] if c in df_ing_f.columns]
+
+                csv_ing = df_ing_f[csv_cols].to_csv(index=False).encode('utf-8')
+                st.download_button(
+                    "Descargar CSV Ingresos",
+                    data=csv_ing,
+                    file_name=f"ingresos_{periodo.replace(' ', '_')}.csv",
+                    mime="text/csv"
+                )
+
+    with tab_egresos:
+        df_eg = _colectar_egresos(datos, periodo)
+
+        if df_eg.empty:
+            st.warning(f"No hay egresos para {periodo}")
+        else:
+            total = df_eg['monto'].sum()
+            cantidad = len(df_eg)
+            promedio = df_eg['monto'].mean() if cantidad > 0 else 0
+            maximo = df_eg['monto'].max() if cantidad > 0 else 0
+
+            st.subheader("Resumen de Egresos")
+            m1, m2, m3, m4 = st.columns(4)
+            m1.metric("Total Egresos", f"${total:,.2f}")
+            m2.metric("Cantidad", f"{cantidad}")
+            m3.metric("Ticket Promedio", f"${promedio:,.2f}")
+            m4.metric("Gasto Maximo", f"${maximo:,.2f}")
+
+            st.subheader("Filtros")
+            c1, c2, c3 = st.columns(3)
+
+            with c1:
+                owners = ["Todos"] + sorted([str(x) for x in df_eg['owner'].dropna().unique() if str(x).strip()])
+                filtro_owner = st.selectbox("Owner", owners, index=0, key="rep_owner")
+            with c2:
+                medios = ["Todos"] + sorted([str(x) for x in df_eg['medio_pago'].dropna().unique() if str(x).strip()])
+                filtro_medio = st.selectbox("Medio de pago", medios, index=0, key="rep_medio")
+            with c3:
+                cats = ["Todos"] + sorted([str(x) for x in df_eg['categoria'].dropna().unique() if str(x).strip()])
+                filtro_cat = st.selectbox("Categoria", cats, index=0, key="rep_cat")
+
+            df_f = df_eg.copy()
+            if filtro_owner != "Todos":
+                df_f = df_f[df_f['owner'] == filtro_owner]
+            if filtro_medio != "Todos":
+                df_f = df_f[df_f['medio_pago'] == filtro_medio]
+            if filtro_cat != "Todos":
+                df_f = df_f[df_f['categoria'] == filtro_cat]
+
+            if df_f.empty:
+                st.info("No hay datos con los filtros seleccionados")
+            else:
+                st.subheader("Por Fuente")
+                if 'fuente' in df_f.columns:
+                    serie_fuente = df_f.groupby('fuente', dropna=False)['monto'].agg(['sum', 'count'])
+                    serie_fuente.columns = ['Total', 'Cantidad']
+                    st.dataframe(serie_fuente.sort_values('Total', ascending=False), use_container_width=True)
+
+                st.subheader("Distribuciones")
+                g1, g2 = st.columns(2)
+                with g1:
+                    st.caption("Por categoria")
+                    serie_cat = df_f.groupby('categoria', dropna=False)['monto'].sum().sort_values(ascending=False)
+                    st.bar_chart(serie_cat)
+                with g2:
+                    st.caption("Por medio-owner")
+                    serie_medio = df_f.groupby('medio_owner', dropna=False)['monto'].sum().sort_values(ascending=False)
+                    st.bar_chart(serie_medio)
+
+                st.subheader("Tablas Dinamicas")
+                st.caption("Gasto vs Medio-Owner")
+                pivot_gasto = pd.pivot_table(df_f, values='monto', index='gasto', columns='medio_owner', aggfunc='sum', fill_value=0)
+                st.dataframe(pivot_gasto, use_container_width=True)
+
+                st.caption("Categoria vs Medio-Owner")
+                pivot_cat = pd.pivot_table(df_f, values='monto', index='categoria', columns='medio_owner', aggfunc='sum', fill_value=0)
+                st.dataframe(pivot_cat, use_container_width=True)
+
+                st.subheader("Rankings")
+                r1, r2, r3 = st.columns(3)
+                with r1:
+                    st.caption("Por gasto")
+                    gasto_s = df_f.groupby(['gasto', 'fecha', 'monto'], dropna=False).size().reset_index(name='Cant')
+                    gasto_s = gasto_s.rename(columns={'gasto': 'Gasto', 'fecha': 'Fecha', 'monto': 'Total'})
+                    st.dataframe(gasto_s.sort_values('Total', ascending=False), use_container_width=True, hide_index=True)
+                with r2:
+                    st.caption("Por categoria")
+                    cat_s = df_f.groupby('categoria', dropna=False)['monto'].agg(['sum', 'count']).sort_values('sum', ascending=False)
+                    cat_s.columns = ['Total', 'Cant']
+                    st.dataframe(cat_s, use_container_width=True)
+                with r3:
+                    st.caption("Por medio-owner")
+                    med_s = df_f.groupby('medio_owner', dropna=False)['monto'].agg(['sum', 'count']).sort_values('sum', ascending=False)
+                    med_s.columns = ['Total', 'Cant']
+                    st.dataframe(med_s, use_container_width=True)
+
+                st.subheader("Detalle")
+                cols_det = ['periodo', 'fecha', 'gasto', 'monto', 'categoria', 'subcategoria', 'owner', 'medio_pago', 'fuente']
+                cols_disp = [c for c in cols_det if c in df_f.columns]
+                st.dataframe(df_f[cols_disp], use_container_width=True, hide_index=True)
+
+                csv_eg = df_f[cols_disp].to_csv(index=False).encode('utf-8')
+                st.download_button(
+                    "Descargar CSV Egresos",
+                    data=csv_eg,
+                    file_name=f"egresos_{periodo.replace(' ', '_')}.csv",
+                    mime="text/csv"
+                )
+
+    with tab_balance:
+        df_ing = _colectar_ingresos(datos, periodo)
+        df_eg = _colectar_egresos(datos, periodo)
+
+        # Convertir CLP a ARS en ingresos
+        if not df_ing.empty:
+            df_ing['monto_convertido'] = df_ing.apply(
+                lambda row: _convertir_ingreso_clp_a_ars(row, periodo), axis=1
+            )
+        else:
+            df_ing['monto_convertido'] = []
+
+        total_ingresos = df_ing['monto_convertido'].sum() if not df_ing.empty else 0
+        total_egresos = df_eg['monto'].sum() if not df_eg.empty else 0
+        balance = total_ingresos - total_egresos
+
+        st.subheader(f"Balance - {periodo}")
+
+        b1, b2, b3 = st.columns(3)
+        b1.metric("Total Ingresos", f"${total_ingresos:,.0f}")
+        b2.metric("Total Egresos", f"${total_egresos:,.0f}")
+        b3.metric(
+            "Balance",
+            f"${balance:,.0f}",
+            delta=f"${balance:,.0f}",
+            delta_color="normal"
+        )
+
+        if periodo == "Todos los periodos" and meses:
+            st.subheader("Balance por Periodo")
+
+            balance_data = []
+            for m in sorted(datos.get('meses', {}).keys()):
+                mes_data = datos['meses'][m]
+
+                # Convertir ingresos a ARS usando tasa de fecha
+                ing_bancarios_ars = 0
+                for i in mes_data.get('ingresos_bancarios', []):
+                    ing = dict(i)
+                    ing['periodo'] = m
+                    ing_bancarios_ars += _convertir_ingreso_clp_a_ars(ing, m)
+
+                gan_fondos = mes_data.get('ganancia_fondos', 0) or 0
+                plusv_prop = mes_data.get('plusvalia_propiedades', 0) or 0
+                plusv_adrs = mes_data.get('plusvalia_adrs', 0) or 0
+                ajustes_pos = sum(a.get('monto', 0) for a in mes_data.get('ajustes', []) if a.get('monto', 0) > 0)
+                total_ing_mes = ing_bancarios_ars + gan_fondos + plusv_prop + plusv_adrs + ajustes_pos
+
+                total_eg_mes = sum(e.get('monto', 0) for e in mes_data.get('egresos', []))
+                balance_mes = total_ing_mes - total_eg_mes
+
+                balance_data.append({
+                    'Periodo': m,
+                    'Ingresos': total_ing_mes,
+                    'Egresos': total_eg_mes,
+                    'Balance': balance_mes
+                })
+
+            if balance_data:
+                df_balance = pd.DataFrame(balance_data)
+                st.dataframe(df_balance, use_container_width=True, hide_index=True)
+
+                st.caption("Balance mensual")
+                chart_data = df_balance.set_index('Periodo')[['Ingresos', 'Egresos']]
+                st.bar_chart(chart_data)
+
+        if not df_ing.empty and not df_eg.empty:
+            st.subheader("Composicion")
+
+            comp1, comp2 = st.columns(2)
+
+            with comp1:
+                st.caption("Ingresos por tipo")
+                if 'tipo_ingreso' in df_ing.columns and 'monto_convertido' in df_ing.columns:
+                    comp_ing = df_ing.groupby('tipo_ingreso', dropna=False)['monto_convertido'].sum().sort_values(ascending=False)
+                    st.bar_chart(comp_ing)
+
+            with comp2:
+                st.caption("Egresos por categoria")
+                if 'categoria' in df_eg.columns:
+                    comp_eg = df_eg.groupby('categoria', dropna=False)['monto'].sum().sort_values(ascending=False)
+                    st.bar_chart(comp_eg)
+
+
+
