@@ -24,23 +24,23 @@ def scrapear_m2_argenprop():
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         "Accept-Language": "es-ES,es;q=0.9"
     }
-    
+
     response = requests.get(url, headers=headers)
     response.raise_for_status()
     soup = BeautifulSoup(response.text, 'html.parser')
     tarjetas = soup.find_all("div", class_="listing__item")
-    
+
     valores_m2 = []
     for tarjeta in tarjetas:
         precio_tag = tarjeta.find("p", class_="card__price")
         if not precio_tag or "USD" not in precio_tag.text:
             continue
-        
+
         precio_str = re.sub(r'[^\d]', '', precio_tag.text)
         if not precio_str:
             continue
         precio = float(precio_str)
-        
+
         features = tarjeta.find("ul", class_="card__main-features")
         metros = None
         if features:
@@ -50,7 +50,7 @@ def scrapear_m2_argenprop():
                     if m_str:
                         metros = float(m_str)
                         break
-        
+
         if precio and metros and metros > 0:
             valor_m2 = precio / metros
             if 800 <= valor_m2 <= 3000:
@@ -58,45 +58,68 @@ def scrapear_m2_argenprop():
 
     if not valores_m2:
         return None
-        
+
     return round(sum(valores_m2) / len(valores_m2), 0)
 
 def actualizar_base_ciudad_web():
-    """ Scrapea el promedio y lo inyecta como 'base_ciudad_m2_2026' en el JSON """
+    """ Scrapea el promedio y lo inyecta en la serie historica y metadata """
     nuevo_valor = scrapear_m2_argenprop()
     if nuevo_valor:
         data = cargar_datos()
         data["metadata"]["base_ciudad_m2_2026"] = nuevo_valor
+        anio_actual = datetime.now().year
+        serie = data.get("serie_historica_m2_rosario", {}).get("datos", {})
+        serie[str(anio_actual)] = nuevo_valor
+        if "serie_historica_m2_rosario" not in data:
+            data["serie_historica_m2_rosario"] = {"datos": {}}
+        data["serie_historica_m2_rosario"]["datos"][str(anio_actual)] = nuevo_valor
         with open(DATOS_MERCADO_FILE, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
         return nuevo_valor
     return None
 
 
-def interpolar_indice(indice, año):
-    años = sorted(int(k) for k in indice.keys())
+def interpolar_precio_historico(serie_datos, año):
+    """
+    Interpola linealmente entre puntos reales de la serie historica.
+    Si el año existe, devuelve el precio real directamente.
+    Si esta fuera de rango, usa el extremo mas cercano.
+    """
+    años = sorted(int(k) for k in serie_datos.keys())
 
-    if año in indice:
-        return indice[str(año)]
-    if str(int(año)) in indice and año == int(año):
-        return indice[str(int(año))]
+    año_int = int(año) if año == int(año) else año
+
+    if str(año_int) in serie_datos and año == int(año):
+        return serie_datos[str(año_int)]
 
     for i in range(len(años) - 1):
         a0, a1 = años[i], años[i + 1]
-        if a0 <= año <= a1:
-            t = (año - a0) / (a1 - a0)
-            return indice[str(a0)] + t * (indice[str(a1)] - indice[str(a0)])
+        if a0 <= año_int <= a1:
+            if a0 == a1:
+                return serie_datos[str(a0)]
+            t = (año_int - a0) / (a1 - a0)
+            return serie_datos[str(a0)] + t * (serie_datos[str(a1)] - serie_datos[str(a0)])
 
-    if año < años[0]:
-        return indice[str(años[0])]
-        
-    if año > años[-1]:
-        # Extrapolar usando la tendencia de los últimos dos años
+    if año_int < años[0]:
+        return serie_datos[str(años[0])]
+
+    if año_int > años[-1]:
         if len(años) >= 2:
-            pendiente = indice[str(años[-1])] - indice[str(años[-2])]
-            return indice[str(años[-1])] + pendiente * (año - años[-1])
+            pendiente = serie_datos[str(años[-1])] - serie_datos[str(años[-2])]
+            return serie_datos[str(años[-1])] + pendiente * (año_int - años[-1])
 
-    return indice[str(años[-1])]
+    return serie_datos[str(años[-1])]
+
+def obtener_precio_base_anio(año):
+    """
+    Obtiene el precio base real del m2 en Rosario para un año dado.
+    Usa la serie historica con interpolacion lineal.
+    """
+    data = cargar_datos()
+    serie = data.get("serie_historica_m2_rosario", {}).get("datos", {})
+    if not serie:
+        return data["metadata"]["base_ciudad_m2_2026"]
+    return interpolar_precio_historico(serie, año)
 
 def obtener_factor_barrio(barrio, data):
     barrio_norm = barrio.lower().strip().replace(" ", "_")
@@ -119,73 +142,59 @@ def obtener_factor_piso(piso, data):
 
 def calcular_valor_m2(prop_data, fecha):
     """
-    Calcula valor del m2 usando el MODELO DESACOPLADO AVANZADO (v3.0).
+    Calcula valor del m2 usando el MODELO DESACOPLADO AVANZADO (v4.0).
+    Usa precios historicos REALES del mercado de Rosario como base.
     """
     data = cargar_datos()
     f_p = data["factores_propiedad"]
-
-    # Base e Índice Temporal
-    indice = data["indice_mercado_rosario"]
-    base_ciudad = data["metadata"]["base_ciudad_m2_2026"]
 
     if isinstance(fecha, str):
         fecha_dt = datetime.strptime(fecha, "%Y-%m")
     else:
         fecha_dt = fecha
 
-    anio_decimal = fecha_dt.year + (fecha_dt.month - 1) / 12.0
-    
-    # Normalización al valor 'hoy' (2026 ref)
-    indice_actual = interpolar_indice(indice, 2026)
-    indice_fecha = interpolar_indice(indice, anio_decimal)
-    factor_tiempo = (indice_fecha / indice_actual)
+    anio = fecha_dt.year
+
+    # Precio base REAL del mercado para este año
+    precio_base = obtener_precio_base_anio(anio)
 
     # 1. Barrio
     factor_barrio = obtener_factor_barrio(prop_data.get("zona", "default"), data)
-    
+
     # 2. Estado y Antigüedad
-    # Aplicamos factor de estado directamente. 
-    # La antigüedad se puede tratar como un coeficiente adicional decreciente (ej: Ross-Heidecke simplificado)
     estado_key = prop_data.get("estado_detalle", "bueno").lower().replace(" ", "_")
     if "estrenar" in estado_key: estado_key = "a_estrenar"
     factor_estado = f_p["estado"].get(estado_key, 1.00)
-    
+
     antiguedad = prop_data.get("antiguedad", 0)
     try:
         antiguedad = int(antiguedad)
     except:
         antiguedad = 0
-    # Factor depreciación empírico básico: -0.5% anual a partir de los 10 años, tope -30%
     if antiguedad > 10:
         factor_antiguedad = max(1.0 - ((antiguedad - 10) * 0.005), 0.70)
     else:
         factor_antiguedad = 1.0
-        
-    # 3. Características Constructivas y Funcionales
+
+    # 3. Caracteristicas Constructivas y Funcionales
     factor_calidad = f_p["calidad"].get(prop_data.get("calidad_edificio", "media").lower(), 1.00)
     factor_piso = obtener_factor_piso(prop_data.get("piso", 0), data)
-    
-    # Ventilación
+
     vent_key = prop_data.get("ventilacion", "simple").lower().strip()
     factor_vent = f_p["ventilacion"].get(vent_key, 1.00)
-    
-    # Suelos
+
     suelo_key = prop_data.get("terminaciones_suelo", "estandar").lower().replace(" ", "_")
     factor_suelo = f_p["terminaciones_suelo"].get(suelo_key, 1.00)
-    
-    # Cocina
+
     cocina_key = prop_data.get("distribucion_cocina", "integrada").lower().replace(" ", "_")
     factor_cocina = f_p["distribucion_cocina"].get(cocina_key, 1.00)
-    
-    # Carpintería
+
     carp_key = prop_data.get("carpinteria", "estandar").lower().strip()
     factor_carp = f_p["carpinteria"].get(carp_key, 1.00)
-    
-    # Orientación
+
     orient_key = prop_data.get("orientacion", "este").lower().strip()
     factor_orient = f_p["orientacion"].get(orient_key, 1.00)
-    
-    # Detalles ADICIONALES (Sumatoria de porcentajes)
+
     detalles = prop_data.get("detalles_categoria", [])
     suma_detalles = 0
     for d in detalles:
@@ -195,9 +204,8 @@ def calcular_valor_m2(prop_data, fecha):
 
     # FORMULA FINAL MULTIPLICATIVA
     valor_m2 = (
-        base_ciudad
+        precio_base
         * factor_barrio
-        * factor_tiempo
         * factor_estado
         * factor_antiguedad
         * factor_calidad
@@ -224,7 +232,7 @@ def construir_serie_historica(propiedad_data, anios=10, fecha_ref=None):
 
     anio_inicio = fecha_tope.year - anios
     fecha_cursor = datetime(anio_inicio, 1, 1)
-    
+
     serie = []
     while fecha_cursor <= fecha_tope:
         fecha_str = fecha_cursor.strftime("%Y-%m")
@@ -232,13 +240,13 @@ def construir_serie_historica(propiedad_data, anios=10, fecha_ref=None):
         serie.append({
             "fecha": fecha_str,
             "valor_m2": round(val, 0),
-            "fuente": "modelo desacoplado avanzado v3.0"
+            "fuente": "modelo v4.0 con serie historica real"
         })
         if fecha_cursor.month == 12:
             fecha_cursor = datetime(fecha_cursor.year + 1, 1, 1)
         else:
             fecha_cursor = datetime(fecha_cursor.year, fecha_cursor.month + 1, 1)
-            
+
     return serie
 
 
@@ -307,9 +315,10 @@ def valuar_propiedad(propiedad, fecha_ref=None):
     valor_propiedad = valor_m2 * m2
 
     justificacion = (
-        f"Valuación avanzada v3.0 al {fecha_ref_str}. "
-        f"Basado en detalles de categoría, antigüedad y modelo de mercado desacoplado. "
-        f"Rango estimado: USD {rango_min:,.0f} - {rango_max:,.0f}/m²."
+        f"Valuacion avanzada v4.0 al {fecha_ref_str}. "
+        f"Basado en serie historica REAL de precios m2 Rosario (2000-2026) "
+        f"con factores de barrio, estado, calidad y detalles constructivos. "
+        f"Rango estimado: USD {rango_min:,.0f} - {rango_max:,.0f}/m2."
     )
 
     return {
@@ -320,7 +329,7 @@ def valuar_propiedad(propiedad, fecha_ref=None):
         'plusvalia_mensual_pct': plusvalia['plusvalia_mensual_pct'],
         'plusvalia_acumulada_pct': plusvalia['plusvalia_acumulada_pct'],
         'tendencia': plusvalia['tendencia'],
-        'factores_aplicados': {}, # No es necesario para el UI actual
+        'factores_aplicados': {},
         'nivel_confianza': 'alto',
         'justificacion': justificacion,
         'fecha_valuacion': fecha_ref_str,

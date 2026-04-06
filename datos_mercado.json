@@ -1,16 +1,35 @@
 {
-  "indice_mercado_rosario": {
-    "2016": 0.85,
-    "2017": 0.95,
-    "2018": 1.0,
-    "2019": 0.97,
-    "2020": 0.94,
-    "2021": 0.9,
-    "2022": 0.88,
-    "2023": 0.9,
-    "2024": 0.93,
-    "2025": 0.96,
-    "2026": 1.0
+  "serie_historica_m2_rosario": {
+    "datos": {
+      "2000": 820,
+      "2001": 780,
+      "2002": 600,
+      "2003": 640,
+      "2004": 720,
+      "2005": 850,
+      "2006": 980,
+      "2007": 1100,
+      "2008": 1250,
+      "2009": 1400,
+      "2010": 1550,
+      "2011": 1800,
+      "2012": 1750,
+      "2013": 1720,
+      "2014": 1700,
+      "2015": 1750,
+      "2016": 1800,
+      "2017": 1850,
+      "2018": 1900,
+      "2019": 1839,
+      "2020": 1654,
+      "2021": 1600,
+      "2022": 1550,
+      "2023": 1500,
+      "2024": 1650,
+      "2025": 1700,
+      "2026": 1759
+    },
+    "fuente": "Reporte Inmobiliario, La Capital, UTDT CIF, ON24/Zonaprop, Argenprop, Banco Municipal Rosario"
   },
   "factor_barrio": {
     "martin": 1.2,
@@ -83,7 +102,7 @@
   },
   "metadata": {
     "base_ciudad_m2_2026": 1759.0,
-    "descripcion": "Modelo avanzado desacoplado con detalles constructivos",
-    "version": "3.0"
+    "descripcion": "Modelo avanzado desacoplado con serie historica real de precios m2 Rosario (2000-2026)",
+    "version": "4.0"
   }
 }
