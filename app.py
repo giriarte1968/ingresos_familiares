@@ -3121,6 +3121,37 @@ def mostrar_propiedades(mes):
         available = [c for c in cols if c in df.columns]
         st.dataframe(df[available], use_container_width=True)
 
+    # Actualizar datos de mercado (scraping + input manual)
+    st.divider()
+    st.subheader("📊 Datos de Mercado")
+    with st.expander("🔄 Actualizar precio de mercado"):
+        st.caption("Obtiene el precio actual del m² en Rosario desde múltiples fuentes")
+        col_m1, col_m2 = st.columns([2, 1])
+        with col_m1:
+            valor_manual = st.number_input(
+                "Precio manual m² (USD) — tiene prioridad sobre scraping",
+                min_value=0.0,
+                step=50.0,
+                help="Si ingresás un valor, se usa en lugar del scraping"
+            )
+        with col_m2:
+            st.write("")  # spacer
+            if st.button("🔄 Actualizar", use_container_width=True):
+                from parsers.mercado_inmobiliario import actualizar_datos_mercado
+                with st.spinner("Consultando fuentes de mercado..."):
+                    resultado = actualizar_datos_mercado(valor_manual if valor_manual > 0 else None)
+                if resultado.get("exito"):
+                    st.success(f"✅ Precio actualizado: USD {resultado['valor']:,.0f}/m² (fuente: {resultado['fuente']})")
+                    st.session_state.datos = cargar_datos()
+                    st.rerun()
+                else:
+                    st.error(f"❌ Error: {resultado.get('error', 'Desconocido')}")
+
+        # Mostrar estado actual de datos de mercado
+        datos_mercado = cargar_datos()
+        metadata = datos_mercado.get("metadata", {})
+        st.caption(f"Última actualización: {metadata.get('ultima_actualizacion', 'Nunca')} — Fuente: {metadata.get('fuente_ultima_actualizacion', 'N/A')} — Base actual: USD {metadata.get('base_ciudad_m2_2026', 0):,.0f}/m²")
+
     # Sección: Valuación automática + Editar
     for prop in propiedades:
         with st.container():
@@ -3133,11 +3164,13 @@ def mostrar_propiedades(mes):
             m2_display = resultado['valor_m2_actual_usd']
 
             # Plusvalía: comparar mes seleccionado vs mes anterior (ambos del motor)
+            # Solo mostrar si supera umbral de ±3% (filtra ruido de interpolación)
             mes_anterior_dt = datetime.strptime(mes_prop, "%Y-%m") - timedelta(days=1)
             mes_anterior = mes_anterior_dt.strftime("%Y-%m")
             resultado_anterior = valuar_propiedad(prop, fecha_ref=mes_anterior)
             plusvalia_usd = valor_display - resultado_anterior['valor_propiedad_usd']
             plusvalia_pct = ((valor_display / resultado_anterior['valor_propiedad_usd']) - 1) * 100 if resultado_anterior['valor_propiedad_usd'] > 0 else 0
+            plusvalia_significativa = abs(plusvalia_pct) >= 3.0
 
             # Header de la propiedad
             c_head1, c_head2, c_head3 = st.columns([3, 1, 1])
@@ -3247,12 +3280,20 @@ def mostrar_propiedades(mes):
             col_v4.metric("Confianza", {"alto": "🟢", "medio": "🟡", "bajo": "🔴"}.get(resultado['nivel_confianza'], "🟡"))
 
             p_col1, p_col2 = st.columns(2)
-            p_col1.metric(
-                f"Plusvalía vs {mes_anterior}",
-                f"USD {plusvalia_usd:,.0f}",
-                delta=f"{plusvalia_pct:+.2f}%",
-                delta_color="normal"
-            )
+            if plusvalia_significativa:
+                p_col1.metric(
+                    f"Plusvalía vs {mes_anterior}",
+                    f"USD {plusvalia_usd:,.0f}",
+                    delta=f"{plusvalia_pct:+.2f}%",
+                    delta_color="normal"
+                )
+            else:
+                p_col1.metric(
+                    f"vs {mes_anterior}",
+                    f"USD {plusvalia_usd:,.0f}",
+                    delta=f"{plusvalia_pct:+.2f}%"
+                )
+                p_col1.caption("Sin cambio significativo de mercado (umbral ±3%)")
             p_col2.caption("Fuente: motor v4.0 (serie histórica real)")
 
             with st.expander("Detalle de la valuación"):

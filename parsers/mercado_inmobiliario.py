@@ -79,6 +79,220 @@ def actualizar_base_ciudad_web():
     return None
 
 
+def scrapear_zonaprop():
+    """ Obtiene precio m2 promedio de Zonaprop para departamentos en Rosario """
+    import requests
+    from bs4 import BeautifulSoup
+    import re
+    url = "https://www.zonaprop.com.ar/departamentos-venta-rosario.html"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept-Language": "es-AR,es;q=0.9"
+    }
+    try:
+        response = requests.get(url, headers=headers, timeout=15)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        valores_m2 = []
+        # Zonaprop usa estructura con price y area
+        items = soup.find_all("div", {"data-qa": True})
+        for item in items:
+            price_el = item.find(attrs={"data-qa": "posting-price"})
+            area_el = item.find(attrs={"data-qa": "posting-detail-area"})
+            if price_el and area_el:
+                price_text = price_el.text.replace("USD", "").replace("$", "").replace(".", "").strip()
+                area_text = area_el.text.replace("m²", "").replace("m2", "").strip()
+                try:
+                    precio = float(price_text)
+                    area = float(area_text)
+                    if area > 0 and precio > 0:
+                        m2 = precio / area
+                        if 800 <= m2 <= 3000:
+                            valores_m2.append(m2)
+                except ValueError:
+                    continue
+
+        if valores_m2:
+            return round(sum(valores_m2) / len(valores_m2), 0)
+        return None
+    except Exception:
+        return None
+
+
+def scrapear_mercadolibre():
+    """ Obtiene precio m2 promedio de MercadoLibre Inmuebles para Rosario """
+    import requests
+    import re
+    # API publica de MercadoLibre para busquedas
+    url = "https://api.mercadolibre.com/sites/MLA/search"
+    params = {
+        "category": "MLA1459",  # Departamentos
+        "state": "AR-S",  # Santa Fe
+        "city": "Rosario",
+        "limit": 50
+    }
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+    }
+    try:
+        response = requests.get(url, params=params, headers=headers, timeout=15)
+        response.raise_for_status()
+        data = response.json()
+
+        valores_m2 = []
+        for result in data.get("results", []):
+            precio = result.get("price")
+            attributes = result.get("attributes", [])
+            area = None
+            for attr in attributes:
+                if attr.get("id") in ["PROPERTY_TOTAL_AREA", "PROPERTY_AREA"]:
+                    area = attr.get("value_number")
+                    break
+            if precio and area and area > 0:
+                m2 = precio / area
+                if 800 <= m2 <= 3000:
+                    valores_m2.append(m2)
+
+        if valores_m2:
+            return round(sum(valores_m2) / len(valores_m2), 0)
+        return None
+    except Exception:
+        return None
+
+
+def scrapear_rosariogarage():
+    """ Obtiene precio m2 promedio de RosarioGarage """
+    import requests
+    from bs4 import BeautifulSoup
+    import re
+    url = "https://www.rosariogarage.com/propiedades/departamentos/venta/"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
+    try:
+        response = requests.get(url, headers=headers, timeout=15)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        valores_m2 = []
+        # Buscar cards de propiedades con precio y superficie
+        cards = soup.find_all("div", class_=re.compile(r"card|property|item", re.I))
+        for card in cards:
+            price_text = ""
+            area_text = ""
+            # Intentar encontrar precio
+            price_el = card.find(class_=re.compile(r"price|precio", re.I))
+            if price_el:
+                price_text = price_el.text
+            area_el = card.find(class_=re.compile(r"area|superficie|m2|metros", re.I))
+            if area_el:
+                area_text = area_el.text
+
+            if price_text and area_text:
+                precio_match = re.search(r'[\d,]+', price_text.replace(".", "").replace(",", ""))
+                area_match = re.search(r'[\d,]+', area_text.replace(".", "").replace(",", ""))
+                if precio_match and area_match:
+                    try:
+                        precio = float(precio_match.group().replace(",", ""))
+                        area = float(area_match.group().replace(",", ""))
+                        if area > 0 and 800 <= precio / area <= 3000:
+                            valores_m2.append(precio / area)
+                    except ValueError:
+                        continue
+
+        if valores_m2:
+            return round(sum(valores_m2) / len(valores_m2), 0)
+        return None
+    except Exception:
+        return None
+
+
+def obtener_promedio_mercado():
+    """
+    Scrapea TODAS las fuentes y devuelve promedio ponderado.
+    Retorna dict con resultados por fuente y promedio general.
+    """
+    fuentes = {
+        "argenprop": scrapear_m2_argenprop,
+        "zonaprop": scrapear_zonaprop,
+        "mercadolibre": scrapear_mercadolibre,
+        "rosariogarage": scrapear_rosariogarage,
+    }
+
+    resultados = {}
+    valores_validos = []
+
+    for nombre, func in fuentes.items():
+        try:
+            valor = func()
+            resultados[nombre] = valor
+            if valor is not None:
+                valores_validos.append(valor)
+        except Exception as e:
+            resultados[nombre] = None
+
+    promedio = round(sum(valores_validos) / len(valores_validos), 0) if valores_validos else None
+
+    return {
+        "fuentes": resultados,
+        "promedio": promedio,
+        "fuentes_exitosas": len(valores_validos),
+        "total_fuentes": len(fuentes)
+    }
+
+
+def actualizar_datos_mercado(valor_manual=None):
+    """
+    Actualiza la serie historica con datos de scraping o valor manual.
+    Si valor_manual es provisto, tiene prioridad sobre el scraping.
+
+    Args:
+        valor_manual: float opcional, valor ingresado manualmente por el usuario
+
+    Returns:
+        dict con resultado de la actualizacion
+    """
+    data = cargar_datos()
+    anio_actual = datetime.now().year
+    mes_actual = datetime.now().strftime("%Y-%m")
+
+    if valor_manual is not None and valor_manual > 0:
+        # Input manual tiene prioridad maxima
+        nuevo_valor = round(valor_manual, 0)
+        fuente = "manual"
+    else:
+        # Usar promedio de scraping
+        resultado = obtener_promedio_mercado()
+        nuevo_valor = resultado.get("promedio")
+        if nuevo_valor is None:
+            return {"exito": False, "error": "Ninguna fuente de scraping respondio correctamente"}
+        fuente = f"scraping ({resultado['fuentes_exitosas']}/{resultado['total_fuentes']} fuentes)"
+
+    # Actualizar metadata
+    data["metadata"]["base_ciudad_m2_2026"] = nuevo_valor
+
+    # Agregar a serie historica (sobreescribe si ya existe el año)
+    if "serie_historica_m2_rosario" not in data:
+        data["serie_historica_m2_rosario"] = {"datos": {}}
+
+    data["serie_historica_m2_rosario"]["datos"][str(anio_actual)] = nuevo_valor
+
+    # Registrar en metadata cuando fue la ultima actualizacion
+    data["metadata"]["ultima_actualizacion"] = mes_actual
+    data["metadata"]["fuente_ultima_actualizacion"] = fuente
+
+    with open(DATOS_MERCADO_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+    return {
+        "exito": True,
+        "valor": nuevo_valor,
+        "fuente": fuente,
+        "fecha": mes_actual
+    }
+
+
 def interpolar_precio_historico(serie_datos, año):
     """
     Interpola linealmente entre puntos reales de la serie historica.
