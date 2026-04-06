@@ -1,0 +1,417 @@
+# ============================================
+# TODOS LOS PARSERS 2 - Referencia de llamadas
+# ============================================
+# Este archivo documenta TODAS las funciones de parsers
+# que se llaman desde app.py, con sus firmas y cómo se usan.
+# ============================================
+
+
+# ============================================
+# 1. subpagos.py (raíz del proyecto)
+# ============================================
+# Import: from subpagos import extraer_subpagos, generar_id
+
+def extraer_subpagos(comprobante, datos=None):
+    """
+    Usa PaddleOCR para extraer sub-pagos de un ticket Santa Fe Servicios.
+    Retorna (lista_de_subpagos, texto_raw).
+
+    Patron del ticket:
+      Linea 1: descripcion (MOVISTAR, ADT, EPE, etc.)
+      Linea 2: IMPORTE: o EMPORTE: (etiqueta)
+      Linea 3: monto (66154.05)
+
+    Args:
+        comprobante: archivo de imagen subido (UploadedFile o path)
+        datos: dict datos de la app (opcional, no usado actualmente)
+
+    Returns:
+        tuple: (lista_subpagos, texto_raw)
+        lista_subpagos = [{'monto': float, 'descripcion': str, 'fecha': str}, ...]
+    """
+
+def generar_id():
+    """Genera un ID único basado en timestamp + random."""
+    # Retorna: str tipo "ts_1744000000000_a1b2c3"
+
+def procesar_subpagos(pago_original, subpagos_rev, datos, mes_seleccionado):
+    """
+    Procesa la division de un pago padre en sub-pagos hijos.
+    Importa desde app.py: generar_id, categorizar_gasto, guardar_datos, st
+
+    Args:
+        pago_original: dict con campos del pago padre (fecha, owner, medio_pago, fuente, moneda, u_id)
+        subpagos_rev: lista de dicts revisados por usuario [{'descripcion': str, 'monto': float}, ...]
+        datos: diccionario de datos de la app
+        mes_seleccionado: string "YYYY-MM"
+
+    Returns:
+        lista de hijos creados
+    """
+
+
+# ============================================
+# 2. parsers/base.py
+# ============================================
+# Funciones compartidas entre todos los parsers OCR.
+
+def generar_id():
+    """Genera un ID unico (timestamp + random hex)."""
+
+def cargar_comercios_json():
+    """Carga comercios_conocidos.json si existe."""
+
+def categorizar_gasto_parser(descripcion, datos=None):
+    """
+    Categoriza un gasto usando COMERCIOS_CONOCIDOS y CATEGORIAS_EGRESOS.
+    Retorna: (categoria, subcategoria, gasto_final)
+    """
+
+def get_paddle_reader():
+    """Instancia PaddleOCR de forma lazy (singleton)."""
+
+def imagen_a_items_paddle(archivo):
+    """
+    Lee una imagen con PaddleOCR y retorna items ordenados por Y.
+    Returns: (items, texto_debug)
+    items = [{'y': float, 'x_left': float, 'x_center': float, 'x_right': float, 'text': str, 'conf': float}, ...]
+    """
+
+
+# ============================================
+# 3. parsers/galicia_excel.py
+# ============================================
+# Import en app.py: from parsers.galicia_excel import extraer_movimientos_galicia_excel
+# Para egresos: from parsers.galicia_excel import extraer_egresos_galicia_excel
+
+def extraer_movimientos_galicia_excel(archivo):
+    """
+    Extrae INGRESOS desde un Excel de Banco Galicia.
+    Lee sheet 0, header=5, busca columna de credito.
+
+    Args:
+        archivo: archivo Excel subido
+
+    Returns:
+        lista de movimientos = [{
+            'fecha': 'YYYY-MM-DD',
+            'descripcion': str,
+            'monto': float,
+            'monto_ars': None,
+            'banco': 'galicia',
+            'categoria': str (sueldo/alquiler/intereses/inversion/transferencia/otro),
+            'tasas': None
+        }, ...]
+    """
+
+def extraer_egresos_galicia_excel(archivo, categorizar_gasto_fn=None, datos=None,
+                                   owner='Gustavo', medio_pago='Banco Galicia', generar_id_fn=None):
+    """
+    Extrae EGRESOS desde un Excel de Banco Galicia.
+    Busca columna de debito, filtra montos negativos.
+
+    Args:
+        archivo: archivo Excel subido
+        categorizar_gasto_fn: funcion de app.py para categorizar
+        datos: dict datos de la app
+        owner: string owner
+        medio_pago: string medio de pago
+        generar_id_fn: funcion para generar IDs
+
+    Returns:
+        lista de egresos = [{
+            'fecha': 'YYYY-MM-DD',
+            'gasto': str,
+            'monto': float (absoluto),
+            'moneda': 'ARS',
+            'fuente': 'Galicia Excel',
+            'categoria': str,
+            'subcategoria': str,
+            'owner': str,
+            'medio_pago': str,
+            'u_id': str
+        }, ...]
+    """
+
+
+# ============================================
+# 4. parsers/mercadopago_app.py
+# ============================================
+# Import: from parsers.mercadopago_app import procesar_mercadopago_app
+
+def procesar_mercadopago_app(archivo, owner, medio_pago, datos, categorizar_gasto_fn=None):
+    """
+    Parser definitivo para capturas app MercadoPago movil.
+    Detecta fechas de seccion (ej: "15 de febrero"), luego busca
+    "Transferencia enviada" / "Pago" / "Pago de servicio" + descripcion + monto negativo.
+
+    Args:
+        archivo: imagen subida
+        owner: string
+        medio_pago: string
+        datos: dict datos app
+        categorizar_gasto_fn: funcion de app.py
+
+    Returns:
+        tuple: (gastos_dedup, texto_debug, error)
+    """
+
+
+# ============================================
+# 5. parsers/mercadopago_pdf.py
+# ============================================
+# Import: from parsers.mercadopago_pdf import procesar_mercadopago_pdf
+
+def procesar_mercadopago_pdf(archivo, owner, medio_pago, datos, categorizar_gasto_fn=None):
+    """
+    Parser para resumenes MercadoPago PDF.
+    Estructura vertical: fecha -> descripcion (multi-linea) -> ID operacion -> valor -> saldo.
+    Usa PyMuPDF para extraer texto.
+
+    Args:
+        archivo: archivo PDF subido
+        owner: string
+        medio_pago: string
+        datos: dict datos app
+        categorizar_gasto_fn: funcion de app.py
+
+    Returns:
+        tuple: (gastos_dedup, texto, error)
+    """
+
+
+# ============================================
+# 6. parsers/galicia_img.py
+# ============================================
+# Import: from parsers.galicia_img import procesar_galicia_img
+
+def procesar_galicia_img(archivo, owner, medio_pago, datos, categorizar_gasto_fn=None,
+                          solo_egresos=True):
+    """
+    Procesa screenshot de movimientos Banco Galicia (app o web).
+    Formato: FECHA (izq) | DESCRIPCION (centro) | MONTO (der)
+    Agrupa items OCR en filas, reconstruye filas sueltas.
+
+    Args:
+        archivo: imagen subida
+        owner: string
+        medio_pago: string
+        datos: dict datos app
+        categorizar_gasto_fn: funcion de app.py
+        solo_egresos: True=solo negativos, False=todos
+
+    Returns:
+        tuple: (gastos_dedup, texto_debug, error)
+    """
+
+
+# ============================================
+# 7. parsers/bybit_qr.py
+# ============================================
+# Import: from parsers.bybit_qr import procesar_bybit_qr
+
+def procesar_bybit_qr(archivo, owner, medio_pago, datos, categorizar_gasto_fn=None):
+    """
+    Parser para screenshots de historial QR de Bybit.
+    SOLO captura pagos con estado "Correcto".
+    Busca linea ARS, valida estado correcto, busca nombre arriba y fecha abajo.
+
+    Args:
+        archivo: imagen subida
+        owner: string
+        medio_pago: string
+        datos: dict datos app
+        categorizar_gasto_fn: funcion de app.py
+
+    Returns:
+        tuple: (gastos_dedup, texto_debug, error)
+    """
+
+
+# ============================================
+# 8. parsers/bybit_tarjeta.py
+# ============================================
+# Import: from parsers.bybit_tarjeta import procesar_bybit_tarjeta
+
+def procesar_bybit_tarjeta(archivo, owner, medio_pago, datos, categorizar_gasto_fn=None):
+    """
+    Parser para screenshots de Bybit Tarjeta Prepaga.
+    Formato:
+        Comercio                    - MONTO ARS
+        con **** NNNN                      Pago
+        YYYY-MM-DD HH:MM:SS
+
+    Args:
+        archivo: imagen subida
+        owner: string
+        medio_pago: string
+        datos: dict datos app
+        categorizar_gasto_fn: funcion de app.py
+
+    Returns:
+        tuple: (gastos_dedup, texto_debug, error)
+    """
+
+
+# ============================================
+# 9. parsers/icbc.py
+# ============================================
+# Import: from parsers.icbc import procesar_icbc
+
+def procesar_icbc(archivo, owner, medio_pago, datos):
+    """
+    Procesa screenshot de app ICBC Argentina.
+    Formato:
+        LINEA 1: DESCRIPCION                  $ -MONTO
+        LINEA 2: DD-Mes-AAAA
+
+    NOTA: NO recibe categorizar_gasto_fn, usa categorizar_gasto_parser de base.py internamente.
+
+    Args:
+        archivo: imagen subida
+        owner: string
+        medio_pago: string
+        datos: dict datos app
+
+    Returns:
+        tuple: (gastos, texto_debug, error)
+    """
+
+
+# ============================================
+# 10. parsers/binance_qr.py
+# ============================================
+# Import: from parsers.binance_qr import procesar_binance_qr
+
+def procesar_binance_qr(archivo, owner, medio_pago, datos, categorizar_gasto_fn=None):
+    """
+    Parser para historial QR de Binance.
+    Formato:
+        NOMBRE (1 o 2 lineas)     -MONTO ARS
+        etiqueta opcional         (Descontado)
+        FECHA HORA
+        estado                    (Completado)
+
+    Args:
+        archivo: imagen subida
+        owner: string
+        medio_pago: string
+        datos: dict datos app
+        categorizar_gasto_fn: funcion de app.py
+
+    Returns:
+        tuple: (gastos_dedup, texto_debug, error)
+    """
+
+
+# ============================================
+# 11. parsers/santander_chile_pdf.py
+# ============================================
+# Import: from parsers.santander_chile_pdf import procesar_santander_chile_pdf
+
+def procesar_santander_chile_pdf(archivo, _, __, datos, categorizar_gasto_fn=None, password=None):
+    """
+    Parser para cartola PDF de Santander Chile.
+    Reconstruccion de bloques multi-linea (PyMuPDF extrae columnas separadas).
+    Convierte CLP a ARS usando tipo de cambio historico.
+
+    Args:
+        archivo: archivo PDF subido
+        _: placeholder (owner, no usado directamente)
+        __: placeholder (medio_pago, no usado directamente)
+        datos: dict datos app
+        categorizar_gasto_fn: funcion de app.py
+        password: password del PDF (opcional)
+
+    Returns:
+        tuple: (gastos_dedup, texto_debug, error)
+    """
+
+
+# ============================================
+# 12. parsers/mercado_inmobiliario.py
+# ============================================
+# Import: from parsers.mercado_inmobiliario import valuar_propiedad, actualizar_base_ciudad_web
+
+def valuar_propiedad(propiedad, fecha_ref=None):
+    """
+    Valua una propiedad usando el MODELO DESACOPLADO AVANZADO (v3.0).
+
+    Calcula:
+    - Valor m2 usando base_ciudad * indice_mercado * factores (zona, estado, calidad, piso, orientacion, amenities, etc.)
+    - Valor total = valor_m2 * m2
+    - Serie historica mensual con interpolacion + suavizado
+    - Plusvalia mensual y acumulada
+    - Tendencia (alcista/bajista/neutral)
+
+    Args:
+        propiedad: dict con datos de la propiedad (zona, m2, tipo_inmueble, estado_detalle, etc.)
+        fecha_ref: string "YYYY-MM" o datetime para la fecha de referencia (default: mes actual)
+
+    Returns:
+        dict = {
+            'valor_m2_actual_usd': float,
+            'rango_m2': str (ej: "USD 1,200 - 1,400"),
+            'valor_propiedad_usd': float,
+            'serie_mensual_m2': [{'fecha': str, 'valor': float, 'fuente': str}, ...],
+            'plusvalia_mensual_pct': float,
+            'plusvalia_acumulada_pct': float,
+            'tendencia': str (alcista/bajista/neutral),
+            'factores_aplicados': dict,
+            'nivel_confianza': str (alto/medio/bajo),
+            'justificacion': str
+        }
+    """
+
+def actualizar_base_ciudad_web():
+    """
+    Actualiza el valor base de la ciudad (m2 USD) desde portales inmobiliarios.
+    Scrapea zonaprop.com.ar y otros portales para obtener precios actuales.
+
+    Returns:
+        dict con nuevo valor base y metadata, o None si falla
+    """
+
+
+# ============================================
+# 13. ui/reportes.py
+# ============================================
+# Import: from ui.reportes import mostrar_reportes
+
+def mostrar_reportes(mes_seleccionado):
+    """
+    Muestra la seccion de reportes con tabs:
+    - Resumen general
+    - Egresos por categoria
+    - Egresos por owner
+    - Ingresos
+    - Balance (Ingresos - Egresos)
+
+    Incluye metricas, graficos, tablas pivote, filtros y export CSV.
+
+    Args:
+        mes_seleccionado: string "YYYY-MM" del mes a reportear
+    """
+
+
+# ============================================
+# RESUMEN DE IMPORTS DESDE app.py
+# ============================================
+#
+# from subpagos import extraer_subpagos, generar_id
+# from parsers.galicia_excel import extraer_movimientos_galicia_excel
+# from parsers.galicia_excel import extraer_egresos_galicia_excel
+# from parsers.mercadopago_app import procesar_mercadopago_app
+# from parsers.mercadopago_pdf import procesar_mercadopago_pdf
+# from parsers.galicia_img import procesar_galicia_img
+# from parsers.bybit_qr import procesar_bybit_qr
+# from parsers.bybit_tarjeta import procesar_bybit_tarjeta
+# from parsers.icbc import procesar_icbc
+# from parsers.binance_qr import procesar_binance_qr
+# from parsers.santander_chile_pdf import procesar_santander_chile_pdf
+# from parsers.mercado_inmobiliario import valuar_propiedad, actualizar_base_ciudad_web
+# from ui.reportes import mostrar_reportes
+#
+# ============================================
+# FIN DEL ARCHIVO
+# ============================================
