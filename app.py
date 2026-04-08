@@ -3266,10 +3266,25 @@ def mostrar_propiedades(mes):
                         e_carp = st.selectbox("Carpintería", ["piso_techo", "dvh", "estandar"],
                                              index=["piso_techo", "dvh", "estandar"].index(prop.get('carpinteria', 'estandar')) if prop.get('carpinteria') in ["piso_techo", "dvh", "estandar"] else 2,
                                              key=f"e_carp_{prop['id']}")
-                        e_detalles = st.multiselect("Detalles", [
-                            "caldera_central", "radiadores", "seguridad_24hs", "totem_seguridad",
-                            "aberturas_premium", "balcon_terraza", "pileta", "sum", "gym"
-                        ], default=prop.get('detalles_categoria', []), key=f"e_detalles_{prop['id']}")
+                    e_detalles = st.multiselect("Detalles", [
+                        "caldera_central", "radiadores", "seguridad_24hs", "totem_seguridad",
+                        "aberturas_premium", "balcon_terraza", "pileta", "sum", "gym"
+                    ], default=prop.get('detalles_categoria', []), key=f"e_detalles_{prop['id']}")
+
+                    e_direccion = st.text_input("Dirección", value=prop.get('direccion', ''), key=f"e_direccion_{prop['id']}")
+                    e_m2_cub = st.number_input("Metros cubiertos (m²)", min_value=0, value=prop.get('m2_cubiertos', 0), key=f"e_m2_cub_{prop['id']}")
+                    e_piso = st.number_input("Piso (0 = planta baja)", min_value=0, value=prop.get('piso', 0), key=f"e_piso_{prop['id']}")
+                    e_orient = st.selectbox("Orientación", ["norte", "noreste", "este", "sureste", "sur", "suroeste", "oeste", "noroeste"],
+                                           index=["norte", "noreste", "este", "sureste", "sur", "suroeste", "oeste", "noroeste"].index(prop.get('orientacion', 'este')) if prop.get('orientacion') in ["norte", "noreste", "este", "sureste", "sur", "suroeste", "oeste", "noroeste"] else 2,
+                                           key=f"e_orient_{prop['id']}")
+                    e_cochera = st.checkbox("Cochera", value=prop.get('cochera', False), key=f"e_cochera_{prop['id']}")
+
+                    st.caption("Datos de compra")
+                    ec3, ec4 = st.columns(2)
+                    with ec3:
+                        e_valor_compra = st.number_input("Valor de compra (USD)", min_value=0.0, value=float(prop.get('valor_compra_usd', 0)), step=1000.0, key=f"e_valor_compra_{prop['id']}")
+                    with ec4:
+                        e_fecha_compra = st.date_input("Fecha de compra", value=datetime.strptime(prop.get('fecha_compra', '2020-01-01'), '%Y-%m-%d') if prop.get('fecha_compra') else datetime(2020,1,1), key=f"e_fecha_compra_{prop['id']}")
 
                     e_submit = st.form_submit_button("Guardar Cambios")
                     if e_submit and e_nombre:
@@ -3278,16 +3293,23 @@ def mostrar_propiedades(mes):
                                 activo['nombre'] = e_nombre
                                 activo['tipo_inmueble'] = e_tipo
                                 activo['zona'] = e_zona
+                                activo['direccion'] = e_direccion
                                 activo['m2'] = e_m2
+                                activo['m2_cubiertos'] = e_m2_cub
                                 activo['dormitorios'] = e_dorm
                                 activo['baños'] = e_baños
+                                activo['piso'] = e_piso
                                 activo['estado_detalle'] = e_estado
                                 activo['calidad_edificio'] = e_calidad
                                 activo['ventilacion'] = e_vent
+                                activo['orientacion'] = e_orient
                                 activo['terminaciones_suelo'] = e_suelo
                                 activo['distribucion_cocina'] = e_cocina
                                 activo['carpinteria'] = e_carp
                                 activo['detalles_categoria'] = e_detalles
+                                activo['cochera'] = e_cochera
+                                activo['valor_compra_usd'] = e_valor_compra
+                                activo['fecha_compra'] = e_fecha_compra.strftime('%Y-%m-%d') if e_fecha_compra else None
                         guardar_datos(datos)
                         st.session_state.datos = datos
                         st.session_state[f"editing_prop_{prop['id']}"] = False
