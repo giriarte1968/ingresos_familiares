@@ -3163,14 +3163,40 @@ def mostrar_propiedades(mes):
             valor_display = resultado['valor_propiedad_usd']
             m2_display = resultado['valor_m2_actual_usd']
 
-            # Plusvalía: comparar mes seleccionado vs mes anterior (ambos del motor)
-            # Solo mostrar si supera umbral de ±3% (filtra ruido de interpolación)
-            mes_anterior_dt = datetime.strptime(mes_prop, "%Y-%m") - timedelta(days=1)
-            mes_anterior = mes_anterior_dt.strftime("%Y-%m")
-            resultado_anterior = valuar_propiedad(prop, fecha_ref=mes_anterior)
-            plusvalia_usd = valor_display - resultado_anterior['valor_propiedad_usd']
-            plusvalia_pct = ((valor_display / resultado_anterior['valor_propiedad_usd']) - 1) * 100 if resultado_anterior['valor_propiedad_usd'] > 0 else 0
-            plusvalia_significativa = abs(plusvalia_pct) >= 3.0
+            # Valor realizable (descuento 20% por liquidez)
+            valor_realizable = valor_display * 0.8
+
+            # Plusvalía de ciclo (vs fecha de compra)
+            fecha_compra = prop.get('fecha_compra', None)
+            plusvalia_ciclo_pct = None
+            plusvalia_ciclo_usd = None
+            if fecha_compra:
+                try:
+                    fecha_compra_dt = datetime.strptime(fecha_compra, "%Y-%m-%d")
+                    mes_compra = fecha_compra_dt.strftime("%Y-%m")
+                    if mes_compra < mes_prop:
+                        resultado_compra = valuar_propiedad(prop, fecha_ref=mes_compra)
+                        if resultado_compra['valor_propiedad_usd'] > 0:
+                            plusvalia_ciclo_usd = valor_display - resultado_compra['valor_propiedad_usd']
+                            plusvalia_ciclo_pct = ((valor_display / resultado_compra['valor_propiedad_usd']) - 1) * 100
+                except:
+                    pass
+
+            # Plusvalía últimos 12 meses (vs mismo mes año anterior)
+            anio_actual = int(mes_prop.split("-")[0])
+            mes_12m = f"{anio_actual - 1}-{mes_prop.split('-')[1]}"
+            if mes_12m >= "2000-01":
+                resultado_12m = valuar_propiedad(prop, fecha_ref=mes_12m)
+                plusvalia_12m_usd = valor_display - resultado_12m['valor_propiedad_usd']
+                plusvalia_12m_pct = ((valor_display / resultado_12m['valor_propiedad_usd']) - 1) * 100 if resultado_12m['valor_propiedad_usd'] > 0 else 0
+            else:
+                plusvalia_12m_usd = 0
+                plusvalia_12m_pct = 0
+
+            # Detectar fase del ciclo (según tendencia de los últimos 12 meses)
+            fase_ciclo = resultado.get('tendencia', 'neutral')
+            fase_icono = {"alcista": "📈", "bajista": "📉", "neutral": "➡️"}.get(fase_ciclo, "➡️")
+            fase_nombre = {"alcista": "recuperación/boom", "bajista": "caída", "neutral": "estable"}.get(fase_ciclo, "estable")
 
             # Header de la propiedad
             c_head1, c_head2, c_head3 = st.columns([3, 1, 1])
@@ -3182,7 +3208,8 @@ def mostrar_propiedades(mes):
                 )
                 if valor_display > 0:
                     st.metric(f"Valor ({mes_prop})", f"${valor_display:,.0f} USD")
-                    st.caption("💡 Serie histórica real v4.0")
+                    st.metric("Valor realizable (≈20% descuento)", f"${valor_realizable:,.0f} USD")
+                    st.caption("💡 Serie histórica real v4.0 + descuento liquidez")
             with c_head2:
                 if st.button("✏️ Editar", key=f"edit_btn_{prop['id']}"):
                     st.session_state[f"editing_prop_{prop['id']}"] = True
@@ -3276,30 +3303,44 @@ def mostrar_propiedades(mes):
             col_v1, col_v2, col_v3, col_v4 = st.columns(4)
             col_v1.metric("Valor m² (USD)", f"${m2_display:,.0f}")
             col_v2.metric("Valor Propiedad", f"${valor_display:,.0f}")
-            col_v3.metric("Tendencia", {"alcista": "📈", "bajista": "📉", "neutral": "➡️"}.get(resultado['tendencia'], "➡️"))
+            col_v3.metric("Fase ciclo", f"{fase_icono} {fase_nombre}")
             col_v4.metric("Confianza", {"alto": "🟢", "medio": "🟡", "bajo": "🔴"}.get(resultado['nivel_confianza'], "🟡"))
 
-            p_col1, p_col2 = st.columns(2)
-            if plusvalia_significativa:
-                p_col1.metric(
-                    f"Plusvalía vs {mes_anterior}",
-                    f"USD {plusvalia_usd:,.0f}",
-                    delta=f"{plusvalia_pct:+.2f}%",
+            # Plusvalías: ciclo y últimos 12 meses
+            pc_col1, pc_col2, pc_col3 = st.columns(3)
+            
+            # Plusvalía de ciclo (vs fecha de compra)
+            if plusvalia_ciclo_pct is not None:
+                pc_col1.metric(
+                    "📈 Plusvalía ciclo (desde compra)",
+                    f"USD {plusvalia_ciclo_usd:,.0f}",
+                    delta=f"{plusvalia_ciclo_pct:+.2f}%",
                     delta_color="normal"
                 )
+                if fecha_compra:
+                    pc_col1.caption(f"Compra: {fecha_compra}")
             else:
-                p_col1.metric(
-                    f"vs {mes_anterior}",
-                    f"USD {plusvalia_usd:,.0f}",
-                    delta=f"{plusvalia_pct:+.2f}%"
-                )
-                p_col1.caption("Sin cambio significativo de mercado (umbral ±3%)")
-            p_col2.caption("Fuente: motor v4.0 (serie histórica real)")
+                pc_col1.metric("📈 Plusvalía ciclo", "Sin fecha de compra")
+                pc_col1.caption("Configure fecha de compra para ver")
+
+            # Plusvalía últimos 12 meses
+            pc_col2.metric(
+                "📊 Últimos 12 meses",
+                f"USD {plusvalia_12m_usd:,.0f}",
+                delta=f"{plusvalia_12m_pct:+.2f}%",
+                delta_color="normal"
+            )
+
+            # Valor realizable
+            pc_col3.metric(
+                "💰 Valor realizable",
+                f"${valor_realizable:,.0f} USD",
+                delta="-20% liquidez"
+            )
 
             with st.expander("Detalle de la valuación"):
                 st.write(resultado['justificacion'])
                 st.write(f"**Rango estimado:** {resultado['rango_m2']}")
-                st.write(f"**Plusvalía mensual (motor):** {resultado['plusvalia_mensual_pct']:+.2f}%")
                 st.write(f"**Plusvalía acumulada:** {resultado['plusvalia_acumulada_pct']:+.2f}%")
 
                 serie = resultado.get('serie_mensual_m2', [])
