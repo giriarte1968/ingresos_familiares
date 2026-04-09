@@ -354,6 +354,83 @@ def obtener_factor_piso(piso, data):
     else:
         return p_fm.get("alto", 1.04)
 
+def calcular_m2_equivalente(prop_data):
+    """
+    Calcula los m2 equivalentes considerando superficies diferenciadas.
+    
+    Factores:
+    - cubiertos: 100%
+    - semicubiertos: 60%
+    - descubiertos (patio/terraza): según propiedad_exterior
+      - propio: 25%
+      - comun: 18%
+    - comunes: 35%
+    """
+    m2_cub = prop_data.get('m2_cubiertos', 0) or prop_data.get('m2', 0)
+    m2_sem = prop_data.get('m2_semicubiertos', 0) or 0
+    m2_desc = prop_data.get('m2_descubiertos', 0) or 0
+    m2_com = prop_data.get('m2_comunes', 0) or 0
+    
+    tipo_ext = prop_data.get('tipo_exterior', 'ninguno')
+    prop_ext = prop_data.get('propiedad_exterior', 'comun')
+    
+    factor_desc = 0
+    if tipo_ext == 'patio':
+        if prop_ext == 'propio':
+            factor_desc = 0.25
+        else:
+            factor_desc = 0.18
+    elif tipo_ext == 'balcon':
+        factor_desc = 0.50
+    elif tipo_ext == 'terraza':
+        factor_desc = 0.20
+    
+    m2_equivalente = (
+        m2_cub 
+        + m2_sem * 0.6 
+        + m2_desc * factor_desc 
+        + m2_com * 0.35
+    )
+    
+    return max(m2_equivalente, m2_cub)
+
+
+def obtener_ajuste_patio(prop_data):
+    """
+    Calcula el ajuste hedónico por patio en PB.
+    
+    Ajustes:
+    - PB sin patio: -7%
+    - PB con patio propio: +12%
+    - PB con patio común exclusivo: +8%
+    """
+    piso = prop_data.get('piso', 0)
+    tiene_patio = prop_data.get('tiene_patio', False)
+    prop_ext = prop_data.get('propiedad_exterior', 'comun')
+    
+    if piso == 0:
+        if tiene_patio:
+            if prop_ext == 'propio':
+                return 0.12
+            else:
+                return 0.08
+        else:
+            return -0.07
+    
+    return 0.0
+
+
+def obtener_descuento_liquidez(prop_data):
+    """
+    Determina el descuento por liquidez.
+    
+    - Con patio: 15% (más líquido que depto estándar)
+    - Sin patio: 20% (descuento estándar)
+    """
+    tiene_patio = prop_data.get('tiene_patio', False)
+    return 0.15 if tiene_patio else 0.20
+
+
 def calcular_valor_m2(prop_data, fecha):
     """
     Calcula valor del m2 usando el MODELO DESACOPLADO AVANZADO (v4.0).
@@ -507,7 +584,8 @@ def calcular_plusvalia_serie(serie, fecha_compra=None):
 
 
 def valuar_propiedad(propiedad, fecha_ref=None):
-    m2 = propiedad.get("m2", 0)
+    m2_equivalente = calcular_m2_equivalente(propiedad)
+    m2_original = propiedad.get("m2", 0)
     fecha_compra = propiedad.get("fecha_compra", None)
 
     fecha_ref_str = None
@@ -520,25 +598,41 @@ def valuar_propiedad(propiedad, fecha_ref=None):
         fecha_ref_str = datetime.now().strftime("%Y-%m")
 
     valor_m2 = calcular_valor_m2(propiedad, fecha_ref_str)
-    rango_min = valor_m2 * 0.90
-    rango_max = valor_m2 * 1.10
+    ajuste_patio = obtener_ajuste_patio(propiedad)
+    valor_m2_ajustado = valor_m2 * (1 + ajuste_patio)
+    
+    rango_min = valor_m2_ajustado * 0.90
+    rango_max = valor_m2_ajustado * 1.10
 
     serie = construir_serie_historica(propiedad, anios=10, fecha_ref=fecha_ref_str)
     plusvalia = calcular_plusvalia_serie(serie, fecha_compra)
 
-    valor_propiedad = valor_m2 * m2
+    valor_propiedad = valor_m2_ajustado * m2_equivalente
+    descuento_liquidez = obtener_descuento_liquidez(propiedad)
+    valor_realizable = valor_propiedad * (1 - descuento_liquidez)
+
+    ajustes_detalle = []
+    if ajuste_patio != 0:
+        ajustes_detalle.append(f"Ajuste patio: {'+' if ajuste_patio > 0 else ''}{ajuste_patio*100:.0f}%")
+    ajustes_detalle.append(f"m² equivalentes: {m2_equivalente:.1f} (vs {m2_original} totales)")
+    ajustes_detalle.append(f"Descuento liquidez: -{descuento_liquidez*100:.0f}%")
 
     justificacion = (
-        f"Valuacion avanzada v4.0 al {fecha_ref_str}. "
+        f"Valuacion v5.0 con superficies diferenciadas al {fecha_ref_str}. "
         f"Basado en serie historica REAL de precios m2 Rosario (2000-2026) "
-        f"con factores de barrio, estado, calidad y detalles constructivos. "
+        f"con m2 equivalentes ({m2_equivalente:.1f}m²), ajuste patio PB ({ajuste_patio*100:+.0f}%) "
+        f"y descuento liquidez ({descuento_liquidez*100:.0f}%). "
         f"Rango estimado: USD {rango_min:,.0f} - {rango_max:,.0f}/m2."
     )
 
     return {
-        'valor_m2_actual_usd': valor_m2,
+        'valor_m2_actual_usd': round(valor_m2_ajustado, 2),
         'rango_m2': f"USD {rango_min:,.0f} - {rango_max:,.0f}",
         'valor_propiedad_usd': round(valor_propiedad, 0),
+        'valor_realizable_usd': round(valor_realizable, 0),
+        'm2_equivalentes': m2_equivalente,
+        'ajuste_patio_pct': ajuste_patio * 100,
+        'descuento_liquidez_pct': descuento_liquidez * 100,
         'serie_mensual_m2': serie,
         'plusvalia_mensual_pct': plusvalia['plusvalia_mensual_pct'],
         'plusvalia_acumulada_pct': plusvalia['plusvalia_acumulada_pct'],

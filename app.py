@@ -3031,6 +3031,22 @@ def mostrar_propiedades(mes):
                 baños = st.number_input("Baños", min_value=0, max_value=10)
                 antiguedad = st.number_input("Antigüedad (años)", min_value=0)
 
+            st.caption("Superficies diferenciadas")
+            col_s1, col_s2 = st.columns(2)
+            with col_s1:
+                m2_semicubiertos = st.number_input("m² semicubiertos", min_value=0, value=0, help="Galería, quincho cubierto")
+                m2_descubiertos = st.number_input("m² descubiertos", min_value=0, value=0, help="Patio, terraza descubierta")
+                m2_comunes = st.number_input("m² comunes", min_value=0, value=0, help="Patio de uso común del edificio")
+            with col_s2:
+                tipo_exterior = st.selectbox("Tipo espacio exterior", ["ninguno", "patio", "balcon", "terraza"], help="Tipo de espacio exterior que tiene")
+                tiene_patio = st.checkbox("Tiene patio", value=False)
+                uso_exclusivo = st.checkbox("Uso exclusivo", value=True, help="El espacio exterior es de uso exclusivo o común")
+                propiedad_exterior = st.selectbox("Propiedad exterior", ["comun", "propio"], index=0, help="Si el espacio exterior es propio o común (del edificio)")
+                if tiene_patio:
+                    privacidad_patio = st.selectbox("Privacidad patio", ["alta", "media", "baja"], index=1)
+                else:
+                    privacidad_patio = "media"
+
             st.caption("Características constructivas y de mercado")
             col3, col4 = st.columns(2)
             with col3:
@@ -3078,9 +3094,17 @@ def mostrar_propiedades(mes):
                     'direccion': direccion,
                     'm2': m2,
                     'm2_cubiertos': m2_cubiertos,
+                    'm2_semicubiertos': m2_semicubiertos,
+                    'm2_descubiertos': m2_descubiertos,
+                    'm2_comunes': m2_comunes,
                     'dormitorios': dormitorios,
                     'baños': baños,
                     'antiguedad': antiguedad,
+                    'tipo_exterior': tipo_exterior,
+                    'tiene_patio': tiene_patio,
+                    'uso_exclusivo': uso_exclusivo,
+                    'propiedad_exterior': propiedad_exterior,
+                    'privacidad_patio': privacidad_patio,
                     'estado_detalle': estado_detalle,
                     'piso': piso,
                     'orientacion': orientacion,
@@ -3091,7 +3115,7 @@ def mostrar_propiedades(mes):
                     'carpinteria': carpinteria,
                     'detalles_categoria': detalles_cat,
                     'cochera': cochera,
-                    'espacios_exteriores': [], # Legacy
+                    'espacios_exteriores': [],
                     'valor_compra_usd': valor_compra_usd,
                     'fecha_compra': fecha_compra.strftime('%Y-%m-%d'),
                     'moneda_compra': moneda_compra,
@@ -3158,13 +3182,15 @@ def mostrar_propiedades(mes):
             st.divider()
 
             # SIEMPRE calcular del motor v4.0 (serie histórica real)
-            from parsers.mercado_inmobiliario import valuar_propiedad
+            from parsers.mercado_inmobiliario import valuar_propiedad, obtener_descuento_liquidez
             resultado = valuar_propiedad(prop, fecha_ref=mes_prop)
             valor_display = resultado['valor_propiedad_usd']
             m2_display = resultado['valor_m2_actual_usd']
+            m2_equivalente = resultado.get('m2_equivalentes', prop.get('m2', 0))
 
-            # Valor realizable (descuento 20% por liquidez)
-            valor_realizable = valor_display * 0.8
+            # Valor realizable (descuento de liquidez según tipo de propiedad)
+            descuento_liquidez = obtener_descuento_liquidez(prop)
+            valor_realizable = valor_display * (1 - descuento_liquidez)
 
             # Plusvalía de ciclo (vs fecha de compra)
             fecha_compra = prop.get('fecha_compra', None)
@@ -3203,13 +3229,13 @@ def mostrar_propiedades(mes):
             with c_head1:
                 st.write(f"**{prop['nombre']}**")
                 st.caption(
-                    f"{prop.get('zona', '')} | {prop.get('m2', 0)}m² | "
+                    f"{prop.get('zona', '')} | {prop.get('m2', 0)}m² ({m2_equivalente:.1f} equiv) | "
                     f"{prop.get('estado_detalle', '')} | {prop.get('calidad_edificio', '')}"
                 )
                 if valor_display > 0:
                     st.metric(f"Valor ({mes_prop})", f"${valor_display:,.0f} USD")
-                    st.metric("Valor realizable (≈20% descuento)", f"${valor_realizable:,.0f} USD")
-                    st.caption("💡 Serie histórica real v4.0 + descuento liquidez")
+                    st.metric(f"Valor realizable (-{int(descuento_liquidez*100)}% descuento)", f"${valor_realizable:,.0f} USD")
+                    st.caption("💡 Serie histórica real v5.0 + m2 equivalentes + ajuste patio")
             with c_head2:
                 if st.button("✏️ Editar", key=f"edit_btn_{prop['id']}"):
                     st.session_state[f"editing_prop_{prop['id']}"] = True
@@ -3272,7 +3298,21 @@ def mostrar_propiedades(mes):
                     ], default=prop.get('detalles_categoria', []), key=f"e_detalles_{prop['id']}")
 
                     e_direccion = st.text_input("Dirección", value=prop.get('direccion', ''), key=f"e_direccion_{prop['id']}")
-                    e_m2_cub = st.number_input("Metros cubiertos (m²)", min_value=0, value=prop.get('m2_cubiertos', 0), key=f"e_m2_cub_{prop['id']}")
+                    e_m2 = st.number_input("m² totales", min_value=0, value=prop.get('m2', 0), key=f"e_m2_{prop['id']}")
+                    e_m2_cub = st.number_input("m² cubiertos", min_value=0, value=prop.get('m2_cubiertos', 0), key=f"e_m2_cub_{prop['id']}")
+                    e_m2_sem = st.number_input("m² semicubiertos", min_value=0, value=prop.get('m2_semicubiertos', 0), key=f"e_m2_sem_{prop['id']}")
+                    e_m2_desc = st.number_input("m² descubiertos", min_value=0, value=prop.get('m2_descubiertos', 0), key=f"e_m2_desc_{prop['id']}")
+                    e_m2_com = st.number_input("m² comunes", min_value=0, value=prop.get('m2_comunes', 0), key=f"e_m2_com_{prop['id']}")
+
+                    e_tipo_ext = st.selectbox("Tipo exterior", ["ninguno", "patio", "balcon", "terraza"],
+                                            index=["ninguno", "patio", "balcon", "terraza"].index(prop.get('tipo_exterior', 'ninguno')) if prop.get('tipo_exterior') in ["ninguno", "patio", "balcon", "terraza"] else 0,
+                                            key=f"e_tipo_ext_{prop['id']}")
+                    e_tiene_patio = st.checkbox("Tiene patio", value=prop.get('tiene_patio', False), key=f"e_tiene_patio_{prop['id']}")
+                    e_uso_excl = st.checkbox("Uso exclusivo", value=prop.get('uso_exclusivo', True), key=f"e_uso_excl_{prop['id']}")
+                    e_prop_ext = st.selectbox("Propiedad exterior", ["propio", "comun"],
+                                             index=["propio", "comun"].index(prop.get('propiedad_exterior', 'comun')) if prop.get('propiedad_exterior') in ["propio", "comun"] else 1,
+                                             key=f"e_prop_ext_{prop['id']}")
+
                     e_piso = st.number_input("Piso (0 = planta baja)", min_value=0, value=prop.get('piso', 0), key=f"e_piso_{prop['id']}")
                     e_orient = st.selectbox("Orientación", ["norte", "noreste", "este", "sureste", "sur", "suroeste", "oeste", "noroeste"],
                                            index=["norte", "noreste", "este", "sureste", "sur", "suroeste", "oeste", "noroeste"].index(prop.get('orientacion', 'este')) if prop.get('orientacion') in ["norte", "noreste", "este", "sureste", "sur", "suroeste", "oeste", "noroeste"] else 2,
@@ -3296,6 +3336,13 @@ def mostrar_propiedades(mes):
                                 activo['direccion'] = e_direccion
                                 activo['m2'] = e_m2
                                 activo['m2_cubiertos'] = e_m2_cub
+                                activo['m2_semicubiertos'] = e_m2_sem
+                                activo['m2_descubiertos'] = e_m2_desc
+                                activo['m2_comunes'] = e_m2_com
+                                activo['tipo_exterior'] = e_tipo_ext
+                                activo['tiene_patio'] = e_tiene_patio
+                                activo['uso_exclusivo'] = e_uso_excl
+                                activo['propiedad_exterior'] = e_prop_ext
                                 activo['dormitorios'] = e_dorm
                                 activo['baños'] = e_baños
                                 activo['piso'] = e_piso
@@ -3321,12 +3368,13 @@ def mostrar_propiedades(mes):
                     st.rerun()
                 st.divider()
 
-            # Mostrar resultados del motor v4.0
+            # Mostrar resultados del motor v5.0
+            ajuste_patio = resultado.get('ajuste_patio_pct', 0)
             col_v1, col_v2, col_v3, col_v4 = st.columns(4)
             col_v1.metric("Valor m² (USD)", f"${m2_display:,.0f}")
-            col_v2.metric("Valor Propiedad", f"${valor_display:,.0f}")
+            col_v2.metric("m² equiv", f"{m2_equivalente:.1f}")
             col_v3.metric("Fase ciclo", f"{fase_icono} {fase_nombre}")
-            col_v4.metric("Confianza", {"alto": "🟢", "medio": "🟡", "bajo": "🔴"}.get(resultado['nivel_confianza'], "🟡"))
+            col_v4.metric("Ajuste patio", f"{ajuste_patio:+.0f}%")
 
             # Plusvalías: ciclo y últimos 12 meses
             pc_col1, pc_col2, pc_col3 = st.columns(3)
@@ -3357,7 +3405,7 @@ def mostrar_propiedades(mes):
             pc_col3.metric(
                 "💰 Valor realizable",
                 f"${valor_realizable:,.0f} USD",
-                delta="-20% liquidez"
+                delta=f"-{int(descuento_liquidez*100)}% liquidez"
             )
 
             with st.expander("Detalle de la valuación"):
