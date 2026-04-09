@@ -1,108 +1,44 @@
 {
-  "serie_historica_m2_rosario": {
-    "datos": {
-      "2000": 820,
-      "2001": 780,
-      "2002": 600,
-      "2003": 640,
-      "2004": 720,
-      "2005": 850,
-      "2006": 980,
-      "2007": 1100,
-      "2008": 1250,
-      "2009": 1400,
-      "2010": 1550,
-      "2011": 1800,
-      "2012": 1750,
-      "2013": 1720,
-      "2014": 1700,
-      "2015": 1750,
-      "2016": 1800,
-      "2017": 1850,
-      "2018": 1900,
-      "2019": 1839,
-      "2020": 1654,
-      "2021": 1600,
-      "2022": 1550,
-      "2023": 1500,
-      "2024": 1650,
-      "2025": 1700,
-      "2026": 1759
-    },
-    "fuente": "Reporte Inmobiliario, La Capital, UTDT CIF, ON24/Zonaprop, Argenprop, Banco Municipal Rosario"
-  },
-  "factor_barrio": {
-    "martin": 1.2,
-    "centro": 1.1,
-    "abasto": 0.95,
-    "republica_de_la_sexta": 0.9,
-    "vera_mujica": 0.85,
-    "default": 1.0
-  },
-  "factores_propiedad": {
-    "estado": {
-      "a_estrenar": 1.2,
-      "excelente": 1.15,
-      "muy_bueno": 1.1,
-      "bueno": 1.0,
-      "regular": 0.85,
-      "a_refaccionar": 0.7
-    },
-    "calidad": {
-      "premium": 1.25,
-      "media": 1.0,
-      "economica": 0.85
-    },
-    "piso": {
-      "pb": 0.95,
-      "bajo": 1.0,
-      "medio": 1.02,
-      "alto": 1.04
-    },
-    "ventilacion": {
-      "cruzada": 1.05,
-      "simple": 1.0,
-      "ninguna": 0.97
-    },
-    "terminaciones_suelo": {
-      "madera_noble": 1.05,
-      "porcelanato": 1.03,
-      "ceramico": 1.0,
-      "estandar": 0.98
-    },
-    "distribucion_cocina": {
-      "independiente": 1.03,
-      "lavadero_sectorizado": 1.05,
-      "integrada": 1.0
-    },
-    "carpinteria": {
-      "dvh": 1.05,
-      "piso_techo": 1.08,
-      "estandar": 1.0
-    },
-    "orientacion": {
-      "norte": 1.06,
-      "noreste": 1.05,
-      "noroeste": 1.03,
-      "este": 1.01,
-      "oeste": 0.98,
-      "sur": 0.95
-    },
-    "detalles_categoria": {
-      "caldera_central": 0.03,
-      "radiadores": 0.02,
-      "seguridad_24hs": 0.04,
-      "totem_seguridad": 0.02,
-      "aberturas_premium": 0.03,
-      "balcon_terraza": 0.04,
-      "pileta": 0.05,
-      "sum": 0.03,
-      "gym": 0.02
+  "indice_ciudad": {
+    "base_year": 2026,
+    "data": {
+      "2002": 0.35,
+      "2005": 0.55,
+      "2008": 0.85,
+      "2011": 1.20,
+      "2015": 1.35,
+      "2018": 1.45,
+      "2020": 1.20,
+      "2022": 1.10,
+      "2023": 1.05,
+      "2024": 1.10,
+      "2025": 1.18,
+      "2026": 1.25
     }
   },
+  "microzonas": {
+    "martin_rio": {"m2_base": 1850, "liquidez": 1.10},
+    "martin_interno": {"m2_base": 1600, "liquidez": 1.05},
+    "centro": {"m2_base": 1650, "liquidez": 1.10},
+    "pellegrini_cercano": {"m2_base": 1450, "liquidez": 1.05},
+    "macrocentro_sur": {"m2_base": 1200, "liquidez": 1.00},
+    "facultades": {"m2_base": 1050, "liquidez": 0.95},
+    "republica_sexta": {"m2_base": 1150, "liquidez": 0.95}
+  },
+  "m2_equivalentes": {
+    "cubiertos": 1.0,
+    "semicubiertos": 0.5,
+    "patio_exclusivo": 0.3,
+    "comunes_exclusivo": 0.25
+  },
+  "factores": {
+    "piso": {"pb": 0.90, "medio": 1.00, "alto": 1.05},
+    "m2_rango": {"<35": 0.95, "35-50": 1.00, ">50": 0.97},
+    "calidad": {"alta": 1.15, "media": 1.00, "baja": 0.85}
+  },
+  "tracking": {},
   "metadata": {
-    "base_ciudad_m2_2026": 1759.0,
-    "descripcion": "Modelo avanzado desacoplado con serie historica real de precios m2 Rosario (2000-2026)",
-    "version": "4.0"
+    "version": "6.0",
+    "descripcion": "Modelo v6 con indice historico, microzonas, fusion dinamica y protecciones robustas"
   }
 }

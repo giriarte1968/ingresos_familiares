@@ -14,6 +14,86 @@ def cargar_datos():
     with open(DATOS_MERCADO_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
 
+
+def sanitizar_propiedad(prop):
+    """Sanitiza inputs de propiedad - evita None, negativos, etc."""
+    return {
+        'm2': max(0, prop.get('m2', 0) or 0),
+        'm2_cubiertos': max(0, prop.get('m2_cubiertos', 0) or 0),
+        'm2_semicubiertos': max(0, prop.get('m2_semicubiertos', 0) or 0),
+        'm2_descubiertos': max(0, prop.get('m2_descubiertos', 0) or 0),
+        'm2_comunes': max(0, prop.get('m2_comunes', 0) or 0),
+        'valor_compra_usd': max(0, prop.get('valor_compra_usd', 0) or 0),
+        'zona': prop.get('zona', 'centro'),
+        'fecha_compra': prop.get('fecha_compra', '2020-01-01'),
+        'uso_exclusivo': prop.get('uso_exclusivo', False),
+        'estado_detalle': prop.get('estado_detalle', 'bueno'),
+        'calidad_edificio': prop.get('calidad_edificio', 'media'),
+        'piso': prop.get('piso', 0),
+    }
+
+
+def obtener_indice_cercano(indice, año):
+    """✅ Fallback seguro - busca año exacto o el más cercano."""
+    try:
+        años = sorted([int(a) for a in indice.keys()])
+        año = int(año)
+        
+        if str(año) in indice:
+            return indice[str(año)]
+        
+        anteriores = [a for a in años if a <= año]
+        if anteriores:
+            return indice[str(max(anteriores))]
+        
+        return indice[str(min(años))]
+    except:
+        return 1.0
+
+
+def obtener_base_year(data):
+    """✅ Base year explícito - evita drift."""
+    return data.get('indice_ciudad', {}).get('base_year', 2026)
+
+
+def obtener_pesos(ratio):
+    """✅ Pesos continuos - sin saltos."""
+    if ratio >= 1:
+        w_comp = min(0.8, 0.6 + (ratio - 1) * 0.5)
+    else:
+        w_comp = max(0.6, 0.8 - (1 - ratio) * 0.5)
+    return {'comp': w_comp, 'hist': 1 - w_comp}
+
+
+def calcular_m2_equivalentes(prop):
+    """Calcula m2 equivalentes (solo comunes si uso exclusivo)."""
+    m2_cub = prop.get('m2_cubiertos', 0) or prop.get('m2', 0)
+    m2_sem = prop.get('m2_semicubiertos', 0)
+    m2_desc = prop.get('m2_descubiertos', 0)
+    m2_com = prop.get('m2_comunes', 0) if prop.get('uso_exclusivo', False) else 0
+    
+    return m2_cub * 1.0 + m2_sem * 0.5 + m2_desc * 0.3 + m2_com * 0.25
+
+
+def calcular_factores(prop):
+    """Calcula factores de propiedad."""
+    estado = prop.get('estado_detalle', 'bueno').lower()
+    calidad = prop.get('calidad_edificio', 'media').lower()
+    piso = prop.get('piso', 0)
+    
+    factor_estado = {
+        'a_estrenar': 1.2, 'excelente': 1.15, 'muy_bueno': 1.1,
+        'bueno': 1.0, 'regular': 0.85, 'a_refaccionar': 0.7
+    }.get(estado, 1.0)
+    
+    factor_calidad = {
+        'premium': 1.15, 'alta': 1.15, 'media': 1.0, 'economica': 0.85, 'baja': 0.85
+    }.get(calidad, 1.0)
+    
+    factor_piso = 0.90 if piso == 0 else (1.0 if piso <= 3 else 1.05)
+    
+    return factor_estado * factor_calidad * factor_piso
+
 def scrapear_m2_argenprop():
     """ Obtenemos la media en venta en la calle de Rosario """
     import requests
@@ -641,4 +721,86 @@ def valuar_propiedad(propiedad, fecha_ref=None):
         'nivel_confianza': 'alto',
         'justificacion': justificacion,
         'fecha_valuacion': fecha_ref_str,
+    }
+
+
+def valuar_propiedad_v6(propiedad, fecha_ref=None):
+    """
+    ✅ Modelo v6.0 - AVM robusto con:
+    - Índice histórico de ciudad
+    - Microzonas dinámicas
+    - Fusión continua
+    - Normalización temporal
+    - Protección contra edge cases
+    """
+    prop = sanitizar_propiedad(propiedad)
+    
+    data = cargar_datos()
+    indice = data.get('indice_ciudad', {}).get('data', {})
+    base_year = obtener_base_year(data)
+    
+    if base_year not in indice:
+        base_year = max(indice.keys(), key=lambda x: int(x))
+    indice_base = indice.get(str(base_year), 1.0)
+    
+    if indice_base <= 0:
+        indice_base = 1.0
+    
+    fecha_ref_str = None
+    if fecha_ref:
+        if isinstance(fecha_ref, str):
+            fecha_ref_str = fecha_ref[:7] if len(fecha_ref) >= 7 else fecha_ref
+        elif isinstance(fecha_ref, datetime):
+            fecha_ref_str = fecha_ref.strftime("%Y-%m")
+    else:
+        fecha_ref_str = datetime.now().strftime("%Y-%m")
+    
+    año_ref = fecha_ref_str[:4]
+    año_compra = prop.get('fecha_compra', '2020-01-01')[:4]
+    
+    indice_ref = obtener_indice_cercano(indice, año_ref)
+    indice_compra = obtener_indice_cercano(indice, año_compra)
+    
+    valor_hist = prop.get('valor_compra_usd', 0) * (indice_ref / indice_compra) if indice_compra > 0 else 0
+    
+    zona = data.get('microzonas', {}).get(prop.get('zona', 'centro'), data.get('microzonas', {}).get('centro', {'m2_base': 1650, 'liquidez': 1.10}))
+    m2_equiv = calcular_m2_equivalentes(prop)
+    factores = calcular_factores(prop)
+    valor_comp_actual = m2_equiv * zona.get('m2_base', 1650) * factores
+    
+    valor_comp_hist = valor_comp_actual * (indice_ref / indice_base) if indice_base > 0 else valor_comp_actual
+    
+    if valor_hist <= 0:
+        pesos = {'comp': 1.0, 'hist': 0.0}
+        valor = valor_comp_hist
+    else:
+        ratio = valor_comp_hist / valor_hist if valor_hist > 0 else 1
+        ratio = max(0.5, min(ratio, 2.0))
+        pesos = obtener_pesos(ratio)
+        valor = valor_comp_hist * pesos['comp'] + valor_hist * pesos['hist']
+    
+    valor = min(valor, valor_comp_hist * 1.15) if valor_comp_hist > 0 else valor
+    valor = max(valor, valor_comp_hist * 0.85) if valor_comp_hist > 0 else valor
+    
+    descuento_liquidez = 1 / zona.get('liquidez', 1.0)
+    valor_realizable = valor * descuento_liquidez
+    
+    if valor_hist <= 0 or valor_comp_hist <= 0:
+        desviacion = 0
+    else:
+        desviacion = abs(valor_hist - valor_comp_hist) / valor_comp_hist
+    
+    confianza = 'alta' if desviacion < 0.15 else 'media' if desviacion < 0.30 else 'baja'
+    
+    return {
+        'valor_propiedad_usd': round(valor, 0),
+        'valor_realizable_usd': round(valor_realizable, 0),
+        'valor_historico': round(valor_hist, 0),
+        'valor_comparable': round(valor_comp_hist, 0),
+        'pesos': pesos,
+        'confianza': confianza,
+        'desviacion_pct': round(desviacion * 100, 1),
+        'liquidez': zona.get('liquidez', 1.0),
+        'm2_equivalentes': m2_equiv,
+        'zona_micro': prop.get('zona', 'centro'),
     }

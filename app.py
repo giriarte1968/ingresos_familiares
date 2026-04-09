@@ -3181,9 +3181,9 @@ def mostrar_propiedades(mes):
         with st.container():
             st.divider()
 
-            # SIEMPRE calcular del motor v4.0 (serie histórica real)
-            from parsers.mercado_inmobiliario import valuar_propiedad, obtener_descuento_liquidez
-            resultado = valuar_propiedad(prop, fecha_ref=mes_prop)
+            # SIEMPRE calcular del motor v6.0 (AVM robusto)
+            from parsers.mercado_inmobiliario import valuar_propiedad_v6, obtener_descuento_liquidez
+            resultado = valuar_propiedad_v6(prop, fecha_ref=mes_prop)
             valor_display = resultado['valor_propiedad_usd']
             m2_display = resultado['valor_m2_actual_usd']
             m2_equivalente = resultado.get('m2_equivalentes', prop.get('m2', 0))
