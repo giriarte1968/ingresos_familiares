@@ -1,0 +1,56 @@
+AVM Real Estate Model - Context Summary
+
+OBJECTIVE: Build a robust automated valuation model (AVM) for Rosario
+properties that remains consistent over time.
+
+CORE MODEL (v6): 1. Historical component: valor_hist = valor_compra *
+(indice_actual / indice_compra)
+
+2.  Comparable component: valor_comp = m2_equiv * m2_base_microzona *
+    factores
+
+3.  Dynamic weighting: if ratio > 1.5: comp=0.9 hist=0.1 elif ratio >
+    1.3: comp=0.8 hist=0.2 elif ratio < 0.7: comp=0.85 hist=0.15 else:
+    comp=0.7 hist=0.3
+
+4.  Historical CAP (CRITICAL FIX): valor_hist = min(valor_hist,
+    valor_comp * 1.5) valor_hist = max(valor_hist, valor_comp * 0.7)
+
+5.  Final value: valor = peso_comp * valor_comp + peso_hist * valor_hist
+
+MICROZONING: Use explicit mapping + correct classification.
+
+Example: MAPEO_ZONAS = { “República de la Sexta”: “republica_sexta”,
+“Republica de la Sexta”: “republica_sexta”, “Martin”: “martin_interno”,
+“Pellegrini”: “pellegrini_cercano” }
+
+CRITICAL INSIGHT: Location overrides administrative zone. Example:
+property near Pellegrini must use pellegrini_cercano.
+
+MARKET BASE VALUES (USD/m2): - pellegrini_cercano: 1450 - martin: 1600 -
+facultades: 1050 - republica_sexta: 1150
+
+LIQUIDITY FIX (CRITICAL): Remove multiplicative liquidity.
+
+Replace with: descuento_mercado
+
+Formula: valor_realizable = valor * (1 - descuento_mercado)
+
+Suggested values: - pellegrini: 0.04 - martin: 0.05 - facultades: 0.06 -
+republica_sexta: 0.08
+
+PHOTO FACTOR: factor_fotos in range 0.9 - 1.1 Apply only to comparable:
+valor_comp *= factor_fotos
+
+KEY PITFALLS IDENTIFIED: 1. Wrong zone mapping 2. Using purchase value
+for CAP (incorrect) 3. Liquidity increasing value (conceptual error) 4.
+Ignoring proximity effects 5. Incorrect m2 input
+
+REAL CASE (AYACUCHO): - 27 m2 - Near Pellegrini - Correct zone:
+pellegrini_cercano - Expected value: 32k–40k USD
+
+FINAL PRINCIPLE: “Garbage in, garbage out” Data quality (zone, m2,
+location) is more important than model complexity.
+
+NEXT STEPS: - Add geolocation-based zoning - Scraping by microzone -
+Opportunity detection (undervalued properties)

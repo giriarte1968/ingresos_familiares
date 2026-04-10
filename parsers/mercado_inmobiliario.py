@@ -1,11 +1,39 @@
 import json
 import os
 from datetime import datetime
+from parsers.location_engine import cargar_anclas, calcular_m2_por_anclas, estimar_confianza
 
 DATOS_MERCADO_FILE = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
     'datos_mercado.json'
 )
+
+MAPEO_ZONAS = {
+    "Martin": "martin_interno",
+    "Martin Río": "martin_rio",
+    "Centro": "centro",
+    "Pellegrini": "pellegrini_cercano",
+    "Facultades": "facultades",
+    "República de la Sexta": "republica_sexta",
+    "Republica de la Sexta": "republica_sexta",
+    "Republica Sexta": "republica_sexta",
+    "Macrocentro Sur": "macrocentro_sur",
+    "Sexta Pellegrini": "sexta_pellegrini",
+    "Republica Sexta Pellegrini": "sexta_pellegrini"
+}
+
+
+def ajustar_microzona(prop, zona_key):
+    """
+    Ajuste automático de microzona para casos híbridos
+    """
+    zona_raw = prop.get("zona", "").lower()
+    
+    if "sexta" in zona_raw and "pellegrini" in zona_raw:
+        return "sexta_pellegrini"
+    
+    return zona_key
+
 
 def cargar_datos():
     if not os.path.exists(DATOS_MERCADO_FILE):
@@ -57,22 +85,43 @@ def obtener_base_year(data):
 
 
 def obtener_pesos(ratio):
-    """✅ Pesos continuos - sin saltos."""
-    if ratio >= 1:
-        w_comp = min(0.8, 0.6 + (ratio - 1) * 0.5)
+    """Pesos dinámicos - más agresivos con ratios extremos."""
+    if ratio > 1.5:
+        return {'comp': 0.90, 'hist': 0.10}
+    elif ratio > 1.3:
+        return {'comp': 0.80, 'hist': 0.20}
+    elif ratio >= 1:
+        w_comp = min(0.75, 0.6 + (ratio - 1) * 0.5)
+    elif ratio < 0.7:
+        return {'comp': 0.85, 'hist': 0.15}
     else:
-        w_comp = max(0.6, 0.8 - (1 - ratio) * 0.5)
+        w_comp = max(0.65, 0.8 - (1 - ratio) * 0.5)
     return {'comp': w_comp, 'hist': 1 - w_comp}
 
 
 def calcular_m2_equivalentes(prop):
-    """Calcula m2 equivalentes (solo comunes si uso exclusivo)."""
-    m2_cub = prop.get('m2_cubiertos', 0) or prop.get('m2', 0)
+    """
+    Calcula m2 equivalentes.
+    
+    FIX:
+    - Se usa m2 TOTAL como base (no m2_cubiertos)
+    - m2_cubiertos queda como dato informativo, no base de cálculo
+    """
+    m2_total = prop.get('m2', 0)
+    
+    if not m2_total or m2_total == 0:
+        m2_total = prop.get('m2_cubiertos', 0)
+    
     m2_sem = prop.get('m2_semicubiertos', 0)
     m2_desc = prop.get('m2_descubiertos', 0)
     m2_com = prop.get('m2_comunes', 0) if prop.get('uso_exclusivo', False) else 0
     
-    return m2_cub * 1.0 + m2_sem * 0.5 + m2_desc * 0.3 + m2_com * 0.25
+    return (
+        m2_total * 1.0 +
+        m2_sem * 0.5 +
+        m2_desc * 0.3 +
+        m2_com * 0.25
+    )
 
 
 def calcular_factores(prop):
@@ -763,12 +812,43 @@ def valuar_propiedad_v6(propiedad, fecha_ref=None):
     
     valor_hist = prop.get('valor_compra_usd', 0) * (indice_ref / indice_compra) if indice_compra > 0 else 0
     
-    zona = data.get('microzonas', {}).get(prop.get('zona', 'centro'), data.get('microzonas', {}).get('centro', {'m2_base': 1650, 'liquidez': 1.10}))
+    zona_key = MAPEO_ZONAS.get(prop.get('zona'), 'centro')
+    zona_key = ajustar_microzona(prop, zona_key)
+    
+    # ===== NUEVO: Location Engine =====
+    lat = prop.get('lat')
+    lon = prop.get('lon')
+    
+    if lat and lon:
+        try:
+            anclas = cargar_anclas()
+            m2_base_geo = calcular_m2_por_anclas(lat, lon, anclas)
+            confianza_geo = estimar_confianza(lat, lon, anclas)
+        except:
+            m2_base_geo = None
+            confianza_geo = None
+    else:
+        m2_base_geo = None
+        confianza_geo = None
+    
+    # Usar valor geográfico si está disponible, sino fallback a zona
+    if m2_base_geo:
+        m2_base = m2_base_geo
+    else:
+        zona = data.get('microzonas', {}).get(zona_key, data.get('microzonas', {}).get('centro', {'m2_base': 1650, 'liquidez': 1.10}))
+        m2_base = zona.get('m2_base', 1650)
+    
     m2_equiv = calcular_m2_equivalentes(prop)
     factores = calcular_factores(prop)
-    valor_comp_actual = m2_equiv * zona.get('m2_base', 1650) * factores
+    valor_comp_actual = m2_equiv * m2_base * factores
     
     valor_comp_hist = valor_comp_actual * (indice_ref / indice_base) if indice_base > 0 else valor_comp_actual
+    
+    # === CAP HISTÓRICO: evitar distorsiones en propiedades antiguas ===
+    # Limitar contra valor_comp (el comparable histórico), no contra valor_compra
+    if valor_comp_hist > 0:
+        valor_hist = min(valor_hist, valor_comp_hist * 1.5)
+        valor_hist = max(valor_hist, valor_comp_hist * 0.7)
     
     if valor_hist <= 0:
         pesos = {'comp': 1.0, 'hist': 0.0}
@@ -782,8 +862,23 @@ def valuar_propiedad_v6(propiedad, fecha_ref=None):
     valor = min(valor, valor_comp_hist * 1.15) if valor_comp_hist > 0 else valor
     valor = max(valor, valor_comp_hist * 0.85) if valor_comp_hist > 0 else valor
     
-    descuento_liquidez = 1 / zona.get('liquidez', 1.0)
-    valor_realizable = valor * descuento_liquidez
+    # === NUEVO MODELO DE DESCUENTO POR LIQUIDEZ ===
+    # Siempre hay descuento base del 6%
+    descuento_base = 0.06
+    liquidez = zona.get('liquidez', 1.0)
+    
+    # Ajuste por liquidez de la zona
+    if liquidez > 1.0:
+        ajuste_liquidez = -0.02   # zonas premium: menos descuento
+    elif liquidez < 1.0:
+        ajuste_liquidez = 0.03  # zonas menos líquidas: más descuento
+    else:
+        ajuste_liquidez = 0.0
+    
+    descuento_total = descuento_base + ajuste_liquidez
+    descuento_total = max(0.03, min(descuento_total, 0.12))  # limitar entre 3% y 12%
+    
+    valor_realizable = valor * (1 - descuento_total)
     
     if valor_hist <= 0 or valor_comp_hist <= 0:
         desviacion = 0
@@ -792,9 +887,33 @@ def valuar_propiedad_v6(propiedad, fecha_ref=None):
     
     confianza = 'alta' if desviacion < 0.15 else 'media' if desviacion < 0.30 else 'baja'
     
+    # Calcular tendencia basada en la relación entre comparable e histórico
+    if valor_comp_hist > 0 and valor_hist > 0:
+        ratio_tendencia = valor_comp_hist / valor_hist
+        if ratio_tendencia > 1.10:
+            tendencia = 'alcista'
+        elif ratio_tendencia < 0.90:
+            tendencia = 'bajista'
+        else:
+            tendencia = 'neutral'
+    else:
+        tendencia = 'neutral'
+    
+    justificacion = (
+        f"AVM v6.0: Índice ciudad {indice_ref:.2f} vs base {indice_base:.2f}, "
+        f"microzona {prop.get('zona', 'centro')} (m2_base={zona.get('m2_base', 1650)}), "
+        f"m2_equiv={m2_equiv:.1f}, factores={factores:.2f}, "
+        f"pesos: hist={pesos['hist']:.2f}/comp={pesos['comp']:.2f}, "
+        f"confianza={confianza}, desviación={desviacion*100:.1f}%"
+    )
+    
+    rango_min = valor * 0.90
+    rango_max = valor * 1.10
+    
     return {
         'valor_propiedad_usd': round(valor, 0),
         'valor_realizable_usd': round(valor_realizable, 0),
+        'valor_m2_actual_usd': round(valor_comp_actual / m2_equiv, 2) if m2_equiv > 0 else 0,
         'valor_historico': round(valor_hist, 0),
         'valor_comparable': round(valor_comp_hist, 0),
         'pesos': pesos,
@@ -803,4 +922,9 @@ def valuar_propiedad_v6(propiedad, fecha_ref=None):
         'liquidez': zona.get('liquidez', 1.0),
         'm2_equivalentes': m2_equiv,
         'zona_micro': prop.get('zona', 'centro'),
+        'tendencia': tendencia,
+        'justificacion': justificacion,
+        'rango_m2': f"USD {rango_min:,.0f} - {rango_max:,.0f}",
+        'plusvalia_acumulada_pct': round(((valor / valor_hist) - 1) * 100, 2) if valor_hist > 0 else 0,
+        'serie_mensual_m2': [],
     }

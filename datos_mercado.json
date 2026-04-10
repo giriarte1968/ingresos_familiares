@@ -23,7 +23,8 @@
     "pellegrini_cercano": {"m2_base": 1450, "liquidez": 1.05},
     "macrocentro_sur": {"m2_base": 1200, "liquidez": 1.00},
     "facultades": {"m2_base": 1050, "liquidez": 0.95},
-    "republica_sexta": {"m2_base": 1150, "liquidez": 0.95}
+    "republica_sexta": {"m2_base": 1150, "liquidez": 0.95},
+    "sexta_pellegrini": {"m2_base": 1350, "liquidez": 1.00}
   },
   "m2_equivalentes": {
     "cubiertos": 1.0,

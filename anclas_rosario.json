@@ -1,0 +1,38 @@
+{
+  "pellegrini": {
+    "nombre": "Pellegrini",
+    "lat": -32.952,
+    "lon": -60.650,
+    "usd_m2": 1750
+  },
+  "rio": {
+    "nombre": "Rio",
+    "lat": -32.940,
+    "lon": -60.630,
+    "usd_m2": 2000
+  },
+  "centro": {
+    "nombre": "Centro",
+    "lat": -32.950,
+    "lon": -60.645,
+    "usd_m2": 1600
+  },
+  "pichincha": {
+    "nombre": "Pichincha",
+    "lat": -32.944,
+    "lon": -60.638,
+    "usd_m2": 1550
+  },
+  "sexta": {
+    "nombre": "Sexta",
+    "lat": -32.955,
+    "lon": -60.645,
+    "usd_m2": 1300
+  },
+  "facultades": {
+    "nombre": "Facultades",
+    "lat": -32.958,
+    "lon": -60.640,
+    "usd_m2": 1100
+  }
+}

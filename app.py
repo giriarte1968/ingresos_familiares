@@ -3084,7 +3084,7 @@ def mostrar_propiedades(mes):
                 if existe:
                     st.warning(f"La propiedad '{nombre}' ya existe")
                 else:
-                    from parsers.mercado_inmobiliario import valuar_propiedad
+                    from parsers.mercado_inmobiliario import valuar_propiedad_v6
                     prop_data = {
                     'id': f"prop_{uuid.uuid4().hex[:8]}",
                     'tipo': 'propiedad',
@@ -3182,15 +3182,15 @@ def mostrar_propiedades(mes):
             st.divider()
 
             # SIEMPRE calcular del motor v6.0 (AVM robusto)
-            from parsers.mercado_inmobiliario import valuar_propiedad_v6, obtener_descuento_liquidez
+            from parsers.mercado_inmobiliario import valuar_propiedad_v6
             resultado = valuar_propiedad_v6(prop, fecha_ref=mes_prop)
             valor_display = resultado['valor_propiedad_usd']
-            m2_display = resultado['valor_m2_actual_usd']
+            valor_realizable = resultado.get('valor_realizable_usd', valor_display)
             m2_equivalente = resultado.get('m2_equivalentes', prop.get('m2', 0))
-
-            # Valor realizable (descuento de liquidez según tipo de propiedad)
-            descuento_liquidez = obtener_descuento_liquidez(prop)
-            valor_realizable = valor_display * (1 - descuento_liquidez)
+            m2_display = resultado.get('valor_m2_actual_usd', 0)
+            liquidez = resultado.get('liquidez', 1.0)
+            # Calcular descuento desde los valores (nuevo modelo no usa liquidez directamente)
+            descuento_liquidez = (valor_display - valor_realizable) / valor_display * 100 if valor_display > 0 else 0
 
             # Plusvalía de ciclo (vs fecha de compra)
             fecha_compra = prop.get('fecha_compra', None)
@@ -3201,7 +3201,7 @@ def mostrar_propiedades(mes):
                     fecha_compra_dt = datetime.strptime(fecha_compra, "%Y-%m-%d")
                     mes_compra = fecha_compra_dt.strftime("%Y-%m")
                     if mes_compra < mes_prop:
-                        resultado_compra = valuar_propiedad(prop, fecha_ref=mes_compra)
+                        resultado_compra = valuar_propiedad_v6(prop, fecha_ref=mes_compra)
                         if resultado_compra['valor_propiedad_usd'] > 0:
                             plusvalia_ciclo_usd = valor_display - resultado_compra['valor_propiedad_usd']
                             plusvalia_ciclo_pct = ((valor_display / resultado_compra['valor_propiedad_usd']) - 1) * 100
@@ -3212,7 +3212,7 @@ def mostrar_propiedades(mes):
             anio_actual = int(mes_prop.split("-")[0])
             mes_12m = f"{anio_actual - 1}-{mes_prop.split('-')[1]}"
             if mes_12m >= "2000-01":
-                resultado_12m = valuar_propiedad(prop, fecha_ref=mes_12m)
+                resultado_12m = valuar_propiedad_v6(prop, fecha_ref=mes_12m)
                 plusvalia_12m_usd = valor_display - resultado_12m['valor_propiedad_usd']
                 plusvalia_12m_pct = ((valor_display / resultado_12m['valor_propiedad_usd']) - 1) * 100 if resultado_12m['valor_propiedad_usd'] > 0 else 0
             else:
@@ -3234,8 +3234,13 @@ def mostrar_propiedades(mes):
                 )
                 if valor_display > 0:
                     st.metric(f"Valor ({mes_prop})", f"${valor_display:,.0f} USD")
-                    st.metric(f"Valor realizable (-{int(descuento_liquidez*100)}% descuento)", f"${valor_realizable:,.0f} USD")
-                    st.caption("💡 Serie histórica real v5.0 + m2 equivalentes + ajuste patio")
+                    # Calcular descuento real desde los valores
+                    descuento_pct = (valor_display - valor_realizable) / valor_display * 100 if valor_display > 0 else 0
+                    if descuento_pct > 0:
+                        st.metric(f"Valor realizable (-{int(descuento_pct)}% desc.)", f"${valor_realizable:,.0f} USD")
+                    else:
+                        st.metric(f"Valor realizable", f"${valor_realizable:,.0f} USD")
+                    st.caption("💡 Serie histórica real v6.0 + m2 equivalentes + mapeo zonas + descuento mercado")
             with c_head2:
                 if st.button("✏️ Editar", key=f"edit_btn_{prop['id']}"):
                     st.session_state[f"editing_prop_{prop['id']}"] = True
@@ -3368,13 +3373,19 @@ def mostrar_propiedades(mes):
                     st.rerun()
                 st.divider()
 
-            # Mostrar resultados del motor v5.0
-            ajuste_patio = resultado.get('ajuste_patio_pct', 0)
+            # Mostrar resultados del motor v6.0
+            confianza = resultado.get('confianza', 'media')
+            desviacion = resultado.get('desviacion_pct', 0)
+            pesos = resultado.get('pesos', {'hist': 0.5, 'comp': 0.5})
+            valor_hist = resultado.get('valor_historico', 0)
+            valor_comp = resultado.get('valor_comparable', 0)
+            liquidez = resultado.get('liquidez', 1.0)
+            
             col_v1, col_v2, col_v3, col_v4 = st.columns(4)
             col_v1.metric("Valor m² (USD)", f"${m2_display:,.0f}")
             col_v2.metric("m² equiv", f"{m2_equivalente:.1f}")
-            col_v3.metric("Fase ciclo", f"{fase_icono} {fase_nombre}")
-            col_v4.metric("Ajuste patio", f"{ajuste_patio:+.0f}%")
+            col_v3.metric("Confianza", f"{confianza.upper()}")
+            col_v4.metric("Desviación", f"{desviacion:+.1f}%")
 
             # Plusvalías: ciclo y últimos 12 meses
             pc_col1, pc_col2, pc_col3 = st.columns(3)
@@ -3405,7 +3416,7 @@ def mostrar_propiedades(mes):
             pc_col3.metric(
                 "💰 Valor realizable",
                 f"${valor_realizable:,.0f} USD",
-                delta=f"-{int(descuento_liquidez*100)}% liquidez"
+                delta=f"-{int(descuento_liquidez)}% desc."
             )
 
             with st.expander("Detalle de la valuación"):
@@ -4242,7 +4253,8 @@ def mostrar_activos():
     fondos = [a for a in activos if a.get('tipo') == 'fondo_mutuo']
     propiedades = [a for a in activos if a.get('tipo') == 'propiedad']
     adrs = [a for a in activos if a.get('tipo') == 'adr']
-    otros = [a for a in activos if a.get('tipo') not in ['fondo_mutuo', 'propiedad', 'adr']]
+    oros = [a for a in activos if a.get('tipo') == 'oro']
+    otros = [a for a in activos if a.get('tipo') not in ['fondo_mutuo', 'propiedad', 'adr', 'oro']]
 
     # Obtener USDT/ARS actual para conversiones
     usdt_ars = obtener_usdt_ars_binance() or 1500
@@ -4253,20 +4265,24 @@ def mostrar_activos():
     total_fondos_ars = sum(a.get('valor_final_ars', 0) for a in fondos)
     total_propiedades_ars = sum(a.get('valor_tasacion_ars', 0) for a in propiedades)
     total_adrs_ars = sum(a.get('valor_actual_ars', 0) for a in adrs)
+    total_oros_usd = sum(a.get('cotizacion_actual_usd', 0) for a in oros)
+    total_oros_ars = total_oros_usd * usdt_ars
 
-    c1, c2, c3, c4 = st.columns(4)
+    c1, c2, c3, c4, c5 = st.columns(5)
     c1.metric("Fondos Mutuos", f"${total_fondos_ars:,.0f}")
     c2.metric("Propiedades", f"${total_propiedades_ars:,.0f}")
     c3.metric("ADRs", f"${total_adrs_ars:,.0f}")
-    c4.metric("TOTAL ACTIVOS", f"${total_fondos_ars + total_propiedades_ars + total_adrs_ars:,.0f}")
+    c4.metric("Oro", f"USD {total_oros_usd:,.0f}")
+    c5.metric("TOTAL ACTIVOS", f"${total_fondos_ars + total_propiedades_ars + total_adrs_ars + total_oros_ars:,.0f}")
 
     st.caption(f"Tasa USDT/ARS: {usdt_ars:,.2f}")
 
     # ====== TABS POR TIPO ======
-    tab_fondos, tab_props, tab_adrs = st.tabs([
+    tab_fondos, tab_props, tab_adrs, tab_oro = st.tabs([
         f"📈 Fondos Mutuos ({len(fondos)})",
         f"🏠 Propiedades ({len(propiedades)})",
-        f"📊 ADRs ({len(adrs)})"
+        f"📊 ADRs ({len(adrs)})",
+        f"🥇 Oro ({len(oros)})"
     ])
 
     # ====== TAB FONDOS MUTUOS ======
@@ -4306,7 +4322,7 @@ def mostrar_activos():
                 "(otro)"
             ]
 
-            with st.form("form_agregar_adr", clear_on_submit=True):
+            with st.form("form_agregar_adr_v2", clear_on_submit=True):
                 col1, col2 = st.columns(2)
 
                 with col1:
@@ -4316,7 +4332,7 @@ def mostrar_activos():
                         placeholder="Ej: AAPL, MSFT, TSLA"
                     )
                     cantidad = st.number_input("Cantidad de acciones", min_value=0.0,
-                                               step=1.0, key="adr_cant")
+                                               step=1.0, key="adr_cant2")
 
                 with col2:
                     precio_compra = st.number_input("Precio de compra (USD)",
@@ -4381,9 +4397,185 @@ def mostrar_activos():
                         st.success(f"✅ ADR {ticker} agregado: {cantidad} acciones a USD {precio_compra:.2f}")
                         st.rerun()
 
+    # ====== TAB ORO ======
+    with tab_oro:
+        st.subheader("🥇 Oro Físico")
+        
+        try:
+            from parsers.oro_scraper import obtener_precio_oro, actualizar_precio_oro, get_precio_oro
+        except Exception as e:
+            st.error(f"Error al importar parser de oro: {e}")
+            return
+        
+        col_oro1, col_oro2 = st.columns([2, 1])
+        
+        precio_oro_actual = get_precio_oro()
+        
+        with col_oro1:
+            st.write(f"**Precio actual del oro:** USD {precio_oro_actual:,.2f}/gramo" if precio_oro_actual else "Sin precio disponible")
+        
+        with col_oro2:
+            if st.button("🌐 Actualizar precio", type="primary"):
+                with st.spinner("Consultando precio del oro..."):
+                    nuevo_precio = actualizar_precio_oro()
+                    if nuevo_precio:
+                        st.success(f"✅ USD {nuevo_precio:,.2f}/g")
+                        st.rerun()
+                    else:
+                        st.error("No se pudo obtener el precio")
+        
+        with st.expander("➕ Ingresar precio manualmente"):
+            precio_manual = st.number_input("Precio manual USD/gramo", min_value=0.0, step=1.0, key="oro_precio_manual")
+            if st.button("Guardar precio manual"):
+                datos_disco = cargar_datos()
+                datos_disco.setdefault('metadata', {})['precio_oro_gramo_usd'] = precio_manual
+                datos_disco['metadata']['precio_oro_fecha'] = datetime.now().strftime('%Y-%m-%d')
+                guardar_datos(datos_disco)
+                st.success(f"✅ Precio manual guardado: USD {precio_manual:,.2f}/g")
+                st.rerun()
+        
+        with st.expander("➕ Agregar Oro", expanded=not bool(oros)):
+            with st.form("form_agregar_oro", clear_on_submit=True):
+                c1, c2 = st.columns(2)
+                with c1:
+                    nombre_oro = st.text_input("Nombre", value="Oro")
+                    cantidad_oro = st.number_input("Gramos", min_value=0.0, step=0.1, key="oro_cant")
+                with c2:
+                    precio_compra_oro = st.number_input("Precio compra (USD)", min_value=0.0, step=100.0, key="oro_precio_compra")
+                    fecha_compra_oro = st.date_input("Fecha compra", key="oro_fecha")
+                
+                submitted_oro = st.form_submit_button("💾 Agregar", type="primary")
+            
+            if submitted_oro and cantidad_oro > 0:
+                precio_gramo_calc = precio_compra_oro / cantidad_oro if cantidad_oro > 0 else 0
+                nuevo_oro = {
+                    'id': len(activos) + 1,
+                    'tipo': 'oro',
+                    'nombre': nombre_oro,
+                    'cantidad_gramos': cantidad_oro,
+                    'precio_compra_usd': precio_compra_oro,
+                    'precio_gramo_compra': precio_gramo_calc,
+                    'fecha_compra': fecha_compra_oro.strftime('%Y-%m-%d') if fecha_compra_oro else None,
+                    'precio_gramo_actual_usd': precio_oro_actual or precio_gramo_calc,
+                    'cotizacion_actual_usd': cantidad_oro * (precio_oro_actual or precio_gramo_calc),
+                    'ultima_actualizacion': datetime.now().strftime('%Y-%m-%d')
+                }
+                
+                datos_disco = cargar_datos()
+                datos_disco.setdefault('activos', []).append(nuevo_oro)
+                guardar_datos(datos_disco)
+                st.session_state.datos = datos_disco
+                st.success(f"✅ Oro agregado: {cantidad_oro}g")
+                st.rerun()
+        
+        if oros:
+            total_oro_gramos = sum(a.get('cantidad_gramos', 0) for a in oros)
+            total_oro_usd = sum(a.get('cotizacion_actual_usd', 0) for a in oros)
+            
+            datos_meta = datos.get('metadata', {})
+            mes_actual = datetime.now().strftime('%Y-%m')
+            precio_mes_anterior = datos_meta.get('oro_mes_anterior', {}).get(mes_actual)
+            
+            if precio_mes_anterior and precio_oro_actual:
+                plusvalia_pct = ((precio_oro_actual / precio_mes_anterior) - 1) * 100
+                st.metric("Plusvalía mensual", f"{plusvalia_pct:+.2f}%", delta=f"{plusvalia_pct:+.2f}%")
+            
+            for oro in oros:
+                with st.container():
+                    c1, c2, c3, c4 = st.columns(4)
+                    c1.metric("Gramos", f"{oro.get('cantidad_gramos', 0):.2f}g")
+                    c2.metric("USD/g", f"USD {oro.get('precio_gramo_actual_usd', 0):,.2f}")
+                    c3.metric("Valor", f"USD {oro.get('cotizacion_actual_usd', 0):,.0f}")
+                    
+                    if oro.get('precio_compra_usd') and oro.get('cotizacion_actual_usd'):
+                        plusvalia = oro.get('cotizacion_actual_usd') - oro.get('precio_compra_usd')
+                        plusvalia_pct = (plusvalia / oro.get('precio_compra_usd')) * 100
+                        c4.metric("vs Compra", f"USD {plusvalia:,.0f}", delta=f"{plusvalia_pct:+.2f}%")
+                    else:
+                        c4.metric("vs Compra", "N/A")
+                    st.caption(f"{oro.get('nombre', '')} | Compra: {oro.get('fecha_compra', 'N/A')}")
+                    st.divider()
+            
+            if precio_oro_actual and st.button("🔄 Actualizar todos"):
+                datos_disco = cargar_datos()
+                for activo in datos_disco.get('activos', []):
+                    if activo.get('tipo') == 'oro':
+                        activo['precio_gramo_actual_usd'] = precio_oro_actual
+                        activo['cotizacion_actual_usd'] = activo.get('cantidad_gramos', 0) * precio_oro_actual
+                        activo['ultima_actualizacion'] = datetime.now().strftime('%Y-%m-%d')
+                
+                datos_disco.setdefault('metadata', {}).setdefault('oro_mes_anterior', {})[mes_actual] = precio_oro_actual
+                guardar_datos(datos_disco)
+                st.success("✅ Actualizado")
+                st.rerun()
+        else:
+            st.info("No hay oro. Agregalo arriba.")
+
+    # ====== TAB ADRs ======
+    with tab_adrs:
+        st.subheader("ADRs / Acciones")
+        
+        # ---- AGREGAR ADR ----
+        with st.expander("➕ Agregar ADR", expanded=not bool(adrs)):
+            TICKERS_COMUNES = ["", "BBAR", "GGAL", "YPF", "PAM", "SUPV", "BMA", "CRESY",
+                             "CEPU", "EDN", "LOMA", "TEO", "TGS", "IRS", "MELI", "GLOB", "(otro)"]
+            
+            with st.form("form_agregar_adr_tab", clear_on_submit=True):
+                col1, col2 = st.columns(2)
+                with col1:
+                    ticker_sel = st.selectbox("Ticker", TICKERS_COMUNES, index=0)
+                    ticker_manual = st.text_input("Ticker manual", placeholder="AAPL, MSFT...")
+                    cantidad = st.number_input("Cantidad", min_value=0.0, step=1.0, key="adr_cant_tab")
+                with col2:
+                    precio_compra = st.number_input("Precio compra (USD)", min_value=0.0, step=0.01, key="adr_precio_tab")
+                    fecha_compra = st.date_input("Fecha compra", key="adr_fecha_tab")
+                    broker = st.selectbox("Broker", ["Santander Chile", "IOL", "Bull Market", "Balanz", "PPI", "Otro"])
+                
+                submitted_adr = st.form_submit_button("💾 Agregar ADR", type="primary")
+            
+            if submitted_adr:
+                ticker = ticker_manual.strip().upper() if ticker_manual.strip() else ticker_sel
+                if not ticker or ticker == "(otro)":
+                    st.warning("Ingresá un ticker válido")
+                elif cantidad <= 0 or precio_compra <= 0:
+                    st.warning("Cantidad y precio deben ser > 0")
+                else:
+                    precio_actual, _, nombre_empresa = obtener_precio_adr(ticker)
+                    if precio_actual is None:
+                        precio_actual = precio_compra
+                        nombre_empresa = ticker
+                    
+                    valor_actual_usd = cantidad * precio_actual
+                    valor_compra_usd = cantidad * precio_compra
+                    
+                    nuevo_adr = {
+                        'id': len(activos) + 1,
+                        'tipo': 'adr',
+                        'ticker': ticker,
+                        'nombre': nombre_empresa or ticker,
+                        'broker': broker,
+                        'cantidad': cantidad,
+                        'precio_compra_usd': precio_compra,
+                        'fecha_compra': fecha_compra.strftime('%Y-%m-%d') if fecha_compra else None,
+                        'precio_actual_usd': precio_actual,
+                        'precio_mes_anterior_usd': precio_compra,
+                        'valor_compra_usd': valor_compra_usd,
+                        'valor_actual_usd': valor_actual_usd,
+                        'valor_actual_ars': valor_actual_usd * usdt_ars,
+                        'ultima_actualizacion': datetime.now().strftime('%Y-%m-%d %H:%M'),
+                        'dividendos': [],
+                        'cierres': []
+                    }
+                    
+                    datos_disco = cargar_datos()
+                    datos_disco.setdefault('activos', []).append(nuevo_adr)
+                    guardar_datos(datos_disco)
+                    st.session_state.datos = datos_disco
+                    st.success(f"✅ ADR {ticker} agregado")
+                    st.rerun()
+        
         # ---- MOSTRAR ADRs ----
         if adrs:
-            # Selector de mes para visualizar plusvalía
             meses_con_cierres = set()
             for a in adrs:
                 for c in a.get('cierres', []):
@@ -4394,16 +4586,9 @@ def mostrar_activos():
             if not meses_disponibles:
                 meses_disponibles = [datetime.now().strftime('%Y-%m')]
 
-            # Botones de acción
             col_btn1, col_btn2 = st.columns([1, 1])
 
-            # Mes seleccionado para visualización (fuera de las columnas para acceso global)
-            mes_seleccionado = st.selectbox(
-                "Mes para visualizar",
-                meses_disponibles,
-                index=0,
-                key="sel_mes_visualizar_adr"
-            )
+            mes_seleccionado = st.selectbox("Mes para visualizar", meses_disponibles, index=0, key="sel_mes_visualizar_adr")
             
             with col_btn1:
                 if st.button("🔄 Actualizar Cotizaciones", type="primary"):
