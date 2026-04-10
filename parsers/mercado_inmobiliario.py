@@ -44,21 +44,25 @@ def cargar_datos():
 
 
 def sanitizar_propiedad(prop):
-    """Sanitiza inputs de propiedad - evita None, negativos, etc."""
-    return {
-        'm2': max(0, prop.get('m2', 0) or 0),
-        'm2_cubiertos': max(0, prop.get('m2_cubiertos', 0) or 0),
-        'm2_semicubiertos': max(0, prop.get('m2_semicubiertos', 0) or 0),
-        'm2_descubiertos': max(0, prop.get('m2_descubiertos', 0) or 0),
-        'm2_comunes': max(0, prop.get('m2_comunes', 0) or 0),
-        'valor_compra_usd': max(0, prop.get('valor_compra_usd', 0) or 0),
-        'zona': prop.get('zona', 'centro'),
-        'fecha_compra': prop.get('fecha_compra', '2020-01-01'),
-        'uso_exclusivo': prop.get('uso_exclusivo', False),
-        'estado_detalle': prop.get('estado_detalle', 'bueno'),
-        'calidad_edificio': prop.get('calidad_edificio', 'media'),
-        'piso': prop.get('piso', 0),
-    }
+    """Sanitiza inputs de propiedad - conserva todos los campos."""
+    # Primero copiar todas las props
+    result = dict(prop)
+    
+    # Sanitizar solo los campos numéricos importantes
+    result['m2'] = max(0, prop.get('m2', 0) or 0)
+    result['m2_cubiertos'] = max(0, prop.get('m2_cubiertos', 0) or 0)
+    result['m2_semicubiertos'] = max(0, prop.get('m2_semicubiertos', 0) or 0)
+    result['m2_descubiertos'] = max(0, prop.get('m2_descubiertos', 0) or 0)
+    result['m2_comunes'] = max(0, prop.get('m2_comunes', 0) or 0)
+    result['valor_compra_usd'] = max(0, prop.get('valor_compra_usd', 0) or 0)
+    result['zona'] = prop.get('zona', 'centro')
+    result['fecha_compra'] = prop.get('fecha_compra', '2020-01-01')
+    result['uso_exclusivo'] = prop.get('uso_exclusivo', False)
+    result['estado_detalle'] = prop.get('estado_detalle', 'bueno')
+    result['calidad_edificio'] = prop.get('calidad_edificio', 'media')
+    result['piso'] = prop.get('piso', 0)
+    
+    return result
 
 
 def obtener_indice_cercano(indice, año):
@@ -819,7 +823,7 @@ def valuar_propiedad_v6(propiedad, fecha_ref=None):
     lat = prop.get('lat')
     lon = prop.get('lon')
     
-    if lat and lon:
+    if lat is not None and lon is not None:
         try:
             anclas = cargar_anclas()
             m2_base_geo = calcular_m2_por_anclas(lat, lon, anclas)
@@ -831,12 +835,23 @@ def valuar_propiedad_v6(propiedad, fecha_ref=None):
         m2_base_geo = None
         confianza_geo = None
     
-    # Usar valor geográfico si está disponible, sino fallback a zona
+    # PRIORIZAR valor geográfico si hay coordenadas
+    # (el location engine es más preciso que la zona estática)
     if m2_base_geo:
         m2_base = m2_base_geo
+        # Estimar liquidez basada en el m2_base geográfico
+        if m2_base >= 1600:
+            liquidez_default = 1.10
+        elif m2_base >= 1300:
+            liquidez_default = 1.00
+        elif m2_base >= 1100:
+            liquidez_default = 0.95
+        else:
+            liquidez_default = 0.90
     else:
         zona = data.get('microzonas', {}).get(zona_key, data.get('microzonas', {}).get('centro', {'m2_base': 1650, 'liquidez': 1.10}))
         m2_base = zona.get('m2_base', 1650)
+        liquidez_default = zona.get('liquidez', 1.0)
     
     m2_equiv = calcular_m2_equivalentes(prop)
     factores = calcular_factores(prop)
@@ -865,7 +880,7 @@ def valuar_propiedad_v6(propiedad, fecha_ref=None):
     # === NUEVO MODELO DE DESCUENTO POR LIQUIDEZ ===
     # Siempre hay descuento base del 6%
     descuento_base = 0.06
-    liquidez = zona.get('liquidez', 1.0)
+    liquidez = liquidez_default
     
     # Ajuste por liquidez de la zona
     if liquidez > 1.0:
@@ -901,8 +916,7 @@ def valuar_propiedad_v6(propiedad, fecha_ref=None):
     
     justificacion = (
         f"AVM v6.0: Índice ciudad {indice_ref:.2f} vs base {indice_base:.2f}, "
-        f"microzona {prop.get('zona', 'centro')} (m2_base={zona.get('m2_base', 1650)}), "
-        f"m2_equiv={m2_equiv:.1f}, factores={factores:.2f}, "
+        f"m2_base={m2_base:.0f}, m2_equiv={m2_equiv:.1f}, factores={factores:.2f}, "
         f"pesos: hist={pesos['hist']:.2f}/comp={pesos['comp']:.2f}, "
         f"confianza={confianza}, desviación={desviacion*100:.1f}%"
     )
@@ -919,7 +933,7 @@ def valuar_propiedad_v6(propiedad, fecha_ref=None):
         'pesos': pesos,
         'confianza': confianza,
         'desviacion_pct': round(desviacion * 100, 1),
-        'liquidez': zona.get('liquidez', 1.0),
+        'liquidez': liquidez_default,
         'm2_equivalentes': m2_equiv,
         'zona_micro': prop.get('zona', 'centro'),
         'tendencia': tendencia,
