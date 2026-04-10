@@ -3275,7 +3275,7 @@ def mostrar_propiedades(mes):
                             "Echesortu", "Fisherton", "Ruta 9", "Sur", "Norte", "Oeste",
                             "República de la Sexta", "Otro"].index(prop.get('zona', 'Otro')),
                             key=f"e_zona_{prop['id']}")
-                        e_m2 = st.number_input("Metros cuadrados (m²)", min_value=0, value=prop.get('m2', 0), key=f"e_m2_{prop['id']}")
+                        e_m2 = st.number_input("Metros cuadrados (m²)", min_value=0, value=prop.get('m2', 0), key=f"e_m2_tot_{prop['id']}")
                     with ec2:
                         e_dorm = st.number_input("Dormitorios", min_value=0, max_value=10, value=prop.get('dormitorios', 0), key=f"e_dorm_{prop['id']}")
                         e_baños = st.number_input("Baños", min_value=0, max_value=10, value=prop.get('baños', 0), key=f"e_baños_{prop['id']}")
@@ -3303,7 +3303,7 @@ def mostrar_propiedades(mes):
                     ], default=prop.get('detalles_categoria', []), key=f"e_detalles_{prop['id']}")
 
                     e_direccion = st.text_input("Dirección", value=prop.get('direccion', ''), key=f"e_direccion_{prop['id']}")
-                    e_m2 = st.number_input("m² totales", min_value=0, value=prop.get('m2', 0), key=f"e_m2_{prop['id']}")
+                    e_m2 = st.number_input("m² totales", min_value=0, value=prop.get('m2', 0), key=f"e_m2_total_{prop['id']}")
                     e_m2_cub = st.number_input("m² cubiertos", min_value=0, value=prop.get('m2_cubiertos', 0), key=f"e_m2_cub_{prop['id']}")
                     e_m2_sem = st.number_input("m² semicubiertos", min_value=0, value=prop.get('m2_semicubiertos', 0), key=f"e_m2_sem_{prop['id']}")
                     e_m2_desc = st.number_input("m² descubiertos", min_value=0, value=prop.get('m2_descubiertos', 0), key=f"e_m2_desc_{prop['id']}")

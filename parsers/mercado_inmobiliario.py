@@ -105,27 +105,43 @@ def obtener_pesos(ratio):
 
 def calcular_m2_equivalentes(prop):
     """
-    Calcula m2 equivalentes.
+    Calcula m2 equivalentes con ponderación de mercado real Rosario.
     
-    FIX:
-    - Se usa m2 TOTAL como base (no m2_cubiertos)
-    - m2_cubiertos queda como dato informativo, no base de cálculo
+    Ponderaciones ajustadas:
+    - m2_cubiertos: 100%
+    - m2_semicubiertos: 50%
+    - m2_descubiertos: 20% (antes 30%)
+    - m2_comunes: 12% (antes 25%, solo si uso_exclusivo)
+    
+    Clamp: no más de +25% sobre m2_cubiertos
     """
-    m2_total = prop.get('m2', 0)
+    m2_cub = prop.get('m2_cubiertos', 0)
     
-    if not m2_total or m2_total == 0:
-        m2_total = prop.get('m2_cubiertos', 0)
+    if not m2_cub or m2_cub == 0:
+        m2_cub = prop.get('m2', 0)
     
-    m2_sem = prop.get('m2_semicubiertos', 0)
-    m2_desc = prop.get('m2_descubiertos', 0)
-    m2_com = prop.get('m2_comunes', 0) if prop.get('uso_exclusivo', False) else 0
+    m2_cub = m2_cub or 0
+    m2_semi = prop.get('m2_semicubiertos', 0) or 0
+    m2_desc = prop.get('m2_descubiertos', 0) or 0
+    m2_com = prop.get('m2_comunes', 0) or 0
     
-    return (
-        m2_total * 1.0 +
-        m2_sem * 0.5 +
-        m2_desc * 0.3 +
-        m2_com * 0.25
+    # Si exterior es común, bajar peso
+    if prop.get('propiedad_exterior') == 'comun':
+        factor_com = 0.15
+    else:
+        factor_com = 0.12
+    
+    m2_equiv = (
+        m2_cub +
+        m2_semi * 0.5 +
+        m2_desc * 0.2 +
+        m2_com * factor_com
     )
+    
+    # Clamp: no más de +25% sobre cubiertos
+    max_m2 = m2_cub * 1.25
+    
+    return min(m2_equiv, max_m2)
 
 
 def calcular_factores(prop):
