@@ -40,6 +40,9 @@
   "tracking": {},
   "metadata": {
     "version": "6.0",
-    "descripcion": "Modelo v6 con indice historico, microzonas, fusion dinamica y protecciones robustas"
+    "descripcion": "Modelo v6 con indice historico, microzonas, fusion dinamica y protecciones robustas",
+    "fuente_anclas": "anclas_rosario.json",
+    "metodo": "IDW_cuadratico",
+    "radio_km": 2.0
   }
 }

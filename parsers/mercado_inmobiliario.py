@@ -1,7 +1,7 @@
 import json
 import os
 from datetime import datetime
-from parsers.location_engine import cargar_anclas, calcular_m2_por_anclas, estimar_confianza
+from parsers.location_engine import cargar_anclas, calcular_precio_m2, estimar_confianza, get_ancla_mas_cercana
 
 DATOS_MERCADO_FILE = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
@@ -826,7 +826,7 @@ def valuar_propiedad_v6(propiedad, fecha_ref=None):
     if lat is not None and lon is not None:
         try:
             anclas = cargar_anclas()
-            m2_base_geo = calcular_m2_por_anclas(lat, lon, anclas)
+            m2_base_geo = calcular_precio_m2(lat, lon, anclas)
             confianza_geo = estimar_confianza(lat, lon, anclas)
         except:
             m2_base_geo = None
