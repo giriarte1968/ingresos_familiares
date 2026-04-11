@@ -3021,15 +3021,23 @@ def mostrar_propiedades(mes):
                     "Martin", "Facultades", "Puerto Norte", "Barrio Tigre",
                     "Rosario Norte", "Alvear", "San Martín", "General Paz",
                     "Echesortu", "Fisherton", "Ruta 9", "Sur", "Norte", "Oeste",
-                    "República de la Sexta", "Otro"
+                    "Sexta Pellegrini", "República de la Sexta", "Otro"
                 ])
                 direccion = st.text_input("Dirección (opcional)")
             with col2:
-                m2 = st.number_input("Metros cuadrados (m²)", min_value=0, step=1)
+                # m2 se calcula automáticamente desde m2_cubiertos + semicubiertos + descubiertos + comunes
                 m2_cubiertos = st.number_input("Metros cubiertos (m²)", min_value=0, step=1)
                 dormitorios = st.number_input("Dormitorios", min_value=0, max_value=10)
                 baños = st.number_input("Baños", min_value=0, max_value=10)
-                antiguedad = st.number_input("Antigüedad (años)", min_value=0)
+                antiguedad = st.number_input("Antigüedad (años)", min_value=0, value=0)
+
+            st.caption("Espacios exteriores")
+            espacios_exteriores = st.multiselect(
+                "Espacios exteriores",
+                options=["balcon", "patio", "terraza"],
+                default=[],
+                help="Seleccione los espacios exteriores que tiene la propiedad"
+            )
 
             st.caption("Superficies diferenciadas")
             col_s1, col_s2 = st.columns(2)
@@ -3058,7 +3066,7 @@ def mostrar_propiedades(mes):
                     "norte", "noreste", "este", "sureste", "sur", "suroeste", "oeste", "noroeste"
                 ], index=2)
                 calidad_edificio = st.selectbox("Calidad del edificio", ["premium", "media", "economica"], index=1)
-                ventilacion = st.selectbox("Ventilación", ["cruzada", "simple", "ninguna"], index=1)
+                ventilacion = st.selectbox("Ventilación", ["cruzada", "simple"], index=1, help="Ventilación cruzada o simple (obligatorio)")
             with col4:
                 terminaciones_suelo = st.selectbox("Terminaciones de suelo", ["madera_noble", "porcelanato", "ceramico", "estandar"], index=3)
                 distribucion_cocina = st.selectbox("Distribución de cocina", ["independiente", "lavadero_sectorizado", "integrada"], index=2)
@@ -3115,7 +3123,9 @@ def mostrar_propiedades(mes):
                     'carpinteria': carpinteria,
                     'detalles_categoria': detalles_cat,
                     'cochera': cochera,
-                    'espacios_exteriores': [],
+                    'espacios_exteriores': espacios_exteriores,
+                    'descripcion_libre': descripcion_libre,
+                    'm2': m2_cubiertos + m2_semicubiertos + m2_descubiertos + m2_comunes,  # calculado automáticamente
                     'valor_compra_usd': valor_compra_usd,
                     'fecha_compra': fecha_compra.strftime('%Y-%m-%d'),
                     'moneda_compra': moneda_compra,
@@ -3268,12 +3278,12 @@ def mostrar_propiedades(mes):
                             "Martin", "Facultades", "Puerto Norte", "Barrio Tigre",
                             "Rosario Norte", "Alvear", "San Martín", "General Paz",
                             "Echesortu", "Fisherton", "Ruta 9", "Sur", "Norte", "Oeste",
-                            "República de la Sexta", "Otro"
+                            "Sexta Pellegrini", "República de la Sexta", "Otro"
                         ], index=["Centro", "Macrocentro", "Barrio Inglés", "Pichincha", "Abasto",
                             "Martin", "Facultades", "Puerto Norte", "Barrio Tigre",
                             "Rosario Norte", "Alvear", "San Martín", "General Paz",
                             "Echesortu", "Fisherton", "Ruta 9", "Sur", "Norte", "Oeste",
-                            "República de la Sexta", "Otro"].index(prop.get('zona', 'Otro')),
+                            "Sexta Pellegrini", "República de la Sexta", "Otro"].index(prop.get('zona', 'Otro')),
                             key=f"e_zona_{prop['id']}")
                         e_m2 = st.number_input("Metros cuadrados (m²)", min_value=0, value=prop.get('m2', 0), key=f"e_m2_tot_{prop['id']}")
                     with ec2:
@@ -3285,8 +3295,8 @@ def mostrar_propiedades(mes):
                         e_calidad = st.selectbox("Calidad del edificio", ["premium", "media", "economica"],
                                                 index=["premium", "media", "economica"].index(prop.get('calidad_edificio', 'media')),
                                                 key=f"e_calidad_{prop['id']}")
-                        e_vent = st.selectbox("Ventilación", ["cruzada", "simple", "ninguna"],
-                                             index=["cruzada", "simple", "ninguna"].index(prop.get('ventilacion', 'simple')) if prop.get('ventilacion') in ["cruzada", "simple", "ninguna"] else 1,
+                        e_vent = st.selectbox("Ventilación", ["cruzada", "simple"],
+                                             index=["cruzada", "simple"].index(prop.get('ventilacion', 'simple')) if prop.get('ventilacion') in ["cruzada", "simple"] else 1,
                                              key=f"e_vent_{prop['id']}")
                         e_suelo = st.selectbox("Suelo", ["madera_noble", "porcelanato", "ceramico", "estandar"],
                                               index=["madera_noble", "porcelanato", "ceramico", "estandar"].index(prop.get('terminaciones_suelo', 'estandar')) if prop.get('terminaciones_suelo') in ["madera_noble", "porcelanato", "ceramico", "estandar"] else 3,
@@ -3303,11 +3313,18 @@ def mostrar_propiedades(mes):
                     ], default=prop.get('detalles_categoria', []), key=f"e_detalles_{prop['id']}")
 
                     e_direccion = st.text_input("Dirección", value=prop.get('direccion', ''), key=f"e_direccion_{prop['id']}")
-                    e_m2 = st.number_input("m² totales", min_value=0, value=prop.get('m2', 0), key=f"e_m2_total_{prop['id']}")
+                    # m2 se calcula automáticamente desde los campos individuales
                     e_m2_cub = st.number_input("m² cubiertos", min_value=0, value=prop.get('m2_cubiertos', 0), key=f"e_m2_cub_{prop['id']}")
                     e_m2_sem = st.number_input("m² semicubiertos", min_value=0, value=prop.get('m2_semicubiertos', 0), key=f"e_m2_sem_{prop['id']}")
                     e_m2_desc = st.number_input("m² descubiertos", min_value=0, value=prop.get('m2_descubiertos', 0), key=f"e_m2_desc_{prop['id']}")
                     e_m2_com = st.number_input("m² comunes", min_value=0, value=prop.get('m2_comunes', 0), key=f"e_m2_com_{prop['id']}")
+
+                    e_espacios_ext = st.multiselect(
+                        "Espacios exteriores",
+                        options=["balcon", "patio", "terraza"],
+                        default=prop.get('espacios_exteriores', []),
+                        key=f"e_espacios_ext_{prop['id']}"
+                    )
 
                     e_tipo_ext = st.selectbox("Tipo exterior", ["ninguno", "patio", "balcon", "terraza"],
                                             index=["ninguno", "patio", "balcon", "terraza"].index(prop.get('tipo_exterior', 'ninguno')) if prop.get('tipo_exterior') in ["ninguno", "patio", "balcon", "terraza"] else 0,
@@ -3324,6 +3341,13 @@ def mostrar_propiedades(mes):
                                            key=f"e_orient_{prop['id']}")
                     e_cochera = st.checkbox("Cochera", value=prop.get('cochera', False), key=f"e_cochera_{prop['id']}")
 
+                    e_descripcion = st.text_area(
+                        "Descripción libre del inmueble",
+                        value=prop.get('descripcion_libre', ''),
+                        placeholder="Ej: luminoso, vista despejada, edificio de categoría, ruidoso, etc.",
+                        key=f"e_descripcion_{prop['id']}"
+                    )
+
                     st.caption("Datos de compra")
                     ec3, ec4 = st.columns(2)
                     with ec3:
@@ -3339,11 +3363,13 @@ def mostrar_propiedades(mes):
                                 activo['tipo_inmueble'] = e_tipo
                                 activo['zona'] = e_zona
                                 activo['direccion'] = e_direccion
-                                activo['m2'] = e_m2
+                                activo['m2'] = e_m2_cub + e_m2_sem + e_m2_desc + e_m2_com
                                 activo['m2_cubiertos'] = e_m2_cub
                                 activo['m2_semicubiertos'] = e_m2_sem
                                 activo['m2_descubiertos'] = e_m2_desc
                                 activo['m2_comunes'] = e_m2_com
+                                activo['espacios_exteriores'] = e_espacios_ext
+                                activo['descripcion_libre'] = e_descripcion
                                 activo['tipo_exterior'] = e_tipo_ext
                                 activo['tiene_patio'] = e_tiene_patio
                                 activo['uso_exclusivo'] = e_uso_excl
