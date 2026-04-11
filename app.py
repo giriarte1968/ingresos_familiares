@@ -3025,8 +3025,7 @@ def mostrar_propiedades(mes):
                 ])
                 direccion = st.text_input("Dirección (opcional)")
             with col2:
-                # m2 se calcula automáticamente desde m2_cubiertos + semicubiertos + descubiertos + comunes
-                m2_cubiertos = st.number_input("Metros cubiertos (m²)", min_value=0, step=1)
+                m2_cubiertos = st.number_input("Metros cubiertos (m²)", min_value=0.0, value=0.0, step=0.5, help="Ingrese metros con decimales (ej: 41.5)")
                 dormitorios = st.number_input("Dormitorios", min_value=0, max_value=10)
                 baños = st.number_input("Baños", min_value=0, max_value=10)
                 antiguedad = st.number_input("Antigüedad (años)", min_value=0, value=0)
@@ -3042,9 +3041,9 @@ def mostrar_propiedades(mes):
             st.caption("Superficies diferenciadas")
             col_s1, col_s2 = st.columns(2)
             with col_s1:
-                m2_semicubiertos = st.number_input("m² semicubiertos", min_value=0, value=0, help="Galería, quincho cubierto")
-                m2_descubiertos = st.number_input("m² descubiertos", min_value=0, value=0, help="Patio, terraza descubierta")
-                m2_comunes = st.number_input("m² comunes", min_value=0, value=0, help="Patio de uso común del edificio")
+                m2_semicubiertos = st.number_input("m² semicubiertos", min_value=0.0, value=0.0, step=0.5, help="Galería, quincho cubierto")
+                m2_descubiertos = st.number_input("m² descubiertos", min_value=0.0, value=0.0, step=0.5, help="Patio, terraza descubierta")
+                m2_comunes = st.number_input("m² comunes", min_value=0.0, value=0.0, step=0.5, help="Patio de uso común del edificio")
             with col_s2:
                 tipo_exterior = st.selectbox("Tipo espacio exterior", ["ninguno", "patio", "balcon", "terraza"], help="Tipo de espacio exterior que tiene")
                 tiene_patio = st.checkbox("Tiene patio", value=False)
@@ -3052,8 +3051,10 @@ def mostrar_propiedades(mes):
                 propiedad_exterior = st.selectbox("Propiedad exterior", ["comun", "propio"], index=0, help="Si el espacio exterior es propio o común (del edificio)")
                 if tiene_patio:
                     privacidad_patio = st.selectbox("Privacidad patio", ["alta", "media", "baja"], index=1)
+                    balcon_con_rejas = st.checkbox("Balcón con rejas", value=False, help="Indica si el balcón tiene rejas de seguridad")
                 else:
                     privacidad_patio = "media"
+                    balcon_con_rejas = False
 
             st.caption("Características constructivas y de mercado")
             col3, col4 = st.columns(2)
@@ -3124,6 +3125,7 @@ def mostrar_propiedades(mes):
                     'detalles_categoria': detalles_cat,
                     'cochera': cochera,
                     'espacios_exteriores': espacios_exteriores,
+                    'balcon_con_rejas': balcon_con_rejas,
                     'descripcion_libre': descripcion_libre,
                     'm2': m2_cubiertos + m2_semicubiertos + m2_descubiertos + m2_comunes,  # calculado automáticamente
                     'valor_compra_usd': valor_compra_usd,
@@ -3314,10 +3316,10 @@ def mostrar_propiedades(mes):
 
                     e_direccion = st.text_input("Dirección", value=prop.get('direccion', ''), key=f"e_direccion_{prop['id']}")
                     # m2 se calcula automáticamente desde los campos individuales
-                    e_m2_cub = st.number_input("m² cubiertos", min_value=0, value=prop.get('m2_cubiertos', 0), key=f"e_m2_cub_{prop['id']}")
-                    e_m2_sem = st.number_input("m² semicubiertos", min_value=0, value=prop.get('m2_semicubiertos', 0), key=f"e_m2_sem_{prop['id']}")
-                    e_m2_desc = st.number_input("m² descubiertos", min_value=0, value=prop.get('m2_descubiertos', 0), key=f"e_m2_desc_{prop['id']}")
-                    e_m2_com = st.number_input("m² comunes", min_value=0, value=prop.get('m2_comunes', 0), key=f"e_m2_com_{prop['id']}")
+                    e_m2_cub = st.number_input("m² cubiertos", min_value=0.0, value=float(prop.get('m2_cubiertos', 0)), step=0.5, key=f"e_m2_cub_{prop['id']}")
+                    e_m2_sem = st.number_input("m² semicubiertos", min_value=0.0, value=float(prop.get('m2_semicubiertos', 0)), step=0.5, key=f"e_m2_sem_{prop['id']}")
+                    e_m2_desc = st.number_input("m² descubiertos", min_value=0.0, value=float(prop.get('m2_descubiertos', 0)), step=0.5, key=f"e_m2_desc_{prop['id']}")
+                    e_m2_com = st.number_input("m² comunes", min_value=0.0, value=float(prop.get('m2_comunes', 0)), step=0.5, key=f"e_m2_com_{prop['id']}")
 
                     e_espacios_ext = st.multiselect(
                         "Espacios exteriores",
@@ -3325,6 +3327,8 @@ def mostrar_propiedades(mes):
                         default=prop.get('espacios_exteriores', []),
                         key=f"e_espacios_ext_{prop['id']}"
                     )
+
+                    e_balcon_rejas = st.checkbox("Balcón con rejas", value=prop.get('balcon_con_rejas', False), key=f"e_balcon_rejas_{prop['id']}")
 
                     e_tipo_ext = st.selectbox("Tipo exterior", ["ninguno", "patio", "balcon", "terraza"],
                                             index=["ninguno", "patio", "balcon", "terraza"].index(prop.get('tipo_exterior', 'ninguno')) if prop.get('tipo_exterior') in ["ninguno", "patio", "balcon", "terraza"] else 0,
@@ -3369,6 +3373,7 @@ def mostrar_propiedades(mes):
                                 activo['m2_descubiertos'] = e_m2_desc
                                 activo['m2_comunes'] = e_m2_com
                                 activo['espacios_exteriores'] = e_espacios_ext
+                                activo['balcon_con_rejas'] = e_balcon_rejas
                                 activo['descripcion_libre'] = e_descripcion
                                 activo['tipo_exterior'] = e_tipo_ext
                                 activo['tiene_patio'] = e_tiene_patio
