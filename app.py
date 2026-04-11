@@ -3053,14 +3053,6 @@ def mostrar_propiedades(mes):
                 baños = st.number_input("Baños", min_value=0, max_value=10)
                 antiguedad = st.number_input("Antigüedad (años)", min_value=0, value=0)
 
-            st.caption("Espacios exteriores")
-            espacios_exteriores = st.multiselect(
-                "Espacios exteriores",
-                options=["balcon", "patio", "terraza"],
-                default=[],
-                help="Seleccione los espacios exteriores que tiene la propiedad"
-            )
-
             st.caption("Superficies diferenciadas")
             col_s1, col_s2 = st.columns(2)
             with col_s1:
@@ -3068,16 +3060,21 @@ def mostrar_propiedades(mes):
                 m2_descubiertos = st.number_input("m² descubiertos", min_value=0.0, value=0.0, step=0.5, help="Patio, terraza descubierta")
                 m2_comunes = st.number_input("m² comunes", min_value=0.0, value=0.0, step=0.5, help="Patio de uso común del edificio")
             with col_s2:
+                espacios_exteriores = st.multiselect(
+                    "Espacios exteriores",
+                    options=["balcon", "patio", "terraza"],
+                    default=[],
+                    help="Seleccione los espacios exteriores que tiene la propiedad"
+                )
                 tipo_exterior = st.selectbox("Tipo espacio exterior", ["ninguno", "patio", "balcon", "terraza"], help="Tipo de espacio exterior que tiene")
                 tiene_patio = st.checkbox("Tiene patio", value=False)
                 uso_exclusivo = st.checkbox("Uso exclusivo", value=True, help="El espacio exterior es de uso exclusivo o común")
                 propiedad_exterior = st.selectbox("Propiedad exterior", ["comun", "propio"], index=0, help="Si el espacio exterior es propio o común (del edificio)")
                 if tiene_patio:
                     privacidad_patio = st.selectbox("Privacidad patio", ["alta", "media", "baja"], index=1)
-                    balcon_con_rejas = st.checkbox("Balcón con rejas", value=False, help="Indica si el balcón tiene rejas de seguridad")
                 else:
                     privacidad_patio = "media"
-                    balcon_con_rejas = False
+                balcon_con_rejas = st.checkbox("Balcón con rejas", value=False, help="Indica si el balcón tiene rejas de seguridad")
 
             st.caption("Características constructivas y de mercado")
             col3, col4 = st.columns(2)
@@ -3124,7 +3121,7 @@ def mostrar_propiedades(mes):
                     'tipo_inmueble': tipo,
                     'zona': zona,
                     'direccion': direccion,
-                    'm2': m2,
+                    'm2': m2_cubiertos + m2_semicubiertos + m2_descubiertos + m2_comunes,
                     'm2_cubiertos': m2_cubiertos,
                     'm2_semicubiertos': m2_semicubiertos,
                     'm2_descubiertos': m2_descubiertos,
@@ -3150,7 +3147,6 @@ def mostrar_propiedades(mes):
                     'espacios_exteriores': espacios_exteriores,
                     'balcon_con_rejas': balcon_con_rejas,
                     'descripcion_libre': descripcion_libre,
-                    'm2': m2_cubiertos + m2_semicubiertos + m2_descubiertos + m2_comunes,  # calculado automáticamente
                     'valor_compra_usd': valor_compra_usd,
                     'fecha_compra': fecha_compra.strftime('%Y-%m-%d'),
                     'moneda_compra': moneda_compra,
@@ -3374,7 +3370,14 @@ def mostrar_propiedades(mes):
                         key=f"e_descripcion_{prop['id']}"
                     )
 
-                    st.caption("Datos de compra")
+            st.caption("Descripción")
+            descripcion_libre = st.text_area(
+                "Descripción libre del inmueble",
+                placeholder="Ej: luminoso, vista despejada, edificio de categoría, ruidoso, etc.",
+                help="Este campo se usará para extraer features mediante NLP"
+            )
+
+            st.caption("Datos de compra")
                     ec3, ec4 = st.columns(2)
                     with ec3:
                         e_valor_compra = st.number_input("Valor de compra (USD)", min_value=0.0, value=float(prop.get('valor_compra_usd', 0)), step=1000.0, key=f"e_valor_compra_{prop['id']}")
