@@ -3310,7 +3310,6 @@ def mostrar_propiedades(mes):
                             "Echesortu", "Fisherton", "Ruta 9", "Sur", "Norte", "Oeste",
                             "Sexta Pellegrini", "República de la Sexta", "Otro"].index(prop.get('zona', 'Otro')),
                             key=f"e_zona_{prop['id']}")
-                        e_m2 = st.number_input("Metros cuadrados (m²)", min_value=0, value=prop.get('m2', 0), key=f"e_m2_tot_{prop['id']}")
                     with ec2:
                         e_dorm = st.number_input("Dormitorios", min_value=0, max_value=10, value=prop.get('dormitorios', 0), key=f"e_dorm_{prop['id']}")
                         e_baños = st.number_input("Baños", min_value=0, max_value=10, value=prop.get('baños', 0), key=f"e_baños_{prop['id']}")
