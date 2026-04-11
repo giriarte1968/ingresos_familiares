@@ -3276,11 +3276,9 @@ def mostrar_propiedades(mes):
                     st.session_state[f"editing_prop_{prop['id']}"] = True
             with c_head3:
                 if st.button("🗑 Eliminar", key=f"del_prop_{prop['id']}", type="secondary"):
+                    st.session_state.pop(f"editing_prop_{prop['id']}", None)
                     propiedades = [p for p in propiedades if p.get('id') != prop['id']]
                     guardar_propiedades(propiedades)
-                    st.rerun()
-                    st.session_state.datos = datos
-                    st.session_state.pop(f"editing_prop_{prop['id']}", None)
                     st.success(f"Propiedad '{prop['nombre']}' eliminada")
                     st.rerun()
 
