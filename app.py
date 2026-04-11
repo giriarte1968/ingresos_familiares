@@ -18,6 +18,7 @@ from subpagos import extraer_subpagos, generar_id
 
 # Archivo de datos (ruta absoluta)
 DATOS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'datos.json')
+PROPIEDADES_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'propiedades.json')
 
 # Estructura de datos:
 # {
@@ -45,6 +46,28 @@ def cargar_datos():
     except Exception as e:
         print(f"Error cargando datos: {e}")
     return {'activos': [], 'meses': {}}
+
+
+def cargar_propiedades():
+    """Carga propiedades desde propiedades.json"""
+    try:
+        if os.path.exists(PROPIEDADES_FILE):
+            with open(PROPIEDADES_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                return data.get('propiedades', [])
+    except Exception as e:
+        print(f"Error cargando propiedades: {e}")
+    return []
+
+
+def guardar_propiedades(propiedades):
+    """Guarda propiedades a propiedades.json"""
+    try:
+        with open(PROPIEDADES_FILE, 'w', encoding='utf-8') as f:
+            json.dump({'propiedades': propiedades}, f, indent=2, ensure_ascii=False)
+        print(f"Guardadas {len(propiedades)} propiedades")
+    except Exception as e:
+        print(f"Error guardando propiedades: {e}")
 
 
 def guardar_datos(datos, silent=False):
@@ -1288,10 +1311,10 @@ def mostrar_dashboard(mes):
     # Resumen de activos
     st.subheader("Resumen de Activos")
     activos = datos.get('activos', [])
+    propiedades = cargar_propiedades()  # Cargar desde propiedades.json
     
     if activos:
         fondos = [a for a in activos if a.get('tipo') == 'fondo_mutuo']
-        propiedades = [a for a in activos if a.get('tipo') == 'propiedad']
         
         col1, col2, col3 = st.columns(3)
         total_fondos = sum(a.get('valor_final_ars', 0) for a in fondos)
@@ -1304,7 +1327,7 @@ def mostrar_dashboard(mes):
     # Detalles por categoría
     if activos:
         activos = datos.get('activos', [])
-        propiedades = [a for a in activos if a.get('tipo') == 'propiedad']
+        propiedades = cargar_propiedades()  # Cargar desde propiedades.json
         if propiedades:
             st.subheader("Propiedades")
             df_props = pd.DataFrame(propiedades)
@@ -3004,7 +3027,7 @@ def mostrar_propiedades(mes):
         mes_prop = mes
 
     activos = datos.get('activos', [])
-    propiedades = [a for a in activos if a.get('tipo') == 'propiedad']
+    propiedades = cargar_propiedades()  # Cargar desde propiedades.json
 
     usdt_ars = obtener_usdt_ars_binance() or 1500
 
@@ -3089,7 +3112,7 @@ def mostrar_propiedades(mes):
             submitted = st.form_submit_button("Guardar Propiedad")
 
             if submitted and nombre:
-                existe = any(a.get('nombre') == nombre and a.get('tipo') == 'propiedad' for a in activos)
+                existe = any(p.get('nombre') == nombre for p in propiedades)
                 if existe:
                     st.warning(f"La propiedad '{nombre}' ya existe")
                 else:
@@ -3138,14 +3161,13 @@ def mostrar_propiedades(mes):
                     'tasaciones': [],
                     'ultima_valuacion': None
                 }
-                activos.append(prop_data)
-                datos['activos'] = activos
-                guardar_datos(datos)
+                propiedades.append(prop_data)
+                guardar_propiedades(propiedades)
                 # Limpiar session_state de valuaciones para evitar datos stale
                 keys_to_clear = [k for k in st.session_state.keys() if k.startswith("valuacion_prop_")]
                 for k in keys_to_clear:
                     del st.session_state[k]
-                st.success(f"Propiedad '{nombre}' guardada como activo")
+                st.success(f"Propiedad '{nombre}' guardada")
                 st.rerun()
 
     # Mostrar propiedades existentes
@@ -3258,8 +3280,9 @@ def mostrar_propiedades(mes):
                     st.session_state[f"editing_prop_{prop['id']}"] = True
             with c_head3:
                 if st.button("🗑 Eliminar", key=f"del_prop_{prop['id']}", type="secondary"):
-                    datos['activos'] = [a for a in activos if a.get('id') != prop['id']]
-                    guardar_datos(datos)
+                    propiedades = [p for p in propiedades if p.get('id') != prop['id']]
+                    guardar_propiedades(propiedades)
+                    st.rerun()
                     st.session_state.datos = datos
                     st.session_state.pop(f"editing_prop_{prop['id']}", None)
                     st.success(f"Propiedad '{prop['nombre']}' eliminada")
@@ -3361,40 +3384,39 @@ def mostrar_propiedades(mes):
 
                     e_submit = st.form_submit_button("Guardar Cambios")
                     if e_submit and e_nombre:
-                        for activo in datos.get('activos', []):
-                            if activo.get('id') == prop['id']:
-                                activo['nombre'] = e_nombre
-                                activo['tipo_inmueble'] = e_tipo
-                                activo['zona'] = e_zona
-                                activo['direccion'] = e_direccion
-                                activo['m2'] = e_m2_cub + e_m2_sem + e_m2_desc + e_m2_com
-                                activo['m2_cubiertos'] = e_m2_cub
-                                activo['m2_semicubiertos'] = e_m2_sem
-                                activo['m2_descubiertos'] = e_m2_desc
-                                activo['m2_comunes'] = e_m2_com
-                                activo['espacios_exteriores'] = e_espacios_ext
-                                activo['balcon_con_rejas'] = e_balcon_rejas
-                                activo['descripcion_libre'] = e_descripcion
-                                activo['tipo_exterior'] = e_tipo_ext
-                                activo['tiene_patio'] = e_tiene_patio
-                                activo['uso_exclusivo'] = e_uso_excl
-                                activo['propiedad_exterior'] = e_prop_ext
-                                activo['dormitorios'] = e_dorm
-                                activo['baños'] = e_baños
-                                activo['piso'] = e_piso
-                                activo['estado_detalle'] = e_estado
-                                activo['calidad_edificio'] = e_calidad
-                                activo['ventilacion'] = e_vent
-                                activo['orientacion'] = e_orient
-                                activo['terminaciones_suelo'] = e_suelo
-                                activo['distribucion_cocina'] = e_cocina
-                                activo['carpinteria'] = e_carp
-                                activo['detalles_categoria'] = e_detalles
-                                activo['cochera'] = e_cochera
-                                activo['valor_compra_usd'] = e_valor_compra
-                                activo['fecha_compra'] = e_fecha_compra.strftime('%Y-%m-%d') if e_fecha_compra else None
-                        guardar_datos(datos)
-                        st.session_state.datos = datos
+                        for prop_item in propiedades:
+                            if prop_item.get('id') == prop['id']:
+                                prop_item['nombre'] = e_nombre
+                                prop_item['tipo_inmueble'] = e_tipo
+                                prop_item['zona'] = e_zona
+                                prop_item['direccion'] = e_direccion
+                                prop_item['m2'] = e_m2_cub + e_m2_sem + e_m2_desc + e_m2_com
+                                prop_item['m2_cubiertos'] = e_m2_cub
+                                prop_item['m2_semicubiertos'] = e_m2_sem
+                                prop_item['m2_descubiertos'] = e_m2_desc
+                                prop_item['m2_comunes'] = e_m2_com
+                                prop_item['espacios_exteriores'] = e_espacios_ext
+                                prop_item['balcon_con_rejas'] = e_balcon_rejas
+                                prop_item['descripcion_libre'] = e_descripcion
+                                prop_item['tipo_exterior'] = e_tipo_ext
+                                prop_item['tiene_patio'] = e_tiene_patio
+                                prop_item['uso_exclusivo'] = e_uso_excl
+                                prop_item['propiedad_exterior'] = e_prop_ext
+                                prop_item['dormitorios'] = e_dorm
+                                prop_item['baños'] = e_baños
+                                prop_item['piso'] = e_piso
+                                prop_item['estado_detalle'] = e_estado
+                                prop_item['calidad_edificio'] = e_calidad
+                                prop_item['ventilacion'] = e_vent
+                                prop_item['orientacion'] = e_orient
+                                prop_item['terminaciones_suelo'] = e_suelo
+                                prop_item['distribucion_cocina'] = e_cocina
+                                prop_item['carpinteria'] = e_carp
+                                prop_item['detalles_categoria'] = e_detalles
+                                prop_item['cochera'] = e_cochera
+                                prop_item['valor_compra_usd'] = e_valor_compra
+                                prop_item['fecha_compra'] = e_fecha_compra.strftime('%Y-%m-%d') if e_fecha_compra else None
+                        guardar_propiedades(propiedades)
                         st.session_state[f"editing_prop_{prop['id']}"] = False
                         st.success(f"Propiedad '{e_nombre}' actualizada")
                         st.rerun()
@@ -4282,7 +4304,7 @@ def mostrar_activos():
 
     # Separar por tipo
     fondos = [a for a in activos if a.get('tipo') == 'fondo_mutuo']
-    propiedades = [a for a in activos if a.get('tipo') == 'propiedad']
+    propiedades = cargar_propiedades()  # Cargar desde propiedades.json
     adrs = [a for a in activos if a.get('tipo') == 'adr']
     oros = [a for a in activos if a.get('tipo') == 'oro']
     otros = [a for a in activos if a.get('tipo') not in ['fondo_mutuo', 'propiedad', 'adr', 'oro']]
