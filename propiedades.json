@@ -181,9 +181,10 @@
       "ultima_valuacion": "2026-04-06",
       "descripcion_libre": "",
       "balcon_con_rejas": false,
-      "m2_semicubiertos": 0.0,
-      "m2_descubiertos": 0.0,
-      "m2_comunes": 0.0
+      "m2_semicubiertos": 0,
+      "m2_descubiertos": 0,
+      "m2_comunes": 0,
+      "balcon_techado": false
     },
     {
       "id": 10,
@@ -246,9 +247,10 @@
       "ultima_valuacion": "2026-04-06",
       "descripcion_libre": "",
       "balcon_con_rejas": false,
-      "m2_semicubiertos": 0.0,
-      "m2_descubiertos": 0.0,
-      "m2_comunes": 0.0
+      "m2_semicubiertos": 0,
+      "m2_descubiertos": 0,
+      "m2_comunes": 0,
+      "balcon_techado": false
     },
     {
       "id": "prop_e559e7cc",
@@ -293,7 +295,8 @@
       "tasaciones": [],
       "ultima_valuacion": null,
       "descripcion_libre": "",
-      "balcon_con_rejas": false
+      "balcon_con_rejas": false,
+      "balcon_techado": false
     }
   ]
 }
