@@ -3378,13 +3378,13 @@ def mostrar_propiedades(mes):
             )
 
             st.caption("Datos de compra")
-                    ec3, ec4 = st.columns(2)
-                    with ec3:
-                        e_valor_compra = st.number_input("Valor de compra (USD)", min_value=0.0, value=float(prop.get('valor_compra_usd', 0)), step=1000.0, key=f"e_valor_compra_{prop['id']}")
-                    with ec4:
-                        e_fecha_compra = st.date_input("Fecha de compra", value=datetime.strptime(prop.get('fecha_compra', '2020-01-01'), '%Y-%m-%d') if prop.get('fecha_compra') else datetime(2020,1,1), key=f"e_fecha_compra_{prop['id']}")
+            ec3, ec4 = st.columns(2)
+            with ec3:
+                e_valor_compra = st.number_input("Valor de compra (USD)", min_value=0.0, value=float(prop.get('valor_compra_usd', 0)), step=1000.0, key=f"e_valor_compra_{prop['id']}")
+            with ec4:
+                e_fecha_compra = st.date_input("Fecha de compra", value=datetime.strptime(prop.get('fecha_compra', '2020-01-01'), '%Y-%m-%d') if prop.get('fecha_compra') else datetime(2020,1,1), key=f"e_fecha_compra_{prop['id']}")
 
-                    e_submit = st.form_submit_button("Guardar Cambios")
+            e_submit = st.form_submit_button("Guardar Cambios")
                     if e_submit and e_nombre:
                         for prop_item in propiedades:
                             if prop_item.get('id') == prop['id']:
