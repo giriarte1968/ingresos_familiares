@@ -3360,7 +3360,7 @@ def mostrar_propiedades(mes):
                     e_piso = st.number_input("Piso (0 = planta baja)", min_value=0, value=prop.get('piso', 0), key=f"e_piso_{prop['id']}")
                     e_orient = st.selectbox("Orientación", ["norte", "noreste", "este", "sureste", "sur", "suroeste", "oeste", "noroeste"],
                                            index=["norte", "noreste", "este", "sureste", "sur", "suroeste", "oeste", "noroeste"].index(prop.get('orientacion', 'este')) if prop.get('orientacion') in ["norte", "noreste", "este", "sureste", "sur", "suroeste", "oeste", "noroeste"] else 2,
-                                           key=f"e_orient_{prop['id']}")
+                                            key=f"e_orient_{prop['id']}")
                     e_cochera = st.checkbox("Cochera", value=prop.get('cochera', False), key=f"e_cochera_{prop['id']}")
 
                     e_descripcion = st.text_area(
@@ -3370,21 +3370,14 @@ def mostrar_propiedades(mes):
                         key=f"e_descripcion_{prop['id']}"
                     )
 
-            st.caption("Descripción")
-            descripcion_libre = st.text_area(
-                "Descripción libre del inmueble",
-                placeholder="Ej: luminoso, vista despejada, edificio de categoría, ruidoso, etc.",
-                help="Este campo se usará para extraer features mediante NLP"
-            )
+                    st.caption("Datos de compra")
+                    ec3, ec4 = st.columns(2)
+                    with ec3:
+                        e_valor_compra = st.number_input("Valor de compra (USD)", min_value=0.0, value=float(prop.get('valor_compra_usd', 0)), step=1000.0, key=f"e_valor_compra_{prop['id']}")
+                    with ec4:
+                        e_fecha_compra = st.date_input("Fecha de compra", value=datetime.strptime(prop.get('fecha_compra', '2020-01-01'), '%Y-%m-%d') if prop.get('fecha_compra') else datetime(2020,1,1), key=f"e_fecha_compra_{prop['id']}")
 
-            st.caption("Datos de compra")
-            ec3, ec4 = st.columns(2)
-            with ec3:
-                e_valor_compra = st.number_input("Valor de compra (USD)", min_value=0.0, value=float(prop.get('valor_compra_usd', 0)), step=1000.0, key=f"e_valor_compra_{prop['id']}")
-            with ec4:
-                e_fecha_compra = st.date_input("Fecha de compra", value=datetime.strptime(prop.get('fecha_compra', '2020-01-01'), '%Y-%m-%d') if prop.get('fecha_compra') else datetime(2020,1,1), key=f"e_fecha_compra_{prop['id']}")
-
-            e_submit = st.form_submit_button("Guardar Cambios")
+                    e_submit = st.form_submit_button("Guardar Cambios")
             if e_submit and e_nombre:
                 for prop_item in propiedades:
                     if prop_item.get('id') == prop['id']:
