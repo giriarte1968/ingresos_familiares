@@ -3378,43 +3378,43 @@ def mostrar_propiedades(mes):
                         e_fecha_compra = st.date_input("Fecha de compra", value=datetime.strptime(prop.get('fecha_compra', '2020-01-01'), '%Y-%m-%d') if prop.get('fecha_compra') else datetime(2020,1,1), key=f"e_fecha_compra_{prop['id']}")
 
                     e_submit = st.form_submit_button("Guardar Cambios")
-            if e_submit and e_nombre:
-                for prop_item in propiedades:
-                    if prop_item.get('id') == prop['id']:
-                        prop_item['nombre'] = e_nombre
-                        prop_item['tipo_inmueble'] = e_tipo
-                        prop_item['zona'] = e_zona
-                        prop_item['direccion'] = e_direccion
-                        prop_item['m2'] = e_m2_cub + e_m2_sem + e_m2_desc + e_m2_com
-                        prop_item['m2_cubiertos'] = e_m2_cub
-                        prop_item['m2_semicubiertos'] = e_m2_sem
-                        prop_item['m2_descubiertos'] = e_m2_desc
-                        prop_item['m2_comunes'] = e_m2_com
-                        prop_item['espacios_exteriores'] = e_espacios_ext
-                        prop_item['balcon_con_rejas'] = e_balcon_rejas
-                        prop_item['descripcion_libre'] = e_descripcion
-                        prop_item['tipo_exterior'] = e_tipo_ext
-                        prop_item['tiene_patio'] = e_tiene_patio
-                        prop_item['uso_exclusivo'] = e_uso_excl
-                        prop_item['propiedad_exterior'] = e_prop_ext
-                        prop_item['dormitorios'] = e_dorm
-                        prop_item['baños'] = e_baños
-                        prop_item['piso'] = e_piso
-                        prop_item['estado_detalle'] = e_estado
-                        prop_item['calidad_edificio'] = e_calidad
-                        prop_item['ventilacion'] = e_vent
-                        prop_item['orientacion'] = e_orient
-                        prop_item['terminaciones_suelo'] = e_suelo
-                        prop_item['distribucion_cocina'] = e_cocina
-                        prop_item['carpinteria'] = e_carp
-                        prop_item['detalles_categoria'] = e_detalles
-                        prop_item['cochera'] = e_cochera
-                        prop_item['valor_compra_usd'] = e_valor_compra
-                        prop_item['fecha_compra'] = e_fecha_compra.strftime('%Y-%m-%d') if e_fecha_compra else None
-                guardar_propiedades(propiedades)
-                st.session_state[f"editing_prop_{prop['id']}"] = False
-                st.success(f"Propiedad '{e_nombre}' actualizada")
-                st.rerun()
+                    if e_submit and e_nombre:
+                        for prop_item in propiedades:
+                            if prop_item.get('id') == prop['id']:
+                                prop_item['nombre'] = e_nombre
+                                prop_item['tipo_inmueble'] = e_tipo
+                                prop_item['zona'] = e_zona
+                                prop_item['direccion'] = e_direccion
+                                prop_item['m2'] = e_m2_cub + e_m2_sem + e_m2_desc + e_m2_com
+                                prop_item['m2_cubiertos'] = e_m2_cub
+                                prop_item['m2_semicubiertos'] = e_m2_sem
+                                prop_item['m2_descubiertos'] = e_m2_desc
+                                prop_item['m2_comunes'] = e_m2_com
+                                prop_item['espacios_exteriores'] = e_espacios_ext
+                                prop_item['balcon_con_rejas'] = e_balcon_rejas
+                                prop_item['descripcion_libre'] = e_descripcion
+                                prop_item['tipo_exterior'] = e_tipo_ext
+                                prop_item['tiene_patio'] = e_tiene_patio
+                                prop_item['uso_exclusivo'] = e_uso_excl
+                                prop_item['propiedad_exterior'] = e_prop_ext
+                                prop_item['dormitorios'] = e_dorm
+                                prop_item['baños'] = e_baños
+                                prop_item['piso'] = e_piso
+                                prop_item['estado_detalle'] = e_estado
+                                prop_item['calidad_edificio'] = e_calidad
+                                prop_item['ventilacion'] = e_vent
+                                prop_item['orientacion'] = e_orient
+                                prop_item['terminaciones_suelo'] = e_suelo
+                                prop_item['distribucion_cocina'] = e_cocina
+                                prop_item['carpinteria'] = e_carp
+                                prop_item['detalles_categoria'] = e_detalles
+                                prop_item['cochera'] = e_cochera
+                                prop_item['valor_compra_usd'] = e_valor_compra
+                                prop_item['fecha_compra'] = e_fecha_compra.strftime('%Y-%m-%d') if e_fecha_compra else None
+                    guardar_propiedades(propiedades)
+                    st.session_state[f"editing_prop_{prop['id']}"] = False
+                    st.success(f"Propiedad '{e_nombre}' actualizada")
+                    st.rerun()
 
                 if st.button("Cancelar edición", key=f"cancel_edit_{prop['id']}"):
                     st.session_state[f"editing_prop_{prop['id']}"] = False
