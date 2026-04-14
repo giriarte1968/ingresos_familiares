@@ -2998,20 +2998,28 @@ def mostrar_propiedades(mes):
 
     datos = st.session_state.datos
     
-    # 1. Boton Actulizar Mercado Inmobiliario en Tiempo Real
+    # 1. Boton Mercado (VPP Sync) Híbrido 7.0
     c1, c2 = st.columns([3, 2])
+    with c1:
+        try:
+            from parsers.motor_vpp_core import load_cache
+            cache_info = load_cache()
+            if cache_info:
+                from datetime import datetime
+                dt_cache = datetime.fromisoformat(cache_info.get("fecha"))
+                st.caption(f"🕒 Mercado: **{dt_cache.strftime('%d/%m %H:%M')}**")
+                if cache_info.get("status") == "corriendo":
+                    st.warning("🔄 Escaneo masivo en progreso...")
+        except:
+            st.caption("🕒 Mercado: Pendiente actualización")
     with c2:
-        if st.button("🌐 Actualizar Base Mercado (Scraping)", help="Recalcula el valor referencial (Base Ciudad 2026) escaneando ofertas reales en la web hoy."):
-            with st.spinner("Consultando precio del m² en vivo desde Argenprop... (puede demorar unos segundos)"):
-                try:
-                    from parsers.mercado_inmobiliario import actualizar_base_ciudad_web
-                    nuevo_valor = actualizar_base_ciudad_web()
-                    if nuevo_valor:
-                        st.success(f"¡Base de tasación actualizada! Nuevo promedio general base p/ Rosario: USD {nuevo_valor}/m²")
-                    else:
-                        st.error("No se pudo extraer el valor del mercado en este momento.")
-                except Exception as e:
-                    st.error(f"Fallo al conectar con el portal inmobiliario: {e}")
+        if st.button("🌐 Actualizar Mercado (VPP Sync)", help="Dispara escaneo masivo (Argenprop, TTL, Top20, etc)"):
+            import threading
+            from parsers.motor_vpp_core import actualizar_mercado_vpp_full, save_cache, load_cache
+            info = load_cache() or {"propiedades": []}
+            save_cache(info.get("propiedades", []), status="corriendo")
+            threading.Thread(target=actualizar_mercado_vpp_full).start()
+            st.info("🚀 Escaneo iniciado en background. Los resultados se actualizarán al finalizar.")
 
     # 2. Selector de período local
     meses_disponibles = sorted(datos.get('meses', {}).keys(), reverse=True)
@@ -3211,16 +3219,15 @@ def mostrar_propiedades(mes):
         with st.container():
             st.divider()
 
-            # SIEMPRE calcular del motor v6.0 (AVM robusto)
-            from parsers.mercado_inmobiliario import valuar_propiedad_v6
-            resultado = valuar_propiedad_v6(prop, fecha_ref=mes_prop)
-            valor_display = resultado['valor_propiedad_usd']
-            valor_realizable = resultado.get('valor_realizable_usd', valor_display)
-            m2_equivalente = resultado.get('m2_equivalentes', prop.get('m2', 0))
-            m2_display = resultado.get('valor_m2_actual_usd', 0)
-            liquidez = resultado.get('liquidez', 1.0)
-            # Calcular descuento desde los valores (nuevo modelo no usa liquidez directamente)
-            descuento_liquidez = (valor_display - valor_realizable) / valor_display * 100 if valor_display > 0 else 0
+            # MOTOR V7.0 HÍBRIDO (Venda + Alquiler + ROI)
+            from parsers.mercado_inmobiliario import valuar_propiedad_v7
+            res = valuar_propiedad_v7(prop, fecha_ref=mes_prop)
+            valor_display = res['valor_propiedad_usd']
+            valor_realizable = res['valor_realizable_usd']
+            m2_equivalente = res['m2_equivalentes']
+            m2_display = res['valor_m2_actual_usd']
+            alq_ars = res['alquiler_estimado_ars']
+            cap_rate = res['cap_rate_anual']
 
             # Plusvalía de ciclo (vs fecha de compra)
             fecha_compra = prop.get('fecha_compra', None)
@@ -3263,13 +3270,11 @@ def mostrar_propiedades(mes):
                     f"{prop.get('estado_detalle', '')} | {prop.get('calidad_edificio', '')}"
                 )
                 if valor_display > 0:
-                    st.metric(f"Valor ({mes_prop})", f"${valor_display:,.0f} USD")
-                    descuento_pct = (valor_display - valor_realizable) / valor_display * 100 if valor_display > 0 else 0
-                    if descuento_pct > 0:
-                        st.metric(f"Valor realizable (-{int(descuento_pct)}% desc.)", f"${valor_realizable:,.0f} USD")
-                    else:
-                        st.metric(f"Valor realizable", f"${valor_realizable:,.0f} USD")
-                    st.caption("💡 Serie histórica real v6.0 + m2 equivalentes + mapeo zonas + descuento mercado")
+                    m1, m2, m3 = st.columns(3)
+                    m1.metric("Valor VPP", f"${valor_realizable:,.0f} USD")
+                    m2.metric("Alquiler", f"${alq_ars:,.0f} ARS")
+                    m3.metric("ROI Anual", f"{cap_rate:.2f}%")
+                    st.caption(f"💡 Modelo Híbrido V7.0 | Dólar Binance: ${res.get('usdt_ars', 1000):,.0f}")
             with c_head2:
                 if st.button("✏️ Editar", key=f"edit_btn_{prop['id']}"):
                     st.session_state[f"editing_prop_{prop['id']}"] = True
@@ -3406,10 +3411,13 @@ def mostrar_propiedades(mes):
                         st.success(f"Propiedad '{e_nombre}' actualizada")
                         st.rerun()
 
-                    if st.button("Cancelar", key=f"cancel_edit_{prop['id']}"):
-                        st.session_state[edit_key] = False
-                        st.rerun()
-                    st.divider()
+            # Cancelación fuera del formulario para evitar Streamlit form restrictions
+            with st.form(f"cancel_form_{prop['id']}"):
+                cancel_btn = st.form_submit_button("Cancelar edición")
+            if cancel_btn:
+                st.session_state[edit_key] = False
+                st.rerun()
+            st.divider()
 
             # Mostrar resultados del motor v6.0
             confianza = resultado.get('confianza', 'media')
@@ -3457,17 +3465,11 @@ def mostrar_propiedades(mes):
                 delta=f"-{int(descuento_liquidez)}% desc."
             )
 
-            with st.expander("Detalle de la valuación"):
-                st.write(resultado['justificacion'])
-                st.write(f"**Rango estimado:** {resultado['rango_m2']}")
-                st.write(f"**Plusvalía acumulada:** {resultado['plusvalia_acumulada_pct']:+.2f}%")
-
-                serie = resultado.get('serie_mensual_m2', [])
-                if serie:
-                    st.caption("Serie histórica del m² (USD)")
-                    df_serie = pd.DataFrame(serie)
-                    df_serie.columns = ['Fecha', 'Valor m² USD', 'Fuente']
-                    st.line_chart(df_serie.set_index('Fecha')['Valor m² USD'])
+            with st.expander("🔍 Análisis de Mercado VPP v7.0"):
+                st.info(res['justificacion'])
+                st.write(f"**Rango de Mercado:** {res['rango_m2']}")
+                st.write(f"**Confiabilidad:** {res['confianza'].upper()}")
+                st.caption(f"Datos basados en el escaneo del {res['fecha_mercado']}")
 
             st.divider()
 

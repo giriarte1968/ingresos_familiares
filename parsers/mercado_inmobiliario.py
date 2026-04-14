@@ -958,3 +958,80 @@ def valuar_propiedad_v6(propiedad, fecha_ref=None):
         'plusvalia_acumulada_pct': round(((valor / valor_hist) - 1) * 100, 2) if valor_hist > 0 else 0,
         'serie_mensual_m2': [],
     }
+
+def valuar_propiedad_v7(propiedad, fecha_ref=None):
+    """
+    🚀 Modelo v7.0 - Evolución Híbrida PROFESIONAL
+    Fusiona el Motor VPP (Clusters/Market) con Factores Físicos (Legacy).
+    """
+    from parsers.motor_vpp_core import load_cache, cargar_anclas, calcular_valor_vpp, get_binance_usdt_ars
+    
+    prop = sanitizar_propiedad(propiedad)
+    cache = load_cache()
+    anclas = cargar_anclas()
+    
+    # 1. Obtener Precios Base de Mercado (Venta y Alquiler)
+    props_cache = cache.get("propiedades", []) if cache else []
+    ventas_cache = [p for p in props_cache if p.get('operacion') == 'venta' or p.get('operacion') is None]
+    alquileres_cache = [p for p in props_cache if p.get('operacion') == 'alquiler']
+    
+    lat = prop.get('lat', -32.9545) # Fallback Ayacucho
+    lon = prop.get('lon', -60.6455)
+    m2_obj = prop.get('m2', 30)
+    zona_txt = prop.get('zona', 'centro')
+    
+    # Valuación VPP Híbrida (Venta)
+    m2_base_venta, pr_cluster, pr_ancla, n_v = calcular_valor_vpp(
+        ventas_cache, lat, lon, m2_obj, zona_txt, anclas
+    )
+    
+    # Valuación Alquiler Mercado Puro (usamos 100% cluster)
+    _, m2_base_alquiler, _, n_a = calcular_valor_vpp(
+        alquileres_cache, lat, lon, m2_obj, zona_txt, anclas
+    )
+    
+    # 2. Factores Físicos Propios (Legacy)
+    m2_equiv = calcular_m2_equivalentes(prop)
+    factores = calcular_factores(prop)
+    
+    # 3. Valor Final de Venta
+    valor_venta = m2_equiv * m2_base_venta * factores
+    
+    # Descuento de Liquidez (Legacy)
+    # Sempre hay descuento base del 6% ajustado por zona
+    descuento_base = 0.06
+    ajuste_liq = -0.02 if m2_base_venta > 1600 else 0.03 if m2_base_venta < 1100 else 0
+    descuento_total = max(0.03, min(descuento_base + ajuste_liq, 0.12))
+    
+    valor_realizable = valor_venta * (1 - descuento_total)
+    
+    # 4. Alquiler y ROI
+    usdt_ars = get_binance_usdt_ars()
+    alquiler_mensual_ars = m2_obj * m2_base_alquiler
+    roi_anual_usd = (alquiler_mensual_ars * 12) / usdt_ars
+    cap_rate = (roi_anual_usd / valor_realizable) * 100 if valor_realizable > 0 else 0
+    
+    justificacion = (
+        f"VPP v7.0: Mercado {zona_txt} (${m2_base_venta:,.0f}/m2). "
+        f"Mezcla Cluster ({n_v} props) + Ancla Estructural. "
+        f"Alquiler detectado: ${alquiler_mensual_ars:,.0f} ARS. "
+        f"Rentabilidad: {cap_rate:.2f}% (Cap Rate) con Dólar Binance ${usdt_ars:,.0f}."
+    )
+    
+    rango_min = valor_venta * 0.90
+    rango_max = valor_venta * 1.10
+    
+    return {
+        'valor_propiedad_usd': round(valor_venta, 0),
+        'valor_realizable_usd': round(valor_realizable, 0),
+        'valor_m2_actual_usd': round(m2_base_venta, 2),
+        'alquiler_estimado_ars': round(alquiler_mensual_ars, 0),
+        'cap_rate_anual': round(cap_rate, 2),
+        'usdt_ars': usdt_ars,
+        'fecha_mercado': cache.get("fecha") if cache else "Sin datos",
+        'm2_equivalentes': m2_equiv,
+        'justificacion': justificacion,
+        'rango_m2': f"USD {rango_min:,.0f} - {rango_max:,.0f}",
+        'confianza': 'alta' if n_v > 10 else 'media',
+        'serie_mensual_m2': [],
+    }

@@ -195,8 +195,8 @@
       "direccion": "Ayacucho 1518",
       "lat": -32.9545,
       "lon": -60.6455,
-      "m2": 25.0,
-      "m2_cubiertos": 25,
+      "m2": 27.0,
+      "m2_cubiertos": 27.0,
       "dormitorios": 1,
       "baÃ±os": 1,
       "antiguedad": 24,
@@ -245,12 +245,16 @@
         }
       ],
       "ultima_valuacion": "2026-04-06",
-      "descripcion_libre": "",
+      "descripcion_libre": "luminoso",
       "balcon_con_rejas": false,
-      "m2_semicubiertos": 0,
-      "m2_descubiertos": 0,
-      "m2_comunes": 0,
-      "balcon_techado": false
+      "m2_semicubiertos": 0.0,
+      "m2_descubiertos": 0.0,
+      "m2_comunes": 0.0,
+      "balcon_techado": false,
+      "tipo_exterior": "ninguno",
+      "tiene_patio": false,
+      "uso_exclusivo": true,
+      "baños": 0
     },
     {
       "id": "prop_e559e7cc",

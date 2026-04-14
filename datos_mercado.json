@@ -5,26 +5,50 @@
       "2002": 0.35,
       "2005": 0.55,
       "2008": 0.85,
-      "2011": 1.20,
+      "2011": 1.2,
       "2015": 1.35,
       "2018": 1.45,
-      "2020": 1.20,
-      "2022": 1.10,
+      "2020": 1.2,
+      "2022": 1.1,
       "2023": 1.05,
-      "2024": 1.10,
+      "2024": 1.1,
       "2025": 1.18,
       "2026": 1.25
     }
   },
   "microzonas": {
-    "martin_rio": {"m2_base": 1850, "liquidez": 1.10},
-    "martin_interno": {"m2_base": 1600, "liquidez": 1.05},
-    "centro": {"m2_base": 1650, "liquidez": 1.10},
-    "pellegrini_cercano": {"m2_base": 1450, "liquidez": 1.05},
-    "macrocentro_sur": {"m2_base": 1200, "liquidez": 1.00},
-    "facultades": {"m2_base": 1050, "liquidez": 0.95},
-    "republica_sexta": {"m2_base": 1150, "liquidez": 0.95},
-    "sexta_pellegrini": {"m2_base": 1350, "liquidez": 1.00}
+    "martin_rio": {
+      "m2_base": 1850,
+      "liquidez": 1.1
+    },
+    "martin_interno": {
+      "m2_base": 1600,
+      "liquidez": 1.05
+    },
+    "centro": {
+      "m2_base": 1650,
+      "liquidez": 1.1
+    },
+    "pellegrini_cercano": {
+      "m2_base": 1450,
+      "liquidez": 1.05
+    },
+    "macrocentro_sur": {
+      "m2_base": 1200,
+      "liquidez": 1.0
+    },
+    "facultades": {
+      "m2_base": 1050,
+      "liquidez": 0.95
+    },
+    "republica_sexta": {
+      "m2_base": 1150,
+      "liquidez": 0.95
+    },
+    "sexta_pellegrini": {
+      "m2_base": 1350,
+      "liquidez": 1.0
+    }
   },
   "m2_equivalentes": {
     "cubiertos": 1.0,
@@ -33,9 +57,21 @@
     "comunes_exclusivo": 0.25
   },
   "factores": {
-    "piso": {"pb": 0.90, "medio": 1.00, "alto": 1.05},
-    "m2_rango": {"<35": 0.95, "35-50": 1.00, ">50": 0.97},
-    "calidad": {"alta": 1.15, "media": 1.00, "baja": 0.85}
+    "piso": {
+      "pb": 0.9,
+      "medio": 1.0,
+      "alto": 1.05
+    },
+    "m2_rango": {
+      "<35": 0.95,
+      "35-50": 1.0,
+      ">50": 0.97
+    },
+    "calidad": {
+      "alta": 1.15,
+      "media": 1.0,
+      "baja": 0.85
+    }
   },
   "tracking": {},
   "metadata": {
@@ -43,6 +79,12 @@
     "descripcion": "Modelo v6 con indice historico, microzonas, fusion dinamica y protecciones robustas",
     "fuente_anclas": "anclas_rosario.json",
     "metodo": "IDW_cuadratico",
-    "radio_km": 2.0
+    "radio_km": 2.0,
+    "base_ciudad_m2_2026": 1851.0
+  },
+  "serie_historica_m2_rosario": {
+    "datos": {
+      "2026": 1851.0
+    }
   }
 }
