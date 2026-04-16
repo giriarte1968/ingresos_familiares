@@ -2993,6 +2993,137 @@ def mostrar_egresos():
                             st.rerun()
 
 
+def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
+    """Función unificada para el formulario de propiedades v9.5"""
+    if prop_inicial is None:
+        prop_inicial = {}
+        
+    st.caption("Datos básicos")
+    col1, col2 = st.columns(2)
+    with col1:
+        nombre = st.text_input("Nombre de la propiedad", value=prop_inicial.get('nombre', ''), key=f"nombre_{key_suffix}")
+        tipo = st.selectbox("Tipo", ["departamento", "casa", "local", "oficina", "terreno"], 
+                           index=["departamento", "casa", "local", "oficina", "terreno"].index(prop_inicial.get('tipo_inmueble', 'departamento')) if prop_inicial.get('tipo_inmueble') in ["departamento", "casa", "local", "oficina", "terreno"] else 0,
+                           key=f"tipo_{key_suffix}")
+        zona = st.selectbox("Zona / Barrio", [
+            "Centro", "Macrocentro", "Barrio Inglés", "Pichincha", "Abasto",
+            "Martin", "Facultades", "Puerto Norte", "Barrio Tigre",
+            "Rosario Norte", "Alvear", "San Martín", "General Paz",
+            "Echesortu", "Fisherton", "Ruta 9", "Sur", "Norte", "Oeste",
+            "Sexta Pellegrini", "República de la Sexta", "Otro"
+        ], index=["Centro", "Macrocentro", "Barrio Inglés", "Pichincha", "Abasto",
+            "Martin", "Facultades", "Puerto Norte", "Barrio Tigre",
+            "Rosario Norte", "Alvear", "San Martín", "General Paz",
+            "Echesortu", "Fisherton", "Ruta 9", "Sur", "Norte", "Oeste",
+            "Sexta Pellegrini", "República de la Sexta", "Otro"].index(prop_inicial.get('zona', 'Otro')) if prop_inicial.get('zona') in ["Centro", "Macrocentro", "Barrio Inglés", "Pichincha", "Abasto", "Martin", "Facultades", "Puerto Norte", "Barrio Tigre", "Rosario Norte", "Alvear", "San Martín", "General Paz", "Echesortu", "Fisherton", "Ruta 9", "Sur", "Norte", "Oeste", "Sexta Pellegrini", "República de la Sexta", "Otro"] else 20,
+           key=f"zona_{key_suffix}")
+        direccion = st.text_input("Dirección (opcional)", value=prop_inicial.get('direccion', ''), key=f"direccion_{key_suffix}")
+        ubicacion_tipo = st.selectbox("Tipo de Ubicación", ["calle", "avenida", "esquina", "pasaje"],
+                                     index=["calle", "avenida", "esquina", "pasaje"].index(prop_inicial.get('ubicacion_tipo', 'calle')) if prop_inicial.get('ubicacion_tipo') in ["calle", "avenida", "esquina", "pasaje"] else 0,
+                                     key=f"ubica_tipo_{key_suffix}")
+    with col2:
+        m2_cubiertos = st.number_input("Metros cubiertos (m²)", min_value=0.0, value=float(prop_inicial.get('m2_cubiertos', 0.0)), step=0.5, key=f"m2_cub_{key_suffix}")
+        dormitorios = st.number_input("Dormitorios", min_value=0, max_value=10, value=int(prop_inicial.get('dormitorios', 0)), key=f"dorm_{key_suffix}")
+        baños = st.number_input("Baños", min_value=0, max_value=10, value=int(prop_inicial.get('baños', 0)), key=f"baños_{key_suffix}")
+        anio_const = st.number_input("Año de construcción", min_value=1900, max_value=2026, value=int(prop_inicial.get('anio_construccion', 2000)), key=f"anio_const_{key_suffix}")
+        constructora = st.text_input("Constructora / Desarrolladora", value=prop_inicial.get('constructora', ''), placeholder="Ej: Ulanovsky, Fundar...", key=f"const_{key_suffix}")
+
+    st.caption("Estructura y Altura")
+    col_p1, col_p2 = st.columns(2)
+    with col_p1:
+        piso = st.number_input("Piso de la unidad", min_value=0, max_value=50, value=int(prop_inicial.get('piso', 0)), key=f"piso_{key_suffix}")
+        total_pisos = st.number_input("Total de pisos del edificio", min_value=1, max_value=60, value=int(prop_inicial.get('total_pisos', 1)), key=f"total_p_{key_suffix}")
+    with col_p2:
+        vista = st.selectbox("Calidad de Vista", ["interna", "pulmon", "frente", "despejada", "rio"],
+                            index=["interna", "pulmon", "frente", "despejada", "rio"].index(prop_inicial.get('vista', 'frente')) if prop_inicial.get('vista') in ["interna", "pulmon", "frente", "despejada", "rio"] else 2,
+                            key=f"vista_{key_suffix}")
+        gas_ok = st.selectbox("Adecuación de Gas", ["si", "no", "en_proceso"], 
+                             index=["si", "no", "en_proceso"].index(prop_inicial.get('gas_ok', 'si')) if prop_inicial.get('gas_ok') in ["si", "no", "en_proceso"] else 0,
+                             key=f"gas_{key_suffix}")
+
+    st.caption("Superficies y Balcón")
+    col_s1, col_s2 = st.columns(2)
+    with col_s1:
+        m2_semicubiertos = st.number_input("m² semicubiertos", min_value=0.0, value=float(prop_inicial.get('m2_semicubiertos', 0.0)), key=f"m2_semi_{key_suffix}")
+        m2_descubiertos = st.number_input("m² descubiertos", min_value=0.0, value=float(prop_inicial.get('m2_descubiertos', 0.0)), key=f"m2_desc_{key_suffix}")
+        balcon = st.checkbox("Tiene balcón", value=prop_inicial.get('balcon', False), key=f"balcon_check_{key_suffix}")
+        if balcon:
+            tipo_balcon = st.selectbox("Tipo de Balcón", ["corrido", "L", "frances"],
+                                     index=["corrido", "L", "frances"].index(prop_inicial.get('tipo_balcon', 'corrido')) if prop_inicial.get('tipo_balcon') in ["corrido", "L", "frances"] else 0,
+                                     key=f"tipo_balcon_{key_suffix}")
+        else:
+            tipo_balcon = "ninguno"
+    with col_s2:
+        m2_comunes = st.number_input("m² comunes (exclusivos)", min_value=0.0, value=float(prop_inicial.get('m2_comunes', 0.0)), key=f"m2_com_{key_suffix}")
+        orientacion = st.selectbox("Orientación", ["norte", "noreste", "este", "sureste", "sur", "suroeste", "oeste", "noroeste"],
+                                  index=["norte", "noreste", "este", "sureste", "sur", "suroeste", "oeste", "noroeste"].index(prop_inicial.get('orientacion', 'este')) if prop_inicial.get('orientacion') in ["norte", "noreste", "este", "sureste", "sur", "suroeste", "oeste", "noroeste"] else 2,
+                                  key=f"orient_{key_suffix}")
+        ventilacion = st.selectbox("Ventilación", ["cruzada", "simple"], 
+                                  index=["cruzada", "simple"].index(prop_inicial.get('ventilacion', 'simple')) if prop_inicial.get('ventilacion') in ["cruzada", "simple"] else 1,
+                                  key=f"vent_{key_suffix}")
+
+    st.caption("Características Constructivas y Seguridad")
+    col3, col4 = st.columns(2)
+    with col3:
+        estado_detalle = st.selectbox("Estado detallado", ["a estrenar", "excelente", "muy bueno", "bueno", "regular", "a refaccionar"], 
+                                     index=["a estrenar", "excelente", "muy bueno", "bueno", "regular", "a refaccionar"].index(prop_inicial.get('estado_detalle', 'bueno')) if prop_inicial.get('estado_detalle') in ["a estrenar", "excelente", "muy bueno", "bueno", "regular", "a refaccionar"] else 3,
+                                     key=f"estado_{key_suffix}")
+        calidad_edificio = st.selectbox("Calidad percibida", ["premium", "media", "economica"], 
+                                        index=["premium", "media", "economica"].index(prop_inicial.get('calidad_edificio', 'media')) if prop_inicial.get('calidad_edificio') in ["premium", "media", "economica"] else 1,
+                                        key=f"calidad_{key_suffix}")
+        seguridad = st.selectbox("Seguridad", ["ninguna", "tag", "camaras", "24hs"],
+                                index=["ninguna", "tag", "camaras", "24hs"].index(prop_inicial.get('seguridad', 'ninguna')) if prop_inicial.get('seguridad') in ["ninguna", "tag", "camaras", "24hs"] else 0,
+                                key=f"seg_{key_suffix}")
+    with col4:
+        terminaciones_suelo = st.selectbox("Suelo", ["madera_noble", "porcelanato", "ceramico", "estandar"], 
+                                          index=["madera_noble", "porcelanato", "ceramico", "estandar"].index(prop_inicial.get('terminaciones_suelo', 'estandar')) if prop_inicial.get('terminaciones_suelo') in ["madera_noble", "porcelanato", "ceramico", "estandar"] else 3,
+                                          key=f"suelo_{key_suffix}")
+        carpinteria = st.selectbox("Carpintería", ["piso_techo", "dvh", "estandar"], 
+                                  index=["piso_techo", "dvh", "estandar"].index(prop_inicial.get('carpinteria', 'estandar')) if prop_inicial.get('carpinteria') in ["piso_techo", "dvh", "estandar"] else 2,
+                                  key=f"carp_{key_suffix}")
+        cochera = st.checkbox("Tiene Cochera", value=prop_inicial.get('cochera', False), key=f"cochera_{key_suffix}")
+
+    st.caption("Funcionalidad y Descripción")
+    col_f1, col_f2 = st.columns(2)
+    with col_f1:
+        doble_ingreso = st.checkbox("Doble Ingreso", value=prop_inicial.get('doble_ingreso', False), key=f"doble_{key_suffix}")
+        lavadero_independiente = st.checkbox("Lavadero Independiente", value=prop_inicial.get('lavadero_independiente', False), key=f"lavadero_{key_suffix}")
+        detalles_cat = st.multiselect("Amenities / Extras", [
+            "caldera_central", "radiadores", "seguridad_24hs", "totem_seguridad",
+            "aberturas_premium", "balcon_terraza", "pileta", "sum", "gym"
+        ], default=prop_inicial.get('detalles_categoria', []), key=f"detalles_{key_suffix}")
+    with col_f2:
+        descripcion_libre = st.text_area("Descripción libre", value=prop_inicial.get('descripcion_libre', ''), placeholder="Ej: muy luminoso, balcón corrido...", key=f"desc_{key_suffix}")
+
+    st.caption("Datos Financieros")
+    col5, col6 = st.columns(2)
+    with col5:
+        valor_compra_usd = st.number_input("Valor de compra (USD)", min_value=0.0, step=1000.0, value=float(prop_inicial.get('valor_compra_usd', 0.0)), key=f"v_compra_{key_suffix}")
+        fecha_compra = st.date_input("Fecha de compra", value=datetime.strptime(prop_inicial.get('fecha_compra', '2020-01-01'), '%Y-%m-%d') if prop_inicial.get('fecha_compra') else datetime(2020, 1, 1), key=f"f_compra_{key_suffix}")
+    with col6:
+        expensas_ars = st.number_input("Expensas actuales (ARS)", min_value=0, value=int(prop_inicial.get('expensas_ars', 0)), step=1000, key=f"exp_{key_suffix}")
+        moneda_compra = "USD"
+
+    # Empaquetamos todo en un dict
+    data = {
+        'nombre': nombre, 'tipo_inmueble': tipo, 'zona': zona, 'direccion': direccion,
+        'ubicacion_tipo': ubicacion_tipo, 'm2_cubiertos': m2_cubiertos, 'dormitorios': dormitorios,
+        'baños': baños, 'anio_construccion': anio_const, 'constructora': constructora,
+        'piso': piso, 'total_pisos': total_pisos, 'vista': vista, 'gas_ok': gas_ok,
+        'm2_semicubiertos': m2_semicubiertos, 'm2_descubiertos': m2_descubiertos,
+        'balcon': balcon, 'tipo_balcon': tipo_balcon, 'm2_comunes': m2_comunes,
+        'orientacion': orientacion, 'ventilacion': ventilacion, 'estado_detalle': estado_detalle,
+        'calidad_edificio': calidad_edificio, 'seguridad': seguridad, 'terminaciones_suelo': terminaciones_suelo,
+        'carpinteria': carpinteria, 'cochera': cochera, 'doble_ingreso': doble_ingreso,
+        'lavadero_independiente': lavadero_independiente, 'detalles_categoria': detalles_cat,
+        'descripcion_libre': descripcion_libre, 'valor_compra_usd': valor_compra_usd,
+        'fecha_compra': fecha_compra.strftime('%Y-%m-%d'), 'expensas_ars': expensas_ars,
+        'm2': m2_cubiertos + m2_semicubiertos + m2_descubiertos + m2_comunes,
+        'id': prop_inicial.get('id', f"prop_{uuid.uuid4().hex[:8]}")
+    }
+    return data
+
+
 def mostrar_propiedades(mes):
     st.header("Propiedades")
 
@@ -3042,137 +3173,25 @@ def mostrar_propiedades(mes):
     # Agregar propiedad (formulario colapsable)
     with st.expander("➕ Agregar Propiedad", expanded=False):
         with st.form("agregar_propiedad"):
-            st.caption("Datos básicos")
-            col1, col2 = st.columns(2)
-            with col1:
-                nombre = st.text_input("Nombre de la propiedad")
-                tipo = st.selectbox("Tipo", ["departamento", "casa", "local", "oficina", "terreno"])
-                zona = st.selectbox("Zona / Barrio", [
-                    "Centro", "Macrocentro", "Barrio Inglés", "Pichincha", "Abasto",
-                    "Martin", "Facultades", "Puerto Norte", "Barrio Tigre",
-                    "Rosario Norte", "Alvear", "San Martín", "General Paz",
-                    "Echesortu", "Fisherton", "Ruta 9", "Sur", "Norte", "Oeste",
-                    "Sexta Pellegrini", "República de la Sexta", "Otro"
-                ])
-                direccion = st.text_input("Dirección (opcional)")
-            with col2:
-                m2_cubiertos = st.number_input("Metros cubiertos (m²)", min_value=0.0, value=0.0, step=0.5, help="Ingrese metros con decimales (ej: 41.5)")
-                dormitorios = st.number_input("Dormitorios", min_value=0, max_value=10)
-                baños = st.number_input("Baños", min_value=0, max_value=10)
-                antiguedad = st.number_input("Antigüedad (años)", min_value=0, value=0)
-
-            st.caption("Superficies diferenciadas")
-            col_s1, col_s2 = st.columns(2)
-            with col_s1:
-                m2_semicubiertos = st.number_input("m² semicubiertos", min_value=0.0, value=0.0, step=0.5, help="Galería, quincho cubierto")
-                m2_descubiertos = st.number_input("m² descubiertos", min_value=0.0, value=0.0, step=0.5, help="Patio, terraza descubierta")
-                m2_comunes = st.number_input("m² comunes", min_value=0.0, value=0.0, step=0.5, help="Patio de uso común del edificio")
-            with col_s2:
-                espacios_exteriores = st.multiselect(
-                    "Espacios exteriores",
-                    options=["balcon", "patio", "terraza"],
-                    default=[],
-                    help="Seleccione los espacios exteriores que tiene la propiedad"
-                )
-                tipo_exterior = st.selectbox("Tipo espacio exterior", ["ninguno", "patio", "balcon", "terraza"], help="Tipo de espacio exterior que tiene")
-                tiene_patio = st.checkbox("Tiene patio", value=False)
-                uso_exclusivo = st.checkbox("Uso exclusivo", value=True, help="El espacio exterior es de uso exclusivo o común")
-                propiedad_exterior = st.selectbox("Propiedad exterior", ["comun", "propio"], index=0, help="Si el espacio exterior es propio o común (del edificio)")
-                if tiene_patio:
-                    privacidad_patio = st.selectbox("Privacidad patio", ["alta", "media", "baja"], index=1)
-                else:
-                    privacidad_patio = "media"
-                balcon_con_rejas = st.checkbox("Balcón con rejas", value=False, help="Indica si el balcón tiene rejas de seguridad")
-
-            st.caption("Características constructivas y de mercado")
-            col3, col4 = st.columns(2)
-            with col3:
-                estado_detalle = st.selectbox("Estado detallado", [
-                    "a estrenar", "excelente", "muy bueno", "bueno", "regular", "a refaccionar"
-                ], index=3)
-                piso = st.number_input("Piso (0 = planta baja)", min_value=0, max_value=30, value=0)
-                orientacion = st.selectbox("Orientación", [
-                    "norte", "noreste", "este", "sureste", "sur", "suroeste", "oeste", "noroeste"
-                ], index=2)
-                calidad_edificio = st.selectbox("Calidad del edificio", ["premium", "media", "economica"], index=1)
-                ventilacion = st.selectbox("Ventilación", ["cruzada", "simple"], index=1, help="Ventilación cruzada o simple (obligatorio)")
-            with col4:
-                terminaciones_suelo = st.selectbox("Terminaciones de suelo", ["madera_noble", "porcelanato", "ceramico", "estandar"], index=3)
-                distribucion_cocina = st.selectbox("Distribución de cocina", ["independiente", "lavadero_sectorizado", "integrada"], index=2)
-                carpinteria = st.selectbox("Carpintería / Vidrios", ["piso_techo", "dvh", "estandar"], index=2)
-                detalles_cat = st.multiselect("Detalles de Categoría / Amenities", [
-                    "caldera_central", "radiadores", "seguridad_24hs", "totem_seguridad",
-                    "aberturas_premium", "balcon_terraza", "pileta", "sum", "gym"
-                ])
-                cochera = st.checkbox("Cochera")
-
-            st.caption("Datos de compra")
-            col5, col6 = st.columns(2)
-            with col5:
-                valor_compra_usd = st.number_input("Valor de compra (USD)", min_value=0.0, step=1000.0)
-                fecha_compra = st.date_input("Fecha de compra", value=datetime(2020, 1, 1), min_value=datetime(2000, 1, 1))
-            with col6:
-                moneda_compra = st.selectbox("Moneda de compra", ["USD", "ARS"])
-
+            prop_data_form = ui_formulario_propiedad(key_suffix="alta")
             submitted = st.form_submit_button("Guardar Propiedad")
 
-            if submitted and nombre:
-                existe = any(p.get('nombre') == nombre for p in propiedades)
+            if submitted and prop_data_form['nombre']:
+                existe = any(p.get('nombre') == prop_data_form['nombre'] for p in propiedades)
                 if existe:
-                    st.warning(f"La propiedad '{nombre}' ya existe")
+                    st.warning(f"La propiedad '{prop_data_form['nombre']}' ya existe")
                 else:
-                    from parsers.mercado_inmobiliario import valuar_propiedad_v6
-                    prop_data = {
-                    'id': f"prop_{uuid.uuid4().hex[:8]}",
-                    'tipo': 'propiedad',
-                    'nombre': nombre,
-                    'tipo_inmueble': tipo,
-                    'zona': zona,
-                    'direccion': direccion,
-                    'm2': m2_cubiertos + m2_semicubiertos + m2_descubiertos + m2_comunes,
-                    'm2_cubiertos': m2_cubiertos,
-                    'm2_semicubiertos': m2_semicubiertos,
-                    'm2_descubiertos': m2_descubiertos,
-                    'm2_comunes': m2_comunes,
-                    'dormitorios': dormitorios,
-                    'baños': baños,
-                    'antiguedad': antiguedad,
-                    'tipo_exterior': tipo_exterior,
-                    'tiene_patio': tiene_patio,
-                    'uso_exclusivo': uso_exclusivo,
-                    'propiedad_exterior': propiedad_exterior,
-                    'privacidad_patio': privacidad_patio,
-                    'estado_detalle': estado_detalle,
-                    'piso': piso,
-                    'orientacion': orientacion,
-                    'calidad_edificio': calidad_edificio,
-                    'ventilacion': ventilacion,
-                    'terminaciones_suelo': terminaciones_suelo,
-                    'distribucion_cocina': distribucion_cocina,
-                    'carpinteria': carpinteria,
-                    'detalles_categoria': detalles_cat,
-                    'cochera': cochera,
-                    'espacios_exteriores': espacios_exteriores,
-                    'balcon_con_rejas': balcon_con_rejas,
-                    'descripcion_libre': descripcion_libre,
-                    'valor_compra_usd': valor_compra_usd,
-                    'fecha_compra': fecha_compra.strftime('%Y-%m-%d'),
-                    'moneda_compra': moneda_compra,
-                    'valor_tasacion_usd': 0,
-                    'valor_tasacion_ars': 0,
-                    'valor_anterior_ars': 0,
-                    'valor_m2_usd': 0,
-                    'tasaciones': [],
-                    'ultima_valuacion': None
-                }
-                propiedades.append(prop_data)
-                guardar_propiedades(propiedades)
-                # Limpiar session_state de valuaciones para evitar datos stale
-                keys_to_clear = [k for k in st.session_state.keys() if k.startswith("valuacion_prop_")]
-                for k in keys_to_clear:
-                    del st.session_state[k]
-                st.success(f"Propiedad '{nombre}' guardada")
-                st.rerun()
+                    prop_data_form['tasaciones'] = []
+                    prop_data_form['ultima_valuacion'] = None
+                    propiedades.append(prop_data_form)
+                    guardar_propiedades(propiedades)
+                    
+                    # Limpiar session_state
+                    keys_to_clear = [k for k in st.session_state.keys() if k.startswith("valuacion_prop_")]
+                    for k in keys_to_clear:
+                        del st.session_state[k]
+                    st.success(f"Propiedad '{prop_data_form['nombre']}' guardada")
+                    st.rerun()
 
     # Mostrar propiedades existentes
     if propiedades:
@@ -3290,125 +3309,20 @@ def mostrar_propiedades(mes):
             edit_key = f"editing_prop_{prop['id']}"
             if st.session_state.get(edit_key, False):
                 with st.form(f"form_edit_{prop['id']}"):
-                    st.caption("Editar datos de la propiedad")
-                    ec1, ec2 = st.columns(2)
-                    with ec1:
-                        e_nombre = st.text_input("Nombre", value=prop.get('nombre', ''), key=f"e_nombre_{prop['id']}")
-                        e_tipo = st.selectbox("Tipo", ["departamento", "casa", "local", "oficina", "terreno"],
-                                             index=["departamento", "casa", "local", "oficina", "terreno"].index(prop.get('tipo_inmueble', 'departamento')),
-                                             key=f"e_tipo_{prop['id']}")
-                        e_zona = st.selectbox("Zona", [
-                            "Centro", "Macrocentro", "Barrio Inglés", "Pichincha", "Abasto",
-                            "Martin", "Facultades", "Puerto Norte", "Barrio Tigre",
-                            "Rosario Norte", "Alvear", "San Martín", "General Paz",
-                            "Echesortu", "Fisherton", "Ruta 9", "Sur", "Norte", "Oeste",
-                            "Sexta Pellegrini", "República de la Sexta", "Otro"
-                        ], index=["Centro", "Macrocentro", "Barrio Inglés", "Pichincha", "Abasto",
-                            "Martin", "Facultades", "Puerto Norte", "Barrio Tigre",
-                            "Rosario Norte", "Alvear", "San Martín", "General Paz",
-                            "Echesortu", "Fisherton", "Ruta 9", "Sur", "Norte", "Oeste",
-                            "Sexta Pellegrini", "República de la Sexta", "Otro"].index(prop.get('zona', 'Otro')),
-                            key=f"e_zona_{prop['id']}")
-                        e_direccion = st.text_input("Dirección", value=prop.get('direccion', ''), key=f"e_direccion_{prop['id']}")
-                        e_estado = st.selectbox("Estado", ["a estrenar", "excelente", "muy bueno", "bueno", "regular", "a refaccionar"],
-                                               index=["a estrenar", "excelente", "muy bueno", "bueno", "regular", "a refaccionar"].index(prop.get("estado_detalle", "bueno")) if prop.get("estado_detalle") in ["a estrenar", "excelente", "muy bueno", "bueno", "regular", "a refaccionar"] else 3,
-                                               key=f"e_estado_{prop['id']}")
-                        e_calidad = st.selectbox("Calidad edificio", ["premium", "media", "economica"],
-                                                 index=["premium", "media", "economica"].index(prop.get('calidad_edificio', 'media')),
-                                                 key=f"e_calidad_{prop['id']}")
-                    with ec2:
-                        e_dorm = st.number_input("Dormitorios", min_value=0, max_value=10, value=prop.get('dormitorios', 0), key=f"e_dorm_{prop['id']}")
-                        e_baños = st.number_input("Baños", min_value=0, max_value=10, value=prop.get('baños', 0), key=f"e_baños_{prop['id']}")
-                        e_piso = st.number_input("Piso (0=PB)", min_value=0, value=prop.get('piso', 0), key=f"e_piso_{prop['id']}")
-                        e_orient = st.selectbox("Orientación", ["norte", "noreste", "este", "sureste", "sur", "suroeste", "oeste", "noroeste"],
-                                               index=["norte", "noreste", "este", "sureste", "sur", "suroeste", "oeste", "noroeste"].index(prop.get('orientacion', 'este')) if prop.get('orientacion') in ["norte", "noreste", "este", "sureste", "sur", "suroeste", "oeste", "noroeste"] else 2,
-                                               key=f"e_orient_{prop['id']}")
-                        e_vent = st.selectbox("Ventilación", ["cruzada", "simple"],
-                                             index=["cruzada", "simple"].index(prop.get('ventilacion', 'simple')) if prop.get('ventilacion') in ["cruzada", "simple"] else 1,
-                                             key=f"e_vent_{prop['id']}")
-                        e_cochera = st.checkbox("Cochera", value=prop.get('cochera', False), key=f"e_cochera_{prop['id']}")
-
-                    ec3, ec4 = st.columns(2)
-                    with ec3:
-                        e_m2_cub = st.number_input("m² cubiertos", min_value=0.0, value=float(prop.get('m2_cubiertos', 0)), step=0.5, key=f"e_m2_cub_{prop['id']}")
-                        e_m2_sem = st.number_input("m² semicubiertos", min_value=0.0, value=float(prop.get('m2_semicubiertos', 0)), step=0.5, key=f"e_m2_sem_{prop['id']}")
-                        e_m2_desc = st.number_input("m² descubiertos", min_value=0.0, value=float(prop.get('m2_descubiertos', 0)), step=0.5, key=f"e_m2_desc_{prop['id']}")
-                        e_m2_com = st.number_input("m² comunes", min_value=0.0, value=float(prop.get('m2_comunes', 0)), step=0.5, key=f"e_m2_com_{prop['id']}")
-                    with ec4:
-                        e_espacios_ext = st.multiselect("Espacios exteriores", options=["balcon", "patio", "terraza"],
-                            default=prop.get('espacios_exteriores', []), key=f"e_espacios_ext_{prop['id']}")
-                        e_tipo_ext = st.selectbox("Tipo exterior", ["ninguno", "patio", "balcon", "terraza"],
-                                                index=["ninguno", "patio", "balcon", "terraza"].index(prop.get('tipo_exterior', 'ninguno')) if prop.get('tipo_exterior') in ["ninguno", "patio", "balcon", "terraza"] else 0,
-                                                key=f"e_tipo_ext_{prop['id']}")
-                        e_balcon_rejas = st.checkbox("Balcón con rejas", value=prop.get('balcon_con_rejas', False), key=f"e_balcon_rejas_{prop['id']}")
-                        e_tiene_patio = st.checkbox("Tiene patio", value=prop.get('tiene_patio', False), key=f"e_tiene_patio_{prop['id']}")
-                        e_uso_excl = st.checkbox("Uso exclusivo", value=prop.get('uso_exclusivo', True), key=f"e_uso_excl_{prop['id']}")
-
-                    ec5, ec6 = st.columns(2)
-                    with ec5:
-                        e_suelo = st.selectbox("Suelo", ["madera_noble", "porcelanato", "ceramico", "estandar"],
-                                              index=["madera_noble", "porcelanato", "ceramico", "estandar"].index(prop.get('terminaciones_suelo', 'estandar')) if prop.get('terminaciones_suelo') in ["madera_noble", "porcelanato", "ceramico", "estandar"] else 3,
-                                              key=f"e_suelo_{prop['id']}")
-                        e_cocina = st.selectbox("Cocina", ["independiente", "lavadero_sectorizado", "integrada"],
-                                               index=["independiente", "lavadero_sectorizado", "integrada"].index(prop.get('distribucion_cocina', 'integrada')) if prop.get('distribucion_cocina') in ["independiente", "lavadero_sectorizado", "integrada"] else 2,
-                                               key=f"e_cocina_{prop['id']}")
-                        e_carp = st.selectbox("Carpintería", ["piso_techo", "dvh", "estandar"],
-                                              index=["piso_techo", "dvh", "estandar"].index(prop.get('carpinteria', 'estandar')) if prop.get('carpinteria') in ["piso_techo", "dvh", "estandar"] else 2,
-                                              key=f"e_carp_{prop['id']}")
-                    with ec6:
-                        e_detalles = st.multiselect("Detalles/Amenities", [
-                            "caldera_central", "radiadores", "seguridad_24hs", "totem_seguridad",
-                            "aberturas_premium", "balcon_terraza", "pileta", "sum", "gym"
-                        ], default=prop.get('detalles_categoria', []), key=f"e_detalles_{prop['id']}")
-                        e_descripcion = st.text_area(
-                            "Descripción libre",
-                            value=prop.get('descripcion_libre', ''),
-                            placeholder="Ej: luminoso, vista despejada...",
-                            key=f"e_descripcion_{prop['id']}"
-                        )
-
-                    ec7, ec8 = st.columns(2)
-                    with ec7:
-                        e_valor_compra = st.number_input("Valor de compra (USD)", min_value=0.0, value=float(prop.get('valor_compra_usd', 0)), step=1000.0, key=f"e_valor_compra_{prop['id']}")
-                    with ec8:
-                        e_fecha_compra = st.date_input("Fecha de compra", value=datetime.strptime(prop.get('fecha_compra', '2020-01-01'), '%Y-%m-%d') if prop.get('fecha_compra') else datetime(2020,1,1), key=f"e_fecha_compra_{prop['id']}")
-
+                    prop_edit_form = ui_formulario_propiedad(prop_inicial=prop, key_suffix=f"edit_{prop['id']}")
                     e_submit = st.form_submit_button("Guardar Cambios")
-                    if e_submit and e_nombre:
-                        for prop_item in propiedades:
+                    
+                    if e_submit and prop_edit_form['nombre']:
+                        for i, prop_item in enumerate(propiedades):
                             if prop_item.get('id') == prop['id']:
-                                prop_item['nombre'] = e_nombre
-                                prop_item['tipo_inmueble'] = e_tipo
-                                prop_item['zona'] = e_zona
-                                prop_item['direccion'] = e_direccion
-                                prop_item['m2'] = e_m2_cub + e_m2_sem + e_m2_desc + e_m2_com
-                                prop_item['m2_cubiertos'] = e_m2_cub
-                                prop_item['m2_semicubiertos'] = e_m2_sem
-                                prop_item['m2_descubiertos'] = e_m2_desc
-                                prop_item['m2_comunes'] = e_m2_com
-                                prop_item['espacios_exteriores'] = e_espacios_ext
-                                prop_item['balcon_con_rejas'] = e_balcon_rejas
-                                prop_item['descripcion_libre'] = e_descripcion
-                                prop_item['tipo_exterior'] = e_tipo_ext
-                                prop_item['tiene_patio'] = e_tiene_patio
-                                prop_item['uso_exclusivo'] = e_uso_excl
-                                prop_item['dormitorios'] = e_dorm
-                                prop_item['baños'] = e_baños
-                                prop_item['piso'] = e_piso
-                                prop_item['estado_detalle'] = e_estado
-                                prop_item['calidad_edificio'] = e_calidad
-                                prop_item['ventilacion'] = e_vent
-                                prop_item['orientacion'] = e_orient
-                                prop_item['terminaciones_suelo'] = e_suelo
-                                prop_item['distribucion_cocina'] = e_cocina
-                                prop_item['carpinteria'] = e_carp
-                                prop_item['detalles_categoria'] = e_detalles
-                                prop_item['cochera'] = e_cochera
-                                prop_item['valor_compra_usd'] = e_valor_compra
-                                prop_item['fecha_compra'] = e_fecha_compra.strftime('%Y-%m-%d') if e_fecha_compra else None
+                                # Mantener datos que no están en el form (tasaciones, etc)
+                                prop_edit_form['tasaciones'] = prop_item.get('tasaciones', [])
+                                prop_edit_form['ultima_valuacion'] = prop_item.get('ultima_valuacion')
+                                propiedades[i] = prop_edit_form
+                                break
                         guardar_propiedades(propiedades)
                         st.session_state[edit_key] = False
-                        st.success(f"Propiedad '{e_nombre}' actualizada")
+                        st.success(f"Propiedad '{prop_edit_form['nombre']}' actualizada")
                         st.rerun()
 
             # Cancelación fuera del formulario para evitar Streamlit form restrictions

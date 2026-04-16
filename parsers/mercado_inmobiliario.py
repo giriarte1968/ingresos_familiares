@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from datetime import datetime
 from parsers.location_engine import cargar_anclas, calcular_precio_m2, estimar_confianza, get_ancla_mas_cercana
 
@@ -59,6 +60,18 @@ def sanitizar_propiedad(prop):
     result['fecha_compra'] = prop.get('fecha_compra', '2020-01-01')
     result['uso_exclusivo'] = prop.get('uso_exclusivo', False)
     result['estado_detalle'] = prop.get('estado_detalle', 'bueno')
+    # v9.5 Variables Estructurales
+    result['vista'] = prop.get('vista', 'frente').lower()
+    result['total_pisos'] = int(prop.get('total_pisos', 1))
+    result['ubicacion_tipo'] = prop.get('ubicacion_tipo', 'calle').lower()
+    result['balcon'] = bool(prop.get('balcon', False))
+    result['tipo_balcon'] = prop.get('tipo_balcon', 'ninguno').lower()
+    result['gas_ok'] = prop.get('gas_ok', 'si').lower()
+    result['constructora'] = str(prop.get('constructora', '')).lower().strip()
+    result['seguridad'] = prop.get('seguridad', 'ninguna').lower()
+    result['expensas_ars'] = float(prop.get('expensas_ars', 0))
+    result['doble_ingreso'] = bool(prop.get('doble_ingreso', False))
+    result['lavadero_independiente'] = bool(prop.get('lavadero_independiente', False))
     result['calidad_edificio'] = prop.get('calidad_edificio', 'media')
     result['piso'] = prop.get('piso', 0)
     
@@ -138,30 +151,107 @@ def calcular_m2_equivalentes(prop):
         m2_com * factor_com
     )
     
-    # Clamp: no más de +25% sobre cubiertos
-    max_m2 = m2_cub * 1.25
+    # Clamp dinámico v9.3: Casas tienen menos premio por m2 descubierto que Deptos
+    tipo = prop.get('tipo_inmueble', prop.get('tipo', 'departamento')).lower()
+    if 'casa' in tipo or 'cochera' in tipo:
+        max_ratio = 1.15
+    else:
+        max_ratio = 1.25
+
+    max_m2 = m2_cub * max_ratio
     
     return min(m2_equiv, max_m2)
 
 
 def calcular_factores(prop):
-    """Calcula factores de propiedad."""
+    """
+    Calcula factores de propiedad.
+    v8.0: Retorna un diccionario separado para evitar doble conteo de antigüedad.
+    """
     estado = prop.get('estado_detalle', 'bueno').lower()
     calidad = prop.get('calidad_edificio', 'media').lower()
     piso = prop.get('piso', 0)
+    antiguedad = prop.get('antiguedad', 0)
     
     factor_estado = {
-        'a_estrenar': 1.2, 'excelente': 1.15, 'muy_bueno': 1.1,
+        'a_estrenar': 1.25, 'excelente': 1.15, 'muy_bueno': 1.1,
         'bueno': 1.0, 'regular': 0.85, 'a_refaccionar': 0.7
     }.get(estado, 1.0)
     
     factor_calidad = {
-        'premium': 1.15, 'alta': 1.15, 'media': 1.0, 'economica': 0.85, 'baja': 0.85
+        'premium': 1.2, 'alta': 1.1, 'media': 1.0, 'economica': 0.85, 'baja': 0.85
     }.get(calidad, 1.0)
     
-    factor_piso = 0.90 if piso == 0 else (1.0 if piso <= 3 else 1.05)
+    # 1. Factor Vista v9.5
+    vista = prop.get('vista', 'frente').lower()
+    factor_vista = {
+        'rio': 1.25, 'despejada': 1.12, 'frente': 1.0, 
+        'pulmon': 0.95, 'interna': 0.90
+    }.get(vista, 1.0)
     
-    return factor_estado * factor_calidad * factor_piso
+    # 2. Factor Altura v9.5 (Ratio de piso sobre total)
+    total_pisos = max(1, prop.get('total_pisos', 1))
+    ratio_altura = piso / total_pisos
+    # Un piso alto en su edificio tiene premio, PB tiene castigo fuerte
+    if piso == 0:
+        factor_piso = 0.88
+    else:
+        # Entre 1.0 y 1.10 según qué tan arriba esté
+        factor_piso = 1.0 + (ratio_altura * 0.10)
+    
+    # 3. Factor Ubicación v9.5
+    u_tipo = prop.get('ubicacion_tipo', 'calle').lower()
+    factor_ubica = {
+        'avenida': 1.07, 'esquina': 1.03, 'calle': 1.0, 'pasaje': 0.94
+    }.get(u_tipo, 1.0)
+    
+    # 4. Factor Gas v9.5
+    gas = prop.get('gas_ok', 'si').lower()
+    factor_gas = {'si': 1.0, 'en_proceso': 0.96, 'no': 0.92}.get(gas, 1.0)
+    
+    # 5. Factor Constructora v9.5
+    const_top = ['ulanovsky', 'fundar', 'msr', 'mor', 'pellegrinet', 'bauen']
+    constr = prop.get('constructora', '').lower()
+    factor_const = 1.12 if any(c in constr for c in const_top) else 1.0
+    
+    # 6. Factor Balcón v9.5
+    t_balcon = prop.get('tipo_balcon', 'ninguno').lower()
+    factor_balcon = {
+        'L': 1.05, 'corrido': 1.03, 'frances': 0.98, 'ninguno': 1.0
+    }.get(t_balcon, 1.0)
+    
+    ventilacion = prop.get('ventilacion', 'simple').lower()
+    factor_vent = 1.10 if 'cruzada' in ventilacion else 1.0 if 'doble' in ventilacion else 0.90
+    
+    # 7. Detalles Funcionales v9.5
+    f_funcional = 1.0
+    if prop.get('doble_ingreso'): f_funcional *= 1.03
+    if prop.get('lavadero_independiente'): f_funcional *= 1.02
+    
+    seg = prop.get('seguridad', 'ninguna').lower()
+    f_seguridad = {'24hs': 1.06, 'tag': 1.02, 'camaras': 1.01, 'ninguna': 1.0}.get(seg, 1.0)
+    
+    # Depreciación por Antigüedad (Year 0 -> Target)
+    factor_anti = max(0.40, 1.0 - (antiguedad * 0.006))
+    
+    # Factores estructurales (Sin antigüedad)
+    f_estructural = (factor_estado * factor_calidad * factor_piso * factor_vent * 
+                     factor_vista * factor_ubica * factor_gas * factor_const * 
+                     factor_balcon * f_funcional * f_seguridad)
+    
+    # Factor Pasillo v9.3 (Castigo por unidad interna)
+    desc = (prop.get('descripcion_libre', '') + prop.get('nombre', '') + prop.get('direccion', '')).lower()
+    es_pasillo = any(x in desc for x in ['pasillo', 'interna', 'interno', 'fondo'])
+    factor_pasillo = 0.85 if es_pasillo else 1.0
+
+    return {
+        'total': f_estructural * factor_anti * factor_pasillo,
+        'estructural_puro': f_estructural,
+        'depreciacion': factor_anti,
+        'factor_estado': factor_estado,
+        'factor_calidad': factor_calidad,
+        'factor_pasillo': factor_pasillo
+    }
 
 def scrapear_m2_argenprop():
     """ Obtenemos la media en venta en la calle de Rosario """
@@ -980,42 +1070,122 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     m2_obj = prop.get('m2', 30)
     zona_txt = prop.get('zona', 'centro')
     
-    # Valuación VPP Híbrida (Venta)
-    m2_base_venta, pr_cluster, pr_ancla, n_v = calcular_valor_vpp(
-        ventas_cache, lat, lon, m2_obj, zona_txt, anclas
-    )
-    
-    # Valuación Alquiler Mercado Puro (usamos 100% cluster)
-    _, m2_base_alquiler, _, n_a = calcular_valor_vpp(
-        alquileres_cache, lat, lon, m2_obj, zona_txt, anclas
-    )
-    
-    # 2. Factores Físicos Propios (Legacy)
+    # 1. Obtener m2 equivalentes y Antigüedad Dinámica
     m2_equiv = calcular_m2_equivalentes(prop)
-    factores = calcular_factores(prop)
     
-    # 3. Valor Final de Venta
-    valor_venta = m2_equiv * m2_base_venta * factores
+    anio_const = prop.get('anio_construccion', 2026 - prop.get('antiguedad', 0))
+    antiguedad_dinamica = 2026 - anio_const
+    # Actualizamos el diccionario prop para que calcular_factores use la dinámica
+    prop['antiguedad'] = antiguedad_dinamica 
     
-    # Descuento de Liquidez (Legacy)
-    # Sempre hay descuento base del 6% ajustado por zona
-    descuento_base = 0.06
-    ajuste_liq = -0.02 if m2_base_venta > 1600 else 0.03 if m2_base_venta < 1100 else 0
-    descuento_total = max(0.03, min(descuento_base + ajuste_liq, 0.12))
+    # 1. Valuación VPP Híbrida v8.6 (Golden Reset)
+    # Venta: Híbrida (Ancla + Cluster)
+    m2_base_venta, pr_cluster_v, pr_ancla_v, n_v = calcular_valor_vpp(
+        ventas_cache, lat, lon, m2_equiv, zona_txt, anclas, usar_ancla=True, antiguedad=antiguedad_dinamica
+    )
     
-    valor_realizable = valor_venta * (1 - descuento_total)
+    # Alquiler: 100% Mercado Puro (Sin contaminación)
+    _, m2_base_alquiler, _, n_a = calcular_valor_vpp(
+        alquileres_cache, lat, lon, m2_equiv, zona_txt, anclas, usar_ancla=False, antiguedad=antiguedad_dinamica
+    )
     
-    # 4. Alquiler y ROI
+    # 2. Factores Físicos Propios v8.6 (Realismo Rosario)
+    f_dict = calcular_factores(prop)
+    # Restauramos antigüedad total para coincidir con Ground Truth v7.0
+    factores_finales = f_dict['total']
+    
+    # 3. Metros Específicos para Alquiler (Prioriza Cubiertos)
+    m2_cub = prop.get('m2_cubiertos', m2_equiv)
+    m2_desc = prop.get('m2_descubiertos', 0)
+    # En alquiler el patio vale mucho menos que en venta (coef 0.1)
+    m2_equiv_alquiler = m2_cub + (m2_desc * 0.1)
+    
+    # 3. Valores Base (Asking Price / Precio de Lista v9.0)
+    # Venta: Impacto Total de Factores
+    valor_venta = m2_equiv * m2_base_venta * f_dict['total']
+    
+    # Alquiler: v9.1 Sensibilidad Atenuada de Calidad (Buenas Prácticas)
+    f_puros = (0.95 if prop.get('piso') == 0 else 1.0) * (1.10 if 'cruzada' in prop.get('ventilacion','') else 1.0)
+    fact_ec = f_dict['factor_estado'] * f_dict['factor_calidad']
+    # Aplicamos sensibilidad del 50% al premio por estado/calidad
+    factores_alquiler = f_dict['depreciacion'] * f_puros * (1.0 + (fact_ec - 1.0) * 0.50)
+    
+    # Regional Rental Buffer v9.4: Sinceramiento Periferia (Standard vs Profunda)
+    tipo_det = prop.get('tipo_inmueble', prop.get('tipo', '')).lower()
+    if 'casa' in tipo_det and any(x in zona_txt.lower() for x in ['oeste', 'sur', 'norte']):
+        # Detección de Periferia Profunda (Humble areas)
+        direccion = prop.get('direccion', '')
+        desc = prop.get('descripcion_libre', '').lower()
+        barrios_humildes = ['triangulo', 'godoy', 'moderno', 'ludueña', 'flores', 'empalme', 'industrial']
+        
+        # Extraer altura de calle si existe
+        altura = 0
+        match_altura = re.search(r'\d+', direccion)
+        if match_altura:
+            altura = int(match_altura.group())
+            
+        es_profunda = altura > 4000 or any(b in desc for b in barrios_humildes) or any(b in direccion.lower() for b in barrios_humildes)
+        
+        buffer_regional = 0.55 if es_profunda else 0.75
+        m2_base_alquiler *= buffer_regional # Sinceramiento periférico agresivo
+    
+    GAP_ALQUILER = 0.93 # 7% de margen de negociación final
+    alquiler_mensual_ars = m2_equiv_alquiler * m2_base_alquiler * factores_alquiler * GAP_ALQUILER
+    
+    # 4. Ajustes Extra (NLP y Moneda)
     usdt_ars = get_binance_usdt_ars()
-    alquiler_mensual_ars = m2_obj * m2_base_alquiler
-    roi_anual_usd = (alquiler_mensual_ars * 12) / usdt_ars
-    cap_rate = (roi_anual_usd / valor_realizable) * 100 if valor_realizable > 0 else 0
+    from parsers.nlp_inmobiliario import calcular_ajuste_nlp_detallado
+    desc = prop.get('descripcion_libre', '')
+    ajuste_nlp, detecciones_nlp = calcular_ajuste_nlp_detallado(desc)
     
+    # Aplicar NLP al Precio de Lista
+    valor_venta = valor_venta * (1 + ajuste_nlp)
+    alquiler_mensual_ars = alquiler_mensual_ars * (1 + ajuste_nlp)
+    
+    # 5. Valor Realizable (Cierre Real con GAP del 8%)
+    GAP_CIERRE = 0.92
+    valor_realizable = valor_venta * GAP_CIERRE
+    
+    # 5. Cálculo de Rentabilidad NETA (v8.0)
+    expensas_ars = prop.get('expensas_ars', 0)
+    # Mantenimiento estimado: 0.5% del valor de la propiedad anual
+    mantenimiento_mensual_ars = (valor_venta * 0.005 * usdt_ars) / 12
+    alquiler_neto_mensual_ars = alquiler_mensual_ars - expensas_ars - mantenimiento_mensual_ars
+    
+    roi_bruto_anual = (alquiler_mensual_ars * 12 / usdt_ars) / valor_realizable * 100 if valor_realizable > 0 else 0
+    cap_rate_neto = (alquiler_neto_mensual_ars * 12 / usdt_ars) / valor_realizable * 100 if valor_realizable > 0 else 0
+    
+    # 6. Histórico y Plusvalía Segregada
+    data_m = cargar_datos()
+    indices = data_m.get('indice_ciudad', {}).get('data', {})
+    
+    fecha_compra_raw = prop.get('fecha_compra', '2024-01-01')
+    valor_compra_usd = prop.get('valor_compra_usd', 0)
+    
+    anio_compra = str(fecha_compra_raw[:4])
+    indice_hoy = indices.get("2026", 1.25)
+    indice_compra = indices.get(anio_compra, indice_hoy)
+    indice_12m = indices.get("2025", 1.18)
+    
+    # Plusvalía de ciclo
+    tipo_plusvalia = "Real (Contable)" if valor_compra_usd > 0 else "Estimada (Mercado)"
+    if valor_compra_usd > 0:
+        plusvalia_ciclo_usd = valor_venta - valor_compra_usd
+        plusvalia_ciclo_pct = (plusvalia_ciclo_usd / valor_compra_usd) * 100
+    else:
+        valor_mercado_compra = (valor_venta / indice_hoy) * indice_compra
+        plusvalia_ciclo_usd = valor_venta - valor_mercado_compra
+        plusvalia_ciclo_pct = ((valor_venta / valor_mercado_compra) - 1) * 100 if valor_mercado_compra > 0 else 0
+        
+    valor_mercado_12m = (valor_venta / indice_hoy) * indice_12m
+    plusvalia_12m_usd = valor_venta - valor_mercado_12m
+    plusvalia_12m_pct = ((valor_venta / valor_mercado_12m) - 1) * 100 if valor_mercado_12m > 0 else 0
+
     justificacion = (
-        f"VPP v7.0: Mercado {zona_txt} (${m2_base_venta:,.0f}/m2). "
-        f"Mezcla Cluster ({n_v} props) + Ancla Estructural. "
-        f"Alquiler detectado: ${alquiler_mensual_ars:,.0f} ARS. "
-        f"Rentabilidad: {cap_rate:.2f}% (Cap Rate) con Dólar Binance ${usdt_ars:,.0f}."
+        f"VPP v8.0: Modelo Híbrido Dinámico ({n_v} comps). "
+        f"Ajuste NLP: {ajuste_nlp*100:+.1f}%. "
+        f"Cap Rate Neto: {cap_rate_neto:.2f}% (Cap Bruto: {roi_bruto_anual:.1f}%). "
+        f"Plusvalia {tipo_plusvalia}: {plusvalia_ciclo_pct:+.1f}%."
     )
     
     rango_min = valor_venta * 0.90
@@ -1024,14 +1194,24 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     return {
         'valor_propiedad_usd': round(valor_venta, 0),
         'valor_realizable_usd': round(valor_realizable, 0),
-        'valor_m2_actual_usd': round(m2_base_venta, 2),
+        'valor_m2_actual_usd': round(valor_venta / m2_equiv, 2) if m2_equiv > 0 else 0,
         'alquiler_estimado_ars': round(alquiler_mensual_ars, 0),
-        'cap_rate_anual': round(cap_rate, 2),
+        'cap_rate_anual': round(cap_rate_neto, 2), # Devolvemos NETO por defecto
+        'cap_rate_bruto': round(roi_bruto_anual, 2),
         'usdt_ars': usdt_ars,
         'fecha_mercado': cache.get("fecha") if cache else "Sin datos",
         'm2_equivalentes': m2_equiv,
         'justificacion': justificacion,
         'rango_m2': f"USD {rango_min:,.0f} - {rango_max:,.0f}",
         'confianza': 'alta' if n_v > 10 else 'media',
+        'nlp_detecciones': detecciones_nlp,
+        'nlp_ajuste_pct': round(ajuste_nlp * 100, 2),
+        'plusvalia_ciclo_usd': round(plusvalia_ciclo_usd, 0),
+        'plusvalia_ciclo_pct': round(plusvalia_ciclo_pct, 2),
+        'plusvalia_tipo': tipo_plusvalia,
+        'plusvalia_12m_usd': round(plusvalia_12m_usd, 0),
+        'plusvalia_12m_pct': round(plusvalia_12m_pct, 2),
+        'expensas_ars': expensas_ars,
+        'mantenimiento_mensual_ars': round(mantenimiento_mensual_ars, 0),
         'serie_mensual_m2': [],
     }

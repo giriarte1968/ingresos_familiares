@@ -116,7 +116,9 @@ def scrapear_argenprop(operacion="venta"):
             for t in soup.find_all("div", class_="listing__item"):
                 try:
                     price_text = t.find("p", class_="card__price").text
-                    precio = float(re.sub(r"[^\d]", "", price_text))
+                    px_match = re.search(r'([\d.]+)', price_text.replace(",", "."))
+                    if not px_match: continue
+                    precio = float(px_match.group(1).replace(".", ""))
                     if operacion == "venta" and "USD" not in price_text: continue
                     
                     m2 = dorms = None
@@ -157,6 +159,10 @@ def scrapear_ttl(operacion="venta"):
                     m_match = re.search(r'(\d+)\s*m', text)
                     m2 = float(m_match.group(1)) if m_match else 0
                     if precio and m2 > 10:
+                        # Limpieza de seguridad para evitar concatenación de dígitos
+                        if precio > 50000000 and operacion == "venta": # Nadie vende por 50M USD en Rosario (salvo hoteles)
+                             precio = float(str(int(precio))[:6]) # Truncar
+                        
                         props.append({
                             "precio": precio, "m2": m2, "valor_m2": precio / m2,
                             "fuente": "ttl", "operacion": operacion, "zona": normalizar_zona(text)
@@ -181,10 +187,11 @@ def scrapear_agencias_batch(operacion="venta"):
             found = []
             for card in soup.find_all(["div", "article"], class_=re.compile(r"prop|card|item", re.I))[:10]:
                 txt = card.text.replace(".", "").replace(",", "")
-                px_m = re.search(r'USD\s*(\d+)' if operacion=="venta" else r'\$\s*(\d+)', txt)
+                px_m = re.search(r'(?:USD|\$)\s*([\d.]+)', txt)
                 m_m = re.search(r'(\d+)\s*m', txt)
                 if px_m and m_m:
-                    p, m = float(px_m.group(1)), float(m_m.group(1))
+                    p_str = px_m.group(1).replace(".", "")
+                    p, m = float(p_str), float(m_m.group(1))
                     if m > 0: found.append({"precio":p, "m2":m, "valor_m2":p/m, "fuente":name, "operacion":operacion, "zona":normalizar_zona(txt)})
             return found
         except: return []
@@ -196,20 +203,35 @@ def scrapear_agencias_batch(operacion="venta"):
 
 # --- LOGICA DE CLUSTERING ---
 
-def filtrar_similares(propiedades, lat_obj, lon_obj, m2_obj, anclas, radio_km=1.5):
+def filtrar_similares(propiedades, lat_obj, lon_obj, m2_obj, anclas, radio_km=1.5, antiguedad_obj=None):
+    # Intentar con radio de edad estricto (+/- 10 años)
+    filtradas = _ejecutar_filtro(propiedades, lat_obj, lon_obj, m2_obj, anclas, radio_km, antiguedad_obj, rango_edad=10)
+    
+    # Si la muestra es demasiado pobre (< 10), abrimos el rango de edad para ganar masa crítica (Adaptive Age Filter)
+    if len(filtradas) < 10 and antiguedad_obj is not None:
+        filtradas = _ejecutar_filtro(propiedades, lat_obj, lon_obj, m2_obj, anclas, radio_km, antiguedad_obj, rango_edad=20)
+        
+    return filtradas
+
+def _ejecutar_filtro(propiedades, lat_obj, lon_obj, m2_obj, anclas, radio_km, antiguedad_obj, rango_edad):
     filtradas = []
     for p in propiedades:
         # Filtro m2
         if not (m2_obj * 0.5 <= p["m2"] <= m2_obj * 1.5): continue
         
-        # Filtro Distancia (si tiene coords o via zona ancla)
+        # Filtro Antigüedad Adaptativo
+        if antiguedad_obj is not None:
+            p_ant = p.get("antiguedad")
+            if p_ant is not None:
+                 if abs(p_ant - antiguedad_obj) > rango_edad: continue
+
+        # Filtro Distancia
         dist = 999
         if p.get("lat") and p.get("lon"):
             dist = calcular_distancia(lat_obj, lon_obj, p["lat"], p["lon"])
         else:
-            # Fallback a distancia de ancla de zona
             zona = p.get("zona", "Otro")
-            ancla_p = next((a for a in anclas.values() if zona.lower() in a["nombre"].lower()), None)
+            ancla_p = next((a for a in anclas.values() if zona.lower() in a["id"].lower()), None)
             if ancla_p:
                 dist = calcular_distancia(lat_obj, lon_obj, ancla_p["lat"], ancla_p["lon"])
         
@@ -227,9 +249,9 @@ def calculate_iqr_cluster(propiedades):
     lower, upper = q1 - 1.5 * iqr, q3 + 1.5 * iqr
     return [p for p in propiedades if lower <= p["valor_m2"] <= upper]
 
-def calcular_valor_vpp(propiedades, lat_obj, lon_obj, m2_obj, zona_name, anclas):
-    # 1. Filtrar similares en zona
-    similares = filtrar_similares(propiedades, lat_obj, lon_obj, m2_obj, anclas)
+def calcular_valor_vpp(propiedades, lat_obj, lon_obj, m2_obj, zona_name, anclas, usar_ancla=True, antiguedad=None):
+    # 1. Filtrar similares con lógica adaptativa
+    similares = filtrar_similares(propiedades, lat_obj, lon_obj, m2_obj, anclas, antiguedad_obj=antiguedad)
     if not similares: similares = propiedades # Fallback ciudad
     
     # 2. Clustering
@@ -238,18 +260,32 @@ def calcular_valor_vpp(propiedades, lat_obj, lon_obj, m2_obj, zona_name, anclas)
     
     precio_cluster = sum(p["valor_m2"] for p in cluster) / len(cluster)
     
-    # 3. Ancla Estructural
-    ancla_key = next((k for k,v in anclas.items() if zona_name.lower() in v["nombre"].lower()), None)
-    ancla_val = anclas[ancla_key]["usd_m2"] if ancla_key else 1500
-    
-    # 4. Blending
-    n = len(cluster)
-    if n >= 15: w_c = 0.6
-    elif n >= 5: w_c = 0.3
-    else: w_c = 0.1
-    
-    precio_final = (precio_cluster * w_c) + (ancla_val * (1 - w_c))
-    return precio_final, precio_cluster, ancla_val, n
+    # 3. Ancla Estructural (Solo para Venta/USD)
+    if usar_ancla:
+        ancla_key = next((k for k,v in anclas.items() if zona_name.lower() in v["id"].lower()), None)
+        ancla_val_raw = anclas[ancla_key]["usd_m2"] if ancla_key else 1500
+        
+        # v8.4: Re-ajustar ancla institucional por antigüedad antes del blending
+        if antiguedad is not None:
+            f_dep_ancla = max(0.4, 1.0 - (antiguedad * 0.006))
+            ancla_val = ancla_val_raw * f_dep_ancla
+        else:
+            ancla_val = ancla_val_raw
+            
+        # 4. Blending Dinámico v8.0 (Ponderación por Calidad de Muestra)
+        n = len(cluster)
+        if n >= 20: 
+            w_c = 0.50 
+        elif n >= 10: 
+            w_c = 0.40 
+        else: 
+            w_c = 0.25 
+        
+        precio_final = (precio_cluster * w_c) + (ancla_val * (1 - w_c))
+        return precio_final, precio_cluster, ancla_val, n
+    else:
+        # Alquiler: Mercado puro 100%
+        return precio_cluster, precio_cluster, 0, len(cluster)
 
 # --- PROCESO ASINCRONICO ---
 
