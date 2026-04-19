@@ -1,0 +1,52 @@
+{
+  "pellegrini 1200": {
+    "lat": -32.956916883494,
+    "lon": -60.642178026958,
+    "status": "ok",
+    "score": 97.87,
+    "type": "StreetAddressExt",
+    "ancla_id": "pellegrini_necochea",
+    "ancla_usd": 1650,
+    "distancia_km": 0.48
+  },
+  "3 de febrero 520": {
+    "lat": -32.9540559151,
+    "lon": -60.631614933085,
+    "status": "ok",
+    "score": 98.97,
+    "type": "PointAddress",
+    "ancla_id": "parque_espana",
+    "ancla_usd": 1800,
+    "distancia_km": 0.76
+  },
+  "ayacucho 1518": {
+    "lat": -32.957389900907,
+    "lon": -60.629279902498,
+    "status": "ok",
+    "score": 98.97,
+    "type": "PointAddress",
+    "ancla_id": "pellegrini_necochea",
+    "ancla_usd": 1650,
+    "distancia_km": 1.11
+  },
+  "vera mujica 912": {
+    "lat": -32.942622915349,
+    "lon": -60.667335922209,
+    "status": "ok",
+    "score": 98.97,
+    "type": "PointAddress",
+    "ancla_id": "lourdes_oeste",
+    "ancla_usd": 1400,
+    "distancia_km": 1.12
+  },
+  "amenabar 5358": {
+    "lat": -32.963424913102,
+    "lon": -60.695823915627,
+    "status": "ok",
+    "score": 98.97,
+    "type": "PointAddress",
+    "ancla_id": "oeste_cercano",
+    "ancla_usd": 1100,
+    "distancia_km": 0.54
+  }
+}

@@ -1,109 +1,216 @@
 """
-Geocodificador para propiedades en Rosario, Argentina.
-Usa ArcGIS como proveedor gratuito (no requiere API key).
+Geocodificador V2 para propiedades en Rosario, Argentina.
+Usa ArcGIS con validación inteligente y corrección por zona.
 """
 
 import math
 import json
 import os
-from geopy.geocoders import ArcGIS
-from geopy.exc import GeocoderTimedOut, GeocoderServiceError
+import requests
+import time
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ANCLAS_FILE = os.path.join(BASE_DIR, "anclas_rosario.json")
 PROPIEDADES_FILE = os.path.join(BASE_DIR, "propiedades.json")
-
-arcgis_geocoder = ArcGIS(timeout=10)
+CACHE_FILE = os.path.join(BASE_DIR, "geocoding_cache.json")
 
 
 def haversine_distance(lat1, lon1, lat2, lon2):
-    """
-    Calcula la distancia en kilómetros entre dos puntos usando la fórmula de Haversine.
-    """
-    R = 6371  # Radio de la Tierra en km
-    
-    lat1_rad = math.radians(lat1)
-    lat2_rad = math.radians(lat2)
-    delta_lat = math.radians(lat2 - lat1)
-    delta_lon = math.radians(lon2 - lon1)
-    
-    a = math.sin(delta_lat/2)**2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(delta_lon/2)**2
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
-    
-    return R * c
+    """Calcula distancia en km entre dos puntos."""
+    R = 6371
+    lat1_r, lat2_r = math.radians(lat1), math.radians(lat2)
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    a = math.sin(dlat/2)**2 + math.cos(lat1_r) * math.cos(lat2_r) * math.sin(dlon/2)**2
+    return 2 * R * math.asin(math.sqrt(a))
 
 
-def geocode_address(direccion, zona="Rosario"):
-    """
-    Geocodifica una dirección y retorna lat/lon.
-    Args:
-        direccion: Dirección de la propiedad (ej: "Pellegrini 1200")
-        zona: Zona default para mejor resultados (ej: "Rosario")
-    Returns:
-        tuple: (lat, lon) o (None, None) si falla
-    """
+def normalizar_direccion(direccion):
+    return direccion.strip().lower()
+
+
+def cargar_cache():
+    if os.path.exists(CACHE_FILE):
+        with open(CACHE_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    return {}
+
+
+def guardar_cache(cache):
+    with open(CACHE_FILE, 'w', encoding='utf-8') as f:
+        json.dump(cache, f, indent=2)
+
+
+def geocodificar_arcgis(direccion):
+    """Geocodifica usando ArcGIS API directamente."""
+    url = "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates"
+    params = {
+        "f": "json",
+        "SingleLine": direccion,
+        "outFields": "*",
+        "maxLocations": 1
+    }
+    
     try:
-        # Armar query optimizado para Rosario
-        full_address = f"{direccion}, {zona}, Santa Fe, Argentina"
+        r = requests.get(url, params=params, timeout=10)
+        data = r.json()
         
-        location = arcgis_geocoder.geocode(full_address)
+        if not data.get("candidates"):
+            return None
         
-        if location:
-            return location.latitude, location.longitude
+        c = data["candidates"][0]
+        return {
+            "lat": c["location"]["y"],
+            "lon": c["location"]["x"],
+            "score": c.get("score", 0),
+            "type": c.get("attributes", {}).get("Addr_type", "")
+        }
+    except Exception as e:
+        print(f"Error geocodificación: {e}")
+        return None
+
+
+def detectar_zona_por_texto(direccion, anclas):
+    """Detecta anclas relacionadas por palabras en la dirección."""
+    d = direccion.lower()
+    keywords = ["pellegrini", "oroño", "pichincha", "abasto", "lourdes", "bv", "cordoba", "paraguay", "necochea"]
+    
+    candidatos = []
+    for kw in keywords:
+        if kw in d:
+            for a in anclas:
+                if kw in a["id"]:
+                    candidatos.append(a)
+    
+    return candidatos
+
+
+def validar_y_corregir(direccion, geo, anclas):
+    """
+    Valida el resultado de ArcGIS y aplica corrección si es necesario.
+    Retorna: (lat, lon, status, ancla_id, ancla_usd)
+    """
+    lat = geo["lat"]
+    lon = geo["lon"]
+    score = geo["score"]
+    tipo = geo["type"]
+    
+    # Score bajo o tipo no preciso = baja confianza
+    baja_confianza = score < 90 or tipo not in ["PointAddress", "StreetAddress", "StreetAddressExt"]
+    
+    # Buscar anclas que coincidan con palabras en la dirección
+    candidatos = detectar_zona_por_texto(direccion, anclas)
+    
+    if candidatos:
+        # SIEMPRE usar ancla de texto si existe (prioridad por nombre de calle)
+        # pero ajustar coordenadas si está muy lejos
+        distancias = [(a, haversine_distance(lat, lon, a["lat"], a["lon"])) for a in candidatos]
+        ancla_mas_cerca = min(distancias, key=lambda x: x[1])
+        ancla = ancla_mas_cerca[0]
+        dist_min = ancla_mas_cerca[1]
+        
+        # Si distancia > 0.8km, ajustar coordenadas
+        if dist_min > 0.8:
+            lat_corr = ancla["lat"]
+            lon_corr = ancla["lon"]
+            return lat_corr, lon_corr, "corregido", ancla["id"], ancla["usd_m2"], dist_min
         else:
-            # Retry con menos contexto
-            location = arcgis_geocoder.geocode(f"{direccion}, Rosario")
-            if location:
-                return location.latitude, location.longitude
-    except (GeocoderTimedOut, GeocoderServiceError) as e:
-        print(f"Error de geocodificación: {e}")
+            # Usar coordenadas originales pero con ancla de texto
+            return lat, lon, "ok", ancla["id"], ancla["usd_m2"], dist_min
     
-    return None, None
-
-
-def find_nearest_anchor(lat, lon, anclas_file=ANCLAS_FILE):
-    """
-    Encuentra el ancla más cercana a las coordenadas dadas.
-    Args:
-        lat: Latitud de la propiedad
-        lon: Longitud de la propiedad
-        anclas_file: Ruta al archivo de anclas
-    Returns:
-        dict: El ancla más cercana con sus datos
-    """
-    if not os.path.exists(anclas_file):
-        return None
-    
-    with open(anclas_file, 'r', encoding='utf-8') as f:
-        anclas_data = json.load(f)
-    
-    anclas = anclas_data.get('anclas', [])
-    if not anclas:
-        return None
-    
+    # Sin candidatos textuales: buscar ancla más cercana normalmente
     min_dist = float('inf')
-    nearest = None
+    ancla_cerca = None
+    for a in anclas:
+        d = haversine_distance(lat, lon, a["lat"], a["lon"])
+        if d < min_dist:
+            min_dist = d
+            ancla_cerca = a
     
-    for ancla in anclas:
-        ancla_lat = ancla.get('lat')
-        ancla_lon = ancla.get('lon')
-        
-        if ancla_lat is None or ancla_lon is None:
-            continue
-        
-        dist = haversine_distance(lat, lon, ancla_lat, ancla_lon)
-        
-        if dist < min_dist:
-            min_dist = dist
-            nearest = ancla
-    
-    return nearest
+    status = "low_confidence" if baja_confianza else "ok"
+    return lat, lon, status, ancla_cerca["id"], ancla_cerca["usd_m2"], min_dist
 
 
-def update_property_coords(prop_id, lat, lon):
+def geocoding_manager(direccion):
     """
-    Actualiza las coordenadas de una propiedad en el archivo JSON.
+    Manager principal de geocodificación con cache.
     """
+    cache = cargar_cache()
+    key = normalizar_direccion(direccion)
+    
+    # 1. Revisar cache
+    if key in cache:
+        return cache[key]
+    
+    # Cargar anclas
+    with open(ANCLAS_FILE, 'r', encoding='utf-8') as f:
+        anclas_data = json.load(f)
+    anclas = anclas_data.get('anclas', [])
+    
+    # 2. Geocodificar
+    direccion_full = f"{direccion}, Rosario, Santa Fe, Argentina"
+    geo = geocodificar_arcgis(direccion_full)
+    
+    time.sleep(0.5)  # Rate limiting
+    
+    if not geo:
+        result = {"lat": None, "lon": None, "status": "error", "ancla_id": None, "ancla_usd": None}
+        cache[key] = result
+        guardar_cache(cache)
+        return result
+    
+    # 3. Validar y corregir
+    lat, lon, status, ancla_id, ancla_usd, dist = validar_y_corregir(direccion, geo, anclas)
+    
+    result = {
+        "lat": lat,
+        "lon": lon,
+        "status": status,
+        "score": geo["score"],
+        "type": geo["type"],
+        "ancla_id": ancla_id,
+        "ancla_usd": ancla_usd,
+        "distancia_km": round(dist, 2)
+    }
+    
+    # 4. Guardar en cache
+    cache[key] = result
+    guardar_cache(cache)
+    
+    return result
+
+
+def geocode_property(prop):
+    """
+    Geocodifica una propiedad y retorna con coordenadas actualizadas.
+    """
+    direccion = prop.get('direccion', '')
+    prop_id = prop.get('id')
+    
+    if not direccion:
+        return prop
+    
+    result = geocoding_manager(direccion)
+    
+    if result.get("lat"):
+        prop['lat'] = result["lat"]
+        prop['lon'] = result["lon"]
+        prop['ancla_mas_cercana'] = result.get("ancla_id")
+        prop['ancla_usd_m2'] = result.get("ancla_usd")
+        prop['distancia_ancla_km'] = result.get("distancia_km")
+        prop['geocode_status'] = result.get("status")
+        
+        # Guardar en archivo
+        if prop_id:
+            update_property_coords(prop_id, result["lat"], result["lon"], 
+                                   result.get("ancla_id"), result.get("ancla_usd"), 
+                                   result.get("distancia_km"))
+    
+    return prop
+
+
+def update_property_coords(prop_id, lat, lon, ancla_id=None, ancla_usd=None, distancia_km=None):
+    """Actualiza coordenadas y ancla de una propiedad."""
     if not os.path.exists(PROPIEDADES_FILE):
         return False
     
@@ -116,6 +223,12 @@ def update_property_coords(prop_id, lat, lon):
         if prop.get('id') == prop_id:
             prop['lat'] = lat
             prop['lon'] = lon
+            if ancla_id:
+                prop['ancla_mas_cercana'] = ancla_id
+            if ancla_usd:
+                prop['ancla_usd_m2'] = ancla_usd
+            if distancia_km:
+                prop['distancia_ancla_km'] = distancia_km
             break
     
     with open(PROPIEDADES_FILE, 'w', encoding='utf-8') as f:
@@ -124,47 +237,8 @@ def update_property_coords(prop_id, lat, lon):
     return True
 
 
-def geocode_property(prop):
-    """
-    Geocodifica una propiedad y actualiza sus coordenadas.
-    Args:
-        prop: Diccionario con datos de la propiedad (debe tener 'direccion' y 'zona')
-    Returns:
-        dict: Propiedad con lat/lon actualizados
-    """
-    direccion = prop.get('direccion', '')
-    zona = prop.get('zona', 'Rosario')
-    prop_id = prop.get('id')
-    
-    if not direccion:
-        return prop
-    
-    lat, lon = geocode_address(direccion, zona)
-    
-    if lat and lon:
-        prop['lat'] = lat
-        prop['lon'] = lon
-        
-        # Encontrar ancla más cercana
-        nearest_anchor = find_nearest_anchor(lat, lon)
-        if nearest_anchor:
-            prop['ancla_mas_cercana'] = nearest_anchor.get('id')
-            prop['ancla_usd_m2'] = nearest_anchor.get('usd_m2')
-            prop['distancia_ancla_km'] = round(
-                haversine_distance(lat, lon, nearest_anchor.get('lat'), nearest_anchor.get('lon')), 2
-            )
-        
-        # Guardar en archivo
-        if prop_id:
-            update_property_coords(prop_id, lat, lon)
-    
-    return prop
-
-
 def geocode_all_properties():
-    """
-    Geocodifica todas las propiedades que no tengan lat/lon.
-    """
+    """Geocodifica todas las propiedades que no tengan coordenadas."""
     if not os.path.exists(PROPIEDADES_FILE):
         return {"exito": False, "error": "Archivo no encontrado"}
     
@@ -176,38 +250,40 @@ def geocode_all_properties():
     errores = 0
     
     for prop in propiedades:
-        # Skip si ya tiene coordenadas
-        if prop.get('lat') and prop.get('lon'):
-            continue
-        
         direccion = prop.get('direccion', '')
-        zona = prop.get('zona', 'Rosario')
-        prop_id = prop.get('id')
         
         if not direccion:
             errores += 1
             continue
         
-        lat, lon = geocode_address(direccion, zona)
+        # Si ya tiene coordenadas, solo actualizar ancla
+        if prop.get('lat') and prop.get('lon'):
+            result = geocoding_manager(direccion)
+            if result.get("ancla_id"):
+                prop['ancla_mas_cercana'] = result.get("ancla_id")
+                prop['ancla_usd_m2'] = result.get("ancla_usd")
+                prop['distancia_ancla_km'] = result.get("distancia_km")
+                prop['geocode_status'] = result.get("status")
+                update_property_coords(prop.get('id'), prop.get('lat'), prop.get('lon'),
+                                      result.get("ancla_id"), result.get("ancla_usd"),
+                                      result.get("distancia_km"))
+            actualizadas += 1
+            continue
         
-        if lat and lon:
-            prop['lat'] = lat
-            prop['lon'] = lon
-            
-            # Encontrar ancla más cercana
-            nearest_anchor = find_nearest_anchor(lat, lon)
-            if nearest_anchor:
-                prop['ancla_mas_cercana'] = nearest_anchor.get('id')
-                prop['ancla_usd_m2'] = nearest_anchor.get('usd_m2')
-                prop['distancia_ancla_km'] = round(
-                    haversine_distance(lat, lon, nearest_anchor.get('lat'), nearest_anchor.get('lon')), 2
-                )
-            
+        # Geocodificar desde cero
+        result = geocoding_manager(direccion)
+        
+        if result.get("lat"):
+            prop['lat'] = result["lat"]
+            prop['lon'] = result["lon"]
+            prop['ancla_mas_cercana'] = result.get("ancla_id")
+            prop['ancla_usd_m2'] = result.get("ancla_usd")
+            prop['distancia_ancla_km'] = result.get("distancia_km")
+            prop['geocode_status'] = result.get("status")
             actualizadas += 1
         else:
             errores += 1
     
-    # Guardar cambios
     with open(PROPIEDADES_FILE, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
     
@@ -220,6 +296,5 @@ def geocode_all_properties():
 
 
 if __name__ == "__main__":
-    # Test rápido
     result = geocode_all_properties()
-    print(f"Geocodificación completada: {result}")
+    print(f"Geocodificación: {result}")

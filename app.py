@@ -3468,11 +3468,20 @@ def mostrar_propiedades(mes):
             valor_comp = resultado.get('valor_comparable', 0)
             liquidez = resultado.get('liquidez', 1.0)
             
+            # Mostrar ancla utilizada (v11.2)
+            ancla_usd = prop.get('ancla_usd_m2', resultado.get('ancla_usd', '?'))
+            ancla_nombre = prop.get('ancla_mas_cercana', '?')
+            dist_ancla = prop.get('distancia_ancla_km', 0)
+            
             col_v1, col_v2, col_v3, col_v4 = st.columns(4)
-            col_v1.metric("m² Base (USD)", f"${m2_base:,.0f}")  # v11.0: m² base del cluster (filtrado)
-            col_v2.metric("m² Efectivo", f"${m2_display:,.0f}")  # m² con factores aplicados
+            col_v1.metric("m² Base (USD)", f"${m2_base:,.0f}")
+            col_v2.metric("m² Efectivo", f"${m2_display:,.0f}")
             col_v3.metric("m² equiv", f"{m2_equivalente:.1f}")
-            col_v4.metric("Confianza", f"{confianza.upper()}")
+            col_v4.metric("Ancla", f"{ancla_nombre} ${ancla_usd}")
+
+            # Alertar si hay problema con el ancla
+            if dist_ancla and dist_ancla > 1.0:
+                st.warning(f"⚠️ Ancla a {dist_ancla:.1f}km - verificar coordenadas")
 
             # Plusvalías: ciclo y últimos 12 meses
             pc_col1, pc_col2, pc_col3 = st.columns(3)

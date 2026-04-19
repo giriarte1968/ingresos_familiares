@@ -196,7 +196,13 @@
           "fuente": "motor_valuacion"
         }
       ],
-      "ultima_valuacion": "2026-04-06"
+      "ultima_valuacion": "2026-04-06",
+      "lat": -31.247394984238,
+      "lon": -61.493693004127,
+      "ancla_mas_cercana": "parque_espana",
+      "ancla_usd_m2": 1800,
+      "distancia_ancla_km": 0.76,
+      "geocode_status": "ok"
     },
     {
       "id": 10,
@@ -270,7 +276,11 @@
       "tipo_exterior": "balcon",
       "tiene_patio": false,
       "uso_exclusivo": true,
-      "baños": 1
+      "baños": 1,
+      "ancla_mas_cercana": "pellegrini_necochea",
+      "ancla_usd_m2": 1650,
+      "distancia_ancla_km": 1.11,
+      "geocode_status": "ok"
     },
     {
       "id": "prop_e559e7cc",
@@ -319,7 +329,11 @@
       "descripcion_libre": "Ventanas con seguridad y salida al patio desde la pieza y el living comedor. Muy luminoso. Cocina nueva. ",
       "balcon_con_rejas": false,
       "balcon_techado": false,
-      "baños": 1
+      "baños": 1,
+      "ancla_mas_cercana": "lourdes_oeste",
+      "ancla_usd_m2": 1400,
+      "distancia_ancla_km": 1.12,
+      "geocode_status": "ok"
     },
     {
       "id": "prop_5a46d77c",
@@ -366,7 +380,13 @@
       "tasaciones": [],
       "ultima_valuacion": null,
       "anio_construccion": 1984,
-      "expensas_ars": 0
+      "expensas_ars": 0,
+      "lat": -32.963424913102,
+      "lon": -60.695823915627,
+      "ancla_mas_cercana": "oeste_cercano",
+      "ancla_usd_m2": 1100,
+      "distancia_ancla_km": 0.54,
+      "geocode_status": "ok"
     },
     {
       "nombre": "P1200",
@@ -421,7 +441,13 @@
       "m2": 96.0,
       "id": "prop_b8ec28ba",
       "tasaciones": [],
-      "ultima_valuacion": null
+      "ultima_valuacion": null,
+      "lat": -32.956916883494,
+      "lon": -60.642178026958,
+      "ancla_mas_cercana": "pellegrini_necochea",
+      "ancla_usd_m2": 1650,
+      "distancia_ancla_km": 0.48,
+      "geocode_status": "ok"
     }
   ]
 }
