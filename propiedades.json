@@ -197,12 +197,12 @@
         }
       ],
       "ultima_valuacion": "2026-04-06",
-      "lat": -31.247394984238,
-      "lon": -61.493693004127,
+      "lat": -32.948544516418536,
+      "lon": -60.63824285634961,
       "ancla_mas_cercana": "parque_espana",
       "ancla_usd_m2": 1800,
-      "distancia_ancla_km": 0.76,
-      "geocode_status": "ok"
+      "distancia_ancla_km": 0.26,
+      "geocode_status": "snap_global"
     },
     {
       "id": 10,
@@ -277,10 +277,10 @@
       "tiene_patio": false,
       "uso_exclusivo": true,
       "baños": 1,
-      "ancla_mas_cercana": "pellegrini_necochea",
-      "ancla_usd_m2": 1650,
-      "distancia_ancla_km": 1.11,
-      "geocode_status": "ok"
+      "ancla_mas_cercana": "sexta_core",
+      "ancla_usd_m2": 1300,
+      "distancia_ancla_km": 0.11,
+      "geocode_status": "exact"
     },
     {
       "id": "prop_e559e7cc",
@@ -289,8 +289,8 @@
       "tipo_inmueble": "departamento",
       "zona": "Facultades",
       "direccion": "Vera Mujica 912",
-      "lat": -32.9578,
-      "lon": -60.6405,
+      "lat": -32.95474524581794,
+      "lon": -60.64448566844442,
       "m2": 84.0,
       "m2_cubiertos": 35.0,
       "m2_semicubiertos": 0.0,
@@ -330,10 +330,10 @@
       "balcon_con_rejas": false,
       "balcon_techado": false,
       "baños": 1,
-      "ancla_mas_cercana": "lourdes_oeste",
-      "ancla_usd_m2": 1400,
-      "distancia_ancla_km": 1.12,
-      "geocode_status": "ok"
+      "ancla_mas_cercana": "sexta_core",
+      "ancla_usd_m2": 1300,
+      "distancia_ancla_km": 0.13,
+      "geocode_status": "snap_global"
     },
     {
       "id": "prop_5a46d77c",
@@ -381,12 +381,12 @@
       "ultima_valuacion": null,
       "anio_construccion": 1984,
       "expensas_ars": 0,
-      "lat": -32.963424913102,
-      "lon": -60.695823915627,
+      "lat": -32.96096126229418,
+      "lon": -60.695173490493914,
       "ancla_mas_cercana": "oeste_cercano",
       "ancla_usd_m2": 1100,
-      "distancia_ancla_km": 0.54,
-      "geocode_status": "ok"
+      "distancia_ancla_km": 0.46,
+      "geocode_status": "snap_global"
     },
     {
       "nombre": "P1200",
@@ -442,12 +442,12 @@
       "id": "prop_b8ec28ba",
       "tasaciones": [],
       "ultima_valuacion": null,
-      "lat": -32.956916883494,
-      "lon": -60.642178026958,
-      "ancla_mas_cercana": "pellegrini_necochea",
-      "ancla_usd_m2": 1650,
-      "distancia_ancla_km": 0.48,
-      "geocode_status": "ok"
+      "lat": -32.954911454494,
+      "lon": -60.644877034447084,
+      "ancla_mas_cercana": "sexta_core",
+      "ancla_usd_m2": 1300,
+      "distancia_ancla_km": 0.09,
+      "geocode_status": "snap_global"
     }
   ]
 }
