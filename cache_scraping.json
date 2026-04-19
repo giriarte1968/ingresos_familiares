@@ -1,36 +1,16 @@
 {
-  "fecha": "2026-04-14T15:05:19.607186",
-  "status": "completado",
+  "fecha": "2026-04-18T18:28:59.861083",
+  "status": "",
   "propiedades": [
     {
-      "precio": 55000.0,
-      "m2": 30.0,
+      "precio": 27000.0,
+      "m2": 25.0,
       "dormitorios": 1,
-      "valor_m2": 1833.3333333333333,
-      "direccion": "Espectacular Monoambiente a Estrenar en Venta",
+      "valor_m2": 1080.0,
+      "direccion": "Oportunidad Monoambiente en Venta",
       "fuente": "argenprop",
       "operacion": "venta",
-      "zona": "Otro"
-    },
-    {
-      "precio": 40000.0,
-      "m2": 36.0,
-      "dormitorios": 1,
-      "valor_m2": 1111.111111111111,
-      "direccion": "HERMOSO AMPLIO MONOAMBIENTE  NORTE",
-      "fuente": "argenprop",
-      "operacion": "venta",
-      "zona": "Centro"
-    },
-    {
-      "precio": 49500.0,
-      "m2": 40.0,
-      "dormitorios": 1,
-      "valor_m2": 1237.5,
-      "direccion": "Departamento en Centro",
-      "fuente": "argenprop",
-      "operacion": "venta",
-      "zona": "Centro"
+      "zona": "Pichincha"
     },
     {
       "precio": 59000.0,
@@ -48,6 +28,16 @@
       "dormitorios": 1,
       "valor_m2": 1894.7368421052631,
       "direccion": "MONOAMBIENTE PREMIUM CON COCHERA",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 75000.0,
+      "m2": 38.0,
+      "dormitorios": 1,
+      "valor_m2": 1973.6842105263158,
+      "direccion": "Departamento monoambiente en VENTA, IMPECABLE, La mejor zona de Rosario",
       "fuente": "argenprop",
       "operacion": "venta",
       "zona": "Centro"
@@ -83,16 +73,6 @@
       "zona": "Centro"
     },
     {
-      "precio": 75000.0,
-      "m2": 38.0,
-      "dormitorios": 1,
-      "valor_m2": 1973.6842105263158,
-      "direccion": "Departamento monoambiente en VENTA, IMPECABLE, La mejor zona de Rosario",
-      "fuente": "argenprop",
-      "operacion": "venta",
-      "zona": "Centro"
-    },
-    {
       "precio": 82000.0,
       "m2": 40.0,
       "dormitorios": 1,
@@ -113,10 +93,10 @@
       "zona": "Martin"
     },
     {
-      "precio": 36000.0,
+      "precio": 34000.0,
       "m2": 30.0,
       "dormitorios": 1,
-      "valor_m2": 1200.0,
+      "valor_m2": 1133.3333333333333,
       "direccion": "Venta de Departamento monoambiente en Zona Norte, Rosario",
       "fuente": "argenprop",
       "operacion": "venta",
@@ -143,6 +123,16 @@
       "zona": "Pichincha"
     },
     {
+      "precio": 57000.0,
+      "m2": 25.0,
+      "dormitorios": 1,
+      "valor_m2": 2280.0,
+      "direccion": "Venta Monoambiente AMOBLADO - Moreno al 1000",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
       "precio": 39900.0,
       "m2": 23.0,
       "dormitorios": 1,
@@ -151,26 +141,6 @@
       "fuente": "argenprop",
       "operacion": "venta",
       "zona": "Puerto Norte"
-    },
-    {
-      "precio": 75000.0,
-      "m2": 27.0,
-      "dormitorios": 1,
-      "valor_m2": 2777.777777777778,
-      "direccion": "Departamento en Centro",
-      "fuente": "argenprop",
-      "operacion": "venta",
-      "zona": "Centro"
-    },
-    {
-      "precio": 85000.0,
-      "m2": 53.0,
-      "dormitorios": 1,
-      "valor_m2": 1603.7735849056603,
-      "direccion": "Amplio monoambiente dividido con patio exclusivo y amenities - Centro, Rosario",
-      "fuente": "argenprop",
-      "operacion": "venta",
-      "zona": "Centro"
     },
     {
       "precio": 73000.0,
@@ -191,6 +161,16 @@
       "fuente": "argenprop",
       "operacion": "venta",
       "zona": "Otro"
+    },
+    {
+      "precio": 60000.0,
+      "m2": 37.0,
+      "dormitorios": 1,
+      "valor_m2": 1621.6216216216217,
+      "direccion": "Departamento en PB con patio y 1 dormitorio",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Sexta"
     },
     {
       "precio": 38000.0,
@@ -223,16 +203,6 @@
       "zona": "Centro"
     },
     {
-      "precio": 55000.0,
-      "m2": 30.0,
-      "dormitorios": 1,
-      "valor_m2": 1833.3333333333333,
-      "direccion": "Espectacular Monoambiente a Estrenar en Venta",
-      "fuente": "argenprop",
-      "operacion": "venta",
-      "zona": "Otro"
-    },
-    {
       "precio": 75000.0,
       "m2": 35.0,
       "dormitorios": 1,
@@ -258,16 +228,6 @@
       "dormitorios": 1,
       "valor_m2": 1500.0,
       "direccion": "DEPTO DE UN DORMITORIO CON PATIO - RECICLADO, BAJAS EXPENSAS",
-      "fuente": "argenprop",
-      "operacion": "venta",
-      "zona": "Centro"
-    },
-    {
-      "precio": 74000.0,
-      "m2": 48.0,
-      "dormitorios": 1,
-      "valor_m2": 1541.6666666666667,
-      "direccion": "Santiago 873 - 1 dormitorio a la venta",
       "fuente": "argenprop",
       "operacion": "venta",
       "zona": "Centro"
@@ -323,16 +283,6 @@
       "zona": "Centro"
     },
     {
-      "precio": 59000.0,
-      "m2": 41.0,
-      "dormitorios": 1,
-      "valor_m2": 1439.0243902439024,
-      "direccion": "Venta Departamento Monoambiente Con Amenities - Pichincha",
-      "fuente": "argenprop",
-      "operacion": "venta",
-      "zona": "Centro"
-    },
-    {
       "precio": 128000.0,
       "m2": 63.0,
       "dormitorios": 1,
@@ -363,70 +313,984 @@
       "zona": "Centro"
     },
     {
-      "precio": 105000.0,
-      "m2": 54.0,
-      "dormitorios": 1,
-      "valor_m2": 1944.4444444444443,
-      "direccion": "Semipiso vista al rio,",
+      "precio": 340000.0,
+      "m2": 44.0,
+      "dormitorios": 2,
+      "valor_m2": 7727.272727272727,
+      "direccion": "DM64",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Otro"
+    },
+    {
+      "precio": 120000.0,
+      "m2": 88.0,
+      "dormitorios": 2,
+      "valor_m2": 1363.6363636363637,
+      "direccion": "Departamento - Rosario",
       "fuente": "argenprop",
       "operacion": "venta",
       "zona": "Centro"
     },
     {
-      "precio": 1300000.0,
-      "m2": 80.0,
-      "valor_m2": 16250.0,
-      "fuente": "giaganti",
+      "precio": 280000.0,
+      "m2": 82.0,
+      "dormitorios": 2,
+      "valor_m2": 3414.6341463414633,
+      "direccion": "Bv OROÑO AL 600 VENTA DEPARTAMENTO 2 DORMITORIOS CON COCHERA EN ROSARIO",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Pichincha"
+    },
+    {
+      "precio": 251370.0,
+      "m2": 112.0,
+      "dormitorios": 2,
+      "valor_m2": 2244.375,
+      "direccion": "Venta / permuta - Departamento 2 dormitorios con balcón - Parque España, Rosario.",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Martin"
+    },
+    {
+      "precio": 188000.0,
+      "m2": 100.0,
+      "dormitorios": 2,
+      "valor_m2": 1880.0,
+      "direccion": "Departamento de 2 dormitorios    comodín en República de la Sexta",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Pellegrini"
+    },
+    {
+      "precio": 139000.0,
+      "m2": 60.0,
+      "dormitorios": 2,
+      "valor_m2": 2316.6666666666665,
+      "direccion": "Departamento en Arroyito",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Otro"
+    },
+    {
+      "precio": 190000.0,
+      "m2": 81.0,
+      "dormitorios": 2,
+      "valor_m2": 2345.679012345679,
+      "direccion": "Venta, Departamento 2 dormitorios. Terraza exclusiva",
+      "fuente": "argenprop",
       "operacion": "venta",
       "zona": "Centro"
     },
     {
-      "precio": 1300000.0,
-      "m2": 80.0,
-      "valor_m2": 16250.0,
-      "fuente": "giaganti",
+      "precio": 72000.0,
+      "m2": 58.0,
+      "dormitorios": 2,
+      "valor_m2": 1241.3793103448277,
+      "direccion": "Departamento en Centro",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 52000.0,
+      "m2": 65.0,
+      "dormitorios": 2,
+      "valor_m2": 800.0,
+      "direccion": "Venta Departamento 2 dormitorios Norte Ventilación Cruzada",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Pichincha"
+    },
+    {
+      "precio": 160000.0,
+      "m2": 76.0,
+      "dormitorios": 2,
+      "valor_m2": 2105.2631578947367,
+      "direccion": "Departamento en venta en Martin",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Martin"
+    },
+    {
+      "precio": 123000.0,
+      "m2": 56.0,
+      "dormitorios": 2,
+      "valor_m2": 2196.4285714285716,
+      "direccion": "VENTA. Departamento 2 dormitorios. Rosario",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 84000.0,
+      "m2": 64.0,
+      "dormitorios": 2,
+      "valor_m2": 1312.5,
+      "direccion": "EXCELENTE OPORTUNIDAD  PISO EXCLUSIVO - BARRIO MARTIN",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Martin"
+    },
+    {
+      "precio": 107000.0,
+      "m2": 79.0,
+      "dormitorios": 2,
+      "valor_m2": 1354.4303797468353,
+      "direccion": "Departamento de dos dormitorio barrio martin- Rosario",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Martin"
+    },
+    {
+      "precio": 55000.0,
+      "m2": 51.0,
+      "dormitorios": 2,
+      "valor_m2": 1078.4313725490197,
+      "direccion": "DEPARTAMENTO DE PASILLO  EN P.A.",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Sexta"
+    },
+    {
+      "precio": 147000.0,
+      "m2": 72.0,
+      "dormitorios": 2,
+      "valor_m2": 2041.6666666666667,
+      "direccion": "Departamento en Abasto",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Sexta"
+    },
+    {
+      "precio": 75000.0,
+      "m2": 70.0,
+      "dormitorios": 2,
+      "valor_m2": 1071.4285714285713,
+      "direccion": "Venta Departamento con patio Echesortu Rosario",
+      "fuente": "argenprop",
       "operacion": "venta",
       "zona": "Otro"
     },
     {
-      "precio": 1300000.0,
-      "m2": 80.0,
-      "valor_m2": 16250.0,
-      "fuente": "giaganti",
+      "precio": 59000.0,
+      "m2": 63.0,
+      "dormitorios": 2,
+      "valor_m2": 936.5079365079365,
+      "direccion": "DOS DORMITORIOS EN AV. SAN MARTÍN",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 84500.0,
+      "m2": 93.0,
+      "dormitorios": 2,
+      "valor_m2": 908.6021505376344,
+      "direccion": "Departamento de dos dormitorios en Republica de la Sexta",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Sexta"
+    },
+    {
+      "precio": 220000.0,
+      "m2": 73.0,
+      "dormitorios": 2,
+      "valor_m2": 3013.698630136986,
+      "direccion": "Urquiza 1900 - Departamento en venta de 2 dormitorios en dEco - Rosario, Centro",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 64000.0,
+      "m2": 60.0,
+      "dormitorios": 3,
+      "valor_m2": 1066.6666666666667,
+      "direccion": "Departamento venta barrio centro amplio 3 dormitorios categoria oportunidad inversion apto credito",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 870000.0,
+      "m2": 163.0,
+      "dormitorios": 3,
+      "valor_m2": 5337.423312883436,
+      "direccion": "Departamento en Rosario",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 700000.0,
+      "m2": 165.0,
+      "dormitorios": 3,
+      "valor_m2": 4242.424242424242,
+      "direccion": "Departamento en Venta de 3 Dormitorios Primera linea Rio",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 145000.0,
+      "m2": 114.0,
+      "dormitorios": 3,
+      "valor_m2": 1271.9298245614036,
+      "direccion": "EXCELENTE DEPARTAMENTO 3 DORMITORIOS",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 199000.0,
+      "m2": 103.0,
+      "dormitorios": 3,
+      "valor_m2": 1932.0388349514562,
+      "direccion": "Departamento  tres dormitorios con amenities - Pichincha",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Pichincha"
+    },
+    {
+      "precio": 360000.0,
+      "m2": 102.0,
+      "dormitorios": 3,
+      "valor_m2": 3529.4117647058824,
+      "direccion": "Departamento en venta 3 dormitorios, terraza exclusiva y cochera en Barrio Martin",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Martin"
+    },
+    {
+      "precio": 240000.0,
+      "m2": 100.0,
+      "dormitorios": 3,
+      "valor_m2": 2400.0,
+      "direccion": "VENTA. Departamento 3 dormitorios. Vista al Río.",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Martin"
+    },
+    {
+      "precio": 129000.0,
+      "m2": 70.0,
+      "dormitorios": 3,
+      "valor_m2": 1842.857142857143,
+      "direccion": "Departamento en Centro",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 250000.0,
+      "m2": 140.0,
+      "dormitorios": 3,
+      "valor_m2": 1785.7142857142858,
+      "direccion": "VENTA. Departamento de categoría, Puerto norte. 3 dormitorios",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Puerto Norte"
+    },
+    {
+      "precio": 335000.0,
+      "m2": 153.0,
+      "dormitorios": 3,
+      "valor_m2": 2189.5424836601305,
+      "direccion": "Departamento en Pichincha",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 950000.0,
+      "m2": 150.0,
+      "dormitorios": 3,
+      "valor_m2": 6333.333333333333,
+      "direccion": "Departamento en Rosario",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 810000.0,
+      "m2": 212.0,
+      "dormitorios": 3,
+      "valor_m2": 3820.754716981132,
+      "direccion": "Departamento 3 dormitorios en venta Torres Dolfines",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Puerto Norte"
+    },
+    {
+      "precio": 175000.0,
+      "m2": 111.0,
+      "dormitorios": 3,
+      "valor_m2": 1576.5765765765766,
+      "direccion": "CATEGORIA PLAZA PRINGLES  FRENTE COCHERA  BALCON CORRIDO",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 320000.0,
+      "m2": 259.0,
+      "dormitorios": 3,
+      "valor_m2": 1235.5212355212354,
+      "direccion": "Departamento en Centro",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 310000.0,
+      "m2": 115.0,
+      "dormitorios": 3,
+      "valor_m2": 2695.6521739130435,
+      "direccion": "Venta. Departamento 3 dormitorios con vista al Rio",
+      "fuente": "argenprop",
       "operacion": "venta",
       "zona": "Otro"
     },
     {
-      "precio": 620000.0,
-      "m2": 39.0,
-      "valor_m2": 15897.435897435897,
-      "fuente": "giaganti",
+      "precio": 245000.0,
+      "m2": 102.0,
+      "dormitorios": 3,
+      "valor_m2": 2401.9607843137255,
+      "direccion": "Departamento de 3 dormitorios a estrenar con amenities",
+      "fuente": "argenprop",
       "operacion": "venta",
       "zona": "Otro"
     },
     {
-      "precio": 620000.0,
-      "m2": 39.0,
-      "valor_m2": 15897.435897435897,
-      "fuente": "giaganti",
+      "precio": 350000.0,
+      "m2": 140.0,
+      "dormitorios": 3,
+      "valor_m2": 2500.0,
+      "direccion": "Venta / permuta | Departamento piso exclusivo 3 dormitorios con balcón | Zona río, Rosario.",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 110000.0,
+      "m2": 107.0,
+      "dormitorios": 3,
+      "valor_m2": 1028.03738317757,
+      "direccion": "Venta departamento 3 dormitorios y cochera - Entre Ríos 1139",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 750000.0,
+      "m2": 203.0,
+      "dormitorios": 4,
+      "valor_m2": 3694.5812807881775,
+      "direccion": "Torre Britania, espectacular departamento de 4 dormitorios con vista franca al río",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 125000.0,
+      "m2": 139.0,
+      "dormitorios": 4,
+      "valor_m2": 899.2805755395683,
+      "direccion": "VENTA DEPARTAMENTO EN PISO EXCLUSIVO 4 DORMITORIOS, CENTRO, ROSARIO",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 595000.0,
+      "m2": 190.0,
+      "dormitorios": 4,
+      "valor_m2": 3131.5789473684213,
+      "direccion": "VENTA DEPARTAMENTO 3 DORMITORIOS PISO EXCLUSIVO ROSARIO CENTRO",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 315000.0,
+      "m2": 117.0,
+      "dormitorios": 4,
+      "valor_m2": 2692.3076923076924,
+      "direccion": "Departamento de 3 dormitorios reciclado a nuevo frente al Parque España - VENTA",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 125000.0,
+      "m2": 152.0,
+      "dormitorios": 4,
+      "valor_m2": 822.3684210526316,
+      "direccion": "VENTA DEPARTAMENTO  4 DORMITORIOS ESTILO",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 295000.0,
+      "m2": 156.0,
+      "dormitorios": 4,
+      "valor_m2": 1891.025641025641,
+      "direccion": "Venta departamento 4 dormitorios y cochera reciclado a nuevo - CORDOBA Y PARAGUAY",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 275000.0,
+      "m2": 144.0,
+      "dormitorios": 4,
+      "valor_m2": 1909.7222222222222,
+      "direccion": "4 Dormitorios Dorrego y Cordoba",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 215000.0,
+      "m2": 225.0,
+      "dormitorios": 4,
+      "valor_m2": 955.5555555555555,
+      "direccion": "Departamento piso exclusivo. 4 dormitorios con cochera.",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 1400000.0,
+      "m2": 340.0,
+      "dormitorios": 4,
+      "valor_m2": 4117.64705882353,
+      "direccion": "Departamento 4 dormitorios en venta Puerto Norte",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 198000.0,
+      "m2": 206.0,
+      "dormitorios": 4,
+      "valor_m2": 961.1650485436893,
+      "direccion": "Oroño y Córdoba 4 Dormitorios !",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 165000.0,
+      "m2": 152.0,
+      "dormitorios": 4,
+      "valor_m2": 1085.5263157894738,
+      "direccion": "Ayacucho y Pasco - Dpto de 4 Dormitorios.",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 480000.0,
+      "m2": 220.0,
+      "dormitorios": 4,
+      "valor_m2": 2181.818181818182,
+      "direccion": "PISO EXCLUSIVO PELLEGRINI 600",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 435000.0,
+      "m2": 238.0,
+      "dormitorios": 4,
+      "valor_m2": 1827.7310924369747,
+      "direccion": "Mendoza y 1º de Mayo - Dpto de 4 Dormitorios Externo.",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Martin"
+    },
+    {
+      "precio": 235000.0,
+      "m2": 202.0,
+      "dormitorios": 4,
+      "valor_m2": 1163.3663366336634,
+      "direccion": "VENTA DEPARTAMENTO 4 DORMITORIOS ZONA RIO",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Martin"
+    },
+    {
+      "precio": 520000.0,
+      "m2": 135.0,
+      "dormitorios": 4,
+      "valor_m2": 3851.8518518518517,
+      "direccion": "Venta departamento 3 dormitorios puerto norte",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Puerto Norte"
+    },
+    {
+      "precio": 299000.0,
+      "m2": 259.0,
+      "dormitorios": 4,
+      "valor_m2": 1154.4401544401544,
+      "direccion": "Departamento 4 Dormitorios - Córdoba 1600 - Centro Rosario | Venta",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 315000.0,
+      "m2": 142.0,
+      "dormitorios": 4,
+      "valor_m2": 2218.3098591549297,
+      "direccion": "EN VENTA - DEPARTAMENTO DE 4 DORMITORIOS CON COCHERA - BARRIO LOURDES",
+      "fuente": "argenprop",
+      "operacion": "venta",
+      "zona": "Pellegrini"
+    },
+    {
+      "precio": 97000.0,
+      "m2": 42.0,
+      "dormitorios": null,
+      "valor_m2": 2309.5238095238096,
+      "direccion": "7775166 Departamento en Venta en Abasto Moreno  23",
+      "fuente": "ttl",
+      "operacion": "venta",
+      "zona": "Abasto"
+    },
+    {
+      "precio": 135000.0,
+      "m2": 97.25,
+      "dormitorios": null,
+      "valor_m2": 1388.1748071979434,
+      "direccion": "7428492 Departamento en Venta en Centro Av. Pelleg",
+      "fuente": "ttl",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 79000.0,
+      "m2": 67.0,
+      "dormitorios": null,
+      "valor_m2": 1179.1044776119404,
+      "direccion": "7509821 Departamento en Venta en Centro 3 de Febre",
+      "fuente": "ttl",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 47000.0,
+      "m2": 33.0,
+      "dormitorios": null,
+      "valor_m2": 1424.2424242424242,
+      "direccion": "6818872 Departamento en Venta en Echesortu Francia",
+      "fuente": "ttl",
       "operacion": "venta",
       "zona": "Otro"
     },
     {
-      "precio": 650000.0,
-      "m2": 49.0,
-      "valor_m2": 13265.30612244898,
-      "fuente": "giaganti",
+      "precio": 120600.0,
+      "m2": 67.0,
+      "dormitorios": null,
+      "valor_m2": 1800.0,
+      "direccion": "7908252 Departamento en Venta en Villa Constitució",
+      "fuente": "ttl",
       "operacion": "venta",
       "zona": "Otro"
     },
     {
-      "precio": 650000.0,
-      "m2": 49.0,
-      "valor_m2": 13265.30612244898,
-      "fuente": "giaganti",
+      "precio": 86000.0,
+      "m2": 54.2,
+      "dormitorios": null,
+      "valor_m2": 1586.7158671586715,
+      "direccion": "7911543 Departamento en Venta en Centro Urquiza al",
+      "fuente": "ttl",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 228000.0,
+      "m2": 152.0,
+      "dormitorios": null,
+      "valor_m2": 1500.0,
+      "direccion": "7795161 Casa en Venta en Nuestra Señora de Lourdes",
+      "fuente": "ttl",
       "operacion": "venta",
       "zona": "Otro"
+    },
+    {
+      "precio": 140000.0,
+      "m2": 162.8,
+      "dormitorios": null,
+      "valor_m2": 859.9508599508599,
+      "direccion": "5421333 Terreno en Venta en Echesortu Santa Fe  42",
+      "fuente": "ttl",
+      "operacion": "venta",
+      "zona": "Otro"
+    },
+    {
+      "precio": 98000.0,
+      "m2": 220.0,
+      "dormitorios": null,
+      "valor_m2": 445.45454545454544,
+      "direccion": "7874683 Casa en Venta en Funes Town coronel lavall",
+      "fuente": "ttl",
+      "operacion": "venta",
+      "zona": "Otro"
+    },
+    {
+      "precio": 70000.0,
+      "m2": 45.0,
+      "dormitorios": null,
+      "valor_m2": 1555.5555555555557,
+      "direccion": "7868357 Departamento en Venta en Echesortu Caferat",
+      "fuente": "ttl",
+      "operacion": "venta",
+      "zona": "Otro"
+    },
+    {
+      "precio": 75000.0,
+      "m2": 83.28,
+      "dormitorios": null,
+      "valor_m2": 900.5763688760807,
+      "direccion": "7823171 Departamento en Venta en Centro San Juan  ",
+      "fuente": "ttl",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 158000.0,
+      "m2": 165.8,
+      "dormitorios": null,
+      "valor_m2": 952.9553679131483,
+      "direccion": "6356020 Casa en Venta en Pinares del Sur Pinares d",
+      "fuente": "ttl",
+      "operacion": "venta",
+      "zona": "Otro"
+    },
+    {
+      "precio": 570000.0,
+      "m2": 230.0,
+      "dormitorios": null,
+      "valor_m2": 2478.2608695652175,
+      "direccion": "7591848 Casa en Venta en Vida Club de Campo Vida C",
+      "fuente": "ttl",
+      "operacion": "venta",
+      "zona": "Otro"
+    },
+    {
+      "precio": 109000.0,
+      "m2": 245.0,
+      "dormitorios": null,
+      "valor_m2": 444.8979591836735,
+      "direccion": "7835352 Terreno en Venta en Refinerias Pasaje Don ",
+      "fuente": "ttl",
+      "operacion": "venta",
+      "zona": "Otro"
+    },
+    {
+      "precio": 132000.0,
+      "m2": 139.0,
+      "dormitorios": null,
+      "valor_m2": 949.6402877697842,
+      "direccion": "7872539 Casa en Venta en Pueblo Esther Casa a estr",
+      "fuente": "ttl",
+      "operacion": "venta",
+      "zona": "Otro"
+    },
+    {
+      "precio": 160000.0,
+      "m2": 87.3,
+      "dormitorios": null,
+      "valor_m2": 1832.7605956471937,
+      "direccion": "6096600 Departamento en Venta en Abasto Sarmiento ",
+      "fuente": "ttl",
+      "operacion": "venta",
+      "zona": "Abasto"
+    },
+    {
+      "precio": 65000.0,
+      "m2": 48.0,
+      "dormitorios": null,
+      "valor_m2": 1354.1666666666667,
+      "direccion": "7409509 Departamento en Venta en España y Hospital",
+      "fuente": "ttl",
+      "operacion": "venta",
+      "zona": "Otro"
+    },
+    {
+      "precio": 165000.0,
+      "m2": 115.0,
+      "dormitorios": null,
+      "valor_m2": 1434.7826086956522,
+      "direccion": "7769643 Departamento en Venta en Pichincha Ricchie",
+      "fuente": "ttl",
+      "operacion": "venta",
+      "zona": "Pichincha"
+    },
+    {
+      "precio": 236645.0,
+      "m2": 101.0,
+      "dormitorios": null,
+      "valor_m2": 2343.019801980198,
+      "direccion": "7790882 Departamento en Venta en Pichincha Brown  ",
+      "fuente": "ttl",
+      "operacion": "venta",
+      "zona": "Pichincha"
+    },
+    {
+      "precio": 270000.0,
+      "m2": 196.0,
+      "dormitorios": null,
+      "valor_m2": 1377.5510204081634,
+      "direccion": "7756869 Casa en Venta en Centro Moreno  al 1100",
+      "fuente": "ttl",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 110000.0,
+      "m2": 62.0,
+      "dormitorios": null,
+      "valor_m2": 1774.1935483870968,
+      "direccion": "7764120 Departamento en Venta en Abasto Ituzaingo ",
+      "fuente": "ttl",
+      "operacion": "venta",
+      "zona": "Abasto"
+    },
+    {
+      "precio": 70000.0,
+      "m2": 50.0,
+      "dormitorios": null,
+      "valor_m2": 1400.0,
+      "direccion": "7768531 PH en Venta en Nuestra Señora de Lourdes S",
+      "fuente": "ttl",
+      "operacion": "venta",
+      "zona": "Otro"
+    },
+    {
+      "precio": 118000.0,
+      "m2": 51.5,
+      "dormitorios": null,
+      "valor_m2": 2291.26213592233,
+      "direccion": "7779230 Departamento en Venta en Centro Entre Rios",
+      "fuente": "ttl",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 99000.0,
+      "m2": 64.3,
+      "dormitorios": null,
+      "valor_m2": 1539.6578538102644,
+      "direccion": "7757156 Departamento en Venta en Centro San Juan a",
+      "fuente": "ttl",
+      "operacion": "venta",
+      "zona": "Centro"
+    },
+    {
+      "precio": 117000.0,
+      "m2": 171.0,
+      "dormitorios": null,
+      "valor_m2": 684.2105263157895,
+      "direccion": "7791657 Casa en Venta en Barrio Rucci Arribeños  a",
+      "fuente": "ttl",
+      "operacion": "venta",
+      "zona": "Otro"
+    },
+    {
+      "precio": 546700.0,
+      "m2": 234.5,
+      "dormitorios": null,
+      "valor_m2": 2331.3432835820895,
+      "direccion": "7760644 Departamento en Venta en Abasto Ituzaingo ",
+      "fuente": "ttl",
+      "operacion": "venta",
+      "zona": "Abasto"
+    },
+    {
+      "precio": 200475.0,
+      "m2": 89.5,
+      "dormitorios": null,
+      "valor_m2": 2239.9441340782123,
+      "direccion": "7764902 Departamento en Venta en Abasto Ituzaingo ",
+      "fuente": "ttl",
+      "operacion": "venta",
+      "zona": "Abasto"
+    },
+    {
+      "precio": 473000.0,
+      "m2": 209.5,
+      "dormitorios": null,
+      "valor_m2": 2257.7565632458236,
+      "direccion": "7761303 Departamento en Venta en Abasto Ituzaingo ",
+      "fuente": "ttl",
+      "operacion": "venta",
+      "zona": "Abasto"
+    },
+    {
+      "precio": 49000.0,
+      "m2": 32.0,
+      "dormitorios": null,
+      "valor_m2": 1531.25,
+      "direccion": "7768881 Departamento en Venta en Refinerias Corval",
+      "fuente": "ttl",
+      "operacion": "venta",
+      "zona": "Otro"
+    },
+    {
+      "precio": 325600.0,
+      "m2": 147.5,
+      "dormitorios": null,
+      "valor_m2": 2207.4576271186443,
+      "direccion": "7763873 Departamento en Venta en Abasto Ituzaingo ",
+      "fuente": "ttl",
+      "operacion": "venta",
+      "zona": "Abasto"
+    },
+    {
+      "precio": 295000.0,
+      "m2": 223.7,
+      "dormitorios": null,
+      "valor_m2": 1318.730442556996,
+      "direccion": "7749412 Casa en Venta en Pichincha BROWN al 2700",
+      "fuente": "ttl",
+      "operacion": "venta",
+      "zona": "Pichincha"
+    },
+    {
+      "operacion": "venta",
+      "precio": 158550,
+      "m2": 68,
+      "dormitorios": null,
+      "valor_m2": 2331.6176470588234,
+      "direccion": "Roca 2300   Condominios Roca   Rosario",
+      "zona": "Otro",
+      "fuente": "lacapital"
+    },
+    {
+      "operacion": "venta",
+      "precio": 301500,
+      "m2": 89,
+      "dormitorios": null,
+      "valor_m2": 3387.6404494382023,
+      "direccion": "Mitre 335. 02   01   Rosario",
+      "zona": "Otro",
+      "fuente": "lacapital"
+    },
+    {
+      "operacion": "venta",
+      "precio": 268750,
+      "m2": 106,
+      "dormitorios": 3,
+      "valor_m2": 2535.377358490566,
+      "direccion": "Ayacucho y 9 de Julio   Rosario",
+      "zona": "Otro",
+      "fuente": "lacapital"
+    },
+    {
+      "operacion": "venta",
+      "precio": 124984,
+      "m2": 75,
+      "dormitorios": null,
+      "valor_m2": 1666.4533333333334,
+      "direccion": "Dorrego 1500   Rosario",
+      "zona": "Otro",
+      "fuente": "lacapital"
+    },
+    {
+      "operacion": "venta",
+      "precio": 99000,
+      "m2": 45,
+      "dormitorios": null,
+      "valor_m2": 2200.0,
+      "direccion": "San Juan al 900. 00 05   Rosario",
+      "zona": "Otro",
+      "fuente": "lacapital"
+    },
+    {
+      "operacion": "venta",
+      "precio": 125000,
+      "m2": 91,
+      "dormitorios": 2,
+      "valor_m2": 1373.6263736263736,
+      "direccion": "Paraguay 311 '05 03   Rosario",
+      "zona": "Otro",
+      "fuente": "lacapital"
+    },
+    {
+      "operacion": "venta",
+      "precio": 244000,
+      "m2": 93,
+      "dormitorios": null,
+      "valor_m2": 2623.6559139784945,
+      "direccion": "Pellegrini 400. 10   B   Rosario",
+      "zona": "Pellegrini",
+      "fuente": "lacapital"
+    },
+    {
+      "operacion": "venta",
+      "precio": 250100,
+      "m2": 101,
+      "dormitorios": null,
+      "valor_m2": 2476.237623762376,
+      "direccion": "Mendoza y Callao   Rosario",
+      "zona": "Otro",
+      "fuente": "lacapital"
+    },
+    {
+      "operacion": "venta",
+      "precio": 72000,
+      "m2": 44,
+      "dormitorios": null,
+      "valor_m2": 1636.3636363636363,
+      "direccion": "TUCUMAN 3300   Rosario",
+      "zona": "Otro",
+      "fuente": "lacapital"
+    },
+    {
+      "operacion": "venta",
+      "precio": 217350,
+      "m2": 120,
+      "dormitorios": null,
+      "valor_m2": 1811.25,
+      "direccion": "Mendoza 1400   Rosario",
+      "zona": "Otro",
+      "fuente": "lacapital"
+    },
+    {
+      "operacion": "venta",
+      "precio": 95000,
+      "m2": 51,
+      "dormitorios": null,
+      "valor_m2": 1862.7450980392157,
+      "direccion": "CATAMARCA Y CORRIENTES   Rosario",
+      "zona": "Otro",
+      "fuente": "lacapital"
+    },
+    {
+      "precio": 397800.0,
+      "m2": 30.0,
+      "dormitorios": 1,
+      "valor_m2": 13260.0,
+      "direccion": "Departamento en Centro",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Centro"
+    },
+    {
+      "precio": 357000.0,
+      "m2": 35.0,
+      "dormitorios": 1,
+      "valor_m2": 10200.0,
+      "direccion": "Rodriguez 1254 - Monoambiente en alquiler",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Centro"
     },
     {
       "precio": 490000.0,
@@ -469,6 +1333,16 @@
       "zona": "Pellegrini"
     },
     {
+      "precio": 280000.0,
+      "m2": 45.0,
+      "dormitorios": 1,
+      "valor_m2": 6222.222222222223,
+      "direccion": "Departamento en alquiler en Bella Vista Oeste",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Otro"
+    },
+    {
       "precio": 360000.0,
       "m2": 27.0,
       "dormitorios": 1,
@@ -499,6 +1373,26 @@
       "zona": "Centro"
     },
     {
+      "precio": 380000.0,
+      "m2": 24.0,
+      "dormitorios": 1,
+      "valor_m2": 15833.333333333334,
+      "direccion": "ABASTO - MONOAMBIENTE DE FRENTE",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Abasto"
+    },
+    {
+      "precio": 380000.0,
+      "m2": 32.0,
+      "dormitorios": 1,
+      "valor_m2": 11875.0,
+      "direccion": "Departamento monoambiente con balcón en alquiler",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Centro"
+    },
+    {
       "precio": 390000.0,
       "m2": 40.0,
       "dormitorios": 1,
@@ -509,24 +1403,24 @@
       "zona": "Otro"
     },
     {
-      "precio": 420000.0,
-      "m2": 42.0,
+      "precio": 460000.0,
+      "m2": 34.0,
       "dormitorios": 1,
-      "valor_m2": 10000.0,
-      "direccion": "Monoambiente amplio con dos balcones",
+      "valor_m2": 13529.411764705883,
+      "direccion": "Departamento de un dormitorio con balcón en alquiler",
       "fuente": "argenprop",
       "operacion": "alquiler",
       "zona": "Centro"
     },
     {
-      "precio": 350000.0,
-      "m2": 40.0,
+      "precio": 290000.0,
+      "m2": 30.0,
       "dormitorios": 1,
-      "valor_m2": 8750.0,
-      "direccion": "Monoambiente en alquiler, Buenos Aires 1652",
+      "valor_m2": 9666.666666666666,
+      "direccion": "ALQUILER MONOAMBIENTE",
       "fuente": "argenprop",
       "operacion": "alquiler",
-      "zona": "Martin"
+      "zona": "Abasto"
     },
     {
       "precio": 360000.0,
@@ -534,36 +1428,6 @@
       "dormitorios": 1,
       "valor_m2": 8372.093023255815,
       "direccion": "ALQUILER DEPARTAMENTO MONOAMBIENTE",
-      "fuente": "argenprop",
-      "operacion": "alquiler",
-      "zona": "Abasto"
-    },
-    {
-      "precio": 750000.0,
-      "m2": 46.0,
-      "dormitorios": 1,
-      "valor_m2": 16304.347826086956,
-      "direccion": "ALQUILER TEMPORAL EN ARROYITO AMUEBLADO Y EQUIPADO!",
-      "fuente": "argenprop",
-      "operacion": "alquiler",
-      "zona": "Otro"
-    },
-    {
-      "precio": 380000.0,
-      "m2": 35.0,
-      "dormitorios": 1,
-      "valor_m2": 10857.142857142857,
-      "direccion": "Amplio monoambiente con patio",
-      "fuente": "argenprop",
-      "operacion": "alquiler",
-      "zona": "Centro"
-    },
-    {
-      "precio": 270000.0,
-      "m2": 30.0,
-      "dormitorios": 1,
-      "valor_m2": 9000.0,
-      "direccion": "ALQUILER MONOAMBIENTE",
       "fuente": "argenprop",
       "operacion": "alquiler",
       "zona": "Abasto"
@@ -579,14 +1443,24 @@
       "zona": "Centro"
     },
     {
-      "precio": 360000.0,
-      "m2": 30.0,
+      "precio": 499800.0,
+      "m2": 50.0,
       "dormitorios": 1,
-      "valor_m2": 12000.0,
-      "direccion": "Depto 1 dormitorio con patio",
+      "valor_m2": 9996.0,
+      "direccion": "Cerrito 665 - 1 dormitorio en alquiler",
       "fuente": "argenprop",
       "operacion": "alquiler",
-      "zona": "Martin"
+      "zona": "Centro"
+    },
+    {
+      "precio": 600000.0,
+      "m2": 50.0,
+      "dormitorios": 1,
+      "valor_m2": 12000.0,
+      "direccion": "DEPARTAMENTO DE UN DORM CON BALCON ZONA PARQUE INDEPENDENCIA ZONA TRIBUNALES",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Centro"
     },
     {
       "precio": 450000.0,
@@ -599,11 +1473,11 @@
       "zona": "Martin"
     },
     {
-      "precio": 420000.0,
-      "m2": 50.0,
+      "precio": 580000.0,
+      "m2": 42.0,
       "dormitorios": 1,
-      "valor_m2": 8400.0,
-      "direccion": "DEPARTAMENTO INTERNO EN ECHESORTU DE UN DORMITORIO CON EXPENSAS BAJAS",
+      "valor_m2": 13809.52380952381,
+      "direccion": "Alquiler Departamento 1 dormitorio Echesortu Rosario",
       "fuente": "argenprop",
       "operacion": "alquiler",
       "zona": "Otro"
@@ -649,6 +1523,26 @@
       "zona": "Centro"
     },
     {
+      "precio": 690000.0,
+      "m2": 50.0,
+      "dormitorios": 1,
+      "valor_m2": 13800.0,
+      "direccion": "Espectacular Depto de 1 Dormitorio con Terraza Exclusiva",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Centro"
+    },
+    {
+      "precio": 720000.0,
+      "m2": 45.0,
+      "dormitorios": 1,
+      "valor_m2": 16000.0,
+      "direccion": "HERMOSO DEPARTAMENTO EN EXCELENTE ZONA!",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Centro"
+    },
+    {
       "precio": 400000.0,
       "m2": 42.0,
       "dormitorios": 1,
@@ -659,16 +1553,6 @@
       "zona": "Otro"
     },
     {
-      "precio": 400000.0,
-      "m2": 45.0,
-      "dormitorios": 1,
-      "valor_m2": 8888.888888888889,
-      "direccion": "DEPARTAMENTO a 200 MTS  PARQUE ESPAÑA",
-      "fuente": "argenprop",
-      "operacion": "alquiler",
-      "zona": "Centro"
-    },
-    {
       "precio": 550000.0,
       "m2": 42.0,
       "dormitorios": 1,
@@ -677,6 +1561,16 @@
       "fuente": "argenprop",
       "operacion": "alquiler",
       "zona": "Centro"
+    },
+    {
+      "precio": 630000.0,
+      "m2": 40.0,
+      "dormitorios": 1,
+      "valor_m2": 15750.0,
+      "direccion": "ALQUILER DEPARTAMENTO 1 DORMITORIO CON COCHERA",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Otro"
     },
     {
       "precio": 700000.0,
@@ -699,70 +1593,565 @@
       "zona": "Pellegrini"
     },
     {
-      "precio": 390000.0,
-      "m2": 40.0,
-      "dormitorios": 1,
-      "valor_m2": 9750.0,
-      "direccion": "Entre Rios casi mendoza . depto de pasillo",
+      "precio": 816000.0,
+      "m2": 65.0,
+      "dormitorios": 2,
+      "valor_m2": 12553.846153846154,
+      "direccion": "Departamento en alquiler Bv. Oroño 131",
       "fuente": "argenprop",
       "operacion": "alquiler",
       "zona": "Centro"
     },
     {
-      "precio": 1300000.0,
-      "m2": 80.0,
-      "valor_m2": 16250.0,
-      "fuente": "giaganti",
+      "precio": 1100000.0,
+      "m2": 42.0,
+      "dormitorios": 2,
+      "valor_m2": 26190.47619047619,
+      "direccion": "BUENOS AIRES al 1700",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Otro"
+    },
+    {
+      "precio": 750000.0,
+      "m2": 54.0,
+      "dormitorios": 2,
+      "valor_m2": 13888.888888888889,
+      "direccion": "DEPARTAMENTO SOBRE OROÑO - CONTRAFRENTE, expesas bajas",
+      "fuente": "argenprop",
       "operacion": "alquiler",
       "zona": "Centro"
     },
     {
-      "precio": 1300000.0,
-      "m2": 80.0,
-      "valor_m2": 16250.0,
-      "fuente": "giaganti",
+      "precio": 950000.0,
+      "m2": 65.0,
+      "dormitorios": 2,
+      "valor_m2": 14615.384615384615,
+      "direccion": "Jujuy 2406 - Departamento De 2 Dormitorios En Alquiler - Pichincha, Rosario",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Pichincha"
+    },
+    {
+      "precio": 600000.0,
+      "m2": 55.0,
+      "dormitorios": 2,
+      "valor_m2": 10909.09090909091,
+      "direccion": "DEPARTAMENTO DOS DORMITORIOS EN BARRIO MARTIN",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Martin"
+    },
+    {
+      "precio": 700000.0,
+      "m2": 65.0,
+      "dormitorios": 2,
+      "valor_m2": 10769.23076923077,
+      "direccion": "EN BARRIO MARTÍN - DOS DORMITORIOS + COMODIN",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Martin"
+    },
+    {
+      "precio": 1500000.0,
+      "m2": 92.0,
+      "dormitorios": 2,
+      "valor_m2": 16304.347826086956,
+      "direccion": "Alquiler Departamento 2 dormitorios zona río Rosario",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Centro"
+    },
+    {
+      "precio": 890000.0,
+      "m2": 93.0,
+      "dormitorios": 2,
+      "valor_m2": 9569.89247311828,
+      "direccion": "Alquiler departamento 2 dormitorios ubicación privilegiada Centro Rosario",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Centro"
+    },
+    {
+      "precio": 600000.0,
+      "m2": 60.0,
+      "dormitorios": 2,
+      "valor_m2": 10000.0,
+      "direccion": "Departamento - Centro",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Centro"
+    },
+    {
+      "precio": 450000.0,
+      "m2": 48.0,
+      "dormitorios": 2,
+      "valor_m2": 9375.0,
+      "direccion": "Depto. de pasillo en ALQUILER - 2 DORMITORIOS",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Pellegrini"
+    },
+    {
+      "precio": 570000.0,
+      "m2": 60.0,
+      "dormitorios": 2,
+      "valor_m2": 9500.0,
+      "direccion": "DEPTO. 2 DORMITORIOS AL FRENTE CON BALCÓN! ALQUILER",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Centro"
+    },
+    {
+      "precio": 700000.0,
+      "m2": 51.0,
+      "dormitorios": 2,
+      "valor_m2": 13725.490196078432,
+      "direccion": "Departamento en Rosario- CERRITO 1600-ALQUILER- 2 DORMITORIOS",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Abasto"
+    },
+    {
+      "precio": 1800000.0,
+      "m2": 125.0,
+      "dormitorios": 2,
+      "valor_m2": 14400.0,
+      "direccion": "Departamento de 2 dormitorios con cochera y amenities",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Puerto Norte"
+    },
+    {
+      "precio": 780000.0,
+      "m2": 60.0,
+      "dormitorios": 2,
+      "valor_m2": 13000.0,
+      "direccion": "Semipiso de 2 dormitorios sobre el Bv Oroño",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Centro"
+    },
+    {
+      "precio": 700000.0,
+      "m2": 60.0,
+      "dormitorios": 2,
+      "valor_m2": 11666.666666666666,
+      "direccion": "Departamento en Centro",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Centro"
+    },
+    {
+      "precio": 340000.0,
+      "m2": 50.0,
+      "dormitorios": 2,
+      "valor_m2": 6800.0,
+      "direccion": "ICARO III 1°PISO  G 2 DORMITORIOS",
+      "fuente": "argenprop",
       "operacion": "alquiler",
       "zona": "Otro"
     },
     {
-      "precio": 1300000.0,
-      "m2": 80.0,
-      "valor_m2": 16250.0,
-      "fuente": "giaganti",
+      "precio": 690000.0,
+      "m2": 57.0,
+      "dormitorios": 2,
+      "valor_m2": 12105.263157894737,
+      "direccion": "AMPLIO SEMIPISO DE DOS DORMITORIOS",
+      "fuente": "argenprop",
       "operacion": "alquiler",
-      "zona": "Otro"
+      "zona": "Centro"
     },
     {
-      "precio": 620000.0,
-      "m2": 39.0,
-      "valor_m2": 15897.435897435897,
-      "fuente": "giaganti",
+      "precio": 800000.0,
+      "m2": 66.0,
+      "dormitorios": 2,
+      "valor_m2": 12121.212121212122,
+      "direccion": "ALQUILER DEPARTAMENTO DOS DORMITORIOS - MENDOZA AL 100",
+      "fuente": "argenprop",
       "operacion": "alquiler",
-      "zona": "Otro"
+      "zona": "Martin"
     },
     {
-      "precio": 620000.0,
-      "m2": 39.0,
-      "valor_m2": 15897.435897435897,
-      "fuente": "giaganti",
+      "precio": 900000.0,
+      "m2": 55.0,
+      "dormitorios": 3,
+      "valor_m2": 16363.636363636364,
+      "direccion": "Alquiler departamento de 3 dormitorios - Zona facultades",
+      "fuente": "argenprop",
       "operacion": "alquiler",
-      "zona": "Otro"
+      "zona": "Pellegrini"
+    },
+    {
+      "precio": 2100000.0,
+      "m2": 88.0,
+      "dormitorios": 3,
+      "valor_m2": 23863.636363636364,
+      "direccion": "Departamento en Abasto",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Abasto"
     },
     {
       "precio": 650000.0,
-      "m2": 49.0,
-      "valor_m2": 13265.30612244898,
-      "fuente": "giaganti",
+      "m2": 95.0,
+      "dormitorios": 3,
+      "valor_m2": 6842.105263157895,
+      "direccion": "Amplio depto 3 dormitorios  en barrio martin",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Martin"
+    },
+    {
+      "precio": 700000.0,
+      "m2": 85.0,
+      "dormitorios": 3,
+      "valor_m2": 8235.29411764706,
+      "direccion": "Departamento en Rosario",
+      "fuente": "argenprop",
       "operacion": "alquiler",
       "zona": "Otro"
     },
     {
-      "precio": 650000.0,
-      "m2": 49.0,
-      "valor_m2": 13265.30612244898,
-      "fuente": "giaganti",
+      "precio": 1400000.0,
+      "m2": 135.0,
+      "dormitorios": 3,
+      "valor_m2": 10370.37037037037,
+      "direccion": "Departamento de primera linea",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Centro"
+    },
+    {
+      "precio": 800000.0,
+      "m2": 57.0,
+      "dormitorios": 3,
+      "valor_m2": 14035.087719298246,
+      "direccion": "Departamento de tres dormitorios en alquiler",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Centro"
+    },
+    {
+      "precio": 1800000.0,
+      "m2": 100.0,
+      "dormitorios": 3,
+      "valor_m2": 18000.0,
+      "direccion": "Montevideo 2448",
+      "fuente": "argenprop",
       "operacion": "alquiler",
       "zona": "Otro"
+    },
+    {
+      "precio": 750000.0,
+      "m2": 60.0,
+      "dormitorios": 3,
+      "valor_m2": 12500.0,
+      "direccion": "Zeballos 1189 - Dpto de 3 Dormitorios Externo.",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Centro"
+    },
+    {
+      "precio": 2400000.0,
+      "m2": 160.0,
+      "dormitorios": 3,
+      "valor_m2": 15000.0,
+      "direccion": "Departamento de 3 dormitorios con 2 cocheras y amenities",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Puerto Norte"
+    },
+    {
+      "precio": 2000000.0,
+      "m2": 116.0,
+      "dormitorios": 3,
+      "valor_m2": 17241.379310344826,
+      "direccion": "Alquiler: Espectacular piso exclusivo con vista al Rio Paraná - Rosario",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Centro"
+    },
+    {
+      "precio": 2200000.0,
+      "m2": 156.0,
+      "dormitorios": 3,
+      "valor_m2": 14102.564102564103,
+      "direccion": "Belgrano 730 - Piso Exclusivo de 3 Dormitorios. Con cochera.",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Centro"
+    },
+    {
+      "precio": 780000.0,
+      "m2": 66.0,
+      "dormitorios": 3,
+      "valor_m2": 11818.181818181818,
+      "direccion": "9 de Julio 2239 - Dpto de 3 Dormitorios Externo.",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Otro"
+    },
+    {
+      "precio": 490000.0,
+      "m2": 62.0,
+      "dormitorios": 3,
+      "valor_m2": 7903.225806451613,
+      "direccion": "Brandazza 2916 Monoblok Tres Dormitorios",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Otro"
+    },
+    {
+      "precio": 950000.0,
+      "m2": 106.0,
+      "dormitorios": 3,
+      "valor_m2": 8962.264150943396,
+      "direccion": "Departamento 2 dormitorios + comodin. 2 baños, cocina independiente y balcon al frente",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Centro"
+    },
+    {
+      "precio": 1350000.0,
+      "m2": 80.0,
+      "dormitorios": 3,
+      "valor_m2": 16875.0,
+      "direccion": "DEPARTAMENTO 3 DORMITORIOS, AMPLIO, CALIDAD, QUINCHO PILETA",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Centro"
+    },
+    {
+      "precio": 880000.0,
+      "m2": 35.0,
+      "dormitorios": 3,
+      "valor_m2": 25142.85714285714,
+      "direccion": "ALQUILER | DEPTO. 3 DORMITORIOS CON COCHERA | GUEMES 2036",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Otro"
+    },
+    {
+      "precio": 1250000.0,
+      "m2": 135.0,
+      "dormitorios": 3,
+      "valor_m2": 9259.25925925926,
+      "direccion": "Departamento en alquiler permanente — Tierra Nueva Condo 3",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Otro"
+    },
+    {
+      "precio": 2900.0,
+      "m2": 287.0,
+      "dormitorios": 4,
+      "valor_m2": 10.104529616724738,
+      "direccion": "ALQUILER COSTA VIA 4 DORM. 5 BAÑOS COCHERA DOBLE",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Puerto Norte"
+    },
+    {
+      "precio": 4200000.0,
+      "m2": 290.0,
+      "dormitorios": 4,
+      "valor_m2": 14482.758620689656,
+      "direccion": "DEPARTAMENTO 4 DORMITORIOS CON VISTA AL RÍO EN PUERTO NORTE EN ALQUILER",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Puerto Norte"
+    },
+    {
+      "precio": 2500000.0,
+      "m2": 216.0,
+      "dormitorios": 4,
+      "valor_m2": 11574.074074074075,
+      "direccion": "Departamento en Martin",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Martin"
+    },
+    {
+      "precio": 2250.0,
+      "m2": 470.0,
+      "dormitorios": 4,
+      "valor_m2": 4.787234042553192,
+      "direccion": "Alquiler de Duplex Amueblado de 470 m2 de Cuatro Dormitorios y Cochera",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Centro"
+    },
+    {
+      "precio": 1400000.0,
+      "m2": 170.0,
+      "dormitorios": 4,
+      "valor_m2": 8235.29411764706,
+      "direccion": "Departamento - Centro",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Centro"
+    },
+    {
+      "precio": 1600000.0,
+      "m2": 120.0,
+      "dormitorios": 4,
+      "valor_m2": 13333.333333333334,
+      "direccion": "ALQUILER Departamento de 3 Dormitorios PREMIUM en Rosario - Abasto",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Centro"
+    },
+    {
+      "precio": 1700000.0,
+      "m2": 240.0,
+      "dormitorios": 4,
+      "valor_m2": 7083.333333333333,
+      "direccion": "Departamento de 4 dormitorios - Laprida 1816",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Sexta"
+    },
+    {
+      "precio": 1700.0,
+      "m2": 180.0,
+      "dormitorios": 4,
+      "valor_m2": 9.444444444444445,
+      "direccion": "Guemes 1851 - Piso Exclusivo Departamento De 180 M2 En Venta Y Alquiler - Centro, Rosario",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Centro"
+    },
+    {
+      "precio": 1800000.0,
+      "m2": 300.0,
+      "dormitorios": 4,
+      "valor_m2": 6000.0,
+      "direccion": "Departamento - Centro",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Centro"
+    },
+    {
+      "precio": 3000.0,
+      "m2": 261.0,
+      "dormitorios": 4,
+      "valor_m2": 11.494252873563218,
+      "direccion": "ALQUILER DEPARTAMENTO DE 4 DORMITORIOS EN COSTAVIA",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Martin"
+    },
+    {
+      "precio": 450000.0,
+      "m2": 77.0,
+      "dormitorios": 4,
+      "valor_m2": 5844.1558441558445,
+      "direccion": "Departamento - Noroeste",
+      "fuente": "argenprop",
+      "operacion": "alquiler",
+      "zona": "Otro"
+    },
+    {
+      "operacion": "alquiler",
+      "precio": 490000,
+      "m2": 42,
+      "dormitorios": 1,
+      "valor_m2": 11666.666666666666,
+      "direccion": "PUEYRREDON 1181   Rosario",
+      "zona": "Otro",
+      "fuente": "lacapital"
+    },
+    {
+      "operacion": "alquiler",
+      "precio": 360000,
+      "m2": 40,
+      "dormitorios": null,
+      "valor_m2": 9000.0,
+      "direccion": "San Lorenzo al 3300   Rosario",
+      "zona": "Otro",
+      "fuente": "lacapital"
+    },
+    {
+      "operacion": "alquiler",
+      "precio": 550000,
+      "m2": 65,
+      "dormitorios": 2,
+      "valor_m2": 8461.538461538461,
+      "direccion": "Mitre / 3 de Febrero   2 dorm   Rosario",
+      "zona": "Otro",
+      "fuente": "lacapital"
+    },
+    {
+      "operacion": "alquiler",
+      "precio": 600000,
+      "m2": 70,
+      "dormitorios": null,
+      "valor_m2": 8571.42857142857,
+      "direccion": "3 de Febrero 1100 | Departamento de dos dormitorio",
+      "zona": "Otro",
+      "fuente": "lacapital"
+    },
+    {
+      "operacion": "alquiler",
+      "precio": 400000,
+      "m2": 40,
+      "dormitorios": null,
+      "valor_m2": 10000.0,
+      "direccion": "Marcos Paz al 3600   Rosario",
+      "zona": "Otro",
+      "fuente": "lacapital"
+    },
+    {
+      "operacion": "alquiler",
+      "precio": 400000,
+      "m2": 55,
+      "dormitorios": 1,
+      "valor_m2": 7272.727272727273,
+      "direccion": "SAN LUIS 1188   Rosario",
+      "zona": "Otro",
+      "fuente": "lacapital"
+    },
+    {
+      "operacion": "alquiler",
+      "precio": 400000,
+      "m2": 38,
+      "dormitorios": null,
+      "valor_m2": 10526.315789473685,
+      "direccion": "San Lorenzo al 3800   Rosario",
+      "zona": "Otro",
+      "fuente": "lacapital"
+    },
+    {
+      "operacion": "alquiler",
+      "precio": 450000,
+      "m2": 40,
+      "dormitorios": 1,
+      "valor_m2": 11250.0,
+      "direccion": "italia al 1200   Rosario",
+      "zona": "Otro",
+      "fuente": "lacapital"
+    },
+    {
+      "operacion": "alquiler",
+      "precio": 600000,
+      "m2": 100,
+      "dormitorios": 2,
+      "valor_m2": 6000.0,
+      "direccion": "BV. RONDEAU 4211   Rosario",
+      "zona": "Otro",
+      "fuente": "lacapital"
+    },
+    {
+      "operacion": "alquiler",
+      "precio": 600000,
+      "m2": 60,
+      "dormitorios": 2,
+      "valor_m2": 10000.0,
+      "direccion": "Zeballos al 1500   Rosario",
+      "zona": "Otro",
+      "fuente": "lacapital"
     }
-  ]
+  ],
+  "inicio": 0
 }

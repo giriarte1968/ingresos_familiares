@@ -328,10 +328,7 @@ def buscar_comercio_en_web(nombre_comercio, ciudad="Rosario Argentina"):
                 'rivadavia', 'federacion patronal', 'federación patrimonial',
                 'meridional', 'prevencion', 'prevención'
             ],
-            ('servicios', 'seguridad'): [
-                'adt', 'alarma', 'monitoreo', 'vigilancia', 'seguridad',
-                'prosegur', 'securitas', 'camaras', 'cámaras'
-            ],
+            # ('servicios', 'seguridad') - ELIMINADO para evitar doble computo con campo Seguridad de propiedad
             ('servicios', 'estacionamiento'): [
                 'estacionamiento', 'parking', 'cochera', 'garage',
                 'playa de estacionamiento'
@@ -1445,8 +1442,7 @@ CATEGORIAS_EGRESOS = {
                     'san cristobal', 'san cristóbal', 'mapfre', 'zurich',
                     'rivadavia', 'federacion patronal', 'meridional',
                     'prevencion', 'prevención', 'prev seg'],
-        'seguridad': ['adt', 'alarma', 'monitoreo', 'vigilancia', 'prosegur',
-                      'securitas', 'camaras de seguridad'],
+        # 'seguridad' - ELIMINADO para evitar doble computo con campo Seguridad de propiedad
         'estacionamiento': ['estacionamiento', 'parking', 'cochera', 'garage',
                             'playa de estacionamiento', 'merpago tran', 'transito'],
         'peluqueria': ['peluqueria', 'peluquería', 'barberia', 'barbería',
@@ -3025,8 +3021,28 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
         m2_cubiertos = st.number_input("Metros cubiertos (m²)", min_value=0.0, value=float(prop_inicial.get('m2_cubiertos', 0.0)), step=0.5, key=f"m2_cub_{key_suffix}")
         dormitorios = st.number_input("Dormitorios", min_value=0, max_value=10, value=int(prop_inicial.get('dormitorios', 0)), key=f"dorm_{key_suffix}")
         baños = st.number_input("Baños", min_value=0, max_value=10, value=int(prop_inicial.get('baños', 0)), key=f"baños_{key_suffix}")
+        toilet = st.checkbox("Toilette (baño de visitas)", value=prop_inicial.get('toilet', False), key=f"toilet_{key_suffix}")
+        baño_servicio = st.checkbox("Baño de servicio", value=prop_inicial.get('baño_servicio', False), key=f"baño_serv_{key_suffix}")
         anio_const = st.number_input("Año de construcción", min_value=1900, max_value=2026, value=int(prop_inicial.get('anio_construccion', 2000)), key=f"anio_const_{key_suffix}")
-        constructora = st.text_input("Constructora / Desarrolladora", value=prop_inicial.get('constructora', ''), placeholder="Ej: Ulanovsky, Fundar...", key=f"const_{key_suffix}")
+        # Cargar constructoras para el selectbox
+        try:
+            import json
+            with open("C:/Users/Gustavo/ingresos_familiares_st/constructoras_rosario.json", "r", encoding="utf-8") as f:
+                constr_data = json.load(f)
+                lista_constructoras = []
+                for tier in constr_data.values():
+                    lista_constructoras.extend(tier.get("nombres", []))
+                lista_constructoras = sorted(list(set(lista_constructoras))) + ["Otra"]
+        except:
+            lista_constructoras = ["Otra"]
+
+        constructora_sel = st.selectbox("Constructora / Desarrolladora", lista_constructoras,
+                                       index=lista_constructoras.index(prop_inicial.get('constructora', '')) if prop_inicial.get('constructora') in lista_constructoras else (lista_constructoras.index("Otra" if "Otra" in lista_constructoras else 0)),
+                                       key=f"const_sel_{key_suffix}")
+        
+        constructora = constructora_sel
+        if constructora_sel == "Otra":
+            constructora = st.text_input("Especificar Constructora", value=prop_inicial.get('constructora', ''), key=f"const_text_{key_suffix}")
 
     st.caption("Estructura y Altura")
     col_p1, col_p2 = st.columns(2)
@@ -3045,11 +3061,14 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
     col_s1, col_s2 = st.columns(2)
     with col_s1:
         m2_semicubiertos = st.number_input("m² semicubiertos", min_value=0.0, value=float(prop_inicial.get('m2_semicubiertos', 0.0)), key=f"m2_semi_{key_suffix}")
+        m2_semicubiertos_detalle = st.selectbox("Tamaño semicubiertos", ["medio", "chico", "grande"],
+                                               index=["medio", "chico", "grande"].index(prop_inicial.get('m2_semicubiertos_detalle', 'medio')) if prop_inicial.get('m2_semicubiertos_detalle') in ["medio", "chico", "grande"] else 0,
+                                               key=f"m2_semi_detalle_{key_suffix}")
         m2_descubiertos = st.number_input("m² descubiertos", min_value=0.0, value=float(prop_inicial.get('m2_descubiertos', 0.0)), key=f"m2_desc_{key_suffix}")
         balcon = st.checkbox("Tiene balcón", value=prop_inicial.get('balcon', False), key=f"balcon_check_{key_suffix}")
         if balcon:
-            tipo_balcon = st.selectbox("Tipo de Balcón", ["corrido", "L", "frances"],
-                                     index=["corrido", "L", "frances"].index(prop_inicial.get('tipo_balcon', 'corrido')) if prop_inicial.get('tipo_balcon') in ["corrido", "L", "frances"] else 0,
+            tipo_balcon = st.selectbox("Tipo de Balcón", ["corrido", "L", "frances", "terraza"],
+                                     index=["corrido", "L", "frances", "terraza"].index(prop_inicial.get('tipo_balcon', 'corrido')) if prop_inicial.get('tipo_balcon') in ["corrido", "L", "frances", "terraza"] else 0,
                                      key=f"tipo_balcon_{key_suffix}")
         else:
             tipo_balcon = "ninguno"
@@ -3066,16 +3085,30 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
     col3, col4 = st.columns(2)
     with col3:
         estado_detalle = st.selectbox("Estado detallado", ["a estrenar", "excelente", "muy bueno", "bueno", "regular", "a refaccionar"], 
-                                     index=["a estrenar", "excelente", "muy bueno", "bueno", "regular", "a refaccionar"].index(prop_inicial.get('estado_detalle', 'bueno')) if prop_inicial.get('estado_detalle') in ["a estrenar", "excelente", "muy bueno", "bueno", "regular", "a refaccionar"] else 3,
-                                     key=f"estado_{key_suffix}")
+                                      index=["a estrenar", "excelente", "muy bueno", "bueno", "regular", "a refaccionar"].index(prop_inicial.get('estado_detalle', 'bueno')) if prop_inicial.get('estado_detalle') in ["a estrenar", "excelente", "muy bueno", "bueno", "regular", "a refaccionar"] else 3,
+                                      key=f"estado_{key_suffix}")
+        # Reciclado (Fase 1)
+        tiene_reciclado = prop_inicial.get('reciclado', False)
+        st.caption("Reciclado (opcional)")
+        col_rec1, col_rec2 = st.columns(2)
+        with col_rec1:
+            tiene_reciclado = st.checkbox("Propiedad reciclada", value=tiene_reciclado, key=f"reciclado_{key_suffix}")
+        with col_rec2:
+            if tiene_reciclado:
+                reciclado_tipo = st.radio("Tipo de reciclado", ["parcial", "total"], 
+                                          index=["parcial", "total"].index(prop_inicial.get('reciclado_tipo', 'ninguno')) if prop_inicial.get('reciclado_tipo') in ["parcial", "total"] else 0,
+                                          key=f"reciclado_tipo_{key_suffix}", horizontal=True)
+                anio_reciclado = st.number_input("Año del reciclado", min_value=2000, max_value=2026, 
+                                              value=int(prop_inicial.get('anio_reciclado', 2020)), key=f"anio_reciclado_{key_suffix}")
+            else:
+                reciclado_tipo = "ninguno"
+                anio_reciclado = None
         calidad_edificio = st.selectbox("Calidad percibida", ["premium", "media", "economica"], 
-                                        index=["premium", "media", "economica"].index(prop_inicial.get('calidad_edificio', 'media')) if prop_inicial.get('calidad_edificio') in ["premium", "media", "economica"] else 1,
-                                        key=f"calidad_{key_suffix}")
-        seguridad = st.selectbox("Seguridad", ["ninguna", "tag", "camaras", "24hs"],
-                                index=["ninguna", "tag", "camaras", "24hs"].index(prop_inicial.get('seguridad', 'ninguna')) if prop_inicial.get('seguridad') in ["ninguna", "tag", "camaras", "24hs"] else 0,
-                                key=f"seg_{key_suffix}")
+                                          index=["premium", "media", "economica"].index(prop_inicial.get('calidad_edificio', 'media')) if prop_inicial.get('calidad_edificio') in ["premium", "media", "economica"] else 1,
+                                          key=f"calidad_{key_suffix}")
+        
     with col4:
-        terminaciones_suelo = st.selectbox("Suelo", ["madera_noble", "porcelanato", "ceramico", "estandar"], 
+        terminaciones_suelo = st.selectbox("Suelo", ["madera_noble", "porcelanato", "ceramico", "estandar"],
                                           index=["madera_noble", "porcelanato", "ceramico", "estandar"].index(prop_inicial.get('terminaciones_suelo', 'estandar')) if prop_inicial.get('terminaciones_suelo') in ["madera_noble", "porcelanato", "ceramico", "estandar"] else 3,
                                           key=f"suelo_{key_suffix}")
         carpinteria = st.selectbox("Carpintería", ["piso_techo", "dvh", "estandar"], 
@@ -3088,9 +3121,18 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
     with col_f1:
         doble_ingreso = st.checkbox("Doble Ingreso", value=prop_inicial.get('doble_ingreso', False), key=f"doble_{key_suffix}")
         lavadero_independiente = st.checkbox("Lavadero Independiente", value=prop_inicial.get('lavadero_independiente', False), key=f"lavadero_{key_suffix}")
+        # Fase 2: ventilacion_bano y layout_flexible
+        ventilacion_bano = st.selectbox("Ventilación baño", ["natural", "forzada", "sin_ventana"],
+                                        index=["natural", "forzada", "sin_ventana"].index(prop_inicial.get('ventilacion_bano', 'natural')) if prop_inicial.get('ventilacion_bano') in ["natural", "forzada", "sin_ventana"] else 0,
+                                        key=f"vent_bano_{key_suffix}")
+        layout_flexible = st.checkbox("Layout flexible (escritorio/3er dorm)", value=prop_inicial.get('layout_flexible', False), key=f"layout_{key_suffix}")
+        # Fase 3: placares, despensa, ascensores
+        placares_completos = st.checkbox("Placares completos", value=prop_inicial.get('placares_completos', False), key=f"placares_{key_suffix}")
+        despensa = st.checkbox("Despensa", value=prop_inicial.get('despensa', False), key=f"despensa_{key_suffix}")
+        ascensores_edificio = st.number_input("Ascensores del edificio", min_value=1, max_value=4, value=int(prop_inicial.get('ascensores_edificio', 2)), key=f"ascensores_{key_suffix}")
         detalles_cat = st.multiselect("Amenities / Extras", [
-            "caldera_central", "radiadores", "seguridad_24hs", "totem_seguridad",
-            "aberturas_premium", "balcon_terraza", "pileta", "sum", "gym"
+            "caldera_central", "radiadores", "seguridad_24hs", "seguridad_tag", "seguridad_camaras", "seguridad_totem",
+            "aberturas_premium", "balcon_terraza", "terraza_comun", "pileta", "sum", "gym"
         ], default=prop_inicial.get('detalles_categoria', []), key=f"detalles_{key_suffix}")
     with col_f2:
         descripcion_libre = st.text_area("Descripción libre", value=prop_inicial.get('descripcion_libre', ''), placeholder="Ej: muy luminoso, balcón corrido...", key=f"desc_{key_suffix}")
@@ -3104,23 +3146,31 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
         expensas_ars = st.number_input("Expensas actuales (ARS)", min_value=0, value=int(prop_inicial.get('expensas_ars', 0)), step=1000, key=f"exp_{key_suffix}")
         moneda_compra = "USD"
 
-    # Empaquetamos todo en un dict
-    data = {
-        'nombre': nombre, 'tipo_inmueble': tipo, 'zona': zona, 'direccion': direccion,
-        'ubicacion_tipo': ubicacion_tipo, 'm2_cubiertos': m2_cubiertos, 'dormitorios': dormitorios,
-        'baños': baños, 'anio_construccion': anio_const, 'constructora': constructora,
-        'piso': piso, 'total_pisos': total_pisos, 'vista': vista, 'gas_ok': gas_ok,
-        'm2_semicubiertos': m2_semicubiertos, 'm2_descubiertos': m2_descubiertos,
-        'balcon': balcon, 'tipo_balcon': tipo_balcon, 'm2_comunes': m2_comunes,
-        'orientacion': orientacion, 'ventilacion': ventilacion, 'estado_detalle': estado_detalle,
-        'calidad_edificio': calidad_edificio, 'seguridad': seguridad, 'terminaciones_suelo': terminaciones_suelo,
-        'carpinteria': carpinteria, 'cochera': cochera, 'doble_ingreso': doble_ingreso,
-        'lavadero_independiente': lavadero_independiente, 'detalles_categoria': detalles_cat,
-        'descripcion_libre': descripcion_libre, 'valor_compra_usd': valor_compra_usd,
-        'fecha_compra': fecha_compra.strftime('%Y-%m-%d'), 'expensas_ars': expensas_ars,
-        'm2': m2_cubiertos + m2_semicubiertos + m2_descubiertos + m2_comunes,
-        'id': prop_inicial.get('id', f"prop_{uuid.uuid4().hex[:8]}")
-    }
+        # Derivamos la seguridad del multiselect para mantener compatibilidad con el motor
+        seguridad_val = 'ninguna'
+        if 'seguridad_24hs' in detalles_cat: seguridad_val = '24hs'
+        elif 'seguridad_tag' in detalles_cat: seguridad_val = 'tag'
+        elif 'seguridad_camaras' in detalles_cat: seguridad_val = 'camaras'
+
+        data = {
+            'nombre': nombre, 'tipo_inmueble': tipo, 'zona': zona, 'direccion': direccion,
+            'ubicacion_tipo': ubicacion_tipo, 'm2_cubiertos': m2_cubiertos, 'dormitorios': dormitorios,
+            'baños': baños, 'toilet': toilet, 'baño_servicio': baño_servicio, 'anio_construccion': anio_const, 'constructora': constructora,
+            'piso': piso, 'total_pisos': total_pisos, 'vista': vista, 'gas_ok': gas_ok,
+            'm2_semicubiertos': m2_semicubiertos, 'm2_semicubiertos_detalle': m2_semicubiertos_detalle, 'm2_descubiertos': m2_descubiertos,
+            'balcon': balcon, 'tipo_balcon': tipo_balcon, 'm2_comunes': m2_comunes,
+            'orientacion': orientacion, 'ventilacion': ventilacion, 'estado_detalle': estado_detalle,
+            'calidad_edificio': calidad_edificio, 'seguridad': seguridad_val, 'terminaciones_suelo': terminaciones_suelo,
+            'carpinteria': carpinteria, 'cochera': cochera, 'doble_ingreso': doble_ingreso,
+            'lavadero_independiente': lavadero_independiente, 'reciclado': tiene_reciclado, 'reciclado_tipo': reciclado_tipo,
+            'anio_reciclado': anio_reciclado, 'ventilacion_bano': ventilacion_bano, 'layout_flexible': layout_flexible,
+            'placares_completos': placares_completos, 'despensa': despensa, 'ascensores_edificio': ascensores_edificio,
+            'detalles_categoria': detalles_cat,
+            'descripcion_libre': descripcion_libre, 'valor_compra_usd': valor_compra_usd,
+            'fecha_compra': fecha_compra.strftime('%Y-%m-%d'), 'expensas_ars': expensas_ars,
+            'm2': m2_cubiertos + m2_semicubiertos + m2_descubiertos + m2_comunes,
+            'id': prop_inicial.get('id', f"prop_{uuid.uuid4().hex[:8]}")
+        }
     return data
 
 
@@ -3144,14 +3194,66 @@ def mostrar_propiedades(mes):
         except:
             st.caption("🕒 Mercado: Pendiente actualización")
     with c2:
-        if st.button("🌐 Actualizar Mercado (VPP Sync)", help="Dispara escaneo masivo (Argenprop, TTL, Top20, etc)"):
+        if st.button("Actualizar Mercado (VPP Sync)", help="Dispara escaneo masivo - Busca mono + 1-4 dorms"):
             import threading
             from parsers.motor_vpp_core import actualizar_mercado_vpp_full, save_cache, load_cache
+            
+            # Guardar timestamp de inicio
+            inicio = time.time()
+            
             info = load_cache() or {"propiedades": []}
-            save_cache(info.get("propiedades", []), status="corriendo")
-            threading.Thread(target=actualizar_mercado_vpp_full).start()
-            st.info("🚀 Escaneo iniciado en background. Los resultados se actualizarán al finalizar.")
-
+            save_cache(info.get("propiedades", []), status="corriendo", inicio=inicio)
+            
+            # Iniciar en background (NO bloquea UI)
+            threading.Thread(target=actualizar_mercado_vpp_full, daemon=True).start()
+            
+            st.info("Scraping iniciado. Puedes seguir usando la app mientras termina.")
+            st.rerun()
+        
+        # Verificar estado del scraping (sin bloqueos)
+        from parsers.motor_vpp_core import load_cache
+        cache_data = load_cache()
+        if cache_data:
+            status = cache_data.get("status", "")
+            inicio_ts = cache_data.get("inicio", 0)
+            props = cache_data.get("propiedades", [])
+            
+            if status == "corriendo":
+                elapsed = time.time() - inicio_ts if inicio_ts else 0
+                
+                # Progress bar
+                progress = min(elapsed / 60, 1.0)  # Assume max 60 seg
+                st.progress(progress, text=f"Scraping en progreso... ({elapsed:.0f} seg)")
+                
+                # Mostrar progreso si ya hay datos
+                if props:
+                    fuentes = {}
+                    for p in props:
+                        f = p.get("fuente", "unknown")
+                        fuentes[f] = fuentes.get(f, 0) + 1
+                    st.info(f"Props hasta ahora: {len(props)} - Fuentes: {fuentes}")
+                
+                # Auto-refresh
+                import streamlit.components.v1 as components
+                components.html("<script>setTimeout(() => window.location.reload(), 3000)</script>", height=0)
+                
+            elif status == "completado":
+                elapsed = time.time() - inicio_ts if inicio_ts else 0
+                st.success(f"Scraping COMPLETADO en {elapsed:.0f} segundos")
+                
+                if props:
+                    fuentes = {}
+                    for p in props:
+                        f = p.get("fuente", "unknown")
+                        fuentes[f] = fuentes.get(f, 0) + 1
+                    
+                    st.info(f"Fuentes: {fuentes}")
+                    st.info(f"Total: {len(props)} propiedades")
+                    
+                    # Limpiar status
+                    from parsers.motor_vpp_core import save_cache
+                    save_cache(props, status="")
+    
     # 2. Selector de período local
     meses_disponibles = sorted(datos.get('meses', {}).keys(), reverse=True)
     if meses_disponibles:
@@ -3239,14 +3341,18 @@ def mostrar_propiedades(mes):
             st.divider()
 
             # MOTOR V7.0 HÍBRIDO (Venda + Alquiler + ROI)
-            from parsers.mercado_inmobiliario import valuar_propiedad_v7
-            res = valuar_propiedad_v7(prop, fecha_ref=mes_prop)
-            valor_display = res['valor_propiedad_usd']
-            valor_realizable = res['valor_realizable_usd']
-            m2_equivalente = res['m2_equivalentes']
-            m2_display = res['valor_m2_actual_usd']
-            alq_ars = res['alquiler_estimado_ars']
-            cap_rate = res['cap_rate_anual']
+            from parsers.mercado_inmobiliario import valuar_propiedad_v6, valuar_propiedad_v7
+            resultado = valuar_propiedad_v7(prop, fecha_ref=mes_prop)
+            valor_lista = resultado['valor_propiedad_usd']
+            valor_cierre = resultado['valor_realizable_usd']
+            m2_equivalente = resultado['m2_equivalentes']
+            m2_base = resultado.get('m2_base_venta', resultado['valor_m2_actual_usd'])
+            m2_display = resultado['valor_m2_actual_usd']  # m² efectivo (con factores)
+            alq_ars = resultado['alquiler_estimado_ars']
+            cap_rate = resultado['cap_rate_anual']
+            
+            # Calcular descuento
+            descuento_pct = int((1 - valor_cierre/valor_lista) * 100) if valor_lista > 0 else 8
 
             # Plusvalía de ciclo (vs fecha de compra)
             fecha_compra = prop.get('fecha_compra', None)
@@ -3259,8 +3365,8 @@ def mostrar_propiedades(mes):
                     if mes_compra < mes_prop:
                         resultado_compra = valuar_propiedad_v6(prop, fecha_ref=mes_compra)
                         if resultado_compra['valor_propiedad_usd'] > 0:
-                            plusvalia_ciclo_usd = valor_display - resultado_compra['valor_propiedad_usd']
-                            plusvalia_ciclo_pct = ((valor_display / resultado_compra['valor_propiedad_usd']) - 1) * 100
+                            plusvalia_ciclo_usd = valor_lista - resultado_compra['valor_propiedad_usd']
+                            plusvalia_ciclo_pct = ((valor_lista / resultado_compra['valor_propiedad_usd']) - 1) * 100
                 except:
                     pass
 
@@ -3269,14 +3375,13 @@ def mostrar_propiedades(mes):
             mes_12m = f"{anio_actual - 1}-{mes_prop.split('-')[1]}"
             if mes_12m >= "2000-01":
                 resultado_12m = valuar_propiedad_v6(prop, fecha_ref=mes_12m)
-                plusvalia_12m_usd = valor_display - resultado_12m['valor_propiedad_usd']
-                plusvalia_12m_pct = ((valor_display / resultado_12m['valor_propiedad_usd']) - 1) * 100 if resultado_12m['valor_propiedad_usd'] > 0 else 0
+                plusvalia_12m_usd = valor_lista - resultado_12m['valor_propiedad_usd']
+                plusvalia_12m_pct = ((valor_lista / resultado_12m['valor_propiedad_usd']) - 1) * 100 if resultado_12m['valor_propiedad_usd'] > 0 else 0
+                fase_ciclo = resultado_12m.get('tendencia', 'neutral')
             else:
                 plusvalia_12m_usd = 0
                 plusvalia_12m_pct = 0
-
-            # Detectar fase del ciclo (según tendencia de los últimos 12 meses)
-            fase_ciclo = resultado.get('tendencia', 'neutral')
+                fase_ciclo = 'neutral'
             fase_icono = {"alcista": "📈", "bajista": "📉", "neutral": "➡️"}.get(fase_ciclo, "➡️")
             fase_nombre = {"alcista": "recuperación/boom", "bajista": "caída", "neutral": "estable"}.get(fase_ciclo, "estable")
 
@@ -3288,12 +3393,17 @@ def mostrar_propiedades(mes):
                     f"{prop.get('zona', '')} | {prop.get('m2', 0)}m² ({m2_equivalente:.1f} equiv) | "
                     f"{prop.get('estado_detalle', '')} | {prop.get('calidad_edificio', '')}"
                 )
-                if valor_display > 0:
-                    m1, m2, m3 = st.columns(3)
-                    m1.metric("Valor VPP", f"${valor_realizable:,.0f} USD")
-                    m2.metric("Alquiler", f"${alq_ars:,.0f} ARS")
-                    m3.metric("ROI Anual", f"{cap_rate:.2f}%")
-                    st.caption(f"💡 Modelo Híbrido V7.0 | Dólar Binance: ${res.get('usdt_ars', 1000):,.0f}")
+                if valor_lista > 0:
+                    # Mostrar valores de lista y cierre
+                    c1, c2, c3 = st.columns(3)
+                    c1.metric("Valor Lista", f"${valor_lista:,.0f} USD")
+                    c2.metric("Valor Cierre", f"${valor_cierre:,.0f} USD")
+                    c3.metric("Descuento", f"-{descuento_pct}%")
+                    # Mostrar alquiler y ROI
+                    c4, c5 = st.columns(2)
+                    c4.metric("Alquiler", f"${alq_ars:,.0f} ARS")
+                    c5.metric("ROI Anual", f"{cap_rate:.2f}%")
+                    st.caption(f"💡 Modelo Híbrido V7.0 | Dólar Binance: ${resultado.get('usdt_ars', 1000):,.0f}")
             with c_head2:
                 if st.button("✏️ Editar", key=f"edit_btn_{prop['id']}"):
                     st.session_state[f"editing_prop_{prop['id']}"] = True
@@ -3342,10 +3452,10 @@ def mostrar_propiedades(mes):
             liquidez = resultado.get('liquidez', 1.0)
             
             col_v1, col_v2, col_v3, col_v4 = st.columns(4)
-            col_v1.metric("Valor m² (USD)", f"${m2_display:,.0f}")
-            col_v2.metric("m² equiv", f"{m2_equivalente:.1f}")
-            col_v3.metric("Confianza", f"{confianza.upper()}")
-            col_v4.metric("Desviación", f"{desviacion:+.1f}%")
+            col_v1.metric("m² Base (USD)", f"${m2_base:,.0f}")  # v11.0: m² base del cluster (filtrado)
+            col_v2.metric("m² Efectivo", f"${m2_display:,.0f}")  # m² con factores aplicados
+            col_v3.metric("m² equiv", f"{m2_equivalente:.1f}")
+            col_v4.metric("Confianza", f"{confianza.upper()}")
 
             # Plusvalías: ciclo y últimos 12 meses
             pc_col1, pc_col2, pc_col3 = st.columns(3)
@@ -3372,18 +3482,19 @@ def mostrar_propiedades(mes):
                 delta_color="normal"
             )
 
-            # Valor realizable
+            # Valor realizable (descuento 8% integrado en v7)
+            descuento_liquidez = int((1 - valor_cierre/valor_lista) * 100) if valor_lista > 0 else 8
             pc_col3.metric(
                 "💰 Valor realizable",
-                f"${valor_realizable:,.0f} USD",
-                delta=f"-{int(descuento_liquidez)}% desc."
+                f"${valor_cierre:,.0f} USD",
+                delta=f"-{descuento_liquidez}% desc."
             )
 
             with st.expander("🔍 Análisis de Mercado VPP v7.0"):
-                st.info(res['justificacion'])
-                st.write(f"**Rango de Mercado:** {res['rango_m2']}")
-                st.write(f"**Confiabilidad:** {res['confianza'].upper()}")
-                st.caption(f"Datos basados en el escaneo del {res['fecha_mercado']}")
+                st.info(resultado['justificacion'])
+                st.write(f"**Rango de Mercado:** {resultado['rango_m2']}")
+                st.write(f"**Confiabilidad:** {resultado['confianza'].upper()}")
+                st.caption(f"Datos basados en el escaneo del {resultado['fecha_mercado']}")
 
             st.divider()
 

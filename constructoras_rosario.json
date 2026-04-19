@@ -1,0 +1,18 @@
+{
+  "tier_1_premium": {
+    "factor": 1.12,
+    "nombres": ["ulanovsky", "fundar", "msr", "mor", "pellegrinet", "bauen", "vanzini", "bassini"]
+  },
+  "tier_2_alta": {
+    "factor": 1.05,
+    "nombres": ["guillermo rodriguez", "ducler", "giaganti", "dunod", "ferreyra", "telleria", "rgm"]
+  },
+  "tier_3_estandar": {
+    "factor": 1.0,
+    "nombres": ["uno", "valerio", "pereyra", "berbari", "fransa", "imperia", "escala", "crestale", "ma", "bled"]
+  },
+  "tier_4_economica": {
+    "factor": 0.92,
+    "nombres": []
+  }
+}

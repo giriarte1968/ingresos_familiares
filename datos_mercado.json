@@ -13,7 +13,7 @@
       "2023": 1.05,
       "2024": 1.1,
       "2025": 1.18,
-      "2026": 1.25
+      "2026": 1.0
     }
   },
   "microzonas": {
@@ -85,6 +85,32 @@
   "serie_historica_m2_rosario": {
     "datos": {
       "2026": 1851.0
+    }
+  },
+  "factores_propiedad": {
+    "orientacion": {
+      "norte": 1.03,
+      "noreste": 1.03,
+      "noroeste": 1.03,
+      "este": 1.0,
+      "sureste": 0.98,
+      "sur": 0.98,
+      "suroeste": 0.98,
+      "oeste": 1.0
+    },
+    "detalles_categoria": {
+      "caldera_central": 0.02,
+      "radiadores": 0.02,
+      "seguridad_24hs": 0.06,
+      "seguridad_tag": 0.02,
+      "seguridad_camaras": 0.01,
+      "seguridad_totem": 0.01,
+      "aberturas_premium": 0.03,
+      "balcon_terraza": 0.01,
+      "terraza_comun": 0.01,
+      "pileta": 0.02,
+      "sum": 0.01,
+      "gym": 0.01
     }
   }
 }

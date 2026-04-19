@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import numpy as np
 from datetime import datetime
 from parsers.location_engine import cargar_anclas, calcular_precio_m2, estimar_confianza, get_ancla_mas_cercana
 
@@ -8,6 +9,13 @@ DATOS_MERCADO_FILE = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
     'datos_mercado.json'
 )
+
+# --- PARÁMETROS DE CALIBRACIÓN V10.1 ---
+UMBRAL_CONFIANZA_SCRAPING = 8   # Muestras mínimas para confiar en el scraping
+NEGOCIACION_ESTANDAR = 0.92    # -8% (Precio lista vs cierre en Rosario 2026)
+ZONAS_PREMIUM = ["Martin", "Puerto Norte", "Centro"]  # Menos negociación
+NEGOCIACION_PREMIUM = 0.94   # -6% en zonas premium
+MAX_BONUS_ATRIBUTOS = 1.30   # Cap +30% para evitar valores locos
 
 MAPEO_ZONAS = {
     "Martin": "martin_interno",
@@ -44,6 +52,124 @@ def cargar_datos():
         return json.load(f)
 
 
+def obtener_mediana_cluster(zona, dormitorios, operacion='venta'):
+    """
+    Obtiene la mediana del cluster desde cache_scraping.json.
+    Busca propiedades similares por zona y dormitorios.
+    v11.1: Aplica deduplicación + filtro pre-IQR (0.6-1.6x) robusto.
+    """
+    try:
+        cache_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            'cache_scraping.json'
+        )
+        if not os.path.exists(cache_path):
+            return 0, 0
+        
+        with open(cache_path, 'r', encoding='utf-8') as f:
+            cache = json.load(f)
+        
+        # 1) Filtrar por zona, dormitorios y operación
+        props = [
+            p for p in cache.get('propiedades', [])
+            if p.get('zona') == zona 
+            and p.get('dormitorios') == dormitorios
+            and p.get('operacion') == operacion
+            and p.get('valor_m2', 0) > 0
+        ]
+        
+        if not props:
+            return 0, 0
+        
+        # 2) DEDUPLICAR (Consistencia con motor_vpp_core)
+        seen = set()
+        unicos = []
+        for p in props:
+            key = (int(p.get('precio', 0)), int(p.get('m2', 0)), p.get('zona', ''))
+            if key not in seen:
+                seen.add(key)
+                unicos.append(p)
+        
+        precios = [p['valor_m2'] for p in unicos]
+        
+        if len(precios) < 3:
+            return float(np.median(precios)), len(precios)
+        
+        # 3) FILTRO PRE-IQR robusto (0.6-1.6x)
+        # Usamos np.median para evitar el bug de indexación en listas pares
+        mediana_raw = np.median(precios)
+        
+        lower_robust = mediana_raw * 0.6
+        upper_robust = mediana_raw * 1.6
+        
+        precios_filtrados = [p for p in precios if lower_robust <= p <= upper_robust]
+        
+        # Si el filtro elimina demasiado, usar IQR tradicional como fallback
+        if len(precios_filtrados) < 3:
+            precios_ordenados = sorted(precios)
+            q1 = np.percentile(precios_ordenados, 25)
+            q3 = np.percentile(precios_ordenados, 75)
+            iqr = q3 - q1
+            lower, upper = q1 - 1.5 * iqr, q3 + 1.5 * iqr
+            precios_filtrados = [p for p in precios if lower <= p <= upper]
+        
+        if not precios_filtrados:
+            return float(np.median(precios)), len(precios)
+        
+        return float(np.median(precios_filtrados)), len(precios_filtrados)
+    except Exception:
+        return 0, 0
+
+
+def calcular_base_calibrada(valor_ancla, prop_data):
+    """
+    Fusiona Ancla y Scraping con ponderación dinámica.
+    Aplica factor de negociación según zona y factor temporal.
+    """
+    zona = prop_data.get('zona', 'Centro')
+    dorms = prop_data.get('dormitorios', 2)
+    lat = prop_data.get('lat')
+    lon = prop_data.get('lon')
+    anio_const = prop_data.get('anio_construccion', 2020)
+    anio_tasacion = prop_data.get('anio_tasacion', 2026)
+    
+    # 1. Obtener valor del Cluster (scraping actual)
+    valor_cluster, muestras = obtener_mediana_cluster(zona, dorms, 'venta')
+    
+    # 2. Depreciar ancla por antigüedad
+    antiguedad = 2026 - anio_const
+    factor_deprec = max(0.5, 1.0 - (antiguedad * 0.006))
+    valor_ancla_ajustado = valor_ancla * factor_deprec
+    
+    # 3. Ponderación dinámica según cantidad de muestras
+    if muestras == 0:
+        base = valor_ancla_ajustado
+        metodo = "Ancla (sin datos web)"
+    elif muestras < 4:
+        base = (valor_ancla_ajustado * 0.7) + (valor_cluster * 0.3)
+        metodo = f"Híbrido (bajo vol: {muestras} m.)"
+    elif muestras < UMBRAL_CONFIANZA_SCRAPING:
+        base = (valor_ancla_ajustado * 0.4) + (valor_cluster * 0.6)
+        metodo = f"Híbrido (medio: {muestras} m.)"
+    else:
+        base = valor_cluster
+        metodo = f"Scraping dominante ({muestras} m.)"
+    
+    # 4. Factor de negociación según zona
+    # El factor de negociación se aplica al final en el valor realizable, 
+    # aquí devolvemos la base de mercado pura.
+    
+    # 5. Factor temporal (ratio) - NEUTRALIZA el índice 2026
+    anio_actual = 2026
+    datos = cargar_datos()
+    indice_data = datos.get('indice_ciudad', {}).get('data', {})
+    idx_actual = indice_data.get(str(anio_actual), 1.25)
+    idx_destino = indice_data.get(str(anio_tasacion), 1.25)
+    factor_temporal = idx_destino / idx_actual  # Si 2026/2026 = 1.0
+    
+    return base * factor_temporal, metodo
+
+
 def sanitizar_propiedad(prop):
     """Sanitiza inputs de propiedad - conserva todos los campos."""
     # Primero copiar todas las props
@@ -72,6 +198,16 @@ def sanitizar_propiedad(prop):
     result['expensas_ars'] = float(prop.get('expensas_ars', 0))
     result['doble_ingreso'] = bool(prop.get('doble_ingreso', False))
     result['lavadero_independiente'] = bool(prop.get('lavadero_independiente', False))
+    result['toilet'] = bool(prop.get('toilet', False))
+    result['baño_servicio'] = bool(prop.get('baño_servicio', False))
+    result['reciclado'] = bool(prop.get('reciclado', False))
+    result['reciclado_tipo'] = prop.get('reciclado_tipo', 'ninguno').lower()
+    result['anio_reciclado'] = prop.get('anio_reciclado')
+    result['ventilacion_bano'] = prop.get('ventilacion_bano', 'natural').lower()
+    result['layout_flexible'] = bool(prop.get('layout_flexible', False))
+    result['placares_completos'] = bool(prop.get('placares_completos', False))
+    result['despensa'] = bool(prop.get('despensa', False))
+    result['ascensores_edificio'] = int(prop.get('ascensores_edificio', 2))
     result['calidad_edificio'] = prop.get('calidad_edificio', 'media')
     result['piso'] = prop.get('piso', 0)
     
@@ -135,8 +271,12 @@ def calcular_m2_equivalentes(prop):
     
     m2_cub = m2_cub or 0
     m2_semi = prop.get('m2_semicubiertos', 0) or 0
+    m2_semi_detalle = prop.get('m2_semicubiertos_detalle', 'medio').lower()
     m2_desc = prop.get('m2_descubiertos', 0) or 0
     m2_com = prop.get('m2_comunes', 0) or 0
+    
+    # Coef según tamaño semicubiertos (tabla coef Rosario)
+    coef_semi = {'chico': 0.30, 'medio': 0.45, 'grande': 0.55}.get(m2_semi_detalle, 0.45)
     
     # Si exterior es común, bajar peso
     if prop.get('propiedad_exterior') == 'comun':
@@ -144,11 +284,20 @@ def calcular_m2_equivalentes(prop):
     else:
         factor_com = 0.12
     
+    # Bonus m² para balcones corrido/L (tabla coef)
+    tipo_balcon = prop.get('tipo_balcon', 'ninguno').lower()
+    bonus_m2 = 0
+    if tipo_balcon == 'corrido':
+        bonus_m2 = m2_semi * 0.05
+    elif tipo_balcon == 'L':
+        bonus_m2 = m2_semi * 0.10
+    
     m2_equiv = (
         m2_cub +
-        m2_semi * 0.5 +
+        m2_semi * coef_semi +
         m2_desc * 0.2 +
-        m2_com * factor_com
+        m2_com * factor_com +
+        bonus_m2
     )
     
     # Clamp dinámico v9.3: Casas tienen menos premio por m2 descubierto que Deptos
@@ -168,6 +317,9 @@ def calcular_factores(prop):
     Calcula factores de propiedad.
     v8.0: Retorna un diccionario separado para evitar doble conteo de antigüedad.
     """
+    import json
+    import os
+
     estado = prop.get('estado_detalle', 'bueno').lower()
     calidad = prop.get('calidad_edificio', 'media').lower()
     piso = prop.get('piso', 0)
@@ -189,14 +341,14 @@ def calcular_factores(prop):
         'pulmon': 0.95, 'interna': 0.90
     }.get(vista, 1.0)
     
-    # 2. Factor Altura v9.5 (Ratio de piso sobre total)
+    # 2. Factor Altura v10.0 (Tabla coef: piso alto >70% = +5%)
     total_pisos = max(1, prop.get('total_pisos', 1))
     ratio_altura = piso / total_pisos
-    # Un piso alto en su edificio tiene premio, PB tiene castigo fuerte
     if piso == 0:
         factor_piso = 0.88
+    elif ratio_altura >= 0.70:
+        factor_piso = 1.05  # piso alto >70%
     else:
-        # Entre 1.0 y 1.10 según qué tan arriba esté
         factor_piso = 1.0 + (ratio_altura * 0.10)
     
     # 3. Factor Ubicación v9.5
@@ -209,27 +361,78 @@ def calcular_factores(prop):
     gas = prop.get('gas_ok', 'si').lower()
     factor_gas = {'si': 1.0, 'en_proceso': 0.96, 'no': 0.92}.get(gas, 1.0)
     
-    # 5. Factor Constructora v9.5
-    const_top = ['ulanovsky', 'fundar', 'msr', 'mor', 'pellegrinet', 'bauen']
-    constr = prop.get('constructora', '').lower()
-    factor_const = 1.12 if any(c in constr for c in const_top) else 1.0
+    # 5. Factor Constructora v9.5 (Carga desde JSON)
+    factor_const = 1.0
+    try:
+        constr_path = "C:/Users/Gustavo/ingresos_familiares_st/constructoras_rosario.json"
+        if os.path.exists(constr_path):
+            with open(constr_path, "r", encoding="utf-8") as f:
+                tiers = json.load(f)
+                constr = prop.get('constructora', '').lower()
+                if constr:
+                    for tier, data in tiers.items():
+                        if any(nombre in constr for nombre in data.get('nombres', [])):
+                            factor_const = data.get('factor', 1.0)
+                            break
+    except:
+        pass
     
-    # 6. Factor Balcón v9.5
+    # 6. Factor Balcón/Terraza v10.0
+    # Tabla coef: corrido +4%, L +6%, francesa -2%, terraza +7%
     t_balcon = prop.get('tipo_balcon', 'ninguno').lower()
     factor_balcon = {
-        'L': 1.05, 'corrido': 1.03, 'frances': 0.98, 'ninguno': 1.0
+        'L': 1.06,          # balcón en L: +6%
+        'corrido': 1.04,    # balcón corrido: +4%
+        'frances': 0.98,   # balcón francés: -2%
+        'terraza': 1.07,   # balcón terraza: +7%
+        'ninguno': 1.0
     }.get(t_balcon, 1.0)
     
     ventilacion = prop.get('ventilacion', 'simple').lower()
     factor_vent = 1.10 if 'cruzada' in ventilacion else 1.0 if 'doble' in ventilacion else 0.90
     
-    # 7. Detalles Funcionales v9.5
+    # 7. Detalles Funcionales v10.0
     f_funcional = 1.0
     if prop.get('doble_ingreso'): f_funcional *= 1.03
     if prop.get('lavadero_independiente'): f_funcional *= 1.02
+    if prop.get('toilet'): f_funcional *= 1.035
+    if prop.get('baño_servicio'): f_funcional *= 1.01
+    if prop.get('layout_flexible'): f_funcional *= 1.04
+    if prop.get('placares_completos'): f_funcional *= 1.02
+    if prop.get('despensa'): f_funcional *= 1.015
     
-    seg = prop.get('seguridad', 'ninguna').lower()
-    f_seguridad = {'24hs': 1.06, 'tag': 1.02, 'camaras': 1.01, 'ninguna': 1.0}.get(seg, 1.0)
+    # Reciclado v10.0 (parcial +4%, total +8%)
+    rec_tipo = prop.get('reciclado_tipo', 'ninguno').lower()
+    if rec_tipo == 'parcial':
+        f_funcional *= 1.04
+    elif rec_tipo == 'total':
+        f_funcional *= 1.08
+    
+    # Ascensores del edificio
+    ascensores = prop.get('ascensores_edificio', 2)
+    if ascensores > 1:
+        f_funcional *= 1.01
+    
+    # Ventilación baño
+    vent_bano = prop.get('ventilacion_bano', 'natural').lower()
+    if vent_bano == 'natural':
+        f_funcional *= 1.02
+    
+    # Seguridad Aditiva (v9.6)
+    f_seguridad = 1.0
+    detalles = prop.get('detalles_categoria', [])
+    if not isinstance(detalles, list): detalles = []
+    
+    seg_weights = {
+        'seguridad_24hs': 1.06,
+        'seguridad_tag': 1.02,
+        'seguridad_camaras': 1.01,
+        'seguridad_totem': 1.01
+    }
+    
+    for item in detalles:
+        if item in seg_weights:
+            f_seguridad *= seg_weights[item]
     
     # Depreciación por Antigüedad (Year 0 -> Target)
     factor_anti = max(0.40, 1.0 - (antiguedad * 0.006))
@@ -239,11 +442,16 @@ def calcular_factores(prop):
                      factor_vista * factor_ubica * factor_gas * factor_const * 
                      factor_balcon * f_funcional * f_seguridad)
     
-    # Factor Pasillo v9.3 (Castigo por unidad interna)
-    desc = (prop.get('descripcion_libre', '') + prop.get('nombre', '') + prop.get('direccion', '')).lower()
-    es_pasillo = any(x in desc for x in ['pasillo', 'interna', 'interno', 'fondo'])
-    factor_pasillo = 0.85 if es_pasillo else 1.0
-
+    # Factor Pasillo v9.3 (Castigo SOLO para casas/pasos, NO para deptos)
+    tipo = prop.get('tipo_inmueble', prop.get('tipo', '')).lower()
+    es_depto = 'departamento' in tipo or 'depto' in tipo or 'ph' in tipo
+    if es_depto:
+        factor_pasillo = 1.0  # Deptos no tienen factor pasillo
+    else:
+        desc = (prop.get('descripcion_libre', '') + prop.get('nombre', '') + prop.get('direccion', '')).lower()
+        es_pasillo = any(x in desc for x in ['pasillo', 'interna', 'interno', 'fondo'])
+        factor_pasillo = 0.85 if es_pasillo else 1.0
+    
     return {
         'total': f_estructural * factor_anti * factor_pasillo,
         'estructural_puro': f_estructural,
@@ -961,7 +1169,8 @@ def valuar_propiedad_v6(propiedad, fecha_ref=None):
     
     m2_equiv = calcular_m2_equivalentes(prop)
     factores = calcular_factores(prop)
-    valor_comp_actual = m2_equiv * m2_base * factores
+    factor_total = factores.get('total', 1.0)
+    valor_comp_actual = m2_equiv * m2_base * factor_total
     
     valor_comp_hist = valor_comp_actual * (indice_ref / indice_base) if indice_base > 0 else valor_comp_actual
     
@@ -1021,10 +1230,10 @@ def valuar_propiedad_v6(propiedad, fecha_ref=None):
         tendencia = 'neutral'
     
     justificacion = (
-        f"AVM v6.0: Índice ciudad {indice_ref:.2f} vs base {indice_base:.2f}, "
-        f"m2_base={m2_base:.0f}, m2_equiv={m2_equiv:.1f}, factores={factores:.2f}, "
+        f"AVM v6.0: Indice ciudad {indice_ref:.2f} vs base {indice_base:.2f}, "
+        f"m2_base={m2_base:.0f}, m2_equiv={m2_equiv:.1f}, factores={factor_total:.2f}, "
         f"pesos: hist={pesos['hist']:.2f}/comp={pesos['comp']:.2f}, "
-        f"confianza={confianza}, desviación={desviacion*100:.1f}%"
+        f"confianza={confianza}, desviacion={desviacion*100:.1f}%"
     )
     
     rango_min = valor * 0.90
@@ -1078,21 +1287,53 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     # Actualizamos el diccionario prop para que calcular_factores use la dinámica
     prop['antiguedad'] = antiguedad_dinamica 
     
-    # 1. Valuación VPP Híbrida v8.6 (Golden Reset)
-    # Venta: Híbrida (Ancla + Cluster)
-    m2_base_venta, pr_cluster_v, pr_ancla_v, n_v = calcular_valor_vpp(
-        ventas_cache, lat, lon, m2_equiv, zona_txt, anclas, usar_ancla=True, antiguedad=antiguedad_dinamica
-    )
+    # 1. Valuación VPP Híbrida v10.1 (Calibrada)
+    dorms = prop.get('dormitorios', 2)
+    anio_const = prop.get('anio_construccion', 2020)
     
-    # Alquiler: 100% Mercado Puro (Sin contaminación)
-    _, m2_base_alquiler, _, n_a = calcular_valor_vpp(
-        alquileres_cache, lat, lon, m2_equiv, zona_txt, anclas, usar_ancla=False, antiguedad=antiguedad_dinamica
-    )
+    # Encontrar ancla por zona
+    valor_ancla_geo = 1500  # default
+    try:
+        # El formato puede ser {'anclas': [...]}
+        if isinstance(anclas, dict):
+            anclas_list = anclas.get('anclas', list(anclas.values()))
+        else:
+            anclas_list = anclas
+        
+        for a in anclas_list:
+            if zona_txt.lower() in str(a.get('id', '')).lower():
+                valor_ancla_geo = a.get('usd_m2', 1500)
+                break
+    except:
+        pass
     
-    # 2. Factores Físicos Propios v8.6 (Realismo Rosario)
+    # Usar nueva función calibrada
+    m2_base_venta, metodo_origen = calcular_base_calibrada(valor_ancla_geo, {
+        'zona': zona_txt,
+        'dormitorios': dorms,
+        'lat': lat,
+        'lon': lon,
+        'anio_construccion': anio_const
+    })
+    
+    # Contar muestras para confianza
+    _, n_v = obtener_mediana_cluster(zona_txt, dorms, 'venta')
+    
+    # Alquiler: obtener del cluster o fallback
+    m2_base_alquiler, n_a = obtener_mediana_cluster(zona_txt, dorms, 'alquiler')
+    if m2_base_alquiler <= 0:
+        m2_base_alquiler = 15  # Fallback histórico
+    
+    # 2. Factores Físicos Propios v10.1 (Con CAP)
     f_dict = calcular_factores(prop)
-    # Restauramos antigüedad total para coincidir con Ground Truth v7.0
-    factores_finales = f_dict['total']
+    factores_base = f_dict['total']
+    
+    # CAP de atributos para evitar snowball effect
+    if factores_base > MAX_BONUS_ATRIBUTOS:
+        excedente = factores_base - MAX_BONUS_ATRIBUTOS
+        factores_base = MAX_BONUS_ATRIBUTOS + (excedente * 0.4)
+    
+    factores_finales = factores_base
     
     # 3. Metros Específicos para Alquiler (Prioriza Cubiertos)
     m2_cub = prop.get('m2_cubiertos', m2_equiv)
@@ -1195,6 +1436,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         'valor_propiedad_usd': round(valor_venta, 0),
         'valor_realizable_usd': round(valor_realizable, 0),
         'valor_m2_actual_usd': round(valor_venta / m2_equiv, 2) if m2_equiv > 0 else 0,
+        'm2_base_venta': round(m2_base_venta, 2),  # v11.0: m² base del cluster (filtrado + calibrado)
         'alquiler_estimado_ars': round(alquiler_mensual_ars, 0),
         'cap_rate_anual': round(cap_rate_neto, 2), # Devolvemos NETO por defecto
         'cap_rate_bruto': round(roi_bruto_anual, 2),
