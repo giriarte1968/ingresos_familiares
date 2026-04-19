@@ -1291,21 +1291,53 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     dorms = prop.get('dormitorios', 2)
     anio_const = prop.get('anio_construccion', 2020)
     
-    # Encontrar ancla por zona
+    # Encontrar ancla por coordenadas (v11.2) o por zona (fallback)
     valor_ancla_geo = 1500  # default
-    try:
-        # El formato puede ser {'anclas': [...]}
-        if isinstance(anclas, dict):
-            anclas_list = anclas.get('anclas', list(anclas.values()))
-        else:
-            anclas_list = anclas
-        
-        for a in anclas_list:
-            if zona_txt.lower() in str(a.get('id', '')).lower():
-                valor_ancla_geo = a.get('usd_m2', 1500)
-                break
-    except:
-        pass
+    ancla_seleccionada = None
+    
+    prop_lat = prop.get('lat')
+    prop_lon = prop.get('lon')
+    
+    # Si la propiedad tiene coordenadas, usar ancla por cercanía
+    if prop_lat and prop_lon:
+        try:
+            import math
+            anclas_list = anclas.get('anclas', list(anclas.values())) if isinstance(anclas, dict) else anclas
+            
+            min_dist = float('inf')
+            for a in anclas_list:
+                a_lat = a.get('lat')
+                a_lon = a.get('lon')
+                if a_lat is None or a_lon is None:
+                    continue
+                # Haversine
+                R = 6371
+                lat1, lon1, lat2, lon2 = math.radians(prop_lat), math.radians(prop_lon), math.radians(a_lat), math.radians(a_lon)
+                dlat, dlon = lat2 - lat1, lon2 - lon1
+                dist = 2 * R * math.asin(math.sqrt(math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2))
+                
+                if dist < min_dist:
+                    min_dist = dist
+                    valor_ancla_geo = a.get('usd_m2', 1500)
+                    ancla_seleccionada = a.get('id')
+        except:
+            pass
+    
+    # Fallback: búsqueda por zona si no hay coordenadas
+    if not ancla_seleccionada:
+        try:
+            if isinstance(anclas, dict):
+                anclas_list = anclas.get('anclas', list(anclas.values()))
+            else:
+                anclas_list = anclas
+            
+            for a in anclas_list:
+                if zona_txt.lower() in str(a.get('id', '')).lower():
+                    valor_ancla_geo = a.get('usd_m2', 1500)
+                    ancla_seleccionada = a.get('id')
+                    break
+        except:
+            pass
     
     # Usar nueva función calibrada
     m2_base_venta, metodo_origen = calcular_base_calibrada(valor_ancla_geo, {

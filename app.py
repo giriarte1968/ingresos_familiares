@@ -3253,6 +3253,23 @@ def mostrar_propiedades(mes):
                     # Limpiar status
                     from parsers.motor_vpp_core import save_cache
                     save_cache(props, status="")
+        
+        # Botón para geocodificar propiedades (v11.2)
+        with st.expander("📍 Geocodificar Propiedades"):
+            st.caption("Obtiene coordenadas y ancla más cercana para cada propiedad")
+            col_geo1, col_geo2 = st.columns([2, 1])
+            with col_geo1:
+                if st.button("Obtener Coordenadas", help="Geocodifica todas las propiedades sin lat/lon"):
+                    with st.spinner("Geocodificando propiedades..."):
+                        from parsers.geocoder import geocode_all_properties
+                        result = geocode_all_properties()
+                        if result.get("exito"):
+                            st.success(f"OK: {result['actualizadas']} propiedades actualizadas, {result['errores']} errores")
+                            st.rerun()
+                        else:
+                            st.error(f"Error: {result.get('error')}")
+            with col_geo2:
+                st.caption("Usa ArcGIS (gratuito)")
     
     # 2. Selector de período local
     meses_disponibles = sorted(datos.get('meses', {}).keys(), reverse=True)
