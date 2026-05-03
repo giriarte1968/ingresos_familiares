@@ -546,7 +546,7 @@ def calcular_base_calibrada(valor_ancla, prop_data):
     anio_tasacion = prop_data.get('anio_tasacion', 2026)
     
     # 1. Obtener valor del Cluster (scraping actual)
-    # Usar OLD function para mantener compatibilidad con tests
+    # Mantener compatibilidad con tests usando función original
     valor_cluster, muestras = obtener_mediana_cluster(zona, dorms, 'venta')
     
     # 2. Depreciar ancla por antigüedad
