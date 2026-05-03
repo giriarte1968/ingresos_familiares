@@ -106,6 +106,34 @@ def test_nlp_dentro_sqrt():
     # Si estuviera fuera, el ratio sería > 1.05 (un 5% directo). Dentro del sqrt es menor.
     assert ratio < 1.05, f"NLP no está dentro del sqrt (ratio={ratio:.3f})"
 
+def test_patio_grande_vera():
+    """Verifica ajuste patio grande para Vera Mujica (m2_desc=24, piso=0).
+    ALGORITMOS.md: m2_desc>=20 -> coef 0.25, PB+patio>=15 -> factor_piso 0.98
+    """
+    import json
+    with open('propiedades.json', 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    
+    vera = None
+    for p in data.get('propiedades', []):
+        if p.get('nombre') == 'Vera Mujica':
+            vera = p
+            break
+    
+    assert vera is not None, "Vera Mujica no encontrada"
+    assert vera.get('m2_descubiertos') >= 20, "Vera debe tener patio >= 20m2"
+    assert vera.get('piso') == 0, "Vera debe ser PB"
+    
+    r = valuar_propiedad_v7(vera, fecha_ref='2026-04')
+    
+    # Con patio grande (24m2), el valor debe subir vs el baselinesin ajuste
+    # m2_equiv debe ser ~43.75 (vs 43.55 sin ajuste) = +0.20
+    m2_equiv = r['m2_equivalentes']
+    assert 43.5 <= m2_equiv <= 44.0, f"m2_equiv {m2_equiv} fuera de rango (esperado ~43.75)"
+    
+    # Valor debe ser > 50k (antes era ~48k sin ajuste de patio grande)
+    assert r['valor_propiedad_usd'] >= 50000, f"Valor Vera {r['valor_propiedad_usd']} too low"
+
 def test_ventana3_sin_depreciacion():
     """RO-03: Con Ventana 3 (sin año), delta_anti debe ser 0.0 (ya está en P33)"""
     # Simulamos ventana 3 pasando una propiedad sin año o forzando el motor

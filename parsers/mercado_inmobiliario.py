@@ -473,10 +473,16 @@ def calcular_m2_equivalentes(prop):
     elif tipo_balcon == 'L':
         bonus_m2 = m2_semi * 0.10
     
+    # --- AJUSTE: Patio Grande (>20m² valorizado a 0.25) ---
+    # Si patio descubiertO > 20m², sube coeficiente de 0.2 a 0.25 (reconoce valor social/recreativo)
+    coef_desc = 0.2
+    if m2_desc >= 20:
+        coef_desc = 0.25
+    
     m2_equiv = (
         m2_cub +
         m2_semi * coef_semi +
-        m2_desc * 0.2 +
+        m2_desc * coef_desc +
         m2_com * factor_com +
         bonus_m2
     )
@@ -525,8 +531,14 @@ def calcular_factores(prop):
     # 2. Factor Altura v10.0 (Tabla coef: piso alto >70% = +5%)
     total_pisos = max(1, prop.get('total_pisos', 1))
     ratio_altura = piso / total_pisos
+    m2_desc = prop.get('m2_descubiertos', 0)
     if piso == 0:
-        factor_piso = 0.88
+        # --- AJUSTE: Patio Grande compensa planta baja ---
+        # Si tiene patio >15m², reducir penalización de -12% a solo -2%
+        if m2_desc >= 15:
+            factor_piso = 0.98  # -2% (compensa con aire/luz)
+        else:
+            factor_piso = 0.88  # -12% estándar
     elif ratio_altura >= 0.70:
         factor_piso = 1.05  # piso alto >70%
     else:
