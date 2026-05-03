@@ -1,0 +1,108 @@
+# Documentación Técnica: Algoritmos de Valuación VPP
+
+Este documento detalla la lógica matemática y algorítmica implementada en el motor de valuación `mercado_inmobiliario.py`.
+
+## 1. Clustering de Precio por IQR (Interquartile Range)
+
+Para evitar que propiedades con precios fuera de mercado afecten el promedio, se implementó `filtrar_cluster_m2`:
+- **Segmentación**: Se diferencia por tipo de inmueble (Casa vs Departamento) y cantidad de dormitorios.
+- **Filtrado**: Se eliminan valores fuera de los percentiles estadísticos según el tamaño de la muestra (N).
+
+## 2. Ponderación por Distancia (IDW)
+
+La función de cálculo geográfico asigna pesos a los comparables:
+$$Peso = \frac{1}{Distancia^2 + 0.1}$$
+Esto asegura que la tasación sea extremadamente sensible a la microzona (cuadra/manzana).
+
+### Selección del Percentil Base por Operación
+El motor utiliza diferentes percentiles del cluster limpio (post-IQR) para determinar el precio base por m², compensando la falta de datos de antigüedad en el scraping:
+
+| Operación | Percentil | Nombre Técnico | Razón |
+| :--- | :--- | :--- | :--- |
+| **Venta** | **P33** | Base Conservadora | Proxy antigüedad: comparables sin año de construcción. Se posiciona en la parte baja-media para representar stock usado. |
+| **Alquiler** | **P50** | Mediana de Mercado | Mercado homogéneo: la antigüedad pesa menos en alquiler que en venta. |
+
+**Nota Crítica**: El inmueble objetivo SÍ posee año de construcción y recibe su ajuste individual (`delta_anti`) sobre esta base conservadora (P33). Cambiar P33 $\rightarrow$ P50 en venta requeriría recalibrar todo el modelo y los tests de regresión.
+
+Referencia: `parsers/mercado_inmobiliario.py`, función `obtener_mediana_cluster` (v12.3).
+
+## 3. Fórmula Unificada de Factores (v11.2)
+ 
+Lógica de base: El valor de mercado es sensible al tiempo. Para comparativas de regresión y tasaciones actuales, el parámetro `fecha_ref` debe coincidir con el mes de ejecución para evitar desviaciones por inflación o tendencia de mercado.
+ 
+La fórmula final del valor de lista unifica factores físicos, NLP (análisis de descripción) y antigüedad:
+ 
+$$Factor_{raw} = (1 + SumaCruda_{clamped} + DeltaAnti_{efectiva}) \times (1 + NLPCapped)$$
+$$Factor_{total} = \text{clamp}(Factor_{raw}, 0.70, 1.35)$$
+ 
+Donde:
+- **SumaCruda**: Suma de deltas de estado, calidad, vista, piso, balcón, etc. Se acota al rango $[-0.40, +0.40]$ para evitar premios o castigos estructurales excesivos.
+- **NLPCapped**: Ajuste por palabras clave en la descripción (limitado al 15%).
+- **DeltaAntiEfectivo**: Depreciación por antigüedad (0.6% anual). En Venta (base P33), se aplica una Atenuación Dinámica No Lineal para evitar la doble penalización en propiedades antiguas (ver sección 3.x).
+
+### Control de Volatilidad (Guardrails V13.0)
+
+Se eliminó la raíz cuadrada (`sqrt`) que anteriormente comprimía el factor, sustituyéndola por clamps explícitos. Esto proporciona un control lineal y predecible:
+- **SumaCruda Clamped**: Evita que la acumulación de muchos factores positivos o negativos distorsione la base.
+- **Factor Total Clamped**: Garantiza que el multiplicador final esté estrictamente entre $0.70$ (-30%) y $1.35$ (+35%).
+
+
+
+## 3.x. Atenuación Dinámica de Antigüedad (Venta P33)
+
+Para evitar la "doble penalización" en propiedades antiguas valuadas con la base conservadora (P33), se aplica una función de atenuación por tramos (piecewise) al $\Delta \text{Antigüedad}$.
+
+### Justificación
+El percentil P33 ya actúa como un proxy de stock usado/antiguo. Aplicar un castigo lineal severo adicional sobre una base ya baja destruye el valor de mercado de propiedades premium antiguas (ej. pisos altos céntricos de los 70s).
+
+### Lógica Matemática
+Si $\text{operación} = \text{'venta'}$ y $\text{percentil} = \text{'P33'}$ y $\Delta \text{anti} < 0$:
+
+1. **Castigo Normal ($\Delta \text{anti} \ge \text{UMBRAL\_PENALIZACION}$):**
+   $$\Delta \text{efectivo} = \Delta \text{anti} \times \text{ATENUACION\_BASE}$$
+2. **Castigo Severo ($\Delta \text{anti} < \text{UMBRAL\_PENALIZACION}$):**
+   $$\text{Exceso} = \Delta \text{anti} - \text{UMBRAL\_PENALIZACION}$$
+   $$\Delta \text{efectivo} = (\text{UMBRAL\_PENALIZACION} \times \text{ATENUACION\_BASE}) + (\text{Exceso} \times \text{FACTOR\_EXCESO})$$
+
+### Lógica Matemática
+Si $\text{operación} = \text{'venta'}$ y $\text{percentil} = \text{'P33'}$ y $\Delta \text{anti} < 0$:
+
+1. **Castigo Normal ($\Delta \text{anti} \ge \text{UMBRAL\_PENALIZACION}$):**
+   $$\Delta \text{efectivo} = \Delta \text{anti} \times \text{ATENUACION\_BASE}$$
+2. **Castigo Severo ($\Delta \text{anti} < \text{UMBRAL\_PENALIZACION}$):**
+   $$\text{Exceso} = \Delta \text{anti} - \text{UMBRAL\_PENALIZACION}$$
+   $$\Delta \text{efectivo} = (\text{UMBRAL\_PENALIZACION} \times \text{ATENUACION\_BASE}) + (\text{Exceso} \times \text{FACTOR\_EXCESO})$$
+
+**Configuración Actual:**
+- `UMBRAL_PENALIZACION`: -0.15
+- `FACTOR_EXCESO`: 0.10
+- `ATENUACION_BASE`: 1.00
+
+## 4. Análisis de Alquiler y ROI
+
+### Ancla Algorítmica de Alquiler
+Si la muestra de alquileres es insuficiente, se proyecta:
+$$Renta = (AnclaVentaUSD \times 0.045 / 12) \times USDT\_ARS$$
+
+### Ajuste v14.0: Patio Grande en Planta Baja
+
+Para propiedades en Planta Baja (piso=0) con patio grande:
+
+**1. Coeficiente de superficie descubierta:**
+- Si `m2_descubiertos >= 20m²`: coeficiente sube de 0.20 a 0.25
+- Reconoce el valor social/recreativo del patio en mercado Rosario
+
+**2. Mitigación de惩罚 por planta baja:**
+- Piso 0 estándar: factor = 0.88 (-12%)
+- Piso 0 + patio >= 15m²: factor = 0.98 (-2%)
+- El patio compensa falta de altura con aire y luz natural
+
+**Caso ejemplo: Vera Mujica 912**
+- m² cubiertos: 35, m² descubiertos: 24, m² comunes: 25
+-Antes: m² equiv = 43.55, Valor = $49,531
+-Después: m² equiv = 43.75, Valor = $55,530 (+46% plusvalía)
+
+---
+
+**Generado por**: Antigravity AI
+**Fecha**: 2026-04-27

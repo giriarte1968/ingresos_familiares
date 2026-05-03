@@ -6,14 +6,25 @@ import json
 import time
 import random
 import os
+import logging
 from datetime import datetime, timedelta
 from playwright.sync_api import sync_playwright
+
+logger = logging.getLogger('CACHE')
 from concurrent.futures import ThreadPoolExecutor
+try:
+    from parsers.adapter_mass_scraper import get_mass_properties
+except ImportError:
+    # Caso para ejecuciones desde dentro de la carpeta parsers
+    try:
+        from adapter_mass_scraper import get_mass_properties
+    except:
+         get_mass_properties = None
 
 # Rutas y Configuración
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CACHE_FILE = os.path.join(BASE_DIR, "cache_scraping.json")
-ANCLAS_FILE = os.path.join(BASE_DIR, "anclas_rosario.json")
+ANCLAS_FILE = os.path.join(BASE_DIR, "anclas_rosario_v3_grid.json")
 CACHE_TTL_MINUTES = 60
 
 USER_AGENTS = [
@@ -28,31 +39,59 @@ USER_AGENTS = [
 def get_random_ua():
     return random.choice(USER_AGENTS)
 
-def get_binance_usdt_ars():
+_BINANCE_CACHE = {'value': None, 'ts': 0}
+_BINANCE_TTL = 300  # 5 minutos
+
+def obtener_dolar_binance_cached(force_reload=False):
+    """Obtiene dólar Binance con caché.
+    
+    Args:
+        force_reload: si True, ignora TTL y hace novo request
+    
+    Returns:
+        float: precio USDT/ARS
     """
-    Obtiene cotización representativa de USDT/ARS en Binance P2P vía CriptoYa.
-    Prioriza el precio de mercado real para conversión de rentabilidad ARS->USD.
-    """
+    now = datetime.now().timestamp()
+    bypass = _should_bypass_cache()
+    
+    if not force_reload and not bypass and _BINANCE_CACHE['value'] and (now - _BINANCE_CACHE['ts']) < _BINANCE_TTL:
+        logger.debug("[DOLAR_CACHE] hit")
+        return _BINANCE_CACHE['value']
+    
+    if force_reload or bypass:
+        logger.debug("[DOLAR_CACHE] force_reload")
+    
     try:
-        # Probamos primero el endpoint específico de Binance que suele promediar P2P
         r = requests.get('https://criptoya.com/api/binance/usdt/ars/1', timeout=5)
         if r.status_code == 200:
             data = r.json()
-            # Usamos el 'totalAsk' que incluye comisiones bancarias promedio, 
-            # o el 'ask' si no está disponible, que es lo que pagaríamos para pasar de ARS a USD.
-            return data.get('totalAsk') or data.get('ask') or 1450.0
+            val = data.get('totalAsk') or data.get('ask') or 1300.0
+            _BINANCE_CACHE['value'] = val
+            _BINANCE_CACHE['ts'] = now
+            logger.debug(f"[DOLAR_CACHE] miss -> {val}")
+            return val
     except Exception as e:
-        print(f"Error CriptoYa (Binance): {e}")
+        logger.debug(f"[DOLAR_CACHE] error: {e}")
 
     try:
-        # Fallback 1: Promedio del mercado (CriptoYa tiene un endpoint 'p2p' que promedia varios)
         r = requests.get('https://criptoya.com/api/usdt/ars/1', timeout=5)
         if r.status_code == 200:
-            return r.json().get('binancep2p', {}).get('ask', 1450.0)
+            val = r.json().get('binancep2p', {}).get('ask', 1300.0)
+            _BINANCE_CACHE['value'] = val
+            _BINANCE_CACHE['ts'] = now
+            return val
     except:
         pass
-        
-    return 1450.0
+    
+    val = 1300.0
+    _BINANCE_CACHE['value'] = val
+    _BINANCE_CACHE['ts'] = now
+    return val
+
+def get_binance_usdt_ars():
+    """Legacy wrapper - mantener compatibilidad."""
+    return obtener_dolar_binance_cached()
+
 
 def load_cache():
     if os.path.exists(CACHE_FILE):
@@ -64,15 +103,58 @@ def load_cache():
             pass
     return None
 
-def save_cache(propiedades, status="completado", inicio=0):
-    data = {
-        "fecha": datetime.now().isoformat(),
-        "status": status,
-        "propiedades": propiedades,
-        "inicio": inicio
-    }
-    with open(CACHE_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+_CACHE_DATA = None
+_CACHE_TTL = 300  # 5 minutos
+_CACHE_LOAD_TS = 0
+
+def _should_bypass_cache():
+    """Verifica si debe bypassear el cache por entorno."""
+    return os.getenv("APP_ENV") in ["test", "testing"] or os.getenv("DISABLE_CACHE") == "1"
+
+def load_cache_cached(force_reload=False):
+    """Cache en memória para evitar reads repetidos.
+    
+    Args:
+        force_reload: si True, ignora TTL y lee desde disco
+    """
+    global _CACHE_DATA, _CACHE_LOAD_TS
+    
+    if _should_bypass_cache():
+        force_reload = True
+    
+    now = datetime.now().timestamp()
+    if not force_reload and _CACHE_DATA is not None and (now - _CACHE_LOAD_TS) < _CACHE_TTL:
+        logger.debug(f"[CACHE] hit (TTL: {int(_CACHE_TTL - (now - _CACHE_LOAD_TS))}s)")
+        return _CACHE_DATA
+    
+    logger.debug(f"[CACHE] miss" + (" (force_reload)" if force_reload else ""))
+    data = load_cache()
+    _CACHE_DATA = data
+    _CACHE_LOAD_TS = now
+    return data
+
+def validar_schema_propiedad(prop):
+    """
+    Valida que la propiedad tenga los campos obligatorios según su tipo.
+    Retorna (bool, mensaje_error)
+    """
+    tipo = prop.get("tipo", "departamento").lower()
+    
+    # Campos comunes obligatorios
+    campos_comunes = ["nombre", "zona", "m2_cubiertos", "dormitorios", "anio_construccion"]
+    for campo in campos_comunes:
+        if campo not in prop or prop[campo] is None:
+            return False, f"Campo obligatorio faltante: {campo}"
+    
+    if tipo == "departamento":
+        if "piso" not in prop or "total_pisos" not in prop:
+            return False, "Piso y total_pisos son obligatorios para departamentos"
+            
+    elif tipo in ["casa", "ph"]:
+        if "m2_terreno" not in prop or prop["m2_terreno"] <= 0:
+            return False, "m2_terreno es obligatorio y debe ser > 0 para casas/PH"
+            
+    return True, "OK"
 
 def cargar_anclas():
     if not os.path.exists(ANCLAS_FILE):
@@ -81,6 +163,45 @@ def cargar_anclas():
         data = json.load(f)
         anclas_list = data.get("anclas", data) if isinstance(data, dict) else data
         return {a["id"]: a for a in anclas_list}
+
+_ANCLAS_CACHE = None
+_ANCLAS_TS = 0
+
+def cargar_anclas_cached(force_reload=False):
+    """Cache en memória para anclas.
+    
+    Args:
+        force_reload: si True, ignora TTL y lee desde disco
+    """
+    global _ANCLAS_CACHE, _ANCLAS_TS
+    
+    now = datetime.now().timestamp()
+    bypass = _should_bypass_cache()
+    
+    if not force_reload and not bypass and _ANCLAS_CACHE is not None and (now - _ANCLAS_TS) < _CACHE_TTL:
+        return _ANCLAS_CACHE
+    
+    if force_reload or bypass:
+        logger.debug("[ANCLAS] force_reload")
+    
+    data = cargar_anclas()
+    _ANCLAS_CACHE = data
+    _ANCLAS_TS = now
+    return data
+
+def cargar_anclas_con_distancia(lat, lon, limite=5):
+    """Retorna las N anclas más cercanas con distancia calculada"""
+    anclas = cargar_anclas()
+    if not lat or not lon:
+        return []
+    resultado = []
+    for a_id, a in anclas.items():
+        distancia = calcular_distancia(lat, lon, a.get('lat', 0), a.get('lon', 0))
+        a_copy = a.copy()
+        a_copy['distancia_km'] = distancia
+        resultado.append(a_copy)
+    resultado.sort(key=lambda x: x['distancia_km'])
+    return resultado[:limite]
 
 def calcular_distancia(lat1, lon1, lat2, lon2):
     R = 6371
@@ -119,100 +240,65 @@ def deduplicar_propiedades(props):
 
 
 def scrapear_argenprop(operacion="venta", max_pages=3):
-    """
-    Scraper para Argenprop con paginacion y deteccion de fin
-    """
     import logging
     logger = logging.getLogger("motor_vpp")
     props = []
-    
-    # URLs base por tipo de dormitorio
-    base_urls = [
-        "monoambiente", "1-dormitorio", "2-dormitorios", "3-dormitorios", "4-dormitorios"
-    ]
-    
+    base_urls = ["monoambiente", "1-dormitorio", "2-dormitorios", "3-dormitorios", "4-dormitorios"]
     headers = {"User-Agent": get_random_ua()}
-    
     for tipo in base_urls:
         url_base = f"https://www.argenprop.com/departamentos/{operacion}/rosario/{tipo}"
-        
         for page in range(1, max_pages + 1):
-            if page == 1:
-                url = url_base
-            else:
-                url = f"{url_base}?pagina={page}"
-            
+            url = url_base if page == 1 else f"{url_base}?pagina={page}"
             try:
                 r = requests.get(url, headers=headers, timeout=10)
-                if r.status_code != 200:
-                    break
-                    
+                if r.status_code != 200: break
                 soup = BeautifulSoup(r.text, 'html.parser')
                 items = soup.find_all("div", class_="listing__item")
-                
-                # Detectar fin: si no hay items, salir
-                if not items:
-                    logger.debug(f"[Argenprop] No mas resultados en pagina {page} para {tipo}")
-                    break
-                
-                logger.debug(f"[Argenprop] Pagina {page} - {len(items)} items para {tipo}")
-                
+                if not items: break
                 for t in items:
                     try:
-                        price_text = t.find("p", class_="card__price")
-                        if not price_text:
-                            continue
-                        price_text = price_text.text
-                        
+                        price_text_el = t.find("p", class_="card__price")
+                        if not price_text_el: continue
+                        price_text = price_text_el.text
                         px_match = re.search(r'([\d.]+)', price_text.replace(",", "."))
-                        if not px_match:
-                            continue
+                        if not px_match: continue
                         precio = float(px_match.group(1).replace(".", ""))
-                        if operacion == "venta" and "USD" not in price_text:
-                            continue
-                        
+                        if operacion == "venta" and "USD" not in price_text: continue
                         m2 = dorms = None
                         features = t.find("ul", class_="card__main-features")
                         if features:
                             text = features.text.lower()
                             m_match = re.search(r'(\d+)\s*m²', text)
-                            if m_match:
-                                m2 = float(m_match.group(1))
-                            else:
-                                m_match2 = re.search(r'(\d+)m', text)
-                                if m_match2:
-                                    m2 = float(m_match2.group(1))
-                            
+                            if m_match: m2 = float(m_match.group(1))
+                            elif (m_match2 := re.search(r'(\d+)m', text)): m2 = float(m_match2.group(1))
                             d_match = re.search(r'(\d+)\s*dorm', text)
-                            if d_match:
-                                dorms = int(d_match.group(1))
-                        
+                            if d_match: dorms = int(d_match.group(1))
                         if operacion == "alquiler" and (not m2 or m2 <= 0):
                             desc = t.get_text(" ").lower()
                             m_match = re.search(r'(\d+)\s*(?:m2|m²)', desc)
-                            if m_match:
-                                m2 = float(m_match.group(1))
-                        
-                        if precio and m2 and m2 > 0 and m2 < 500:
+                            if m_match: m2 = float(m_match.group(1))
+                        C_link = t.find("a")
+                        link = C_link.get('href') if C_link else ""
+                        if link and not link.startswith('http'): link = "https://www.argenprop.com" + link
+                        if precio and m2 and 0 < m2 < 500:
                             props.append({
-                                "precio": precio,
-                                "m2": m2,
-                                "dormitorios": dorms or 1,
-                                "valor_m2": precio / m2,
-                                "direccion": t.find("h2").text.strip() if t.find("h2") else "",
-                                "fuente": "argenprop",
-                                "operacion": operacion,
-                                "zona": normalizar_zona(t.text)
+                                "precio": precio, 
+                                "m2": m2, 
+                                "dormitorios": dorms or 1, 
+                                "valor_m2": precio / m2, 
+                                "direccion": t.find("h2").text.strip() if t.find("h2") else "", 
+                                "fuente": "argenprop", 
+                                "operacion": operacion, 
+                                "zona": normalizar_zona(t.text), 
+                                "url": link
                             })
-                    except:
-                        continue
-            
+                    except: continue
             except Exception as e:
-                logger.debug(f"[Argenprop] Error en {tipo} pagina {page}: {e}")
+                logger.debug(f"Error: {e}")
                 break
-        
     logger.info(f"[Argenprop] Completado: {len(props)} propiedades")
     return props
+
 
 
 def scrapear_ttl(operacion="venta"):
@@ -317,8 +403,11 @@ def scrapear_ttl(operacion="venta"):
                                     "direccion": direccion,
                                     "fuente": "ttl",
                                     "operacion": operacion,
-                                    "zona": zona
+                                    "zona": zona,
+                                    "url": link
                                 })
+
+
                     except:
                         continue
             except Exception as e:
@@ -389,6 +478,11 @@ def scrapear_lacapital(operacion="venta"):
                     direccion = dir_el.inner_text() if dir_el else ""
                     direccion = direccion.replace("Departamento en Venta", "").replace("-", " ").strip()[:50]
                     
+                    C_link = item.find("a", href=True)
+                    link = C_link['href'] if C_link else ""
+                    if link and not link.startswith('http'):
+                        link = "https://inmuebles.lacapital.com.ar" + link
+                    
                     if precio and metros:
                         valor_m2 = precio / metros
                         zona = normalizar_zona(direccion)
@@ -408,8 +502,12 @@ def scrapear_lacapital(operacion="venta"):
                                 "valor_m2": valor_m2,
                                 "direccion": direccion,
                                 "zona": zona,
-                                "fuente": "lacapital"
+                                "fuente": "lacapital",
+                                "url": link
                             })
+
+
+
                 except:
                     continue
         except Exception as e:
@@ -432,7 +530,6 @@ def scrapear_zonaprop():
     
     logger.info("[ZP] Iniciando scraper Zonaprop...")
     
-    # Intentar con requests primero (más rápido)
     try:
         api_url = "https://www.zonaprop.com.ar/api-gateway/inmuebles/v1/search"
         params = {
@@ -468,6 +565,8 @@ def scrapear_zonaprop():
                         valor_m2 = precio / metros
                         if 400 <= valor_m2 <= 3500:
                             zona = normalizar_zona(titulo)
+                            slug = item.get('slug', '')
+                            url = f"https://www.zonaprop.com.ar/propiedad/{slug}" if slug else ""
                             props.append({
                                 "precio": precio,
                                 "m2": metros,
@@ -476,7 +575,8 @@ def scrapear_zonaprop():
                                 "direccion": titulo[:50],
                                 "zona": zona,
                                 "fuente": "zonaprop",
-                                "operacion": "venta"
+                                "operacion": "venta",
+                                "url": url
                             })
                 except Exception as e:
                     logger.debug(f"[ZP] Error procesando item: {e}")
@@ -488,72 +588,37 @@ def scrapear_zonaprop():
     except Exception as e:
         logger.warning(f"[ZP] Error con API, intentando con Playwright: {e}")
     
-    # Fallback: intentar con Playwright (anti-detección)
     try:
         with sync_playwright() as p:
-            browser = p.chromium.launch(
-                headless=True,
-                args=[
-                    "--disable-blink-features=AutomationControlled",
-                    "--disable-dev-shm-usage",
-                ]
-            )
-            context = browser.new_context(
-                user_agent=get_random_ua(),
-                viewport={'width': random.randint(1200, 1920), 'height': random.randint(800, 1080)}
-            )
+            browser = p.chromium.launch(headless=True, args=["--disable-blink-features=AutomationControlled", "--disable-dev-shm-usage", "--disable-setuid-sandbox", "--no-sandbox"])
+            context = browser.new_context(user_agent=get_random_ua(), viewport={'width': random.randint(1200, 1920), 'height': random.randint(800, 1080)})
             page = context.new_page()
-            
-            # Ir a la página principal primero para evitar bloqueos
             page.goto("https://www.zonaprop.com.ar/", timeout=30000, wait_until="domcontentloaded")
             page.wait_for_timeout(3000)
-            
-            # Después ir a la búsqueda
             search_url = "https://www.zonaprop.com.ar/departamentos/rosario/venta"
             page.goto(search_url, timeout=30000, wait_until="domcontentloaded")
-            
-            # Anti-deteccion: scroll basico (original)
             for _ in range(2):
                 page.evaluate("window.scrollBy(0, 300)")
                 page.wait_for_timeout(600)
-            
             page.wait_for_timeout(2000)
-            
-            # Obtener HTML y buscar propiedades
             html = page.content()
-            
-            # Verificar si hay bloqueo
             if "Just a moment" in html or "Cloudflare" in html[:500]:
-                logger.warning("[ZP] Detectado Cloudflare")
                 browser.close()
                 return props
-            
-            # Parsear con BeautifulSoup
             from bs4 import BeautifulSoup
             soup = BeautifulSoup(html, 'html.parser')
-            
-            # Buscar cards de propiedades (selector genérico)
             cards = soup.find_all("div", class_=lambda x: x and "card" in str(x).lower() if x else False)
-            
             for card in cards[:30]:
                 try:
                     texto = card.get_text(" ")
-                    # Buscar precio
                     precio_match = re.search(r'USD\s*([\d,]+)', texto)
-                    if not precio_match:
-                        continue
+                    if not precio_match: continue
                     precio = float(precio_match.group(1).replace(",", ""))
-                    
-                    # Buscar metros
                     m_match = re.search(r'(\d+)\s*m', texto)
-                    if not m_match:
-                        continue
+                    if not m_match: continue
                     metros = float(m_match.group(1))
-                    
-                    # Buscar dormitorios
                     d_match = re.search(r'(\d+)\s*dorm', texto, re.I)
                     dorms = int(d_match.group(1)) if d_match else None
-                    
                     if precio and metros and 20 < metros < 300:
                         valor_m2 = precio / metros
                         if 400 <= valor_m2 <= 3500:
@@ -568,16 +633,13 @@ def scrapear_zonaprop():
                                 "fuente": "zonaprop",
                                 "operacion": "venta"
                             })
-                except Exception as e:
-                    continue
-            
+                except: continue
             browser.close()
             logger.info(f"[ZP] Completado via Playwright: {len(props)} propiedades")
-    
     except Exception as e:
         logger.error(f"[ZP] Error en fallback Playwright: {e}")
-    
     return props
+
 
 
 def scrapear_todoprop(operacion="venta"):
@@ -719,6 +781,127 @@ def scrapear_giuliani(operacion="venta"):
             continue
     
     logger.info(f"[GIU] Completado: {len(props)} propiedades")
+    return props
+
+
+def scrapear_bienesrosario(operacion="venta"):
+    """
+    Scraper para BienesRosario.com (ex RosarioGarage).
+    v12.1: Nueva URL de búsqueda directa y selectores de itmId.
+    """
+    import logging
+    import re
+    import time
+    logger = logging.getLogger("motor_vpp")
+    props = []
+
+    logger.info("[BR] Iniciando scraper BienesRosario...")
+
+    url_base = "https://www.bienesrosario.com"
+    # URL con parametros de busqueda directa para evitar redirecciones a home
+    op_id = "1" if operacion == "venta" else "2"
+    url_search = f"{url_base}/index.php?action=finder/search&itmTypeOperation={op_id}&itmPropType=2"
+
+    try:
+        # v12.2: Usamos requests directo (verificado que no bloquea y es mas rapido)
+        headers_listing = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+            "Accept-Language": "es-ES,es;q=0.9"
+        }
+        response = requests.get(url_search, headers=headers_listing, timeout=20)
+        if response.status_code != 200:
+            logger.warning(f"[BR] Error status {response.status_code}")
+            return []
+
+        from bs4 import BeautifulSoup
+        soup = BeautifulSoup(response.text, "html.parser")
+
+        # 1. Extraer items usando el selector verificado que funciono en el test
+        items_data = []
+        cards = soup.find_all(class_="box_aviso_base")
+        
+        for card in cards:
+            # Buscar el link que contiene el itmId
+            link_el = card.find("a", href=re.compile(r"itmId=\d+", re.I))
+            
+            # Buscar el precio en cualquier parte de la tarjeta
+            price_text = ""
+            price_search = card.find(string=re.compile(r"USD|U\$S", re.I))
+            if price_search:
+                price_text = price_search.parent.get_text()
+            
+            if link_el and price_text:
+                price_match = re.search(r"([\d.]+)", price_text.replace(".", ""))
+                if price_match:
+                    try:
+                        href = link_el["href"]
+                        full_link = href
+                        if not full_link.startswith("http"):
+                            full_link = url_base + ("/" if not full_link.startswith("/") else "") + full_link
+                        
+                        price = float(price_match.group(1))
+                        items_data.append({"link": full_link, "precio": price})
+                    except:
+                        continue
+
+        logger.info(f"[BR] {len(items_data)} items encontrados en el listado")
+
+
+
+        # 2. Deep scrape: visitar detalles (limitado)
+        headers = {"User-Agent": get_random_ua()}
+        for item in items_data[:15]:
+
+
+            try:
+                time.sleep(1.0) # Delay mas conservador
+                res = requests.get(item["link"], headers=headers, timeout=15)
+                if res.status_code != 200: continue
+
+                s = BeautifulSoup(res.text, "html.parser")
+                
+                # Busqueda exacta de Superficie
+                area = None
+                label_sup = s.find(string=re.compile(r"Superficie:", re.I))
+                if label_sup:
+                    # El valor suele estar en el siguiente Tag o despues del ":"
+                    parent_text = label_sup.parent.get_text()
+                    area_match = re.search(r"(\d+)", parent_text.split("Superficie:")[-1])
+                    if area_match:
+                        area = float(area_match.group(1))
+                
+                if not area:
+                    # Fallback regex general
+                    area_match = re.search(r"superficie\s*[:\s]*(\d+)", s.get_text().lower())
+                    if area_match:
+                        area = float(area_match.group(1))
+
+                if area and 20 < area < 400:
+                    valor_m2 = item["precio"] / area
+                    if 700 <= valor_m2 <= 4500:
+                        # Extraer zona del texto
+                        full_text = s.get_text(" ")
+                        zona = normalizar_zona(full_text)
+                        
+                        props.append({
+                            "precio": item["precio"],
+                            "m2": area,
+                            "dormitorios": None, # Ficha tecnica variable
+                            "valor_m2": valor_m2,
+                            "direccion": "BienesRosario Listing",
+                            "zona": zona,
+                            "fuente": "bienesrosario",
+                            "operacion": operacion
+                        })
+            except Exception as e:
+                logger.debug(f"[BR] Error en detalle {item['link']}: {e}")
+                continue
+
+    except Exception as e:
+        logger.warning(f"[BR] Error general: {e}")
+
+    logger.info(f"[BR] Completado: {len(props)} propiedades")
     return props
 
 
@@ -904,6 +1087,84 @@ def calcular_valor_vpp(propiedades, lat_obj, lon_obj, m2_obj, zona_name, anclas,
 
 # --- PROCESO ASINCRONICO ---
 
+def scrapear_propia(max_pages=20, limit=100):
+    """
+    Scraper para Propia via API browser-based.
+    Retorna lista de propiedades para ser integradas en el cache general.
+    """
+    import logging
+    logger = logging.getLogger("motor_vpp")
+    props = []
+    
+    base_url = "https://admin.propia.com.ar/items/properties"
+    operaciones = [{"id": "1", "nombre": "venta"}, {"id": "2", "nombre": "alquiler"}]
+    tipos = [{"id": "2", "nombre": "departamento"}, {"id": "1", "nombre": "casa"}, {"id": "3", "nombre": "ph"}]
+    fields = [
+        "id", "title", "slug", "address", "address_to_show", "address_summary",
+        "price", "hide_price", "area", "bedrooms", "bathrooms", "garages",
+        "expenses", "environment_amount", "monoambiente", "latitude", "longitude",
+        "type_id.id", "type_id.name", "operation_id.id", "operation_id.name",
+        "currency_id.id", "currency_id.symbol"
+    ]
+    
+    logger.info("[Propia] Iniciando scraping API...")
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            context = browser.new_context(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
+            page = context.new_page()
+            page.goto("https://propia.com.ar", timeout=30000)
+            page.wait_for_timeout(2000)
+            
+            for op in operaciones:
+                for tipo in tipos:
+                    filtro = {
+                        "status": "published", "published_on_portal": True,
+                        "_and": [{"company_id": {"enabled": {"_eq": True}}}],
+                        "operation_id": op['id'], "type_id": tipo['id'], "location_city_id": "1"
+                    }
+                    filtro_json = json.dumps(filtro)
+                    
+                    for page_num in range(1, max_pages + 1):
+                        params = f"limit={limit}&page={page_num}&meta=filter_count,total_count&sort=-ranking,sort&filter={urllib.parse.quote(filtro_json)}"
+                        for f in fields: params += f"&fields={urllib.parse.quote(f)}"
+                        url = f"{base_url}?{params}"
+                        
+                        try:
+                            response_text = page.evaluate(f"async () => {{ const res = await fetch('{url}'); return res.text(); }}")
+                            data = json.loads(response_text)
+                            items = data.get('data', [])
+                            if not items: break
+                            
+                            for item in items:
+                                precio = item.get('price')
+                                area = item.get('area')
+                                if precio is None or area is None or float(area) <= 0: continue
+                                
+                                props.append({
+                                    "precio": float(precio),
+                                    "m2": float(area),
+                                    "dormitorios": item.get('bedrooms') or 1,
+                                    "tipo": item.get('type_id', {}).get('name', tipo['nombre']),
+                                    "operacion": item.get('operation_id', {}).get('name', op['nombre']).lower(),
+                                    "direccion": item.get('address_to_show') or item.get('title') or "",
+                                    "url": f"https://propia.com.ar/propiedades/{item.get('slug', '')}",
+                                    "valor_m2": round(float(precio) / float(area), 2),
+                                    "fuente": "propia",
+                                    "zona": normalizar_zona(item.get('address_to_show') or item.get('title') or "")
+                                })
+                            if len(items) < limit: break
+                            page.wait_for_timeout(500)
+                        except Exception as e:
+                            logger.debug(f"[Propia] Error en pág {page_num}: {e}")
+                            break
+            browser.close()
+    except Exception as e:
+        logger.error(f"[Propia] Error general: {e}")
+        
+    logger.info(f"[Propia] Completado: {len(props)} propiedades")
+    return props
+
 def actualizar_mercado_vpp_full():
     """Función para correr en segundo plano con progreso - Version mejorada con mas fuentes"""
     import logging
@@ -944,29 +1205,55 @@ def actualizar_mercado_vpp_full():
         ventas_zp = scrapear_zonaprop()
         print(f"   => {len(ventas_zp)} propiedades")
         
-        print("[5/7] TodoProps + Giuliani Venta...")
+        print("[5/7] TodoProps + Giuliani + BienesRosario Venta...")
         ventas_todoprop = scrapear_todoprop("venta")
         ventas_giuliani = scrapear_giuliani("venta")
-        print(f"   => {len(ventas_todoprop) + len(ventas_giuliani)} propiedades")
+        ventas_br = scrapear_bienesrosario("venta")
+        print(f"   => {len(ventas_todoprop) + len(ventas_giuliani) + len(ventas_br)} propiedades")
         
-        # Omitir agencias (no implementado)
-        ventas_age = []
+        print("[Propia Venta] Scraping API...")
+        ventas_propia = scrapear_propia(max_pages=50) # Filtro interno de la función ya maneja operación
+        # Filtrar solo venta para el total de ventas
+        ventas_propia_solo = [p for p in ventas_propia if p['operacion'] == 'venta']
+        print(f"   => {len(ventas_propia_solo)} propiedades")
+
+        # [Paso 8/8 NUEVO] Motor Masivo de 50 Inmobiliarias
+        ventas_masivas = []
+        if get_mass_properties:
+
+            print("[8] Motor Masivo de 50 Inmobiliarias (ejecución profunda)...")
+            try:
+                # Limitamos a 3 páginas para balancear tiempo/data en la integración final
+                ventas_masivas = get_mass_properties(max_pages=3)
+                print(f"   => {len(ventas_masivas)} propiedades únicas rescatadas del mercado local")
+            except Exception as e:
+                print(f"   ⚠️ Error en motor masivo: {e}")
         
-        ventas = deduplicar_propiedades(ventas_argen + deduplicar_propiedades(ventas_ttl) + deduplicar_propiedades(ventas_lacapital) + ventas_zp + ventas_todoprop + ventas_giuliani + ventas_age)
+        ventas = deduplicar_propiedades(ventas_argen + deduplicar_propiedades(ventas_ttl) + deduplicar_propiedades(ventas_lacapital) + ventas_zp + ventas_todoprop + ventas_giuliani + ventas_br + ventas_propia_solo + ventas_masivas)
+
         
         # Scraping Alquiler
         print("[6/7] Argenprop Alquiler...")
         alquiler_argen = scrapear_argenprop("alquiler")
         print(f"   => {len(alquiler_argen)} propiedades")
         
+        print("[Propia Alquiler] Scraping API...")
+        alquiler_propia = [p for p in ventas_propia if p['operacion'] == 'alquiler']
+        print(f"   => {len(alquiler_propia)} propiedades")
+
         print("[7/7] TTL + La Capital Alquiler...")
         alquiler_ttl = scrapear_ttl("alquiler")
         alquiler_lac = scrapear_lacapital("alquiler")
         print(f"   => {len(alquiler_ttl) + len(alquiler_lac)} propiedades")
         
-        alquileres = deduplicar_propiedades(alquiler_argen + deduplicar_propiedades(alquiler_ttl) + deduplicar_propiedades(alquiler_lac))
+        alquileres = deduplicar_propiedades(alquiler_argen + deduplicar_propiedades(alquiler_ttl) + deduplicar_propiedades(alquiler_lac) + alquiler_propia)
+
         
-        total = ventas + alquileres
+        # Cargar historial anterior para NO pisiar las corridas previas
+        historial = load_cache() or []
+        historial_props = historial.get("propiedades", []) if isinstance(historial, dict) else historial
+        
+        total = deduplicar_propiedades(historial_props + ventas + alquileres)
         
         # Resumen por fuente
         fuentes = {}

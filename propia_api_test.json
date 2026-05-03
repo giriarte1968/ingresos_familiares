@@ -1,0 +1,59 @@
+{
+  "data": [
+    {
+      "id": 289772,
+      "title": "Casa de 4 dormitorios con 5 cocheras, 2 quinchos, pileta y más de 1.000m² en Lourdes",
+      "slug": "casa-de-4-dormitorios-con-5-cocheras-2-quinchos-pileta-y-mas-de-1000m2-en-lourdes",
+      "price": "2000",
+      "area": 1120,
+      "bedrooms": 4,
+      "address": "Pueyrredon 1250",
+      "latitude": -32.948753,
+      "longitude": -60.658985
+    },
+    {
+      "id": 283423,
+      "title": "Casa en  centro de Funes",
+      "slug": "casa-en-centro-de-funes-3",
+      "price": "2000",
+      "area": 0,
+      "bedrooms": 2,
+      "address": "Av. Del Rosario al 2000",
+      "latitude": -32.915005,
+      "longitude": -60.814598
+    },
+    {
+      "id": 321931,
+      "title": "VENTA DEPARTAMENTO 3 DORMITORIOS EN FISHERTON - ARBORIA 03 02",
+      "slug": "venta-departamento-3-dormitorios-en-fisherton-arboria-03-02-4",
+      "price": "2000",
+      "area": 118,
+      "bedrooms": 3,
+      "address": "ARBORIA 03 02  EDIFICIO 1",
+      "latitude": -32.947624,
+      "longitude": -60.76383
+    },
+    {
+      "id": 367913,
+      "title": "Departamento en el Centro de Rosario",
+      "slug": "departamento-en-el-centro-de-rosario-24",
+      "price": "320000",
+      "area": 0,
+      "bedrooms": 2,
+      "address": "Mendoza al 1700",
+      "latitude": -32.950077,
+      "longitude": -60.648216
+    },
+    {
+      "id": 388812,
+      "title": "Monoambiente con balcón [PROMOCIÓN julio] - Centro Rosario: J.M. de Rosas 1177. Unidad 03-06",
+      "slug": "monoambiente-con-balcn-promocin-julio-centro-rosario-jm-de-rosas-1177-unidad-03-06",
+      "price": "2000",
+      "area": 37,
+      "bedrooms": 1,
+      "address": "Juan Manuel de Rosas 1177 - Monoambiente  con balcón. 03-06",
+      "latitude": -32.950935,
+      "longitude": -60.65362
+    }
+  ]
+}

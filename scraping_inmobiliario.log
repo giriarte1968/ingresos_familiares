@@ -1,0 +1,636 @@
+2026-04-24 09:50:38,362 - scraper - INFO - 
+############################################################
+2026-04-24 09:50:38,362 - scraper - INFO - # SISTEMA DE SCRAPING INMOBILIARIO ROSARIO
+2026-04-24 09:50:38,362 - scraper - INFO - # Iniciado: 2026-04-24 09:50:38
+2026-04-24 09:50:38,362 - scraper - INFO - # Inmobiliarias a procesar: 80
+2026-04-24 09:50:38,362 - scraper - INFO - ############################################################
+
+2026-04-24 09:50:38,370 - scraper - INFO - Procesando: Bassini Negocios Inmobiliarios
+2026-04-24 09:50:38,370 - scraper - INFO - 
+==================================================
+2026-04-24 09:50:38,371 - scraper - INFO - Iniciando scraping: Bassini Negocios Inmobiliarios
+2026-04-24 09:50:38,371 - scraper - INFO - ==================================================
+2026-04-24 09:50:38,371 - scraper - INFO - Obteniendo: https://www.bassiniinmobiliaria.com/propiedades/
+2026-04-24 09:50:38,371 - scraper - INFO - Procesando: Dunod Propiedades
+2026-04-24 09:50:38,371 - scraper - INFO - 
+==================================================
+2026-04-24 09:50:38,377 - scraper - INFO - Procesando: Diego Ferreyra Bienes Raíces
+2026-04-24 09:50:38,377 - scraper - INFO - 
+==================================================
+2026-04-24 09:50:38,377 - scraper - INFO - Iniciando scraping: Dunod Propiedades
+2026-04-24 09:50:38,379 - scraper - INFO - Iniciando scraping: Diego Ferreyra Bienes Raíces
+2026-04-24 09:50:38,379 - scraper - INFO - ==================================================
+2026-04-24 09:50:38,379 - scraper - INFO - ==================================================
+2026-04-24 09:50:38,382 - scraper - INFO - Obteniendo: https://dunod.com.ar/inmuebles/?status%5B%5D=venta
+2026-04-24 09:50:38,383 - scraper - INFO - Obteniendo: https://www.diegoferreyra.com.ar/propiedades
+2026-04-24 09:50:40,791 - scraper - ERROR - Error HTTP 404 en https://www.bassiniinmobiliaria.com/propiedades/
+2026-04-24 09:50:40,793 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:50:40,793 - scraper - INFO - scrape ejecutado en 2.42 segundos
+2026-04-24 09:50:40,797 - scraper - INFO - Procesando: Guillermo Rodríguez Inmobiliaria
+2026-04-24 09:50:40,797 - scraper - INFO - 
+==================================================
+2026-04-24 09:50:40,797 - scraper - INFO - Iniciando scraping: Guillermo Rodríguez Inmobiliaria
+2026-04-24 09:50:40,797 - scraper - INFO - ==================================================
+2026-04-24 09:50:40,797 - scraper - ERROR - Error HTTP 404 en https://www.diegoferreyra.com.ar/propiedades
+2026-04-24 09:50:40,797 - scraper - INFO - Obteniendo: https://www.guillermorodriguez.com.ar/propiedades-venta
+2026-04-24 09:50:40,799 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:50:40,800 - scraper - INFO - scrape ejecutado en 2.42 segundos
+2026-04-24 09:50:40,804 - scraper - INFO - Procesando: Fiorina Propiedades
+2026-04-24 09:50:40,804 - scraper - INFO - 
+==================================================
+2026-04-24 09:50:40,804 - scraper - INFO - Iniciando scraping: Fiorina Propiedades
+2026-04-24 09:50:40,807 - scraper - INFO - ==================================================
+2026-04-24 09:50:40,809 - scraper - INFO - Obteniendo: https://www.fiorinapropiedades.com.ar/properties-search/?status%5B%5D=venta
+2026-04-24 09:50:41,506 - scraper - ERROR - Error HTTP 404 en https://www.guillermorodriguez.com.ar/propiedades-venta
+2026-04-24 09:50:41,506 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:50:41,506 - scraper - INFO - scrape ejecutado en 0.71 segundos
+2026-04-24 09:50:41,511 - scraper - INFO - Procesando: Futura Negocios Inmobiliarios
+2026-04-24 09:50:41,511 - scraper - INFO - 
+==================================================
+2026-04-24 09:50:41,513 - scraper - INFO - Iniciando scraping: Futura Negocios Inmobiliarios
+2026-04-24 09:50:41,513 - scraper - INFO - ==================================================
+2026-04-24 09:50:41,513 - scraper - INFO - Obteniendo: https://www.futura-inmobiliaria.com/propiedades
+2026-04-24 09:50:42,292 - scraper - ERROR - Error HTTP 404 en https://www.fiorinapropiedades.com.ar/properties-search/?status%5B%5D=venta
+2026-04-24 09:50:42,292 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:50:42,292 - scraper - INFO - scrape ejecutado en 1.49 segundos
+2026-04-24 09:50:42,299 - scraper - INFO - Procesando: Gardiol Propiedades
+2026-04-24 09:50:42,299 - scraper - INFO - 
+==================================================
+2026-04-24 09:50:42,299 - scraper - INFO - Iniciando scraping: Gardiol Propiedades
+2026-04-24 09:50:42,299 - scraper - INFO - ==================================================
+2026-04-24 09:50:42,299 - scraper - INFO - Obteniendo: https://www.gardiolpropiedades.com/propiedades
+2026-04-24 09:50:42,429 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:50:42,429 - scraper - INFO - scrape ejecutado en 4.06 segundos
+2026-04-24 09:50:42,437 - scraper - INFO - Procesando: Gonzalo Guiñazú
+2026-04-24 09:50:42,437 - scraper - INFO - 
+==================================================
+2026-04-24 09:50:42,437 - scraper - INFO - Iniciando scraping: Gonzalo Guiñazú
+2026-04-24 09:50:42,437 - scraper - INFO - ==================================================
+2026-04-24 09:50:42,437 - scraper - INFO - Obteniendo: https://www.gonzaloguinazu.com.ar/propiedades
+2026-04-24 09:50:44,449 - scraper - ERROR - Error HTTP 404 en https://www.gardiolpropiedades.com/propiedades
+2026-04-24 09:50:44,451 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:50:44,451 - scraper - INFO - scrape ejecutado en 2.15 segundos
+2026-04-24 09:50:44,454 - scraper - INFO - Procesando: Grupo ISA
+2026-04-24 09:50:44,454 - scraper - INFO - 
+==================================================
+2026-04-24 09:50:44,454 - scraper - INFO - Iniciando scraping: Grupo ISA
+2026-04-24 09:50:44,454 - scraper - INFO - ==================================================
+2026-04-24 09:50:44,454 - scraper - INFO - Obteniendo: https://www.grupoisa.com.ar/propiedades
+2026-04-24 09:50:48,117 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:50:48,117 - scraper - INFO - scrape ejecutado en 5.68 segundos
+2026-04-24 09:50:48,119 - scraper - INFO - Procesando: Haus Propiedades
+2026-04-24 09:50:48,119 - scraper - INFO - 
+==================================================
+2026-04-24 09:50:48,119 - scraper - INFO - Iniciando scraping: Haus Propiedades
+2026-04-24 09:50:48,119 - scraper - INFO - ==================================================
+2026-04-24 09:50:48,119 - scraper - INFO - Obteniendo: https://www.hausprop.com/propiedades
+2026-04-24 09:50:49,561 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:50:49,561 - scraper - INFO - scrape ejecutado en 5.11 segundos
+2026-04-24 09:50:49,563 - scraper - INFO - Procesando: Imperia Propiedades
+2026-04-24 09:50:49,565 - scraper - INFO - 
+==================================================
+2026-04-24 09:50:49,565 - scraper - INFO - Iniciando scraping: Imperia Propiedades
+2026-04-24 09:50:49,565 - scraper - INFO - ==================================================
+2026-04-24 09:50:49,565 - scraper - INFO - Obteniendo: https://www.imperiapropiedades.com/propiedades
+2026-04-24 09:50:49,787 - scraper - INFO - Propiedades encontradas: 8
+2026-04-24 09:50:49,789 - scraper - INFO - scrape ejecutado en 8.28 segundos
+2026-04-24 09:50:49,798 - scraper - INFO - Procesando: Ing. Massoud Servicios Inmobiliarios
+2026-04-24 09:50:49,798 - scraper - INFO - 
+==================================================
+2026-04-24 09:50:49,798 - scraper - INFO - Iniciando scraping: Ing. Massoud Servicios Inmobiliarios
+2026-04-24 09:50:49,798 - scraper - INFO - ==================================================
+2026-04-24 09:50:49,798 - scraper - INFO - Obteniendo: https://www.massoud.com.ar/propiedades
+2026-04-24 09:50:55,030 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:50:55,032 - scraper - INFO - scrape ejecutado en 5.46 segundos
+2026-04-24 09:50:55,035 - scraper - INFO - Procesando: Inmobiliaria Manarin
+2026-04-24 09:50:55,035 - scraper - INFO - 
+==================================================
+2026-04-24 09:50:55,037 - scraper - INFO - Iniciando scraping: Inmobiliaria Manarin
+2026-04-24 09:50:55,037 - scraper - INFO - ==================================================
+2026-04-24 09:50:55,037 - scraper - INFO - Obteniendo: https://www.inmobiliariamanarin.com.ar/propiedades
+2026-04-24 09:50:56,217 - scraper - INFO - Obteniendo: https://www.hausprop.com/propiedades/
+2026-04-24 09:51:01,553 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:51:01,553 - scraper - INFO - scrape ejecutado en 11.75 segundos
+2026-04-24 09:51:01,560 - scraper - INFO - Procesando: Integra Negocios
+2026-04-24 09:51:01,560 - scraper - INFO - 
+==================================================
+2026-04-24 09:51:01,560 - scraper - INFO - Iniciando scraping: Integra Negocios
+2026-04-24 09:51:01,560 - scraper - INFO - ==================================================
+2026-04-24 09:51:01,560 - scraper - INFO - Obteniendo: https://www.integranegocios.com.ar/propiedades
+2026-04-24 09:51:05,077 - scraper - INFO - Obteniendo: https://www.inmobiliariamanarin.com.ar
+2026-04-24 09:51:05,950 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:51:05,950 - scraper - INFO - scrape ejecutado en 4.39 segundos
+2026-04-24 09:51:05,958 - scraper - INFO - Procesando: Jaef Inmobiliaria
+2026-04-24 09:51:05,959 - scraper - INFO - 
+==================================================
+2026-04-24 09:51:05,959 - scraper - INFO - Obteniendo: https://www.hausprop.com/propiedades/page/2/
+2026-04-24 09:51:05,959 - scraper - INFO - Iniciando scraping: Jaef Inmobiliaria
+2026-04-24 09:51:05,961 - scraper - INFO - ==================================================
+2026-04-24 09:51:05,961 - scraper - INFO - Obteniendo: https://www.jaefinmobiliaria.com/propiedades
+2026-04-24 09:51:06,930 - scraper - ERROR - Error HTTP 404 en https://www.jaefinmobiliaria.com/propiedades
+2026-04-24 09:51:06,930 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:51:06,930 - scraper - INFO - scrape ejecutado en 0.97 segundos
+2026-04-24 09:51:06,932 - scraper - INFO - Procesando: Juan Rioja
+2026-04-24 09:51:06,935 - scraper - INFO - 
+==================================================
+2026-04-24 09:51:06,935 - scraper - INFO - Iniciando scraping: Juan Rioja
+2026-04-24 09:51:06,935 - scraper - INFO - ==================================================
+2026-04-24 09:51:06,935 - scraper - INFO - Obteniendo: https://www.juanrioja.com.ar/propiedades
+2026-04-24 09:51:10,664 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:51:10,666 - scraper - INFO - scrape ejecutado en 3.73 segundos
+2026-04-24 09:51:10,666 - scraper - INFO - Procesando: Lakiatto Inmobiliaria
+2026-04-24 09:51:10,666 - scraper - INFO - 
+==================================================
+2026-04-24 09:51:10,666 - scraper - INFO - Iniciando scraping: Lakiatto Inmobiliaria
+2026-04-24 09:51:10,666 - scraper - INFO - ==================================================
+2026-04-24 09:51:10,671 - scraper - INFO - Obteniendo: https://www.lakiatto.com.ar/propiedades
+2026-04-24 09:51:10,826 - scraper - INFO - Propiedades encontradas: 27
+2026-04-24 09:51:10,826 - scraper - INFO - scrape ejecutado en 22.71 segundos
+2026-04-24 09:51:10,828 - scraper - INFO - Procesando: Libertador Servicios Inmobiliarios
+2026-04-24 09:51:10,828 - scraper - INFO - 
+==================================================
+2026-04-24 09:51:10,830 - scraper - INFO - Iniciando scraping: Libertador Servicios Inmobiliarios
+2026-04-24 09:51:10,830 - scraper - INFO - ==================================================
+2026-04-24 09:51:10,830 - scraper - INFO - Obteniendo: https://www.libertadorargentina.com/propiedades
+2026-04-24 09:51:12,942 - scraper - INFO - Obteniendo: http://inmobiliariamanarin.com.ar/propiedades?page=2
+2026-04-24 09:51:16,430 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:51:16,434 - scraper - INFO - scrape ejecutado en 5.60 segundos
+2026-04-24 09:51:16,434 - scraper - INFO - Procesando: Galindo Negocios Inmobiliarios
+2026-04-24 09:51:16,434 - scraper - INFO - 
+==================================================
+2026-04-24 09:51:16,434 - scraper - INFO - Iniciando scraping: Galindo Negocios Inmobiliarios
+2026-04-24 09:51:16,434 - scraper - INFO - ==================================================
+2026-04-24 09:51:16,434 - scraper - INFO - Obteniendo: https://www.galindoinmobiliaria.com.ar/propiedades
+2026-04-24 09:51:17,962 - scraper - INFO - Propiedades encontradas: 22
+2026-04-24 09:51:17,962 - scraper - INFO - scrape ejecutado en 22.93 segundos
+2026-04-24 09:51:17,964 - scraper - INFO - Procesando: Gamag Propiedades
+2026-04-24 09:51:17,964 - scraper - INFO - 
+==================================================
+2026-04-24 09:51:17,964 - scraper - INFO - Iniciando scraping: Gamag Propiedades
+2026-04-24 09:51:17,964 - scraper - INFO - ==================================================
+2026-04-24 09:51:17,964 - scraper - INFO - Obteniendo: https://www.gamagpropiedades.com.ar/propiedades
+2026-04-24 09:51:18,791 - scraper - INFO - Obteniendo: https://www.lakiatto.com.ar/propiedades/
+2026-04-24 09:51:19,152 - scraper - ERROR - Error HTTP 404 en https://www.galindoinmobiliaria.com.ar/propiedades
+2026-04-24 09:51:19,152 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:51:19,154 - scraper - INFO - scrape ejecutado en 2.72 segundos
+2026-04-24 09:51:19,158 - scraper - INFO - Procesando: GP Propiedades
+2026-04-24 09:51:19,158 - scraper - INFO - 
+==================================================
+2026-04-24 09:51:19,158 - scraper - INFO - Iniciando scraping: GP Propiedades
+2026-04-24 09:51:19,160 - scraper - INFO - ==================================================
+2026-04-24 09:51:19,160 - scraper - INFO - Obteniendo: https://www.gppropiedades.com/propiedades
+2026-04-24 09:51:26,986 - scraper - INFO - Obteniendo: https://www.gppropiedades.com/propiedades/
+2026-04-24 09:51:27,387 - scraper - INFO - Obteniendo: https://www.gamagpropiedades.com.ar
+2026-04-24 09:51:27,692 - scraper - INFO - Obteniendo: https://www.lakiatto.com.ar/propiedades/page/2/
+2026-04-24 09:51:32,615 - scraper - INFO - Propiedades encontradas: 27
+2026-04-24 09:51:32,616 - scraper - INFO - scrape ejecutado en 21.95 segundos
+2026-04-24 09:51:32,618 - scraper - INFO - Procesando: Ideal Propiedades
+2026-04-24 09:51:32,618 - scraper - INFO - 
+==================================================
+2026-04-24 09:51:32,620 - scraper - INFO - Iniciando scraping: Ideal Propiedades
+2026-04-24 09:51:32,620 - scraper - INFO - ==================================================
+2026-04-24 09:51:32,620 - scraper - INFO - Obteniendo: https://www.idealpropiedades.com.ar/propiedades
+2026-04-24 09:51:35,242 - scraper - INFO - Obteniendo: https://www.gppropiedades.com/propiedades/page/2/
+2026-04-24 09:51:35,675 - scraper - INFO - Obteniendo: http://gamagpropiedades.com.ar/propiedades?page=2
+2026-04-24 09:51:36,864 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:51:36,866 - scraper - INFO - scrape ejecutado en 4.25 segundos
+2026-04-24 09:51:36,868 - scraper - INFO - Procesando: Next Inmobiliaria
+2026-04-24 09:51:36,868 - scraper - INFO - 
+==================================================
+2026-04-24 09:51:36,870 - scraper - INFO - Iniciando scraping: Next Inmobiliaria
+2026-04-24 09:51:36,870 - scraper - INFO - ==================================================
+2026-04-24 09:51:36,870 - scraper - INFO - Obteniendo: https://nextinmobiliaria.com.ar/propiedades
+2026-04-24 09:51:39,436 - scraper - INFO - Propiedades encontradas: 27
+2026-04-24 09:51:39,436 - scraper - INFO - scrape ejecutado en 20.28 segundos
+2026-04-24 09:51:39,440 - scraper - INFO - Procesando: Fuzion Inmobiliaria Boutique
+2026-04-24 09:51:39,440 - scraper - INFO - 
+==================================================
+2026-04-24 09:51:39,440 - scraper - INFO - Iniciando scraping: Fuzion Inmobiliaria Boutique
+2026-04-24 09:51:39,444 - scraper - INFO - ==================================================
+2026-04-24 09:51:39,444 - scraper - INFO - Obteniendo: https://www.fuzionprop.com/propiedades
+2026-04-24 09:51:40,678 - scraper - INFO - Propiedades encontradas: 26
+2026-04-24 09:51:40,678 - scraper - INFO - scrape ejecutado en 22.71 segundos
+2026-04-24 09:51:40,680 - scraper - INFO - Procesando: Flias Propiedades
+2026-04-24 09:51:40,680 - scraper - INFO - 
+==================================================
+2026-04-24 09:51:40,680 - scraper - INFO - Iniciando scraping: Flias Propiedades
+2026-04-24 09:51:40,680 - scraper - INFO - ==================================================
+2026-04-24 09:51:40,680 - scraper - INFO - Obteniendo: https://www.fliapropiedades.com.ar/propiedades
+2026-04-24 09:51:45,843 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:51:45,843 - scraper - INFO - scrape ejecutado en 8.97 segundos
+2026-04-24 09:51:45,843 - scraper - INFO - Procesando: Gabriela G Propiedades
+2026-04-24 09:51:45,843 - scraper - INFO - 
+==================================================
+2026-04-24 09:51:45,846 - scraper - INFO - Iniciando scraping: Gabriela G Propiedades
+2026-04-24 09:51:45,846 - scraper - INFO - ==================================================
+2026-04-24 09:51:45,846 - scraper - INFO - Obteniendo: https://www.gabrielagpropiedades.com.ar/propiedades
+2026-04-24 09:51:46,645 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:51:46,645 - scraper - INFO - scrape ejecutado en 5.97 segundos
+2026-04-24 09:51:46,647 - scraper - INFO - Procesando: Remax Rosario
+2026-04-24 09:51:46,647 - scraper - INFO - 
+==================================================
+2026-04-24 09:51:46,649 - scraper - INFO - Iniciando scraping: Remax Rosario
+2026-04-24 09:51:46,649 - scraper - INFO - ==================================================
+2026-04-24 09:51:46,649 - scraper - INFO - Obteniendo: https://www.remax.com.ar/rosario/listings
+2026-04-24 09:51:47,872 - scraper - ERROR - Error HTTP 404 en https://www.gabrielagpropiedades.com.ar/propiedades
+2026-04-24 09:51:47,872 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:51:47,874 - scraper - INFO - scrape ejecutado en 2.03 segundos
+2026-04-24 09:51:47,876 - scraper - INFO - Procesando: Century 21 Rosario
+2026-04-24 09:51:47,876 - scraper - INFO - 
+==================================================
+2026-04-24 09:51:47,876 - scraper - INFO - Iniciando scraping: Century 21 Rosario
+2026-04-24 09:51:47,876 - scraper - INFO - ==================================================
+2026-04-24 09:51:47,879 - scraper - INFO - Obteniendo: https://www.century21.com.ar/propiedades/rosario
+2026-04-24 09:51:52,029 - scraper - ERROR - Error HTTP 404 en https://www.century21.com.ar/propiedades/rosario
+2026-04-24 09:51:52,029 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:51:52,029 - scraper - INFO - scrape ejecutado en 4.15 segundos
+2026-04-24 09:51:52,036 - scraper - INFO - Procesando: Zona Prop Rosario
+2026-04-24 09:51:52,037 - scraper - INFO - 
+==================================================
+2026-04-24 09:51:52,037 - scraper - INFO - Iniciando scraping: Zona Prop Rosario
+2026-04-24 09:51:52,038 - scraper - INFO - ==================================================
+2026-04-24 09:51:52,040 - scraper - INFO - Obteniendo: https://www.zonaprop.com.ar/departamentos-venta/rosario
+2026-04-24 09:51:52,136 - scraper - INFO - Obteniendo: https://www.fuzionprop.com
+2026-04-24 09:51:52,789 - scraper - ERROR - Error HTTP 403 en https://www.zonaprop.com.ar/departamentos-venta/rosario
+2026-04-24 09:51:52,792 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:51:52,792 - scraper - INFO - scrape ejecutado en 0.76 segundos
+2026-04-24 09:51:52,792 - scraper - INFO - Procesando: Argenprop Rosario
+2026-04-24 09:51:52,794 - scraper - INFO - 
+==================================================
+2026-04-24 09:51:52,794 - scraper - INFO - Iniciando scraping: Argenprop Rosario
+2026-04-24 09:51:52,794 - scraper - INFO - ==================================================
+2026-04-24 09:51:52,794 - scraper - INFO - Obteniendo: https://www.argenprop.com/departamentos/venta/rosario
+2026-04-24 09:51:55,428 - scraper - INFO - Obteniendo: https://www.remax.com.ar/listings/buy?page=0&pageSize=21&sort=%2Bid&in:operationId=1,2
+2026-04-24 09:51:59,544 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:51:59,547 - scraper - INFO - scrape ejecutado en 6.75 segundos
+2026-04-24 09:51:59,549 - scraper - INFO - Procesando: Vanzini Propiedades
+2026-04-24 09:51:59,549 - scraper - INFO - 
+==================================================
+2026-04-24 09:51:59,549 - scraper - INFO - Iniciando scraping: Vanzini Propiedades
+2026-04-24 09:51:59,549 - scraper - INFO - ==================================================
+2026-04-24 09:51:59,549 - scraper - INFO - Obteniendo: https://www.vanzini.com.ar
+2026-04-24 09:52:00,863 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:52:00,863 - scraper - INFO - scrape ejecutado en 14.22 segundos
+2026-04-24 09:52:00,863 - scraper - INFO - Procesando: Imperia Propiedades
+2026-04-24 09:52:00,866 - scraper - INFO - 
+==================================================
+2026-04-24 09:52:00,866 - scraper - INFO - Iniciando scraping: Imperia Propiedades
+2026-04-24 09:52:00,866 - scraper - INFO - ==================================================
+2026-04-24 09:52:00,866 - scraper - INFO - Obteniendo: https://www.imperiapropiedades.com
+2026-04-24 09:52:01,138 - scraper - INFO - Obteniendo: http://fuzionprop.com/propiedades?page=2
+2026-04-24 09:52:05,262 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:52:05,272 - scraper - INFO - scrape ejecutado en 4.41 segundos
+2026-04-24 09:52:05,274 - scraper - INFO - Procesando: Dunod Propiedades
+2026-04-24 09:52:05,274 - scraper - INFO - 
+==================================================
+2026-04-24 09:52:05,274 - scraper - INFO - Iniciando scraping: Dunod Propiedades
+2026-04-24 09:52:05,277 - scraper - INFO - ==================================================
+2026-04-24 09:52:05,277 - scraper - INFO - Obteniendo: https://dunod.com.ar
+2026-04-24 09:52:05,424 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:52:05,426 - scraper - INFO - scrape ejecutado en 5.88 segundos
+2026-04-24 09:52:05,426 - scraper - INFO - Procesando: Dagostino Ferrari
+2026-04-24 09:52:05,428 - scraper - INFO - 
+==================================================
+2026-04-24 09:52:05,428 - scraper - INFO - Iniciando scraping: Dagostino Ferrari
+2026-04-24 09:52:05,428 - scraper - INFO - ==================================================
+2026-04-24 09:52:05,428 - scraper - INFO - Obteniendo: https://www.dagostinoferrari.com.ar
+2026-04-24 09:52:06,133 - scraper - INFO - Propiedades encontradas: 20
+2026-04-24 09:52:06,133 - scraper - INFO - scrape ejecutado en 26.69 segundos
+2026-04-24 09:52:06,141 - scraper - INFO - Procesando: Bertollo Propiedades
+2026-04-24 09:52:06,141 - scraper - INFO - 
+==================================================
+2026-04-24 09:52:06,141 - scraper - INFO - Iniciando scraping: Bertollo Propiedades
+2026-04-24 09:52:06,141 - scraper - INFO - ==================================================
+2026-04-24 09:52:06,141 - scraper - INFO - Obteniendo: https://www.bertollo.com.ar
+2026-04-24 09:52:10,063 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:52:10,063 - scraper - INFO - scrape ejecutado en 4.79 segundos
+2026-04-24 09:52:10,073 - scraper - INFO - Procesando: Beltrán Inmobiliaria
+2026-04-24 09:52:10,075 - scraper - INFO - 
+==================================================
+2026-04-24 09:52:10,075 - scraper - INFO - Iniciando scraping: Beltrán Inmobiliaria
+2026-04-24 09:52:10,075 - scraper - INFO - ==================================================
+2026-04-24 09:52:10,075 - scraper - INFO - Obteniendo: https://www.beltraninmobiliaria.com.ar
+2026-04-24 09:52:11,422 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:52:11,422 - scraper - INFO - scrape ejecutado en 5.28 segundos
+2026-04-24 09:52:11,422 - scraper - INFO - Procesando: Lux Propiedades
+2026-04-24 09:52:11,422 - scraper - INFO - 
+==================================================
+2026-04-24 09:52:11,432 - scraper - INFO - Iniciando scraping: Lux Propiedades
+2026-04-24 09:52:11,432 - scraper - INFO - ==================================================
+2026-04-24 09:52:11,432 - scraper - INFO - Obteniendo: https://luxpropiedades.com
+2026-04-24 09:52:13,056 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:52:13,056 - scraper - INFO - scrape ejecutado en 7.63 segundos
+2026-04-24 09:52:13,056 - scraper - INFO - Procesando: Criscenti Inmobiliaria
+2026-04-24 09:52:13,056 - scraper - INFO - 
+==================================================
+2026-04-24 09:52:13,066 - scraper - INFO - Iniciando scraping: Criscenti Inmobiliaria
+2026-04-24 09:52:13,066 - scraper - INFO - ==================================================
+2026-04-24 09:52:13,066 - scraper - INFO - Obteniendo: https://www.criscenti.com.ar
+2026-04-24 09:52:14,895 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:52:14,895 - scraper - INFO - scrape ejecutado en 4.82 segundos
+2026-04-24 09:52:14,905 - scraper - INFO - Procesando: ABA Propiedades
+2026-04-24 09:52:14,907 - scraper - INFO - 
+==================================================
+2026-04-24 09:52:14,907 - scraper - INFO - Iniciando scraping: ABA Propiedades
+2026-04-24 09:52:14,907 - scraper - INFO - ==================================================
+2026-04-24 09:52:14,907 - scraper - INFO - Obteniendo: https://www.abapropiedades.com.ar
+2026-04-24 09:52:17,675 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:52:17,677 - scraper - INFO - scrape ejecutado en 6.26 segundos
+2026-04-24 09:52:17,679 - scraper - INFO - Procesando: Borsatto Inmobiliaria
+2026-04-24 09:52:17,679 - scraper - INFO - 
+==================================================
+2026-04-24 09:52:17,679 - scraper - INFO - Iniciando scraping: Borsatto Inmobiliaria
+2026-04-24 09:52:17,679 - scraper - INFO - ==================================================
+2026-04-24 09:52:17,679 - scraper - INFO - Obteniendo: https://www.borsatto.com
+2026-04-24 09:52:18,715 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:52:18,715 - scraper - INFO - scrape ejecutado en 5.66 segundos
+2026-04-24 09:52:18,721 - scraper - INFO - Procesando: Grupo Ambito SRL
+2026-04-24 09:52:18,728 - scraper - INFO - 
+==================================================
+2026-04-24 09:52:18,728 - scraper - INFO - Iniciando scraping: Grupo Ambito SRL
+2026-04-24 09:52:18,728 - scraper - INFO - ==================================================
+2026-04-24 09:52:18,728 - scraper - INFO - Obteniendo: https://www.grupoambito.com.ar
+2026-04-24 09:52:19,260 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:52:19,262 - scraper - INFO - scrape ejecutado en 4.36 segundos
+2026-04-24 09:52:19,262 - scraper - INFO - Procesando: Pilay Inmobiliaria
+2026-04-24 09:52:19,262 - scraper - INFO - 
+==================================================
+2026-04-24 09:52:19,262 - scraper - INFO - Iniciando scraping: Pilay Inmobiliaria
+2026-04-24 09:52:19,262 - scraper - INFO - ==================================================
+2026-04-24 09:52:19,262 - scraper - INFO - Obteniendo: https://www.pilay.com.ar
+2026-04-24 09:52:23,163 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:52:23,165 - scraper - INFO - scrape ejecutado en 3.90 segundos
+2026-04-24 09:52:23,167 - scraper - INFO - Procesando: Avalon Propiedades
+2026-04-24 09:52:23,167 - scraper - INFO - 
+==================================================
+2026-04-24 09:52:23,167 - scraper - INFO - Iniciando scraping: Avalon Propiedades
+2026-04-24 09:52:23,167 - scraper - INFO - ==================================================
+2026-04-24 09:52:23,171 - scraper - INFO - Obteniendo: https://www.avalonpropiedades.com.ar
+2026-04-24 09:52:24,246 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:52:24,246 - scraper - INFO - scrape ejecutado en 6.57 segundos
+2026-04-24 09:52:24,256 - scraper - INFO - Procesando: Marcos Abiad Propiedades
+2026-04-24 09:52:24,256 - scraper - INFO - 
+==================================================
+2026-04-24 09:52:24,256 - scraper - INFO - Iniciando scraping: Marcos Abiad Propiedades
+2026-04-24 09:52:24,256 - scraper - INFO - ==================================================
+2026-04-24 09:52:24,256 - scraper - INFO - Obteniendo: https://www.mapropiedades.com.ar
+2026-04-24 09:52:24,807 - scraper - ERROR - Error de conexión en https://www.grupoambito.com.ar: HTTPSConnectionPool(host='www.grupoambito.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.grupoambito.com.ar', port=443): Failed to resolve 'www.grupoambito.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:52:24,807 - scraper - WARNING - Intento 1/3 falló: HTTPSConnectionPool(host='www.grupoambito.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.grupoambito.com.ar', port=443): Failed to resolve 'www.grupoambito.com.ar' ([Errno 11001] getaddrinfo failed)")). Reintentando en 10s...
+2026-04-24 09:52:28,531 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:52:28,533 - scraper - INFO - scrape ejecutado en 5.37 segundos
+2026-04-24 09:52:28,537 - scraper - INFO - Procesando: Rosario New Habitat
+2026-04-24 09:52:28,539 - scraper - INFO - 
+==================================================
+2026-04-24 09:52:28,539 - scraper - INFO - Iniciando scraping: Rosario New Habitat
+2026-04-24 09:52:28,539 - scraper - INFO - ==================================================
+2026-04-24 09:52:28,539 - scraper - INFO - Obteniendo: https://www.rosarionewhabitat.com.ar
+2026-04-24 09:52:29,259 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:52:29,259 - scraper - INFO - scrape ejecutado en 5.00 segundos
+2026-04-24 09:52:29,261 - scraper - INFO - Procesando: Crestale Propiedades
+2026-04-24 09:52:29,261 - scraper - INFO - 
+==================================================
+2026-04-24 09:52:29,263 - scraper - INFO - Iniciando scraping: Crestale Propiedades
+2026-04-24 09:52:29,263 - scraper - INFO - ==================================================
+2026-04-24 09:52:29,263 - scraper - INFO - Obteniendo: https://www.crestalepropiedades.com.ar
+2026-04-24 09:52:33,060 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:52:33,060 - scraper - INFO - scrape ejecutado en 3.80 segundos
+2026-04-24 09:52:33,060 - scraper - INFO - Procesando: Ruiz Bienes Raíces
+2026-04-24 09:52:33,060 - scraper - INFO - 
+==================================================
+2026-04-24 09:52:33,060 - scraper - INFO - Iniciando scraping: Ruiz Bienes Raíces
+2026-04-24 09:52:33,060 - scraper - INFO - ==================================================
+2026-04-24 09:52:33,060 - scraper - INFO - Obteniendo: https://www.ruizbienesraices.com.ar
+2026-04-24 09:52:34,589 - scraper - ERROR - Error de conexión en https://www.rosarionewhabitat.com.ar: HTTPSConnectionPool(host='www.rosarionewhabitat.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.rosarionewhabitat.com.ar', port=443): Failed to resolve 'www.rosarionewhabitat.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:52:34,589 - scraper - WARNING - Intento 1/3 falló: HTTPSConnectionPool(host='www.rosarionewhabitat.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.rosarionewhabitat.com.ar', port=443): Failed to resolve 'www.rosarionewhabitat.com.ar' ([Errno 11001] getaddrinfo failed)")). Reintentando en 10s...
+2026-04-24 09:52:34,808 - scraper - INFO - Obteniendo: https://www.grupoambito.com.ar
+2026-04-24 09:52:37,698 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:52:37,698 - scraper - INFO - scrape ejecutado en 4.64 segundos
+2026-04-24 09:52:37,703 - scraper - INFO - Procesando: Beatriz Bienes Raíces
+2026-04-24 09:52:37,703 - scraper - INFO - 
+==================================================
+2026-04-24 09:52:37,703 - scraper - INFO - Iniciando scraping: Beatriz Bienes Raíces
+2026-04-24 09:52:37,703 - scraper - INFO - ==================================================
+2026-04-24 09:52:37,703 - scraper - INFO - Obteniendo: https://www.beatrizbienesraices.com.ar
+2026-04-24 09:52:40,855 - scraper - ERROR - Error de conexión en https://www.grupoambito.com.ar: HTTPSConnectionPool(host='www.grupoambito.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.grupoambito.com.ar', port=443): Failed to resolve 'www.grupoambito.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:52:40,855 - scraper - WARNING - Intento 2/3 falló: HTTPSConnectionPool(host='www.grupoambito.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.grupoambito.com.ar', port=443): Failed to resolve 'www.grupoambito.com.ar' ([Errno 11001] getaddrinfo failed)")). Reintentando en 20s...
+2026-04-24 09:52:43,745 - scraper - ERROR - Error de conexión en https://www.beatrizbienesraices.com.ar: HTTPSConnectionPool(host='www.beatrizbienesraices.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.beatrizbienesraices.com.ar', port=443): Failed to resolve 'www.beatrizbienesraices.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:52:43,745 - scraper - WARNING - Intento 1/3 falló: HTTPSConnectionPool(host='www.beatrizbienesraices.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.beatrizbienesraices.com.ar', port=443): Failed to resolve 'www.beatrizbienesraices.com.ar' ([Errno 11001] getaddrinfo failed)")). Reintentando en 10s...
+2026-04-24 09:52:44,591 - scraper - INFO - Obteniendo: https://www.rosarionewhabitat.com.ar
+2026-04-24 09:52:50,649 - scraper - ERROR - Error de conexión en https://www.rosarionewhabitat.com.ar: HTTPSConnectionPool(host='www.rosarionewhabitat.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.rosarionewhabitat.com.ar', port=443): Failed to resolve 'www.rosarionewhabitat.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:52:50,649 - scraper - WARNING - Intento 2/3 falló: HTTPSConnectionPool(host='www.rosarionewhabitat.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.rosarionewhabitat.com.ar', port=443): Failed to resolve 'www.rosarionewhabitat.com.ar' ([Errno 11001] getaddrinfo failed)")). Reintentando en 20s...
+2026-04-24 09:52:53,747 - scraper - INFO - Obteniendo: https://www.beatrizbienesraices.com.ar
+2026-04-24 09:52:59,820 - scraper - ERROR - Error de conexión en https://www.beatrizbienesraices.com.ar: HTTPSConnectionPool(host='www.beatrizbienesraices.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.beatrizbienesraices.com.ar', port=443): Failed to resolve 'www.beatrizbienesraices.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:52:59,822 - scraper - WARNING - Intento 2/3 falló: HTTPSConnectionPool(host='www.beatrizbienesraices.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.beatrizbienesraices.com.ar', port=443): Failed to resolve 'www.beatrizbienesraices.com.ar' ([Errno 11001] getaddrinfo failed)")). Reintentando en 20s...
+2026-04-24 09:53:00,861 - scraper - INFO - Obteniendo: https://www.grupoambito.com.ar
+2026-04-24 09:53:06,884 - scraper - ERROR - Error de conexión en https://www.grupoambito.com.ar: HTTPSConnectionPool(host='www.grupoambito.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.grupoambito.com.ar', port=443): Failed to resolve 'www.grupoambito.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:53:06,886 - scraper - WARNING - Intento 3/3 falló: HTTPSConnectionPool(host='www.grupoambito.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.grupoambito.com.ar', port=443): Failed to resolve 'www.grupoambito.com.ar' ([Errno 11001] getaddrinfo failed)")). Reintentando en 40s...
+2026-04-24 09:53:10,650 - scraper - INFO - Obteniendo: https://www.rosarionewhabitat.com.ar
+2026-04-24 09:53:16,678 - scraper - ERROR - Error de conexión en https://www.rosarionewhabitat.com.ar: HTTPSConnectionPool(host='www.rosarionewhabitat.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.rosarionewhabitat.com.ar', port=443): Failed to resolve 'www.rosarionewhabitat.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:53:16,678 - scraper - WARNING - Intento 3/3 falló: HTTPSConnectionPool(host='www.rosarionewhabitat.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.rosarionewhabitat.com.ar', port=443): Failed to resolve 'www.rosarionewhabitat.com.ar' ([Errno 11001] getaddrinfo failed)")). Reintentando en 40s...
+2026-04-24 09:53:19,823 - scraper - INFO - Obteniendo: https://www.beatrizbienesraices.com.ar
+2026-04-24 09:53:25,885 - scraper - ERROR - Error de conexión en https://www.beatrizbienesraices.com.ar: HTTPSConnectionPool(host='www.beatrizbienesraices.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.beatrizbienesraices.com.ar', port=443): Failed to resolve 'www.beatrizbienesraices.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:53:25,885 - scraper - WARNING - Intento 3/3 falló: HTTPSConnectionPool(host='www.beatrizbienesraices.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.beatrizbienesraices.com.ar', port=443): Failed to resolve 'www.beatrizbienesraices.com.ar' ([Errno 11001] getaddrinfo failed)")). Reintentando en 40s...
+2026-04-24 09:53:46,887 - scraper - INFO - Obteniendo: https://www.grupoambito.com.ar
+2026-04-24 09:53:52,907 - scraper - ERROR - Error de conexión en https://www.grupoambito.com.ar: HTTPSConnectionPool(host='www.grupoambito.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.grupoambito.com.ar', port=443): Failed to resolve 'www.grupoambito.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:53:52,907 - scraper - ERROR - Error en scraping de Grupo Ambito SRL: HTTPSConnectionPool(host='www.grupoambito.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.grupoambito.com.ar', port=443): Failed to resolve 'www.grupoambito.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:53:52,907 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:53:52,907 - scraper - INFO - scrape ejecutado en 94.18 segundos
+2026-04-24 09:53:52,907 - scraper - INFO - Procesando: ARCA Consultora Inmobiliaria
+2026-04-24 09:53:52,907 - scraper - INFO - 
+==================================================
+2026-04-24 09:53:52,907 - scraper - INFO - Iniciando scraping: ARCA Consultora Inmobiliaria
+2026-04-24 09:53:52,907 - scraper - INFO - ==================================================
+2026-04-24 09:53:52,907 - scraper - INFO - Obteniendo: https://www.arcaconsultora.com.ar
+2026-04-24 09:53:56,684 - scraper - INFO - Obteniendo: https://www.rosarionewhabitat.com.ar
+2026-04-24 09:53:59,000 - scraper - ERROR - Error de conexión en https://www.arcaconsultora.com.ar: HTTPSConnectionPool(host='www.arcaconsultora.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.arcaconsultora.com.ar', port=443): Failed to resolve 'www.arcaconsultora.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:53:59,002 - scraper - WARNING - Intento 1/3 falló: HTTPSConnectionPool(host='www.arcaconsultora.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.arcaconsultora.com.ar', port=443): Failed to resolve 'www.arcaconsultora.com.ar' ([Errno 11001] getaddrinfo failed)")). Reintentando en 10s...
+2026-04-24 09:54:02,741 - scraper - ERROR - Error de conexión en https://www.rosarionewhabitat.com.ar: HTTPSConnectionPool(host='www.rosarionewhabitat.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.rosarionewhabitat.com.ar', port=443): Failed to resolve 'www.rosarionewhabitat.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:54:02,741 - scraper - ERROR - Error en scraping de Rosario New Habitat: HTTPSConnectionPool(host='www.rosarionewhabitat.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.rosarionewhabitat.com.ar', port=443): Failed to resolve 'www.rosarionewhabitat.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:54:02,741 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:54:02,750 - scraper - INFO - scrape ejecutado en 94.21 segundos
+2026-04-24 09:54:02,750 - scraper - INFO - Procesando: Cuini Propiedades
+2026-04-24 09:54:02,752 - scraper - INFO - 
+==================================================
+2026-04-24 09:54:02,752 - scraper - INFO - Iniciando scraping: Cuini Propiedades
+2026-04-24 09:54:02,752 - scraper - INFO - ==================================================
+2026-04-24 09:54:02,752 - scraper - INFO - Obteniendo: https://www.cuinipropiedades.com.ar
+2026-04-24 09:54:05,887 - scraper - INFO - Obteniendo: https://www.beatrizbienesraices.com.ar
+2026-04-24 09:54:08,666 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:54:08,666 - scraper - INFO - scrape ejecutado en 5.91 segundos
+2026-04-24 09:54:08,673 - scraper - INFO - Procesando: Departamentos Rosario
+2026-04-24 09:54:08,673 - scraper - INFO - 
+==================================================
+2026-04-24 09:54:08,673 - scraper - INFO - Iniciando scraping: Departamentos Rosario
+2026-04-24 09:54:08,673 - scraper - INFO - ==================================================
+2026-04-24 09:54:08,673 - scraper - INFO - Obteniendo: https://www.departamentosrosario.com
+2026-04-24 09:54:09,002 - scraper - INFO - Obteniendo: https://www.arcaconsultora.com.ar
+2026-04-24 09:54:10,483 - scraper - ERROR - Error HTTP 403 en https://www.departamentosrosario.com
+2026-04-24 09:54:10,485 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:54:10,486 - scraper - INFO - scrape ejecutado en 1.81 segundos
+2026-04-24 09:54:10,488 - scraper - INFO - Procesando: Allegri & Lopez Maraver Propiedades
+2026-04-24 09:54:10,488 - scraper - INFO - 
+==================================================
+2026-04-24 09:54:10,488 - scraper - INFO - Iniciando scraping: Allegri & Lopez Maraver Propiedades
+2026-04-24 09:54:10,488 - scraper - INFO - ==================================================
+2026-04-24 09:54:10,488 - scraper - INFO - Obteniendo: https://www.allegripropiedades.com.ar
+2026-04-24 09:54:11,917 - scraper - ERROR - Error de conexión en https://www.beatrizbienesraices.com.ar: HTTPSConnectionPool(host='www.beatrizbienesraices.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.beatrizbienesraices.com.ar', port=443): Failed to resolve 'www.beatrizbienesraices.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:54:11,917 - scraper - ERROR - Error en scraping de Beatriz Bienes Raíces: HTTPSConnectionPool(host='www.beatrizbienesraices.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.beatrizbienesraices.com.ar', port=443): Failed to resolve 'www.beatrizbienesraices.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:54:11,917 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:54:11,917 - scraper - INFO - scrape ejecutado en 94.21 segundos
+2026-04-24 09:54:11,917 - scraper - INFO - Procesando: Guillermet Inmobiliaria
+2026-04-24 09:54:11,917 - scraper - INFO - 
+==================================================
+2026-04-24 09:54:11,917 - scraper - INFO - Iniciando scraping: Guillermet Inmobiliaria
+2026-04-24 09:54:11,920 - scraper - INFO - ==================================================
+2026-04-24 09:54:11,920 - scraper - INFO - Obteniendo: https://www.guillermetinmobiliaria.com.ar
+2026-04-24 09:54:15,036 - scraper - ERROR - Error de conexión en https://www.arcaconsultora.com.ar: HTTPSConnectionPool(host='www.arcaconsultora.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.arcaconsultora.com.ar', port=443): Failed to resolve 'www.arcaconsultora.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:54:15,036 - scraper - WARNING - Intento 2/3 falló: HTTPSConnectionPool(host='www.arcaconsultora.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.arcaconsultora.com.ar', port=443): Failed to resolve 'www.arcaconsultora.com.ar' ([Errno 11001] getaddrinfo failed)")). Reintentando en 20s...
+2026-04-24 09:54:16,534 - scraper - ERROR - Error de conexión en https://www.allegripropiedades.com.ar: HTTPSConnectionPool(host='www.allegripropiedades.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.allegripropiedades.com.ar', port=443): Failed to resolve 'www.allegripropiedades.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:54:16,537 - scraper - WARNING - Intento 1/3 falló: HTTPSConnectionPool(host='www.allegripropiedades.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.allegripropiedades.com.ar', port=443): Failed to resolve 'www.allegripropiedades.com.ar' ([Errno 11001] getaddrinfo failed)")). Reintentando en 10s...
+2026-04-24 09:54:18,001 - scraper - ERROR - Error de conexión en https://www.guillermetinmobiliaria.com.ar: HTTPSConnectionPool(host='www.guillermetinmobiliaria.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.guillermetinmobiliaria.com.ar', port=443): Failed to resolve 'www.guillermetinmobiliaria.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:54:18,001 - scraper - WARNING - Intento 1/3 falló: HTTPSConnectionPool(host='www.guillermetinmobiliaria.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.guillermetinmobiliaria.com.ar', port=443): Failed to resolve 'www.guillermetinmobiliaria.com.ar' ([Errno 11001] getaddrinfo failed)")). Reintentando en 10s...
+2026-04-24 09:54:26,538 - scraper - INFO - Obteniendo: https://www.allegripropiedades.com.ar
+2026-04-24 09:54:28,003 - scraper - INFO - Obteniendo: https://www.guillermetinmobiliaria.com.ar
+2026-04-24 09:54:32,586 - scraper - ERROR - Error de conexión en https://www.allegripropiedades.com.ar: HTTPSConnectionPool(host='www.allegripropiedades.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.allegripropiedades.com.ar', port=443): Failed to resolve 'www.allegripropiedades.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:54:32,594 - scraper - WARNING - Intento 2/3 falló: HTTPSConnectionPool(host='www.allegripropiedades.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.allegripropiedades.com.ar', port=443): Failed to resolve 'www.allegripropiedades.com.ar' ([Errno 11001] getaddrinfo failed)")). Reintentando en 20s...
+2026-04-24 09:54:34,066 - scraper - ERROR - Error de conexión en https://www.guillermetinmobiliaria.com.ar: HTTPSConnectionPool(host='www.guillermetinmobiliaria.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.guillermetinmobiliaria.com.ar', port=443): Failed to resolve 'www.guillermetinmobiliaria.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:54:34,066 - scraper - WARNING - Intento 2/3 falló: HTTPSConnectionPool(host='www.guillermetinmobiliaria.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.guillermetinmobiliaria.com.ar', port=443): Failed to resolve 'www.guillermetinmobiliaria.com.ar' ([Errno 11001] getaddrinfo failed)")). Reintentando en 20s...
+2026-04-24 09:54:35,037 - scraper - INFO - Obteniendo: https://www.arcaconsultora.com.ar
+2026-04-24 09:54:41,121 - scraper - ERROR - Error de conexión en https://www.arcaconsultora.com.ar: HTTPSConnectionPool(host='www.arcaconsultora.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.arcaconsultora.com.ar', port=443): Failed to resolve 'www.arcaconsultora.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:54:41,121 - scraper - WARNING - Intento 3/3 falló: HTTPSConnectionPool(host='www.arcaconsultora.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.arcaconsultora.com.ar', port=443): Failed to resolve 'www.arcaconsultora.com.ar' ([Errno 11001] getaddrinfo failed)")). Reintentando en 40s...
+2026-04-24 09:54:52,595 - scraper - INFO - Obteniendo: https://www.allegripropiedades.com.ar
+2026-04-24 09:54:54,075 - scraper - INFO - Obteniendo: https://www.guillermetinmobiliaria.com.ar
+2026-04-24 09:54:58,621 - scraper - ERROR - Error de conexión en https://www.allegripropiedades.com.ar: HTTPSConnectionPool(host='www.allegripropiedades.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.allegripropiedades.com.ar', port=443): Failed to resolve 'www.allegripropiedades.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:54:58,622 - scraper - WARNING - Intento 3/3 falló: HTTPSConnectionPool(host='www.allegripropiedades.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.allegripropiedades.com.ar', port=443): Failed to resolve 'www.allegripropiedades.com.ar' ([Errno 11001] getaddrinfo failed)")). Reintentando en 40s...
+2026-04-24 09:55:00,138 - scraper - ERROR - Error de conexión en https://www.guillermetinmobiliaria.com.ar: HTTPSConnectionPool(host='www.guillermetinmobiliaria.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.guillermetinmobiliaria.com.ar', port=443): Failed to resolve 'www.guillermetinmobiliaria.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:55:00,140 - scraper - WARNING - Intento 3/3 falló: HTTPSConnectionPool(host='www.guillermetinmobiliaria.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.guillermetinmobiliaria.com.ar', port=443): Failed to resolve 'www.guillermetinmobiliaria.com.ar' ([Errno 11001] getaddrinfo failed)")). Reintentando en 40s...
+2026-04-24 09:55:21,126 - scraper - INFO - Obteniendo: https://www.arcaconsultora.com.ar
+2026-04-24 09:55:27,214 - scraper - ERROR - Error de conexión en https://www.arcaconsultora.com.ar: HTTPSConnectionPool(host='www.arcaconsultora.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.arcaconsultora.com.ar', port=443): Failed to resolve 'www.arcaconsultora.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:55:27,214 - scraper - ERROR - Error en scraping de ARCA Consultora Inmobiliaria: HTTPSConnectionPool(host='www.arcaconsultora.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.arcaconsultora.com.ar', port=443): Failed to resolve 'www.arcaconsultora.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:55:27,214 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:55:27,214 - scraper - INFO - scrape ejecutado en 94.31 segundos
+2026-04-24 09:55:27,221 - scraper - INFO - Procesando: Remax Rosario
+2026-04-24 09:55:27,221 - scraper - INFO - 
+==================================================
+2026-04-24 09:55:27,221 - scraper - INFO - Iniciando scraping: Remax Rosario
+2026-04-24 09:55:27,221 - scraper - INFO - ==================================================
+2026-04-24 09:55:27,221 - scraper - INFO - Obteniendo: https://www.remax.com.ar/oficinas-rosario
+2026-04-24 09:55:36,916 - scraper - INFO - Obteniendo: https://www.remax.com.ar/listings/buy?page=0&pageSize=21&sort=%2Bid&in:operationId=1,2
+2026-04-24 09:55:38,623 - scraper - INFO - Obteniendo: https://www.allegripropiedades.com.ar
+2026-04-24 09:55:40,141 - scraper - INFO - Obteniendo: https://www.guillermetinmobiliaria.com.ar
+2026-04-24 09:55:41,323 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:55:41,323 - scraper - INFO - scrape ejecutado en 14.10 segundos
+2026-04-24 09:55:41,331 - scraper - INFO - Procesando: Century 21 Rosario
+2026-04-24 09:55:41,331 - scraper - INFO - 
+==================================================
+2026-04-24 09:55:41,331 - scraper - INFO - Iniciando scraping: Century 21 Rosario
+2026-04-24 09:55:41,331 - scraper - INFO - ==================================================
+2026-04-24 09:55:41,331 - scraper - INFO - Obteniendo: https://www.century21.com.ar
+2026-04-24 09:55:44,687 - scraper - ERROR - Error de conexión en https://www.allegripropiedades.com.ar: HTTPSConnectionPool(host='www.allegripropiedades.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.allegripropiedades.com.ar', port=443): Failed to resolve 'www.allegripropiedades.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:55:44,687 - scraper - ERROR - Error en scraping de Allegri & Lopez Maraver Propiedades: HTTPSConnectionPool(host='www.allegripropiedades.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.allegripropiedades.com.ar', port=443): Failed to resolve 'www.allegripropiedades.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:55:44,687 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:55:44,687 - scraper - INFO - scrape ejecutado en 94.20 segundos
+2026-04-24 09:55:44,687 - scraper - INFO - Procesando: Toribio Achával (nacional)
+2026-04-24 09:55:44,689 - scraper - INFO - 
+==================================================
+2026-04-24 09:55:44,689 - scraper - INFO - Iniciando scraping: Toribio Achával (nacional)
+2026-04-24 09:55:44,689 - scraper - INFO - ==================================================
+2026-04-24 09:55:44,689 - scraper - INFO - Obteniendo: https://www.toribioachaval.com
+2026-04-24 09:55:46,182 - scraper - ERROR - Error de conexión en https://www.guillermetinmobiliaria.com.ar: HTTPSConnectionPool(host='www.guillermetinmobiliaria.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.guillermetinmobiliaria.com.ar', port=443): Failed to resolve 'www.guillermetinmobiliaria.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:55:46,182 - scraper - ERROR - Error en scraping de Guillermet Inmobiliaria: HTTPSConnectionPool(host='www.guillermetinmobiliaria.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.guillermetinmobiliaria.com.ar', port=443): Failed to resolve 'www.guillermetinmobiliaria.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:55:46,182 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:55:46,182 - scraper - INFO - scrape ejecutado en 94.26 segundos
+2026-04-24 09:55:46,185 - scraper - INFO - Procesando: Cabrera Propiedades
+2026-04-24 09:55:46,185 - scraper - INFO - 
+==================================================
+2026-04-24 09:55:46,185 - scraper - INFO - Iniciando scraping: Cabrera Propiedades
+2026-04-24 09:55:46,185 - scraper - INFO - ==================================================
+2026-04-24 09:55:46,185 - scraper - INFO - Obteniendo: https://www.cabrerapropiedades.com.ar
+2026-04-24 09:55:48,823 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:55:48,823 - scraper - INFO - scrape ejecutado en 4.13 segundos
+2026-04-24 09:55:48,829 - scraper - INFO - Procesando: Novahaus Propiedades
+2026-04-24 09:55:48,829 - scraper - INFO - 
+==================================================
+2026-04-24 09:55:48,830 - scraper - INFO - Iniciando scraping: Novahaus Propiedades
+2026-04-24 09:55:48,830 - scraper - INFO - ==================================================
+2026-04-24 09:55:48,830 - scraper - INFO - Obteniendo: https://www.novahaus.com.ar
+2026-04-24 09:55:51,636 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:55:51,636 - scraper - INFO - scrape ejecutado en 5.45 segundos
+2026-04-24 09:55:51,646 - scraper - INFO - Procesando: Alianza Propiedades
+2026-04-24 09:55:51,646 - scraper - INFO - 
+==================================================
+2026-04-24 09:55:51,646 - scraper - INFO - Iniciando scraping: Alianza Propiedades
+2026-04-24 09:55:51,646 - scraper - INFO - ==================================================
+2026-04-24 09:55:51,646 - scraper - INFO - Obteniendo: https://www.alianzapropiedades.com.ar
+2026-04-24 09:55:53,261 - scraper - ERROR - Error de conexión en https://www.century21.com.ar: HTTPSConnectionPool(host='century21.com.ar', port=443): Max retries exceeded with url: / (Caused by ResponseError('too many 500 error responses'))
+2026-04-24 09:55:53,261 - scraper - WARNING - Intento 1/3 falló: HTTPSConnectionPool(host='century21.com.ar', port=443): Max retries exceeded with url: / (Caused by ResponseError('too many 500 error responses')). Reintentando en 10s...
+2026-04-24 09:55:56,880 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:55:56,880 - scraper - INFO - scrape ejecutado en 5.23 segundos
+2026-04-24 09:55:56,880 - scraper - INFO - Procesando: Inmobiliaria Coria
+2026-04-24 09:55:56,880 - scraper - INFO - 
+==================================================
+2026-04-24 09:55:56,880 - scraper - INFO - Iniciando scraping: Inmobiliaria Coria
+2026-04-24 09:55:56,880 - scraper - INFO - ==================================================
+2026-04-24 09:55:56,880 - scraper - INFO - Obteniendo: https://www.inmobiliariacoria.com.ar
+2026-04-24 09:55:58,604 - scraper - ERROR - Error de conexión en https://www.novahaus.com.ar: HTTPSConnectionPool(host='www.novahaus.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.novahaus.com.ar', port=443): Failed to resolve 'www.novahaus.com.ar' ([Errno 11002] getaddrinfo failed)"))
+2026-04-24 09:55:58,610 - scraper - WARNING - Intento 1/3 falló: HTTPSConnectionPool(host='www.novahaus.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.novahaus.com.ar', port=443): Failed to resolve 'www.novahaus.com.ar' ([Errno 11002] getaddrinfo failed)")). Reintentando en 10s...
+2026-04-24 09:56:02,948 - scraper - ERROR - Error de conexión en https://www.inmobiliariacoria.com.ar: HTTPSConnectionPool(host='www.inmobiliariacoria.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.inmobiliariacoria.com.ar', port=443): Failed to resolve 'www.inmobiliariacoria.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:56:02,961 - scraper - WARNING - Intento 1/3 falló: HTTPSConnectionPool(host='www.inmobiliariacoria.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.inmobiliariacoria.com.ar', port=443): Failed to resolve 'www.inmobiliariacoria.com.ar' ([Errno 11001] getaddrinfo failed)")). Reintentando en 10s...
+2026-04-24 09:56:03,264 - scraper - INFO - Obteniendo: https://www.century21.com.ar
+2026-04-24 09:56:08,612 - scraper - INFO - Obteniendo: https://www.novahaus.com.ar
+2026-04-24 09:56:11,928 - scraper - ERROR - Error de conexión en https://www.century21.com.ar: HTTPSConnectionPool(host='century21.com.ar', port=443): Max retries exceeded with url: / (Caused by ResponseError('too many 500 error responses'))
+2026-04-24 09:56:11,928 - scraper - WARNING - Intento 2/3 falló: HTTPSConnectionPool(host='century21.com.ar', port=443): Max retries exceeded with url: / (Caused by ResponseError('too many 500 error responses')). Reintentando en 20s...
+2026-04-24 09:56:12,963 - scraper - INFO - Obteniendo: https://www.inmobiliariacoria.com.ar
+2026-04-24 09:56:14,727 - scraper - ERROR - Error de conexión en https://www.novahaus.com.ar: HTTPSConnectionPool(host='www.novahaus.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.novahaus.com.ar', port=443): Failed to resolve 'www.novahaus.com.ar' ([Errno 11002] getaddrinfo failed)"))
+2026-04-24 09:56:14,727 - scraper - WARNING - Intento 2/3 falló: HTTPSConnectionPool(host='www.novahaus.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.novahaus.com.ar', port=443): Failed to resolve 'www.novahaus.com.ar' ([Errno 11002] getaddrinfo failed)")). Reintentando en 20s...
+2026-04-24 09:56:19,027 - scraper - ERROR - Error de conexión en https://www.inmobiliariacoria.com.ar: HTTPSConnectionPool(host='www.inmobiliariacoria.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.inmobiliariacoria.com.ar', port=443): Failed to resolve 'www.inmobiliariacoria.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:56:19,029 - scraper - WARNING - Intento 2/3 falló: HTTPSConnectionPool(host='www.inmobiliariacoria.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.inmobiliariacoria.com.ar', port=443): Failed to resolve 'www.inmobiliariacoria.com.ar' ([Errno 11001] getaddrinfo failed)")). Reintentando en 20s...
+2026-04-24 09:56:31,930 - scraper - INFO - Obteniendo: https://www.century21.com.ar
+2026-04-24 09:56:34,732 - scraper - INFO - Obteniendo: https://www.novahaus.com.ar
+2026-04-24 09:56:39,030 - scraper - INFO - Obteniendo: https://www.inmobiliariacoria.com.ar
+2026-04-24 09:56:40,699 - scraper - ERROR - Error de conexión en https://www.century21.com.ar: HTTPSConnectionPool(host='century21.com.ar', port=443): Max retries exceeded with url: / (Caused by ResponseError('too many 500 error responses'))
+2026-04-24 09:56:40,699 - scraper - WARNING - Intento 3/3 falló: HTTPSConnectionPool(host='century21.com.ar', port=443): Max retries exceeded with url: / (Caused by ResponseError('too many 500 error responses')). Reintentando en 40s...
+2026-04-24 09:56:40,830 - scraper - ERROR - Error de conexión en https://www.novahaus.com.ar: HTTPSConnectionPool(host='www.novahaus.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.novahaus.com.ar', port=443): Failed to resolve 'www.novahaus.com.ar' ([Errno 11002] getaddrinfo failed)"))
+2026-04-24 09:56:40,830 - scraper - WARNING - Intento 3/3 falló: HTTPSConnectionPool(host='www.novahaus.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.novahaus.com.ar', port=443): Failed to resolve 'www.novahaus.com.ar' ([Errno 11002] getaddrinfo failed)")). Reintentando en 40s...
+2026-04-24 09:56:45,068 - scraper - ERROR - Error de conexión en https://www.inmobiliariacoria.com.ar: HTTPSConnectionPool(host='www.inmobiliariacoria.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.inmobiliariacoria.com.ar', port=443): Failed to resolve 'www.inmobiliariacoria.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:56:45,068 - scraper - WARNING - Intento 3/3 falló: HTTPSConnectionPool(host='www.inmobiliariacoria.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.inmobiliariacoria.com.ar', port=443): Failed to resolve 'www.inmobiliariacoria.com.ar' ([Errno 11001] getaddrinfo failed)")). Reintentando en 40s...
+2026-04-24 09:57:20,705 - scraper - INFO - Obteniendo: https://www.century21.com.ar
+2026-04-24 09:57:20,834 - scraper - INFO - Obteniendo: https://www.novahaus.com.ar
+2026-04-24 09:57:25,070 - scraper - INFO - Obteniendo: https://www.inmobiliariacoria.com.ar
+2026-04-24 09:57:27,524 - scraper - ERROR - Error de conexión en https://www.novahaus.com.ar: HTTPSConnectionPool(host='www.novahaus.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.novahaus.com.ar', port=443): Failed to resolve 'www.novahaus.com.ar' ([Errno 11002] getaddrinfo failed)"))
+2026-04-24 09:57:27,526 - scraper - ERROR - Error en scraping de Novahaus Propiedades: HTTPSConnectionPool(host='www.novahaus.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.novahaus.com.ar', port=443): Failed to resolve 'www.novahaus.com.ar' ([Errno 11002] getaddrinfo failed)"))
+2026-04-24 09:57:27,526 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:57:27,526 - scraper - INFO - scrape ejecutado en 98.70 segundos
+2026-04-24 09:57:27,526 - scraper - INFO - Procesando: Dominium Propiedades
+2026-04-24 09:57:27,526 - scraper - INFO - 
+==================================================
+2026-04-24 09:57:27,526 - scraper - INFO - Iniciando scraping: Dominium Propiedades
+2026-04-24 09:57:27,528 - scraper - INFO - ==================================================
+2026-04-24 09:57:27,528 - scraper - INFO - Obteniendo: https://www.dominiumpropiedades.com.ar
+2026-04-24 09:57:29,141 - scraper - ERROR - Error de conexión en https://www.century21.com.ar: HTTPSConnectionPool(host='century21.com.ar', port=443): Max retries exceeded with url: / (Caused by ResponseError('too many 500 error responses'))
+2026-04-24 09:57:29,142 - scraper - ERROR - Error en scraping de Century 21 Rosario: HTTPSConnectionPool(host='century21.com.ar', port=443): Max retries exceeded with url: / (Caused by ResponseError('too many 500 error responses'))
+2026-04-24 09:57:29,142 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:57:29,142 - scraper - INFO - scrape ejecutado en 107.81 segundos
+2026-04-24 09:57:29,142 - scraper - INFO - Procesando: Prieto Propiedades
+2026-04-24 09:57:29,144 - scraper - INFO - 
+==================================================
+2026-04-24 09:57:29,144 - scraper - INFO - Iniciando scraping: Prieto Propiedades
+2026-04-24 09:57:29,144 - scraper - INFO - ==================================================
+2026-04-24 09:57:29,144 - scraper - INFO - Obteniendo: https://www.prietopropiedades.com.ar
+2026-04-24 09:57:31,096 - scraper - ERROR - Error de conexión en https://www.inmobiliariacoria.com.ar: HTTPSConnectionPool(host='www.inmobiliariacoria.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.inmobiliariacoria.com.ar', port=443): Failed to resolve 'www.inmobiliariacoria.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:57:31,096 - scraper - ERROR - Error en scraping de Inmobiliaria Coria: HTTPSConnectionPool(host='www.inmobiliariacoria.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.inmobiliariacoria.com.ar', port=443): Failed to resolve 'www.inmobiliariacoria.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:57:31,096 - scraper - INFO - Propiedades encontradas: 0
+2026-04-24 09:57:31,107 - scraper - INFO - scrape ejecutado en 94.23 segundos
+2026-04-24 09:57:31,107 - scraper - INFO - Procesando: Moretti Propiedades
+2026-04-24 09:57:31,107 - scraper - INFO - 
+==================================================
+2026-04-24 09:57:31,107 - scraper - INFO - Iniciando scraping: Moretti Propiedades
+2026-04-24 09:57:31,107 - scraper - INFO - ==================================================
+2026-04-24 09:57:31,107 - scraper - INFO - Obteniendo: https://www.morettipropiedades.com.ar
+2026-04-24 09:57:33,591 - scraper - ERROR - Error de conexión en https://www.dominiumpropiedades.com.ar: HTTPSConnectionPool(host='www.dominiumpropiedades.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.dominiumpropiedades.com.ar', port=443): Failed to resolve 'www.dominiumpropiedades.com.ar' ([Errno 11001] getaddrinfo failed)"))
+2026-04-24 09:57:33,591 - scraper - WARNING - Intento 1/3 falló: HTTPSConnectionPool(host='www.dominiumpropiedades.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='www.dominiumpropiedades.com.ar', port=443): Failed to resolve 'www.dominiumpropiedades.com.ar' ([Errno 11001] getaddrinfo failed)")). Reintentando en 10s...
+2026-04-24 09:57:38,306 - scraper - ERROR - Error de conexión en https://www.prietopropiedades.com.ar: HTTPSConnectionPool(host='www.prietopropiedades.com.ar', port=443): Max retries exceeded with url: / (Caused by SSLError(SSLCertVerificationError(1, "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'www.prietopropiedades.com.ar'. (_ssl.c:1016)")))
+2026-04-24 09:57:38,306 - scraper - WARNING - Intento 1/3 falló: HTTPSConnectionPool(host='www.prietopropiedades.com.ar', port=443): Max retries exceeded with url: / (Caused by SSLError(SSLCertVerificationError(1, "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'www.prietopropiedades.com.ar'. (_ssl.c:1016)"))). Reintentando en 10s...
+2026-04-24 09:57:40,492 - scraper - ERROR - Error de conexión en https://www.morettipropiedades.com.ar: HTTPSConnectionPool(host='www.morettipropiedades.com.ar', port=443): Max retries exceeded with url: / (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1016)')))
+2026-04-24 09:57:40,492 - scraper - WARNING - Intento 1/3 falló: HTTPSConnectionPool(host='www.morettipropiedades.com.ar', port=443): Max retries exceeded with url: / (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1016)'))). Reintentando en 10s...
+2026-04-24 09:57:43,593 - scraper - INFO - Obteniendo: https://www.dominiumpropiedades.com.ar

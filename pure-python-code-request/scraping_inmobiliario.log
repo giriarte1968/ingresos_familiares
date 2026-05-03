@@ -1,0 +1,482 @@
+2026-04-25 16:42:01,314 - scraper - INFO - 
+############################################################
+2026-04-25 16:42:01,314 - scraper - INFO - # SISTEMA DE SCRAPING INMOBILIARIO ROSARIO
+2026-04-25 16:42:01,316 - scraper - INFO - # Iniciado: 2026-04-25 16:42:01
+2026-04-25 16:42:01,316 - scraper - INFO - # Inmobiliarias a procesar: 30
+2026-04-25 16:42:01,316 - scraper - INFO - ############################################################
+
+2026-04-25 16:42:01,320 - scraper - INFO - Procesando: Bassini Negocios Inmobiliarios
+2026-04-25 16:42:01,321 - scraper - INFO - 
+==================================================
+2026-04-25 16:42:01,321 - scraper - INFO - Iniciando scraping: Bassini Negocios Inmobiliarios
+2026-04-25 16:42:01,321 - scraper - INFO - ==================================================
+2026-04-25 16:42:01,321 - scraper - INFO - Obteniendo: https://www.bassiniinmobiliaria.com/propiedades/
+2026-04-25 16:42:01,327 - scraper - INFO - Procesando: Dunod Propiedades
+2026-04-25 16:42:01,328 - scraper - INFO - 
+==================================================
+2026-04-25 16:42:01,328 - scraper - INFO - Iniciando scraping: Dunod Propiedades
+2026-04-25 16:42:01,328 - scraper - INFO - ==================================================
+2026-04-25 16:42:01,329 - scraper - INFO - Obteniendo: https://dunod.com.ar/inmuebles/?status%5B%5D=venta
+2026-04-25 16:42:01,328 - scraper - INFO - Procesando: Diego Ferreyra Bienes Raíces
+2026-04-25 16:42:01,331 - scraper - INFO - 
+==================================================
+2026-04-25 16:42:01,331 - scraper - INFO - Iniciando scraping: Diego Ferreyra Bienes Raíces
+2026-04-25 16:42:01,331 - scraper - INFO - ==================================================
+2026-04-25 16:42:01,332 - scraper - INFO - Obteniendo: https://www.diegoferreyra.com.ar/propiedades
+2026-04-25 16:42:02,394 - scraper - ERROR - Error HTTP 404 en https://www.diegoferreyra.com.ar/propiedades
+2026-04-25 16:42:02,394 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 16:42:02,394 - scraper - INFO - scrape ejecutado en 1.06 segundos
+2026-04-25 16:42:02,394 - scraper - INFO - Procesando: Guillermo Rodríguez Inmobiliaria
+2026-04-25 16:42:02,394 - scraper - INFO - 
+==================================================
+2026-04-25 16:42:02,394 - scraper - INFO - Iniciando scraping: Guillermo Rodríguez Inmobiliaria
+2026-04-25 16:42:02,394 - scraper - INFO - ==================================================
+2026-04-25 16:42:02,394 - scraper - INFO - Obteniendo: https://www.guillermorodriguez.com.ar/propiedades-venta
+2026-04-25 16:42:02,611 - scraper - ERROR - Error HTTP 404 en https://www.guillermorodriguez.com.ar/propiedades-venta
+2026-04-25 16:42:02,611 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 16:42:02,611 - scraper - INFO - scrape ejecutado en 0.22 segundos
+2026-04-25 16:42:02,611 - scraper - INFO - Procesando: Fiorina Propiedades
+2026-04-25 16:42:02,611 - scraper - INFO - 
+==================================================
+2026-04-25 16:42:02,611 - scraper - INFO - Iniciando scraping: Fiorina Propiedades
+2026-04-25 16:42:02,611 - scraper - INFO - ==================================================
+2026-04-25 16:42:02,611 - scraper - INFO - Obteniendo: https://www.fiorinapropiedades.com.ar/properties-search/?status%5B%5D=venta
+2026-04-25 16:42:02,988 - scraper - ERROR - Error HTTP 404 en https://www.bassiniinmobiliaria.com/propiedades/
+2026-04-25 16:42:02,988 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 16:42:02,988 - scraper - INFO - scrape ejecutado en 1.67 segundos
+2026-04-25 16:42:02,989 - scraper - INFO - Procesando: Futura Negocios Inmobiliarios
+2026-04-25 16:42:02,989 - scraper - INFO - 
+==================================================
+2026-04-25 16:42:02,989 - scraper - INFO - Iniciando scraping: Futura Negocios Inmobiliarios
+2026-04-25 16:42:02,989 - scraper - INFO - ==================================================
+2026-04-25 16:42:02,989 - scraper - INFO - Obteniendo: https://www.futura-inmobiliaria.com/propiedades
+2026-04-25 16:42:03,441 - scraper - ERROR - Error HTTP 404 en https://www.fiorinapropiedades.com.ar/properties-search/?status%5B%5D=venta
+2026-04-25 16:42:03,441 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 16:42:03,441 - scraper - INFO - scrape ejecutado en 0.83 segundos
+2026-04-25 16:42:03,441 - scraper - INFO - Procesando: Gardiol Propiedades
+2026-04-25 16:42:03,441 - scraper - INFO - 
+==================================================
+2026-04-25 16:42:03,441 - scraper - INFO - Iniciando scraping: Gardiol Propiedades
+2026-04-25 16:42:03,446 - scraper - INFO - ==================================================
+2026-04-25 16:42:03,446 - scraper - INFO - Obteniendo: https://www.gardiolpropiedades.com/propiedades
+2026-04-25 16:42:04,447 - scraper - ERROR - Error HTTP 404 en https://www.gardiolpropiedades.com/propiedades
+2026-04-25 16:42:04,447 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 16:42:04,447 - scraper - INFO - scrape ejecutado en 1.01 segundos
+2026-04-25 16:42:04,447 - scraper - INFO - Procesando: Gonzalo Guiñazú
+2026-04-25 16:42:04,447 - scraper - INFO - 
+==================================================
+2026-04-25 16:42:04,447 - scraper - INFO - Iniciando scraping: Gonzalo Guiñazú
+2026-04-25 16:42:04,447 - scraper - INFO - ==================================================
+2026-04-25 16:42:04,447 - scraper - INFO - Obteniendo: https://www.gonzaloguinazu.com.ar/propiedades
+2026-04-25 16:42:04,648 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 16:42:04,648 - scraper - INFO - scrape ejecutado en 3.32 segundos
+2026-04-25 16:42:04,648 - scraper - INFO - Procesando: Grupo ISA
+2026-04-25 16:42:04,648 - scraper - INFO - 
+==================================================
+2026-04-25 16:42:04,648 - scraper - INFO - Iniciando scraping: Grupo ISA
+2026-04-25 16:42:04,648 - scraper - INFO - ==================================================
+2026-04-25 16:42:04,648 - scraper - INFO - Obteniendo: https://www.grupoisa.com.ar/propiedades
+2026-04-25 16:42:08,614 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 16:42:08,614 - scraper - INFO - scrape ejecutado en 4.17 segundos
+2026-04-25 16:42:08,614 - scraper - INFO - Procesando: Haus Propiedades
+2026-04-25 16:42:08,614 - scraper - INFO - 
+==================================================
+2026-04-25 16:42:08,614 - scraper - INFO - Iniciando scraping: Haus Propiedades
+2026-04-25 16:42:08,614 - scraper - INFO - ==================================================
+2026-04-25 16:42:08,614 - scraper - INFO - Obteniendo: https://www.hausprop.com/propiedades
+2026-04-25 16:42:08,861 - scraper - INFO - Propiedades encontradas: 8
+2026-04-25 16:42:08,861 - scraper - INFO - scrape ejecutado en 5.87 segundos
+2026-04-25 16:42:08,876 - scraper - INFO - Datos guardados en: ..\data\futura_negocios_inmobiliarios.json
+2026-04-25 16:42:08,878 - scraper - INFO - Procesando: Imperia Propiedades
+2026-04-25 16:42:08,878 - scraper - INFO - 
+==================================================
+2026-04-25 16:42:08,878 - scraper - INFO - Iniciando scraping: Imperia Propiedades
+2026-04-25 16:42:08,878 - scraper - INFO - ==================================================
+2026-04-25 16:42:08,880 - scraper - INFO - Obteniendo: https://www.imperiapropiedades.com/propiedades
+2026-04-25 16:42:09,342 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 16:42:09,344 - scraper - INFO - scrape ejecutado en 4.70 segundos
+2026-04-25 16:42:09,344 - scraper - INFO - Procesando: Ing. Massoud Servicios Inmobiliarios
+2026-04-25 16:42:09,344 - scraper - INFO - 
+==================================================
+2026-04-25 16:42:09,344 - scraper - INFO - Iniciando scraping: Ing. Massoud Servicios Inmobiliarios
+2026-04-25 16:42:09,344 - scraper - INFO - ==================================================
+2026-04-25 16:42:09,344 - scraper - INFO - Obteniendo: https://www.massoud.com.ar/propiedades
+2026-04-25 16:42:13,965 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 16:42:13,965 - scraper - INFO - scrape ejecutado en 5.09 segundos
+2026-04-25 16:42:13,965 - scraper - INFO - Procesando: Inmobiliaria Manarin
+2026-04-25 16:42:13,965 - scraper - INFO - 
+==================================================
+2026-04-25 16:42:13,965 - scraper - INFO - Iniciando scraping: Inmobiliaria Manarin
+2026-04-25 16:42:13,965 - scraper - INFO - ==================================================
+2026-04-25 16:42:13,965 - scraper - INFO - Obteniendo: https://www.inmobiliariamanarin.com.ar/propiedades
+2026-04-25 16:42:17,791 - scraper - INFO - Obteniendo: https://www.hausprop.com/propiedades/
+2026-04-25 16:42:19,823 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 16:42:19,823 - scraper - INFO - scrape ejecutado en 10.48 segundos
+2026-04-25 16:42:19,823 - scraper - INFO - Procesando: Integra Negocios
+2026-04-25 16:42:19,827 - scraper - INFO - 
+==================================================
+2026-04-25 16:42:19,827 - scraper - INFO - Iniciando scraping: Integra Negocios
+2026-04-25 16:42:19,827 - scraper - INFO - ==================================================
+2026-04-25 16:42:19,827 - scraper - INFO - Obteniendo: https://www.integranegocios.com.ar/propiedades
+2026-04-25 16:42:23,916 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 16:42:23,916 - scraper - INFO - scrape ejecutado en 4.09 segundos
+2026-04-25 16:42:23,916 - scraper - INFO - Procesando: Jaef Inmobiliaria
+2026-04-25 16:42:23,920 - scraper - INFO - 
+==================================================
+2026-04-25 16:42:23,920 - scraper - INFO - Iniciando scraping: Jaef Inmobiliaria
+2026-04-25 16:42:23,920 - scraper - INFO - ==================================================
+2026-04-25 16:42:23,920 - scraper - INFO - Obteniendo: https://www.jaefinmobiliaria.com/propiedades
+2026-04-25 16:42:24,140 - scraper - INFO - Obteniendo: https://www.inmobiliariamanarin.com.ar
+2026-04-25 16:42:24,575 - scraper - ERROR - Error HTTP 404 en https://www.jaefinmobiliaria.com/propiedades
+2026-04-25 16:42:24,575 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 16:42:24,575 - scraper - INFO - scrape ejecutado en 0.66 segundos
+2026-04-25 16:42:24,575 - scraper - INFO - Procesando: Juan Rioja
+2026-04-25 16:42:24,575 - scraper - INFO - 
+==================================================
+2026-04-25 16:42:24,577 - scraper - INFO - Iniciando scraping: Juan Rioja
+2026-04-25 16:42:24,577 - scraper - INFO - ==================================================
+2026-04-25 16:42:24,577 - scraper - INFO - Obteniendo: https://www.juanrioja.com.ar/propiedades
+2026-04-25 16:42:27,611 - scraper - INFO - Obteniendo: https://www.hausprop.com/propiedades/page/2/
+2026-04-25 16:42:27,924 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 16:42:27,924 - scraper - INFO - scrape ejecutado en 3.35 segundos
+2026-04-25 16:42:27,924 - scraper - INFO - Procesando: Lakiatto Inmobiliaria
+2026-04-25 16:42:27,924 - scraper - INFO - 
+==================================================
+2026-04-25 16:42:27,924 - scraper - INFO - Iniciando scraping: Lakiatto Inmobiliaria
+2026-04-25 16:42:27,924 - scraper - INFO - ==================================================
+2026-04-25 16:42:27,924 - scraper - INFO - Obteniendo: https://www.lakiatto.com.ar/propiedades
+2026-04-25 16:42:31,525 - scraper - INFO - Propiedades encontradas: 27
+2026-04-25 16:42:31,525 - scraper - INFO - scrape ejecutado en 22.91 segundos
+2026-04-25 16:42:31,530 - scraper - INFO - Datos guardados en: ..\data\haus_propiedades.json
+2026-04-25 16:42:31,531 - scraper - INFO - Procesando: Libertador Servicios Inmobiliarios
+2026-04-25 16:42:31,531 - scraper - INFO - 
+==================================================
+2026-04-25 16:42:31,531 - scraper - INFO - Iniciando scraping: Libertador Servicios Inmobiliarios
+2026-04-25 16:42:31,531 - scraper - INFO - ==================================================
+2026-04-25 16:42:31,531 - scraper - INFO - Obteniendo: https://www.libertadorargentina.com/propiedades
+2026-04-25 16:42:32,425 - scraper - INFO - Obteniendo: http://inmobiliariamanarin.com.ar/propiedades?page=2
+2026-04-25 16:42:35,160 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 16:42:35,160 - scraper - INFO - scrape ejecutado en 3.63 segundos
+2026-04-25 16:42:35,160 - scraper - INFO - Procesando: Galindo Negocios Inmobiliarios
+2026-04-25 16:42:35,160 - scraper - INFO - 
+==================================================
+2026-04-25 16:42:35,160 - scraper - INFO - Iniciando scraping: Galindo Negocios Inmobiliarios
+2026-04-25 16:42:35,160 - scraper - INFO - ==================================================
+2026-04-25 16:42:35,160 - scraper - INFO - Obteniendo: https://www.galindoinmobiliaria.com.ar/propiedades
+2026-04-25 16:42:36,991 - scraper - INFO - Propiedades encontradas: 22
+2026-04-25 16:42:36,991 - scraper - INFO - scrape ejecutado en 23.03 segundos
+2026-04-25 16:42:37,014 - scraper - INFO - Datos guardados en: ..\data\inmobiliaria_manarin.json
+2026-04-25 16:42:37,014 - scraper - INFO - Procesando: Gamag Propiedades
+2026-04-25 16:42:37,014 - scraper - INFO - 
+==================================================
+2026-04-25 16:42:37,014 - scraper - INFO - Iniciando scraping: Gamag Propiedades
+2026-04-25 16:42:37,014 - scraper - INFO - ==================================================
+2026-04-25 16:42:37,014 - scraper - INFO - Obteniendo: https://www.gamagpropiedades.com.ar/propiedades
+2026-04-25 16:42:37,141 - scraper - ERROR - Error HTTP 404 en https://www.galindoinmobiliaria.com.ar/propiedades
+2026-04-25 16:42:37,141 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 16:42:37,141 - scraper - INFO - scrape ejecutado en 1.98 segundos
+2026-04-25 16:42:37,141 - scraper - INFO - Procesando: GP Propiedades
+2026-04-25 16:42:37,141 - scraper - INFO - 
+==================================================
+2026-04-25 16:42:37,141 - scraper - INFO - Iniciando scraping: GP Propiedades
+2026-04-25 16:42:37,141 - scraper - INFO - ==================================================
+2026-04-25 16:42:37,141 - scraper - INFO - Obteniendo: https://www.gppropiedades.com/propiedades
+2026-04-25 16:42:39,099 - scraper - INFO - Obteniendo: https://www.lakiatto.com.ar/propiedades/
+2026-04-25 16:42:44,694 - scraper - INFO - Obteniendo: https://www.gamagpropiedades.com.ar
+2026-04-25 16:42:45,699 - scraper - INFO - Obteniendo: https://www.gppropiedades.com/propiedades/
+2026-04-25 16:42:47,424 - scraper - INFO - Obteniendo: https://www.lakiatto.com.ar/propiedades/page/2/
+2026-04-25 16:42:51,274 - scraper - INFO - Propiedades encontradas: 27
+2026-04-25 16:42:51,274 - scraper - INFO - scrape ejecutado en 23.35 segundos
+2026-04-25 16:42:51,280 - scraper - INFO - Datos guardados en: ..\data\lakiatto_inmobiliaria.json
+2026-04-25 16:42:51,282 - scraper - INFO - Procesando: Ideal Propiedades
+2026-04-25 16:42:51,282 - scraper - INFO - 
+==================================================
+2026-04-25 16:42:51,282 - scraper - INFO - Iniciando scraping: Ideal Propiedades
+2026-04-25 16:42:51,282 - scraper - INFO - ==================================================
+2026-04-25 16:42:51,282 - scraper - INFO - Obteniendo: https://www.idealpropiedades.com.ar/propiedades
+2026-04-25 16:42:52,882 - scraper - INFO - Obteniendo: http://gamagpropiedades.com.ar/propiedades?page=2
+2026-04-25 16:42:54,602 - scraper - INFO - Obteniendo: https://www.gppropiedades.com/propiedades/page/2/
+2026-04-25 16:42:57,023 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 16:42:57,023 - scraper - INFO - scrape ejecutado en 5.74 segundos
+2026-04-25 16:42:57,025 - scraper - INFO - Procesando: Next Inmobiliaria
+2026-04-25 16:42:57,025 - scraper - INFO - 
+==================================================
+2026-04-25 16:42:57,025 - scraper - INFO - Iniciando scraping: Next Inmobiliaria
+2026-04-25 16:42:57,025 - scraper - INFO - ==================================================
+2026-04-25 16:42:57,025 - scraper - INFO - Obteniendo: https://nextinmobiliaria.com.ar/propiedades
+2026-04-25 16:42:57,579 - scraper - INFO - Propiedades encontradas: 26
+2026-04-25 16:42:57,581 - scraper - INFO - scrape ejecutado en 20.57 segundos
+2026-04-25 16:42:57,585 - scraper - INFO - Datos guardados en: ..\data\gamag_propiedades.json
+2026-04-25 16:42:57,585 - scraper - INFO - Procesando: Fuzion Inmobiliaria Boutique
+2026-04-25 16:42:57,590 - scraper - INFO - 
+==================================================
+2026-04-25 16:42:57,590 - scraper - INFO - Iniciando scraping: Fuzion Inmobiliaria Boutique
+2026-04-25 16:42:57,591 - scraper - INFO - ==================================================
+2026-04-25 16:42:57,591 - scraper - INFO - Obteniendo: https://www.fuzionprop.com/propiedades
+2026-04-25 16:42:59,736 - scraper - INFO - Propiedades encontradas: 27
+2026-04-25 16:42:59,736 - scraper - INFO - scrape ejecutado en 22.59 segundos
+2026-04-25 16:42:59,740 - scraper - INFO - Datos guardados en: ..\data\gp_propiedades.json
+2026-04-25 16:42:59,740 - scraper - INFO - Procesando: Flias Propiedades
+2026-04-25 16:42:59,740 - scraper - INFO - 
+==================================================
+2026-04-25 16:42:59,740 - scraper - INFO - Iniciando scraping: Flias Propiedades
+2026-04-25 16:42:59,740 - scraper - INFO - ==================================================
+2026-04-25 16:42:59,740 - scraper - INFO - Obteniendo: https://www.fliapropiedades.com.ar/propiedades
+2026-04-25 16:43:04,888 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 16:43:04,888 - scraper - INFO - scrape ejecutado en 5.15 segundos
+2026-04-25 16:43:04,888 - scraper - INFO - Procesando: Gabriela G Propiedades
+2026-04-25 16:43:04,888 - scraper - INFO - 
+==================================================
+2026-04-25 16:43:04,888 - scraper - INFO - Iniciando scraping: Gabriela G Propiedades
+2026-04-25 16:43:04,888 - scraper - INFO - ==================================================
+2026-04-25 16:43:04,888 - scraper - INFO - Obteniendo: https://www.gabrielagpropiedades.com.ar/propiedades
+2026-04-25 16:43:05,331 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 16:43:05,331 - scraper - INFO - scrape ejecutado en 8.31 segundos
+2026-04-25 16:43:05,333 - scraper - INFO - Procesando: Remax Rosario
+2026-04-25 16:43:05,333 - scraper - INFO - 
+==================================================
+2026-04-25 16:43:05,333 - scraper - INFO - Iniciando scraping: Remax Rosario
+2026-04-25 16:43:05,333 - scraper - INFO - ==================================================
+2026-04-25 16:43:05,333 - scraper - INFO - Obteniendo: https://www.remax.com.ar/rosario/listings
+2026-04-25 16:43:06,389 - scraper - ERROR - Error HTTP 404 en https://www.gabrielagpropiedades.com.ar/propiedades
+2026-04-25 16:43:06,391 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 16:43:06,391 - scraper - INFO - scrape ejecutado en 1.50 segundos
+2026-04-25 16:43:06,391 - scraper - INFO - Procesando: Century 21 Rosario
+2026-04-25 16:43:06,391 - scraper - INFO - 
+==================================================
+2026-04-25 16:43:06,391 - scraper - INFO - Iniciando scraping: Century 21 Rosario
+2026-04-25 16:43:06,391 - scraper - INFO - ==================================================
+2026-04-25 16:43:06,391 - scraper - INFO - Obteniendo: https://www.century21.com.ar/propiedades/rosario
+2026-04-25 16:43:07,857 - scraper - INFO - Obteniendo: https://www.fuzionprop.com
+2026-04-25 16:43:08,859 - scraper - ERROR - Error HTTP 404 en https://www.century21.com.ar/propiedades/rosario
+2026-04-25 16:43:08,859 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 16:43:08,859 - scraper - INFO - scrape ejecutado en 2.47 segundos
+2026-04-25 16:43:08,859 - scraper - INFO - Procesando: Zona Prop Rosario
+2026-04-25 16:43:08,859 - scraper - INFO - 
+==================================================
+2026-04-25 16:43:08,859 - scraper - INFO - Iniciando scraping: Zona Prop Rosario
+2026-04-25 16:43:08,859 - scraper - INFO - ==================================================
+2026-04-25 16:43:08,859 - scraper - INFO - Obteniendo: https://www.zonaprop.com.ar/departamentos-venta/rosario
+2026-04-25 16:43:09,069 - scraper - ERROR - Error HTTP 403 en https://www.zonaprop.com.ar/departamentos-venta/rosario
+2026-04-25 16:43:09,069 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 16:43:09,069 - scraper - INFO - scrape ejecutado en 0.21 segundos
+2026-04-25 16:43:09,069 - scraper - INFO - Procesando: Argenprop Rosario
+2026-04-25 16:43:09,078 - scraper - INFO - 
+==================================================
+2026-04-25 16:43:09,078 - scraper - INFO - Iniciando scraping: Argenprop Rosario
+2026-04-25 16:43:09,078 - scraper - INFO - ==================================================
+2026-04-25 16:43:09,078 - scraper - INFO - Obteniendo: https://www.argenprop.com/departamentos/venta/rosario
+2026-04-25 16:43:13,705 - scraper - INFO - Obteniendo: https://www.remax.com.ar/listings/buy?page=0&pageSize=21&sort=%2Bid&in:operationId=1,2
+2026-04-25 16:43:13,873 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 16:43:13,873 - scraper - INFO - scrape ejecutado en 4.79 segundos
+2026-04-25 16:43:13,890 - scraper - INFO - Obteniendo: http://fuzionprop.com/propiedades?page=2
+2026-04-25 16:43:18,156 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 16:43:18,156 - scraper - INFO - scrape ejecutado en 12.82 segundos
+2026-04-25 16:43:18,256 - scraper - INFO - Propiedades encontradas: 20
+2026-04-25 16:43:18,256 - scraper - INFO - scrape ejecutado en 20.67 segundos
+2026-04-25 16:43:18,272 - scraper - INFO - Datos guardados en: ..\data\fuzion_inmobiliaria_boutique.json
+2026-04-25 16:43:18,277 - scraper - INFO - Datos guardados en: ..\data\propiedades_rosario_20260425_164318.json
+2026-04-25 16:43:18,279 - scraper - INFO - Datos guardados en: ..\data\resumen_scraping_20260425_164318.json
+2026-04-25 16:43:18,279 - scraper - INFO - 
+############################################################
+2026-04-25 16:43:18,279 - scraper - INFO - # SCRAPING COMPLETADO
+2026-04-25 16:43:18,279 - scraper - INFO - # Tiempo total: 76.96 segundos
+2026-04-25 16:43:18,279 - scraper - INFO - # Propiedades totales: 157
+2026-04-25 16:43:18,279 - scraper - INFO - # Errores: 0
+2026-04-25 16:43:18,279 - scraper - INFO - ############################################################
+
+2026-04-25 16:43:18,279 - scraper - INFO - run ejecutado en 76.97 segundos
+2026-04-25 17:09:20,113 - scraper - INFO - 
+############################################################
+2026-04-25 17:09:20,114 - scraper - INFO - # SISTEMA DE SCRAPING INMOBILIARIO ROSARIO
+2026-04-25 17:09:20,114 - scraper - INFO - # Iniciado: 2026-04-25 17:09:20
+2026-04-25 17:09:20,116 - scraper - INFO - # Inmobiliarias a procesar: 20
+2026-04-25 17:09:20,116 - scraper - INFO - ############################################################
+
+2026-04-25 17:09:20,118 - scraper - INFO - Procesando: Bassini Negocios Inmobiliarios
+2026-04-25 17:09:20,118 - scraper - INFO - 
+==================================================
+2026-04-25 17:09:20,118 - scraper - INFO - Iniciando scraping: Bassini Negocios Inmobiliarios
+2026-04-25 17:09:20,118 - scraper - INFO - ==================================================
+2026-04-25 17:09:20,118 - scraper - INFO - Obteniendo: https://www.bassiniinmobiliaria.com/propiedades/
+2026-04-25 17:09:20,118 - scraper - INFO - Procesando: Dunod Propiedades
+2026-04-25 17:09:20,118 - scraper - INFO - 
+==================================================
+2026-04-25 17:09:20,118 - scraper - INFO - Procesando: Diego Ferreyra Bienes Raíces
+2026-04-25 17:09:20,118 - scraper - INFO - Iniciando scraping: Dunod Propiedades
+2026-04-25 17:09:20,118 - scraper - INFO - 
+==================================================
+2026-04-25 17:09:20,118 - scraper - INFO - ==================================================
+2026-04-25 17:09:20,118 - scraper - INFO - Obteniendo: https://dunod.com.ar/inmuebles/?status%5B%5D=venta
+2026-04-25 17:09:20,118 - scraper - INFO - Iniciando scraping: Diego Ferreyra Bienes Raíces
+2026-04-25 17:09:20,118 - scraper - INFO - ==================================================
+2026-04-25 17:09:20,118 - scraper - INFO - Obteniendo: https://www.diegoferreyra.com.ar/propiedades
+2026-04-25 17:09:21,220 - scraper - ERROR - Error HTTP 404 en https://www.diegoferreyra.com.ar/propiedades
+2026-04-25 17:09:21,220 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 17:09:21,220 - scraper - INFO - scrape ejecutado en 1.10 segundos
+2026-04-25 17:09:21,230 - scraper - INFO - Procesando: Guillermo Rodríguez Inmobiliaria
+2026-04-25 17:09:21,230 - scraper - INFO - 
+==================================================
+2026-04-25 17:09:21,230 - scraper - INFO - Iniciando scraping: Guillermo Rodríguez Inmobiliaria
+2026-04-25 17:09:21,230 - scraper - INFO - ==================================================
+2026-04-25 17:09:21,230 - scraper - INFO - Obteniendo: https://www.guillermorodriguez.com.ar/propiedades-venta
+2026-04-25 17:09:21,418 - scraper - ERROR - Error HTTP 404 en https://www.guillermorodriguez.com.ar/propiedades-venta
+2026-04-25 17:09:21,418 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 17:09:21,418 - scraper - INFO - scrape ejecutado en 0.19 segundos
+2026-04-25 17:09:21,418 - scraper - INFO - Procesando: Fiorina Propiedades
+2026-04-25 17:09:21,418 - scraper - INFO - 
+==================================================
+2026-04-25 17:09:21,418 - scraper - INFO - Iniciando scraping: Fiorina Propiedades
+2026-04-25 17:09:21,418 - scraper - INFO - ==================================================
+2026-04-25 17:09:21,418 - scraper - INFO - Obteniendo: https://www.fiorinapropiedades.com.ar/properties-search/?status%5B%5D=venta
+2026-04-25 17:09:21,502 - scraper - ERROR - Error HTTP 404 en https://www.bassiniinmobiliaria.com/propiedades/
+2026-04-25 17:09:21,502 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 17:09:21,502 - scraper - INFO - scrape ejecutado en 1.38 segundos
+2026-04-25 17:09:21,502 - scraper - INFO - Procesando: Futura Negocios Inmobiliarios
+2026-04-25 17:09:21,502 - scraper - INFO - 
+==================================================
+2026-04-25 17:09:21,502 - scraper - INFO - Iniciando scraping: Futura Negocios Inmobiliarios
+2026-04-25 17:09:21,502 - scraper - INFO - ==================================================
+2026-04-25 17:09:21,502 - scraper - INFO - Obteniendo: https://www.futura-inmobiliaria.com/propiedades
+2026-04-25 17:09:22,270 - scraper - ERROR - Error HTTP 404 en https://www.fiorinapropiedades.com.ar/properties-search/?status%5B%5D=venta
+2026-04-25 17:09:22,270 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 17:09:22,270 - scraper - INFO - scrape ejecutado en 0.85 segundos
+2026-04-25 17:09:22,270 - scraper - INFO - Procesando: Gardiol Propiedades
+2026-04-25 17:09:22,270 - scraper - INFO - 
+==================================================
+2026-04-25 17:09:22,270 - scraper - INFO - Iniciando scraping: Gardiol Propiedades
+2026-04-25 17:09:22,270 - scraper - INFO - ==================================================
+2026-04-25 17:09:22,270 - scraper - INFO - Obteniendo: https://www.gardiolpropiedades.com/propiedades
+2026-04-25 17:09:23,252 - scraper - ERROR - Error HTTP 404 en https://www.gardiolpropiedades.com/propiedades
+2026-04-25 17:09:23,252 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 17:09:23,252 - scraper - INFO - scrape ejecutado en 0.98 segundos
+2026-04-25 17:09:23,252 - scraper - INFO - Procesando: Gonzalo Guiñazú
+2026-04-25 17:09:23,252 - scraper - INFO - 
+==================================================
+2026-04-25 17:09:23,252 - scraper - INFO - Iniciando scraping: Gonzalo Guiñazú
+2026-04-25 17:09:23,252 - scraper - INFO - ==================================================
+2026-04-25 17:09:23,252 - scraper - INFO - Obteniendo: https://www.gonzaloguinazu.com.ar/propiedades
+2026-04-25 17:09:24,776 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 17:09:24,778 - scraper - INFO - scrape ejecutado en 4.66 segundos
+2026-04-25 17:09:24,778 - scraper - INFO - Procesando: Grupo ISA
+2026-04-25 17:09:24,778 - scraper - INFO - 
+==================================================
+2026-04-25 17:09:24,778 - scraper - INFO - Iniciando scraping: Grupo ISA
+2026-04-25 17:09:24,780 - scraper - INFO - ==================================================
+2026-04-25 17:09:24,780 - scraper - INFO - Obteniendo: https://www.grupoisa.com.ar/propiedades
+2026-04-25 17:09:27,623 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 17:09:27,623 - scraper - INFO - scrape ejecutado en 2.85 segundos
+2026-04-25 17:09:27,623 - scraper - INFO - Procesando: Haus Propiedades
+2026-04-25 17:09:27,623 - scraper - INFO - 
+==================================================
+2026-04-25 17:09:27,623 - scraper - INFO - Iniciando scraping: Haus Propiedades
+2026-04-25 17:09:27,623 - scraper - INFO - ==================================================
+2026-04-25 17:09:27,623 - scraper - INFO - Obteniendo: https://www.hausprop.com/propiedades
+2026-04-25 17:09:27,762 - scraper - INFO - Propiedades encontradas: 8
+2026-04-25 17:09:27,762 - scraper - INFO - scrape ejecutado en 6.26 segundos
+2026-04-25 17:09:27,766 - scraper - INFO - Datos guardados en: ..\data\futura_negocios_inmobiliarios.json
+2026-04-25 17:09:27,766 - scraper - INFO - Procesando: Imperia Propiedades
+2026-04-25 17:09:27,766 - scraper - INFO - 
+==================================================
+2026-04-25 17:09:27,766 - scraper - INFO - Iniciando scraping: Imperia Propiedades
+2026-04-25 17:09:27,766 - scraper - INFO - ==================================================
+2026-04-25 17:09:27,766 - scraper - INFO - Obteniendo: https://www.imperiapropiedades.com/propiedades
+2026-04-25 17:09:28,137 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 17:09:28,137 - scraper - INFO - scrape ejecutado en 4.88 segundos
+2026-04-25 17:09:28,137 - scraper - INFO - Procesando: Ing. Massoud Servicios Inmobiliarios
+2026-04-25 17:09:28,137 - scraper - INFO - 
+==================================================
+2026-04-25 17:09:28,137 - scraper - INFO - Iniciando scraping: Ing. Massoud Servicios Inmobiliarios
+2026-04-25 17:09:28,137 - scraper - INFO - ==================================================
+2026-04-25 17:09:28,137 - scraper - INFO - Obteniendo: https://www.massoud.com.ar/propiedades
+2026-04-25 17:09:33,028 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 17:09:33,028 - scraper - INFO - scrape ejecutado en 4.89 segundos
+2026-04-25 17:09:33,032 - scraper - INFO - Procesando: Inmobiliaria Manarin
+2026-04-25 17:09:33,032 - scraper - INFO - 
+==================================================
+2026-04-25 17:09:33,032 - scraper - INFO - Iniciando scraping: Inmobiliaria Manarin
+2026-04-25 17:09:33,032 - scraper - INFO - ==================================================
+2026-04-25 17:09:33,032 - scraper - INFO - Obteniendo: https://www.inmobiliariamanarin.com.ar/propiedades
+2026-04-25 17:09:33,246 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 17:09:33,246 - scraper - INFO - scrape ejecutado en 5.48 segundos
+2026-04-25 17:09:33,249 - scraper - INFO - Procesando: Integra Negocios
+2026-04-25 17:09:33,249 - scraper - INFO - 
+==================================================
+2026-04-25 17:09:33,249 - scraper - INFO - Iniciando scraping: Integra Negocios
+2026-04-25 17:09:33,249 - scraper - INFO - ==================================================
+2026-04-25 17:09:33,249 - scraper - INFO - Obteniendo: https://www.integranegocios.com.ar/propiedades
+2026-04-25 17:09:35,567 - scraper - INFO - Obteniendo: https://www.hausprop.com/propiedades/
+2026-04-25 17:09:36,326 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 17:09:36,327 - scraper - INFO - scrape ejecutado en 3.08 segundos
+2026-04-25 17:09:36,328 - scraper - INFO - Procesando: Jaef Inmobiliaria
+2026-04-25 17:09:36,328 - scraper - INFO - 
+==================================================
+2026-04-25 17:09:36,328 - scraper - INFO - Iniciando scraping: Jaef Inmobiliaria
+2026-04-25 17:09:36,328 - scraper - INFO - ==================================================
+2026-04-25 17:09:36,328 - scraper - INFO - Obteniendo: https://www.jaefinmobiliaria.com/propiedades
+2026-04-25 17:09:36,784 - scraper - ERROR - Error HTTP 404 en https://www.jaefinmobiliaria.com/propiedades
+2026-04-25 17:09:36,785 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 17:09:36,785 - scraper - INFO - scrape ejecutado en 0.46 segundos
+2026-04-25 17:09:36,786 - scraper - INFO - Procesando: Juan Rioja
+2026-04-25 17:09:36,787 - scraper - INFO - 
+==================================================
+2026-04-25 17:09:36,787 - scraper - INFO - Iniciando scraping: Juan Rioja
+2026-04-25 17:09:36,787 - scraper - INFO - ==================================================
+2026-04-25 17:09:36,787 - scraper - INFO - Obteniendo: https://www.juanrioja.com.ar/propiedades
+2026-04-25 17:09:39,251 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 17:09:39,252 - scraper - INFO - scrape ejecutado en 2.46 segundos
+2026-04-25 17:09:39,252 - scraper - INFO - Procesando: Lakiatto Inmobiliaria
+2026-04-25 17:09:39,253 - scraper - INFO - 
+==================================================
+2026-04-25 17:09:39,253 - scraper - INFO - Iniciando scraping: Lakiatto Inmobiliaria
+2026-04-25 17:09:39,253 - scraper - INFO - ==================================================
+2026-04-25 17:09:39,253 - scraper - INFO - Obteniendo: https://www.lakiatto.com.ar/propiedades
+2026-04-25 17:09:41,074 - scraper - INFO - Propiedades encontradas: 18
+2026-04-25 17:09:41,074 - scraper - INFO - scrape ejecutado en 13.45 segundos
+2026-04-25 17:09:41,078 - scraper - INFO - Datos guardados en: ..\data\haus_propiedades.json
+2026-04-25 17:09:41,079 - scraper - INFO - Procesando: Libertador Servicios Inmobiliarios
+2026-04-25 17:09:41,079 - scraper - INFO - 
+==================================================
+2026-04-25 17:09:41,082 - scraper - INFO - Iniciando scraping: Libertador Servicios Inmobiliarios
+2026-04-25 17:09:41,084 - scraper - INFO - ==================================================
+2026-04-25 17:09:41,084 - scraper - INFO - Obteniendo: https://www.libertadorargentina.com/propiedades
+2026-04-25 17:09:41,989 - scraper - INFO - Obteniendo: https://www.inmobiliariamanarin.com.ar
+2026-04-25 17:09:44,985 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 17:09:44,986 - scraper - INFO - scrape ejecutado en 3.91 segundos
+2026-04-25 17:09:44,987 - scraper - INFO - Procesando: Galindo Negocios Inmobiliarios
+2026-04-25 17:09:44,987 - scraper - INFO - 
+==================================================
+2026-04-25 17:09:44,987 - scraper - INFO - Iniciando scraping: Galindo Negocios Inmobiliarios
+2026-04-25 17:09:44,987 - scraper - INFO - ==================================================
+2026-04-25 17:09:44,988 - scraper - INFO - Obteniendo: https://www.galindoinmobiliaria.com.ar/propiedades
+2026-04-25 17:09:47,151 - scraper - ERROR - Error HTTP 404 en https://www.galindoinmobiliaria.com.ar/propiedades
+2026-04-25 17:09:47,151 - scraper - INFO - Propiedades encontradas: 0
+2026-04-25 17:09:47,151 - scraper - INFO - scrape ejecutado en 2.16 segundos
+2026-04-25 17:09:47,151 - scraper - INFO - Procesando: Gamag Propiedades
+2026-04-25 17:09:47,151 - scraper - INFO - 
+==================================================
+2026-04-25 17:09:47,151 - scraper - INFO - Iniciando scraping: Gamag Propiedades
+2026-04-25 17:09:47,151 - scraper - INFO - ==================================================
+2026-04-25 17:09:47,152 - scraper - INFO - Obteniendo: https://www.gamagpropiedades.com.ar/propiedades
+2026-04-25 17:09:47,170 - scraper - INFO - Obteniendo: https://www.lakiatto.com.ar/propiedades/
+2026-04-25 17:09:47,545 - scraper - INFO - Propiedades encontradas: 11
+2026-04-25 17:09:47,545 - scraper - INFO - scrape ejecutado en 14.51 segundos
+2026-04-25 17:09:47,556 - scraper - INFO - Datos guardados en: ..\data\inmobiliaria_manarin.json
+2026-04-25 17:09:52,574 - scraper - INFO - Propiedades encontradas: 18
+2026-04-25 17:09:52,574 - scraper - INFO - scrape ejecutado en 13.32 segundos
+2026-04-25 17:09:52,578 - scraper - INFO - Datos guardados en: ..\data\lakiatto_inmobiliaria.json
+2026-04-25 17:09:56,151 - scraper - INFO - Obteniendo: https://www.gamagpropiedades.com.ar
+2026-04-25 17:09:59,705 - scraper - INFO - Propiedades encontradas: 13
+2026-04-25 17:09:59,705 - scraper - INFO - scrape ejecutado en 12.55 segundos
+2026-04-25 17:09:59,709 - scraper - INFO - Datos guardados en: ..\data\gamag_propiedades.json
+2026-04-25 17:09:59,715 - scraper - INFO - Datos guardados en: ..\data\propiedades_rosario_20260425_170959.json
+2026-04-25 17:09:59,717 - scraper - INFO - Datos guardados en: ..\data\resumen_scraping_20260425_170959.json
+2026-04-25 17:09:59,718 - scraper - INFO - 
+############################################################
+2026-04-25 17:09:59,718 - scraper - INFO - # SCRAPING COMPLETADO
+2026-04-25 17:09:59,718 - scraper - INFO - # Tiempo total: 39.60 segundos
+2026-04-25 17:09:59,718 - scraper - INFO - # Propiedades totales: 68
+2026-04-25 17:09:59,718 - scraper - INFO - # Errores: 0
+2026-04-25 17:09:59,718 - scraper - INFO - ############################################################
+
+2026-04-25 17:09:59,718 - scraper - INFO - run ejecutado en 39.60 segundos

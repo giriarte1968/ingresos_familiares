@@ -1,0 +1,26 @@
+=== DEBUG VALUACION: Ayacucho ===
+ID: unknown
+Fecha: 2026-04-27 19:13:21
+--------------------------------------------------
+m2 Equivalentes: 27.00
+Ancla: 1850 | USD/m2: None
+Cluster Mediana: 0.00 (0 muestras)
+Metodo Base: Ancla (sin datos web)
+m2 Base Calibrada: 1583.60
+--------------------------------------------------
+NLP Ajuste: 5.00% | Detecciones: [('luminoso', 0.05)]
+Factor Estructural con NLP: 1.0080
+Raiz (Factor Estructural con NLP): 1.0040
+Valor m2 Modelado: N/A
+--------------------------------------------------
+Factor Estructural Puro: 0.9600
+Raiz Factor: 0.9798
+Depreciacion: 1.0000
+Factor Total: 0.9600
+Delta Estado: 0.1500
+Delta Calidad: 0.0000
+Delta Antiguedad: -0.1440
+Estrato: Real
+--------------------------------------------------
+FORMULA: 27.00 x 1583.60 x 1.0080 = $36,770.85
+Valor Cierre (-8%): $33,829.18

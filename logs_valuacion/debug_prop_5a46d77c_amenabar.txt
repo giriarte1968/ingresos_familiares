@@ -1,0 +1,26 @@
+=== DEBUG VALUACION: Amenabar ===
+ID: prop_5a46d77c
+Fecha: 2026-04-27 19:30:37
+--------------------------------------------------
+m2 Equivalentes: 51.73
+Ancla: 1100 | USD/m2: 1100
+Cluster Mediana: 0.00 (0 muestras)
+Metodo Base: Ancla (sin datos web)
+m2 Base Calibrada: 822.80
+--------------------------------------------------
+NLP Ajuste: 0.00% | Detecciones: []
+Factor Estructural con NLP: 0.8600
+Raiz (Factor Estructural con NLP): 0.9274
+Valor m2 Modelado: N/A
+--------------------------------------------------
+Factor Estructural Puro: 0.8600
+Raiz Factor: 0.9274
+Depreciacion: 1.0000
+Factor Total: 0.8600
+Delta Estado: 0.0000
+Delta Calidad: 0.0000
+Delta Antiguedad: -0.2520
+Estrato: Real
+--------------------------------------------------
+FORMULA: 51.73 x 822.80 x 0.8600 = $28,744.06
+Valor Cierre (-8%): $26,444.53

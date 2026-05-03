@@ -1,0 +1,119 @@
+{
+  "timestamp": "2026-04-25T17:09:59.715889",
+  "elapsed_seconds": 39.6,
+  "inmobiliarias_processed": 20,
+  "total_properties": 68,
+  "errors_count": 0,
+  "errors": [],
+  "stats": {
+    "start_time": "2026-04-25T17:09:20.116820",
+    "elapsed_seconds": 39.6,
+    "pages_scraped": 17,
+    "properties_found": 0,
+    "properties_saved": 0,
+    "errors_count": 0,
+    "errors": [],
+    "inmobiliarias_processed": [
+      {
+        "nombre": "Diego Ferreyra Bienes Raíces",
+        "status": "ok",
+        "timestamp": "2026-04-25T17:09:21.220390"
+      },
+      {
+        "nombre": "Guillermo Rodríguez Inmobiliaria",
+        "status": "ok",
+        "timestamp": "2026-04-25T17:09:21.418745"
+      },
+      {
+        "nombre": "Bassini Negocios Inmobiliarios",
+        "status": "ok",
+        "timestamp": "2026-04-25T17:09:21.502554"
+      },
+      {
+        "nombre": "Fiorina Propiedades",
+        "status": "ok",
+        "timestamp": "2026-04-25T17:09:22.270271"
+      },
+      {
+        "nombre": "Gardiol Propiedades",
+        "status": "ok",
+        "timestamp": "2026-04-25T17:09:23.252392"
+      },
+      {
+        "nombre": "Dunod Propiedades",
+        "status": "ok",
+        "timestamp": "2026-04-25T17:09:24.776311"
+      },
+      {
+        "nombre": "Grupo ISA",
+        "status": "ok",
+        "timestamp": "2026-04-25T17:09:27.623716"
+      },
+      {
+        "nombre": "Futura Negocios Inmobiliarios",
+        "status": "ok",
+        "timestamp": "2026-04-25T17:09:27.760577"
+      },
+      {
+        "nombre": "Gonzalo Guiñazú",
+        "status": "ok",
+        "timestamp": "2026-04-25T17:09:28.137173"
+      },
+      {
+        "nombre": "Ing. Massoud Servicios Inmobiliarios",
+        "status": "ok",
+        "timestamp": "2026-04-25T17:09:33.028048"
+      },
+      {
+        "nombre": "Imperia Propiedades",
+        "status": "ok",
+        "timestamp": "2026-04-25T17:09:33.246224"
+      },
+      {
+        "nombre": "Integra Negocios",
+        "status": "ok",
+        "timestamp": "2026-04-25T17:09:36.326992"
+      },
+      {
+        "nombre": "Jaef Inmobiliaria",
+        "status": "ok",
+        "timestamp": "2026-04-25T17:09:36.785426"
+      },
+      {
+        "nombre": "Juan Rioja",
+        "status": "ok",
+        "timestamp": "2026-04-25T17:09:39.251284"
+      },
+      {
+        "nombre": "Haus Propiedades",
+        "status": "ok",
+        "timestamp": "2026-04-25T17:09:41.074289"
+      },
+      {
+        "nombre": "Libertador Servicios Inmobiliarios",
+        "status": "ok",
+        "timestamp": "2026-04-25T17:09:44.985848"
+      },
+      {
+        "nombre": "Galindo Negocios Inmobiliarios",
+        "status": "ok",
+        "timestamp": "2026-04-25T17:09:47.151556"
+      },
+      {
+        "nombre": "Inmobiliaria Manarin",
+        "status": "ok",
+        "timestamp": "2026-04-25T17:09:47.545767"
+      },
+      {
+        "nombre": "Lakiatto Inmobiliaria",
+        "status": "ok",
+        "timestamp": "2026-04-25T17:09:52.574588"
+      },
+      {
+        "nombre": "Gamag Propiedades",
+        "status": "ok",
+        "timestamp": "2026-04-25T17:09:59.705250"
+      }
+    ]
+  }
+}
