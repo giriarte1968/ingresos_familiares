@@ -3717,7 +3717,7 @@ def mostrar_propiedades(mes):
                 try:
                     from parsers.mercado_inmobiliario import (
                         sanitizar_propiedad, calcular_m2_equivalentes, calcular_factores,
-                        calcular_base_calibrada, obtener_mediana_cluster
+                        calcular_base_calibrada, obtener_mediana_cluster_v2
                     )
                     from parsers.nlp_inmobiliario import calcular_ajuste_nlp_detallado
                     
@@ -3726,11 +3726,15 @@ def mostrar_propiedades(mes):
                     p_deb['antiguedad'] = 2026 - a_const
                     
                     # 1. Base Calibrada Primero (para obtener ventana_usada)
-                    mb_d, met, res_meta = calcular_base_calibrada(
+                    # Nota: calcular_base_calibrada retorna 2 valores (base, metodo), NO 3
+                    cal_result = calcular_base_calibrada(
                         resultado.get('valor_m2_actual_usd', 1500),
                         {'zona': p_deb.get('zona'), 'dormitorios': p_deb.get('dormitorios', 2), 
                          'lat': prop.get('lat'), 'lon': prop.get('lon'), 'anio_construccion': a_const}
                     )
+                    mb_d = cal_result[0] if isinstance(cal_result, tuple) else cal_result
+                    met = cal_result[1] if isinstance(cal_result, tuple) and len(cal_result) > 1 else ""
+                    res_meta = {}  # Metadata no disponible en esta versión
                     
                     # Extraer ventana usada desde metadata de los nodos
                     res_meta_nodes = res_meta.get('nodes', [{}])[0].get('resolution_metadata', {})
@@ -3740,15 +3744,20 @@ def mostrar_propiedades(mes):
                     me_d = calcular_m2_equivalentes(p_deb)
                     fd = calcular_factores(p_deb, ventana_usada=ventana_usada)
                     
-                    # Wrapper seguro para obtener_mediana_cluster (devuelve 2 valores: valor, metadata)
+                    # Usar v2 que retorna 3 valores (valor, n, meta)
                     try:
-                        med_result = obtener_mediana_cluster(p_deb.get('zona'), p_deb.get('dormitorios', 2), 'venta')
-                        if isinstance(med_result, tuple) and len(med_result) >= 2:
-                            cl_d, n_cl = med_result[0], med_result[1].get('n_filtradas', 0) if isinstance(med_result[1], dict) else 0
+                        med_result = obtener_mediana_cluster_v2(p_deb.get('zona'), p_deb.get('dormitorios', 2), 'venta')
+                        if isinstance(med_result, tuple) and len(med_result) >= 3:
+                            cl_d, n_cl, meta_cluster = med_result[0], med_result[1], med_result[2]
+                        elif isinstance(med_result, tuple) and len(med_result) >= 2:
+                            cl_d, n_cl = med_result[0], med_result[1]
+                            meta_cluster = {}
                         else:
                             cl_d, n_cl = med_result if med_result else 0, 0
+                            meta_cluster = {}
                     except Exception as e:
                         cl_d, n_cl = 0, 0
+                        meta_cluster = {}
                     
                     aj_nlp, det_nlp = calcular_ajuste_nlp_detallado(prop.get('descripcion_libre', ''))
                     
