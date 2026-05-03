@@ -10,6 +10,68 @@ DATOS_MERCADO_FILE = os.path.join(
     'datos_mercado.json'
 )
 
+# === ENTRYPOINT UNIFICADO ===
+def valuar_entrada(propiedad, fecha_ref=None):
+    """
+    Entry point unificado para valuación.
+    Retorna breakdown completo para auditar UI vs CLI.
+    
+    Returns:
+        dict con: m2_equiv, m2_base, percentil_usado, n_muestras, factor_final, valor_venta, debug_info
+    """
+    from parsers.motor_vpp_core import get_binance_usdt_ars
+    
+    zona = propiedad.get('zona', 'Centro')
+    dorms = propiedad.get('dormitorios', 2)
+    lat = propiedad.get('lat')
+    lon = propiedad.get('lon')
+    anio_const = propiedad.get('anio_construccion', 2020)
+    
+    # 1. m2 equivalentes
+    m2_equiv = calcular_m2_equivalentes(propiedad)
+    
+    # 2. Cluster con v2
+    from parsers.mercado_inmobiliario import obtener_mediana_cluster_v2
+    valor_cluster, n_muestras, meta_cluster = obtener_mediana_cluster_v2(
+        zona, dorms, operacion='venta'
+    )
+    
+    # 3. Base calibrada (usa cluster directamente si hay muestras)
+    if n_muestras >= 4:
+        m2_base = valor_cluster
+        metodo = f"Cluster P33 ({n_muestras} muestras)"
+    else:
+        # Fallback a ancla
+        from parsers.location_engine import get_ancla_mas_cercana
+        ancla = get_ancla_mas_cercana(lat, lon, cargar_anclas())
+        valor_ancla = ancla.get('usd_m2', 1500) if ancla else 1500
+        antiguedad = 2026 - anio_const
+        factor_deprec = max(0.5, 1.0 - (antiguedad * 0.006))
+        m2_base = valor_ancla * factor_deprec
+        metodo = f"Ancla ({n_muestras} muestras)"
+    
+    # 4. Factores - usar el total directamente (ya incluye todo)
+    factores = calcular_factores(propiedad)
+    factor_total = factores.get('total', 1.0)
+    
+    # 5. Valor final (misma fórmula que v7)
+    valor_venta = m2_equiv * m2_base * factor_total
+    
+    return {
+        'm2_equiv': m2_equiv,
+        'm2_base': m2_base,
+        'percentil_usado': meta_cluster.get('percentil_usado', 'P33'),
+        'n_muestras': n_muestras,
+        'factor_final': factor_total,
+        'valor_venta': valor_venta,
+        'debug_info': {
+            'zona': zona,
+            'dorms': dorms,
+            'metodo': metodo
+        }
+    }
+
+
 # --- PARÁMETROS DE CALIBRACIÓN V10.1 ---
 UMBRAL_CONFIANZA_SCRAPING = 8   # Muestras mínimas para confiar en el scraping
 NEGOCIACION_ESTANDAR = 0.92    # -8% (Precio lista vs cierre en Rosario 2026)

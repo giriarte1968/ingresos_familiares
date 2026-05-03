@@ -7,6 +7,31 @@ TTL_ENTORNO = {
 TTL_CORTO = TTL_ENTORNO['corto']
 TTL_MEDIO = TTL_ENTORNO['medio']
 TTL_LARGO = TTL_ENTORNO['largo']
+
+# === SELLO DE RUNTIME (para debug UI vs CLI) ===
+def _log_runtime_sello(origen="UI"):
+    """Log de runtime para auditar fuente de verdad."""
+    import parsers.mercado_inmobiliario as mi
+    import subprocess
+    
+    try:
+        git_hash = subprocess.run(['git', 'rev-parse', 'HEAD'], capture_output=True, text=True, cwd=os.path.dirname(os.path.abspath(__file__))).stdout.strip()[:8]
+    except:
+        git_hash = "unknown"
+    
+    # Path del cache
+    cache_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cache_scraping.json')
+    
+    print(f"=== SELLO RUNTIME [{origen}] ===")
+    print(f"git_hash: {git_hash}")
+    print(f"modulo: {mi.__file__}")
+    print(f"cache: {cache_path} (existe: {os.path.exists(cache_path)})")
+    print(f"APP_ENV: {ENV}")
+    print(f"DISABLE_CACHE: {os.getenv('DISABLE_CACHE', 'N/A')}")
+    print("========================")
+
+_log_runtime_sello("UI")
+
 import streamlit as st
 
 def _verificar_imports():
