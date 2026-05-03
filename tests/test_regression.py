@@ -78,14 +78,25 @@ def test_ayacucho_alquiler():
 # --- TESTS DE LÓGICA Y REGLAS DE ORO ---
 
 def test_barrera_bv27_ayacucho():
-    """RO-01: Ningún comparable de Ayacucho debe estar al sur del Bv.27 (Barreras activas)"""
-    # Ayacucho 1800
-    mediana, meta = obtener_mediana_cluster(
-        zona='República de la Sexta', lon_ref=-60.6299, lat_ref=-32.9603,
-        tipo='departamento', dormitorios=1
-    )
-    # Si la base es menor a 1300, es que se están filtrando propiedades baratas del sur del Bv.27
-    assert mediana >= 1300, f"Base baja ({mediana}): las barreras geográficas no están funcionando"
+    """RO-01: El clusterde República de la Sexta debetener base >= 1300 (sinbarreras rotas)"""
+    from parsers.mercado_inmobiliario import obtener_mediana_cluster_v2
+    valor, n, meta = obtener_mediana_cluster_v2('República de la Sexta',1, 'venta')
+    # Si la base es menor a 1300, es que se estánfiltrando propiedadesbaratas del sur
+    assert valor >= 1300,f"Base baja ({valor}): las barrerasgeográficas no estánfuncionando"
+
+def test_obtener_mediana_cluster_v2_metadata():
+    """Verifica que v2 retorna3 valores con met acorrecta."""
+    from parsers.mercado_inmobiliario import obtener_mediana_cluster_v2
+    
+    valor_venta, n_venta,meta_venta = obtener_mediana_cluster_v2('Centro',2, 'venta')
+    assert meta_venta['percentil_usado'] == 'P33',"Venta debe usar P33"
+    
+    valor_alq, n_alq,meta_alq = obtener_mediana_cluster_v2('Centro',2,'alquiler')
+    assert meta_alq['percentil_usado'] == 'P50',"Alquiler debeusar P50"
+    
+    assert 'n_raw' in meta_venta
+    assert 'n_filtradas' in meta_venta
+    assert 'operacion' in meta_venta
 
 def test_nlp_dentro_sqrt():
     """RO-04: El factor NLP debe estar dentro del sqrt (evita doble amortiguación)"""

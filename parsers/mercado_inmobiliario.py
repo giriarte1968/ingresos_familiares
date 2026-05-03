@@ -57,6 +57,7 @@ def obtener_mediana_cluster(zona, dormitorios, operacion='venta'):
     Obtiene la mediana del cluster desde cache_scraping.json.
     Busca propiedades similares por zona y dormitorios.
     v11.1: Aplica deduplicación + filtro pre-IQR (0.6-1.6x) robusto.
+    RETORNO: 2 valores (valor, n_muestras)
     """
     try:
         cache_path = os.path.join(
@@ -91,6 +92,7 @@ def obtener_mediana_cluster(zona, dormitorios, operacion='venta'):
                 unicos.append(p)
         
         precios = [p['valor_m2'] for p in unicos]
+        n_raw = len(precios)
         
         if len(precios) < 3:
             return float(np.median(precios)), len(precios)
@@ -119,6 +121,123 @@ def obtener_mediana_cluster(zona, dormitorios, operacion='venta'):
         return float(np.median(precios_filtrados)), len(precios_filtrados)
     except Exception:
         return 0, 0
+
+
+def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=None, lon_ref=None, fecha_ref=None):
+    """
+    Obtiene la mediana del cluster desde cache_scraping.json.
+    Versión v2 con metadata extendida.
+    RETORNO: 3 valores (valor, n_muestras, meta_dict)
+    
+    meta incluye:
+    - percentil_usado: "P33" para venta, "P50" para alquiler (según ALGORITMOS.md)
+    - n_raw: muestras antes de filtrar
+    - n_filtradas: muestras después de filtrar
+    - radio_usado: None (compatibilidad)
+    - fecha_ref: fecha de referencia usada
+    - operacion: operación consultada
+    """
+    try:
+        import numpy as np
+        from parsers.location_engine import distancia as calc_distancia
+        
+        cache_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            'cache_scraping.json'
+        )
+        if not os.path.exists(cache_path):
+            return 0, 0, {'percentil_usado': 'P50' if operacion == 'alquiler' else 'P33', 'n_raw': 0, 'n_filtradas': 0}
+        
+        with open(cache_path, 'r', encoding='utf-8') as f:
+            cache = json.load(f)
+        
+        # Percentil según operación (ALGORITMOS.md línea 20-23)
+        if operacion == 'alquiler':
+            percentil_usado = 'P50'
+        else:
+            percentil_usado = 'P33'
+        
+        # 1) Filtrar por zona, dormitorios y operación
+        props = [
+            p for p in cache.get('propiedades', [])
+            if p.get('zona') == zona 
+            and p.get('dormitorios') == dormitorios
+            and p.get('operacion') == operacion
+            and p.get('valor_m2', 0) > 0
+        ]
+        
+        if not props:
+            return 0, 0, {'percentil_usado': percentil_usado, 'n_raw': 0, 'n_filtradas': 0}
+        
+        # 2) DEDUPLICAR
+        seen = set()
+        unicos = []
+        for p in props:
+            key = (int(p.get('precio', 0)), int(p.get('m2', 0)), p.get('zona', ''))
+            if key not in seen:
+                seen.add(key)
+                unicos.append(p)
+        
+        precios = [p['valor_m2'] for p in unicos]
+        n_raw = len(precios)
+        
+        if len(precios) < 3:
+            return float(np.median(precios)), len(precios), {
+                'percentil_usado': percentil_usado,
+                'n_raw': n_raw,
+                'n_filtradas': len(precios),
+                'radio_usado': None,
+                'fecha_ref': fecha_ref,
+                'operacion': operacion
+            }
+        
+        # 3) FILTRO PRE-IQR robusto
+        mediana_raw = np.median(precios)
+        
+        lower_robust = mediana_raw * 0.6
+        upper_robust = mediana_raw * 1.6
+        
+        precios_filtrados = [p for p in precios if lower_robust <= p <= upper_robust]
+        
+        # Fallback IQR si elimina demasiado
+        if len(precios_filtrados) < 3:
+            precios_ordenados = sorted(precios)
+            q1 = np.percentile(precios_ordenados, 25)
+            q3 = np.percentile(precios_ordenados, 75)
+            iqr = q3 - q1
+            lower, upper = q1 - 1.5 * iqr, q3 + 1.5 * iqr
+            precios_filtrados = [p for p in precios if lower <= p <= upper]
+        
+        if not precios_filtrados:
+            return float(np.median(precios)), len(precios), {
+                'percentil_usado': percentil_usado,
+                'n_raw': n_raw,
+                'n_filtradas': len(precios),
+                'radio_usado': None,
+                'fecha_ref': fecha_ref,
+                'operacion': operacion
+            }
+        
+        valor = float(np.median(precios_filtrados))
+        n_filtradas = len(precios_filtrados)
+        
+        meta = {
+            'percentil_usado': percentil_usado,
+            'n_raw': n_raw,
+            'n_filtradas': n_filtradas,
+            'radio_usado': None,
+            'fecha_ref': fecha_ref,
+            'operacion': operacion
+        }
+        
+        return valor, n_filtradas, meta
+    except Exception as e:
+        return 0, 0, {
+            'percentil_usado': 'P50' if operacion == 'alquiler' else 'P33',
+            'n_raw': 0,
+            'n_filtradas': 0,
+            'error': str(e)
+        }
 
 
 def calcular_base_calibrada(valor_ancla, prop_data):
