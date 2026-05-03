@@ -1,0 +1,1434 @@
+{
+  "all_requests": [
+    {
+      "url": "https://propia.com.ar/",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/entry.CGYO1WLn.css",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/LoginForm.D2Tt_WR5.css",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/Header.H11UszMd.css",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/index.DwadTt7a.css",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/useStats.iKbAw1W2.css",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DkCfHANM.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DlBEethJ.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/Dyoo396a.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/BffMw2Yf.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/ev6g6VXw.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DuOs-PQO.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DR2D7c8o.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/4FvsCuGI.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/B098L5oo.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DFntngxr.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/mjuUqeD7.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/goymoH7I.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/K1Qh3a-I.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DZbcjPcN.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/COoTgT0r.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/C7Yb_Z9z.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/Xo3SEn5N.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/NNgCPBFT.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/vwDFvhv1.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CkcmOT7I.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/BAmsqaFG.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/BlSJkQtN.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CHnPK9xy.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CiVsia8O.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CIMYAIKO.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/cmRi3tHn.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CvxeIHJc.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/D_l62l8M.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DxZ9kzpQ.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DDrrx9YO.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DoJ1N7gk.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/ByEHPYl9.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/BSxRl4Hc.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DlAUqK2U.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/zfaTssuB.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CY21X7ct.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/C2zI4OZn.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/uzOQvLFA.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/BO2nIQ5S.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/BntVxttK.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CZA24fPl.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/8lQ9eglw.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/d31wQE8R.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/Cr046aJs.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/C1Y0aZi9.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/D-2qos__.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/6rRUItNj.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CeTsBniw.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CdTHBefJ.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/qzAHQX2-.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DHQeLuI0.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/dkgYMxY0.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/sOjqEaxN.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_ipx/_/images/logo-propia-slogan.svg",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_ipx/_/images/icon-propia.svg",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/B2WkrYNk.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CmbPR-Gm.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/BXZBMMmd.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/_4p52-H8.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/BNAuEzBN.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DkjEl-oY.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/HeaderFilters.BbzawUuu.css",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/zU95v8Yw.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DeS8JeYO.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/_x41iSY0.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/IPmTnYDU.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CZrQ9aBr.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/mfEevzuO.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CQgtgDna.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DvrOAnAX.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/Be8DNqQX.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/D8D003qd.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/BLBZA37H.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DXxKIFzB.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CXBlubTM.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/COWh__P9.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/werBQzMw.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/4ZIRduKy.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CnvAYxgO.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CC4irlqA.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia-assets-v2.nyc3.cdn.digitaloceanspaces.com/static/images/home.webp",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia-assets-v2.nyc3.cdn.digitaloceanspaces.com/static/images/home2.webp",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia-assets-v2.nyc3.cdn.digitaloceanspaces.com/static/images/home3.webp",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia-assets-v2.nyc3.cdn.digitaloceanspaces.com/static/images/home4.webp",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia-assets-v2.nyc3.cdn.digitaloceanspaces.com/static/images/home-sos-corredor.webp",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia-assets-v2.nyc3.cdn.digitaloceanspaces.com/static/images/home-sos-corredor-notebook.webp",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/fonts/Intelo-Regular.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/fonts/Intelo-Bold.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia-assets-v2.nyc3.cdn.digitaloceanspaces.com/static/branding/logo_propia_red_white.svg",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia-assets-v2.nyc3.cdn.digitaloceanspaces.com/static/nexus/nexus_digital_horizontal_white.svg",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/cdn-cgi/challenge-platform/scripts/jsd/main.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/builds/meta/302b5fc6-f367-4381-98dd-bbd48bc24401.json",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/cdn-cgi/challenge-platform/h/g/scripts/jsd/a80f1640690f/main.js?",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/cdn-cgi/challenge-platform/h/g/jsd/oneshot/a80f1640690f/0.39010003678913874:1777036077:xF8k8YShYJFc5mPmd9Ymm5Vi1sl1eCpqSJ9S26YCbbY/9f15a1051a881e86",
+      "method": "POST"
+    },
+    {
+      "url": "https://admin.propia.com.ar/items/property_types?fields=id&fields=name&fields=visibility",
+      "method": "GET"
+    },
+    {
+      "url": "https://admin.propia.com.ar/items/location_cities?limit=-1&fields=id&fields=name&fields=visibility&sort=order,+name",
+      "method": "GET"
+    },
+    {
+      "url": "https://admin.propia.com.ar/items/content_news?limit=5&fields=id&fields=title&fields=image_cover&fields=slug&fields=content&filter=%7B%22status%22:%7B%22_eq%22:%22published%22%7D%7D&sort=-date_created",
+      "method": "GET"
+    },
+    {
+      "url": "https://admin.propia.com.ar/items/advertising_ads?limit=4&filter=%7B%22status%22:%22published%22,%22position%22:%22home%22,%22start_date%22:%7B%22_lte%22:%222026-04-24T13:59:22.761Z%22%7D,%22end_date%22:%7B%22_gte%22:%222026-04-24T13:59:22.761Z%22%7D%7D&sort=sort&sort=priority&sort=-date_created&fields=id&fields=name&fields=type&fields=content&fields=media&fields=link&fields=position&fields=start_date&fields=end_date",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia-assets-v2.nyc3.cdn.digitaloceanspaces.com/static/images/logocordobaprop.png",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia-assets-v2.nyc3.cdn.digitaloceanspaces.com/static/images/logocabaprop.png",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia-assets-v2.nyc3.cdn.digitaloceanspaces.com/static/images/logomendozaprop.png",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia-assets-v2.nyc3.cdn.digitaloceanspaces.com/static/images/ads/COCIR_PROPIA_GIF_02.gif",
+      "method": "GET"
+    },
+    {
+      "url": "https://analytics.google.com/g/collect?v=2&tid=G-VZJNY6GTX4&gtm=45je64m2v886240908za200zd886240908&_p=1777039162644&_gaz=1&gcd=13l3l3l3l1l1&npa=0&dma=0&_eu=AAAAAGA&are=1&cid=1509720791.1777039163&frm=0&pscdl=noapi&rcb=14&sr=1280x720&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uam=&uamb=0&uap=Windows&uapv=10.0&uaw=0&ul=en-us&_s=1&tag_exp=0~115616986~115938465~115938468~117266401~117512543~118167060&sid=1777039162&sct=1&seg=0&dl=https%3A%2F%2Fpropia.com.ar%2F&dt=El%20buscador%20de%20propiedades%20de%20la%20regi%C3%B3n%20%7C%20Propia&en=page_view&_fv=1&_nsi=1&_ss=1&_ee=1&tfd=1532",
+      "method": "POST"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CbC5LNcE.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/B0VZVSUY.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/3vXdwtgk.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/HeaderFilters.BbzawUuu.css",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/werBQzMw.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/zU95v8Yw.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/COWh__P9.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/4ZIRduKy.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DeS8JeYO.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CnvAYxgO.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CC4irlqA.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/_x41iSY0.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CQgtgDna.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/IPmTnYDU.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CZrQ9aBr.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/mfEevzuO.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DvrOAnAX.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/Be8DNqQX.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/D8D003qd.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/BLBZA37H.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DXxKIFzB.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CXBlubTM.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://admin.propia.com.ar/assets/2d06822e-182a-495e-ab27-c1ae9b370983?withoutEnlargement=true&format=webp&width=310&height=350&quality=80",
+      "method": "GET"
+    },
+    {
+      "url": "https://admin.propia.com.ar/assets/c0e136c3-16ae-4951-9719-65d32125d1d4?withoutEnlargement=true&format=webp&width=310&height=350&quality=80",
+      "method": "GET"
+    },
+    {
+      "url": "https://admin.propia.com.ar/items/location_neighborhoods?limit=-1&fields=id&fields=name&fields=location_city_id&sort=name",
+      "method": "GET"
+    },
+    {
+      "url": "https://admin.propia.com.ar/assets/b0139a14-41e7-487e-aa13-b0c702900b5d?withoutEnlargement=true&format=webp",
+      "method": "GET"
+    },
+    {
+      "url": "https://admin.propia.com.ar/assets/a9daa0c9-9674-49db-b862-0e71f76abfaf?withoutEnlargement=true&format=webp",
+      "method": "GET"
+    },
+    {
+      "url": "https://admin.propia.com.ar/assets/5d6f1953-a039-408c-9026-88bc9fe70ac6?withoutEnlargement=true&format=webp",
+      "method": "GET"
+    },
+    {
+      "url": "https://admin.propia.com.ar/assets/a4ce8afb-32e3-4cf8-9f8c-79a4da2a22fc?withoutEnlargement=true&format=webp",
+      "method": "GET"
+    },
+    {
+      "url": "https://admin.propia.com.ar/assets/6cbf8999-5244-48d1-91ad-397cf652c7c1?withoutEnlargement=true&format=webp",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia-assets-v2.nyc3.cdn.digitaloceanspaces.com/static/images/img404.webp",
+      "method": "GET"
+    },
+    {
+      "url": "https://admin.propia.com.ar/items/location_subneighborhoods?limit=-1&fields=id&fields=name&fields=location_city_id&fields=location_neighborhood_id&sort=name",
+      "method": "GET"
+    },
+    {
+      "url": "https://soporte.nexusdigital.ar/api/v1/widget/conversations?website_token=komRkp6sFXtzWzPJRN3EQjWc",
+      "method": "GET"
+    },
+    {
+      "url": "https://soporte.nexusdigital.ar/api/v1/widget/messages?website_token=komRkp6sFXtzWzPJRN3EQjWc",
+      "method": "GET"
+    },
+    {
+      "url": "https://soporte.nexusdigital.ar/api/v1/widget/inbox_members?website_token=komRkp6sFXtzWzPJRN3EQjWc",
+      "method": "GET"
+    },
+    {
+      "url": "https://soporte.nexusdigital.ar/api/v1/widget/contact?website_token=komRkp6sFXtzWzPJRN3EQjWc",
+      "method": "GET"
+    },
+    {
+      "url": "https://soporte.nexusdigital.ar/api/v1/widget/campaigns?website_token=komRkp6sFXtzWzPJRN3EQjWc",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/departamentos/rosario/venta",
+      "method": "GET"
+    },
+    {
+      "url": "https://analytics.google.com/g/collect?v=2&tid=G-VZJNY6GTX4&gtm=45je64m2v886240908za200zd886240908&_p=1777039162644&gcd=13l3l3l3l1l1&npa=0&dma=0&_eu=AAAAAGQ&are=1&cid=1509720791.1777039163&frm=0&pscdl=noapi&rcb=14&sr=1280x720&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uam=&uamb=0&uap=Windows&uapv=10.0&uaw=0&ul=en-us&_s=2&tag_exp=0~115616986~115938465~115938468~117266401~117512543~118167060&sid=1777039162&sct=1&seg=0&dl=https%3A%2F%2Fpropia.com.ar%2F&dt=El%20buscador%20de%20propiedades%20de%20la%20regi%C3%B3n%20%7C%20Propia&en=user_engagement&_et=8990&tfd=10534",
+      "method": "POST"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/entry.CGYO1WLn.css",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DkCfHANM.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/B2WkrYNk.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DDrrx9YO.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/C7Yb_Z9z.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CmbPR-Gm.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/BXZBMMmd.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/4FvsCuGI.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/B098L5oo.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DFntngxr.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/mjuUqeD7.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DR2D7c8o.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/goymoH7I.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DlAUqK2U.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/_4p52-H8.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/Header.H11UszMd.css",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/BNAuEzBN.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/zfaTssuB.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/D_l62l8M.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/Dyoo396a.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CY21X7ct.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/C2zI4OZn.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/uzOQvLFA.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/cmRi3tHn.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/BO2nIQ5S.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CHnPK9xy.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CiVsia8O.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DkjEl-oY.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/LoginForm.D2Tt_WR5.css",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/useStats.iKbAw1W2.css",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/HeaderFilters.BbzawUuu.css",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/zU95v8Yw.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/BffMw2Yf.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/ev6g6VXw.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DuOs-PQO.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/K1Qh3a-I.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DZbcjPcN.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/COoTgT0r.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/Xo3SEn5N.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/NNgCPBFT.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/vwDFvhv1.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CkcmOT7I.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/BAmsqaFG.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/BlSJkQtN.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CIMYAIKO.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CvxeIHJc.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DxZ9kzpQ.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DoJ1N7gk.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/ByEHPYl9.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/BSxRl4Hc.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CZA24fPl.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/8lQ9eglw.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/d31wQE8R.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/Cr046aJs.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/D-2qos__.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DeS8JeYO.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/_x41iSY0.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CdTHBefJ.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/qzAHQX2-.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/IPmTnYDU.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CZrQ9aBr.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/mfEevzuO.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CQgtgDna.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DHQeLuI0.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DvrOAnAX.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/Be8DNqQX.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/D8D003qd.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/dkgYMxY0.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/BLBZA37H.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DXxKIFzB.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CXBlubTM.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DlBEethJ.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/COWh__P9.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/werBQzMw.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/4ZIRduKy.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CnvAYxgO.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/sOjqEaxN.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CC4irlqA.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/fonts/Intelo-Regular.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/fonts/Intelo-Bold.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/ByEHPYl9.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/builds/meta/302b5fc6-f367-4381-98dd-bbd48bc24401.json",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/_4p52-H8.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DlAUqK2U.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/B7ABtknG.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CeTsBniw.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DR2D7c8o.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/B098L5oo.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/Dyoo396a.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CnvAYxgO.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://admin.propia.com.ar/files/?filter=%7B%22title%22:%7B%22_eq%22:%22404-not-found-lottie%22%7D%7D",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia-assets-v2.nyc3.cdn.digitaloceanspaces.com/static/images/portada.png",
+      "method": "GET"
+    },
+    {
+      "url": "https://analytics.google.com/g/collect?v=2&tid=G-VZJNY6GTX4&gtm=45je64m2v886240908za200zd886240908&_p=1777039172239&gcd=13l3l3l3l1l1&npa=0&dma=0&_eu=AAAAAGQ&are=1&cid=1509720791.1777039163&frm=0&pscdl=noapi&rcb=11&sr=1280x720&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uam=&uamb=0&uap=Windows&uapv=10.0&uaw=0&ul=en-us&gaf=2&_s=1&tag_exp=0~115938466~115938469~117266400~117384405~117512543~118463262&sid=1777039162&sct=1&seg=1&dl=https%3A%2F%2Fpropia.com.ar%2F404%3Fredirect%3D%2F&dt=El%20buscador%20de%20propiedades%20de%20la%20regi%C3%B3n%20%7C%20Propia&en=page_view&_ee=1&tfd=668",
+      "method": "POST"
+    },
+    {
+      "url": "https://soporte.nexusdigital.ar/api/v1/widget/conversations?website_token=komRkp6sFXtzWzPJRN3EQjWc&cw_conversation=eyJhbGciOiJIUzI1NiJ9.eyJzb3VyY2VfaWQiOiJmZDNjNTI0NC1lZWM2LTQzYTAtYjc4Ni0yZGIzZWUyY2U0ODIiLCJpbmJveF9pZCI6OCwiZXhwIjoxNzkyNTkxMTcyLCJpYXQiOjE3NzcwMzkxNzJ9.JKzGOYI7p04gosK0X9WfeHWHGD2APkhCGKDxGIux8Iw",
+      "method": "GET"
+    },
+    {
+      "url": "https://soporte.nexusdigital.ar/api/v1/widget/messages?website_token=komRkp6sFXtzWzPJRN3EQjWc&cw_conversation=eyJhbGciOiJIUzI1NiJ9.eyJzb3VyY2VfaWQiOiJmZDNjNTI0NC1lZWM2LTQzYTAtYjc4Ni0yZGIzZWUyY2U0ODIiLCJpbmJveF9pZCI6OCwiZXhwIjoxNzkyNTkxMTcyLCJpYXQiOjE3NzcwMzkxNzJ9.JKzGOYI7p04gosK0X9WfeHWHGD2APkhCGKDxGIux8Iw",
+      "method": "GET"
+    },
+    {
+      "url": "https://soporte.nexusdigital.ar/api/v1/widget/contact?website_token=komRkp6sFXtzWzPJRN3EQjWc&cw_conversation=eyJhbGciOiJIUzI1NiJ9.eyJzb3VyY2VfaWQiOiJmZDNjNTI0NC1lZWM2LTQzYTAtYjc4Ni0yZGIzZWUyY2U0ODIiLCJpbmJveF9pZCI6OCwiZXhwIjoxNzkyNTkxMTcyLCJpYXQiOjE3NzcwMzkxNzJ9.JKzGOYI7p04gosK0X9WfeHWHGD2APkhCGKDxGIux8Iw",
+      "method": "GET"
+    },
+    {
+      "url": "https://analytics.google.com/g/collect?v=2&tid=G-VZJNY6GTX4&gtm=45je64m2v886240908za200zd886240908&_p=1777039172239&gcd=13l3l3l3l1l1&npa=0&dma=0&_eu=AEAAAGQ&ae=a&are=1&cid=1509720791.1777039163&frm=0&pscdl=noapi&rcb=11&sr=1280x720&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uam=&uamb=0&uap=Windows&uapv=10.0&uaw=0&ul=en-us&gaf=2&_s=2&tag_exp=0~115938466~115938469~117266400~117384405~117512543~118463262&sid=1777039162&sct=1&seg=1&dl=https%3A%2F%2Fpropia.com.ar%2F404%3Fredirect%3D%2F&dt=El%20buscador%20de%20propiedades%20de%20la%20regi%C3%B3n%20%7C%20Propia&en=scroll&epn.percent_scrolled=90&_et=10&tfd=5673",
+      "method": "POST"
+    },
+    {
+      "url": "https://propia.com.ar/items?city=1",
+      "method": "GET"
+    },
+    {
+      "url": "https://analytics.google.com/g/collect?v=2&tid=G-VZJNY6GTX4&gtm=45je64m2v886240908za200zd886240908&_p=1777039172239&gcd=13l3l3l3l1l1&npa=0&dma=0&_eu=AAAAAGQ&are=1&cid=1509720791.1777039163&frm=0&pscdl=noapi&rcb=11&sr=1280x720&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uam=&uamb=0&uap=Windows&uapv=10.0&uaw=0&ul=en-us&gaf=2&_s=3&tag_exp=0~115938466~115938469~117266400~117384405~117512543~118463262&sid=1777039162&sct=1&seg=1&dl=https%3A%2F%2Fpropia.com.ar%2F404%3Fredirect%3D%2F&dt=El%20buscador%20de%20propiedades%20de%20la%20regi%C3%B3n%20%7C%20Propia&en=user_engagement&_et=6349&tfd=7025",
+      "method": "POST"
+    },
+    {
+      "url": "https://www.google.com/g/collect?v=2&tid=G-VZJNY6GTX4&gtm=45je64m2v886240908za200zd886240908&_p=1777039172239&gcd=13l3l3l3l1l1&npa=0&dma=0&_eu=AAAAAGQ&are=1&cid=1509720791.1777039163&frm=0&pscdl=noapi&rcb=11&sr=1280x720&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uam=&uamb=0&uap=Windows&uapv=10.0&uaw=0&ul=en-us&gaf=3&_s=3&tag_exp=0%7E115938466%7E115938469%7E117266400%7E117384405%7E117512543%7E118463262&sid=1777039162&sct=1&seg=1&dl=https%3A%2F%2Fpropia.com.ar%2F404%3Fredirect%3D%2F&dt=El+buscador+de+propiedades+de+la+regi%C3%B3n+%7C+Propia&en=user_engagement&_et=6349&tfd=7025",
+      "method": "POST"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/entry.CGYO1WLn.css",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DkCfHANM.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/B2WkrYNk.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DDrrx9YO.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/C7Yb_Z9z.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CmbPR-Gm.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/BXZBMMmd.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/4FvsCuGI.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/B098L5oo.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DFntngxr.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/mjuUqeD7.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DR2D7c8o.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/goymoH7I.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DlAUqK2U.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/_4p52-H8.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/Header.H11UszMd.css",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/BNAuEzBN.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/zfaTssuB.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/D_l62l8M.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/Dyoo396a.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CY21X7ct.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/C2zI4OZn.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/uzOQvLFA.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/cmRi3tHn.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/BO2nIQ5S.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CHnPK9xy.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CiVsia8O.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DkjEl-oY.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/LoginForm.D2Tt_WR5.css",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/useStats.iKbAw1W2.css",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/HeaderFilters.BbzawUuu.css",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/zU95v8Yw.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/BffMw2Yf.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/ev6g6VXw.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DuOs-PQO.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/K1Qh3a-I.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DZbcjPcN.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/COoTgT0r.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/Xo3SEn5N.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/NNgCPBFT.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/vwDFvhv1.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CkcmOT7I.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/BAmsqaFG.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/BlSJkQtN.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CIMYAIKO.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CvxeIHJc.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DxZ9kzpQ.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DoJ1N7gk.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/ByEHPYl9.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/BSxRl4Hc.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CZA24fPl.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/8lQ9eglw.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/d31wQE8R.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/Cr046aJs.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/D-2qos__.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DeS8JeYO.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/_x41iSY0.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CdTHBefJ.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/qzAHQX2-.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/IPmTnYDU.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CZrQ9aBr.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/mfEevzuO.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CQgtgDna.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DHQeLuI0.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DvrOAnAX.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/Be8DNqQX.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/D8D003qd.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/dkgYMxY0.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/BLBZA37H.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DXxKIFzB.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CXBlubTM.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DlBEethJ.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/COWh__P9.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/werBQzMw.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/4ZIRduKy.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CnvAYxgO.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/sOjqEaxN.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CC4irlqA.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/fonts/Intelo-Regular.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/fonts/Intelo-Bold.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/ByEHPYl9.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/builds/meta/302b5fc6-f367-4381-98dd-bbd48bc24401.json",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/_4p52-H8.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DlAUqK2U.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/B7ABtknG.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CeTsBniw.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/DR2D7c8o.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/B098L5oo.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/Dyoo396a.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia.com.ar/_nuxt/CnvAYxgO.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://propia-assets-v2.nyc3.cdn.digitaloceanspaces.com/static/images/portada.png",
+      "method": "GET"
+    },
+    {
+      "url": "https://admin.propia.com.ar/files/?filter=%7B%22title%22:%7B%22_eq%22:%22404-not-found-lottie%22%7D%7D",
+      "method": "GET"
+    },
+    {
+      "url": "https://analytics.google.com/g/collect?v=2&tid=G-VZJNY6GTX4&gtm=45je64m2v886240908za200zd886240908&_p=1777039178883&gcd=13l3l3l3l1l1&npa=0&dma=0&_eu=AAAAAGQ&are=1&cid=1509720791.1777039163&frm=0&pscdl=noapi&rcb=18&sr=1280x720&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uam=&uamb=0&uap=Windows&uapv=10.0&uaw=0&ul=en-us&_s=1&tag_exp=0~115938466~115938468~117266401~117512543&sid=1777039162&sct=1&seg=1&dl=https%3A%2F%2Fpropia.com.ar%2F404%3Fredirect%3D%2F&dt=El%20buscador%20de%20propiedades%20de%20la%20regi%C3%B3n%20%7C%20Propia&en=page_view&_ee=1&tfd=500",
+      "method": "POST"
+    },
+    {
+      "url": "https://soporte.nexusdigital.ar/api/v1/widget/conversations?website_token=komRkp6sFXtzWzPJRN3EQjWc&cw_conversation=eyJhbGciOiJIUzI1NiJ9.eyJzb3VyY2VfaWQiOiJmZDNjNTI0NC1lZWM2LTQzYTAtYjc4Ni0yZGIzZWUyY2U0ODIiLCJpbmJveF9pZCI6OCwiZXhwIjoxNzkyNTkxMTcyLCJpYXQiOjE3NzcwMzkxNzJ9.JKzGOYI7p04gosK0X9WfeHWHGD2APkhCGKDxGIux8Iw",
+      "method": "GET"
+    },
+    {
+      "url": "https://soporte.nexusdigital.ar/api/v1/widget/messages?website_token=komRkp6sFXtzWzPJRN3EQjWc&cw_conversation=eyJhbGciOiJIUzI1NiJ9.eyJzb3VyY2VfaWQiOiJmZDNjNTI0NC1lZWM2LTQzYTAtYjc4Ni0yZGIzZWUyY2U0ODIiLCJpbmJveF9pZCI6OCwiZXhwIjoxNzkyNTkxMTcyLCJpYXQiOjE3NzcwMzkxNzJ9.JKzGOYI7p04gosK0X9WfeHWHGD2APkhCGKDxGIux8Iw",
+      "method": "GET"
+    },
+    {
+      "url": "https://soporte.nexusdigital.ar/api/v1/widget/contact?website_token=komRkp6sFXtzWzPJRN3EQjWc&cw_conversation=eyJhbGciOiJIUzI1NiJ9.eyJzb3VyY2VfaWQiOiJmZDNjNTI0NC1lZWM2LTQzYTAtYjc4Ni0yZGIzZWUyY2U0ODIiLCJpbmJveF9pZCI6OCwiZXhwIjoxNzkyNTkxMTcyLCJpYXQiOjE3NzcwMzkxNzJ9.JKzGOYI7p04gosK0X9WfeHWHGD2APkhCGKDxGIux8Iw",
+      "method": "GET"
+    },
+    {
+      "url": "https://analytics.google.com/g/collect?v=2&tid=G-VZJNY6GTX4&gtm=45je64m2v886240908za200zd886240908&_p=1777039178883&gcd=13l3l3l3l1l1&npa=0&dma=0&_eu=AEAAAGQ&ae=a&are=1&cid=1509720791.1777039163&frm=0&pscdl=noapi&rcb=18&sr=1280x720&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uam=&uamb=0&uap=Windows&uapv=10.0&uaw=0&ul=en-us&_s=2&tag_exp=0~115938466~115938468~117266401~117512543&sid=1777039162&sct=1&seg=1&dl=https%3A%2F%2Fpropia.com.ar%2F404%3Fredirect%3D%2F&dt=El%20buscador%20de%20propiedades%20de%20la%20regi%C3%B3n%20%7C%20Propia&en=scroll&epn.percent_scrolled=90&_et=10&tfd=5504",
+      "method": "POST"
+    }
+  ],
+  "api_requests": [
+    {
+      "url": "https://admin.propia.com.ar/items/property_types?fields=id&fields=name&fields=visibility",
+      "method": "GET"
+    },
+    {
+      "url": "https://admin.propia.com.ar/items/location_cities?limit=-1&fields=id&fields=name&fields=visibility&sort=order,+name",
+      "method": "GET"
+    },
+    {
+      "url": "https://admin.propia.com.ar/items/content_news?limit=5&fields=id&fields=title&fields=image_cover&fields=slug&fields=content&filter=%7B%22status%22:%7B%22_eq%22:%22published%22%7D%7D&sort=-date_created",
+      "method": "GET"
+    },
+    {
+      "url": "https://admin.propia.com.ar/items/advertising_ads?limit=4&filter=%7B%22status%22:%22published%22,%22position%22:%22home%22,%22start_date%22:%7B%22_lte%22:%222026-04-24T13:59:22.761Z%22%7D,%22end_date%22:%7B%22_gte%22:%222026-04-24T13:59:22.761Z%22%7D%7D&sort=sort&sort=priority&sort=-date_created&fields=id&fields=name&fields=type&fields=content&fields=media&fields=link&fields=position&fields=start_date&fields=end_date",
+      "method": "GET"
+    },
+    {
+      "url": "https://analytics.google.com/g/collect?v=2&tid=G-VZJNY6GTX4&gtm=45je64m2v886240908za200zd886240908&_p=1777039162644&_gaz=1&gcd=13l3l3l3l1l1&npa=0&dma=0&_eu=AAAAAGA&are=1&cid=1509720791.1777039163&frm=0&pscdl=noapi&rcb=14&sr=1280x720&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uam=&uamb=0&uap=Windows&uapv=10.0&uaw=0&ul=en-us&_s=1&tag_exp=0~115616986~115938465~115938468~117266401~117512543~118167060&sid=1777039162&sct=1&seg=0&dl=https%3A%2F%2Fpropia.com.ar%2F&dt=El%20buscador%20de%20propiedades%20de%20la%20regi%C3%B3n%20%7C%20Propia&en=page_view&_fv=1&_nsi=1&_ss=1&_ee=1&tfd=1532",
+      "method": "POST"
+    },
+    {
+      "url": "https://admin.propia.com.ar/items/location_neighborhoods?limit=-1&fields=id&fields=name&fields=location_city_id&sort=name",
+      "method": "GET"
+    },
+    {
+      "url": "https://admin.propia.com.ar/items/location_subneighborhoods?limit=-1&fields=id&fields=name&fields=location_city_id&fields=location_neighborhood_id&sort=name",
+      "method": "GET"
+    },
+    {
+      "url": "https://soporte.nexusdigital.ar/api/v1/widget/conversations?website_token=komRkp6sFXtzWzPJRN3EQjWc",
+      "method": "GET"
+    },
+    {
+      "url": "https://soporte.nexusdigital.ar/api/v1/widget/messages?website_token=komRkp6sFXtzWzPJRN3EQjWc",
+      "method": "GET"
+    },
+    {
+      "url": "https://soporte.nexusdigital.ar/api/v1/widget/inbox_members?website_token=komRkp6sFXtzWzPJRN3EQjWc",
+      "method": "GET"
+    },
+    {
+      "url": "https://soporte.nexusdigital.ar/api/v1/widget/contact?website_token=komRkp6sFXtzWzPJRN3EQjWc",
+      "method": "GET"
+    },
+    {
+      "url": "https://soporte.nexusdigital.ar/api/v1/widget/campaigns?website_token=komRkp6sFXtzWzPJRN3EQjWc",
+      "method": "GET"
+    }
+  ]
+}

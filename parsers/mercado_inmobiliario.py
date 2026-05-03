@@ -10,6 +10,68 @@ DATOS_MERCADO_FILE = os.path.join(
     'datos_mercado.json'
 )
 
+# === ENTRYPOINT UNIFICADO ===
+def valuar_entrada(propiedad, fecha_ref=None):
+    """
+    Entry point unificado para valuación.
+    Retorna breakdown completo para auditar UI vs CLI.
+    
+    Returns:
+        dict con: m2_equiv, m2_base, percentil_usado, n_muestras, factor_final, valor_venta, debug_info
+    """
+    from parsers.motor_vpp_core import get_binance_usdt_ars
+    
+    zona = propiedad.get('zona', 'Centro')
+    dorms = propiedad.get('dormitorios', 2)
+    lat = propiedad.get('lat')
+    lon = propiedad.get('lon')
+    anio_const = propiedad.get('anio_construccion', 2020)
+    
+    # 1. m2 equivalentes
+    m2_equiv = calcular_m2_equivalentes(propiedad)
+    
+    # 2. Cluster con v2
+    from parsers.mercado_inmobiliario import obtener_mediana_cluster_v2
+    valor_cluster, n_muestras, meta_cluster = obtener_mediana_cluster_v2(
+        zona, dorms, operacion='venta'
+    )
+    
+    # 3. Base calibrada (usa cluster directamente si hay muestras)
+    if n_muestras >= 4:
+        m2_base = valor_cluster
+        metodo = f"Cluster P33 ({n_muestras} muestras)"
+    else:
+        # Fallback a ancla
+        from parsers.location_engine import get_ancla_mas_cercana
+        ancla = get_ancla_mas_cercana(lat, lon, cargar_anclas())
+        valor_ancla = ancla.get('usd_m2', 1500) if ancla else 1500
+        antiguedad = 2026 - anio_const
+        factor_deprec = max(0.5, 1.0 - (antiguedad * 0.006))
+        m2_base = valor_ancla * factor_deprec
+        metodo = f"Ancla ({n_muestras} muestras)"
+    
+    # 4. Factores - usar el total directamente (ya incluye todo)
+    factores = calcular_factores(propiedad)
+    factor_total = factores.get('total', 1.0)
+    
+    # 5. Valor final (misma fórmula que v7)
+    valor_venta = m2_equiv * m2_base * factor_total
+    
+    return {
+        'm2_equiv': m2_equiv,
+        'm2_base': m2_base,
+        'percentil_usado': meta_cluster.get('percentil_usado', 'P33'),
+        'n_muestras': n_muestras,
+        'factor_final': factor_total,
+        'valor_venta': valor_venta,
+        'debug_info': {
+            'zona': zona,
+            'dorms': dorms,
+            'metodo': metodo
+        }
+    }
+
+
 # --- PARÁMETROS DE CALIBRACIÓN V10.1 ---
 UMBRAL_CONFIANZA_SCRAPING = 8   # Muestras mínimas para confiar en el scraping
 NEGOCIACION_ESTANDAR = 0.92    # -8% (Precio lista vs cierre en Rosario 2026)
@@ -57,6 +119,7 @@ def obtener_mediana_cluster(zona, dormitorios, operacion='venta'):
     Obtiene la mediana del cluster desde cache_scraping.json.
     Busca propiedades similares por zona y dormitorios.
     v11.1: Aplica deduplicación + filtro pre-IQR (0.6-1.6x) robusto.
+    RETORNO: 2 valores (valor, n_muestras)
     """
     try:
         cache_path = os.path.join(
@@ -91,6 +154,7 @@ def obtener_mediana_cluster(zona, dormitorios, operacion='venta'):
                 unicos.append(p)
         
         precios = [p['valor_m2'] for p in unicos]
+        n_raw = len(precios)
         
         if len(precios) < 3:
             return float(np.median(precios)), len(precios)
@@ -119,6 +183,123 @@ def obtener_mediana_cluster(zona, dormitorios, operacion='venta'):
         return float(np.median(precios_filtrados)), len(precios_filtrados)
     except Exception:
         return 0, 0
+
+
+def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=None, lon_ref=None, fecha_ref=None):
+    """
+    Obtiene la mediana del cluster desde cache_scraping.json.
+    Versión v2 con metadata extendida.
+    RETORNO: 3 valores (valor, n_muestras, meta_dict)
+    
+    meta incluye:
+    - percentil_usado: "P33" para venta, "P50" para alquiler (según ALGORITMOS.md)
+    - n_raw: muestras antes de filtrar
+    - n_filtradas: muestras después de filtrar
+    - radio_usado: None (compatibilidad)
+    - fecha_ref: fecha de referencia usada
+    - operacion: operación consultada
+    """
+    try:
+        import numpy as np
+        from parsers.location_engine import distancia as calc_distancia
+        
+        cache_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            'cache_scraping.json'
+        )
+        if not os.path.exists(cache_path):
+            return 0, 0, {'percentil_usado': 'P50' if operacion == 'alquiler' else 'P33', 'n_raw': 0, 'n_filtradas': 0}
+        
+        with open(cache_path, 'r', encoding='utf-8') as f:
+            cache = json.load(f)
+        
+        # Percentil según operación (ALGORITMOS.md línea 20-23)
+        if operacion == 'alquiler':
+            percentil_usado = 'P50'
+        else:
+            percentil_usado = 'P33'
+        
+        # 1) Filtrar por zona, dormitorios y operación
+        props = [
+            p for p in cache.get('propiedades', [])
+            if p.get('zona') == zona 
+            and p.get('dormitorios') == dormitorios
+            and p.get('operacion') == operacion
+            and p.get('valor_m2', 0) > 0
+        ]
+        
+        if not props:
+            return 0, 0, {'percentil_usado': percentil_usado, 'n_raw': 0, 'n_filtradas': 0}
+        
+        # 2) DEDUPLICAR
+        seen = set()
+        unicos = []
+        for p in props:
+            key = (int(p.get('precio', 0)), int(p.get('m2', 0)), p.get('zona', ''))
+            if key not in seen:
+                seen.add(key)
+                unicos.append(p)
+        
+        precios = [p['valor_m2'] for p in unicos]
+        n_raw = len(precios)
+        
+        if len(precios) < 3:
+            return float(np.median(precios)), len(precios), {
+                'percentil_usado': percentil_usado,
+                'n_raw': n_raw,
+                'n_filtradas': len(precios),
+                'radio_usado': None,
+                'fecha_ref': fecha_ref,
+                'operacion': operacion
+            }
+        
+        # 3) FILTRO PRE-IQR robusto
+        mediana_raw = np.median(precios)
+        
+        lower_robust = mediana_raw * 0.6
+        upper_robust = mediana_raw * 1.6
+        
+        precios_filtrados = [p for p in precios if lower_robust <= p <= upper_robust]
+        
+        # Fallback IQR si elimina demasiado
+        if len(precios_filtrados) < 3:
+            precios_ordenados = sorted(precios)
+            q1 = np.percentile(precios_ordenados, 25)
+            q3 = np.percentile(precios_ordenados, 75)
+            iqr = q3 - q1
+            lower, upper = q1 - 1.5 * iqr, q3 + 1.5 * iqr
+            precios_filtrados = [p for p in precios if lower <= p <= upper]
+        
+        if not precios_filtrados:
+            return float(np.median(precios)), len(precios), {
+                'percentil_usado': percentil_usado,
+                'n_raw': n_raw,
+                'n_filtradas': len(precios),
+                'radio_usado': None,
+                'fecha_ref': fecha_ref,
+                'operacion': operacion
+            }
+        
+        valor = float(np.median(precios_filtrados))
+        n_filtradas = len(precios_filtrados)
+        
+        meta = {
+            'percentil_usado': percentil_usado,
+            'n_raw': n_raw,
+            'n_filtradas': n_filtradas,
+            'radio_usado': None,
+            'fecha_ref': fecha_ref,
+            'operacion': operacion
+        }
+        
+        return valor, n_filtradas, meta
+    except Exception as e:
+        return 0, 0, {
+            'percentil_usado': 'P50' if operacion == 'alquiler' else 'P33',
+            'n_raw': 0,
+            'n_filtradas': 0,
+            'error': str(e)
+        }
 
 
 def calcular_base_calibrada(valor_ancla, prop_data):
@@ -292,10 +473,16 @@ def calcular_m2_equivalentes(prop):
     elif tipo_balcon == 'L':
         bonus_m2 = m2_semi * 0.10
     
+    # --- AJUSTE: Patio Grande (>20m² valorizado a 0.25) ---
+    # Si patio descubiertO > 20m², sube coeficiente de 0.2 a 0.25 (reconoce valor social/recreativo)
+    coef_desc = 0.2
+    if m2_desc >= 20:
+        coef_desc = 0.25
+    
     m2_equiv = (
         m2_cub +
         m2_semi * coef_semi +
-        m2_desc * 0.2 +
+        m2_desc * coef_desc +
         m2_com * factor_com +
         bonus_m2
     )
@@ -344,8 +531,14 @@ def calcular_factores(prop):
     # 2. Factor Altura v10.0 (Tabla coef: piso alto >70% = +5%)
     total_pisos = max(1, prop.get('total_pisos', 1))
     ratio_altura = piso / total_pisos
+    m2_desc = prop.get('m2_descubiertos', 0)
     if piso == 0:
-        factor_piso = 0.88
+        # --- AJUSTE: Patio Grande compensa planta baja ---
+        # Si tiene patio >15m², reducir penalización de -12% a solo -2%
+        if m2_desc >= 15:
+            factor_piso = 0.98  # -2% (compensa con aire/luz)
+        else:
+            factor_piso = 0.88  # -12% estándar
     elif ratio_altura >= 0.70:
         factor_piso = 1.05  # piso alto >70%
     else:

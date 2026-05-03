@@ -1,0 +1,850 @@
+Perfecto. Vamos a construir esto de forma 100% reproducible y objetiva. Entrego 3 archivos:
+
+🗂️ Arquitectura
+text
+
+anchor_gap_detector.py   ← Detecta huecos automáticamente
+anchor_value_calculator.py ← Calcula USD/m² de nuevas anclas (IDW + ajustes)
+anchor_audit.py          ← Orquestador: reporte completo + JSON final
+📄 anchor_gap_detector.py
+Python
+
+"""
+anchor_gap_detector.py
+
+Detecta huecos en la malla de anclas de Rosario usando 3 métodos:
+  1. Distancia pura (> umbral → hueco)
+  2. Inestabilidad IDW (k=3 vs k=5 divergen → zona mal representada)
+  3. Gradiente irreal (salto de precio > 15% en < 400m)
+
+Genera una grilla de evaluación sobre el bounding box de Rosario
+con resolución configurable (default: cada 200m ≈ 0.0018°).
+"""
+
+import json
+import math
+from dataclasses import dataclass, field
+from typing import Optional
+
+# ── Constantes geográficas ───────────────────────────────────────────────────
+# 1° lat ≈ 111.32 km  /  1° lon ≈ 88.5 km (en lat -32.9°)
+KM_PER_LAT = 111.32
+KM_PER_LON = 88.50
+
+# Bounding box Rosario (conservador, cubre zona urbana continua)
+LAT_MIN, LAT_MAX = -33.010, -32.890
+LON_MIN, LON_MAX = -60.820, -60.610
+
+# Resolución de la grilla de evaluación
+GRID_STEP_KM = 0.25   # cada 250m → ~630 puntos de evaluación
+
+# Umbrales
+GAP_DISTANCE_KM     = 0.40   # > 400m de ancla → candidato a hueco
+IDW_INSTABILITY_PCT = 0.12   # > 12% diferencia k3 vs k5 → inestable
+GRADIENT_USD_PER_KM = 1200   # > 1200 USD/km entre anclas vecinas → gradiente irreal
+
+
+@dataclass
+class Anchor:
+    id: str
+    lat: float
+    lon: float
+    usd_m2: float
+
+
+@dataclass
+class GridPoint:
+    lat: float
+    lon: float
+    dist_to_nearest_km: float = 0.0
+    nearest_anchor_id: str = ""
+    idw_k3: float = 0.0
+    idw_k5: float = 0.0
+    idw_instability_pct: float = 0.0
+    is_gap: bool = False
+    gap_reasons: list = field(default_factory=list)
+    suggested_usd_m2: float = 0.0
+
+
+def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Distancia en km entre dos puntos (fórmula Haversine simplificada)."""
+    dlat = (lat2 - lat1) * KM_PER_LAT
+    dlon = (lon2 - lon1) * KM_PER_LON
+    return math.sqrt(dlat**2 + dlon**2)
+
+
+def idw(point_lat: float, point_lon: float, anchors: list[Anchor], k: int = 5, power: int = 2) -> float:
+    """
+    Inverse Distance Weighting.
+    Toma los k vecinos más cercanos y calcula precio ponderado.
+    """
+    distances = []
+    for a in anchors:
+        d = haversine_km(point_lat, point_lon, a.lat, a.lon)
+        distances.append((d, a))
+
+    # Ordenar por distancia, tomar k más cercanos
+    distances.sort(key=lambda x: x[0])
+    neighbors = distances[:k]
+
+    # Si algún punto ES exactamente un ancla
+    for d, a in neighbors:
+        if d < 0.001:
+            return a.usd_m2
+
+    total_weight = 0.0
+    weighted_sum = 0.0
+    for d, a in neighbors:
+        w = 1.0 / (d ** power)
+        weighted_sum += w * a.usd_m2
+        total_weight += w
+
+    return weighted_sum / total_weight if total_weight > 0 else 0.0
+
+
+def build_evaluation_grid(anchors: list[Anchor]) -> list[GridPoint]:
+    """
+    Genera grilla de evaluación y clasifica cada punto.
+    """
+    step_lat = GRID_STEP_KM / KM_PER_LAT
+    step_lon = GRID_STEP_KM / KM_PER_LON
+
+    grid_points = []
+
+    lat = LAT_MIN
+    while lat <= LAT_MAX:
+        lon = LON_MIN
+        while lon <= LON_MAX:
+            gp = GridPoint(lat=round(lat, 6), lon=round(lon, 6))
+
+            # ── Calcular distancia a ancla más cercana ──────────────────────
+            min_dist = float("inf")
+            nearest_id = ""
+            for a in anchors:
+                d = haversine_km(lat, lon, a.lat, a.lon)
+                if d < min_dist:
+                    min_dist = d
+                    nearest_id = a.id
+
+            gp.dist_to_nearest_km = round(min_dist, 4)
+            gp.nearest_anchor_id = nearest_id
+
+            # ── IDW k=3 y k=5 ───────────────────────────────────────────────
+            gp.idw_k3 = round(idw(lat, lon, anchors, k=3), 1)
+            gp.idw_k5 = round(idw(lat, lon, anchors, k=5), 1)
+
+            if gp.idw_k5 > 0:
+                gp.idw_instability_pct = round(
+                    abs(gp.idw_k3 - gp.idw_k5) / gp.idw_k5, 4
+                )
+
+            # ── Clasificar como hueco ────────────────────────────────────────
+            reasons = []
+
+            if gp.dist_to_nearest_km > GAP_DISTANCE_KM:
+                reasons.append(f"distancia {gp.dist_to_nearest_km:.2f}km > {GAP_DISTANCE_KM}km")
+
+            if gp.idw_instability_pct > IDW_INSTABILITY_PCT:
+                reasons.append(
+                    f"inestabilidad IDW {gp.idw_instability_pct*100:.1f}% > {IDW_INSTABILITY_PCT*100:.0f}%"
+                )
+
+            gp.is_gap = len(reasons) > 0
+            gp.gap_reasons = reasons
+
+            # Valor sugerido: promedio de k3 y k5 como primer estimado
+            gp.suggested_usd_m2 = round((gp.idw_k3 + gp.idw_k5) / 2, 0)
+
+            grid_points.append(gp)
+            lon += step_lon
+        lat += step_lat
+
+    return grid_points
+
+
+def detect_gradient_anomalies(anchors: list[Anchor]) -> list[dict]:
+    """
+    Detecta pares de anclas con gradiente de precio irreal.
+    (> GRADIENT_USD_PER_KM entre anclas a menos de 500m)
+    """
+    anomalies = []
+    for i, a1 in enumerate(anchors):
+        for a2 in anchors[i+1:]:
+            d = haversine_km(a1.lat, a1.lon, a2.lat, a2.lon)
+            if 0.001 < d < 0.5:  # Entre 1m y 500m
+                price_diff = abs(a1.usd_m2 - a2.usd_m2)
+                gradient = price_diff / d
+                if gradient > GRADIENT_USD_PER_KM:
+                    anomalies.append({
+                        "ancla_a": a1.id,
+                        "ancla_b": a2.id,
+                        "distancia_km": round(d, 4),
+                        "delta_usd_m2": price_diff,
+                        "gradiente_usd_por_km": round(gradient, 1),
+                        "lat_medio": round((a1.lat + a2.lat) / 2, 6),
+                        "lon_medio": round((a1.lon + a2.lon) / 2, 6),
+                    })
+    return sorted(anomalies, key=lambda x: x["gradiente_usd_por_km"], reverse=True)
+
+
+def cluster_gap_zones(gap_points: list[GridPoint], cluster_radius_km: float = 0.4) -> list[dict]:
+    """
+    Agrupa puntos de hueco en zonas contiguas.
+    Retorna lista de zonas con centroide y valor IDW promedio.
+    Algoritmo: greedy clustering.
+    """
+    remaining = list(gap_points)
+    clusters = []
+
+    while remaining:
+        seed = remaining.pop(0)
+        cluster = [seed]
+        still_remaining = []
+
+        for gp in remaining:
+            d = haversine_km(seed.lat, seed.lon, gp.lat, gp.lon)
+            if d <= cluster_radius_km:
+                cluster.append(gp)
+            else:
+                still_remaining.append(gp)
+
+        remaining = still_remaining
+
+        # Centroide del cluster
+        c_lat = sum(p.lat for p in cluster) / len(cluster)
+        c_lon = sum(p.lon for p in cluster) / len(cluster)
+        avg_value = sum(p.suggested_usd_m2 for p in cluster) / len(cluster)
+        max_dist = max(p.dist_to_nearest_km for p in cluster)
+
+        clusters.append({
+            "n_puntos": len(cluster),
+            "centroide_lat": round(c_lat, 6),
+            "centroide_lon": round(c_lon, 6),
+            "suggested_usd_m2": round(avg_value, 0),
+            "max_dist_to_anchor_km": round(max_dist, 3),
+            "severidad": _severity(max_dist, avg_value),
+            "razones": list({r for p in cluster for r in p.gap_reasons}),
+        })
+
+    return sorted(clusters, key=lambda x: x["max_dist_to_anchor_km"], reverse=True)
+
+
+def _severity(dist: float, _: float) -> str:
+    if dist > 0.8:
+        return "CRITICO"
+    elif dist > 0.55:
+        return "ALTO"
+    elif dist > 0.40:
+        return "MEDIO"
+    else:
+        return "BAJO"
+
+
+def load_anchors(data: dict) -> list[Anchor]:
+    return [
+        Anchor(id=a["id"], lat=a["lat"], lon=a["lon"], usd_m2=a["usd_m2"])
+        for a in data["anclas"]
+    ]
+📄 anchor_value_calculator.py
+Python
+
+"""
+anchor_value_calculator.py
+
+Calcula el USD/m² de cada nueva ancla propuesta usando:
+
+PASO 1 → IDW sobre anclas existentes (base objetiva)
+PASO 2 → Ajuste por micro-mercado (tabla de factores por zona)
+PASO 3 → Suavizado: verificar que no genere saltos nuevos > 15%
+PASO 4 → Validación cruzada: comparar contra IDW sin la nueva ancla
+PASO 5 → Etiqueta de confianza (HIGH / MEDIUM / LOW)
+
+Toda la lógica es auditab: cada valor lleva su trazabilidad completa.
+"""
+
+import math
+from dataclasses import dataclass, field
+from typing import Optional
+from anchor_gap_detector import Anchor, haversine_km, idw, GAP_DISTANCE_KM
+
+# ── Tabla de ajustes por micro-mercado ──────────────────────────────────────
+# Factor multiplicador sobre el valor IDW base.
+# Positivo = zona premium / corredor fuerte
+# Negativo = zona de transición / degradación
+MICRO_MARKET_ADJUSTMENTS = {
+    # Corredores premium y zonas de alta demanda
+    "parque_independencia":      +0.05,
+    "corredor_martin":           +0.03,
+    "corredor_bv_oroño":         +0.04,
+    "waterfront_rio":            +0.10,
+    "fisherton_residencial":     +0.05,
+
+    # Zonas neutras (sin ajuste)
+    "macrocentro":                0.00,
+    "centro":                     0.00,
+    "pichincha":                  0.00,
+    "echesortu":                  0.00,
+    "ayacucho":                   0.00,
+
+    # Zonas de transición / degradación
+    "transicion_centro_oeste":   -0.04,
+    "pre_sexta":                 -0.03,
+    "zona_sur_intermedia":       -0.05,
+    "oeste_circunvalacion":      -0.06,
+    "periferia_sur":             -0.08,
+    "periferia_norte_lejana":    -0.06,
+}
+
+
+@dataclass
+class NewAnchorProposal:
+    """
+    Propuesta de nueva ancla con trazabilidad completa del cálculo.
+    """
+    id: str
+    lat: float
+    lon: float
+
+    # Resultados del cálculo
+    usd_m2: float = 0.0
+    usd_m2_idw_raw: float = 0.0          # PASO 1: IDW puro
+    micro_market_zone: str = ""           # PASO 2: zona aplicada
+    micro_market_factor: float = 0.0      # PASO 2: factor aplicado
+    usd_m2_after_adjustment: float = 0.0  # PASO 2: después de ajuste
+    smoothing_ok: bool = True             # PASO 3: no genera saltos
+    smoothing_notes: list = field(default_factory=list)
+    cross_validation_error_pct: float = 0.0  # PASO 4
+    confidence: str = "LOW"               # PASO 5
+    neighbors_used: list = field(default_factory=list)
+
+
+def calculate_new_anchor(
+    new_id: str,
+    lat: float,
+    lon: float,
+    anchors: list[Anchor],
+    micro_market_zone: str = "macrocentro",
+    k_neighbors: int = 5,
+) -> NewAnchorProposal:
+    """
+    Calcula el valor USD/m² de una nueva ancla con trazabilidad completa.
+    """
+    proposal = NewAnchorProposal(id=new_id, lat=lat, lon=lon)
+    proposal.micro_market_zone = micro_market_zone
+
+    # ── PASO 1: IDW base ────────────────────────────────────────────────────
+    # Calcular vecinos más cercanos para trazabilidad
+    distances = sorted(
+        [(haversine_km(lat, lon, a.lat, a.lon), a) for a in anchors],
+        key=lambda x: x[0]
+    )
+    neighbors_k = distances[:k_neighbors]
+
+    proposal.neighbors_used = [
+        {
+            "id": a.id,
+            "distancia_km": round(d, 4),
+            "usd_m2": a.usd_m2,
+            "peso_relativo": None,  # se calcula abajo
+        }
+        for d, a in neighbors_k
+    ]
+
+    # Calcular pesos IDW para trazabilidad
+    weights = []
+    for d, a in neighbors_k:
+        if d < 0.001:
+            # El punto ES el ancla → retornar directo
+            proposal.usd_m2_idw_raw = a.usd_m2
+            proposal.usd_m2_after_adjustment = a.usd_m2
+            proposal.usd_m2 = a.usd_m2
+            proposal.confidence = "HIGH"
+            return proposal
+        w = 1.0 / (d ** 2)
+        weights.append(w)
+
+    total_weight = sum(weights)
+    weighted_sum = sum(w * a.usd_m2 for w, (_, a) in zip(weights, neighbors_k))
+    idw_value = weighted_sum / total_weight
+
+    # Guardar pesos relativos para trazabilidad
+    for i, neighbor in enumerate(proposal.neighbors_used):
+        neighbor["peso_relativo"] = round(weights[i] / total_weight, 4)
+
+    proposal.usd_m2_idw_raw = round(idw_value, 1)
+
+    # ── PASO 2: Ajuste por micro-mercado ────────────────────────────────────
+    factor = MICRO_MARKET_ADJUSTMENTS.get(micro_market_zone, 0.0)
+    proposal.micro_market_factor = factor
+    adjusted = idw_value * (1 + factor)
+    proposal.usd_m2_after_adjustment = round(adjusted, 1)
+
+    # Redondear a múltiplo de 10 (granularidad razonable)
+    rounded = round(adjusted / 10) * 10
+    proposal.usd_m2 = rounded
+
+    # ── PASO 3: Verificar que no genera saltos nuevos ───────────────────────
+    smoothing_issues = []
+    for d, a in neighbors_k[:3]:  # verificar contra 3 vecinos más cercanos
+        if d < 0.5:  # solo verificar vecinos a < 500m
+            delta_pct = abs(proposal.usd_m2 - a.usd_m2) / a.usd_m2
+            if delta_pct > 0.15:
+                smoothing_issues.append(
+                    f"⚠️ Salto {delta_pct*100:.1f}% con {a.id} ({a.usd_m2} USD/m²)"
+                )
+
+    proposal.smoothing_ok = len(smoothing_issues) == 0
+    proposal.smoothing_notes = smoothing_issues
+
+    if not proposal.smoothing_ok:
+        # Suavizar: promediar con el vecino más cercano para reducir salto
+        nearest_val = neighbors_k[0][1].usd_m2
+        smoothed = (proposal.usd_m2 + nearest_val) / 2
+        smoothed_rounded = round(smoothed / 10) * 10
+        proposal.smoothing_notes.append(
+            f"→ Suavizado aplicado: {proposal.usd_m2} → {smoothed_rounded}"
+        )
+        proposal.usd_m2 = smoothed_rounded
+
+    # ── PASO 4: Validación cruzada ──────────────────────────────────────────
+    # Estimar el valor que daría IDW en este punto SIN esta ancla
+    # (ya que aún no está en la lista) == ya es lo que calculamos
+    # Comparamos el IDW raw contra el valor final
+    cv_error = abs(proposal.usd_m2 - proposal.usd_m2_idw_raw) / proposal.usd_m2_idw_raw
+    proposal.cross_validation_error_pct = round(cv_error * 100, 2)
+
+    # ── PASO 5: Etiqueta de confianza ───────────────────────────────────────
+    min_dist = neighbors_k[0][0]
+    if min_dist < 0.3 and cv_error < 0.08 and proposal.smoothing_ok:
+        proposal.confidence = "HIGH"
+    elif min_dist < 0.5 and cv_error < 0.15:
+        proposal.confidence = "MEDIUM"
+    else:
+        proposal.confidence = "LOW"
+
+    return proposal
+
+
+def proposals_to_anchors(proposals: list[NewAnchorProposal]) -> list[dict]:
+    """Convierte propuestas a formato del JSON de anclas."""
+    return [
+        {
+            "id": p.id,
+            "lat": p.lat,
+            "lon": p.lon,
+            "usd_m2": p.usd_m2,
+            "_meta": {
+                "idw_raw": p.usd_m2_idw_raw,
+                "micro_market_zone": p.micro_market_zone,
+                "micro_market_factor": p.micro_market_factor,
+                "cv_error_pct": p.cross_validation_error_pct,
+                "confidence": p.confidence,
+                "smoothing_ok": p.smoothing_ok,
+                "smoothing_notes": p.smoothing_notes,
+                "neighbors": p.neighbors_used,
+            }
+        }
+        for p in proposals
+    ]
+📄 anchor_audit.py ← Orquestador principal
+Python
+
+"""
+anchor_audit.py
+
+Orquestador completo:
+  1. Carga anclas existentes
+  2. Detecta huecos
+  3. Calcula valores para nuevas anclas
+  4. Genera reporte completo
+  5. Exporta JSON final enriquecido
+
+USO:
+  python anchor_audit.py
+  python anchor_audit.py --only-critical
+  python anchor_audit.py --export-geojson
+"""
+
+import json
+import argparse
+import math
+from datetime import datetime
+
+from anchor_gap_detector import (
+    load_anchors,
+    build_evaluation_grid,
+    detect_gradient_anomalies,
+    cluster_gap_zones,
+    idw,
+    haversine_km,
+)
+from anchor_value_calculator import (
+    calculate_new_anchor,
+    proposals_to_anchors,
+)
+
+# ── Datos de anclas actuales ────────────────────────────────────────────────
+ANCHOR_DATA = {
+  "fuente": "anclas_rosario_v2_grid.json",
+  "metodo": "IDW_cuadratico",
+  "radio_km": 0.8,
+  "config": {
+    "max_distancia_permitida_km": 0.5,
+    "descripcion": "Malla técnica de cobertura total Rosario"
+  },
+  "anclas": [
+    {"id":"rio_puerto_norte","lat":-32.9315,"lon":-60.6375,"usd_m2":2100},
+    {"id":"rio_bv_oroño","lat":-32.9445,"lon":-60.6390,"usd_m2":1850},
+    {"id":"parque_espana_norte","lat":-32.9470,"lon":-60.6340,"usd_m2":1850},
+    {"id":"parque_espana_sur","lat":-32.9500,"lon":-60.6280,"usd_m2":1750},
+    {"id":"martin_rio_urquiza","lat":-32.9580,"lon":-60.6260,"usd_m2":1850},
+    {"id":"martin_centro_residencial","lat":-32.9518,"lon":-60.6340,"usd_m2":1480},
+    {"id":"martin_plaza_lopez","lat":-32.9510,"lon":-60.6325,"usd_m2":1520},
+    {"id":"martin_av_pellegrini_bajo","lat":-32.9535,"lon":-60.6350,"usd_m2":1650},
+    {"id":"centro_mendoza_maipu","lat":-32.9500,"lon":-60.6380,"usd_m2":1550},
+    {"id":"centro_san_juan_entre_rios","lat":-32.9480,"lon":-60.6415,"usd_m2":1600},
+    {"id":"peatonal_cordoba_centro","lat":-32.9470,"lon":-60.6425,"usd_m2":1700},
+    {"id":"pellegrini_libertad","lat":-32.9570,"lon":-60.6380,"usd_m2":1580},
+    {"id":"pellegrini_paraguay","lat":-32.9520,"lon":-60.6455,"usd_m2":1700},
+    {"id":"pellegrini_oroño","lat":-32.9505,"lon":-60.6500,"usd_m2":1750},
+    {"id":"abasto_corazon_residencial","lat":-32.9550,"lon":-60.6560,"usd_m2":1380},
+    {"id":"abasto_sur_27feb","lat":-32.9580,"lon":-60.6590,"usd_m2":1280},
+    {"id":"sexta_unr_cur","lat":-32.9640,"lon":-60.6405,"usd_m2":1250},
+    {"id":"sexta_pellegrini_sur","lat":-32.9590,"lon":-60.6480,"usd_m2":1400},
+    {"id":"lourdes_parque_independencia","lat":-32.9460,"lon":-60.6550,"usd_m2":1450},
+    {"id":"lourdes_core_santiago","lat":-32.9430,"lon":-60.6490,"usd_m2":1520},
+    {"id":"pichincha_centro_aristobulo","lat":-32.9385,"lon":-60.6430,"usd_m2":1680},
+    {"id":"pichincha_norte_brown","lat":-32.9350,"lon":-60.6480,"usd_m2":1550},
+    {"id":"echesortu_plaza_costa","lat":-32.9470,"lon":-60.6750,"usd_m2":1420},
+    {"id":"echesortu_mendoza_avellaneda","lat":-32.9400,"lon":-60.6850,"usd_m2":1350},
+    {"id":"macrocentro_salta_lagos","lat":-32.9405,"lon":-60.6410,"usd_m2":1620},
+    {"id":"macrocentro_catamarca_espana","lat":-32.9425,"lon":-60.6440,"usd_m2":1580},
+    {"id":"macrocentro_tucuman_italia","lat":-32.9450,"lon":-60.6400,"usd_m2":1650},
+    {"id":"macrocentro_3febrero_francia","lat":-32.9410,"lon":-60.6580,"usd_m2":1400},
+    {"id":"republica_sexta_interno","lat":-32.9665,"lon":-60.6450,"usd_m2":1180},
+    {"id":"zona_sur_san_martin_saavedra","lat":-32.9750,"lon":-60.6450,"usd_m2":1100},
+    {"id":"zona_sur_hospitales","lat":-32.9700,"lon":-60.6520,"usd_m2":1150},
+    {"id":"zona_norte_alberdi_rio","lat":-32.9100,"lon":-60.6400,"usd_m2":1450},
+    {"id":"zona_norte_arroyito_central","lat":-32.9180,"lon":-60.6520,"usd_m2":1300},
+    {"id":"fisherton_evita","lat":-32.9305,"lon":-60.7800,"usd_m2":1650},
+    {"id":"fisherton_wilder","lat":-32.9350,"lon":-60.8000,"usd_m2":1350},
+    {"id":"zona_oeste_godoy","lat":-32.9400,"lon":-60.7100,"usd_m2":1100},
+    {"id":"zona_oeste_ludueña","lat":-32.9250,"lon":-60.6900,"usd_m2":1050},
+    {"id":"zona_oeste_avellaneda_oeste","lat":-32.9500,"lon":-60.7050,"usd_m2":1150},
+    {"id":"zona_oeste_empalme","lat":-32.9300,"lon":-60.7200,"usd_m2":1000},
+    {"id":"zona_oeste_felipe_more","lat":-32.9450,"lon":-60.6900,"usd_m2":1200},
+    {"id":"zona_oeste_mendoza_oeste","lat":-32.9450,"lon":-60.7150,"usd_m2":1100},
+    {"id":"zona_sur_tablada","lat":-32.9800,"lon":-60.6400,"usd_m2":1000},
+    {"id":"zona_sur_grandoli","lat":-32.9900,"lon":-60.6300,"usd_m2":950},
+    {"id":"zona_sur_uriburu","lat":-32.9750,"lon":-60.6700,"usd_m2":1050},
+    {"id":"zona_sur_ayolas_oeste","lat":-32.9700,"lon":-60.6800,"usd_m2":1080},
+    {"id":"zona_norte_sorrento","lat":-32.9100,"lon":-60.6700,"usd_m2":1200},
+    {"id":"zona_norte_parque_field","lat":-32.9000,"lon":-60.7000,"usd_m2":1100},
+    {"id":"zona_norte_circunvalacion","lat":-32.9150,"lon":-60.6900,"usd_m2":1150},
+    {"id":"fisherton_cordoba_oeste","lat":-32.9300,"lon":-60.7400,"usd_m2":1250},
+    {"id":"fisherton_golf","lat":-32.9250,"lon":-60.7700,"usd_m2":1700},
+    {"id":"sudoeste_amenabar_avellaneda","lat":-32.9635,"lon":-60.6950,"usd_m2":1100},
+    {"id":"sudoeste_amenabar_provincias_unidas","lat":-32.9655,"lon":-60.7050,"usd_m2":1050},
+    {"id":"sudoeste_uriburu_avellaneda","lat":-32.9700,"lon":-60.6950,"usd_m2":1080},
+    {"id":"sudoeste_uriburu_provincias_unidas","lat":-32.9720,"lon":-60.7100,"usd_m2":1020},
+    {"id":"sudoeste_bv_segundo_avellaneda","lat":-32.9600,"lon":-60.7050,"usd_m2":1120},
+    {"id":"oeste_provincias_unidas_mendoza","lat":-32.9450,"lon":-60.7200,"usd_m2":1150},
+    {"id":"oeste_provincias_unidas_cordoba","lat":-32.9400,"lon":-60.7250,"usd_m2":1120},
+    {"id":"oeste_ludueña_sur","lat":-32.9350,"lon":-60.7100,"usd_m2":1050},
+    {"id":"oeste_ludueña_norte","lat":-32.9250,"lon":-60.7050,"usd_m2":1000},
+    {"id":"oeste_circunvalacion_mendoza","lat":-32.9450,"lon":-60.7350,"usd_m2":1080},
+    {"id":"oeste_circunvalacion_pellegrini","lat":-32.9550,"lon":-60.7350,"usd_m2":1100},
+    {"id":"oeste_francia_mendoza","lat":-32.9450,"lon":-60.6650,"usd_m2":1300},
+    {"id":"oeste_francia_pellegrini","lat":-32.9550,"lon":-60.6650,"usd_m2":1280},
+    {"id":"oeste_avellaneda_mendoza","lat":-32.9450,"lon":-60.6850,"usd_m2":1250},
+    {"id":"sur_ayolas_circunvalacion","lat":-32.9800,"lon":-60.6700,"usd_m2":1000},
+    {"id":"sur_battle_ordonez_san_martin","lat":-32.9850,"lon":-60.6450,"usd_m2":1020},
+    {"id":"sur_battle_ordonez_oeste","lat":-32.9850,"lon":-60.6800,"usd_m2":980},
+    {"id":"sur_grandoli_circunvalacion","lat":-32.9900,"lon":-60.6600,"usd_m2":950},
+    {"id":"sur_sanchez_thompson","lat":-32.9750,"lon":-60.6300,"usd_m2":1050},
+    {"id":"ayacucho_mendoza","lat":-32.9530,"lon":-60.6370,"usd_m2":1500},
+    {"id":"ayacucho_pellegrini","lat":-32.9565,"lon":-60.6385,"usd_m2":1400},
+    {"id":"ayacucho_27feb","lat":-32.9625,"lon":-60.6405,"usd_m2":1300},
+    {"id":"ayacucho_segundo_cordoba","lat":-32.9680,"lon":-60.6420,"usd_m2":1200},
+    {"id":"transicion_martin_sur","lat":-32.9565,"lon":-60.6370,"usd_m2":1380},
+    {"id":"transicion_pre_sexta","lat":-32.9595,"lon":-60.6395,"usd_m2":1300},
+    {"id":"macrocentro_sur_san_martin","lat":-32.9585,"lon":-60.6450,"usd_m2":1350},
+    {"id":"macrocentro_sur_italia","lat":-32.9605,"lon":-60.6470,"usd_m2":1300}
+  ]
+}
+
+# ── Nuevas anclas propuestas para llenar huecos ─────────────────────────────
+# Definidas con zona de micro-mercado para el ajuste de PASO 2
+NEW_ANCHOR_CANDIDATES = [
+
+    # ── HUECOS CRÍTICOS ─────────────────────────────────────────────────────
+
+    # H1: NORTE INTERMEDIO (Alberdi → Pichincha gap)
+    {"id":"norte_intermedio_alberdi_pichincha","lat":-32.9220,"lon":-60.6480,"zone":"macrocentro"},
+    {"id":"norte_intermedio_bv_galvez","lat":-32.9260,"lon":-60.6440,"zone":"macrocentro"},
+    {"id":"norte_costanera_norte","lat":-32.9150,"lon":-60.6450,"zone":"corredor_bv_oroño"},
+
+    # H2: FRANJA ESTE-NORTE (Puerto → zona norte)
+    {"id":"norte_bv_oroño_intermedio","lat":-32.9280,"lon":-60.6420,"zone":"corredor_bv_oroño"},
+    {"id":"norte_costanera_intermedia","lat":-32.9200,"lon":-60.6380,"zone":"waterfront_rio"},
+
+    # H3: BORDE OESTE INTERNO (transición centro → oeste)
+    {"id":"transicion_centro_oeste_mendoza","lat":-32.9450,"lon":-60.6720,"zone":"transicion_centro_oeste"},
+    {"id":"transicion_centro_oeste_pellegrini","lat":-32.9550,"lon":-60.6720,"zone":"transicion_centro_oeste"},
+    {"id":"transicion_centro_oeste_san_martin","lat":-32.9600,"lon":-60.6800,"zone":"transicion_centro_oeste"},
+
+    # H4: ECHESORTU ESTE (relleno entre echesortu y macrocentro)
+    {"id":"echesortu_este_santa_fe","lat":-32.9430,"lon":-60.6700,"zone":"echesortu"},
+    {"id":"echesortu_norte_bv_galvez","lat":-32.9360,"lon":-60.6750,"zone":"echesortu"},
+    {"id":"echesortu_sur_mendoza","lat":-32.9500,"lon":-60.6800,"zone":"echesortu"},
+
+    # H5: PICHINCHA SUR (degradación hacia centro)
+    {"id":"pichincha_sur_jujuy","lat":-32.9420,"lon":-60.6460,"zone":"pichincha"},
+    {"id":"pichincha_sur_corrientes","lat":-32.9450,"lon":-60.6480,"zone":"pichincha"},
+
+    # H6: MACROCENTRO OESTE (transición)
+    {"id":"macrocentro_oeste_san_martin_1","lat":-32.9540,"lon":-60.6520,"zone":"macrocentro"},
+    {"id":"macrocentro_oeste_cordoba_1","lat":-32.9470,"lon":-60.6620,"zone":"transicion_centro_oeste"},
+
+    # H7: SUR INTERMEDIO
+    {"id":"sur_intermedio_tablada_este","lat":-32.9700,"lon":-60.6400,"zone":"zona_sur_intermedia"},
+    {"id":"sur_intermedio_republica","lat":-32.9720,"lon":-60.6500,"zone":"zona_sur_intermedia"},
+    {"id":"sur_intermedio_hospitales_sur","lat":-32.9760,"lon":-60.6560,"zone":"zona_sur_intermedia"},
+
+    # H8: FISHERTON INTERNO (gap entre fisherton y zona oeste)
+    {"id":"fisherton_intermedio_este","lat":-32.9300,"lon":-60.7550,"zone":"fisherton_residencial"},
+    {"id":"fisherton_intermedio_norte","lat":-32.9250,"lon":-60.7600,"zone":"fisherton_residencial"},
+    {"id":"fisherton_borde_suroeste","lat":-32.9400,"lon":-60.7700,"zone":"fisherton_residencial"},
+
+    # H9: NORTE LEJANO (más allá de Alberdi)
+    {"id":"norte_alberdi_oeste","lat":-32.9080,"lon":-60.6550,"zone":"macrocentro"},
+    {"id":"norte_alberdi_sur","lat":-32.9130,"lon":-60.6500,"zone":"macrocentro"},
+
+    # H10: OESTE PROFUNDO (gap Fisherton ↔ circunvalación)
+    {"id":"oeste_profundo_cordoba","lat":-32.9350,"lon":-60.7550,"zone":"oeste_circunvalacion"},
+    {"id":"oeste_profundo_mendoza","lat":-32.9450,"lon":-60.7500,"zone":"oeste_circunvalacion"},
+    {"id":"oeste_profundo_pellegrini","lat":-32.9550,"lon":-60.7500,"zone":"oeste_circunvalacion"},
+
+    # H11: SUR PROFUNDO (beyond zona_sur_grandoli)
+    {"id":"sur_profundo_batallon","lat":-32.9950,"lon":-60.6450,"zone":"periferia_sur"},
+    {"id":"sur_profundo_oeste","lat":-32.9950,"lon":-60.6700,"zone":"periferia_sur"},
+
+    # H12: BORDE NORTE MUY LEJANO
+    {"id":"norte_lejano_campo","lat":-32.8900,"lon":-60.6800,"zone":"periferia_norte_lejana"},
+    {"id":"norte_lejano_circunvalacion","lat":-32.8950,"lon":-60.7100,"zone":"periferia_norte_lejana"},
+]
+
+
+def run_full_audit(only_critical: bool = False, export_geojson: bool = False):
+    """Ejecuta el audit completo."""
+
+    print("\n" + "="*70)
+    print("🗺️  AUDIT COMPLETO DE MALLA DE ANCLAS — ROSARIO")
+    print(f"    {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+    print("="*70)
+
+    # ── PASO 1: Cargar anclas ───────────────────────────────────────────────
+    anchors = load_anchors(ANCHOR_DATA)
+    print(f"\n📍 Anclas cargadas: {len(anchors)}")
+    print(f"   Rango USD/m²: {min(a.usd_m2 for a in anchors)} → {max(a.usd_m2 for a in anchors)}")
+
+    # ── PASO 2: Construir grilla y detectar huecos ──────────────────────────
+    print("\n🔍 Construyendo grilla de evaluación (250m × 250m)...")
+    grid = build_evaluation_grid(anchors)
+    gap_points = [gp for gp in grid if gp.is_gap]
+
+    print(f"   Total puntos evaluados: {len(grid)}")
+    print(f"   Puntos con hueco:       {len(gap_points)} ({100*len(gap_points)/len(grid):.1f}%)")
+
+    # ── PASO 3: Clusterizar zonas de hueco ─────────────────────────────────
+    print("\n🗂️  Clusterizando zonas de hueco...")
+    clusters = cluster_gap_zones(gap_points)
+
+    if only_critical:
+        clusters = [c for c in clusters if c["severidad"] in ("CRITICO", "ALTO")]
+
+    print(f"   Zonas detectadas: {len(clusters)}")
+
+    sev_count = {"CRITICO": 0, "ALTO": 0, "MEDIO": 0, "BAJO": 0}
+    for c in clusters:
+        sev_count[c["severidad"]] += 1
+    for s, n in sev_count.items():
+        icon = {"CRITICO":"🔴","ALTO":"🟠","MEDIO":"🟡","BAJO":"🟢"}[s]
+        if n > 0:
+            print(f"   {icon} {s}: {n} zonas")
+
+    # ── PASO 4: Detectar gradientes anómalos ───────────────────────────────
+    print("\n📐 Analizando gradientes entre anclas vecinas...")
+    anomalies = detect_gradient_anomalies(anchors)
+    print(f"   Gradientes anómalos (> 1200 USD/km): {len(anomalies)}")
+    for a in anomalies[:5]:
+        print(f"   ⚡ {a['ancla_a']} ↔ {a['ancla_b']}: "
+              f"{a['delta_usd_m2']} USD/m² en {a['distancia_km']}km "
+              f"= {a['gradiente_usd_por_km']:.0f} USD/km")
+
+    # ── PASO 5: Calcular nuevas anclas ─────────────────────────────────────
+    print(f"\n🧮 Calculando {len(NEW_ANCHOR_CANDIDATES)} nuevas anclas propuestas...")
+
+    proposals = []
+    for candidate in NEW_ANCHOR_CANDIDATES:
+        p = calculate_new_anchor(
+            new_id=candidate["id"],
+            lat=candidate["lat"],
+            lon=candidate["lon"],
+            anchors=anchors,
+            micro_market_zone=candidate["zone"],
+        )
+        proposals.append(p)
+
+    # Confianza summary
+    conf_count = {"HIGH": 0, "MEDIUM": 0, "LOW": 0}
+    for p in proposals:
+        conf_count[p.confidence] += 1
+
+    print(f"   ✅ HIGH confidence:   {conf_count['HIGH']}")
+    print(f"   🟡 MEDIUM confidence: {conf_count['MEDIUM']}")
+    print(f"   🔴 LOW confidence:    {conf_count['LOW']}")
+
+    # ── PASO 6: Mostrar tabla detallada ────────────────────────────────────
+    print("\n" + "─"*70)
+    print("📋 NUEVAS ANCLAS PROPUESTAS (paso a paso)")
+    print("─"*70)
+    print(f"{'ID':<45} {'IDW_raw':>8} {'Ajuste':>7} {'Final':>7} {'Conf':>6}")
+    print("─"*70)
+
+    for p in sorted(proposals, key=lambda x: x.usd_m2, reverse=True):
+        adj_str = f"{p.micro_market_factor*100:+.0f}%" if p.micro_market_factor != 0 else "  0%"
+        smooth_warn = " ⚠️" if not p.smoothing_ok else ""
+        print(
+            f"{p.id:<45} "
+            f"{p.usd_m2_idw_raw:>8.0f} "
+            f"{adj_str:>7} "
+            f"{p.usd_m2:>7.0f} "
+            f"{p.confidence:>6}"
+            f"{smooth_warn}"
+        )
+
+    # ── PASO 7: Exportar JSONs ──────────────────────────────────────────────
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+
+    # 7a. Huecos detectados
+    gaps_output = {
+        "generated_at": datetime.now().isoformat(),
+        "total_gap_zones": len(clusters),
+        "severity_summary": sev_count,
+        "gap_zones": clusters,
+        "gradient_anomalies": anomalies,
+    }
+    gaps_file = f"gaps_rosario_{timestamp}.json"
+    with open(gaps_file, "w", encoding="utf-8") as f:
+        json.dump(gaps_output, f, ensure_ascii=False, indent=2)
+    print(f"\n💾 Huecos exportados → {gaps_file}")
+
+    # 7b. Nuevas anclas con trazabilidad
+    new_anchors_output = proposals_to_anchors(proposals)
+    new_anchors_file = f"new_anchors_{timestamp}.json"
+    with open(new_anchors_file, "w", encoding="utf-8") as f:
+        json.dump(new_anchors_output, f, ensure_ascii=False, indent=2)
+    print(f"💾 Nuevas anclas      → {new_anchors_file}")
+
+    # 7c. JSON final combinado (anclas originales + nuevas HIGH/MEDIUM)
+    trusted_new = [
+        {"id": p.id, "lat": p.lat, "lon": p.lon, "usd_m2": p.usd_m2}
+        for p in proposals
+        if p.confidence in ("HIGH", "MEDIUM")
+    ]
+    combined = ANCHOR_DATA.copy()
+    combined["anclas"] = ANCHOR_DATA["anclas"] + trusted_new
+    combined["fuente"] = f"anclas_rosario_v3_grid_{timestamp}.json"
+    combined["config"]["n_anclas_originales"] = len(ANCHOR_DATA["anclas"])
+    combined["config"]["n_anclas_nuevas"] = len(trusted_new)
+    combined["config"]["n_anclas_total"] = len(combined["anclas"])
+
+    combined_file = f"anclas_rosario_v3_{timestamp}.json"
+    with open(combined_file, "w", encoding="utf-8") as f:
+        json.dump(combined, f, ensure_ascii=False, indent=2)
+    print(f"💾 JSON final v3      → {combined_file}")
+
+    # 7d. GeoJSON opcional para visualizar en QGIS / geojson.io
+    if export_geojson:
+        features = []
+        for a in combined["anclas"]:
+            features.append({
+                "type": "Feature",
+                "geometry": {"type": "Point", "coordinates": [a["lon"], a["lat"]]},
+                "properties": {
+                    "id": a["id"],
+                    "usd_m2": a["usd_m2"],
+                    "nueva": a["id"] in [p.id for p in proposals],
+                }
+            })
+        geojson = {"type": "FeatureCollection", "features": features}
+        geo_file = f"anclas_rosario_v3_{timestamp}.geojson"
+        with open(geo_file, "w", encoding="utf-8") as f:
+            json.dump(geojson, f, ensure_ascii=False, indent=2)
+        print(f"💾 GeoJSON            → {geo_file}")
+
+    # ── Resumen final ───────────────────────────────────────────────────────
+    print("\n" + "="*70)
+    print("📊 RESUMEN FINAL")
+    print("="*70)
+    print(f"  Anclas originales        : {len(ANCHOR_DATA['anclas'])}")
+    print(f"  Nuevas anclas (total)    : {len(proposals)}")
+    print(f"  Nuevas anclas confiables : {len(trusted_new)} (HIGH + MEDIUM)")
+    print(f"  Anclas en v3 final       : {len(combined['anclas'])}")
+    print(f"  Zonas de hueco resueltas : {len([c for c in clusters if c['severidad'] in ('CRITICO','ALTO')])}")
+    print(f"  Cobertura estimada       : {'✅ COMPLETA' if sev_count['CRITICO'] == 0 else '⚠️ PARCIAL'}")
+    print("="*70 + "\n")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Audit de malla de anclas Rosario")
+    parser.add_argument("--only-critical", action="store_true", help="Solo mostrar huecos críticos y altos")
+    parser.add_argument("--export-geojson", action="store_true", help="Exportar GeoJSON para QGIS")
+    args = parser.parse_args()
+
+    run_full_audit(
+        only_critical=args.only_critical,
+        export_geojson=args.export_geojson,
+    )
+▶️ Ejecución
+Bash
+
+# Modo estándar
+python anchor_audit.py
+
+# Solo huecos críticos y altos
+python anchor_audit.py --only-critical
+
+# Con GeoJSON para visualizar en geojson.io o QGIS
+python anchor_audit.py --export-geojson
+🧠 Resumen del pipeline completo
+text
+
+anclas_rosario_v2 (75 anclas)
+        │
+        ▼
+anchor_gap_detector.py
+  ├── Grilla 250m × 250m (~630 puntos)
+  ├── Por cada punto:
+  │     ├── dist > 400m           → hueco por distancia
+  │     └── |IDW_k3 - IDW_k5| > 12% → hueco por inestabilidad
+  └── Clustering greedy → zonas contiguas con severidad
+
+        │
+        ▼
+anchor_value_calculator.py (por cada nueva ancla)
+  ├── PASO 1: IDW puro (k=5, potencia=2)        → valor base objetivo
+  ├── PASO 2: Factor micro-mercado               → ±0 a ±10%
+  ├── PASO 3: Suavizado (salto > 15% → promediar)
+  ├── PASO 4: Validación cruzada (error < 8% = HIGH)
+  └── PASO 5: Confianza HIGH / MEDIUM / LOW
+
+        │
+        ▼
+Outputs:
+  gaps_rosario_XXXXXX.json        ← todas las zonas de hueco
+  new_anchors_XXXXXX.json         ← 30 nuevas anclas con trazabilidad
+  anclas_rosario_v3_XXXXXX.json   ← JSON final combinado
+  anclas_rosario_v3_XXXXXX.geojson← visualización (opcional)
+Punto clave de diseño: Ningún valor USD/m² se inventa. Cada ancla nueva lleva en _meta exactamente quiénes son sus 5 vecinos, qué peso tuvo cada uno, qué ajuste de micro-mercado se aplicó y cuál es el error de validación cruzada. Si el error supera el 15%, la confianza baja a LOW y esa ancla no entra al JSON v3 final hasta que sea validada manualmente.

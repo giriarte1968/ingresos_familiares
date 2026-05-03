@@ -1,18 +1,74 @@
+import os
+ENV = os.getenv('APP_ENV', 'development')
+TTL_ENTORNO = {
+    'development': {'corto': 0, 'medio': 0, 'largo': 0},
+    'production': {'corto': 36_000, 'medio': 86_400, 'largo': 604_800},
+}.get(ENV, {'corto': 0, 'medio': 0, 'largo': 0})
+TTL_CORTO = TTL_ENTORNO['corto']
+TTL_MEDIO = TTL_ENTORNO['medio']
+TTL_LARGO = TTL_ENTORNO['largo']
+
+# === SELLO DE RUNTIME (para debug UI vs CLI) ===
+def _log_runtime_sello(origen="UI"):
+    """Log de runtime para auditar fuente de verdad."""
+    import parsers.mercado_inmobiliario as mi
+    import subprocess
+    
+    try:
+        git_hash = subprocess.run(['git', 'rev-parse', 'HEAD'], capture_output=True, text=True, cwd=os.path.dirname(os.path.abspath(__file__))).stdout.strip()[:8]
+    except:
+        git_hash = "unknown"
+    
+    # Path del cache
+    cache_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cache_scraping.json')
+    
+    print(f"=== SELLO RUNTIME [{origen}] ===")
+    print(f"git_hash: {git_hash}")
+    print(f"modulo: {mi.__file__}")
+    print(f"cache: {cache_path} (existe: {os.path.exists(cache_path)})")
+    print(f"APP_ENV: {ENV}")
+    print(f"DISABLE_CACHE: {os.getenv('DISABLE_CACHE', 'N/A')}")
+    print("========================")
+
+_log_runtime_sello("UI")
+
 import streamlit as st
+
+def _verificar_imports():
+    """RO-12: Falla explícito si se usa función obsoleta en la lógica de la UI"""
+    import parsers.mercado_inmobiliario as mi
+    assert hasattr(mi, 'valuar_propiedad_v7'), "ERROR: valuar_propiedad_v7 no encontrada"
+    with open(__file__, 'r', encoding='utf-8') as f:
+        lineas = f.readlines()
+        for i, line in enumerate(lineas):
+            clean_line = line.strip()
+            if not clean_line or clean_line.startswith('#'):
+                continue
+            if 'calcular_valor_vpp(' in clean_line and 'def _verificar_imports' not in clean_line:
+                raise ImportError(f"ERROR RO-12: Llamada a calcular_valor_vpp detectada en linea {i+1}")
+
+_verificar_imports()
+
+if ENV == 'development':
+    st.cache_data.clear()
+    st.cache_resource.clear()
 import pandas as pd
 import re
 from datetime import datetime, timedelta
 import os
 import io
 import numpy as np
+import math
 from PIL import Image
-import requests
 from urllib.parse import quote
 import time
 import json
 import unicodedata
 import calendar
 import uuid
+import math
+import requests
+
 
 from subpagos import extraer_subpagos, generar_id
 
@@ -142,7 +198,7 @@ def get_ocr_reader():
     return _ocr_reader
 
 
-@st.cache_data(ttl=86400*7)  # Cache por 7 días
+@st.cache_data(ttl=TTL_LARGO)  # RO-13: Cache largo
 def buscar_comercio_en_web(nombre_comercio, ciudad="Rosario Argentina"):
     """Busca información de un comercio en DuckDuckGo y analiza múltiples resultados"""
     try:
@@ -407,7 +463,7 @@ def buscar_comercio_en_web(nombre_comercio, ciudad="Rosario Argentina"):
         return None, 0, None, None
 
 
-@st.cache_data(ttl=86400*30)
+@st.cache_data(ttl=TTL_LARGO) # RO-13: Cache largo (CUIT Online)
 def buscar_comercio_cuit_online(nombre_comercio):
     """Busca un comercio en CUIT Online (datos AFIP) para obtener su actividad económica"""
     try:
@@ -525,7 +581,7 @@ CATEGORIAS_WEB = {
 
 
 # Cache para precios de Binance
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=TTL_CORTO) # RO-13: Cache corto
 def obtener_precio_binance(simbolo, fecha=None):
     """Obtiene el precio de cierre de USDT en la moneda especificada"""
     try:
@@ -552,7 +608,7 @@ def obtener_precio_binance(simbolo, fecha=None):
         return None
 
 
-@st.cache_data(ttl=86400)
+@st.cache_data(ttl=TTL_MEDIO) # RO-13: Cache medio
 def obtener_usdt_ars_binance(fecha=None):
     """Obtiene USDT/ARS de CryptoCompare API (más preciso que CoinGecko)"""
     try:
@@ -591,7 +647,7 @@ def obtener_usdt_ars_binance(fecha=None):
         return None
 
 
-@st.cache_data(ttl=86400)
+@st.cache_data(ttl=TTL_MEDIO) # RO-13: Cache medio
 def obtener_precios_historicos(fecha=None):
     """Obtiene USDT/CLP de CoinGecko y USDT/ARS de CryptoCompare"""
     try:
@@ -2679,7 +2735,7 @@ def mostrar_egresos():
         df_preview = df_preview[columnas_preview].copy()
         df_preview = df_preview.rename(columns={'gasto': 'GASTO'})
 
-        st.dataframe(df_preview, use_container_width=True)
+        st.dataframe(df_preview, width='stretch')
 
         total = sum(g.get('monto', 0) for g in gastos_temp)
         st.metric("Total a guardar", f"${total:,.2f} ARS")
@@ -2687,7 +2743,7 @@ def mostrar_egresos():
         col1, col2 = st.columns([1, 1])
 
         with col1:
-            if st.button("💾 Guardar Egresos", type="primary", use_container_width=True):
+            if st.button("💾 Guardar Egresos", type="primary", width='stretch'):
                 gastos = gastos_temp
 
                 # 1. Leer datos FRESCOS desde disco
@@ -2755,7 +2811,7 @@ def mostrar_egresos():
                 st.rerun()
 
         with col2:
-            if st.button("❌ Cancelar", use_container_width=True):
+            if st.button("❌ Cancelar", width='stretch'):
                 st.session_state.egresos_procesados_temp = []
                 st.rerun()
     
@@ -3014,6 +3070,13 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
             "Sexta Pellegrini", "República de la Sexta", "Otro"].index(prop_inicial.get('zona', 'Otro')) if prop_inicial.get('zona') in ["Centro", "Macrocentro", "Barrio Inglés", "Pichincha", "Abasto", "Martin", "Facultades", "Puerto Norte", "Barrio Tigre", "Rosario Norte", "Alvear", "San Martín", "General Paz", "Echesortu", "Fisherton", "Ruta 9", "Sur", "Norte", "Oeste", "Sexta Pellegrini", "República de la Sexta", "Otro"] else 20,
            key=f"zona_{key_suffix}")
         direccion = st.text_input("Dirección (opcional)", value=prop_inicial.get('direccion', ''), key=f"direccion_{key_suffix}")
+        
+        # Campos de coordenadas (editables manualmente si se desea)
+        lat_input = st.number_input("Latitud", value=prop_inicial.get('lat', -32.9445), 
+                                    format="%.7f", key=f"lat_{key_suffix}", help="Editable manualmente")
+        lon_input = st.number_input("Longitud", value=prop_inicial.get('lon', -60.6319), 
+                                    format="%.7f", key=f"lon_{key_suffix}", help="Editable manualmente")
+        
         ubicacion_tipo = st.selectbox("Tipo de Ubicación", ["calle", "avenida", "esquina", "pasaje"],
                                      index=["calle", "avenida", "esquina", "pasaje"].index(prop_inicial.get('ubicacion_tipo', 'calle')) if prop_inicial.get('ubicacion_tipo') in ["calle", "avenida", "esquina", "pasaje"] else 0,
                                      key=f"ubica_tipo_{key_suffix}")
@@ -3154,6 +3217,7 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
 
         data = {
             'nombre': nombre, 'tipo_inmueble': tipo, 'zona': zona, 'direccion': direccion,
+            'lat': lat_input, 'lon': lon_input,
             'ubicacion_tipo': ubicacion_tipo, 'm2_cubiertos': m2_cubiertos, 'dormitorios': dormitorios,
             'baños': baños, 'toilet': toilet, 'baño_servicio': baño_servicio, 'anio_construccion': anio_const, 'constructora': constructora,
             'piso': piso, 'total_pisos': total_pisos, 'vista': vista, 'gas_ok': gas_ok,
@@ -3256,7 +3320,7 @@ def mostrar_propiedades(mes):
         
         # Botón para geocodificar propiedades (v11.2)
         with st.expander("📍 Geocodificar Propiedades"):
-            st.caption("Obtiene coordenadas y ancla más cercana para cada propiedad")
+            st.caption("Obtiene coordenadas para cada propiedad (sistema v7 no requiere anclas)")
             col_geo1, col_geo2 = st.columns([2, 1])
             with col_geo1:
                 if st.button("Obtener Coordenadas", help="Geocodifica todas las propiedades sin lat/lon"):
@@ -3319,7 +3383,7 @@ def mostrar_propiedades(mes):
         cols = ['nombre', 'tipo_inmueble', 'zona', 'm2', 'dormitorios', 'baños',
                 'estado_detalle', 'calidad_edificio']
         available = [c for c in cols if c in df.columns]
-        st.dataframe(df[available], use_container_width=True)
+        st.dataframe(df[available], width='stretch')
 
     # Actualizar datos de mercado (scraping + input manual)
     st.divider()
@@ -3336,7 +3400,7 @@ def mostrar_propiedades(mes):
             )
         with col_m2:
             st.write("")  # spacer
-            if st.button("🔄 Actualizar", use_container_width=True):
+            if st.button("🔄 Actualizar", width='stretch'):
                 from parsers.mercado_inmobiliario import actualizar_datos_mercado
                 with st.spinner("Consultando fuentes de mercado..."):
                     resultado = actualizar_datos_mercado(valor_manual if valor_manual > 0 else None)
@@ -3358,8 +3422,18 @@ def mostrar_propiedades(mes):
             st.divider()
 
             # MOTOR V7.0 HÍBRIDO (Venda + Alquiler + ROI)
-            from parsers.mercado_inmobiliario import valuar_propiedad_v6, valuar_propiedad_v7
+            from parsers.mercado_inmobiliario import valuar_propiedad_v7
             resultado = valuar_propiedad_v7(prop, fecha_ref=mes_prop)
+            
+            # DEBUG: Logging controlado para identificar fuente de divergencia
+            if prop.get('nombre', '').lower().find('mabel') >= 0 or prop.get('direccion', '').lower().find('mabel') >= 0:
+                print(f"[UI_VALOR_DEBUG] {prop.get('nombre', prop.get('direccion', 'Mabel'))}")
+                print(f"  fuente_valor_lista: motor valuar_propiedad_v7")
+                print(f"  valor_lista_ui: {resultado.get('valor_propiedad_usd')}")
+                print(f"  m2_base_venta_ui: {resultado.get('m2_base_venta')}")
+                print(f"  m2_equiv_ui: {resultado.get('m2_equivalentes')}")
+                print(f"  valor_m2_actual_usd: {resultado.get('valor_m2_actual_usd')}")
+            
             valor_lista = resultado['valor_propiedad_usd']
             valor_cierre = resultado['valor_realizable_usd']
             m2_equivalente = resultado['m2_equivalentes']
@@ -3371,30 +3445,32 @@ def mostrar_propiedades(mes):
             # Calcular descuento
             descuento_pct = int((1 - valor_cierre/valor_lista) * 100) if valor_lista > 0 else 8
 
-            # Plusvalía de ciclo (vs fecha de compra)
+            # Plusvalía de ciclo (vs fecha de compra) - CORREGIDO
             fecha_compra = prop.get('fecha_compra', None)
+            valor_compra_real = prop.get('valor_compra_usd', 0)
             plusvalia_ciclo_pct = None
             plusvalia_ciclo_usd = None
-            if fecha_compra:
-                try:
-                    fecha_compra_dt = datetime.strptime(fecha_compra, "%Y-%m-%d")
-                    mes_compra = fecha_compra_dt.strftime("%Y-%m")
-                    if mes_compra < mes_prop:
-                        resultado_compra = valuar_propiedad_v6(prop, fecha_ref=mes_compra)
-                        if resultado_compra['valor_propiedad_usd'] > 0:
-                            plusvalia_ciclo_usd = valor_lista - resultado_compra['valor_propiedad_usd']
-                            plusvalia_ciclo_pct = ((valor_lista / resultado_compra['valor_propiedad_usd']) - 1) * 100
-                except:
-                    pass
+            
+            if valor_compra_real > 0:
+                # Usar valor REAL de compra, no valor modelado histórico
+                plusvalia_ciclo_usd = valor_lista - valor_compra_real
+                plusvalia_ciclo_pct = ((valor_lista / valor_compra_real) - 1) * 100
 
             # Plusvalía últimos 12 meses (vs mismo mes año anterior)
+            # NOTA: Sin datos reales de venta, comparamos modelos - puede ser engañoso
+            # Por ahora mostramos 0 si no hay tendencia clara
             anio_actual = int(mes_prop.split("-")[0])
             mes_12m = f"{anio_actual - 1}-{mes_prop.split('-')[1]}"
-            if mes_12m >= "2000-01":
-                resultado_12m = valuar_propiedad_v6(prop, fecha_ref=mes_12m)
-                plusvalia_12m_usd = valor_lista - resultado_12m['valor_propiedad_usd']
-                plusvalia_12m_pct = ((valor_lista / resultado_12m['valor_propiedad_usd']) - 1) * 100 if resultado_12m['valor_propiedad_usd'] > 0 else 0
-                fase_ciclo = resultado_12m.get('tendencia', 'neutral')
+            
+            # Solo mostrar si hay datos reales de plusvalía de compra (más confiable)
+            if valor_compra_real > 0 and fecha_compra:
+                # Usar tendencia del mercado basada en compra real
+                if mes_12m >= "2000-01":
+                    resultado_12m = valuar_propiedad_v7(prop, fecha_ref=mes_12m)
+                    if resultado_12m['valor_propiedad_usd'] > 0:
+                        plusvalia_12m_usd = valor_lista - resultado_12m['valor_propiedad_usd']
+                        plusvalia_12m_pct = ((valor_lista / resultado_12m['valor_propiedad_usd']) - 1) * 100 if resultado_12m['valor_propiedad_usd'] > 0 else 0
+                        fase_ciclo = resultado_12m.get('tendencia', 'neutral')
             else:
                 plusvalia_12m_usd = 0
                 plusvalia_12m_pct = 0
@@ -3405,7 +3481,16 @@ def mostrar_propiedades(mes):
             # Header de la propiedad
             c_head1, c_head2, c_head3 = st.columns([3, 1, 1])
             with c_head1:
-                st.write(f"**{prop['nombre']}**")
+                # Badge de Resolución
+                res_type = resultado.get('resolution_metadata', {}).get('resolution', 'GLOBAL')
+                res_badge = {
+                    'GEO': ("🟢 Precisión Geoespacial", "success"),
+                    'ZONAL': ("🟡 Resolución Zonal", "warning"),
+                    'GLOBAL': ("🔴 Resolución Global", "error")
+                }.get(res_type, ("⚪ Desconocido", "info"))
+                
+                st.markdown(f"**{prop['nombre']}**  `{res_badge[0]}`", unsafe_allow_html=True)
+                
                 st.caption(
                     f"{prop.get('zona', '')} | {prop.get('m2', 0)}m² ({m2_equivalente:.1f} equiv) | "
                     f"{prop.get('estado_detalle', '')} | {prop.get('calidad_edificio', '')}"
@@ -3420,7 +3505,7 @@ def mostrar_propiedades(mes):
                     c4, c5 = st.columns(2)
                     c4.metric("Alquiler", f"${alq_ars:,.0f} ARS")
                     c5.metric("ROI Anual", f"{cap_rate:.2f}%")
-                    st.caption(f"💡 Modelo Híbrido V7.0 | Dólar Binance: ${resultado.get('usdt_ars', 1000):,.0f}")
+                    st.caption(f"💡 {resultado.get('metodo_base', 'Modelo Híbrido')} | Dólar Binance: ${resultado.get('usdt_ars', 1000):,.0f}")
             with c_head2:
                 if st.button("✏️ Editar", key=f"edit_btn_{prop['id']}"):
                     st.session_state[f"editing_prop_{prop['id']}"] = True
@@ -3468,22 +3553,245 @@ def mostrar_propiedades(mes):
             valor_comp = resultado.get('valor_comparable', 0)
             liquidez = resultado.get('liquidez', 1.0)
             
-            # Mostrar ancla utilizada (v11.2)
-            ancla_usd = prop.get('ancla_usd_m2', resultado.get('ancla_usd', '?'))
-            ancla_nombre = prop.get('ancla_mas_cercana', '?')
-            dist_ancla = prop.get('distancia_ancla_km', 0)
+            # v7: Resolución geoespacial (no necesita anclas legacy)
+            col_v1, col_v2, col_v3, col_v4, col_v5 = st.columns(5)
+            res_meta = resultado.get('resolution_metadata', {})
+            resolucion = res_meta.get('resolution', 'GLOBAL')
             
-            col_v1, col_v2, col_v3, col_v4 = st.columns(4)
-            col_v1.metric("m² Base (USD)", f"${m2_base:,.0f}")
-            col_v2.metric("m² Efectivo", f"${m2_display:,.0f}")
-            col_v3.metric("m² equiv", f"{m2_equivalente:.1f}")
-            col_v4.metric("Ancla", f"{ancla_nombre} ${ancla_usd}")
+            # Badge de resolución con color y detalle
+            if resolucion == 'GEO':
+                # Determinar si es Alta (qualified) o Media (fallback)
+                nodes = res_meta.get('nodes', [])
+                has_qualified = any(n.get('qualified', False) for n in nodes)
+                is_fallback = res_meta.get('note') == 'fallback_simple'
+                
+                if has_qualified and not is_fallback:
+                    badge = "🟢 GEO (Alta)"
+                    detail = "Nodos DBSCAN con edad (+8 muestras)"
+                elif is_fallback:
+                    badge = "🟢 GEO (Media)"
+                    detail = "Mediana Geo (Sencilla) - sin clusters"
+                else:
+                    badge = "🟢 GEO (Media)"
+                    detail = "Nodos DBSCAN sin edad (fallback)"
+            elif resolucion == 'ZONAL':
+                badge = "🟡 ZONAL"
+                detail = "Mediana zona"
+            else:
+                badge = "🔴 GLOBAL"
+                detail = "Default city avg"
+            
+            n_prop = res_meta.get('n_propiedades', len(res_meta.get('nodes', [])))
+            n_raw = res_meta.get('n_props_raw', '?')
+            n_filt = res_meta.get('n_props_filtradas', '?')
+            conf_explicit = res_meta.get('confianza_explicita', '')
+            
+            col_v1.metric("Resolución", badge)
+            col_v2.metric("USD/m²", f"${resultado.get('valor_m2_actual_usd', 0):,.0f}")
+            col_v3.metric("Cap Rate", f"{resultado.get('cap_rate_anual', 0):.1f}%")
+            col_v4.metric("Confianza", resultado.get('confianza', 'media').upper())
+            
+            # Show raw vs filtered if available
+            if n_raw != '?' and n_filt != '?':
+                caption_text = f"{detail}\nIncluidas: {n_filt} de {n_raw} propiedades"
+            else:
+                caption_text = f"{detail}\nIncluidas: {n_prop} propiedades"
+            
+            if conf_explicit:
+                caption_text += f"\nConfianza: {conf_explicit}"
+            
+            col_v5.caption(caption_text)
+            
+            # === MAPA DE NODO DINÁMICO ===
+            col_map1, col_map2 = st.columns([5, 1])
+            with col_map1:
+                with st.expander("🗺️ Análisis de Mercado Geoespacial"):
+                    try:
+                        from streamlit_folium import st_folium
+                        import folium
+                        from parsers.location_engine import cargar_barreras
+                        
+                        prop_lat = prop.get('lat')
+                        prop_lon = prop.get('lon')
+                        
+                        st.write(f"DEBUG: Lat={prop_lat}, Lon={prop_lon}") # Diagnostic
+                        
+                        if prop_lat and prop_lon:
+                            # 1. Datos de Nodos y Barreras
+                            res_meta = resultado.get('resolution_metadata', {})
+                            nodos_actuales = res_meta.get('nodes', [])
+                            st.write(f"DEBUG: Nodos encontrados: {len(nodos_actuales)}") # Diagnostic
+                            
+                            barreras = cargar_barreras()
+                            
+                            # Centrar mapa
+                            m = folium.Map(location=[prop_lat, prop_lon], zoom_start=15)
+                            
+                            # A. Dibujar Barreras (Líneas Rojas)
+                            for b in barreras:
+                                coords = b.get('geometry', {}).get('coordinates', [])
+                                line_coords = [[c[1], c[0]] for c in coords]
+                                folium.PolyLine(
+                                    line_coords, 
+                                    color='red', 
+                                    weight=3, 
+                                    opacity=0.7, 
+                                    tooltip=b.get('properties', {}).get('name', 'Barrera')
+                                ).add_to(m)
+                            
+                            # B. Marker de la Propiedad
+                            folium.Marker(
+                                location=[prop_lat, prop_lon],
+                                popup=f"📍 {prop.get('nombre')}",
+                                icon=folium.Icon(color='red', icon='home')
+                            ).add_to(m)
+                            
+                            # C. Dibujar Nodos Influyentes y Puntos de Recuperación
+                            for node in nodos_actuales:
+                                color = 'green' if node.get('weight', 0) > 0 else 'blue'
+                                folium.CircleMarker(
+                                    location=[node['lat'], node['lon']],
+                                    radius=6,
+                                    color=color,
+                                    fill=True,
+                                    fill_opacity=0.8,
+                                    popup=f"Influencia: {node.get('value', 0):.0f}/m²"
+                                ).add_to(m)
+                            
+                            # Opcional: Dibujar otros nodos del mercado para contexto
+                            try:
+                                from parsers.mercado_inmobiliario import obtener_nodos_dinamicos
+                                tipo = prop.get('tipo_inmueble', 'departamento')
+                                dorms = prop.get('dormitorios', 2)
+                                anio_const = prop.get('anio_construccion', 2020)
+                                todos_nodos = obtener_nodos_dinamicos(tipo, 'venta', dorms, anio_const)
+                                for n in todos_nodos:
+                                    if any(nod['id'] == n['id'] for nod in nodos_actuales):
+                                        continue 
+                                    folium.CircleMarker(
+                                        location=[n['lat'], n['lon']],
+                                        radius=3,
+                                        color='blue',
+                                        fill=True,
+                                        fill_opacity=0.2,
+                                        popup=f"Nodo: {n['id']}<br>${n['usd_m2']}/m²"
+                                    ).add_to(m)
+                            except Exception as e_nodes:
+                                st.warning(f"Error nodos contexto: {e_nodes}")
+                            
+                            st_folium(m, width=550, height=350, key=f"map_{prop['id']}") # Added key
+                        else:
+                            st.warning("⚠️ La propiedad no tiene coordenadas")
+                    except Exception as e:
+                        st.error(f"Error mapa: {e}")
+                        import traceback
+                        st.text(traceback.format_exc())
+            
+            with col_map2:
+                if st.button("🔄 Actualizar coords", key=f"geo_btn_{prop['id']}", help="Geocodificar con Nominatim"):
+                    direccion = prop.get('direccion', '')
+                    if direccion:
+                        from parsers.geocoder import geocodificar_nominatim
+                        result = geocodificar_nominatim(direccion)
+                        if result and result.get('lat'):
+                            for i, p in enumerate(propiedades):
+                                if p.get('id') == prop['id']:
+                                    propiedades[i]['lat'] = result['lat']
+                                    propiedades[i]['lon'] = result['lon']
+                                    break
+                            guardar_propiedades(propiedades)
+                            st.success(f"✅ {result['lat']:.6f}, {result['lon']:.6f}")
+                            st.rerun()
+                        else:
+                            st.error("No se encontró la dirección")
+                    else:
+                        st.warning("Sin dirección")
 
-            # Alertar si hay problema con el ancla
-            if dist_ancla and dist_ancla > 1.0:
-                st.warning(f"⚠️ Ancla a {dist_ancla:.1f}km - verificar coordenadas")
+            # Botón debug para ver cálculo detallado
+            debug_key = f"debug_{prop['id']}"
+            if st.button("🔍 Ver cálculo detallado", key=f"btn_{debug_key}"):
+                st.session_state[debug_key] = not st.session_state.get(debug_key, False)
+                st.rerun()
+            
+            if st.session_state.get(debug_key, False):
+                try:
+                    from parsers.mercado_inmobiliario import (
+                        sanitizar_propiedad, calcular_m2_equivalentes, calcular_factores,
+                        calcular_base_calibrada, obtener_mediana_cluster
+                    )
+                    from parsers.nlp_inmobiliario import calcular_ajuste_nlp_detallado
+                    
+                    p_deb = sanitizar_propiedad(prop)
+                    a_const = p_deb.get('anio_construccion', 2020)
+                    p_deb['antiguedad'] = 2026 - a_const
+                    
+                    # 1. Base Calibrada Primero (para obtener ventana_usada)
+                    mb_d, met, res_meta = calcular_base_calibrada(
+                        resultado.get('valor_m2_actual_usd', 1500),
+                        {'zona': p_deb.get('zona'), 'dormitorios': p_deb.get('dormitorios', 2), 
+                         'lat': prop.get('lat'), 'lon': prop.get('lon'), 'anio_construccion': a_const}
+                    )
+                    
+                    # Extraer ventana usada desde metadata de los nodos
+                    res_meta_nodes = res_meta.get('nodes', [{}])[0].get('resolution_metadata', {})
+                    ventana_usada = res_meta_nodes.get('ventana', 1)
+                    
+                    # 2. Factores con la ventana correcta
+                    me_d = calcular_m2_equivalentes(p_deb)
+                    fd = calcular_factores(p_deb, ventana_usada=ventana_usada)
+                    
+                    # Wrapper seguro para obtener_mediana_cluster (devuelve 2 valores: valor, metadata)
+                    try:
+                        med_result = obtener_mediana_cluster(p_deb.get('zona'), p_deb.get('dormitorios', 2), 'venta')
+                        if isinstance(med_result, tuple) and len(med_result) >= 2:
+                            cl_d, n_cl = med_result[0], med_result[1].get('n_filtradas', 0) if isinstance(med_result[1], dict) else 0
+                        else:
+                            cl_d, n_cl = med_result if med_result else 0, 0
+                    except Exception as e:
+                        cl_d, n_cl = 0, 0
+                    
+                    aj_nlp, det_nlp = calcular_ajuste_nlp_detallado(prop.get('descripcion_libre', ''))
+                    
+                    # Fórmula Unificada v11.2: Base * (sqrt((1+SumaCruda) * (1+NLP)) + DeltaAnti)
+                    nlp_capped = min(aj_nlp, 0.15)
+                    delta_anti = fd['detalles'].get('anti', 0)
+                    factor_unificado = math.sqrt((1 + fd['suma_cruda']) * (1 + nlp_capped)) + delta_anti
+                    vl_d = me_d * mb_d * factor_unificado
+                    
+                    # Narrativa de cálculo
+                    if res_meta.get('resolution') == 'GEO':
+                        nodos = res_meta.get('nodes', [])
+                        if nodos:
+                            main_node = max(nodos, key=lambda x: x['weight'])
+                            narrativa = (f"Este valor se basa en una **interpolación geoespacial**. "
+                                         f"El nodo más influyente ({main_node['id']}) está a {main_node['dist_m']:.0f}m "
+                                         f"con un valor de ${main_node['value']:.0f}/m².")
+                        else:
+                            narrativa = "Valuación basada en interpolación geoespacial."
+                    elif res_meta.get('resolution') == 'ZONAL':
+                        narrativa = f"Valor basado en la mediana de la zona {p_deb.get('zona')} ({n_cl} muestras)."
+                    else:
+                        narrativa = "Valor basado en promedio global de la ciudad."
 
-            # Plusvalías: ciclo y últimos 12 meses
+                    st.info(f"**Análisis del Modelo:**\n\n{narrativa}")
+                    
+                    st.write(f"**Detalle Técnico:**")
+                    st.write(f"- **m² construidos:** {me_d:.1f}")
+                    st.write(f"- **m² equivalentes:** {me_d:.1f}")
+                    st.write(f"- **USD/m² mercado (Base):** ${mb_d:,.2f}")
+                    st.write(f"- **Suma Cruda (Atributos):** {fd['suma_cruda']:.4f}")
+                    st.write(f"- **Factor NLP (1 + ajuste):** {1 + aj_nlp:.4f}")
+                    st.write(f"- **Factor Anti (antigüedad):** {delta_anti:.4f}")
+                    st.write(f"- **Estrato Base:** {fd['detalles']['estrato_activo']}")
+                    st.write(f"**Fórmula Final:** `({me_d:.1f} × {mb_d:,.2f} × sqrt((1 + {fd['suma_cruda']:.4f}) × (1 + {nlp_capped:.4f}))) + {delta_anti:.4f} = ${vl_d:,.0f}`")
+                    st.write(f"**Cierre (-8%):** ${vl_d*0.92:,.0f}")
+                    st.write(f"**Dólar Binance:** ${resultado.get('usdt_ars', 1488):,.2f}")
+                
+                except Exception as e:
+                    st.error(f"Error en debug: {e}")
+
+
+# Plusvalías: ciclo y últimos 12 meses
             pc_col1, pc_col2, pc_col3 = st.columns(3)
             
             # Plusvalía de ciclo (vs fecha de compra)
@@ -3521,6 +3829,15 @@ def mostrar_propiedades(mes):
                 st.write(f"**Rango de Mercado:** {resultado['rango_m2']}")
                 st.write(f"**Confiabilidad:** {resultado['confianza'].upper()}")
                 st.caption(f"Datos basados en el escaneo del {resultado['fecha_mercado']}")
+                
+                # Mostrar nodos influyentes si existen
+                res_meta = resultado.get('resolution_metadata', {})
+                nodes = res_meta.get('nodes', [])
+                if nodes:
+                    st.write("**Nodos influyentes:**")
+                    for i, n in enumerate(nodes[:10]):
+                        weight_pct = n.get('weight', 0) * 100
+                        st.caption(f"  {i+1}. {n.get('id', '?')} | dist: {n.get('dist_m', 0):.0f}m | USD/m²: ${n.get('value', 0):,.0f} | peso: {weight_pct:.1f}%")
 
             st.divider()
 
@@ -3775,7 +4092,7 @@ def mostrar_ajustes(mes_from_sidebar):
         if ajustes_mes:
             st.caption(f"{len(ajustes_mes)} ajustes")
             df_aj = pd.DataFrame(ajustes_mes)
-            st.dataframe(df_aj, use_container_width=True)
+            st.dataframe(df_aj, width='stretch')
 
             total_aj = sum(a.get('monto', 0) for a in ajustes_mes)
             st.metric("Total Ajustes", f"${total_aj:,.2f}")
@@ -3792,7 +4109,7 @@ def mostrar_ajustes(mes_from_sidebar):
             df_ef = pd.DataFrame(efectivo_egresos)
             cols = ['fecha', 'gasto', 'monto', 'categoria', 'subcategoria', 'owner']
             available = [c for c in cols if c in df_ef.columns]
-            st.dataframe(df_ef[available], use_container_width=True)
+            st.dataframe(df_ef[available], width='stretch')
 
             total_ef = sum(e.get('monto', 0) for e in efectivo_egresos)
             st.metric("Total Egresos Efectivo", f"${total_ef:,.2f}")
@@ -3807,7 +4124,7 @@ def mostrar_ajustes(mes_from_sidebar):
             df_ing = pd.DataFrame(efectivo_ingresos)
             cols = ['fecha', 'descripcion', 'monto', 'categoria', 'owner']
             available = [c for c in cols if c in df_ing.columns]
-            st.dataframe(df_ing[available], use_container_width=True)
+            st.dataframe(df_ing[available], width='stretch')
 
             total_ing = sum(i.get('monto', 0) for i in efectivo_ingresos)
             st.metric("Total Ingresos Efectivo", f"${total_ing:,.2f}")
@@ -4230,7 +4547,7 @@ def cargar_fondos_mutuos(mes):
                 st.error("No se pudieron extraer fondos del PDF")
 
 
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=TTL_MEDIO) # RO-13: Cache medio (VPP)
 def obtener_precio_adr(ticker):
     """Obtiene precio actual de un ADR desde Yahoo Finance API REST"""
     try:
@@ -4383,7 +4700,7 @@ def mostrar_activos():
             cols = ['nombre', 'moneda_original', 'valor_final', 'ganancia',
                     'valor_final_ars', 'ganancia_ars', 'fecha']
             available = [c for c in cols if c in df_fondos.columns]
-            st.dataframe(df_fondos[available], use_container_width=True, hide_index=True)
+            st.dataframe(df_fondos[available], width='stretch', hide_index=True)
 
             total_ganancia = sum(a.get('ganancia_ars', 0) for a in fondos)
             st.metric("Ganancia Total Fondos", f"${total_ganancia:,.0f}",
@@ -4397,7 +4714,7 @@ def mostrar_activos():
             df_props = pd.DataFrame(propiedades)
             cols = ['nombre', 'zona', 'm2', 'valor_tasacion_usd', 'valor_tasacion_ars']
             available = [c for c in cols if c in df_props.columns]
-            st.dataframe(df_props[available], use_container_width=True, hide_index=True)
+            st.dataframe(df_props[available], width='stretch', hide_index=True)
         else:
             st.info("No hay propiedades. Cargalas desde 'Propiedades'.")
 
@@ -4878,7 +5195,7 @@ def mostrar_activos():
                     )
 
                     df_cierre = pd.DataFrame(detalle_cierre)
-                    st.dataframe(df_cierre, use_container_width=True, hide_index=True)
+                    st.dataframe(df_cierre, width='stretch', hide_index=True)
 
                     st.rerun()
 
@@ -5027,12 +5344,12 @@ def mostrar_activos():
             if todos_cierres:
                 df_cierres = pd.DataFrame(todos_cierres)
                 df_cierres = df_cierres.sort_values(['Mes', 'Ticker'], ascending=[False, True])
-                st.dataframe(df_cierres, use_container_width=True, hide_index=True)
+                st.dataframe(df_cierres, width='stretch', hide_index=True)
 
                 # Resumen por mes
                 st.caption("Resumen por mes")
                 resumen_mes = df_cierres.groupby('Mes')[['Plusvalía USD', 'Plusvalía ARS']].sum()
-                st.dataframe(resumen_mes, use_container_width=True)
+                st.dataframe(resumen_mes, width='stretch')
             else:
                 st.info("No hay cierres mensuales. Usá 'Cerrar Mes' para registrar.")
 
@@ -5110,7 +5427,7 @@ def mostrar_activos():
                 df_div = pd.DataFrame(todos_dividendos)
                 cols_div = ['fecha', 'ticker', 'monto_por_accion_usd', 'total_usd', 'total_ars']
                 available_div = [c for c in cols_div if c in df_div.columns]
-                st.dataframe(df_div[available_div], use_container_width=True, hide_index=True)
+                st.dataframe(df_div[available_div], width='stretch', hide_index=True)
 
         else:
             st.info("No hay ADRs cargados. Usá el formulario de arriba para agregar.")
@@ -5119,7 +5436,7 @@ def mostrar_activos():
     if otros:
         st.subheader("Otros Activos")
         df_otros = pd.DataFrame(otros)
-        st.dataframe(df_otros, use_container_width=True, hide_index=True)
+        st.dataframe(df_otros, width='stretch', hide_index=True)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,169 @@
+{
+  "timestamp": "2026-04-25T16:43:18.277665",
+  "elapsed_seconds": 76.96,
+  "inmobiliarias_processed": 30,
+  "total_properties": 157,
+  "errors_count": 0,
+  "errors": [],
+  "stats": {
+    "start_time": "2026-04-25T16:42:01.316574",
+    "elapsed_seconds": 76.96,
+    "pages_scraped": 33,
+    "properties_found": 0,
+    "properties_saved": 0,
+    "errors_count": 0,
+    "errors": [],
+    "inmobiliarias_processed": [
+      {
+        "nombre": "Diego Ferreyra Bienes Raíces",
+        "status": "ok",
+        "timestamp": "2026-04-25T16:42:02.394800"
+      },
+      {
+        "nombre": "Guillermo Rodríguez Inmobiliaria",
+        "status": "ok",
+        "timestamp": "2026-04-25T16:42:02.611947"
+      },
+      {
+        "nombre": "Bassini Negocios Inmobiliarios",
+        "status": "ok",
+        "timestamp": "2026-04-25T16:42:02.988482"
+      },
+      {
+        "nombre": "Fiorina Propiedades",
+        "status": "ok",
+        "timestamp": "2026-04-25T16:42:03.441650"
+      },
+      {
+        "nombre": "Gardiol Propiedades",
+        "status": "ok",
+        "timestamp": "2026-04-25T16:42:04.447321"
+      },
+      {
+        "nombre": "Dunod Propiedades",
+        "status": "ok",
+        "timestamp": "2026-04-25T16:42:04.648708"
+      },
+      {
+        "nombre": "Gonzalo Guiñazú",
+        "status": "ok",
+        "timestamp": "2026-04-25T16:42:08.614403"
+      },
+      {
+        "nombre": "Futura Negocios Inmobiliarios",
+        "status": "ok",
+        "timestamp": "2026-04-25T16:42:08.861587"
+      },
+      {
+        "nombre": "Grupo ISA",
+        "status": "ok",
+        "timestamp": "2026-04-25T16:42:09.342627"
+      },
+      {
+        "nombre": "Imperia Propiedades",
+        "status": "ok",
+        "timestamp": "2026-04-25T16:42:13.965570"
+      },
+      {
+        "nombre": "Ing. Massoud Servicios Inmobiliarios",
+        "status": "ok",
+        "timestamp": "2026-04-25T16:42:19.823277"
+      },
+      {
+        "nombre": "Integra Negocios",
+        "status": "ok",
+        "timestamp": "2026-04-25T16:42:23.916109"
+      },
+      {
+        "nombre": "Jaef Inmobiliaria",
+        "status": "ok",
+        "timestamp": "2026-04-25T16:42:24.575649"
+      },
+      {
+        "nombre": "Juan Rioja",
+        "status": "ok",
+        "timestamp": "2026-04-25T16:42:27.924772"
+      },
+      {
+        "nombre": "Haus Propiedades",
+        "status": "ok",
+        "timestamp": "2026-04-25T16:42:31.525306"
+      },
+      {
+        "nombre": "Libertador Servicios Inmobiliarios",
+        "status": "ok",
+        "timestamp": "2026-04-25T16:42:35.160967"
+      },
+      {
+        "nombre": "Inmobiliaria Manarin",
+        "status": "ok",
+        "timestamp": "2026-04-25T16:42:36.991746"
+      },
+      {
+        "nombre": "Galindo Negocios Inmobiliarios",
+        "status": "ok",
+        "timestamp": "2026-04-25T16:42:37.141822"
+      },
+      {
+        "nombre": "Lakiatto Inmobiliaria",
+        "status": "ok",
+        "timestamp": "2026-04-25T16:42:51.274433"
+      },
+      {
+        "nombre": "Ideal Propiedades",
+        "status": "ok",
+        "timestamp": "2026-04-25T16:42:57.023842"
+      },
+      {
+        "nombre": "Gamag Propiedades",
+        "status": "ok",
+        "timestamp": "2026-04-25T16:42:57.579410"
+      },
+      {
+        "nombre": "GP Propiedades",
+        "status": "ok",
+        "timestamp": "2026-04-25T16:42:59.736438"
+      },
+      {
+        "nombre": "Flias Propiedades",
+        "status": "ok",
+        "timestamp": "2026-04-25T16:43:04.888386"
+      },
+      {
+        "nombre": "Next Inmobiliaria",
+        "status": "ok",
+        "timestamp": "2026-04-25T16:43:05.331803"
+      },
+      {
+        "nombre": "Gabriela G Propiedades",
+        "status": "ok",
+        "timestamp": "2026-04-25T16:43:06.391108"
+      },
+      {
+        "nombre": "Century 21 Rosario",
+        "status": "ok",
+        "timestamp": "2026-04-25T16:43:08.859634"
+      },
+      {
+        "nombre": "Zona Prop Rosario",
+        "status": "ok",
+        "timestamp": "2026-04-25T16:43:09.069297"
+      },
+      {
+        "nombre": "Argenprop Rosario",
+        "status": "ok",
+        "timestamp": "2026-04-25T16:43:13.873241"
+      },
+      {
+        "nombre": "Remax Rosario",
+        "status": "ok",
+        "timestamp": "2026-04-25T16:43:18.156413"
+      },
+      {
+        "nombre": "Fuzion Inmobiliaria Boutique",
+        "status": "ok",
+        "timestamp": "2026-04-25T16:43:18.256411"
+      }
+    ]
+  }
+}

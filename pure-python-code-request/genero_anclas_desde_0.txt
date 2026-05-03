@@ -1,0 +1,1454 @@
+## El problema de raíz
+
+```
+Lo que hicimos hasta ahora:
+
+anclas inventadas con IDW sobre otras anclas inventadas
+        ↓
+interpolación de interpolaciones
+        ↓
+error acumulado sin datos reales
+
+Lo que necesitamos:
+
+datos reales de listings
+        ↓
+precio real por m² por ubicación real
+        ↓
+anclas que representan el mercado, no una suposición
+```
+
+---
+
+## La arquitectura correcta
+
+```
+FASE 1: RECOLECCIÓN          FASE 2: LIMPIEZA           FASE 3: ANCLAS
+─────────────────────        ──────────────────         ──────────────────
+ZonaProp  ──┐               Filtrar outliers            Grilla H3 sobre
+Argenprop ──┼──► listings   Normalizar USD/m²    ──►   Rosario + mediana
+MercadoLibre┘   crudos      Geocodificar                real por celda
+                            Validar superficie
+```
+
+---
+
+## Los 4 archivos del pipeline
+
+```
+pipeline_anclas/
+  01_scraper_listings.py     ← recolecta listings reales
+  02_cleaner_geocoder.py     ← limpia + geocodifica
+  03_anchor_generator.py     ← genera anclas desde datos reales
+  04_coverage_validator.py   ← valida cobertura final
+```
+
+---
+
+## 📄 `01_scraper_listings.py`
+
+```python
+"""
+01_scraper_listings.py
+
+Recolecta listings de propiedades en venta en Rosario desde:
+  - ZonaProp (principal, mejor cobertura)
+  - Argenprop (complemento)
+  - MercadoLibre Inmuebles (volumen)
+
+Output: listings_raw_YYYYMMDD.json
+  [
+    {
+      "fuente": "zonaprop",
+      "titulo": "Departamento 2 ambientes...",
+      "precio_usd": 85000,
+      "superficie_m2": 55,
+      "direccion": "Ayacucho 1200, Rosario",
+      "lat": null,   ← se geocodifica en FASE 2
+      "lon": null,
+      "tipo": "departamento",
+      "url": "https://..."
+    },
+    ...
+  ]
+"""
+
+import asyncio
+import json
+import re
+import httpx
+from datetime import datetime
+from urllib.parse import urlencode, urljoin
+
+# ── Configuración ────────────────────────────────────────────────────────────
+OUTPUT_FILE = f"listings_raw_{datetime.now().strftime('%Y%m%d_%H%M')}.json"
+MAX_PAGES_PER_SOURCE = 50       # 50 páginas × ~20 listings = ~1000 por fuente
+CONCURRENT_REQUESTS = 3         # gentil con los servidores
+DELAY_BETWEEN_REQUESTS = 1.5    # segundos
+
+HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/124.0.0.0 Safari/537.36"
+    ),
+    "Accept-Language": "es-AR,es;q=0.9",
+    "Accept": "text/html,application/xhtml+xml,*/*;q=0.8",
+}
+
+# ── Patrones de extracción ───────────────────────────────────────────────────
+RE_PRICE_USD = re.compile(
+    r"(?:USD?|U\$[Ss]|US\$)\s*\.?\s*([\d\.]+(?:[\.,]\d{3})*(?:[\.,]\d{2})?)",
+    re.IGNORECASE
+)
+RE_PRICE_ARS = re.compile(
+    r"\$\s*([\d\.]+(?:[\.,]\d{3})*)",
+    re.IGNORECASE
+)
+RE_SURFACE = re.compile(
+    r"([\d]+(?:[,\.]\d+)?)\s*m[²2]",
+    re.IGNORECASE
+)
+RE_ADDRESS = re.compile(
+    r'"address"\s*:\s*"([^"]+)"'
+    r'|"streetAddress"\s*:\s*"([^"]+)"'
+    r'|"direccion"\s*:\s*"([^"]+)"',
+    re.IGNORECASE
+)
+
+
+def clean_price(raw: str) -> float | None:
+    """Convierte '125.000' o '125,000' a 125000.0"""
+    cleaned = raw.replace(".", "").replace(",", "")
+    try:
+        val = float(cleaned)
+        # Validar rango razonable para Rosario (USD 10k - USD 2M)
+        if 10_000 <= val <= 2_000_000:
+            return val
+    except ValueError:
+        pass
+    return None
+
+
+def clean_surface(raw: str) -> float | None:
+    """Convierte superficie a float, valida rango."""
+    try:
+        val = float(raw.replace(",", "."))
+        # Validar rango razonable (10m² - 2000m²)
+        if 10 <= val <= 2000:
+            return val
+    except ValueError:
+        pass
+    return None
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# FUENTE 1: ZONAPROP
+# ═══════════════════════════════════════════════════════════════════════════
+
+class ZonaPropScraper:
+    """
+    ZonaProp expone datos JSON dentro del HTML en window.__INITIAL_STATE__.
+    No necesita browser, httpx es suficiente.
+    """
+    BASE = "https://www.zonaprop.com.ar"
+    # URL de búsqueda: departamentos + casas en venta en Rosario
+    SEARCH_URLS = [
+        "/departamentos-venta-rosario-pagina-{page}.html",
+        "/casas-venta-rosario-pagina-{page}.html",
+        "/ph-venta-rosario-pagina-{page}.html",
+    ]
+
+    async def scrape_page(
+        self, client: httpx.AsyncClient, path: str
+    ) -> list[dict]:
+        url = self.BASE + path
+        try:
+            resp = await client.get(url, timeout=15)
+            if resp.status_code != 200:
+                return []
+        except Exception:
+            return []
+
+        # ZonaProp embebe JSON en el HTML
+        match = re.search(
+            r'window\.__INITIAL_STATE__\s*=\s*({.+?});\s*</script>',
+            resp.text, re.DOTALL
+        )
+        if not match:
+            return []
+
+        try:
+            data = json.loads(match.group(1))
+        except json.JSONDecodeError:
+            return []
+
+        listings = []
+        # Navegar la estructura del JSON de ZonaProp
+        props = (
+            data.get("listPostings", []) or
+            data.get("results", {}).get("listPostings", []) or
+            []
+        )
+
+        for prop in props:
+            listing = self._extract(prop)
+            if listing:
+                listings.append(listing)
+
+        return listings
+
+    def _extract(self, prop: dict) -> dict | None:
+        """Extrae campos relevantes de un posting de ZonaProp."""
+        try:
+            # Precio
+            price_data = prop.get("price", {}) or {}
+            precio_usd = None
+
+            if price_data.get("currency") == "USD":
+                precio_usd = float(price_data.get("amount", 0) or 0)
+            elif price_data.get("currency") == "ARS":
+                # Ignorar ARS por ahora (tipo de cambio incierto)
+                return None
+
+            if not precio_usd or precio_usd < 10_000:
+                return None
+
+            # Superficie
+            features = prop.get("mainFeatures", {}) or {}
+            sup_raw = (
+                features.get("CFT1", {}).get("value") or      # sup total
+                features.get("CFT2", {}).get("value") or      # sup cubierta
+                features.get("SURFACE_TOTAL", {}).get("value")
+            )
+            superficie = clean_surface(str(sup_raw)) if sup_raw else None
+
+            # Dirección
+            location = prop.get("postingLocation", {}) or {}
+            address_parts = []
+            if location.get("address", {}).get("name"):
+                address_parts.append(location["address"]["name"])
+            if location.get("location", {}).get("name"):
+                address_parts.append(location["location"]["name"])
+            address_parts.append("Rosario, Santa Fe")
+
+            # Coordenadas (ZonaProp a veces las da)
+            geo = location.get("postingGeolocation", {}) or {}
+            lat = geo.get("geolocation", {}).get("latitude")
+            lon = geo.get("geolocation", {}).get("longitude")
+
+            return {
+                "fuente": "zonaprop",
+                "titulo": prop.get("title", ""),
+                "precio_usd": precio_usd,
+                "superficie_m2": superficie,
+                "usd_m2": round(precio_usd / superficie, 1) if superficie else None,
+                "direccion": ", ".join(address_parts),
+                "lat": lat,
+                "lon": lon,
+                "tipo": prop.get("realEstateType", {}).get("name", "").lower(),
+                "url": self.BASE + (prop.get("url") or ""),
+                "ambientes": features.get("ROOMS", {}).get("value"),
+            }
+        except Exception:
+            return None
+
+    async def scrape_all(self, max_pages: int = MAX_PAGES_PER_SOURCE) -> list[dict]:
+        all_listings = []
+        async with httpx.AsyncClient(headers=HEADERS, verify=False) as client:
+            for search_url in self.SEARCH_URLS:
+                for page in range(1, max_pages + 1):
+                    path = search_url.format(page=page)
+                    listings = await self.scrape_page(client, path)
+                    if not listings:
+                        print(f"  [ZonaProp] {path} → sin resultados, fin de paginación")
+                        break
+                    all_listings.extend(listings)
+                    print(f"  [ZonaProp] {path} → {len(listings)} listings")
+                    await asyncio.sleep(DELAY_BETWEEN_REQUESTS)
+
+        return all_listings
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# FUENTE 2: ARGENPROP
+# ═══════════════════════════════════════════════════════════════════════════
+
+class ArgenpropScraper:
+    """
+    Argenprop también embebe JSON en el HTML.
+    Estructura diferente a ZonaProp.
+    """
+    BASE = "https://www.argenprop.com"
+    SEARCH_PATHS = [
+        "/departamento-venta-en-rosario--pagina-{page}",
+        "/casa-venta-en-rosario--pagina-{page}",
+    ]
+
+    async def scrape_page(
+        self, client: httpx.AsyncClient, path: str
+    ) -> list[dict]:
+        url = self.BASE + path
+        try:
+            resp = await client.get(url, timeout=15)
+            if resp.status_code != 200:
+                return []
+        except Exception:
+            return []
+
+        # Argenprop embebe JSON en <script type="application/ld+json">
+        # Y también en window.APP_STATE
+        listings = []
+
+        # Método 1: window.APP_STATE
+        match = re.search(r'window\.APP_STATE\s*=\s*({.+?});\s*\n', resp.text, re.DOTALL)
+        if match:
+            try:
+                data = json.loads(match.group(1))
+                props = data.get("listingData", {}).get("listings", [])
+                for prop in props:
+                    l = self._extract_app_state(prop)
+                    if l:
+                        listings.append(l)
+                return listings
+            except Exception:
+                pass
+
+        # Método 2: JSON-LD
+        ld_matches = re.findall(
+            r'<script type="application/ld\+json">(.+?)</script>',
+            resp.text, re.DOTALL
+        )
+        for ld in ld_matches:
+            try:
+                data = json.loads(ld)
+                if isinstance(data, list):
+                    for item in data:
+                        l = self._extract_ld(item)
+                        if l:
+                            listings.append(l)
+                elif isinstance(data, dict):
+                    l = self._extract_ld(data)
+                    if l:
+                        listings.append(l)
+            except Exception:
+                continue
+
+        return listings
+
+    def _extract_app_state(self, prop: dict) -> dict | None:
+        try:
+            prices = prop.get("prices", []) or []
+            precio_usd = None
+            for p in prices:
+                if p.get("currency") == "USD":
+                    precio_usd = float(p.get("price", 0))
+                    break
+            if not precio_usd or precio_usd < 10_000:
+                return None
+
+            surface = prop.get("surface", {}) or {}
+            sup = clean_surface(str(surface.get("totalArea") or surface.get("coveredArea") or 0))
+
+            geo = prop.get("geo", {}) or {}
+            return {
+                "fuente": "argenprop",
+                "titulo": prop.get("title", ""),
+                "precio_usd": precio_usd,
+                "superficie_m2": sup,
+                "usd_m2": round(precio_usd / sup, 1) if sup else None,
+                "direccion": f"{prop.get('address', '')}, Rosario, Santa Fe",
+                "lat": geo.get("lat"),
+                "lon": geo.get("lng"),
+                "tipo": prop.get("type", "").lower(),
+                "url": self.BASE + (prop.get("url") or ""),
+                "ambientes": prop.get("rooms"),
+            }
+        except Exception:
+            return None
+
+    def _extract_ld(self, item: dict) -> dict | None:
+        """Extrae desde JSON-LD schema.org/RealEstateListing"""
+        try:
+            if item.get("@type") not in ("RealEstateListing", "Apartment", "House", "Residence"):
+                return None
+
+            offers = item.get("offers", {}) or {}
+            precio = float(offers.get("price", 0) or 0)
+            currency = offers.get("priceCurrency", "")
+
+            if currency != "USD" or precio < 10_000:
+                return None
+
+            floor_size = item.get("floorSize", {}) or {}
+            sup = clean_surface(str(floor_size.get("value", 0)))
+
+            geo = item.get("geo", {}) or {}
+            address = item.get("address", {}) or {}
+
+            return {
+                "fuente": "argenprop_ld",
+                "titulo": item.get("name", ""),
+                "precio_usd": precio,
+                "superficie_m2": sup,
+                "usd_m2": round(precio / sup, 1) if sup else None,
+                "direccion": address.get("streetAddress", "") + ", Rosario, Santa Fe",
+                "lat": float(geo["latitude"]) if geo.get("latitude") else None,
+                "lon": float(geo["longitude"]) if geo.get("longitude") else None,
+                "tipo": item.get("@type", "").lower(),
+                "url": item.get("url", ""),
+                "ambientes": None,
+            }
+        except Exception:
+            return None
+
+    async def scrape_all(self, max_pages: int = MAX_PAGES_PER_SOURCE) -> list[dict]:
+        all_listings = []
+        async with httpx.AsyncClient(headers=HEADERS, verify=False) as client:
+            for search_path in self.SEARCH_PATHS:
+                for page in range(1, max_pages + 1):
+                    path = search_path.format(page=page)
+                    listings = await self.scrape_page(client, path)
+                    if not listings:
+                        print(f"  [Argenprop] {path} → sin resultados")
+                        break
+                    all_listings.extend(listings)
+                    print(f"  [Argenprop] {path} → {len(listings)} listings")
+                    await asyncio.sleep(DELAY_BETWEEN_REQUESTS)
+        return all_listings
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# FUENTE 3: MERCADOLIBRE INMUEBLES
+# ═══════════════════════════════════════════════════════════════════════════
+
+class MercadoLibreScraper:
+    """
+    MercadoLibre tiene API pública no oficial (búsqueda en HTML + JSON).
+    Usar búsqueda por categoría + ciudad.
+    """
+    BASE = "https://inmuebles.mercadolibre.com.ar"
+    SEARCH_PATHS = [
+        "/departamentos/venta/rosario/_Desde_{offset}",
+        "/casas/venta/rosario/_Desde_{offset}",
+    ]
+    PAGE_SIZE = 48
+
+    async def scrape_page(
+        self, client: httpx.AsyncClient, path: str
+    ) -> list[dict]:
+        url = self.BASE + path
+        try:
+            resp = await client.get(url, timeout=15)
+            if resp.status_code != 200:
+                return []
+        except Exception:
+            return []
+
+        listings = []
+
+        # MercadoLibre embebe JSON en <script id="__PRELOADED_STATE__">
+        match = re.search(
+            r'<script[^>]*id="__PRELOADED_STATE__"[^>]*>(.+?)</script>',
+            resp.text, re.DOTALL
+        )
+        if not match:
+            # Fallback: buscar window.__PRELOADED_STATE__
+            match = re.search(
+                r'window\.__PRELOADED_STATE__\s*=\s*({.+?});\s*</script>',
+                resp.text, re.DOTALL
+            )
+
+        if match:
+            try:
+                data = json.loads(match.group(1))
+                results = (
+                    data.get("initialState", {})
+                       .get("results", [])
+                )
+                for r in results:
+                    l = self._extract(r)
+                    if l:
+                        listings.append(l)
+                return listings
+            except Exception:
+                pass
+
+        # Fallback: regex sobre HTML
+        return self._extract_html_fallback(resp.text)
+
+    def _extract(self, item: dict) -> dict | None:
+        try:
+            price_data = item.get("price", {}) or {}
+            if price_data.get("currency_id") != "USD":
+                return None
+            precio_usd = float(price_data.get("amount", 0))
+            if precio_usd < 10_000:
+                return None
+
+            attributes = {
+                a["id"]: a.get("value_name") or a.get("value_struct", {})
+                for a in (item.get("attributes") or [])
+                if a.get("id")
+            }
+
+            sup_raw = attributes.get("TOTAL_AREA") or attributes.get("COVERED_AREA")
+            if isinstance(sup_raw, dict):
+                sup_raw = sup_raw.get("number")
+            sup = clean_surface(str(sup_raw)) if sup_raw else None
+
+            loc = item.get("location", {}) or {}
+            return {
+                "fuente": "mercadolibre",
+                "titulo": item.get("title", ""),
+                "precio_usd": precio_usd,
+                "superficie_m2": sup,
+                "usd_m2": round(precio_usd / sup, 1) if sup else None,
+                "direccion": f"{loc.get('address_line', '')}, Rosario, Santa Fe",
+                "lat": loc.get("latitude"),
+                "lon": loc.get("longitude"),
+                "tipo": item.get("category_id", "").lower(),
+                "url": item.get("permalink", ""),
+                "ambientes": attributes.get("ROOMS"),
+            }
+        except Exception:
+            return None
+
+    def _extract_html_fallback(self, html: str) -> list[dict]:
+        """
+        Extracción HTML pura como último recurso.
+        Busca patrones de precio y dirección en el texto.
+        """
+        listings = []
+        # Buscar bloques de artículos
+        items = re.findall(
+            r'<article[^>]*class="[^"]*ui-search-result[^"]*"[^>]*>(.*?)</article>',
+            html, re.DOTALL
+        )
+        for item_html in items:
+            prices = RE_PRICE_USD.findall(item_html)
+            surfaces = RE_SURFACE.findall(item_html)
+            url_match = re.search(r'href="([^"]*inmuebles[^"]*)"', item_html)
+
+            if prices and surfaces:
+                precio = clean_price(prices[0])
+                sup = clean_surface(surfaces[0])
+                if precio and sup:
+                    listings.append({
+                        "fuente": "mercadolibre_html",
+                        "titulo": "",
+                        "precio_usd": precio,
+                        "superficie_m2": sup,
+                        "usd_m2": round(precio / sup, 1),
+                        "direccion": "Rosario, Santa Fe",
+                        "lat": None,
+                        "lon": None,
+                        "tipo": "desconocido",
+                        "url": url_match.group(1) if url_match else "",
+                        "ambientes": None,
+                    })
+        return listings
+
+    async def scrape_all(self, max_pages: int = MAX_PAGES_PER_SOURCE) -> list[dict]:
+        all_listings = []
+        async with httpx.AsyncClient(headers=HEADERS, verify=False) as client:
+            for search_path in self.SEARCH_PATHS:
+                for page in range(max_pages):
+                    offset = page * self.PAGE_SIZE + 1
+                    path = search_path.format(offset=offset)
+                    listings = await self.scrape_page(client, path)
+                    if not listings:
+                        print(f"  [MercadoLibre] offset={offset} → sin resultados")
+                        break
+                    all_listings.extend(listings)
+                    print(f"  [MercadoLibre] offset={offset} → {len(listings)} listings")
+                    await asyncio.sleep(DELAY_BETWEEN_REQUESTS)
+        return all_listings
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# ORQUESTADOR
+# ═══════════════════════════════════════════════════════════════════════════
+
+async def main():
+    print("\n" + "="*60)
+    print("🏠 RECOLECCIÓN DE LISTINGS — ROSARIO")
+    print("="*60)
+
+    all_listings = []
+
+    scrapers = [
+        ("ZonaProp",      ZonaPropScraper()),
+        ("Argenprop",     ArgenpropScraper()),
+        ("MercadoLibre",  MercadoLibreScraper()),
+    ]
+
+    for name, scraper in scrapers:
+        print(f"\n📡 Scrapeando {name}...")
+        try:
+            listings = await scraper.scrape_all()
+            # Filtrar los que tienen usd_m2 calculable
+            valid = [l for l in listings if l.get("usd_m2") and l["usd_m2"] > 0]
+            print(f"  ✅ {name}: {len(valid)} listings válidos de {len(listings)} totales")
+            all_listings.extend(valid)
+        except Exception as e:
+            print(f"  ❌ {name}: error — {e}")
+
+    print(f"\n📊 Total listings recolectados: {len(all_listings)}")
+
+    # Deduplicar por URL
+    seen_urls = set()
+    unique = []
+    for l in all_listings:
+        if l["url"] not in seen_urls:
+            seen_urls.add(l["url"])
+            unique.append(l)
+
+    print(f"📊 Después de deduplicar:      {len(unique)}")
+
+    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+        json.dump({
+            "generated_at": datetime.now().isoformat(),
+            "total": len(unique),
+            "con_coordenadas": sum(1 for l in unique if l["lat"]),
+            "sin_coordenadas": sum(1 for l in unique if not l["lat"]),
+            "listings": unique,
+        }, f, ensure_ascii=False, indent=2)
+
+    print(f"💾 Guardado en: {OUTPUT_FILE}")
+    print(f"   Con coordenadas:    {sum(1 for l in unique if l['lat'])}")
+    print(f"   Sin coordenadas:    {sum(1 for l in unique if not l['lat'])} ← necesitan geocoding")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+---
+
+## 📄 `02_cleaner_geocoder.py`
+
+```python
+"""
+02_cleaner_geocoder.py
+
+Limpia el dataset crudo y geocodifica las direcciones sin coordenadas.
+
+PASOS:
+  1. Filtro de outliers estadísticos (IQR sobre USD/m²)
+  2. Filtro geográfico (solo listings dentro de Rosario)
+  3. Geocodificación con Nominatim (OpenStreetMap) — GRATIS
+  4. Clasificación por barrio/zona usando polígonos OSM
+  5. Output: listings_clean_YYYYMMDD.json
+
+Nota sobre geocoding:
+  Nominatim tiene límite de 1 req/segundo (respetamos eso).
+  Para datasets > 2000 props sin coordenadas considerar:
+  - Photon (instancia local de OSM geocoder, sin límite)
+  - Pelias (self-hosted)
+"""
+
+import json
+import time
+import re
+import httpx
+import statistics
+from datetime import datetime
+from pathlib import Path
+
+# ── Config ───────────────────────────────────────────────────────────────────
+NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
+NOMINATIM_DELAY = 1.1   # segundos entre requests (respetar política OSM)
+USER_AGENT = "RosarioAnchorBuilder/1.0 (research project)"
+
+# Bounding box estricto de Rosario urbano
+ROSARIO_BOUNDS = {
+    "lat_min": -33.010,
+    "lat_max": -32.880,
+    "lon_min": -60.830,
+    "lon_max": -60.580,
+}
+
+# Límites de precio razonables para Rosario
+USD_M2_MIN = 400    # debajo de esto: probable error o villa
+USD_M2_MAX = 4000   # arriba de esto: probable error o lujo extremo
+
+
+# ── Polígonos de barrios (aproximados por bounding boxes) ───────────────────
+# Se usan para etiquetar el barrio de cada listing
+BARRIOS = [
+    {"nombre": "Centro",         "lat_min":-32.960,"lat_max":-32.940,"lon_min":-60.655,"lon_max":-60.620},
+    {"nombre": "Martín",         "lat_min":-32.965,"lat_max":-32.945,"lon_min":-60.640,"lon_max":-60.615},
+    {"nombre": "Pichincha",      "lat_min":-32.945,"lat_max":-32.925,"lon_min":-60.660,"lon_max":-60.625},
+    {"nombre": "Lourdes",        "lat_min":-32.960,"lat_max":-32.940,"lon_min":-60.670,"lon_max":-60.645},
+    {"nombre": "Abasto",         "lat_min":-32.975,"lat_max":-32.950,"lon_min":-60.675,"lon_max":-60.640},
+    {"nombre": "Echesortu",      "lat_min":-32.960,"lat_max":-32.930,"lon_min":-60.705,"lon_max":-60.660},
+    {"nombre": "Sexta Seccion",  "lat_min":-32.980,"lat_max":-32.955,"lon_min":-60.660,"lon_max":-60.625},
+    {"nombre": "República",      "lat_min":-32.990,"lat_max":-32.965,"lon_min":-60.660,"lon_max":-60.625},
+    {"nombre": "Fisherton",      "lat_min":-32.940,"lat_max":-32.915,"lon_min":-60.820,"lon_max":-60.740},
+    {"nombre": "Arroyito",       "lat_min":-32.925,"lat_max":-32.895,"lon_min":-60.680,"lon_max":-60.610},
+    {"nombre": "Alberdi",        "lat_min":-32.920,"lat_max":-32.895,"lon_min":-60.660,"lon_max":-60.620},
+    {"nombre": "Zona Oeste",     "lat_min":-32.970,"lat_max":-32.925,"lon_min":-60.760,"lon_max":-60.690},
+    {"nombre": "Zona Sur",       "lat_min":-33.010,"lat_max":-32.975,"lon_min":-60.700,"lon_max":-60.610},
+    {"nombre": "Zona Norte",     "lat_min":-32.895,"lat_max":-32.870,"lon_min":-60.720,"lon_max":-60.600},
+    {"nombre": "Macrocentro",    "lat_min":-32.955,"lat_max":-32.930,"lon_min":-60.660,"lon_max":-60.625},
+]
+
+
+def assign_barrio(lat: float, lon: float) -> str:
+    """Asigna barrio por bounding box. Retorna 'Desconocido' si no hay match."""
+    for b in BARRIOS:
+        if (b["lat_min"] <= lat <= b["lat_max"] and
+                b["lon_min"] <= lon <= b["lon_max"]):
+            return b["nombre"]
+    return "Desconocido"
+
+
+def is_within_rosario(lat: float, lon: float) -> bool:
+    b = ROSARIO_BOUNDS
+    return (b["lat_min"] <= lat <= b["lat_max"] and
+            b["lon_min"] <= lon <= b["lon_max"])
+
+
+def filter_outliers_iqr(listings: list[dict]) -> list[dict]:
+    """
+    Elimina outliers de USD/m² usando IQR × 1.5.
+    Aplica POR BARRIO para no mezclar zonas.
+    """
+    # Agrupar por barrio
+    by_barrio: dict[str, list] = {}
+    for l in listings:
+        b = l.get("barrio", "Desconocido")
+        by_barrio.setdefault(b, []).append(l)
+
+    clean = []
+    for barrio, group in by_barrio.items():
+        values = [l["usd_m2"] for l in group if l.get("usd_m2")]
+        if len(values) < 4:
+            # Muy pocos datos → aplicar límites globales
+            clean.extend([
+                l for l in group
+                if USD_M2_MIN <= (l.get("usd_m2") or 0) <= USD_M2_MAX
+            ])
+            continue
+
+        q1 = statistics.quantiles(values, n=4)[0]
+        q3 = statistics.quantiles(values, n=4)[2]
+        iqr = q3 - q1
+        lower = max(USD_M2_MIN, q1 - 1.5 * iqr)
+        upper = min(USD_M2_MAX, q3 + 1.5 * iqr)
+
+        filtered = [
+            l for l in group
+            if l.get("usd_m2") and lower <= l["usd_m2"] <= upper
+        ]
+        removed = len(group) - len(filtered)
+        if removed > 0:
+            print(f"  [{barrio}] IQR: removidos {removed} outliers "
+                  f"(rango válido: {lower:.0f}–{upper:.0f} USD/m²)")
+        clean.extend(filtered)
+
+    return clean
+
+
+def normalize_address(address: str) -> str:
+    """
+    Normaliza dirección para mejor geocoding.
+    'Ayacucho 1815, Rosario' → 'Ayacucho 1815, Rosario, Santa Fe, Argentina'
+    """
+    # Remover pisos, deptos, etc.
+    address = re.sub(r'\b(piso|p[°º]|dpto?\.?|dto\.?|uf|unidad)\s*\w+', '', address, flags=re.IGNORECASE)
+    address = re.sub(r'\s+', ' ', address).strip()
+
+    # Asegurar que termine con ciudad y país
+    if "rosario" not in address.lower():
+        address += ", Rosario"
+    if "santa fe" not in address.lower():
+        address += ", Santa Fe"
+    if "argentina" not in address.lower():
+        address += ", Argentina"
+
+    return address
+
+
+async def geocode_nominatim(address: str) -> tuple[float, float] | None:
+    """
+    Geocodifica una dirección usando Nominatim (OSM).
+    Retorna (lat, lon) o None si falla.
+    """
+    params = {
+        "q": address,
+        "format": "json",
+        "limit": 1,
+        "countrycodes": "ar",
+        "viewbox": f"{ROSARIO_BOUNDS['lon_min']},{ROSARIO_BOUNDS['lat_min']},{ROSARIO_BOUNDS['lon_max']},{ROSARIO_BOUNDS['lat_max']}",
+        "bounded": 1,
+    }
+
+    headers = {"User-Agent": USER_AGENT}
+
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(NOMINATIM_URL, params=params, headers=headers, timeout=10)
+            if resp.status_code != 200:
+                return None
+            results = resp.json()
+            if results:
+                lat = float(results[0]["lat"])
+                lon = float(results[0]["lon"])
+                if is_within_rosario(lat, lon):
+                    return lat, lon
+    except Exception:
+        pass
+
+    return None
+
+
+async def process_listings(input_file: str) -> str:
+    """Pipeline completo de limpieza y geocodificación."""
+    print(f"\n📂 Cargando {input_file}...")
+    with open(input_file, encoding="utf-8") as f:
+        data = json.load(f)
+
+    listings = data["listings"]
+    print(f"   Total crudo: {len(listings)}")
+
+    # ── PASO 1: Filtro básico ────────────────────────────────────────────────
+    listings = [
+        l for l in listings
+        if l.get("precio_usd") and l.get("superficie_m2") and l.get("usd_m2")
+    ]
+    print(f"   Con precio + superficie: {len(listings)}")
+
+    # ── PASO 2: Filtro por rango absoluto de USD/m² ─────────────────────────
+    listings = [l for l in listings if USD_M2_MIN <= l["usd_m2"] <= USD_M2_MAX]
+    print(f"   En rango USD/m² ({USD_M2_MIN}–{USD_M2_MAX}): {len(listings)}")
+
+    # ── PASO 3: Geocodificar los que no tienen coordenadas ──────────────────
+    sin_coords = [l for l in listings if not l.get("lat")]
+    con_coords = [l for l in listings if l.get("lat")]
+
+    print(f"\n🌍 Geocodificando {len(sin_coords)} listings sin coordenadas...")
+    print(f"   (ya tienen coordenadas: {len(con_coords)})")
+
+    geocoded_ok = 0
+    geocoded_fail = 0
+
+    for i, listing in enumerate(sin_coords):
+        if i % 50 == 0:
+            print(f"   Progreso: {i}/{len(sin_coords)} ({geocoded_ok} ok, {geocoded_fail} fallidos)")
+
+        address = normalize_address(listing.get("direccion", ""))
+        result = await geocode_nominatim(address)
+
+        if result:
+            listing["lat"], listing["lon"] = result
+            listing["geocoded"] = True
+            geocoded_ok += 1
+        else:
+            listing["geocoded"] = False
+            geocoded_fail += 1
+
+        await asyncio.sleep(NOMINATIM_DELAY)  # respetar límite OSM
+
+    print(f"   ✅ Geocodificados OK: {geocoded_ok}")
+    print(f"   ❌ Sin geocodificar: {geocoded_fail}")
+
+    # ── PASO 4: Filtro geográfico (dentro de Rosario) ───────────────────────
+    all_with_coords = [l for l in listings if l.get("lat")]
+    within_rosario = [l for l in all_with_coords if is_within_rosario(l["lat"], l["lon"])]
+    print(f"\n🗺️  Dentro de Rosario: {len(within_rosario)} de {len(all_with_coords)}")
+
+    # ── PASO 5: Asignar barrio ───────────────────────────────────────────────
+    for l in within_rosario:
+        l["barrio"] = assign_barrio(l["lat"], l["lon"])
+
+    # ── PASO 6: Filtro IQR por barrio ───────────────────────────────────────
+    print(f"\n📐 Filtrando outliers por IQR por barrio...")
+    clean_listings = filter_outliers_iqr(within_rosario)
+    print(f"   Después de IQR: {len(clean_listings)} listings")
+
+    # ── PASO 7: Estadísticas por barrio ─────────────────────────────────────
+    print(f"\n📊 Estadísticas por barrio:")
+    print(f"{'Barrio':<20} {'N':>5} {'Mediana':>9} {'P25':>7} {'P75':>7} {'Min':>7} {'Max':>7}")
+    print("─" * 65)
+
+    by_barrio: dict[str, list] = {}
+    for l in clean_listings:
+        b = l.get("barrio", "Desconocido")
+        by_barrio.setdefault(b, []).append(l["usd_m2"])
+
+    barrio_stats = {}
+    for barrio, values in sorted(by_barrio.items(), key=lambda x: -statistics.median(x[1])):
+        if values:
+            vals_sorted = sorted(values)
+            n = len(vals_sorted)
+            median = statistics.median(vals_sorted)
+            p25 = vals_sorted[n // 4]
+            p75 = vals_sorted[3 * n // 4]
+            barrio_stats[barrio] = {
+                "n": n,
+                "mediana_usd_m2": round(median, 0),
+                "p25_usd_m2": round(p25, 0),
+                "p75_usd_m2": round(p75, 0),
+                "min_usd_m2": round(min(vals_sorted), 0),
+                "max_usd_m2": round(max(vals_sorted), 0),
+            }
+            print(f"{barrio:<20} {n:>5} {median:>9.0f} {p25:>7.0f} {p75:>7.0f} "
+                  f"{min(vals_sorted):>7.0f} {max(vals_sorted):>7.0f}")
+
+    # ── Guardar output ───────────────────────────────────────────────────────
+    output_file = input_file.replace("raw", "clean")
+    output = {
+        "generated_at": datetime.now().isoformat(),
+        "total_clean": len(clean_listings),
+        "barrio_stats": barrio_stats,
+        "listings": clean_listings,
+    }
+    with open(output_file, "w", encoding="utf-8") as f:
+        json.dump(output, f, ensure_ascii=False, indent=2)
+
+    print(f"\n💾 Guardado en: {output_file}")
+    return output_file
+
+
+import asyncio
+
+if __name__ == "__main__":
+    import sys
+    input_file = sys.argv[1] if len(sys.argv) > 1 else sorted(
+        Path(".").glob("listings_raw_*.json")
+    )[-1]
+    asyncio.run(process_listings(str(input_file)))
+```
+
+---
+
+## 📄 `03_anchor_generator.py`
+
+```python
+"""
+03_anchor_generator.py
+
+Genera anclas desde datos reales de listings limpios.
+
+MÉTODO:
+  1. Grilla H3-like (hexágonos aproximados) de 300m sobre Rosario
+  2. Por cada celda: agregar listings en radio configurable
+  3. Si hay >= MIN_SAMPLES listings: ancla estadísticamente válida
+  4. Si hay < MIN_SAMPLES: marcar como "sparse" → no generar ancla
+  5. Gaps (celdas sin datos suficientes) → interpolar SOLO si hay vecinos válidos
+
+FILOSOFÍA:
+  Una ancla solo existe si hay datos reales que la soporten.
+  Mejor tener huecos honestos que valores inventados.
+"""
+
+import json
+import math
+import statistics
+from datetime import datetime
+from pathlib import Path
+from dataclasses import dataclass, field
+
+# ── Config ───────────────────────────────────────────────────────────────────
+GRID_STEP_KM     = 0.30   # celda de 300m
+AGGREGATE_RADIUS = 0.40   # radio de agregación por celda (400m)
+MIN_SAMPLES      = 5      # mínimo de listings para ancla estadística
+INTERPOLATION_MAX_DIST = 0.60  # max distancia para interpolar gaps
+
+KM_PER_LAT = 111.32
+KM_PER_LON = 88.50
+
+LAT_MIN, LAT_MAX = -33.010, -32.880
+LON_MIN, LON_MAX = -60.830, -60.580
+
+
+@dataclass
+class Listing:
+    lat: float
+    lon: float
+    usd_m2: float
+    fuente: str
+    barrio: str
+
+
+@dataclass
+class AnchorCell:
+    lat: float
+    lon: float
+    listings: list = field(default_factory=list)
+    # Resultados
+    usd_m2: float = 0.0
+    n_samples: int = 0
+    confidence: str = "none"
+    method: str = ""
+    # Estadísticas
+    mediana: float = 0.0
+    p25: float = 0.0
+    p75: float = 0.0
+    std: float = 0.0
+    iqr: float = 0.0
+    # ID generado
+    anchor_id: str = ""
+    barrio: str = ""
+
+
+def haversine_km(lat1, lon1, lat2, lon2) -> float:
+    dlat = (lat2 - lat1) * KM_PER_LAT
+    dlon = (lon2 - lon1) * KM_PER_LON
+    return math.sqrt(dlat**2 + dlon**2)
+
+
+def generate_grid() -> list[tuple[float, float]]:
+    """Genera centroides de grilla rectangular."""
+    step_lat = GRID_STEP_KM / KM_PER_LAT
+    step_lon = GRID_STEP_KM / KM_PER_LON
+    points = []
+    lat = LAT_MIN
+    while lat <= LAT_MAX:
+        lon = LON_MIN
+        while lon <= LON_MAX:
+            points.append((round(lat, 6), round(lon, 6)))
+            lon += step_lon
+        lat += step_lat
+    return points
+
+
+def assign_listings_to_cells(
+    grid: list[tuple], listings: list[Listing]
+) -> list[AnchorCell]:
+    """
+    Por cada celda de la grilla, busca listings en radio AGGREGATE_RADIUS.
+    """
+    cells = []
+    for lat, lon in grid:
+        cell = AnchorCell(lat=lat, lon=lon)
+        for l in listings:
+            d = haversine_km(lat, lon, l.lat, l.lon)
+            if d <= AGGREGATE_RADIUS:
+                cell.listings.append(l)
+        cells.append(cell)
+    return cells
+
+
+def compute_cell_statistics(cell: AnchorCell) -> AnchorCell:
+    """
+    Calcula estadísticas para una celda con >= MIN_SAMPLES listings.
+    Usa la MEDIANA como valor central (robusta a outliers residuales).
+    """
+    values = [l.usd_m2 for l in cell.listings]
+    cell.n_samples = len(values)
+
+    if len(values) < MIN_SAMPLES:
+        cell.confidence = "insufficient"
+        return cell
+
+    values_sorted = sorted(values)
+    n = len(values_sorted)
+
+    cell.mediana  = statistics.median(values_sorted)
+    cell.p25      = values_sorted[n // 4]
+    cell.p75      = values_sorted[3 * n // 4]
+    cell.iqr      = cell.p75 - cell.p25
+    cell.std      = statistics.stdev(values_sorted) if n > 1 else 0.0
+    cell.usd_m2   = round(cell.mediana / 10) * 10   # redondear a 10 USD
+
+    # Confianza basada en cantidad y dispersión
+    cv = cell.std / cell.mediana if cell.mediana > 0 else 1.0  # coeficiente de variación
+    if n >= 20 and cv < 0.20:
+        cell.confidence = "HIGH"
+    elif n >= 10 and cv < 0.30:
+        cell.confidence = "MEDIUM"
+    elif n >= MIN_SAMPLES:
+        cell.confidence = "LOW"
+
+    cell.method = "estadistica_real"
+
+    # Barrio predominante
+    barrios = [l.barrio for l in cell.listings if l.barrio != "Desconocido"]
+    if barrios:
+        cell.barrio = max(set(barrios), key=barrios.count)
+
+    return cell
+
+
+def interpolate_gaps(cells: list[AnchorCell]) -> list[AnchorCell]:
+    """
+    Para celdas con datos insuficientes, interpolar desde celdas vecinas
+    con datos reales (HIGH o MEDIUM).
+
+    REGLA: solo interpolar si hay al menos 3 celdas válidas en radio
+    INTERPOLATION_MAX_DIST. Si no hay suficientes vecinos, dejar como gap.
+    """
+    valid_cells = [c for c in cells if c.confidence in ("HIGH", "MEDIUM")]
+
+    for cell in cells:
+        if cell.confidence in ("HIGH", "MEDIUM", "LOW"):
+            continue  # ya tiene datos suficientes
+
+        # Buscar vecinas válidas
+        neighbors = []
+        for vc in valid_cells:
+            d = haversine_km(cell.lat, cell.lon, vc.lat, vc.lon)
+            if d <= INTERPOLATION_MAX_DIST:
+                neighbors.append((d, vc))
+
+        if len(neighbors) < 3:
+            cell.confidence = "gap"
+            cell.method = "sin_datos_insuficientes_vecinos"
+            continue
+
+        # IDW sobre vecinas válidas
+        total_weight = 0.0
+        weighted_sum = 0.0
+        for d, vc in neighbors:
+            w = 1.0 / (d ** 2)
+            weighted_sum += w * vc.usd_m2
+            total_weight += w
+
+        interpolated = weighted_sum / total_weight
+        cell.usd_m2 = round(interpolated / 10) * 10
+        cell.confidence = "INTERPOLATED"
+        cell.method = f"IDW sobre {len(neighbors)} vecinas reales"
+        cell.n_samples = 0  # dejar claro que no tiene datos propios
+
+    return cells
+
+
+def generate_anchor_id(cell: AnchorCell, idx: int) -> str:
+    """Genera un ID descriptivo para la ancla."""
+    barrio_slug = (cell.barrio or "zona").lower().replace(" ", "_")
+    lat_str = f"{abs(cell.lat):.4f}".replace(".", "")
+    lon_str = f"{abs(cell.lon):.4f}".replace(".", "")
+    return f"{barrio_slug}_{lat_str}_{lon_str}"
+
+
+def build_anchors_json(cells: list[AnchorCell]) -> dict:
+    """Construye el JSON final de anclas."""
+
+    # Solo incluir celdas con datos (excluir gaps puros)
+    export_cells = [
+        c for c in cells
+        if c.confidence in ("HIGH", "MEDIUM", "LOW", "INTERPOLATED")
+        and c.usd_m2 > 0
+    ]
+
+    # Generar IDs
+    for i, cell in enumerate(export_cells):
+        cell.anchor_id = generate_anchor_id(cell, i)
+
+    # Resumen por confianza
+    conf_summary = {
+        "HIGH":         sum(1 for c in export_cells if c.confidence == "HIGH"),
+        "MEDIUM":       sum(1 for c in export_cells if c.confidence == "MEDIUM"),
+        "LOW":          sum(1 for c in export_cells if c.confidence == "LOW"),
+        "INTERPOLATED": sum(1 for c in export_cells if c.confidence == "INTERPOLATED"),
+    }
+
+    # Estadísticas globales
+    valid_values = [c.usd_m2 for c in export_cells if c.confidence != "INTERPOLATED"]
+
+    anchors_list = []
+    for cell in export_cells:
+        anchor = {
+            "id": cell.anchor_id,
+            "lat": cell.lat,
+            "lon": cell.lon,
+            "usd_m2": cell.usd_m2,
+            "_meta": {
+                "confidence":   cell.confidence,
+                "method":       cell.method,
+                "n_samples":    cell.n_samples,
+                "barrio":       cell.barrio,
+                "mediana":      round(cell.mediana, 1) if cell.mediana else None,
+                "p25":          round(cell.p25, 1) if cell.p25 else None,
+                "p75":          round(cell.p75, 1) if cell.p75 else None,
+                "iqr":          round(cell.iqr, 1) if cell.iqr else None,
+                "cv_pct":       round(cell.std / cell.mediana * 100, 1)
+                                if cell.mediana and cell.std else None,
+            }
+        }
+        anchors_list.append(anchor)
+
+    return {
+        "fuente":   "anclas_rosario_v4_from_real_data.json",
+        "metodo":   "estadistica_real_listings",
+        "generado": datetime.now().isoformat(),
+        "config": {
+            "grid_step_km":       GRID_STEP_KM,
+            "aggregate_radius_km": AGGREGATE_RADIUS,
+            "min_samples":        MIN_SAMPLES,
+            "interpolation_max_dist_km": INTERPOLATION_MAX_DIST,
+        },
+        "resumen": {
+            "total_anclas":      len(anchors_list),
+            "por_confianza":     conf_summary,
+            "usd_m2_min":        round(min(valid_values), 0) if valid_values else None,
+            "usd_m2_max":        round(max(valid_values), 0) if valid_values else None,
+            "usd_m2_mediana":    round(statistics.median(valid_values), 0) if valid_values else None,
+        },
+        "anclas": anchors_list,
+    }
+
+
+def main(input_file: str):
+    print("\n" + "="*60)
+    print("🗺️  GENERADOR DE ANCLAS DESDE DATOS REALES")
+    print("="*60)
+
+    # ── Cargar listings limpios ─────────────────────────────────────────────
+    with open(input_file, encoding="utf-8") as f:
+        data = json.load(f)
+
+    raw_listings = data["listings"]
+    listings = [
+        Listing(
+            lat=l["lat"], lon=l["lon"],
+            usd_m2=l["usd_m2"], fuente=l["fuente"],
+            barrio=l.get("barrio", "Desconocido")
+        )
+        for l in raw_listings
+        if l.get("lat") and l.get("lon") and l.get("usd_m2")
+    ]
+    print(f"📍 Listings con coordenadas: {len(listings)}")
+
+    # ── Generar grilla ─────────────────────────────────────────────────────
+    print(f"\n🔲 Generando grilla {GRID_STEP_KM}km × {GRID_STEP_KM}km...")
+    grid = generate_grid()
+    print(f"   Celdas: {len(grid)}")
+
+    # ── Asignar listings a celdas ──────────────────────────────────────────
+    print(f"\n📎 Asignando listings a celdas (radio {AGGREGATE_RADIUS}km)...")
+    cells = assign_listings_to_cells(grid, listings)
+
+    # ── Calcular estadísticas ─────────────────────────────────────────────
+    print("\n📊 Calculando estadísticas por celda...")
+    cells = [compute_cell_statistics(c) for c in cells]
+
+    stats = {
+        "HIGH":          sum(1 for c in cells if c.confidence == "HIGH"),
+        "MEDIUM":        sum(1 for c in cells if c.confidence == "MEDIUM"),
+        "LOW":           sum(1 for c in cells if c.confidence == "LOW"),
+        "insufficient":  sum(1 for c in cells if c.confidence == "insufficient"),
+        "none":          sum(1 for c in cells if c.confidence == "none"),
+    }
+    print(f"   ✅ HIGH:         {stats['HIGH']}")
+    print(f"   🟡 MEDIUM:       {stats['MEDIUM']}")
+    print(f"   🟠 LOW:          {stats['LOW']}")
+    print(f"   ❌ Insuficiente: {stats['insufficient']}")
+    print(f"   ⬜ Sin datos:    {stats['none']}")
+
+    # ── Interpolar gaps ────────────────────────────────────────────────────
+    print(f"\n🔄 Interpolando gaps (max {INTERPOLATION_MAX_DIST}km)...")
+    cells = interpolate_gaps(cells)
+    interpolated = sum(1 for c in cells if c.confidence == "INTERPOLATED")
+    gaps = sum(1 for c in cells if c.confidence == "gap")
+    print(f"   Interpoladas: {interpolated}")
+    print(f"   Gaps reales:  {gaps} (zonas sin datos ni vecinos)")
+
+    # ── Construir JSON final ───────────────────────────────────────────────
+    print("\n🏗️  Construyendo JSON de anclas...")
+    anchors_data = build_anchors_json(cells)
+
+    print(f"\n📋 RESUMEN FINAL:")
+    print(f"   Total anclas:  {anchors_data['resumen']['total_anclas']}")
+    for conf, n in anchors_data["resumen"]["por_confianza"].items():
+        icons = {"HIGH":"✅","MEDIUM":"🟡","LOW":"🟠","INTERPOLATED":"🔵"}
+        print(f"   {icons.get(conf,'⬜')} {conf}: {n}")
+    print(f"   Rango USD/m²:  "
+          f"{anchors_data['resumen']['usd_m2_min']} – "
+          f"{anchors_data['resumen']['usd_m2_max']}")
+    print(f"   Mediana:       {anchors_data['resumen']['usd_m2_mediana']} USD/m²")
+
+    # ── Guardar ────────────────────────────────────────────────────────────
+    ts = datetime.now().strftime("%Y%m%d_%H%M")
+    output_file = f"anclas_rosario_v4_{ts}.json"
+    with open(output_file, "w", encoding="utf-8") as f:
+        json.dump(anchors_data, f, ensure_ascii=False, indent=2)
+    print(f"\n💾 Anclas guardadas en: {output_file}")
+
+    return output_file
+
+
+if __name__ == "__main__":
+    import sys
+    input_file = sys.argv[1] if len(sys.argv) > 1 else sorted(
+        Path(".").glob("listings_clean_*.json")
+    )[-1]
+    main(str(input_file))
+```
+
+---
+
+## 📄 `04_coverage_validator.py`
+
+```python
+"""
+04_coverage_validator.py
+
+Valida la cobertura final de las anclas generadas.
+Genera reporte de gaps reales y mapa de calor en GeoJSON.
+"""
+
+import json
+import math
+import statistics
+from datetime import datetime
+from pathlib import Path
+
+
+KM_PER_LAT = 111.32
+KM_PER_LON = 88.50
+
+def haversine_km(lat1, lon1, lat2, lon2):
+    return math.sqrt(
+        ((lat2 - lat1) * KM_PER_LAT) ** 2 +
+        ((lon2 - lon1) * KM_PER_LON) ** 2
+    )
+
+
+def validate(anchors_file: str):
+    print("\n" + "="*60)
+    print("✅ VALIDADOR DE COBERTURA")
+    print("="*60)
+
+    with open(anchors_file, encoding="utf-8") as f:
+        data = json.load(f)
+
+    anchors = [
+        a for a in data["anclas"]
+        if a.get("usd_m2") and a.get("_meta", {}).get("confidence") != "gap"
+    ]
+
+    print(f"\n📍 Anclas cargadas: {len(anchors)}")
+
+    # ── Cobertura por confianza ─────────────────────────────────────────────
+    by_conf = {}
+    for a in anchors:
+        c = a.get("_meta", {}).get("confidence", "?")
+        by_conf[c] = by_conf.get(c, 0) + 1
+
+    print("\n📊 Por confianza:")
+    for conf, n in sorted(by_conf.items()):
+        print(f"   {conf}: {n}")
+
+    # ── Distancias entre anclas (vecino más cercano) ─────────────────────────
+    nn_distances = []
+    for i, a in enumerate(anchors):
+        min_d = float("inf")
+        for j, b in enumerate(anchors):
+            if i == j: continue
+            d = haversine_km(a["lat"], a["lon"], b["lat"], b["lon"])
+            if d < min_d:
+                min_d = d
+        nn_distances.append(min_d)
+
+    print(f"\n📐 Distancia al vecino más cercano:")
+    print(f"   Media:   {statistics.mean(nn_distances):.3f} km")
+    print(f"   Mediana: {statistics.median(nn_distances):.3f} km")
+    print(f"   P90:     {sorted(nn_distances)[int(len(nn_distances)*0.9)]:.3f} km")
+    print(f"   Máxima:  {max(nn_distances):.3f} km")
+
+    # ── Rango de precios ───────────────────────────────────────────────────
+    prices = [a["usd_m2"] for a in anchors]
+    print(f"\n💰 Distribución USD/m²:")
+    print(f"   Mínimo:  {min(prices):.0f}")
+    print(f"   P25:     {sorted(prices)[len(prices)//4]:.0f}")
+    print(f"   Mediana: {statistics.median(prices):.0f}")
+    print(f"   P75:     {sorted(prices)[3*len(prices)//4]:.0f}")
+    print(f"   Máximo:  {max(prices):.0f}")
+
+    # ── GeoJSON de calor ────────────────────────────────────────────────────
+    features = []
+    price_min = min(prices)
+    price_max = max(prices)
+
+    for a in anchors:
+        # Normalizar precio a 0-1 para color
+        norm = (a["usd_m2"] - price_min) / (price_max - price_min)
+        # Verde (bajo) → Rojo (alto) en HEX aproximado
+        r = int(norm * 255)
+        g = int((1 - norm) * 255)
+        color = f"#{r:02x}{g:02x}00"
+
+        features.append({
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [a["lon"], a["lat"]]
+            },
+            "properties": {
+                "id":         a["id"],
+                "usd_m2":     a["usd_m2"],
+                "confidence": a.get("_meta", {}).get("confidence", "?"),
+                "n_samples":  a.get("_meta", {}).get("n_samples", 0),
+                "barrio":     a.get("_meta", {}).get("barrio", ""),
+                "color":      color,
+                "marker-color": color,
+                "marker-size":  "medium",
+            }
+        })
+
+    geojson = {"type": "FeatureCollection", "features": features}
+    geo_file = anchors_file.replace(".json", "_mapa.geojson")
+    with open(geo_file, "w", encoding="utf-8") as f:
+        json.dump(geojson, f, ensure_ascii=False, indent=2)
+
+    print(f"\n💾 Mapa GeoJSON → {geo_file}")
+    print(f"   👉 Visualizar en: https://geojson.io")
+
+
+if __name__ == "__main__":
+    import sys
+    f = sys.argv[1] if len(sys.argv) > 1 else sorted(
+        Path(".").glob("anclas_rosario_v4_*.json")
+    )[-1]
+    validate(str(f))
+```
+
+---
+
+## ▶️ Pipeline completo
+
+```bash
+# FASE 1: Recolectar listings reales
+python 01_scraper_listings.py
+# Output: listings_raw_20260422_1030.json (~2000-5000 listings)
+
+# FASE 2: Limpiar + geocodificar
+python 02_cleaner_geocoder.py listings_raw_20260422_1030.json
+# Output: listings_clean_20260422_1030.json (con coordenadas + IQR)
+# ⏱ Esta fase toma tiempo: 1.1s × N listings sin coordenadas
+
+# FASE 3: Generar anclas desde datos reales
+python 03_anchor_generator.py listings_clean_20260422_1030.json
+# Output: anclas_rosario_v4_20260422_1035.json
+
+# FASE 4: Validar cobertura
+python 04_coverage_validator.py anclas_rosario_v4_20260422_1035.json
+# Output: anclas_rosario_v4_20260422_1035_mapa.geojson → geojson.io
+```
+
+---
+
+## La diferencia fundamental con lo anterior
+
+```
+ANTES (v1, v2, v3):                AHORA (v4):
+──────────────────────             ──────────────────────────────
+Valor inventado                    Mediana de N listings reales
+        ↓                                    ↓
+IDW sobre valores                  IDW solo como último recurso
+inventados                         (cuando no hay datos propios)
+        ↓                                    ↓
+"ancla" sin respaldo               Ancla con trazabilidad:
+                                   n_samples, p25, p75, cv%
+
+Si la ancla tiene n_samples=0      Si tiene n_samples < 5
+y confidence=INTERPOLATED          → confidence=LOW
+→ el modelo lo sabe                → el modelo lo sabe
+→ el usuario ve el warning         → el usuario ve el warning
+```
+
+> **Regla nueva:** Si una zona no tiene datos reales suficientes, el sistema declara el gap honestamente en lugar de inventar un valor que parece confiable pero no lo es.
