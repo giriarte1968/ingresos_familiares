@@ -67,8 +67,8 @@ def test_mabel_alquiler():
 def test_ayacucho_venta():
     """Valida rangos de venta para Ayacucho (6ta Pellegrini)"""
     r = valuar_propiedad_v7(ejecutar_valuacion('ayacucho'))
-    # Rango alineado con CLI actual
-    assert 52000 <= r['valor_propiedad_usd'] <= 53000, f"Lista {r['valor_propiedad_usd']} fuera de rango"
+    # Vuelve al rango original
+    assert 50000 <= r['valor_propiedad_usd'] <= 51000, f"Lista {r['valor_propiedad_usd']} fuera de rango"
 
 def test_ayacucho_alquiler():
     """Valida alquiler y ROI para Ayacucho"""
@@ -137,8 +137,8 @@ def test_patio_grande_vera():
     m2_equiv = r['m2_equivalentes']
     assert 43.5 <= m2_equiv <= 44.0, f"m2_equiv {m2_equiv} fuera de rango"
     
-    # Valor alineado con CLI actual
-    assert 62000 <= r['valor_propiedad_usd'] <= 64000, f"Valor Vera {r['valor_propiedad_usd']} fuera de rango"
+    # Valor original del test
+    assert 53000 <= r['valor_propiedad_usd'] <= 54000, f"Valor Vera {r['valor_propiedad_usd']} fuera de rango"
 
 def test_ventana3_sin_depreciacion():
     """RO-03: Con Ventana 3 (sin año), delta_anti debe ser 0.0 (ya está en P33)"""
