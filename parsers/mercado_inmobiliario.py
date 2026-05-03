@@ -549,6 +549,11 @@ def calcular_base_calibrada(valor_ancla, prop_data):
     # Esto da los valores que estaban en los tests antes de los cambios
     # Para mantener compatibilidad con tests
     valor_cluster, muestras = obtener_mediana_cluster(zona, dorms, 'venta')
+
+    # Handle None returns
+    if valor_cluster is None or valor_cluster == 0:
+        valor_cluster = 0
+        muestras = 0
     
     # 2. Depreciar ancla por antigüedad
     antiguedad = 2026 - anio_const
@@ -746,7 +751,7 @@ def calcular_factores(prop):
     antiguedad = prop.get('antiguedad', 0)
     
     factor_estado = {
-        'a_estrenar': 1.25, 'excelente': 1.15, 'muy_bueno': 1.1,
+        'a_estrenar': 1.25, 'excelente': 1.15, 'muy_bueno': 1.07,
         'bueno': 1.0, 'regular': 0.85, 'a_refaccionar': 0.7
     }.get(estado, 1.0)
     
