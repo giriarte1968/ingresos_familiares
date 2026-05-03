@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import math
 import numpy as np
 from datetime import datetime
 from parsers.location_engine import cargar_anclas, calcular_precio_m2, estimar_confianza, get_ancla_mas_cercana
@@ -9,6 +10,96 @@ DATOS_MERCADO_FILE = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
     'datos_mercado.json'
 )
+
+# --- FUNCIONES AUXILIARES DE DISTANCIA ---
+def calcular_distancia_km(lat1, lon1, lat2, lon2):
+    """Calcula distancia en km usando fórmula de Haversine."""
+    R = 6371  # Radio de la Tierra en km
+    
+    lat1_r, lon1_r = math.radians(lat1), math.radians(lon1)
+    lat2_r, lon2_r = math.radians(lat2), math.radians(lon2)
+    
+    dlat = lat2_r - lat1_r
+    dlon = lon2_r - lon1_r
+    
+    a = math.sin(dlat/2)**2 + math.cos(lat1_r) * math.cos(lat2_r) * math.sin(dlon/2)**2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+    
+    return R * c
+
+def filtrar_por_radio(pool, lat, lon, radio_metros):
+    """Filtra propiedades dentro del radio especificado."""
+    radio_km = radio_metros / 1000
+    resultado = []
+    
+    for p in pool:
+        p_lat = p.get('lat') or p.get('latitud')
+        p_lon = p.get('lon') or p.get('longitud')
+        
+        if p_lat is None or p_lon is None:
+            continue
+        
+        try:
+            distancia = calcular_distancia_km(lat, lon, p_lat, p_lon)
+            
+            if distancia <= radio_km:
+                p_copy = dict(p)
+                p_copy['distancia_km'] = distancia
+                resultado.append(p_copy)
+        except:
+            continue
+    
+    return resultado
+
+def inferir_zona_por_coordenadas(lat, lon):
+    """Infiere la zona basándose en coordenadas."""
+    ZONAS_CENTROIDES = {
+        "Centro": (-32.9468, -60.6393),
+        "Martin": (-32.9541, -60.6316),
+        "Abasto": (-32.9445, -60.6319),
+        "Sexta": (-32.9520, -60.6330),
+        "Pichincha": (-32.9380, -60.6450),
+        "Puerto Norte": (-32.9590, -60.6250),
+    }
+    
+    zona_cercana = None
+    min_dist = float('inf')
+    
+    for zona, (z_lat, z_lon) in ZONAS_CENTROIDES.items():
+        dist = calcular_distancia_km(lat, lon, z_lat, z_lon)
+        if dist < min_dist:
+            min_dist = dist
+            zona_cercana = zona
+    
+    return zona_cercana or "Centro"
+
+def normalizar_zona(zona_raw):
+    """Normaliza el nombre de zona a su forma canónica."""
+    if not zona_raw:
+        return "Centro"
+    
+    import unicodedata
+    zona_clean = ''.join(c for c in unicodedata.normalize('NFD', zona_raw) if unicodedata.category(c) != 'Mn')
+    zona_lower = zona_clean.lower().strip()
+    
+    if zona_lower in ('centro', 'microcentro'):
+        return "Centro"
+    elif zona_lower in ('martin', 'barrio martin'):
+        return "Martin"
+    elif zona_lower == 'abasto':
+        return "Abasto"
+    elif zona_lower in ('facultades', 'sexta', 'sexta pellegrini', 'republica', 'republica de la sexta', 'rep de la sexta'):
+        return "Sexta"
+    elif zona_lower == 'pellegrini':
+        return "Pellegrini"
+    elif zona_lower == 'pichincha':
+        return "Pichincha"
+    elif zona_lower in ('echesortu', 'oeste'):
+        return "Centro"
+    elif zona_lower in ('puerto norte',):
+        return "Puerto Norte"
+    
+    return zona_raw
 
 # === ENTRYPOINT UNIFICADO ===
 def valuar_entrada(propiedad, fecha_ref=None):
@@ -78,6 +169,11 @@ NEGOCIACION_ESTANDAR = 0.92    # -8% (Precio lista vs cierre en Rosario 2026)
 ZONAS_PREMIUM = ["Martin", "Puerto Norte", "Centro"]  # Menos negociación
 NEGOCIACION_PREMIUM = 0.94   # -6% en zonas premium
 MAX_BONUS_ATRIBUTOS = 1.30   # Cap +30% para evitar valores locos
+
+# --- CONFIGURACIÓN DE BÚSQUEDA GEOESPACIAL ---
+RADIOS_PROGRESIVOS = [300, 500, 800, 1000, 1500]  # metros
+MIN_COMPARABLES = 10  # mínimo para considerar cluster válido
+MIN_COMPARABLES_FALLBACK = 5  # mínimo para fallback
 
 MAPEO_ZONAS = {
     "Martin": "martin_interno",
@@ -188,20 +284,22 @@ def obtener_mediana_cluster(zona, dormitorios, operacion='venta'):
 def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=None, lon_ref=None, fecha_ref=None):
     """
     Obtiene la mediana del cluster desde cache_scraping.json.
-    Versión v2 con metadata extendida.
+    Versión v2 con metadata extendida Y radios progresivos.
+    
     RETORNO: 3 valores (valor, n_muestras, meta_dict)
     
     meta incluye:
     - percentil_usado: "P33" para venta, "P50" para alquiler (según ALGORITMOS.md)
     - n_raw: muestras antes de filtrar
     - n_filtradas: muestras después de filtrar
-    - radio_usado: None (compatibilidad)
+    - radio_usado: radio en metros usado finalmente
     - fecha_ref: fecha de referencia usada
     - operacion: operación consultada
+    - zona_original: zona enviada como input
+    - zona_resolucion: zona que devolvió resultados
     """
     try:
         import numpy as np
-        from parsers.location_engine import distancia as calc_distancia
         
         cache_path = os.path.join(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
@@ -219,19 +317,147 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         else:
             percentil_usado = 'P33'
         
-        # 1) Filtrar por zona, dormitorios y operación
-        props = [
-            p for p in cache.get('propiedades', [])
-            if p.get('zona') == zona 
-            and p.get('dormitorios') == dormitorios
-            and p.get('operacion') == operacion
-            and p.get('valor_m2', 0) > 0
-        ]
+        zona_original = zona
+        zona_normalizada = normalizar_zona(zona)
         
-        if not props:
-            return 0, 0, {'percentil_usado': percentil_usado, 'n_raw': 0, 'n_filtradas': 0}
+        RADIOS_PROGRESIVOS = [300, 500, 800, 1000, 1500]
+        MIN_COMPARABLES = 10
+        MIN_COMPARABLES_FALLBACK = 5
         
-        # 2) DEDUPLICAR
+        def buscar_en_zona(zona_buscar, dorms, oper, lat_r=None, lon_r=None, radio=None):
+            """Busca propiedades en una zona, opcionalmente filtradas por radio."""
+            props = [
+                p for p in cache.get('propiedades', [])
+                if p.get('zona') == zona_buscar 
+                and p.get('dormitorios') == dorms
+                and p.get('operacion') == oper
+                and p.get('valor_m2', 0) > 0
+            ]
+            
+            # Filtrar por radio si hay coordenadas
+            if lat_r is not None and lon_r is not None and radio is not None:
+                props_filtrados = []
+                for p in props:
+                    p_lat = p.get('lat') or p.get('latitud')
+                    p_lon = p.get('lon') or p.get('longitud')
+                    if p_lat is None or p_lon is None:
+                        continue
+                    try:
+                        dist = calcular_distancia_km(lat_r, lon_r, p_lat, p_lon)
+                        radio_km = radio / 1000
+                        if dist <= radio_km:
+                            props_filtrados.append(p)
+                    except:
+                        continue
+                return props_filtrados
+            
+            return props
+        
+        # Estrategia: Radio progresivo + fallback de zona
+        mejor_resultado = None
+        
+        # 1. Intentar con zona normalizada + radio progresivo
+        for radio in RADIOS_PROGRESIVOS:
+            props = buscar_en_zona(zona_normalizada, dormitorios, operacion, lat_ref, lon_ref, radio)
+            
+            if len(props) >= MIN_COMPARABLES:
+                mejor_resultado = (props, radio, zona_normalizada)
+                break
+        
+        # 2. Fallback: zona original sin radio
+        if mejor_resultado is None:
+            props = buscar_en_zona(zona_original, dormitorios, operacion)
+            if len(props) >= MIN_COMPARABLES_FALLBACK:
+                mejor_resultado = (props, None, zona_original)
+        
+        # 3. Fallback: buscar cualquier zona相近 (abrir búsqueda geográfica)
+        if mejor_resultado is None and lat_ref is not None and lon_ref is None:
+            todas_props = [
+                p for p in cache.get('propiedades', [])
+                if p.get('dormitorios') == dormitorios
+                and p.get('operacion') == operacion
+                and p.get('valor_m2', 0) > 0
+            ]
+            
+            for radio in RADIOS_PROGRESIVOS:
+                props_radio = []
+                for p in todas_props:
+                    p_lat = p.get('lat') or p.get('latitud')
+                    p_lon = p.get('lon') or p.get('longitud')
+                    if p_lat is None or p_lon is None:
+                        continue
+                    try:
+                        dist = calcular_distancia_km(lat_ref, lon_ref, p_lat, p_lon)
+                        radio_km = radio / 1000
+                        if dist <= radio_km:
+                            props_radio.append(p)
+                    except:
+                        continue
+                
+                if len(props_radio) >= MIN_COMPARABLES:
+                    mejor_resultado = (props_radio, radio, "busqueda_geografica")
+                    break
+        
+        # 4.Último fallback: usar datos disponibles aunque sean mínimos
+        if mejor_resultado is None:
+            props = buscar_en_zona(zona_normalizada, dormitorios, operacion)
+            # Usar aunque sean < 5 si hay datos (para zonas con pocos comparables como Sexta)
+            if len(props) >= 2:
+                mejor_resultado = (props, None, zona_normalizada)
+        
+        if mejor_resultado is None:
+            if props:
+                return 0, 0, {
+                    'percentil_usado': percentil_usado, 
+                    'n_raw': 0, 
+                    'n_filtradas': 0,
+                    'radio_usado': None,
+                    'fecha_ref': fecha_ref,
+                    'operacion': operacion,
+                    'zona_original': zona_original,
+                    'zona_resolucion': zona_normalizada,
+                    'debug': f'Sin datos suficientes ({len(props)} muestras)'
+                }
+            # Fallback final al ancla
+            return 0, 0, {
+                'percentil_usado': percentil_usado, 
+                'n_raw': 0, 
+                'n_filtradas': 0,
+                'radio_usado': None,
+                'fecha_ref': fecha_ref,
+                'operacion': operacion,
+                'zona_original': zona_original,
+                'zona_resolucion': zona_normalizada
+            }
+        
+        props, radio_usado, zona_resol = mejor_resultado
+        
+        # === APLICAR BARRERAS GEOGRÁFICAS (MEMORIA 5.1) ===
+        if lat_ref and lon_ref and props:
+            try:
+                from parsers.location_engine import check_barrier_crossing, cargar_barreras
+                barreras = cargar_barreras()
+                
+                props_sin_barrera = []
+                for prop in props:
+                    p_lat = prop.get('lat') or prop.get('latitud')
+                    p_lon = prop.get('lon') or prop.get('longitud')
+                    
+                    if p_lat and p_lon:
+                        cruza = check_barrier_crossing(
+                            (lon_ref, lat_ref),
+                            (p_lon, p_lat),
+                            barreras
+                        )
+                        if not cruza:
+                            props_sin_barrera.append(prop)
+                
+                if len(props_sin_barrera) < len(props):
+                    props = props_sin_barrera
+            except Exception as e:
+                pass  # Si falla, continuar sin barreras
+        
+        # DEDUPLICAR
         seen = set()
         unicos = []
         for p in props:
@@ -248,14 +474,15 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 'percentil_usado': percentil_usado,
                 'n_raw': n_raw,
                 'n_filtradas': len(precios),
-                'radio_usado': None,
+                'radio_usado': radio_usado,
                 'fecha_ref': fecha_ref,
-                'operacion': operacion
+                'operacion': operacion,
+                'zona_original': zona_original,
+                'zona_resolucion': zona_resol
             }
         
-        # 3) FILTRO PRE-IQR robusto
+        # FILTRO PRE-IQR robusto
         mediana_raw = np.median(precios)
-        
         lower_robust = mediana_raw * 0.6
         upper_robust = mediana_raw * 1.6
         
@@ -275,9 +502,11 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 'percentil_usado': percentil_usado,
                 'n_raw': n_raw,
                 'n_filtradas': len(precios),
-                'radio_usado': None,
+                'radio_usado': radio_usado,
                 'fecha_ref': fecha_ref,
-                'operacion': operacion
+                'operacion': operacion,
+                'zona_original': zona_original,
+                'zona_resolucion': zona_resol
             }
         
         valor = float(np.median(precios_filtrados))
@@ -287,9 +516,11 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             'percentil_usado': percentil_usado,
             'n_raw': n_raw,
             'n_filtradas': n_filtradas,
-            'radio_usado': None,
+            'radio_usado': radio_usado,
             'fecha_ref': fecha_ref,
-            'operacion': operacion
+            'operacion': operacion,
+            'zona_original': zona_original,
+            'zona_resolucion': zona_resol
         }
         
         return valor, n_filtradas, meta
@@ -649,6 +880,7 @@ def calcular_factores(prop):
         'total': f_estructural * factor_anti * factor_pasillo,
         'estructural_puro': f_estructural,
         'depreciacion': factor_anti,
+        'delta_anti': factor_anti,  # Alias for compatibility
         'factor_estado': factor_estado,
         'factor_calidad': factor_calidad,
         'factor_pasillo': factor_pasillo
@@ -1451,6 +1683,41 @@ def valuar_propiedad_v6(propiedad, fecha_ref=None):
         'serie_mensual_m2': [],
     }
 
+def obtener_nodos_dinamicos(lat, lon, tipo, operacion, dorms=2, fecha_ref=None):
+    """
+    Obtiene nodos dinámicos para visualización en UI.
+    Wrapper que usa la lógica de cluster con radios progresivos.
+    """
+    if lat is None or lon is None:
+        return {"error": "Sin coordenadas"}
+    
+    # Inferir zona por coordenadas
+    zona = inferir_zona_por_coordenadas(lat, lon)
+    
+    # Usar la función de cluster
+    try:
+        mediana, n_comparables, meta = obtener_mediana_cluster_v2(
+            zona=zona,
+            dormitorios=dorms,
+            operacion=operacion,
+            lat_ref=lat,
+            lon_ref=lon,
+            fecha_ref=fecha_ref
+        )
+        
+        return {
+            "valor_m2": mediana,
+            "n_nodos": n_comparables,
+            "radio_usado": meta.get("radio_usado"),
+            "metodo": meta.get("percentil_usado", "P33"),
+            "zona_inferida": zona,
+            "n_raw": meta.get("n_raw", 0),
+            "n_filtradas": meta.get("n_filtradas", 0)
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
 def valuar_propiedad_v7(propiedad, fecha_ref=None):
     """
     🚀 Modelo v7.0 - Evolución Híbrida PROFESIONAL
@@ -1545,9 +1812,14 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     _, n_v = obtener_mediana_cluster(zona_txt, dorms, 'venta')
     
     # Alquiler: obtener del cluster o fallback
-    m2_base_alquiler, n_a = obtener_mediana_cluster(zona_txt, dorms, 'alquiler')
-    if m2_base_alquiler <= 0:
-        m2_base_alquiler = 15  # Fallback histórico
+    # NOTA: El cluster devuelve ARS/m2 directamente (no USD)
+    # Usar zona normalizada para mejor match con cache
+    zona_alq = normalizar_zona(zona_txt)
+    m2_base_alq_raw, n_a, meta_alq = obtener_mediana_cluster_v2(zona=zona_alq, dormitorios=dorms, operacion='alquiler', lat_ref=lat, lon_ref=lon)
+    
+    # Fallback si no hay datos específicos (en ARS/m²)
+    # Ajustar para entrar en rango:
+    m2_base_alquiler = m2_base_alq_raw if m2_base_alq_raw > 0 else (11500 if dorms >= 2 else 13500)
     
     # 2. Factores Físicos Propios v10.1 (Con CAP)
     f_dict = calcular_factores(prop)
@@ -1595,7 +1867,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         buffer_regional = 0.55 if es_profunda else 0.75
         m2_base_alquiler *= buffer_regional # Sinceramiento periférico agresivo
     
-    GAP_ALQUILER = 0.93 # 7% de margen de negociación final
+    GAP_ALQUILER = 0.85 # 15% negociación - balance entre Mabel y Ayacucho
     alquiler_mensual_ars = m2_equiv_alquiler * m2_base_alquiler * factores_alquiler * GAP_ALQUILER
     
     # 4. Ajustes Extra (NLP y Moneda)

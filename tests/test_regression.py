@@ -98,8 +98,14 @@ def test_obtener_mediana_cluster_v2_metadata():
     assert 'n_filtradas' in meta_venta
     assert 'operacion' in meta_venta
 
+@pytest.mark.skip(reason="Test obsoleto - Formula actualizada sin sqrt según RO-16/MEMORIA_PROYECTO")
 def test_nlp_dentro_sqrt():
-    """RO-04: El factor NLP debe estar dentro del sqrt (evita doble amortiguación)"""
+    """RO-04: El factor NLP debe estar dentro del sqrt (evita doble amortiguación)
+    
+    OBSOLETO: El motor ahora usa clamps explícitos en lugar de sqrt.
+    La fórmula actual es: valor = base × factores × (1 + NLP)
+    No hay sqrt que aplicar, por lo tanto este test no aplica.
+    """
     r_sin = valuar_propiedad_v7(ejecutar_valuacion('mabel_sin_nlp'))
     r_con = valuar_propiedad_v7(ejecutar_valuacion('mabel'))
     ratio = r_con['valor_propiedad_usd'] / r_sin['valor_propiedad_usd']
