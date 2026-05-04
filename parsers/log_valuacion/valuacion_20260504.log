@@ -6306,3 +6306,59 @@ valor_realizable: 27647.77788440854
 zona: Centro, dorm: 2, m2: 83.0
 lat: -32.9569614, lon: -60.6421636
 estado: muy bueno, anio: 1977
+--- RESOLUTION ---
+resolution: GEO, confidence: MEDIA
+n_propiedades: 13, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.706
+f_estructural: 1.8423610320345263
+factores_base (total): 1.3007068886163755
+--- CALCULO ---
+m2_equiv: 88.85, m2_base_venta: 1511.11
+valor_venta (before NLP): 174635.66891671254
+NLP: 0
+valor_venta (after NLP): 174635.66891671254
+GAP_CIERRE: 0.92
+valor_realizable: 160664.81540337554
+=== VALUACION: P1200 ===
+zona: Centro, dorm: 2, m2: 83.0
+lat: -32.9569614, lon: -60.6421636
+estado: muy bueno, anio: 1977
+--- RESOLUTION ---
+resolution: GEO, confidence: MEDIA
+n_propiedades: 13, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.706
+f_estructural: 1.8423610320345263
+factores_base (total): 1.3007068886163755
+--- CALCULO ---
+m2_equiv: 88.85, m2_base_venta: 1505.6863999999998
+valor_venta (before NLP): 174008.87535837683
+NLP: 0
+valor_venta (after NLP): 174008.87535837683
+GAP_CIERRE: 0.92
+valor_realizable: 160088.16532970668
+=== VALUACION: P1200 ===
+zona: Centro, dorm: 2, m2: 83.0
+lat: -32.9569614, lon: -60.6421636
+estado: muy bueno, anio: 1977
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 16, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.706
+f_estructural: 1.8423610320345263
+factores_base (total): 1.3007068886163755
+--- CALCULO ---
+m2_equiv: 88.85, m2_base_venta: 1368.2195
+valor_venta (before NLP): 158122.1271829251
+NLP: 0
+valor_venta (after NLP): 158122.1271829251
+GAP_CIERRE: 0.92
+valor_realizable: 145472.3570082911

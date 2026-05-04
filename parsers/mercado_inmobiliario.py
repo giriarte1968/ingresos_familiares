@@ -375,9 +375,9 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                     dist = calcular_distancia_km(lat_ref, lon_ref, p_lat, p_lon)
                     if dist > radio / 1000: continue
                     
-                    if 'departamento' not in p.get('tipo', '').lower(): continue
-                    if p.get('operacion') != operacion: continue
+                    # Relax tipo filter - accept any with valor_m2
                     if p.get('dormitorios') != dormitorios: continue
+                    if p.get('operacion') != operacion: continue
                     if not p.get('date_updated', '').startswith(fecha_ref or ''): continue
                     if p.get('valor_m2', 0) <= 0: continue
                     
@@ -386,6 +386,21 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 if len(props_geo) >= MIN_COMPARABLES:
                     mejor_resultado = (props_geo, radio, "busqueda_geografica")
                     break
+            else:
+                # If geo search failed, find what we have even if less than MIN_COMPARABLES
+                for p in cache.get('propiedades', []):
+                    p_lat = p.get('lat') or p.get('latitud')
+                    p_lon = p.get('lon') or p.get('longitud')
+                    if not (p_lat and p_lon): continue
+                    dist = calcular_distancia_km(lat_ref, lon_ref, p_lat, p_lon)
+                    if dist > 1.5: continue  # 1500m fallback
+                    if p.get('dormitorios') != dormitorios: continue
+                    if p.get('operacion') != operacion: continue
+                    if p.get('valor_m2', 0) <= 0: continue
+                    props_geo.append(p)
+                
+                if len(props_geo) >= 2:
+                    mejor_resultado = (props_geo, 1500, "busqueda_geografica")
         
         # 2. Fallback: zona normalizada + radio progresivo (si no hubo éxito geo)
         if mejor_resultado is None:
@@ -532,11 +547,8 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         # Calcular percentil según operación
         precios_ordenados = sorted(precios_filtrados)
         if operacion == 'venta':
-            # P33 para VENTA (base conservadora)
-            idx_p33 = int(len(precios_ordenados) * 0.33)
-            if idx_p33 == 0 and len(precios_ordenados) > 1:
-                idx_p33 = 1
-            valor = float(precios_ordenados[idx_p33])
+            # P33 para Venta usando np.percentile (más preciso)
+            valor = float(np.percentile(precios_ordenados, 33))
             percentil_usado = 'P33'
         else:
             # P50 (mediana) para ALQUILER
