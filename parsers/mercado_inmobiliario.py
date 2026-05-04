@@ -1829,6 +1829,38 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     # Contar muestras para confianza
     _, n_v = obtener_mediana_cluster(zona_txt, dorms, 'venta')
     
+    # Metadata PARALELA: llamada a v2 solo para resolución (datos REALES)
+    _, n_v_meta, meta_venta = obtener_mediana_cluster_v2(
+        zona=normalizar_zona(zona_txt),
+        dormitorios=dorms,
+        operacion='venta',
+        lat_ref=lat,
+        lon_ref=lon,
+        fecha_ref=fecha_ref
+    )
+    
+    # Construir resolution_metadata con datos REALES de v2
+    if meta_venta.get('radio_usado'):
+        resolution = 'GEO'
+        confidence = 'ALTA' if n_v_meta >= 15 else 'MEDIA' if n_v_meta >= 8 else 'BAJA'
+    elif n_v_meta > 0:
+        resolution = 'ZONAL'
+        confidence = 'MEDIA'
+    else:
+        resolution = 'GLOBAL'
+        confidence = 'BAJA'
+    
+    resolution_metadata = {
+        'resolution': resolution,
+        'confidence': confidence,
+        'method': 'cluster_v2',
+        'n_propiedades': n_v_meta,
+        'radio_usado': meta_venta.get('radio_usado'),
+        'percentil_usado': meta_venta.get('percentil_usado'),
+        'zona_resol': meta_venta.get('zona_resolucion'),
+        'm2_base_source': metodo_origen
+    }
+    
     # Alquiler: obtener del cluster o fallback
     # NOTA: El cluster devuelve ARS/m2 directamente (no USD)
     # Usar zona normalizada para mejor match con cache
@@ -1971,4 +2003,5 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         'expensas_ars': expensas_ars,
         'mantenimiento_mensual_ars': round(mantenimiento_mensual_ars, 0),
         'serie_mensual_m2': [],
+        'resolution_metadata': resolution_metadata,
     }
