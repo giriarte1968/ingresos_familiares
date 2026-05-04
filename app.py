@@ -3619,7 +3619,8 @@ def mostrar_propiedades(mes):
                         if prop_lat and prop_lon:
                             # 1. Datos de Nodos y Barreras
                             res_meta = resultado.get('resolution_metadata', {})
-                            nodos_actuales = res_meta.get('nodes', [])
+                            # Try to get nodes from result, else empty list
+                            nodos_actuales = resultado.get('nodes', [])
                             st.write(f"DEBUG: Nodos encontrados: {len(nodos_actuales)}") # Diagnostic
                             
                             barreras = cargar_barreras()
@@ -3645,6 +3646,35 @@ def mostrar_propiedades(mes):
                                 popup=f"📍 {prop.get('nombre')}",
                                 icon=folium.Icon(color='red', icon='home')
                             ).add_to(m)
+
+                            # C. Buscar props cercanas del cache para mostrar como nodos
+                            try:
+                                from parsers.motor_vpp_core import load_cache
+                                cache = load_cache()
+                                if cache:
+                                    props_nearby = []
+                                    for p in cache.get('propiedades', []):
+                                        pl = p.get('lat')
+                                        pln = p.get('lon')
+                                        if pl and pln:
+                                            from parsers.mercado_inmobiliario import calcular_distancia_km
+                                            dist = calcular_distancia_km(prop_lat, prop_lon, pl, pln)
+                                            if dist <= 0.5:  # 500m
+                                                if p.get('dormitorios') == prop.get('dormitorios'):
+                                                    props_nearby.append({'id': p.get('zona', 'prop'), 'lat': pl, 'lon': pln, 'usd_m2': p.get('valor_m2', 0)})
+                                    
+                                    for n in props_nearby[:20]:  # Limit to 20
+                                        if n.get('usd_m2', 0) > 0:
+                                            folium.CircleMarker(
+                                                location=[n['lat'], n['lon']],
+                                                radius=4,
+                                                color='blue',
+                                                fill=True,
+                                                fill_opacity=0.6,
+                                                popup=f"Nodo: {n['id']}<br>${n['usd_m2']:.0f}/m²"
+                                            ).add_to(m)
+                            except Exception as e:
+                                pass  # Silently skip if no nearby props
                             
                             # C. Dibujar Nodos Influyentes y Puntos de Recuperación
                             for node in nodos_actuales:
@@ -3657,36 +3687,6 @@ def mostrar_propiedades(mes):
                                     fill_opacity=0.8,
                                     popup=f"Influencia: {node.get('value', 0):.0f}/m²"
                                 ).add_to(m)
-                            
-                            # Opcional: Dibujar otros nodos del mercado para contexto
-                            try:
-                                from parsers.mercado_inmobiliario import obtener_nodos_dinamicos
-                                tipo = prop.get('tipo_inmueble', 'departamento')
-                                dorms = prop.get('dormitorios', 2)
-                                anio_const = prop.get('anio_construccion', 2020)
-                                nodos_result = obtener_nodos_dinamicos(prop_lat, prop_lon, tipo, 'venta', dorms, mes_prop)
-                                
-                                # Handle both dict (metadata) and list (nodes) returns
-                                todos_nodos = []
-                                if isinstance(nodos_result, list):
-                                    todos_nodos = nodos_result
-                                elif isinstance(nodos_result, dict) and 'error' not in nodos_result:
-                                    # It's metadata - no individual nodes to draw
-                                    pass
-                                
-                                for n in todos_nodos:
-                                    if any(nod['id'] == n['id'] for nod in nodos_actuales):
-                                        continue
-                                    folium.CircleMarker(
-                                        location=[n['lat'], n['lon']],
-                                        radius=3,
-                                        color='blue',
-                                        fill=True,
-                                        fill_opacity=0.2,
-                                        popup=f"Nodo: {n['id']}<br>${n['usd_m2']}/m²"
-                                    ).add_to(m)
-                            except Exception as e_nodes:
-                                st.warning(f"Error nodos contexto: {e_nodes}")
                             
                             st_folium(m, width=550, height=350, key=f"map_{prop['id']}") # Added key
                         else:
