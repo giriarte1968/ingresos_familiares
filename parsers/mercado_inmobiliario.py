@@ -776,14 +776,22 @@ def calcular_m2_equivalentes(prop):
     return min(m2_equiv, max_m2)
 
 
-def calcular_factores(prop):
+def calcular_factores(prop, ventana_usada=None):
     """
     Calcula factores de propiedad.
     v8.0: Retorna un diccionario separado para evitar doble conteo de antigüedad.
+    
+    Args:
+        propiedad: dict con datos de la propiedad
+        ventana_usada: opcional, ventana temporal a usar (para compatibilidad con UI)
     """
     import json
     import os
-
+    
+    # Default ventana si no se spécifiquea
+    if ventana_usada is None:
+        ventana_usada = "ventana3"
+    
     estado = prop.get('estado_detalle', 'bueno').lower().replace(' ', '_')
     calidad = prop.get('calidad_edificio', 'media').lower()
     piso = prop.get('piso', 0)
@@ -1868,20 +1876,8 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         except:
             pass
     
-    # Usar nueva función calibrada
-    m2_base_venta, metodo_origen = calcular_base_calibrada(valor_ancla_geo, {
-        'zona': zona_txt,
-        'dormitorios': dorms,
-        'lat': lat,
-        'lon': lon,
-        'anio_construccion': anio_const
-    })
-    
-    # Contar muestras para confianza
-    _, n_v = obtener_mediana_cluster(zona_txt, dorms, 'venta')
-    
-    # Metadata PARALELA: llamada a v2 solo para resolución (datos REALES)
-    _, n_v_meta, meta_venta = obtener_mediana_cluster_v2(
+    # Usar cluster v2 directamente para m2_base_venta (más preciso)
+    m2_base_venta_raw, n_v, meta_venta = obtener_mediana_cluster_v2(
         zona=normalizar_zona(zona_txt),
         dormitorios=dorms,
         operacion='venta',
@@ -1890,11 +1886,22 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         fecha_ref=fecha_ref
     )
     
-    # Construir resolution_metadata con datos REALES de v2
+    # Si v2 tiene valor, usarlo; si no, fallback a ancla
+    if m2_base_venta_raw > 0:
+        m2_base_venta = m2_base_venta_raw
+        metodo_origen = f"cluster_v2 (P{meta_venta.get('percentil_usado','33')}, {n_v} props)"
+    else:
+        # Fallback a ancla
+        antiguedad = 2026 - anio_const
+        factor_deprec = max(0.5, 1.0 - (antiguedad * 0.006))
+        m2_base_venta = valor_ancla_geo * factor_deprec
+        metodo_origen = "Ancla (fallback)"
+    
+    # Metadata REALES de v2
     if meta_venta.get('radio_usado'):
         resolution = 'GEO'
-        confidence = 'ALTA' if n_v_meta >= 15 else 'MEDIA' if n_v_meta >= 8 else 'BAJA'
-    elif n_v_meta > 0:
+        confidence = 'ALTA' if n_v >= 15 else 'MEDIA' if n_v >= 8 else 'BAJA'
+    elif n_v > 0:
         resolution = 'ZONAL'
         confidence = 'MEDIA'
     else:
@@ -1905,7 +1912,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         'resolution': resolution,
         'confidence': confidence,
         'method': 'cluster_v2',
-        'n_propiedades': n_v_meta,
+        'n_propiedades': n_v,
         'radio_usado': meta_venta.get('radio_usado'),
         'percentil_usado': meta_venta.get('percentil_usado'),
         'zona_resol': meta_venta.get('zona_resolucion'),
@@ -1914,7 +1921,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     
     logger.info(f"--- RESOLUTION ---")
     logger.info(f"resolution: {resolution}, confidence: {confidence}")
-    logger.info(f"n_propiedades: {n_v_meta}, radio: {meta_venta.get('radio_usado')}")
+    logger.info(f"n_propiedades: {n_v}, radio: {meta_venta.get('radio_usado')}")
     logger.info(f"percentil: {meta_venta.get('percentil_usado')}")
     
     # Alquiler: obtener del cluster o fallback
