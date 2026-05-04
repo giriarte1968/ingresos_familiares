@@ -3673,8 +3673,6 @@ def mostrar_propiedades(mes):
                                             ).add_to(m)
                             
                             st_folium(m, width=550, height=350, key=f"map_{prop['id']}") # Added key
-                        else:
-                            st.warning("⚠️ La propiedad no tiene coordenadas")
                     except Exception as e:
                         st.error(f"Error mapa: {e}")
                         import traceback

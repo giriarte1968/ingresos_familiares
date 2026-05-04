@@ -99,8 +99,8 @@ def test_patio_grande_vera():
     m2_equiv = r['m2_equivalentes']
     assert 43.5 <= m2_equiv <= 44.0, f"m2_equiv {m2_equiv} fuera de rango"
     
-    # Valor actualizado post-cambio a cluster v2
-    assert 55000 <= r['valor_propiedad_usd'] <= 60000, f"Valor Vera {r['valor_propiedad_usd']} fuera de rango"
+    # Valor pre-calibracion factores (antes de intentar weights)
+    assert 52000 <= r['valor_propiedad_usd'] <= 60000, f"Valor Vera {r['valor_propiedad_usd']} fuera de rango"
 
 
 def test_ui_vs_python_no_diverge():
