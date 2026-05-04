@@ -3664,7 +3664,16 @@ def mostrar_propiedades(mes):
                                 tipo = prop.get('tipo_inmueble', 'departamento')
                                 dorms = prop.get('dormitorios', 2)
                                 anio_const = prop.get('anio_construccion', 2020)
-                                todos_nodos = obtener_nodos_dinamicos(prop_lat, prop_lon, tipo, 'venta', dorms, fecha_ref)
+                                nodos_result = obtener_nodos_dinamicos(prop_lat, prop_lon, tipo, 'venta', dorms, mes_prop)
+                                
+                                # Handle both dict (metadata) and list (nodes) returns
+                                todos_nodos = []
+                                if isinstance(nodos_result, list):
+                                    todos_nodos = nodos_result
+                                elif isinstance(nodos_result, dict) and 'error' not in nodos_result:
+                                    # It's metadata - no individual nodes to draw
+                                    pass
+                                
                                 for n in todos_nodos:
                                     if any(nod['id'] == n['id'] for nod in nodos_actuales):
                                         continue
