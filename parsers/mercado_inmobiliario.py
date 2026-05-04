@@ -937,7 +937,16 @@ def calcular_factores(prop, ventana_usada=None):
         'delta_anti': factor_anti,  # Alias for compatibility
         'factor_estado': factor_estado,
         'factor_calidad': factor_calidad,
-        'factor_pasillo': factor_pasillo
+        'factor_pasillo': factor_pasillo,
+        # Legacy compatibility for app.py legacy sections
+        'suma_cruda': f_estructural - 1.0,  # diferencia desde 1.0
+        'detalles': {
+            'anti': factor_anti,
+            'estrato_activo': 'Base',
+            'ventana': ventana_usada
+        },
+        'anti': factor_anti,  # Direct access for compatibility
+        'ventana': ventana_usada
     }
 
 def scrapear_m2_argenprop():
