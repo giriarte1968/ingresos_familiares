@@ -1741,11 +1741,34 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     🚀 Modelo v7.0 - Evolución Híbrida PROFESIONAL
     Fusiona el Motor VPP (Clusters/Market) con Factores Físicos (Legacy).
     """
+    import os
+    import logging
+    from datetime import datetime
     from parsers.motor_vpp_core import load_cache, cargar_anclas, calcular_valor_vpp, get_binance_usdt_ars
+    
+    # Setup logging to file
+    log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'log_valuacion')
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+    
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(message)s',
+        handlers=[
+            logging.FileHandler(os.path.join(log_dir, f'valuacion_{datetime.now().strftime("%Y%m%d")}.log'), mode='a')
+        ]
+    )
+    logger = logging.getLogger()
     
     prop = sanitizar_propiedad(propiedad)
     cache = load_cache()
     anclas = cargar_anclas()
+    
+    # Log de entrada
+    logger.info(f"=== VALUACION: {prop.get('nombre', prop.get('direccion', 'Unknown'))} ===")
+    logger.info(f"zona: {prop.get('zona')}, dorm: {prop.get('dormitorios')}, m2: {prop.get('m2_cubiertos')}")
+    logger.info(f"lat: {prop.get('lat')}, lon: {prop.get('lon')}")
+    logger.info(f"estado: {prop.get('estado_detalle')}, anio: {prop.get('anio_construccion')}")
     
     # 1. Obtener Precios Base de Mercado (Venta y Alquiler)
     props_cache = cache.get("propiedades", []) if cache else []
@@ -1861,6 +1884,11 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         'm2_base_source': metodo_origen
     }
     
+    logger.info(f"--- RESOLUTION ---")
+    logger.info(f"resolution: {resolution}, confidence: {confidence}")
+    logger.info(f"n_propiedades: {n_v_meta}, radio: {meta_venta.get('radio_usado')}")
+    logger.info(f"percentil: {meta_venta.get('percentil_usado')}")
+    
     # Alquiler: obtener del cluster o fallback
     # NOTA: El cluster devuelve ARS/m2 directamente (no USD)
     # Usar zona normalizada para mejor match con cache
@@ -1874,6 +1902,12 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     # 2. Factores Físicos Propios v10.1 (Con CAP)
     f_dict = calcular_factores(prop)
     factores_base = f_dict['total']
+    
+    logger.info(f"--- FACTORES ---")
+    logger.info(f"factor_estado: {f_dict.get('factor_estado')}, factor_calidad: {f_dict.get('factor_calidad')}")
+    logger.info(f"factor_anti (deprec): {f_dict.get('depreciacion')}")
+    logger.info(f"f_estructural: {f_dict.get('estructural_puro')}")
+    logger.info(f"factores_base (total): {factores_base}")
     
     # CAP de atributos para evitar snowball effect
     if factores_base > MAX_BONUS_ATRIBUTOS:
@@ -1891,6 +1925,10 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     # 3. Valores Base (Asking Price / Precio de Lista v9.0)
     # Venta: Impacto Total de Factores
     valor_venta = m2_equiv * m2_base_venta * f_dict['total']
+    
+    logger.info(f"--- CALCULO ---")
+    logger.info(f"m2_equiv: {m2_equiv}, m2_base_venta: {m2_base_venta}")
+    logger.info(f"valor_venta (before NLP): {valor_venta}")
     
     # Alquiler: v9.1 Sensibilidad Atenuada de Calidad (Buenas Prácticas)
     f_puros = (0.95 if prop.get('piso') == 0 else 1.0) * (1.10 if 'cruzada' in prop.get('ventilacion','') else 1.0)
@@ -1930,9 +1968,15 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     valor_venta = valor_venta * (1 + ajuste_nlp)
     alquiler_mensual_ars = alquiler_mensual_ars * (1 + ajuste_nlp)
     
+    logger.info(f"NLP: {ajuste_nlp}")
+    logger.info(f"valor_venta (after NLP): {valor_venta}")
+    
     # 5. Valor Realizable (Cierre Real con GAP del 8%)
     GAP_CIERRE = 0.92
     valor_realizable = valor_venta * GAP_CIERRE
+    
+    logger.info(f"GAP_CIERRE: {GAP_CIERRE}")
+    logger.info(f"valor_realizable: {valor_realizable}")
     
     # 5. Cálculo de Rentabilidad NETA (v8.0)
     expensas_ars = prop.get('expensas_ars', 0)

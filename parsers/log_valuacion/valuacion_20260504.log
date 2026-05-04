@@ -1,0 +1,20 @@
+=== VALUACION: Mabel ===
+zona: Martin, dorm: 1, m2: 41.0
+lat: -32.9541101, lon: -60.6316406
+estado: muy bueno, anio: 2000
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 41, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.844
+f_estructural: 1.3050452712211205
+factores_base (total): 1.1014582089106257
+--- CALCULO ---
+m2_equiv: 44.75, m2_base_venta: 1558.14
+valor_venta (before NLP): 76801.1176900321
+NLP: 0.05
+valor_venta (after NLP): 80641.1735745337
+GAP_CIERRE: 0.92
+valor_realizable: 74189.87968857102
