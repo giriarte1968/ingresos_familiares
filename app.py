@@ -3744,9 +3744,16 @@ def mostrar_propiedades(mes):
                     me_d = calcular_m2_equivalentes(p_deb)
                     fd = calcular_factores(p_deb, ventana_usada=ventana_usada)
                     
-                    # Usar v2 que retorna 3 valores (valor, n, meta)
+                    # Usar v2 que retorna 3 valores (valor, n, meta) - WITH COORDS
                     try:
-                        med_result = obtener_mediana_cluster_v2(p_deb.get('zona'), p_deb.get('dormitorios', 2), 'venta')
+                        med_result = obtener_mediana_cluster_v2(
+                            zona=p_deb.get('zona'),
+                            dormitorios=p_deb.get('dormitorios', 2),
+                            operacion='venta',
+                            lat_ref=prop.get('lat'),
+                            lon_ref=prop.get('lon'),
+                            fecha_ref=fecha_ref
+                        )
                         if isinstance(med_result, tuple) and len(med_result) >= 3:
                             cl_d, n_cl, meta_cluster = med_result[0], med_result[1], med_result[2]
                         elif isinstance(med_result, tuple) and len(med_result) >= 2:
@@ -3772,18 +3779,12 @@ def mostrar_propiedades(mes):
                     
                     vl_d = valor_final
                     
-                    # Narrativa de cálculo
-                    if res_meta.get('resolution') == 'GEO':
-                        nodos = res_meta.get('nodes', [])
-                        if nodos:
-                            main_node = max(nodos, key=lambda x: x['weight'])
-                            narrativa = (f"Este valor se basa en una **interpolación geoespacial**. "
-                                         f"El nodo más influyente ({main_node['id']}) está a {main_node['dist_m']:.0f}m "
-                                         f"con un valor de ${main_node['value']:.0f}/m².")
-                        else:
-                            narrativa = "Valuación basada en interpolación geoespacial."
-                    elif res_meta.get('resolution') == 'ZONAL':
-                        narrativa = f"Valor basado en la mediana de la zona {p_deb.get('zona')} ({n_cl} muestras)."
+                    # Narrativa de cálculo basada en metadata del cluster v2
+                    res_type = meta_cluster.get('resolution', meta_cluster.get('zona_resolucion', 'GLOBAL'))
+                    if res_type == 'GEO' or meta_cluster.get('radio_usado'):
+                        narrativa = f"Valor basado en interpolación geoespacial ({n_cl} muestras, radio {meta_cluster.get('radio_usado', '?')}m)."
+                    elif n_cl > 0:
+                        narrativa = f"Valor basado en la zona {p_deb.get('zona')} ({n_cl} muestras)."
                     else:
                         narrativa = "Valor basado en promedio global de la ciudad."
 
