@@ -4,6 +4,27 @@ Este documento es el "diario de trabajo". Cada agente de IA que trabaje en este 
 
 ---
 
+## 🎯 PROTOCOLO DE TRABAJO (OBLIGATORIO)
+
+### Antes de modificar código:
+1. **COMMIT INICIAL**: hacer commit del estado actual a GitHub antes de cualquier cambio
+   ```bash
+   git add -A
+   git commit -m "SAVEPOINT: estado antes de [descripcion]"
+   git push
+   ```
+
+2. **IMPLEMENTAR CAMBIOS**: realizar las modificaciones necesarias
+
+3. **COMMIT FINAL**: verificar que los cambios funcionan y subir
+   ```bash
+   git add -A
+   git commit -m "FIX: [descripcion]"
+   git push
+   ```
+
+---
+
 ## 🏗️ TAREA ACTUAL: Sincronización UI y Estabilidad de Fórmula (VPP)
 **Estado:** Finalizado ✅
 **Agente:** OpenCode (Gemma 4)

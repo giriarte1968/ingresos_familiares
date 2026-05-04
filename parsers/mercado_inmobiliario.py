@@ -328,11 +328,12 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             """Busca propiedades en una zona, opcionalmente filtradas por radio."""
             props = [
                 p for p in cache.get('propiedades', [])
-                if p.get('zona') == zona_buscar 
+                if (p.get('zona') == zona_buscar or normalizar_zona(p.get('zona', '')) == zona_buscar)
                 and p.get('dormitorios') == dorms
                 and p.get('operacion') == oper
                 and p.get('valor_m2', 0) > 0
             ]
+
             
             # Filtrar por radio si hay coordenadas
             if lat_r is not None and lon_r is not None and radio is not None:
@@ -356,46 +357,37 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         # Estrategia: Radio progresivo + fallback de zona
         mejor_resultado = None
         
-        # 1. Intentar con zona normalizada + radio progresivo
-        for radio in RADIOS_PROGRESIVOS:
-            props = buscar_en_zona(zona_normalizada, dormitorios, operacion, lat_ref, lon_ref, radio)
-            
-            if len(props) >= MIN_COMPARABLES:
-                mejor_resultado = (props, radio, zona_normalizada)
-                break
-        
-        # 2. Fallback: zona original sin radio
-        if mejor_resultado is None:
-            props = buscar_en_zona(zona_original, dormitorios, operacion)
-            if len(props) >= MIN_COMPARABLES_FALLBACK:
-                mejor_resultado = (props, None, zona_original)
-        
-        # 3. Fallback: buscar cualquier zona相近 (abrir búsqueda geográfica)
-        if mejor_resultado is None and lat_ref is not None and lon_ref is None:
-            todas_props = [
-                p for p in cache.get('propiedades', [])
-                if p.get('dormitorios') == dormitorios
-                and p.get('operacion') == operacion
-                and p.get('valor_m2', 0) > 0
-            ]
-            
+        # 1. Intentar búsqueda geográfica primero si hay coordenadas (Prioridad Máxima)
+        if lat_ref is not None and lon_ref is not None:
             for radio in RADIOS_PROGRESIVOS:
-                props_radio = []
-                for p in todas_props:
+                props_geo = []
+                for p in cache.get('propiedades', []):
                     p_lat = p.get('lat') or p.get('latitud')
                     p_lon = p.get('lon') or p.get('longitud')
-                    if p_lat is None or p_lon is None:
-                        continue
-                    try:
-                        dist = calcular_distancia_km(lat_ref, lon_ref, p_lat, p_lon)
-                        radio_km = radio / 1000
-                        if dist <= radio_km:
-                            props_radio.append(p)
-                    except:
-                        continue
+                    if not (p_lat and p_lon): continue
+                    
+                    # Distance
+                    dist = calcular_distancia_km(lat_ref, lon_ref, p_lat, p_lon)
+                    if dist > radio / 1000: continue
+                    
+                    if 'departamento' not in p.get('tipo', '').lower(): continue
+                    if p.get('operacion') != operacion: continue
+                    if p.get('dormitorios') != dormitorios: continue
+                    if not p.get('date_updated', '').startswith(fecha_ref or ''): continue
+                    if p.get('valor_m2', 0) <= 0: continue
+                    
+                    props_geo.append(p)
                 
-                if len(props_radio) >= MIN_COMPARABLES:
-                    mejor_resultado = (props_radio, radio, "busqueda_geografica")
+                if len(props_geo) >= MIN_COMPARABLES:
+                    mejor_resultado = (props_geo, radio, "busqueda_geografica")
+                    break
+        
+        # 2. Fallback: zona normalizada + radio progresivo (si no hubo éxito geo)
+        if mejor_resultado is None:
+            for radio in RADIOS_PROGRESIVOS:
+                props = buscar_en_zona(zona_normalizada, dormitorios, operacion, lat_ref, lon_ref, radio)
+                if len(props) >= MIN_COMPARABLES:
+                    mejor_resultado = (props, radio, zona_normalizada)
                     break
         
         # 4.Último fallback: usar datos disponibles aunque sean mínimos
@@ -509,7 +501,20 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 'zona_resolucion': zona_resol
             }
         
-        valor = float(np.median(precios_filtrados))
+        # Calcular percentil según operación
+        precios_ordenados = sorted(precios_filtrados)
+        if operacion == 'venta':
+            # P33 para VENTA (base conservadora)
+            idx_p33 = int(len(precios_ordenados) * 0.33)
+            if idx_p33 == 0 and len(precios_ordenados) > 1:
+                idx_p33 = 1
+            valor = float(precios_ordenados[idx_p33])
+            percentil_usado = 'P33'
+        else:
+            # P50 (mediana) para ALQUILER
+            valor = float(np.median(precios_ordenados))
+            percentil_usado = 'P50'
+        
         n_filtradas = len(precios_filtrados)
         
         meta = {
@@ -529,8 +534,14 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             'percentil_usado': 'P50' if operacion == 'alquiler' else 'P33',
             'n_raw': 0,
             'n_filtradas': 0,
+            'radio_usado': None,
+            'fecha_ref': fecha_ref,
+            'operacion': operacion,
+            'zona_original': zona_original,
+            'zona_resolucion': zona_resol,
             'error': str(e)
         }
+
 
 
 def calcular_base_calibrada(valor_ancla, prop_data):
@@ -745,13 +756,13 @@ def calcular_factores(prop):
     import json
     import os
 
-    estado = prop.get('estado_detalle', 'bueno').lower()
+    estado = prop.get('estado_detalle', 'bueno').lower().replace(' ', '_')
     calidad = prop.get('calidad_edificio', 'media').lower()
     piso = prop.get('piso', 0)
     antiguedad = prop.get('antiguedad', 0)
     
     factor_estado = {
-        'a_estrenar': 1.25, 'excelente': 1.15, 'muy_bueno': 1.07,
+        'a_estrenar': 1.20, 'excelente': 1.10, 'muy_bueno': 1.03,
         'bueno': 1.0, 'regular': 0.85, 'a_refaccionar': 0.7
     }.get(estado, 1.0)
     
