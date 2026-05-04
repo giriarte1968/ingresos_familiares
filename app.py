@@ -3761,11 +3761,16 @@ def mostrar_propiedades(mes):
                     
                     aj_nlp, det_nlp = calcular_ajuste_nlp_detallado(prop.get('descripcion_libre', ''))
                     
-                    # Fórmula Unificada v11.2: Base * (sqrt((1+SumaCruda) * (1+NLP)) + DeltaAnti)
+                    # Fórmula v7 Multiplicativa: m2 * m2_base * factores * (1 + NLP)
                     nlp_capped = min(aj_nlp, 0.15)
-                    delta_anti = fd['detalles'].get('anti', 0)
-                    factor_unificado = math.sqrt((1 + fd['suma_cruda']) * (1 + nlp_capped)) + delta_anti
-                    vl_d = me_d * mb_d * factor_unificado
+                    delta_anti = fd.get('delta_anti', fd.get('depreciacion', 1.0))
+                    
+                    # Calculo directo con factores
+                    factores_total = fd['total']  # Ya incluye depreciacion
+                    valor_base = me_d * cl_d * factores_total
+                    valor_final = valor_base * (1 + nlp_capped)
+                    
+                    vl_d = valor_final
                     
                     # Narrativa de cálculo
                     if res_meta.get('resolution') == 'GEO':
@@ -3787,12 +3792,12 @@ def mostrar_propiedades(mes):
                     st.write(f"**Detalle Técnico:**")
                     st.write(f"- **m² construidos:** {me_d:.1f}")
                     st.write(f"- **m² equivalentes:** {me_d:.1f}")
-                    st.write(f"- **USD/m² mercado (Base):** ${mb_d:,.2f}")
-                    st.write(f"- **Suma Cruda (Atributos):** {fd['suma_cruda']:.4f}")
+                    st.write(f"- **USD/m² mercado (Base v2):** ${cl_d:,.2f}")
+                    st.write(f"- **Factor Total (Atributos):** {factores_total:.4f}")
                     st.write(f"- **Factor NLP (1 + ajuste):** {1 + aj_nlp:.4f}")
-                    st.write(f"- **Factor Anti (antigüedad):** {delta_anti:.4f}")
-                    st.write(f"- **Estrato Base:** {fd['detalles']['estrato_activo']}")
-                    st.write(f"**Fórmula Final:** `({me_d:.1f} × {mb_d:,.2f} × sqrt((1 + {fd['suma_cruda']:.4f}) × (1 + {nlp_capped:.4f}))) + {delta_anti:.4f} = ${vl_d:,.0f}`")
+                    st.write(f"- **Factor Anti (depreciación):** {delta_anti:.4f}")
+                    st.write(f"- **Ventana usaba:** {fd.get('ventana', 'ventana3')}")
+                    st.write(f"**Fórmula Final:** `({me_d:.1f} × {cl_d:,.2f} × {factores_total:.4f}) × (1 + {nlp_capped:.4f}) = ${valor_final:,.0f}`")
                     st.write(f"**Cierre (-8%):** ${vl_d*0.92:,.0f}")
                     st.write(f"**Dólar Binance:** ${resultado.get('usdt_ars', 1488):,.2f}")
                 
