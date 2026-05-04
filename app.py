@@ -3645,7 +3645,7 @@ def mostrar_propiedades(mes):
                                 icon=folium.Icon(color='red', icon='home')
                             ).add_to(m)
 
-                            # C. Buscar props cercanas del cache para mostrar como nodos
+# C. Buscar props cercanas del cache para mostrar como nodos
                             try:
                                 from parsers.motor_vpp_core import load_cache
                                 cache = load_cache()
@@ -3655,13 +3655,12 @@ def mostrar_propiedades(mes):
                                         pl = p.get('lat')
                                         pln = p.get('lon')
                                         if pl and pln:
-                                            from parsers.mercado_inmobiliario import calcular_distancia_km
                                             dist = calcular_distancia_km(prop_lat, prop_lon, pl, pln)
-                                            if dist <= 0.5:  # 500m
+                                            if dist <= 0.5:
                                                 if p.get('dormitorios') == prop.get('dormitorios'):
                                                     props_nearby.append({'id': p.get('zona', 'prop'), 'lat': pl, 'lon': pln, 'usd_m2': p.get('valor_m2', 0)})
                                     
-                                    for n in props_nearby[:20]:  # Limit to 20
+                                    for n in props_nearby[:20]:
                                         if n.get('usd_m2', 0) > 0:
                                             folium.CircleMarker(
                                                 location=[n['lat'], n['lon']],
@@ -3671,12 +3670,12 @@ def mostrar_propiedades(mes):
                                                 fill_opacity=0.6,
                                                 popup=f"Nodo: {n['id']}<br>${n['usd_m2']:.0f}/m²"
                                             ).add_to(m)
+                            except Exception as e:
+                                pass  # Silent fail for nearby props
                             
-                            st_folium(m, width=550, height=350, key=f"map_{prop['id']}") # Added key
+                            st_folium(m, width=550, height=350, key=f"map_{prop['id']}")
                     except Exception as e:
                         st.error(f"Error mapa: {e}")
-                        import traceback
-                        st.text(traceback.format_exc())
             
             with col_map2:
                 if st.button("🔄 Actualizar coords", key=f"geo_btn_{prop['id']}", help="Geocodificar con Nominatim"):
