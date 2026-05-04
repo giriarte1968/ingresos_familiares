@@ -77,8 +77,8 @@ def generar_nodos_dinamicos(props, eps_meters=200, min_samples=8, target_year=No
             
             nodos.append({
                 'id': f'node_year_{label}',
-                'lat': np.mean(lats),
-                'lon': np.mean(lons),
+                'lat': np.mean(lats) if lats else 0.0,
+                'lon': np.mean(lons) if lons else 0.0,
                 'usd_m2': float(np.median(valores)),
                 'muestras': len(valores),
                 'qualified': True
@@ -119,8 +119,8 @@ def generar_nodos_dinamicos(props, eps_meters=200, min_samples=8, target_year=No
                 
                 nodos.append({
                     'id': f'node_gen_{label}',
-                    'lat': np.mean(lats),
-                    'lon': np.mean(lons),
+                    'lat': np.mean(lats) if lats else 0.0,
+                    'lon': np.mean(lons) if lons else 0.0,
                     'usd_m2': float(np.median(valores)),
                     'muestras': len(valores),
                     'qualified': False

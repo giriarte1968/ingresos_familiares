@@ -466,6 +466,18 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         precios = [p['valor_m2'] for p in unicos]
         n_raw = len(precios)
         
+        if not precios:
+            return 0.0, 0, {
+                'percentil_usado': percentil_usado,
+                'n_raw': 0,
+                'n_filtradas': 0,
+                'radio_usado': radio_usado,
+                'fecha_ref': fecha_ref,
+                'operacion': operacion,
+                'zona_original': zona_original,
+                'zona_resolucion': zona_resol
+            }
+        
         if len(precios) < 3:
             return float(np.median(precios)), len(precios), {
                 'percentil_usado': percentil_usado,
@@ -488,6 +500,17 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         # Fallback IQR si elimina demasiado
         if len(precios_filtrados) < 3:
             precios_ordenados = sorted(precios)
+            if len(precios_ordenados) < 3:
+                return float(np.median(precios)), len(precios), {
+                    'percentil_usado': percentil_usado,
+                    'n_raw': n_raw,
+                    'n_filtradas': len(precios),
+                    'radio_usado': radio_usado,
+                    'fecha_ref': fecha_ref,
+                    'operacion': operacion,
+                    'zona_original': zona_original,
+                    'zona_resolucion': zona_resol
+                }
             q1 = np.percentile(precios_ordenados, 25)
             q3 = np.percentile(precios_ordenados, 75)
             iqr = q3 - q1
