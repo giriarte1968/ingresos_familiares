@@ -252,6 +252,9 @@ def obtener_mediana_cluster(zona, dormitorios, operacion='venta'):
         precios = [p['valor_m2'] for p in unicos]
         n_raw = len(precios)
         
+        if not precios:
+            return 0.0, 0
+        
         if len(precios) < 3:
             return float(np.median(precios)), len(precios)
         
@@ -267,6 +270,8 @@ def obtener_mediana_cluster(zona, dormitorios, operacion='venta'):
         # Si el filtro elimina demasiado, usar IQR tradicional como fallback
         if len(precios_filtrados) < 3:
             precios_ordenados = sorted(precios)
+            if len(precios_ordenados) < 3:
+                return float(np.median(precios_ordenados)), len(precios_ordenados)
             q1 = np.percentile(precios_ordenados, 25)
             q3 = np.percentile(precios_ordenados, 75)
             iqr = q3 - q1
