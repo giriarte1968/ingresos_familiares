@@ -3671,20 +3671,6 @@ def mostrar_propiedades(mes):
                                                 fill_opacity=0.6,
                                                 popup=f"Nodo: {n['id']}<br>${n['usd_m2']:.0f}/m²"
                                             ).add_to(m)
-                            except Exception as e:
-                                pass  # Silently skip if no nearby props
-                            
-                            # C. Dibujar Nodos Influyentes y Puntos de Recuperación
-                            for node in nodos_actuales:
-                                color = 'green' if node.get('weight', 0) > 0 else 'blue'
-                                folium.CircleMarker(
-                                    location=[node['lat'], node['lon']],
-                                    radius=6,
-                                    color=color,
-                                    fill=True,
-                                    fill_opacity=0.8,
-                                    popup=f"Influencia: {node.get('value', 0):.0f}/m²"
-                                ).add_to(m)
                             
                             st_folium(m, width=550, height=350, key=f"map_{prop['id']}") # Added key
                         else:
