@@ -3426,13 +3426,12 @@ def mostrar_propiedades(mes):
             resultado = valuar_propiedad_v7(prop, fecha_ref=mes_prop)
             
             # DEBUG: Logging controlado para identificar fuente de divergencia
-            if prop.get('nombre', '').lower().find('mabel') >= 0 or prop.get('direccion', '').lower().find('mabel') >= 0:
-                print(f"[UI_VALOR_DEBUG] {prop.get('nombre', prop.get('direccion', 'Mabel'))}")
-                print(f"  fuente_valor_lista: motor valuar_propiedad_v7")
-                print(f"  valor_lista_ui: {resultado.get('valor_propiedad_usd')}")
-                print(f"  m2_base_venta_ui: {resultado.get('m2_base_venta')}")
-                print(f"  m2_equiv_ui: {resultado.get('m2_equivalentes')}")
-                print(f"  valor_m2_actual_usd: {resultado.get('valor_m2_actual_usd')}")
+            print(f"[UI_VALOR_DEBUG] {prop.get('nombre', prop.get('direccion', 'Unknown'))}")
+            print(f"  fuente_valor_lista: motor valuar_propiedad_v7")
+            print(f"  valor_lista_ui: {resultado.get('valor_propiedad_usd')}")
+            print(f"  m2_base_venta_ui: {resultado.get('m2_base_venta')}")
+            print(f"  m2_equiv_ui: {resultado.get('m2_equivalentes')}")
+            print(f"  valor_m2_actual_usd: {resultado.get('valor_m2_actual_usd')}")
             
             valor_lista = resultado['valor_propiedad_usd']
             valor_cierre = resultado['valor_realizable_usd']
@@ -3619,9 +3618,8 @@ def mostrar_propiedades(mes):
                         if prop_lat and prop_lon:
                             # 1. Datos de Nodos y Barreras
                             res_meta = resultado.get('resolution_metadata', {})
-                            # Try to get nodes from result, else empty list
-                            nodos_actuales = resultado.get('nodes', [])
-                            st.write(f"DEBUG: Nodos encontrados: {len(nodos_actuales)}") # Diagnostic
+                            n_muestras = res_meta.get('n_propiedades', 0)
+                            st.write(f"DEBUG: Muestras cluster: {n_muestras}") # Diagnostic
                             
                             barreras = cargar_barreras()
                             
@@ -3761,7 +3759,7 @@ def mostrar_propiedades(mes):
                             operacion='venta',
                             lat_ref=prop.get('lat'),
                             lon_ref=prop.get('lon'),
-                            fecha_ref=fecha_ref
+                            fecha_ref=mes_prop
                         )
                         if isinstance(med_result, tuple) and len(med_result) >= 3:
                             cl_d, n_cl, meta_cluster = med_result[0], med_result[1], med_result[2]
