@@ -1749,7 +1749,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     import os
     import logging
     from datetime import datetime
-    from parsers.motor_vpp_core import load_cache, cargar_anclas, calcular_valor_vpp, get_binance_usdt_ars
+    from parsers.motor_vpp_core import load_cache_cached, cargar_anclas_cached, get_binance_usdt_ars
     
     # Setup logging to file
     log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'log_valuacion')
@@ -1766,8 +1766,8 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     logger = logging.getLogger()
     
     prop = sanitizar_propiedad(propiedad)
-    cache = load_cache()
-    anclas = cargar_anclas()
+    cache = load_cache_cached()
+    anclas = cargar_anclas_cached()
     
     # Log de entrada
     logger.info(f"=== VALUACION: {prop.get('nombre', prop.get('direccion', 'Unknown'))} ===")
