@@ -3664,10 +3664,10 @@ def mostrar_propiedades(mes):
                                 tipo = prop.get('tipo_inmueble', 'departamento')
                                 dorms = prop.get('dormitorios', 2)
                                 anio_const = prop.get('anio_construccion', 2020)
-                                todos_nodos = obtener_nodos_dinamicos(tipo, 'venta', dorms, anio_const)
+                                todos_nodos = obtener_nodos_dinamicos(prop_lat, prop_lon, tipo, 'venta', dorms, fecha_ref)
                                 for n in todos_nodos:
                                     if any(nod['id'] == n['id'] for nod in nodos_actuales):
-                                        continue 
+                                        continue
                                     folium.CircleMarker(
                                         location=[n['lat'], n['lon']],
                                         radius=3,
