@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from parsers.mercado_inmobiliario import obtener_mediana_cluster_v2, normalizar_zona
 from parsers.location_engine import cargar_barreras, check_barrier_crossing
 
-PROPIEDADES = ['Mabel', 'Ayacucho', 'Vera Mujica', 'Amenabar', 'P1200']
+PROPIEDADES = ['Mabel', 'Ayacucho', 'Vera Mujica', 'P1200']
 
 def haversine(lat1, lon1, lat2, lon2):
     R = 6371
