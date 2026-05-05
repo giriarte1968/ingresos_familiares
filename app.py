@@ -3656,7 +3656,7 @@ def mostrar_propiedades(mes):
                                         pl = p.get('lat')
                                         pln = p.get('lon')
                                         if pl and pln:
-                                            dist = calcular_distancia_km(prop_lat, prop_lon, pln, pl)
+                                            dist = calcular_distancia_km(prop_lat, prop_lon, pl, pln)
                                             if dist <= 0.5 and dist > 0:
                                                 if p.get('dormitorios') == prop.get('dormitorios'):
                                                     props_nearby.append({'id': p.get('zona', 'Unknown'), 'lat': pl, 'lon': pln, 'usd_m2': p.get('valor_m2', 0)})
