@@ -142,12 +142,14 @@ def _intersect(p1, p2, p3, p4):
 
 def check_barrier_crossing(p1, p2, barriers):
     for b in barriers:
-        if b.get('properties', {}).get('barrier_type') != 'hard':
+        props = b.get('properties', {})
+        bt = props.get('barrier_type')
+        if not bt:
             continue
         coords = b.get('geometry', {}).get('coordinates', [])
         for i in range(len(coords) - 1):
             if _intersect(p1, p2, coords[i], coords[i+1]):
-                return True
+                return bt  # 'hard' o 'soft'
     return False
 
 def calcular_precio_m2(lat, lon, nodos, barriers=None, radio_km=1.0, lambda_val=0.012):
@@ -166,9 +168,13 @@ def calcular_precio_m2(lat, lon, nodos, barriers=None, radio_km=1.0, lambda_val=
         
         barrier_penalty = 1.0
         if barriers:
-            if check_barrier_crossing((lon, lat), (n['lon'], n['lat']), barriers):
-                weight *= 0.2
-                barrier_penalty = 0.2
+            cruza = check_barrier_crossing((lon, lat), (n['lon'], n['lat']), barriers)
+            if cruza == 'hard':
+                weight *= 0.20  # 80% penalty for railways
+                barrier_penalty = 0.20
+            elif cruza == 'soft':
+                weight *= 0.90  # 10% penalty for avenues
+                barrier_penalty = 0.90
         
         # Cap de peso máximo por nodo individual para evitar secuestro de la valuación
         # El peso se normaliza al final, pero limitamos la contribución relativa inicial

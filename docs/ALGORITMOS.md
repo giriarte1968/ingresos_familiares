@@ -160,6 +160,22 @@ Fueron calibraciones para bajar Mabel a rango realista sin romper Ayacucho ni Ve
 - `factor_pasillo` NO forma parte de la fórmula general de departamentos/PH.
 - Si existiera una lógica futura para casas/PH especiales, debe vivir en un motor separado.
 
+## 7. Barreras Geográficas (Rosario)
+
+### Tipología de Barreras
+| Tipo | Ejemplos | Comportamiento | Peso en IDW |
+| :--- | :--- | :--- | :--- |
+| **DURA** | Ferrocarril FC Mitre, Circunvalación | Exclusión total | weight *= 0.20 (80% penalty) |
+| **BLANDA** | Av. Pellegrini, Av. 27 de Febrero, Av. Oroño, Av. Francia | Fricción (no exclusión) | weight *= 0.90 (10% penalty) |
+
+### Lógica de Implementación
+- `check_barrier_crossing()` retorna: `'hard'`, `'soft'` o `False`
+- **En Cluster (obtener_mediana_cluster_v2)**: Solo excluye barreras DURAS
+- **En IDW (calcular_precio_m2)**: Aplica penalty según tipo
+
+### Justificación
+En Rosario, las grandes avenidas son una "fricción" pero no un "corte". Un castigo del 10% es suficiente para que el motor prefiera propiedades del mismo lado, pero sin ignorar datos relevantes del otro lado. Los ferrocarriles (vía en trinchera) sí representan una división real del tejido urbano.
+
 ---
 
 **Generado por**: opencode (Agente de Mantenimiento)

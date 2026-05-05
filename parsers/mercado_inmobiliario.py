@@ -483,7 +483,8 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         
         props, radio_usado, zona_resol = mejor_resultado
         
-        # === APLICAR BARRERAS GEOGRÁFICAS (MEMORIA 5.1) ===
+# === APLICAR BARRERAS GEOGRÁFICAS (Rosario) ===
+        # Duras: Ferrocarril (excluir) | Blandas: Avenidas (permitir)
         if lat_ref and lon_ref and props:
             try:
                 from parsers.location_engine import check_barrier_crossing, cargar_barreras
@@ -493,14 +494,16 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 for prop in props:
                     p_lat = prop.get('lat') or prop.get('latitud')
                     p_lon = prop.get('lon') or prop.get('longitud')
-                    
+
                     if p_lat and p_lon:
                         cruza = check_barrier_crossing(
                             (lon_ref, lat_ref),
                             (p_lon, p_lat),
                             barreras
                         )
-                        if not cruza:
+                        # Solo excluir barreras DURAS (ferrocarril)
+                        # Blandas (avenidas) se permiten en el cluster
+                        if cruza != 'hard':
                             props_sin_barrera.append(prop)
                 
                 if len(props_sin_barrera) < len(props):
