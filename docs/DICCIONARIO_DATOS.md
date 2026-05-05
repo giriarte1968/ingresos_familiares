@@ -49,10 +49,15 @@ Es un `FeatureCollection` donde cada `Feature` es un `LineString`.
 
 ### Propiedades de la Barrera
 - `barrier_type`:
-    - `hard`: Peso = 0 (los comparables no pueden cruzar esta línea).
-    - `soft`: Peso atenuado por un factor β.
-    - `attractor`: Genera un plus de valor por cercanía.
-- `name`: Nombre descriptivo (ej. "Vías FFCC Mitre").
+    - `hard`: Ferrocarril, Circunvalación → Exclusión total (weight *= 0.20 en IDW)
+    - `soft`: Avenidas principales → Penalización suave (weight *= 0.90 en IDW)
+- `name`: Nombre descriptivo (ej. "Ferrocarril", "Bulevar 27 de Febrero")
+
+### Pesos Implementados (2026-05)
+| Tipo | peso IDW | Efecto en Cluster |
+| :--- | :--- | :--- |
+| hard | 0.20 | Excluir propiedad |
+| soft | 0.90 | Mantener propiedad |
 
 ---
 
