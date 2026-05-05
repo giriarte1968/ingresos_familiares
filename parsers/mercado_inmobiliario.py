@@ -817,7 +817,23 @@ def calcular_factores(prop, ventana_usada=None):
     antiguedad = 2026 - anio_const
     
     # Depreciación por Antigüedad (Year 0 -> Target)
-    factor_anti = max(0.40, 1.0 - (antiguedad * 0.006))
+    # 1. Calcular depreciación lineal normal
+    delta_anti_raw = max(-0.60, -(antiguedad * 0.006))
+    
+    # 2. Atenuación dinámica para propiedades viejas (>30 años)
+    UMBRAL_PENALIZACION_SEVERA = -0.18
+    FACTOR_ATENUACION = 0.35
+    
+    if delta_anti_raw < UMBRAL_PENALIZACION_SEVERA:
+        # Castigo severo: atenuamos el exceso
+        exceso = delta_anti_raw - UMBRAL_PENALIZACION_SEVERA
+        delta_anti_efectivo = UMBRAL_PENALIZACION_SEVERA + (exceso * FACTOR_ATENUACION)
+    else:
+        # Propiedades jóvenes: sin cambios
+        delta_anti_efectivo = delta_anti_raw
+    
+    # Factor anti final
+    factor_anti = max(0.40, 1.0 + delta_anti_efectivo)
     
     factor_estado = {
         'a_estrenar': 1.20, 'excelente': 1.10, 'muy_bueno': 1.03,
