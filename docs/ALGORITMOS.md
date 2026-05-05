@@ -104,5 +104,63 @@ Para propiedades en Planta Baja (piso=0) con patio grande:
 
 ---
 
-**Generado por**: Antigravity AI
-**Fecha**: 2026-04-27
+## Leyes del Motor VPP - Calibración Rosario 2026
+
+### 1. Fórmula de Venta
+La valuación de venta para departamentos/PH usa:
+
+```
+valor_venta = m2_equiv × m2_base_venta × (1 + suma_cruda_clamped + delta_anti_efectivo) × (1 + ajuste_nlp)
+```
+
+Aclaraciones:
+- `m2_base_venta` proviene del cluster geolocalizado v2.
+- `venta` usa **P33** como base conservadora.
+- `alquiler` usa **P50/mediana**.
+- `suma_cruda_clamped` es la suma de ajustes de atributos físicos/comerciales, con clamp.
+- `delta_anti_efectivo` se aplica de forma lineal dentro del bloque estructural.
+- `ajuste_nlp` se aplica como multiplicador externo.
+
+### 2. Clamp de Suma Cruda
+- `SUMA_CRUDA_MIN = -0.40`
+- `SUMA_CRUDA_MAX = +0.40`
+
+Evita explosión por acumulación de atributos positivos y negativos.
+
+### 3. NLP cap por tipología
+- Propiedades de **1 dormitorio**: NLP máximo = **+3%**
+- Propiedades de **2 o más dormitorios**: NLP máximo = **+5%**
+
+En Rosario, la descripción comercial no debería mover más de 3% en unidades chicas. En unidades mayores, el mercado tolera hasta 5% de premio por percepción/comercialización.
+
+### 4. Atenuación dinámica de antigüedad
+Se activa solo si `delta_anti_raw < -0.18`:
+- `UMBRAL_PENALIZACION_SEVERA = -0.18`
+- `FACTOR_ATENUACION = 0.35`
+
+Fórmula exacta:
+- Si `delta_anti_raw >= -0.18`, entonces: `delta_anti_efectivo = delta_anti_raw`
+- Si `delta_anti_raw < -0.18`, entonces:
+  - `exceso = delta_anti_raw - (-0.18)`
+  - `delta_anti_efectivo = -0.18 + (exceso × 0.35)`
+
+**Ejemplo con P1200:**
+- 49 años → delta raw ≈ -0.294
+- exceso ≈ -0.114
+- delta efectivo ≈ -0.220
+- Propósito: evitar sobrecastigar propiedades antiguas cuando la base P33 ya es conservadora.
+
+### 5. Ajustes finos aplicados
+- Funcional (lavadero/placares): reducida de 0.02 → 0.015
+- Balcón corrido: reducido de 0.04 → 0.02
+
+Fueron calibraciones para bajar Mabel a rango realista sin romper Ayacucho ni Vera.
+
+### 6. Exclusión de factor_pasillo
+- `factor_pasillo` NO forma parte de la fórmula general de departamentos/PH.
+- Si existiera una lógica futura para casas/PH especiales, debe vivir en un motor separado.
+
+---
+
+**Generado por**: opencode (Agente de Mantenimiento)
+**Fecha**: 2026-05-05

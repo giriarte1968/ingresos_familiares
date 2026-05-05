@@ -4,6 +4,37 @@ Este documento es el "diario de trabajo". Cada agente de IA que trabaje en este 
 
 ---
 
+## 📅 2026-05-05 — CALIBRACIÓN COMPLETADA
+
+### Acciones realizadas:
+1. **Documentación de Leyes del Motor** en `ALGORITMOS.md`:
+   - Fórmula de venta (P33 venta / P50 alquiler)
+   - Clamp suma cruda (-0.40 a +0.40)
+   - NLP cap (1 dorm: 3%, 2+ dorm: 5%)
+   - Atenuación antigüedad (UMBRAL: -0.18, FACTOR: 0.35)
+   - Exclusión de factor_pasillo
+
+2. **Actualización DICCIONARIO_DATOS.md**:
+   - Constantes documentadas
+
+3. **Tests de no-regresión** agregados:
+   - test_antiguedad_atenuacion.py (4 tests)
+
+4. **Auditoría de alquileres**:
+   - Cap rates en rango 2.5% - 3.5%
+   - GAP_ALQUILER: 0.85 (sin cambios)
+   - Recomendación: Mantener GAP actual
+
+### Valores finales de venta:
+- Mabel: $80,121
+- Ayacucho: $44,632
+- Vera: $53,346
+- P1200: $143,460
+
+### Tests: 5/5 (regresión) + 4/4 (atenuación)
+
+---
+
 ## 🎯 PROTOCOLO DE TRABAJO (OBLIGATORIO)
 
 ### Antes de modificar código:

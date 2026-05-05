@@ -85,3 +85,13 @@ Diccionario simple para ajustar la calidad del edificio.
 - `delta_anti_efectivo` (float): El $\Delta$ de antigüedad final después de aplicar la lógica de saturación.
 - `factor_raw` (float): Factor calculado linealmente antes de aplicar el clamp final.
 - `factor_total` (float): Factor final acotado usado para multiplicar el $m2\_base$.
+- `UMBRAL_PENALIZACION_SEVERA` (float): Umbral de activación de atenuación para propiedades $>30$ años (valor: -0.18).
+- `FACTOR_ATENUACION` (float): Factor de reducción del exceso de antigüedad (valor: 0.35).
+- `NLP_CAP_1_DORM` (float): Cap máximo de NLP para propiedades de 1 dormitorio (valor: 0.03 = +3%).
+- `NLP_CAP_2PLUS_DORM` (float): Cap máximo de NLP para propiedades de 2+ dormitorios (valor: 0.05 = +5%).
+- `delta_anti_raw` (float): Depreciación lineal calculada antes de atenuación.
+- `delta_anti_efectivo` (float): Depreciación después de aplicar atenuación (solo para props $>30$ años).
+- `m2_base_venta` (float): Precio base por m² del cluster v2 para operación de venta (percentil: P33).
+- `m2_base_alquiler` (float): Precio base por m² del cluster v2 para operación de alquiler (percentil: P50).
+- `percentil_usado` (string): Percentil utilizado del cluster (P33 para venta, P50 para alquiler).
+- `resolution_metadata` (dict): Metadata de resolución del cluster (n_propiedades, radio_usado, zonaresol, method).
