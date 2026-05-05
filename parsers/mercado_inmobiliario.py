@@ -878,13 +878,13 @@ def calcular_factores(prop, ventana_usada=None):
         pass
     
     # 6. Factor Balcón/Terraza v10.0
-    # Tabla coef: corrido +4%, L +6%, francesa -2%, terraza +7%
+    # Tabla coef: corrido +2%, L +5%, francesa -2%, terraza +6%
     t_balcon = prop.get('tipo_balcon', 'ninguno').lower()
     factor_balcon = {
-        'L': 1.06,          # balcón en L: +6%
-        'corrido': 1.04,    # balcón corrido: +4%
+        'L': 1.05,          # balcón en L: +5%
+        'corrido': 1.02,    # balcón corrido: +2% (AJUSTE 2)
         'frances': 0.98,   # balcón francés: -2%
-        'terraza': 1.07,   # balcón terraza: +7%
+        'terraza': 1.06,   # balcón terraza: +6%
         'ninguno': 1.0
     }.get(t_balcon, 1.0)
     
@@ -894,11 +894,11 @@ def calcular_factores(prop, ventana_usada=None):
     # 7. Detalles Funcionales v10.0
     f_funcional = 1.0
     if prop.get('doble_ingreso'): f_funcional *= 1.03
-    if prop.get('lavadero_independiente'): f_funcional *= 1.02
+    if prop.get('lavadero_independiente'): f_funcional *= 1.015  # AJUSTE 1: 0.02->0.015
     if prop.get('toilet'): f_funcional *= 1.035
     if prop.get('baño_servicio'): f_funcional *= 1.01
     if prop.get('layout_flexible'): f_funcional *= 1.04
-    if prop.get('placares_completos'): f_funcional *= 1.02
+    if prop.get('placares_completos'): f_funcional *= 1.015  # AJUSTE 1: 0.02->0.015
     if prop.get('despensa'): f_funcional *= 1.015
     
     # Reciclado v10.0 (parcial +4%, total +8%)
@@ -2062,9 +2062,14 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     desc = prop.get('descripcion_libre', '')
     ajuste_nlp, detecciones_nlp = calcular_ajuste_nlp_detallado(desc)
     
+    # AJUSTE 3: Cap NLP diferenciado por dormitorios
+    dorms = prop.get('dormitorios', 2)
+    nlp_cap = 0.03 if dorms == 1 else 0.05  # 1 dorm: 3%, 2+: 5%
+    ajuste_nlp_capped = min(ajuste_nlp, nlp_cap)
+    
     # Aplicar NLP al Precio de Lista
-    valor_venta = valor_venta * (1 + ajuste_nlp)
-    alquiler_mensual_ars = alquiler_mensual_ars * (1 + ajuste_nlp)
+    valor_venta = valor_venta * (1 + ajuste_nlp_capped)
+    alquiler_mensual_ars = alquiler_mensual_ars * (1 + ajuste_nlp_capped)
     
     logger.info(f"NLP: {ajuste_nlp}")
     logger.info(f"valor_venta (after NLP): {valor_venta}")

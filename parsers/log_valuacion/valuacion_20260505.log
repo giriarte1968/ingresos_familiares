@@ -158,3 +158,1623 @@ NLP: 0
 valor_venta (after NLP): 134452.33064794997
 GAP_CIERRE: 0.92
 valor_realizable: 123696.14419611398
+=== VALUACION: Mabel ===
+zona: Martin, dorm: 1, m2: 41.0
+lat: -32.9541101, lon: -60.6316406
+estado: muy bueno, anio: 2000
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 42, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.844
+f_estructural: 1.3050452712211205
+factores_base (total): 1.1185413333333334
+--- CALCULO ---
+m2_equiv: 44.75, m2_base_venta: 1597.4291
+valor_venta (before NLP): 79958.87377502114
+NLP: 0.05
+valor_venta (after NLP): 83956.81746377221
+GAP_CIERRE: 0.92
+valor_realizable: 77240.27206667044
+=== VALUACION: Mabel ===
+zona: Martin, dorm: 1, m2: 41.0
+lat: -32.9541101, lon: -60.6316406
+estado: muy bueno, anio: 2000
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 490, radio: 1500
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.844
+f_estructural: 1.3050452712211205
+factores_base (total): 1.1185413333333334
+--- CALCULO ---
+m2_equiv: 44.75, m2_base_venta: 1500.3182
+valor_venta (before NLP): 75098.01441338893
+NLP: 0.05
+valor_venta (after NLP): 78852.91513405838
+GAP_CIERRE: 0.92
+valor_realizable: 72544.68192333372
+=== VALUACION: Ayacucho ===
+zona: Sexta Pellegrini, dorm: 1, m2: 27.0
+lat: -32.960323, lon: -60.6299652
+estado: excelente, anio: 2002
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 21, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.856
+f_estructural: 1.3088691000000003
+factores_base (total): 1.1362
+--- CALCULO ---
+m2_equiv: 27.0, m2_base_venta: 1412.502
+valor_venta (before NLP): 43331.8888548
+NLP: 0.05
+valor_venta (after NLP): 45498.483297540006
+GAP_CIERRE: 0.92
+valor_realizable: 41858.60463373681
+=== VALUACION: Ayacucho ===
+zona: Sexta Pellegrini, dorm: 1, m2: 27.0
+lat: -32.960323, lon: -60.6299652
+estado: excelente, anio: 2002
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 413, radio: 1500
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.856
+f_estructural: 1.3088691000000003
+factores_base (total): 1.1362
+--- CALCULO ---
+m2_equiv: 27.0, m2_base_venta: 1493.2936
+valor_venta (before NLP): 45810.365084640005
+NLP: 0.05
+valor_venta (after NLP): 48100.88333887201
+GAP_CIERRE: 0.92
+valor_realizable: 44252.81267176225
+=== VALUACION: Mabel ===
+zona: Martin, dorm: 1, m2: 41.0
+lat: -32.9541101, lon: -60.6316406
+estado: muy bueno, anio: 2000
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 42, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.844
+f_estructural: 1.3050452712211205
+factores_base (total): 1.1185413333333334
+--- CALCULO ---
+m2_equiv: 44.75, m2_base_venta: 1597.4291
+valor_venta (before NLP): 79958.87377502114
+NLP: 0.05
+valor_venta (after NLP): 83956.81746377221
+GAP_CIERRE: 0.92
+valor_realizable: 77240.27206667044
+=== VALUACION: Mabel ===
+zona: Martin, dorm: 1, m2: 41.0
+lat: -32.9541101, lon: -60.6316406
+estado: muy bueno, anio: 2000
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 490, radio: 1500
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.844
+f_estructural: 1.3050452712211205
+factores_base (total): 1.1185413333333334
+--- CALCULO ---
+m2_equiv: 44.75, m2_base_venta: 1500.3182
+valor_venta (before NLP): 75098.01441338893
+NLP: 0.05
+valor_venta (after NLP): 78852.91513405838
+GAP_CIERRE: 0.92
+valor_realizable: 72544.68192333372
+=== VALUACION: Ayacucho ===
+zona: Sexta Pellegrini, dorm: 1, m2: 27.0
+lat: -32.960323, lon: -60.6299652
+estado: excelente, anio: 2002
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 21, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.856
+f_estructural: 1.3088691000000003
+factores_base (total): 1.1362
+--- CALCULO ---
+m2_equiv: 27.0, m2_base_venta: 1412.502
+valor_venta (before NLP): 43331.8888548
+NLP: 0.05
+valor_venta (after NLP): 45498.483297540006
+GAP_CIERRE: 0.92
+valor_realizable: 41858.60463373681
+=== VALUACION: Ayacucho ===
+zona: Sexta Pellegrini, dorm: 1, m2: 27.0
+lat: -32.960323, lon: -60.6299652
+estado: excelente, anio: 2002
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 413, radio: 1500
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.856
+f_estructural: 1.3088691000000003
+factores_base (total): 1.1362
+--- CALCULO ---
+m2_equiv: 27.0, m2_base_venta: 1493.2936
+valor_venta (before NLP): 45810.365084640005
+NLP: 0.05
+valor_venta (after NLP): 48100.88333887201
+GAP_CIERRE: 0.92
+valor_realizable: 44252.81267176225
+=== VALUACION: Vera Mujica ===
+zona: Facultades, dorm: 1, m2: 35.0
+lat: -32.9427375, lon: -60.6673362
+estado: excelente, anio: 2009
+--- RESOLUTION ---
+resolution: GEO, confidence: MEDIA
+n_propiedades: 13, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.898
+f_estructural: 0.99950004
+factores_base (total): 0.9082000000000002
+--- CALCULO ---
+m2_equiv: 43.75, m2_base_venta: 1303.4728
+valor_venta (before NLP): 51791.86236700001
+NLP: 0.12000000000000001
+valor_venta (after NLP): 58006.88585104002
+GAP_CIERRE: 0.92
+valor_realizable: 53366.33498295682
+=== VALUACION: Vera Mujica ===
+zona: Facultades, dorm: 1, m2: 35.0
+lat: -32.9427375, lon: -60.6673362
+estado: excelente, anio: 2009
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 513, radio: 1500
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.898
+f_estructural: 0.99950004
+factores_base (total): 0.9082000000000002
+--- CALCULO ---
+m2_equiv: 43.75, m2_base_venta: 1523.1604
+valor_venta (before NLP): 60520.87454350002
+NLP: 0.12000000000000001
+valor_venta (after NLP): 67783.37948872002
+GAP_CIERRE: 0.92
+valor_realizable: 62360.709129622424
+=== VALUACION: Mabel ===
+zona: Martin, dorm: 1, m2: 41.0
+lat: -32.9541101, lon: -60.6316406
+estado: muy bueno, anio: 2000
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 42, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.844
+f_estructural: 1.3050452712211205
+factores_base (total): 1.1185413333333334
+--- CALCULO ---
+m2_equiv: 44.75, m2_base_venta: 1597.4291
+valor_venta (before NLP): 79958.87377502114
+NLP: 0.05
+valor_venta (after NLP): 83956.81746377221
+GAP_CIERRE: 0.92
+valor_realizable: 77240.27206667044
+=== VALUACION: Mabel ===
+zona: Martin, dorm: 1, m2: 41.0
+lat: -32.9541101, lon: -60.6316406
+estado: muy bueno, anio: 2000
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 490, radio: 1500
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.844
+f_estructural: 1.3050452712211205
+factores_base (total): 1.1185413333333334
+--- CALCULO ---
+m2_equiv: 44.75, m2_base_venta: 1500.3182
+valor_venta (before NLP): 75098.01441338893
+NLP: 0.05
+valor_venta (after NLP): 78852.91513405838
+GAP_CIERRE: 0.92
+valor_realizable: 72544.68192333372
+=== VALUACION: Ayacucho ===
+zona: Sexta Pellegrini, dorm: 1, m2: 27.0
+lat: -32.960323, lon: -60.6299652
+estado: excelente, anio: 2002
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 21, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.856
+f_estructural: 1.3088691000000003
+factores_base (total): 1.1362
+--- CALCULO ---
+m2_equiv: 27.0, m2_base_venta: 1412.502
+valor_venta (before NLP): 43331.8888548
+NLP: 0.05
+valor_venta (after NLP): 45498.483297540006
+GAP_CIERRE: 0.92
+valor_realizable: 41858.60463373681
+=== VALUACION: Ayacucho ===
+zona: Sexta Pellegrini, dorm: 1, m2: 27.0
+lat: -32.960323, lon: -60.6299652
+estado: excelente, anio: 2002
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 413, radio: 1500
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.856
+f_estructural: 1.3088691000000003
+factores_base (total): 1.1362
+--- CALCULO ---
+m2_equiv: 27.0, m2_base_venta: 1493.2936
+valor_venta (before NLP): 45810.365084640005
+NLP: 0.05
+valor_venta (after NLP): 48100.88333887201
+GAP_CIERRE: 0.92
+valor_realizable: 44252.81267176225
+=== VALUACION: Vera Mujica ===
+zona: Facultades, dorm: 1, m2: 35.0
+lat: -32.9427375, lon: -60.6673362
+estado: excelente, anio: 2009
+--- RESOLUTION ---
+resolution: GEO, confidence: MEDIA
+n_propiedades: 13, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.898
+f_estructural: 0.99950004
+factores_base (total): 0.9082000000000002
+--- CALCULO ---
+m2_equiv: 43.75, m2_base_venta: 1303.4728
+valor_venta (before NLP): 51791.86236700001
+NLP: 0.12000000000000001
+valor_venta (after NLP): 58006.88585104002
+GAP_CIERRE: 0.92
+valor_realizable: 53366.33498295682
+=== VALUACION: Vera Mujica ===
+zona: Facultades, dorm: 1, m2: 35.0
+lat: -32.9427375, lon: -60.6673362
+estado: excelente, anio: 2009
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 513, radio: 1500
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.898
+f_estructural: 0.99950004
+factores_base (total): 0.9082000000000002
+--- CALCULO ---
+m2_equiv: 43.75, m2_base_venta: 1523.1604
+valor_venta (before NLP): 60520.87454350002
+NLP: 0.12000000000000001
+valor_venta (after NLP): 67783.37948872002
+GAP_CIERRE: 0.92
+valor_realizable: 62360.709129622424
+=== VALUACION: Amenabar ===
+zona: Oeste, dorm: 1, m2: 44.98
+lat: -32.9634501, lon: -60.6948673
+estado: bueno, anio: 1984
+--- RESOLUTION ---
+resolution: GEO, confidence: MEDIA
+n_propiedades: 8, radio: 1500
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.0, factor_calidad: 1.0
+factor_anti (deprec): 0.748
+f_estructural: 0.94397226
+factores_base (total): 0.8582000000000001
+--- CALCULO ---
+m2_equiv: 51.72699999999999, m2_base_venta: 1587.9678
+valor_venta (before NLP): 70493.2434772129
+NLP: 0
+valor_venta (after NLP): 70493.2434772129
+GAP_CIERRE: 0.92
+valor_realizable: 64853.78399903588
+=== VALUACION: Amenabar ===
+zona: Oeste, dorm: 1, m2: 44.98
+lat: -32.9634501, lon: -60.6948673
+estado: bueno, anio: 1984
+--- RESOLUTION ---
+resolution: GEO, confidence: MEDIA
+n_propiedades: 8, radio: 1500
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.0, factor_calidad: 1.0
+factor_anti (deprec): 0.748
+f_estructural: 0.94397226
+factores_base (total): 0.8582000000000001
+--- CALCULO ---
+m2_equiv: 51.72699999999999, m2_base_venta: 1587.9678
+valor_venta (before NLP): 70493.2434772129
+NLP: 0
+valor_venta (after NLP): 70493.2434772129
+GAP_CIERRE: 0.92
+valor_realizable: 64853.78399903588
+=== VALUACION: Mabel ===
+zona: Martin, dorm: 1, m2: 41.0
+lat: -32.9541101, lon: -60.6316406
+estado: muy bueno, anio: 2000
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 42, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.844
+f_estructural: 1.3050452712211205
+factores_base (total): 1.1185413333333334
+--- CALCULO ---
+m2_equiv: 44.75, m2_base_venta: 1597.4291
+valor_venta (before NLP): 79958.87377502114
+NLP: 0.05
+valor_venta (after NLP): 83956.81746377221
+GAP_CIERRE: 0.92
+valor_realizable: 77240.27206667044
+=== VALUACION: Mabel ===
+zona: Martin, dorm: 1, m2: 41.0
+lat: -32.9541101, lon: -60.6316406
+estado: muy bueno, anio: 2000
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 490, radio: 1500
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.844
+f_estructural: 1.3050452712211205
+factores_base (total): 1.1185413333333334
+--- CALCULO ---
+m2_equiv: 44.75, m2_base_venta: 1500.3182
+valor_venta (before NLP): 75098.01441338893
+NLP: 0.05
+valor_venta (after NLP): 78852.91513405838
+GAP_CIERRE: 0.92
+valor_realizable: 72544.68192333372
+=== VALUACION: Ayacucho ===
+zona: Sexta Pellegrini, dorm: 1, m2: 27.0
+lat: -32.960323, lon: -60.6299652
+estado: excelente, anio: 2002
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 21, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.856
+f_estructural: 1.3088691000000003
+factores_base (total): 1.1362
+--- CALCULO ---
+m2_equiv: 27.0, m2_base_venta: 1412.502
+valor_venta (before NLP): 43331.8888548
+NLP: 0.05
+valor_venta (after NLP): 45498.483297540006
+GAP_CIERRE: 0.92
+valor_realizable: 41858.60463373681
+=== VALUACION: Ayacucho ===
+zona: Sexta Pellegrini, dorm: 1, m2: 27.0
+lat: -32.960323, lon: -60.6299652
+estado: excelente, anio: 2002
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 413, radio: 1500
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.856
+f_estructural: 1.3088691000000003
+factores_base (total): 1.1362
+--- CALCULO ---
+m2_equiv: 27.0, m2_base_venta: 1493.2936
+valor_venta (before NLP): 45810.365084640005
+NLP: 0.05
+valor_venta (after NLP): 48100.88333887201
+GAP_CIERRE: 0.92
+valor_realizable: 44252.81267176225
+=== VALUACION: Vera Mujica ===
+zona: Facultades, dorm: 1, m2: 35.0
+lat: -32.9427375, lon: -60.6673362
+estado: excelente, anio: 2009
+--- RESOLUTION ---
+resolution: GEO, confidence: MEDIA
+n_propiedades: 13, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.898
+f_estructural: 0.99950004
+factores_base (total): 0.9082000000000002
+--- CALCULO ---
+m2_equiv: 43.75, m2_base_venta: 1303.4728
+valor_venta (before NLP): 51791.86236700001
+NLP: 0.12000000000000001
+valor_venta (after NLP): 58006.88585104002
+GAP_CIERRE: 0.92
+valor_realizable: 53366.33498295682
+=== VALUACION: Vera Mujica ===
+zona: Facultades, dorm: 1, m2: 35.0
+lat: -32.9427375, lon: -60.6673362
+estado: excelente, anio: 2009
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 513, radio: 1500
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.898
+f_estructural: 0.99950004
+factores_base (total): 0.9082000000000002
+--- CALCULO ---
+m2_equiv: 43.75, m2_base_venta: 1523.1604
+valor_venta (before NLP): 60520.87454350002
+NLP: 0.12000000000000001
+valor_venta (after NLP): 67783.37948872002
+GAP_CIERRE: 0.92
+valor_realizable: 62360.709129622424
+=== VALUACION: Amenabar ===
+zona: Oeste, dorm: 1, m2: 44.98
+lat: -32.9634501, lon: -60.6948673
+estado: bueno, anio: 1984
+--- RESOLUTION ---
+resolution: GEO, confidence: MEDIA
+n_propiedades: 8, radio: 1500
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.0, factor_calidad: 1.0
+factor_anti (deprec): 0.748
+f_estructural: 0.94397226
+factores_base (total): 0.8582000000000001
+--- CALCULO ---
+m2_equiv: 51.72699999999999, m2_base_venta: 1587.9678
+valor_venta (before NLP): 70493.2434772129
+NLP: 0
+valor_venta (after NLP): 70493.2434772129
+GAP_CIERRE: 0.92
+valor_realizable: 64853.78399903588
+=== VALUACION: Amenabar ===
+zona: Oeste, dorm: 1, m2: 44.98
+lat: -32.9634501, lon: -60.6948673
+estado: bueno, anio: 1984
+--- RESOLUTION ---
+resolution: GEO, confidence: MEDIA
+n_propiedades: 8, radio: 1500
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.0, factor_calidad: 1.0
+factor_anti (deprec): 0.748
+f_estructural: 0.94397226
+factores_base (total): 0.8582000000000001
+--- CALCULO ---
+m2_equiv: 51.72699999999999, m2_base_venta: 1587.9678
+valor_venta (before NLP): 70493.2434772129
+NLP: 0
+valor_venta (after NLP): 70493.2434772129
+GAP_CIERRE: 0.92
+valor_realizable: 64853.78399903588
+=== VALUACION: P1200 ===
+zona: Centro, dorm: 2, m2: 83.0
+lat: -32.9569614, lon: -60.6421636
+estado: muy bueno, anio: 1977
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 16, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.706
+f_estructural: 1.8423610320345263
+factores_base (total): 1.1059999999999999
+--- CALCULO ---
+m2_equiv: 88.85, m2_base_venta: 1368.2195
+valor_venta (before NLP): 134452.33064794997
+NLP: 0
+valor_venta (after NLP): 134452.33064794997
+GAP_CIERRE: 0.92
+valor_realizable: 123696.14419611398
+=== VALUACION: Mabel ===
+zona: Martin, dorm: 1, m2: 41.0
+lat: -32.9541101, lon: -60.6316406
+estado: muy bueno, anio: 2000
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 42, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.844
+f_estructural: 1.3050452712211205
+factores_base (total): 1.1185413333333334
+--- CALCULO ---
+m2_equiv: 44.75, m2_base_venta: 1597.4291
+valor_venta (before NLP): 79958.87377502114
+NLP: 0.05
+valor_venta (after NLP): 83956.81746377221
+GAP_CIERRE: 0.92
+valor_realizable: 77240.27206667044
+=== VALUACION: Mabel ===
+zona: Martin, dorm: 1, m2: 41.0
+lat: -32.9541101, lon: -60.6316406
+estado: muy bueno, anio: 2000
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 490, radio: 1500
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.844
+f_estructural: 1.3050452712211205
+factores_base (total): 1.1185413333333334
+--- CALCULO ---
+m2_equiv: 44.75, m2_base_venta: 1500.3182
+valor_venta (before NLP): 75098.01441338893
+NLP: 0.05
+valor_venta (after NLP): 78852.91513405838
+GAP_CIERRE: 0.92
+valor_realizable: 72544.68192333372
+=== VALUACION: Ayacucho ===
+zona: Sexta Pellegrini, dorm: 1, m2: 27.0
+lat: -32.960323, lon: -60.6299652
+estado: excelente, anio: 2002
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 21, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.856
+f_estructural: 1.3088691000000003
+factores_base (total): 1.1362
+--- CALCULO ---
+m2_equiv: 27.0, m2_base_venta: 1412.502
+valor_venta (before NLP): 43331.8888548
+NLP: 0.05
+valor_venta (after NLP): 45498.483297540006
+GAP_CIERRE: 0.92
+valor_realizable: 41858.60463373681
+=== VALUACION: Ayacucho ===
+zona: Sexta Pellegrini, dorm: 1, m2: 27.0
+lat: -32.960323, lon: -60.6299652
+estado: excelente, anio: 2002
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 413, radio: 1500
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.856
+f_estructural: 1.3088691000000003
+factores_base (total): 1.1362
+--- CALCULO ---
+m2_equiv: 27.0, m2_base_venta: 1493.2936
+valor_venta (before NLP): 45810.365084640005
+NLP: 0.05
+valor_venta (after NLP): 48100.88333887201
+GAP_CIERRE: 0.92
+valor_realizable: 44252.81267176225
+=== VALUACION: Vera Mujica ===
+zona: Facultades, dorm: 1, m2: 35.0
+lat: -32.9427375, lon: -60.6673362
+estado: excelente, anio: 2009
+--- RESOLUTION ---
+resolution: GEO, confidence: MEDIA
+n_propiedades: 13, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.898
+f_estructural: 0.99950004
+factores_base (total): 0.9082000000000002
+--- CALCULO ---
+m2_equiv: 43.75, m2_base_venta: 1303.4728
+valor_venta (before NLP): 51791.86236700001
+NLP: 0.12000000000000001
+valor_venta (after NLP): 58006.88585104002
+GAP_CIERRE: 0.92
+valor_realizable: 53366.33498295682
+=== VALUACION: Vera Mujica ===
+zona: Facultades, dorm: 1, m2: 35.0
+lat: -32.9427375, lon: -60.6673362
+estado: excelente, anio: 2009
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 513, radio: 1500
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.898
+f_estructural: 0.99950004
+factores_base (total): 0.9082000000000002
+--- CALCULO ---
+m2_equiv: 43.75, m2_base_venta: 1523.1604
+valor_venta (before NLP): 60520.87454350002
+NLP: 0.12000000000000001
+valor_venta (after NLP): 67783.37948872002
+GAP_CIERRE: 0.92
+valor_realizable: 62360.709129622424
+=== VALUACION: Amenabar ===
+zona: Oeste, dorm: 1, m2: 44.98
+lat: -32.9634501, lon: -60.6948673
+estado: bueno, anio: 1984
+--- RESOLUTION ---
+resolution: GEO, confidence: MEDIA
+n_propiedades: 8, radio: 1500
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.0, factor_calidad: 1.0
+factor_anti (deprec): 0.748
+f_estructural: 0.94397226
+factores_base (total): 0.8582000000000001
+--- CALCULO ---
+m2_equiv: 51.72699999999999, m2_base_venta: 1587.9678
+valor_venta (before NLP): 70493.2434772129
+NLP: 0
+valor_venta (after NLP): 70493.2434772129
+GAP_CIERRE: 0.92
+valor_realizable: 64853.78399903588
+=== VALUACION: Amenabar ===
+zona: Oeste, dorm: 1, m2: 44.98
+lat: -32.9634501, lon: -60.6948673
+estado: bueno, anio: 1984
+--- RESOLUTION ---
+resolution: GEO, confidence: MEDIA
+n_propiedades: 8, radio: 1500
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.0, factor_calidad: 1.0
+factor_anti (deprec): 0.748
+f_estructural: 0.94397226
+factores_base (total): 0.8582000000000001
+--- CALCULO ---
+m2_equiv: 51.72699999999999, m2_base_venta: 1587.9678
+valor_venta (before NLP): 70493.2434772129
+NLP: 0
+valor_venta (after NLP): 70493.2434772129
+GAP_CIERRE: 0.92
+valor_realizable: 64853.78399903588
+=== VALUACION: P1200 ===
+zona: Centro, dorm: 2, m2: 83.0
+lat: -32.9569614, lon: -60.6421636
+estado: muy bueno, anio: 1977
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 16, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.706
+f_estructural: 1.8423610320345263
+factores_base (total): 1.1059999999999999
+--- CALCULO ---
+m2_equiv: 88.85, m2_base_venta: 1368.2195
+valor_venta (before NLP): 134452.33064794997
+NLP: 0
+valor_venta (after NLP): 134452.33064794997
+GAP_CIERRE: 0.92
+valor_realizable: 123696.14419611398
+=== VALUACION: Mabel ===
+zona: Martin, dorm: 1, m2: 41.0
+lat: -32.9541101, lon: -60.6316406
+estado: muy bueno, anio: 2000
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 42, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.844
+f_estructural: 1.3050452712211205
+factores_base (total): 1.1185413333333334
+--- CALCULO ---
+m2_equiv: 44.75, m2_base_venta: 1597.4291
+valor_venta (before NLP): 79958.87377502114
+NLP: 0.05
+valor_venta (after NLP): 83956.81746377221
+GAP_CIERRE: 0.92
+valor_realizable: 77240.27206667044
+=== VALUACION: Mabel ===
+zona: Martin, dorm: 1, m2: 41.0
+lat: -32.9541101, lon: -60.6316406
+estado: muy bueno, anio: 2000
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 490, radio: 1500
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.844
+f_estructural: 1.3050452712211205
+factores_base (total): 1.1185413333333334
+--- CALCULO ---
+m2_equiv: 44.75, m2_base_venta: 1500.3182
+valor_venta (before NLP): 75098.01441338893
+NLP: 0.05
+valor_venta (after NLP): 78852.91513405838
+GAP_CIERRE: 0.92
+valor_realizable: 72544.68192333372
+=== VALUACION: Ayacucho ===
+zona: Sexta Pellegrini, dorm: 1, m2: 27.0
+lat: -32.960323, lon: -60.6299652
+estado: excelente, anio: 2002
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 21, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.856
+f_estructural: 1.3088691000000003
+factores_base (total): 1.1362
+--- CALCULO ---
+m2_equiv: 27.0, m2_base_venta: 1412.502
+valor_venta (before NLP): 43331.8888548
+NLP: 0.05
+valor_venta (after NLP): 45498.483297540006
+GAP_CIERRE: 0.92
+valor_realizable: 41858.60463373681
+=== VALUACION: Ayacucho ===
+zona: Sexta Pellegrini, dorm: 1, m2: 27.0
+lat: -32.960323, lon: -60.6299652
+estado: excelente, anio: 2002
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 413, radio: 1500
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.856
+f_estructural: 1.3088691000000003
+factores_base (total): 1.1362
+--- CALCULO ---
+m2_equiv: 27.0, m2_base_venta: 1493.2936
+valor_venta (before NLP): 45810.365084640005
+NLP: 0.05
+valor_venta (after NLP): 48100.88333887201
+GAP_CIERRE: 0.92
+valor_realizable: 44252.81267176225
+=== VALUACION: Vera Mujica ===
+zona: Facultades, dorm: 1, m2: 35.0
+lat: -32.9427375, lon: -60.6673362
+estado: excelente, anio: 2009
+--- RESOLUTION ---
+resolution: GEO, confidence: MEDIA
+n_propiedades: 13, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.898
+f_estructural: 0.99950004
+factores_base (total): 0.9082000000000002
+--- CALCULO ---
+m2_equiv: 43.75, m2_base_venta: 1303.4728
+valor_venta (before NLP): 51791.86236700001
+NLP: 0.12000000000000001
+valor_venta (after NLP): 58006.88585104002
+GAP_CIERRE: 0.92
+valor_realizable: 53366.33498295682
+=== VALUACION: Vera Mujica ===
+zona: Facultades, dorm: 1, m2: 35.0
+lat: -32.9427375, lon: -60.6673362
+estado: excelente, anio: 2009
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 513, radio: 1500
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.898
+f_estructural: 0.99950004
+factores_base (total): 0.9082000000000002
+--- CALCULO ---
+m2_equiv: 43.75, m2_base_venta: 1523.1604
+valor_venta (before NLP): 60520.87454350002
+NLP: 0.12000000000000001
+valor_venta (after NLP): 67783.37948872002
+GAP_CIERRE: 0.92
+valor_realizable: 62360.709129622424
+=== VALUACION: Amenabar ===
+zona: Oeste, dorm: 1, m2: 44.98
+lat: -32.9634501, lon: -60.6948673
+estado: bueno, anio: 1984
+--- RESOLUTION ---
+resolution: GEO, confidence: MEDIA
+n_propiedades: 8, radio: 1500
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.0, factor_calidad: 1.0
+factor_anti (deprec): 0.748
+f_estructural: 0.94397226
+factores_base (total): 0.8582000000000001
+--- CALCULO ---
+m2_equiv: 51.72699999999999, m2_base_venta: 1587.9678
+valor_venta (before NLP): 70493.2434772129
+NLP: 0
+valor_venta (after NLP): 70493.2434772129
+GAP_CIERRE: 0.92
+valor_realizable: 64853.78399903588
+=== VALUACION: Amenabar ===
+zona: Oeste, dorm: 1, m2: 44.98
+lat: -32.9634501, lon: -60.6948673
+estado: bueno, anio: 1984
+--- RESOLUTION ---
+resolution: GEO, confidence: MEDIA
+n_propiedades: 8, radio: 1500
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.0, factor_calidad: 1.0
+factor_anti (deprec): 0.748
+f_estructural: 0.94397226
+factores_base (total): 0.8582000000000001
+--- CALCULO ---
+m2_equiv: 51.72699999999999, m2_base_venta: 1587.9678
+valor_venta (before NLP): 70493.2434772129
+NLP: 0
+valor_venta (after NLP): 70493.2434772129
+GAP_CIERRE: 0.92
+valor_realizable: 64853.78399903588
+=== VALUACION: P1200 ===
+zona: Centro, dorm: 2, m2: 83.0
+lat: -32.9569614, lon: -60.6421636
+estado: muy bueno, anio: 1977
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 16, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.706
+f_estructural: 1.8423610320345263
+factores_base (total): 1.1059999999999999
+--- CALCULO ---
+m2_equiv: 88.85, m2_base_venta: 1368.2195
+valor_venta (before NLP): 134452.33064794997
+NLP: 0
+valor_venta (after NLP): 134452.33064794997
+GAP_CIERRE: 0.92
+valor_realizable: 123696.14419611398
+=== VALUACION: Mabel ===
+zona: Martin, dorm: 1, m2: 41.0
+lat: -32.9541101, lon: -60.6316406
+estado: muy bueno, anio: 2000
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 42, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.844
+f_estructural: 1.3050452712211205
+factores_base (total): 1.1185413333333334
+--- CALCULO ---
+m2_equiv: 44.75, m2_base_venta: 1597.4291
+valor_venta (before NLP): 79958.87377502114
+NLP: 0.05
+valor_venta (after NLP): 83956.81746377221
+GAP_CIERRE: 0.92
+valor_realizable: 77240.27206667044
+=== VALUACION: Ayacucho ===
+zona: Sexta Pellegrini, dorm: 1, m2: 27.0
+lat: -32.960323, lon: -60.6299652
+estado: excelente, anio: 2002
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 21, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.856
+f_estructural: 1.3088691000000003
+factores_base (total): 1.1362
+--- CALCULO ---
+m2_equiv: 27.0, m2_base_venta: 1412.502
+valor_venta (before NLP): 43331.8888548
+NLP: 0.05
+valor_venta (after NLP): 45498.483297540006
+GAP_CIERRE: 0.92
+valor_realizable: 41858.60463373681
+=== VALUACION: Vera Mujica ===
+zona: Facultades, dorm: 1, m2: 35.0
+lat: -32.9427375, lon: -60.6673362
+estado: excelente, anio: 2009
+--- RESOLUTION ---
+resolution: GEO, confidence: MEDIA
+n_propiedades: 13, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.898
+f_estructural: 0.99950004
+factores_base (total): 0.9082000000000002
+--- CALCULO ---
+m2_equiv: 43.75, m2_base_venta: 1303.4728
+valor_venta (before NLP): 51791.86236700001
+NLP: 0.12000000000000001
+valor_venta (after NLP): 58006.88585104002
+GAP_CIERRE: 0.92
+valor_realizable: 53366.33498295682
+=== VALUACION: P1200 ===
+zona: Centro, dorm: 2, m2: 83.0
+lat: -32.9569614, lon: -60.6421636
+estado: muy bueno, anio: 1977
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 16, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.706
+f_estructural: 1.8423610320345263
+factores_base (total): 1.1059999999999999
+--- CALCULO ---
+m2_equiv: 88.85, m2_base_venta: 1368.2195
+valor_venta (before NLP): 134452.33064794997
+NLP: 0
+valor_venta (after NLP): 134452.33064794997
+GAP_CIERRE: 0.92
+valor_realizable: 123696.14419611398
+=== VALUACION: Mabel ===
+zona: Martin, dorm: 1, m2: 41.0
+lat: -32.9541101, lon: -60.6316406
+estado: muy bueno, anio: 2000
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 42, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.844
+f_estructural: 1.3050452712211205
+factores_base (total): 1.1185413333333334
+--- CALCULO ---
+m2_equiv: 44.75, m2_base_venta: 1597.4291
+valor_venta (before NLP): 79958.87377502114
+NLP: 0.05
+valor_venta (after NLP): 83956.81746377221
+GAP_CIERRE: 0.92
+valor_realizable: 77240.27206667044
+=== VALUACION: Ayacucho ===
+zona: Sexta Pellegrini, dorm: 1, m2: 27.0
+lat: -32.960323, lon: -60.6299652
+estado: excelente, anio: 2002
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 21, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.856
+f_estructural: 1.3088691000000003
+factores_base (total): 1.1362
+--- CALCULO ---
+m2_equiv: 27.0, m2_base_venta: 1412.502
+valor_venta (before NLP): 43331.8888548
+NLP: 0.05
+valor_venta (after NLP): 45498.483297540006
+GAP_CIERRE: 0.92
+valor_realizable: 41858.60463373681
+=== VALUACION: Vera Mujica ===
+zona: Facultades, dorm: 1, m2: 35.0
+lat: -32.9427375, lon: -60.6673362
+estado: excelente, anio: 2009
+--- RESOLUTION ---
+resolution: GEO, confidence: MEDIA
+n_propiedades: 13, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.898
+f_estructural: 0.99950004
+factores_base (total): 0.9082000000000002
+--- CALCULO ---
+m2_equiv: 43.75, m2_base_venta: 1303.4728
+valor_venta (before NLP): 51791.86236700001
+NLP: 0.12000000000000001
+valor_venta (after NLP): 58006.88585104002
+GAP_CIERRE: 0.92
+valor_realizable: 53366.33498295682
+=== VALUACION: P1200 ===
+zona: Centro, dorm: 2, m2: 83.0
+lat: -32.9569614, lon: -60.6421636
+estado: muy bueno, anio: 1977
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 16, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.706
+f_estructural: 1.8423610320345263
+factores_base (total): 1.1059999999999999
+--- CALCULO ---
+m2_equiv: 88.85, m2_base_venta: 1368.2195
+valor_venta (before NLP): 134452.33064794997
+NLP: 0
+valor_venta (after NLP): 134452.33064794997
+GAP_CIERRE: 0.92
+valor_realizable: 123696.14419611398
+=== VALUACION: Mabel ===
+zona: Martin, dorm: 1, m2: 41.0
+lat: -32.9541101, lon: -60.6316406
+estado: muy bueno, anio: 2000
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 42, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.844
+f_estructural: 1.3050452712211205
+factores_base (total): 1.1185413333333334
+--- CALCULO ---
+m2_equiv: 44.75, m2_base_venta: 1597.4291
+valor_venta (before NLP): 79958.87377502114
+NLP: 0.05
+valor_venta (after NLP): 83956.81746377221
+GAP_CIERRE: 0.92
+valor_realizable: 77240.27206667044
+=== VALUACION: Ayacucho ===
+zona: Sexta Pellegrini, dorm: 1, m2: 27.0
+lat: -32.960323, lon: -60.6299652
+estado: excelente, anio: 2002
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 21, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.856
+f_estructural: 1.3088691000000003
+factores_base (total): 1.1362
+--- CALCULO ---
+m2_equiv: 27.0, m2_base_venta: 1412.502
+valor_venta (before NLP): 43331.8888548
+NLP: 0.05
+valor_venta (after NLP): 45498.483297540006
+GAP_CIERRE: 0.92
+valor_realizable: 41858.60463373681
+=== VALUACION: Vera Mujica ===
+zona: Facultades, dorm: 1, m2: 35.0
+lat: -32.9427375, lon: -60.6673362
+estado: excelente, anio: 2009
+--- RESOLUTION ---
+resolution: GEO, confidence: MEDIA
+n_propiedades: 13, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.898
+f_estructural: 0.99950004
+factores_base (total): 0.9082000000000002
+--- CALCULO ---
+m2_equiv: 43.75, m2_base_venta: 1303.4728
+valor_venta (before NLP): 51791.86236700001
+NLP: 0.12000000000000001
+valor_venta (after NLP): 58006.88585104002
+GAP_CIERRE: 0.92
+valor_realizable: 53366.33498295682
+=== VALUACION: P1200 ===
+zona: Centro, dorm: 2, m2: 83.0
+lat: -32.9569614, lon: -60.6421636
+estado: muy bueno, anio: 1977
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 16, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.706
+f_estructural: 1.8423610320345263
+factores_base (total): 1.1059999999999999
+--- CALCULO ---
+m2_equiv: 88.85, m2_base_venta: 1368.2195
+valor_venta (before NLP): 134452.33064794997
+NLP: 0
+valor_venta (after NLP): 134452.33064794997
+GAP_CIERRE: 0.92
+valor_realizable: 123696.14419611398
+=== VALUACION: Mabel ===
+zona: Martin, dorm: 1, m2: 41.0
+lat: -32.9541101, lon: -60.6316406
+estado: muy bueno, anio: 2000
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 42, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.844
+f_estructural: 1.3050452712211205
+factores_base (total): 1.1185413333333334
+--- CALCULO ---
+m2_equiv: 44.75, m2_base_venta: 1597.4291
+valor_venta (before NLP): 79958.87377502114
+NLP: 0.05
+valor_venta (after NLP): 83956.81746377221
+GAP_CIERRE: 0.92
+valor_realizable: 77240.27206667044
+=== VALUACION: Ayacucho ===
+zona: Sexta Pellegrini, dorm: 1, m2: 27.0
+lat: -32.960323, lon: -60.6299652
+estado: excelente, anio: 2002
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 21, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.856
+f_estructural: 1.3088691000000003
+factores_base (total): 1.1362
+--- CALCULO ---
+m2_equiv: 27.0, m2_base_venta: 1412.502
+valor_venta (before NLP): 43331.8888548
+NLP: 0.05
+valor_venta (after NLP): 45498.483297540006
+GAP_CIERRE: 0.92
+valor_realizable: 41858.60463373681
+=== VALUACION: Vera Mujica ===
+zona: Facultades, dorm: 1, m2: 35.0
+lat: -32.9427375, lon: -60.6673362
+estado: excelente, anio: 2009
+--- RESOLUTION ---
+resolution: GEO, confidence: MEDIA
+n_propiedades: 13, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.898
+f_estructural: 0.99950004
+factores_base (total): 0.9082000000000002
+--- CALCULO ---
+m2_equiv: 43.75, m2_base_venta: 1303.4728
+valor_venta (before NLP): 51791.86236700001
+NLP: 0.12000000000000001
+valor_venta (after NLP): 58006.88585104002
+GAP_CIERRE: 0.92
+valor_realizable: 53366.33498295682
+=== VALUACION: P1200 ===
+zona: Centro, dorm: 2, m2: 83.0
+lat: -32.9569614, lon: -60.6421636
+estado: muy bueno, anio: 1977
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 16, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.706
+f_estructural: 1.8423610320345263
+factores_base (total): 1.1059999999999999
+--- CALCULO ---
+m2_equiv: 88.85, m2_base_venta: 1368.2195
+valor_venta (before NLP): 134452.33064794997
+NLP: 0
+valor_venta (after NLP): 134452.33064794997
+GAP_CIERRE: 0.92
+valor_realizable: 123696.14419611398
+=== VALUACION: Mabel ===
+zona: Martin, dorm: 1, m2: 41.0
+lat: -32.9541101, lon: -60.6316406
+estado: muy bueno, anio: 2000
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 42, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.844
+f_estructural: 1.29228206895788
+factores_base (total): 1.108162833333333
+--- CALCULO ---
+m2_equiv: 44.75, m2_base_venta: 1597.4291
+valor_venta (before NLP): 79216.96719835396
+NLP: 0.05
+valor_venta (after NLP): 83177.81555827166
+GAP_CIERRE: 0.92
+valor_realizable: 76523.59031360992
+=== VALUACION: Ayacucho ===
+zona: Sexta Pellegrini, dorm: 1, m2: 27.0
+lat: -32.960323, lon: -60.6299652
+estado: excelente, anio: 2002
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 21, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.856
+f_estructural: 1.3088691000000003
+factores_base (total): 1.1362
+--- CALCULO ---
+m2_equiv: 27.0, m2_base_venta: 1412.502
+valor_venta (before NLP): 43331.8888548
+NLP: 0.05
+valor_venta (after NLP): 45498.483297540006
+GAP_CIERRE: 0.92
+valor_realizable: 41858.60463373681
+=== VALUACION: Vera Mujica ===
+zona: Facultades, dorm: 1, m2: 35.0
+lat: -32.9427375, lon: -60.6673362
+estado: excelente, anio: 2009
+--- RESOLUTION ---
+resolution: GEO, confidence: MEDIA
+n_propiedades: 13, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.898
+f_estructural: 0.99950004
+factores_base (total): 0.9082000000000002
+--- CALCULO ---
+m2_equiv: 43.75, m2_base_venta: 1303.4728
+valor_venta (before NLP): 51791.86236700001
+NLP: 0.12000000000000001
+valor_venta (after NLP): 58006.88585104002
+GAP_CIERRE: 0.92
+valor_realizable: 53366.33498295682
+=== VALUACION: P1200 ===
+zona: Centro, dorm: 2, m2: 83.0
+lat: -32.9569614, lon: -60.6421636
+estado: muy bueno, anio: 1977
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 16, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.706
+f_estructural: 1.824342939473058
+factores_base (total): 1.1059999999999999
+--- CALCULO ---
+m2_equiv: 88.85, m2_base_venta: 1368.2195
+valor_venta (before NLP): 134452.33064794997
+NLP: 0
+valor_venta (after NLP): 134452.33064794997
+GAP_CIERRE: 0.92
+valor_realizable: 123696.14419611398
+=== VALUACION: Mabel ===
+zona: Martin, dorm: 1, m2: 41.0
+lat: -32.9541101, lon: -60.6316406
+estado: muy bueno, anio: 2000
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 42, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.844
+f_estructural: 1.26743049070869
+factores_base (total): 1.088162833333333
+--- CALCULO ---
+m2_equiv: 44.75, m2_base_venta: 1597.4291
+valor_venta (before NLP): 77787.26815385395
+NLP: 0.05
+valor_venta (after NLP): 81676.63156154664
+GAP_CIERRE: 0.92
+valor_realizable: 75142.50103662291
+=== VALUACION: Ayacucho ===
+zona: Sexta Pellegrini, dorm: 1, m2: 27.0
+lat: -32.960323, lon: -60.6299652
+estado: excelente, anio: 2002
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 21, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.856
+f_estructural: 1.3088691000000003
+factores_base (total): 1.1362
+--- CALCULO ---
+m2_equiv: 27.0, m2_base_venta: 1412.502
+valor_venta (before NLP): 43331.8888548
+NLP: 0.05
+valor_venta (after NLP): 45498.483297540006
+GAP_CIERRE: 0.92
+valor_realizable: 41858.60463373681
+=== VALUACION: Vera Mujica ===
+zona: Facultades, dorm: 1, m2: 35.0
+lat: -32.9427375, lon: -60.6673362
+estado: excelente, anio: 2009
+--- RESOLUTION ---
+resolution: GEO, confidence: MEDIA
+n_propiedades: 13, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.898
+f_estructural: 0.99950004
+factores_base (total): 0.9082000000000002
+--- CALCULO ---
+m2_equiv: 43.75, m2_base_venta: 1303.4728
+valor_venta (before NLP): 51791.86236700001
+NLP: 0.12000000000000001
+valor_venta (after NLP): 58006.88585104002
+GAP_CIERRE: 0.92
+valor_realizable: 53366.33498295682
+=== VALUACION: P1200 ===
+zona: Centro, dorm: 2, m2: 83.0
+lat: -32.9569614, lon: -60.6421636
+estado: muy bueno, anio: 1977
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 16, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.706
+f_estructural: 1.824342939473058
+factores_base (total): 1.1059999999999999
+--- CALCULO ---
+m2_equiv: 88.85, m2_base_venta: 1368.2195
+valor_venta (before NLP): 134452.33064794997
+NLP: 0
+valor_venta (after NLP): 134452.33064794997
+GAP_CIERRE: 0.92
+valor_realizable: 123696.14419611398
+=== VALUACION: Mabel ===
+zona: Martin, dorm: 1, m2: 41.0
+lat: -32.9541101, lon: -60.6316406
+estado: muy bueno, anio: 2000
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 42, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.844
+f_estructural: 1.26743049070869
+factores_base (total): 1.088162833333333
+--- CALCULO ---
+m2_equiv: 44.75, m2_base_venta: 1597.4291
+valor_venta (before NLP): 77787.26815385395
+NLP: 0.05
+valor_venta (after NLP): 80120.88619846957
+GAP_CIERRE: 0.92
+valor_realizable: 73711.21530259201
+=== VALUACION: Ayacucho ===
+zona: Sexta Pellegrini, dorm: 1, m2: 27.0
+lat: -32.960323, lon: -60.6299652
+estado: excelente, anio: 2002
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 21, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.856
+f_estructural: 1.3088691000000003
+factores_base (total): 1.1362
+--- CALCULO ---
+m2_equiv: 27.0, m2_base_venta: 1412.502
+valor_venta (before NLP): 43331.8888548
+NLP: 0.05
+valor_venta (after NLP): 44631.845520444
+GAP_CIERRE: 0.92
+valor_realizable: 41061.29787880849
+=== VALUACION: Vera Mujica ===
+zona: Facultades, dorm: 1, m2: 35.0
+lat: -32.9427375, lon: -60.6673362
+estado: excelente, anio: 2009
+--- RESOLUTION ---
+resolution: GEO, confidence: MEDIA
+n_propiedades: 13, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.898
+f_estructural: 0.99950004
+factores_base (total): 0.9082000000000002
+--- CALCULO ---
+m2_equiv: 43.75, m2_base_venta: 1303.4728
+valor_venta (before NLP): 51791.86236700001
+NLP: 0.12000000000000001
+valor_venta (after NLP): 53345.61823801001
+GAP_CIERRE: 0.92
+valor_realizable: 49077.96877896921
+=== VALUACION: P1200 ===
+zona: Centro, dorm: 2, m2: 83.0
+lat: -32.9569614, lon: -60.6421636
+estado: muy bueno, anio: 1977
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 16, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.706
+f_estructural: 1.824342939473058
+factores_base (total): 1.1059999999999999
+--- CALCULO ---
+m2_equiv: 88.85, m2_base_venta: 1368.2195
+valor_venta (before NLP): 134452.33064794997
+NLP: 0
+valor_venta (after NLP): 134452.33064794997
+GAP_CIERRE: 0.92
+valor_realizable: 123696.14419611398
+=== VALUACION: Mabel ===
+zona: Martin, dorm: 1, m2: 41.0
+lat: -32.9541101, lon: -60.6316406
+estado: muy bueno, anio: 2000
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 42, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.8479
+f_estructural: 1.26743049070869
+factores_base (total): 1.0920628333333333
+--- CALCULO ---
+m2_equiv: 44.75, m2_base_venta: 1597.4291
+valor_venta (before NLP): 78066.05946753146
+NLP: 0.05
+valor_venta (after NLP): 80408.04125155741
+GAP_CIERRE: 0.92
+valor_realizable: 73975.39795143282
+=== VALUACION: Ayacucho ===
+zona: Sexta Pellegrini, dorm: 1, m2: 27.0
+lat: -32.960323, lon: -60.6299652
+estado: excelente, anio: 2002
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 21, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 1.1440000000000001
+f_estructural: 1.3088691000000003
+factores_base (total): 1.35
+--- CALCULO ---
+m2_equiv: 27.0, m2_base_venta: 1412.502
+valor_venta (before NLP): 51485.6979
+NLP: 0.05
+valor_venta (after NLP): 53030.268837
+GAP_CIERRE: 0.92
+valor_realizable: 48787.84733004001
+=== VALUACION: Vera Mujica ===
+zona: Facultades, dorm: 1, m2: 35.0
+lat: -32.9427375, lon: -60.6673362
+estado: excelente, anio: 2009
+--- RESOLUTION ---
+resolution: GEO, confidence: MEDIA
+n_propiedades: 13, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 1.1019999999999999
+f_estructural: 0.99950004
+factores_base (total): 1.1122
+--- CALCULO ---
+m2_equiv: 43.75, m2_base_venta: 1303.4728
+valor_venta (before NLP): 63425.357107
+NLP: 0.12000000000000001
+valor_venta (after NLP): 65328.117820210005
+GAP_CIERRE: 0.92
+valor_realizable: 60101.868394593206
+=== VALUACION: P1200 ===
+zona: Centro, dorm: 2, m2: 83.0
+lat: -32.9569614, lon: -60.6421636
+estado: muy bueno, anio: 1977
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 16, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.7996
+f_estructural: 1.824342939473058
+factores_base (total): 1.1995999999999998
+--- CALCULO ---
+m2_equiv: 88.85, m2_base_venta: 1368.2195
+valor_venta (before NLP): 145830.93656896995
+NLP: 0
+valor_venta (after NLP): 145830.93656896995
+GAP_CIERRE: 0.92
+valor_realizable: 134164.46164345235
+=== VALUACION: Mabel ===
+zona: Martin, dorm: 1, m2: 41.0
+lat: -32.9541101, lon: -60.6316406
+estado: muy bueno, anio: 2000
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 42, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.844
+f_estructural: 1.26743049070869
+factores_base (total): 1.088162833333333
+--- CALCULO ---
+m2_equiv: 44.75, m2_base_venta: 1597.4291
+valor_venta (before NLP): 77787.26815385395
+NLP: 0.05
+valor_venta (after NLP): 80120.88619846957
+GAP_CIERRE: 0.92
+valor_realizable: 73711.21530259201
+=== VALUACION: Ayacucho ===
+zona: Sexta Pellegrini, dorm: 1, m2: 27.0
+lat: -32.960323, lon: -60.6299652
+estado: excelente, anio: 2002
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 21, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.856
+f_estructural: 1.3088691000000003
+factores_base (total): 1.1362
+--- CALCULO ---
+m2_equiv: 27.0, m2_base_venta: 1412.502
+valor_venta (before NLP): 43331.8888548
+NLP: 0.05
+valor_venta (after NLP): 44631.845520444
+GAP_CIERRE: 0.92
+valor_realizable: 41061.29787880849
+=== VALUACION: Vera Mujica ===
+zona: Facultades, dorm: 1, m2: 35.0
+lat: -32.9427375, lon: -60.6673362
+estado: excelente, anio: 2009
+--- RESOLUTION ---
+resolution: GEO, confidence: MEDIA
+n_propiedades: 13, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.1, factor_calidad: 1.0
+factor_anti (deprec): 0.898
+f_estructural: 0.99950004
+factores_base (total): 0.9082000000000002
+--- CALCULO ---
+m2_equiv: 43.75, m2_base_venta: 1303.4728
+valor_venta (before NLP): 51791.86236700001
+NLP: 0.12000000000000001
+valor_venta (after NLP): 53345.61823801001
+GAP_CIERRE: 0.92
+valor_realizable: 49077.96877896921
+=== VALUACION: P1200 ===
+zona: Centro, dorm: 2, m2: 83.0
+lat: -32.9569614, lon: -60.6421636
+estado: muy bueno, anio: 1977
+--- RESOLUTION ---
+resolution: GEO, confidence: ALTA
+n_propiedades: 16, radio: 300
+percentil: P33
+--- FACTORES ---
+factor_estado: 1.03, factor_calidad: 1.0
+factor_anti (deprec): 0.706
+f_estructural: 1.824342939473058
+factores_base (total): 1.1059999999999999
+--- CALCULO ---
+m2_equiv: 88.85, m2_base_venta: 1368.2195
+valor_venta (before NLP): 134452.33064794997
+NLP: 0
+valor_venta (after NLP): 134452.33064794997
+GAP_CIERRE: 0.92
+valor_realizable: 123696.14419611398
