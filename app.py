@@ -3648,28 +3648,29 @@ def mostrar_propiedades(mes):
 # C. Buscar props cercanas del cache para mostrar como nodos
                             try:
                                 from parsers.motor_vpp_core import load_cache
+                                from parsers.mercado_inmobiliario import calcular_distancia_km
                                 cache = load_cache()
+                                props_nearby = []
                                 if cache:
-                                    props_nearby = []
                                     for p in cache.get('propiedades', []):
                                         pl = p.get('lat')
                                         pln = p.get('lon')
                                         if pl and pln:
-                                            dist = calcular_distancia_km(prop_lat, prop_lon, pl, pln)
-                                            if dist <= 0.5:
+                                            dist = calcular_distancia_km(prop_lat, prop_lon, pln, pl)
+                                            if dist <= 0.5 and dist > 0:
                                                 if p.get('dormitorios') == prop.get('dormitorios'):
-                                                    props_nearby.append({'id': p.get('zona', 'prop'), 'lat': pl, 'lon': pln, 'usd_m2': p.get('valor_m2', 0)})
-                                    
-                                    for n in props_nearby[:20]:
-                                        if n.get('usd_m2', 0) > 0:
-                                            folium.CircleMarker(
-                                                location=[n['lat'], n['lon']],
-                                                radius=4,
-                                                color='blue',
-                                                fill=True,
-                                                fill_opacity=0.6,
-                                                popup=f"Nodo: {n['id']}<br>${n['usd_m2']:.0f}/m²"
-                                            ).add_to(m)
+                                                    props_nearby.append({'id': p.get('zona', 'Unknown'), 'lat': pl, 'lon': pln, 'usd_m2': p.get('valor_m2', 0)})
+                                
+                                for n in props_nearby[:20]:
+                                    if n.get('usd_m2', 0) > 0:
+                                        folium.CircleMarker(
+                                            location=[n['lat'], n['lon']],
+                                            radius=4,
+                                            color='blue',
+                                            fill=True,
+                                            fill_opacity=0.6,
+                                            popup=f"Nodo: {n['id']}<br>${n['usd_m2']:.0f}/m²"
+                                        ).add_to(m)
                             except Exception as e:
                                 pass  # Silent fail for nearby props
                             
