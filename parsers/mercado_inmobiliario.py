@@ -627,6 +627,7 @@ def calcular_base_calibrada(valor_ancla, prop_data):
     """
     Fusiona Ancla y Scraping con ponderación dinámica.
     Aplica factor de negociación según zona y factor temporal.
+    AHORA USA v2 CON COORDENADAS para mantener consistencia UI-CLI.
     """
     zona = prop_data.get('zona', 'Centro')
     dorms = prop_data.get('dormitorios', 2)
@@ -635,10 +636,15 @@ def calcular_base_calibrada(valor_ancla, prop_data):
     anio_const = prop_data.get('anio_construccion', 2020)
     anio_tasacion = prop_data.get('anio_tasacion', 2026)
     
-    # 1. Obtener valor del Cluster con la función original
-    # Esto da los valores que estaban en los tests antes de los cambios
-    # Para mantener compatibilidad con tests
-    valor_cluster, muestras = obtener_mediana_cluster(zona, dorms, 'venta')
+    # Usar v2 con coordenadas (IGUAL que valuar_propiedad_v7)
+    valor_cluster, muestras, meta = obtener_mediana_cluster_v2(
+        zona=normalizar_zona(zona),
+        dormitorios=dorms,
+        operacion='venta',
+        lat_ref=lat,
+        lon_ref=lon,
+        fecha_ref='2026-04'
+    )
 
     # Handle None returns
     if valor_cluster is None or valor_cluster == 0:
@@ -650,19 +656,19 @@ def calcular_base_calibrada(valor_ancla, prop_data):
     factor_deprec = max(0.5, 1.0 - (antiguedad * 0.006))
     valor_ancla_ajustado = valor_ancla * factor_deprec
     
-    # 3. Ponderación dinámica según cantidad de muestras
+    # 3. Ponderación dinámica según cantidad de muestras (UMbral confianza = 15)
     if muestras == 0:
         base = valor_ancla_ajustado
         metodo = "Ancla (sin datos web)"
     elif muestras < 4:
         base = (valor_ancla_ajustado * 0.7) + (valor_cluster * 0.3)
-        metodo = f"Híbrido (bajo vol: {muestras} m.)"
+        metodo = f"Hibrido (bajo vol: {muestras} m.)"
     elif muestras < UMBRAL_CONFIANZA_SCRAPING:
         base = (valor_ancla_ajustado * 0.4) + (valor_cluster * 0.6)
-        metodo = f"Híbrido (medio: {muestras} m.)"
+        metodo = f"Hibrido (medio: {muestras} m.)"
     else:
         base = valor_cluster
-        metodo = f"Scraping dominante ({muestras} m.)"
+        metodo = f"cluster_v2 (P{meta.get('percentil_usado','33')}, {muestras} props)"
     
     # 4. Factor de negociación según zona
     # El factor de negociación se aplica al final en el valor realizable, 

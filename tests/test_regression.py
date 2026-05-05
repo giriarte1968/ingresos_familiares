@@ -59,7 +59,7 @@ def ejecutar_valuacion(test_id):
 def test_mabel_venta():
     """Valida rangos de venta para Mabel (Barrio Martin)"""
     r = valuar_propiedad_v7(ejecutar_valuacion('mabel'), fecha_ref="2026-04")
-    assert 78000 <= r['valor_propiedad_usd'] <= 86000, f"Lista {r['valor_propiedad_usd']} fuera de rango"
+    assert 80000 <= r['valor_propiedad_usd'] <= 82000, f"Lista {r['valor_propiedad_usd']} fuera de rango"
 
 
 def test_mabel_alquiler():
@@ -72,7 +72,7 @@ def test_mabel_alquiler():
 def test_ayacucho_venta():
     """Valida rangos de venta para Ayacucho (6ta Pellegrini)"""
     r = valuar_propiedad_v7(ejecutar_valuacion('ayacucho'))
-    assert 44000 <= r['valor_propiedad_usd'] <= 52000, f"Lista {r['valor_propiedad_usd']} fuera de rango"
+    assert 44000 <= r['valor_propiedad_usd'] <= 48000, f"Lista {r['valor_propiedad_usd']} fuera de rango"
 
 
 def test_patio_grande_vera():
@@ -99,8 +99,8 @@ def test_patio_grande_vera():
     m2_equiv = r['m2_equivalentes']
     assert 43.5 <= m2_equiv <= 44.0, f"m2_equiv {m2_equiv} fuera de rango"
     
-    # Valor pre-calibracion factores (antes de intentar weights)
-    assert 52000 <= r['valor_propiedad_usd'] <= 60000, f"Valor Vera {r['valor_propiedad_usd']} fuera de rango"
+    # Valor post-calibracion v2 con coordenadas
+    assert 57000 <= r['valor_propiedad_usd'] <= 60000, f"Valor Vera {r['valor_propiedad_usd']} fuera de rango"
 
 
 def test_ui_vs_python_no_diverge():
@@ -113,9 +113,9 @@ def test_ui_vs_python_no_diverge():
     from tests.test_regression import ejecutar_valuacion
     
     r = valuar_propiedad_v7(ejecutar_valuacion('mabel'))
-    # Mabel venta lista rango actualizado post-cluster v2
-    assert 80000 <= r['valor_propiedad_usd'] <= 86000, \
-        f"DIVERGENCIA CRÍTICA: Mabel da {r['valor_propiedad_usd']} - ¿Caché sucio o lógica vieja?"
+    # Mabel venta lista rango post-sincronizacion UI-CLI
+    assert 80000 <= r['valor_propiedad_usd'] <= 82000, \
+        f"DIVERGENCIA CRITICA: Mabel da {r['valor_propiedad_usd']}"
 
 if __name__ == '__main__':
     pytest.main([__file__, '-v'])
