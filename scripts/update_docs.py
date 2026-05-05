@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 """
-Actualizador Automático de Documentación
-Detecta cambios en código y actualiza los .MD correspondientes.
+Actualizador Automático de Documentación v2
+Detecta cambios en funciones clave y actualiza docs/ALGORITMOS.md automáticamente.
 
-Ejecutar después de hacer cambios en código:
-    python scripts/update_docs.py
-
-Se ejecuta automáticamente en el flujo de opencode.
+Ejemplo de uso:
+    python scripts/update_docs.py --auto  # Actualiza automáticamente
+    python scripts/update_docs.py      # Solo detecta cambios
 """
 import subprocess
 import sys
@@ -18,80 +17,161 @@ from datetime import datetime
 REPO_ROOT = Path(__file__).parent.parent
 os.chdir(REPO_ROOT)
 
-# Mapeo de funciones a secciones de documentación
-FUNCION_TO_DOC = {
+# Mapeo: función → qué section de docs actualizar
+FUNC_UPDATE_RULES = {
     'check_barrier_crossing': {
-        'file': 'docs/ALGORITMOS.md',
-        'section': '7. Barreras Geográficas',
-        'pattern': r'(##\s*\d+\.\s*Barreras|---\*\*Generado)'
+        'doc': 'docs/ALGORITMOS.md',
+        'section': '7',
+        'title': 'Barreras Geográficas (Rosario)',
+        'content_template': """## 7. Barreras Geográficas (Rosario)
+
+### Tipología de Barreras
+| Tipo | Ejemplos | Comportamiento | Peso en IDW |
+| :--- | :--- | :--- | :--- |
+| **DURA** | Ferrocarril FC Mitre, Circunvalación | Exclusión total | weight *= 0.20 (80% penalty) |
+| **BLANDA** | Av. Pellegrini, Av. 27 de Febrero, Av. Oroño, Av. Francia | Fricción (no exclusión) | weight *= 0.90 (10% penalty) |
+
+### Lógica de Implementación
+- `check_barrier_crossing()` retorna: `'hard'`, `'soft'` o `False`
+- **En Cluster (obtener_mediana_cluster_v2)**: Solo excluye barreras DURAS
+- **En IDW (calcular_precio_m2)**: Aplica penalty según tipo
+
+### Justificación
+En Rosario, las grandes avenidas son una "fricción" pero no un "corte"."""
     },
     'obtener_mediana_cluster_v2': {
-        'file': 'docs/ALGORITMOS.md',
-        'section': '2. Clustering de Precio',
-        'pattern': r'##\s*\d+\.\s*Clustering'
+        'doc': 'docs/ALGORITMOS.md',
+        'section': '2',
+        'title': 'Clustering de Precio',
     },
     'valuar_propiedad_v7': {
-        'file': 'docs/ALGORITMOS.md',
-        'section': '3. Fórmula Unificada',
-        'pattern': r'##\s*\d+\.\s*Fórmula'
+        'doc': 'docs/ALGORITMOS.md',
+        'section': '3',
+        'title': 'Fórmula Unificada',
     },
-    'calcular_factores': {
-        'file': 'docs/ALGORITMOS.md',
-        'section': '4. Factores de Ajuste',
-        'pattern': r'##\s*\d+\.\s*Factores'
+    # Status y Bitácora se actualizan con cambios generales
+    '_general': {
+        'doc': 'docs/STATUS_ACTUAL.md',
+        'auto_update': True,
     },
-    'barreras_rosario.json': {
-        'file': 'docs/DICCIONARIO_DATOS.md',
-        'section': '2. barreras_rosario.json',
-        'pattern': r'##\s*\d+\.\s*barreras'
+    '_bitacora': {
+        'doc': 'docs/BITACORA_AGENTES.md',
+        'auto_update': True,
     }
 }
+}
 
-def detect_code_changes():
-    """Detecta qué funciones cambiaron en el último commit."""
+def get_git_diff():
+    """Obtiene el diff del último commit."""
     result = subprocess.run(
         ['git', 'diff', '--name-only', 'HEAD^..HEAD'],
-        capture_output=True,
-        text=True
+        capture_output=True, text=True
     )
-    changed_files = result.stdout.strip().split('\n')
+    return result.stdout.strip().split('\n')
+
+def get_file_diff(filepath):
+    """Obtiene el diff de un archivo específico."""
+    result = subprocess.run(
+        ['git', 'diff', 'HEAD^..HEAD', '--', filepath],
+        capture_output=True, text=True
+    )
+    return result.stdout
+
+def detect_changed_functions():
+    """Detecta qué funciones cambiaron en el último commit."""
+    changed_files = get_git_diff()
     
     changed_funcs = set()
     for f in changed_files:
         if f.startswith('parsers/') and f.endswith('.py'):
-            # Leer el diff para ver qué funciones cambiaron
-            diff_result = subprocess.run(
-                ['git', 'diff', '--name-only', 'HEAD^..HEAD', '--', f],
-                capture_output=True,
-                text=True
-            )
-            for func in FUNCION_TO_DOC:
-                if func in open(f.replace('parsers/', 'parsers/')).read():
+            diff = get_file_diff(f)
+            for func in FUNC_UPDATE_RULES:
+                if f'def {func}' in diff or f'class {func}' in diff:
                     changed_funcs.add(func)
     
     return changed_funcs
 
-def update_documentation():
-    """Actualiza los MDs basándose en los cambios de código."""
+def update_algoritmos_section(func_name, rules):
+    """Actualiza una sección de ALGORITMOS.md."""
+    doc_path = REPO_ROOT / rules['doc']
+    if not doc_path.exists():
+        print(f"[WARN] {doc_path} no existe")
+        return False
+    
+    content = doc_path.read_text(encoding='utf-8')
+    
+    # Generar nueva sección
+    section_num = rules['section']
+    title = rules.get('title', '')
+    new_content = rules.get('content_template', f'## {section_num}. {title}\n\n*(Actualizado automáticamente)')
+    
+    # Verificar si la sección ya existe
+    section_pattern = f'## {section_num}\\.'
+    if section_pattern in content:
+        # Reemplazar sección existente
+        # Encontrar inicio de sección
+        lines = content.split('\n')
+        start_idx = None
+        for i, line in enumerate(lines):
+            if line.strip().startswith(section_pattern):
+                start_idx = i
+                break
+        
+        if start_idx is not None:
+            # Encontrar fin (próxima sección ##)
+            end_idx = None
+            for i in range(start_idx + 1, len(lines)):
+                if lines[i].strip().startswith('## '):
+                    end_idx = i
+                    break
+            
+            if end_idx is not None:
+                lines[start_idx:end_idx] = new_content.split('\n')
+                new_full = '\n'.join(lines)
+            else:
+                new_full = content + '\n\n' + new_content
+        else:
+            new_full = content + '\n\n' + new_content
+    else:
+        # Agregar al final
+        new_full = content + '\n\n' + new_content
+    
+    doc_path.write_text(new_full, encoding='utf-8')
+    return True
+
+def main(auto=False):
     print("=" * 60)
-    print("ACTUALIZADOR AUTOMÁTICO DE DOCUMENTACIÓN")
+    print("ACTUALIZADOR DE DOCUMENTACION")
     print("=" * 60)
     
-    changes = detect_code_changes()
+    changed_funcs = detect_changed_functions()
     
-    if not changes:
-        print("\nNo se detectaron cambios que requieran documentación.")
-        return True
+    if not changed_funcs:
+        print("\nNo hay cambios detectados en funciones clave.")
+        return 0
     
-    print(f"\nCambios detectados: {', '.join(changes)}")
-    print("\nLos archivos .MD deben actualizarse manualmente o con el flujo de opencode.")
-    print("Para más detalle, ver los cambios en git log.")
+    print(f"\nFunciones cambiadas: {', '.join(changed_funcs)}")
     
-    # Actualizar ALGORITMOS.md con fecha
+    if not auto:
+        print("\nEjecutar con --auto para actualizar docs automáticamente")
+        return 0
+    
+    # Actualizar docs
+    print("\nActualizando documentación...")
+    for func in changed_funcs:
+        if func in FUNC_UPDATE_RULES:
+            rules = FUNC_UPDATE_RULES[func]
+            if update_algoritmos_section(func, rules):
+                print(f"[OK] {func} -> {rules['doc']}")
+            else:
+                print(f"[FAIL] {func}")
+        else:
+            print(f"[SKIP] {func} sin regra")
+    
+    # Actualizar fecha
     alg_file = REPO_ROOT / 'docs/ALGORITMOS.md'
     if alg_file.exists():
         content = alg_file.read_text(encoding='utf-8')
-        # Actualizar fecha
         new_content = re.sub(
             r'\*\*Fecha\*\*: \d{4}-\d{2}-\d{2}',
             f'**Fecha**: {datetime.now().strftime("%Y-%m-%d")}',
@@ -99,13 +179,13 @@ def update_documentation():
         )
         if new_content != content:
             alg_file.write_text(new_content, encoding='utf-8')
-            print("\n✓ Fecha actualizada en ALGORITMOS.md")
+            print("[OK] Fecha actualizada")
     
     print("\n" + "=" * 60)
-    return True
-
-def main():
-    return 0 if update_documentation() else 1
+    print("Documentación actualizada!")
+    print("=" * 60)
+    return 0
 
 if __name__ == "__main__":
-    sys.exit(main())
+    auto = '--auto' in sys.argv
+    sys.exit(main(auto))

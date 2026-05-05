@@ -37,16 +37,23 @@ Archivos JSON que actúan como base de datos y parámetros de configuración.
 | `comercios_conocidos.json` | Base de datos de POIs para análisis de entorno. |
 | `constructoras_rosario.json` | Listado de constructoras para ajustar factor de calidad. |
 
-## 3. MÓDULOS DE EXTRACCIÓN (SCRAPERS)
+## 3. SCRIPTS DE AUTOMATIZACIÓN
+
+Scripts para validación y documentación automática.
+
+- `scripts/auto_validate.py`: Valida tests + syntax + imports (ejecutar después de cada cambio).
+- `scripts/update_docs.py`: Actualiza documentación .MD (--auto para aplicar cambios).
+- `scripts/init_reminder.py`: Recordatorio de flujo de trabajo.
+
+## 4. MÓDULOS DE EXTRACCIÓN (SCRAPERS)
 
 Scripts encargados de alimentar la caché desde portales inmobiliarios.
 
 - `parsers/deep_scraper.py`: Extracción profunda de detalles.
 - `parsers/scraper_propia_fresh.py`: Scraper específico para el portal Propia.
 - `parsers/adapter_mass_scraper.py`: Adaptador para múltiples fuentes.
-- `scripts/`: Carpeta con utilidades de actualización masiva de datos.
 
-## 4. SISTEMA DE PAGOS Y FINANZAS (EXPENSES LEGACY)
+## 5. SISTEMA DE PAGOS Y FINANZAS (EXPENSES LEGACY)
 
 El proyecto comenzó como un gestor de ingresos familiares y conserva módulos de procesamiento de pagos/OCR.
 

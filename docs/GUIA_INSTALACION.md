@@ -33,9 +33,10 @@ Para iniciar la aplicación principal:
 streamlit run app.py
 ```
 
-Para correr los tests de regresión (Obligatorio antes de cada commit):
+## 5. Validación Automática (Obligatorio antes de cada commit)
 ```bash
-pytest tests/test_regression.py
+# Valida tests + syntax + imports
+python scripts/auto_validate.py
 ```
 
 ---
