@@ -10,18 +10,37 @@ Este documento resume el estado actual del motor de scraping y valuación de pro
 - **Descubrimiento de Agencias**: `buscar_inmobiliarias.py` automatiza la búsqueda de sitios web de inmobiliarias locales para bypass de agregadores.
 - **Cache de Datos**: Almacenado en `cache_scraping.json`, centralizando miles de muestras del mercado de Rosario.
 
-## 2. Motor de Valuación (VPP Enriquecido)
+## 2. Motor de Valuación (VPP v7.0)
 
-El núcleo del sistema ha sido actualizado con los siguientes fixes críticos (v11.2):
-- **Clustering IQR**: Filtrado automático de outliers (propiedades con precios m2 fuera de los percentiles 15-85 o 25-75).
-- **IDW (Inverse Distance Weighting)**: Ponderación de comparables basada en la proximidad geográfica.
-- **Modelo de Ancla Dual**: Uso de precios de referencia estructurales ("Anclas") para estabilizar la valuación.
-- **Fix de Antigüedad**: Aplicación del factor de depreciación/apreciación por edad de forma externa a la raíz cuadrada para mayor sensibilidad (20-30% de impacto entre nuevo y antiguo).
+El núcleo del sistema incluye los siguientes componentes:
 
-## 3. Análisis de Alquileres y ROI
+### Clustering y Base de Precios
+- **obtener_mediana_cluster_v2**: Clustering geográfico con radios progresivos (300m → 1500m).
+- **Filtrado IQR**: outliers removidos automáticamente (percentiles 15-85 o 25-75).
+- **Fecha dinámica**: usa `datetime.now()` por defecto con soporte para `fecha_ref` explícita.
+- **Ventana móvil**: 180 días (configurable a 365 si <5 muestras).
 
-- **Cálculo de Alquiler Estimado**: Basado en comparables de la zona y un ancla algorítmica de 4.5% Cap Rate.
-- **ROI (Cap Rate Bruto)**: Cálculo automático del retorno anual en USD usando la cotización **USDT/ARS de Binance**.
+### Factores de Ajuste
+- **delta_anti**: depreciación por antigüedad (0.6%/año, max -30%).
+- **factor_estado**: ajuste por condición (0.85 - 1.15).
+- **factor_edificio**: calidad del edificio.
+- **Factor Anti-Atenuación**: para propiedades >30 años (P1200 rescue).
+
+### Barreras Geográficas
+- **check_barrier_crossing**: diferenciación hard/soft.
+  - **hard** (Ferrocarril): weight = 0.20 (80% penalty).
+  - **soft** (Avenidas): weight = 0.90 (10% penalty).
+
+### Valuación Híbrida
+- Fórmula: `m2_equiv * m2_base * factores * (1 + NLP)`.
+- Soporte para NLP con cap 3-5%.
+- Cap Rate neto: 3-5% para alquiler.
+
+## 3. Automatización
+
+- **auto_validate.py**: Valida tests + syntax + imports automáticamente.
+- **update_docs.py**: Actualiza documentación .MD.
+- **Workflow**: código → validate → commit → push.
 
 ## 4. Estructura de Archivos
 - `parsers/`: Lógica de procesamiento y motores de cálculo.
@@ -30,6 +49,6 @@ El núcleo del sistema ha sido actualizado con los siguientes fixes críticos (v
 - `cache_scraping.json`: Base de datos de mercado.
 
 ---
-**Actualizado por**: Antigravity AI
-**Fecha**: 2026-04-27
+**Actualizado por**: opencode (Agente de Mantenimiento)
+**Fecha**: 2026-05-05
 **Ubicación**: `ingresos_familiares_st/docs/STATUS_ACTUAL.md`

@@ -4,6 +4,38 @@ Este documento es el "diario de trabajo". Cada agente de IA que trabaje en este 
 
 ---
 
+## 📅 2026-05-05 — BARRERAS DIFERENCIADAS + AUTOMAÇÃO
+
+### Acciones realizadas:
+1. **Implementación de barreras diferenciadas**:
+   - `check_barrier_crossing()` ahora retorna 'hard'/'soft'/False
+   - Cluster: solo excluye hard (ferrocarril)
+   - IDW: soft penalty = 0.90, hard penalty = 0.20
+   - ALGORITMOS.md §7 agregado
+
+2. **Automatización de validación**:
+   - `scripts/auto_validate.py` - tests + syntax + imports
+   - `scripts/update_docs.py` - actualiza .MD
+   - `scripts/init_reminder.py` - recordatorio de flujo
+   - AGENTS.md actualizado conworkflow
+
+3. **Sincronización UI-CLI**:
+   - `calcular_base_calibrada` ahora usa `obtener_mediana_cluster_v2`
+   - Valores CLI = UI (verificados)
+
+### Valores finales ( Mayo 2026):
+| Propiedad | USD | m2_base | n |
+|-----------|-----|--------|---|
+| Mabel | $81,907 | $1,633 | 81 |
+| Ayacucho | $48,024 | $1,520 | 42 |
+| Vera | $58,774 | $1,436 | 24 |
+| Amenabar | $74,596 | $1,594 | 10 |
+| P1200 | $157,418 | $1,501 | 34 |
+
+### Tests: 5/5 PASSED
+
+---
+
 ## 📅 2026-05-05 — CALIBRACIÓN COMPLETADA
 
 ### Acciones realizadas:
@@ -78,5 +110,19 @@ Este documento es el "diario de trabajo". Cada agente de IA que trabaje en este 
 
 ---
 
-## 📜 HISTORIAL DE SESIONES ANTERIORES
-... (preserved)
+## FLUJO OBLIGATORIO (记忆)
+
+```
+[Código] → python scripts/auto_validate.py
+              ↓
+[OK] → git add . && git commit -m "..." && git push
+              ↓
+[FAIL] → Corregir errores → Repe
+
+# Docs .MD a mantener sincronizados:
+- ALGORITMOS.md (lógica)
+- DICCIONARIO_DATOS.md (datos)
+- MEMORIA_PROYECTO.md (reglas)
+- STATUS_ACTUAL.md (estado)
+- BITACORA_AGENTES.md (decisiones)
+```
