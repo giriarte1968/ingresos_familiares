@@ -1,0 +1,37 @@
+#!/bin/bash
+# Git post-commit hook - ejecutar automáticamente después de commit
+# Instalar: cp scripts/post-commit-hook .git/hooks/post-commit && chmod +x .git/hooks/post-commit
+
+echo ""
+echo "======================================"
+echo "Ejecutando validación post-commit..."
+echo "======================================"
+
+# Ejecutar tests
+python -m pytest tests/test_regression.py -v --tb=short
+
+if [ $? -ne 0 ]; then
+    echo ""
+    echo "✗ TESTS FALLARON - Commit revertido"
+    echo "Corrije los errores y vuelve a hacer commit"
+    exit 1
+fi
+
+echo ""
+echo "✓ Tests passaram!"
+echo ""
+
+# Preguntar para push
+read -p "Faire push a GitHub? [s/N]: " confirm
+if [ "$confirm" = "s" ] || [ "$confirm" = "S" ]; then
+    echo ""
+    echo "→ Push a GitHub..."
+    git push origin main
+    if [ $? -eq 0 ]; then
+        echo "✓ Push completado!"
+    else
+        echo "✗ Error en push"
+    fi
+fi
+
+exit 0
