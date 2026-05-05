@@ -329,7 +329,31 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         MIN_COMPARABLES = 10
         MIN_COMPARABLES_FALLBACK = 5
         
-        def buscar_en_zona(zona_buscar, dorms, oper, lat_r=None, lon_r=None, radio=None):
+        from datetime import datetime, timedelta
+        
+        def filtrar_por_fecha(props, fecha_ref_str, dias=180):
+            """Filtra propiedades por ventana de fecha (días hacia atrás)."""
+            if not fecha_ref_str:
+                return props
+            try:
+                fecha_ref_dt = datetime.strptime(fecha_ref_str, '%Y-%m-%d')
+                fecha_limite = fecha_ref_dt - timedelta(days=dias)
+                props_filtrados = []
+                for p in props:
+                    date_upd = p.get('date_updated', '')
+                    if not date_upd:
+                        continue
+                    try:
+                        dt = datetime.strptime(date_upd[:10], '%Y-%m-%d')
+                        if fecha_limite <= dt <= fecha_ref_dt:
+                            props_filtrados.append(p)
+                    except:
+                        continue
+                return props_filtrados
+            except:
+                return props
+        
+        def buscar_en_zona(zona_buscar, dorms, oper, lat_r=None, lon_r=None, radio=None, fecha_filtro=None):
             """Busca propiedades en una zona, opcionalmente filtradas por radio."""
             props = [
                 p for p in cache.get('propiedades', [])
@@ -359,10 +383,22 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             
             return props
         
+        def aplicar_filtro_fecha(props, fecha_filtro):
+            """Aplica ventana móvil de 6 meses (180 días). Si <5 muestras, extiende a 365."""
+            if not fecha_filtro:
+                return props
+            # Primero intentar 180 días
+            props_180 = filtrar_por_fecha(props, fecha_filtro, dias=180)
+            if len(props_180) >= 5:
+                return props_180
+            # Extender a 365 días si hay menos de 5
+            props_365 = filtrar_por_fecha(props, fecha_filtro, dias=365)
+            return props_365
+        
         # Estrategia: Radio progresivo + fallback de zona
         mejor_resultado = None
         
-        # 1. Intentar búsqueda geográfica primero si hay coordenadas (Prioridad Máxima)
+        # 1. Intentar búsqueda geográfica primero si hay coordenadas
         if lat_ref is not None and lon_ref is not None:
             for radio in RADIOS_PROGRESIVOS:
                 props_geo = []
@@ -371,49 +407,52 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                     p_lon = p.get('lon') or p.get('longitud')
                     if not (p_lat and p_lon): continue
                     
-                    # Distance
                     dist = calcular_distancia_km(lat_ref, lon_ref, p_lat, p_lon)
                     if dist > radio / 1000: continue
                     
-                    # Relax tipo filter - accept any with valor_m2
                     if p.get('dormitorios') != dormitorios: continue
                     if p.get('operacion') != operacion: continue
-                    if not p.get('date_updated', '').startswith(fecha_ref or ''): continue
                     if p.get('valor_m2', 0) <= 0: continue
                     
                     props_geo.append(p)
+                
+                # Aplicar filtro de fecha
+                props_geo = aplicar_filtro_fecha(props_geo, fecha_ref)
                 
                 if len(props_geo) >= MIN_COMPARABLES:
                     mejor_resultado = (props_geo, radio, "busqueda_geografica")
                     break
             else:
-                # If geo search failed, find what we have even if less than MIN_COMPARABLES
+                # Fallback: mismo pero sin filtro de radio (1500m)
                 for p in cache.get('propiedades', []):
                     p_lat = p.get('lat') or p.get('latitud')
                     p_lon = p.get('lon') or p.get('longitud')
                     if not (p_lat and p_lon): continue
                     dist = calcular_distancia_km(lat_ref, lon_ref, p_lat, p_lon)
-                    if dist > 1.5: continue  # 1500m fallback
+                    if dist > 1.5: continue
                     if p.get('dormitorios') != dormitorios: continue
                     if p.get('operacion') != operacion: continue
                     if p.get('valor_m2', 0) <= 0: continue
                     props_geo.append(p)
                 
+                props_geo = aplicar_filtro_fecha(props_geo, fecha_ref)
+                
                 if len(props_geo) >= 2:
                     mejor_resultado = (props_geo, 1500, "busqueda_geografica")
         
-        # 2. Fallback: zona normalizada + radio progresivo (si no hubo éxito geo)
+        # 2. Fallback: zona normalizada + radio progresivo
         if mejor_resultado is None:
             for radio in RADIOS_PROGRESIVOS:
-                props = buscar_en_zona(zona_normalizada, dormitorios, operacion, lat_ref, lon_ref, radio)
+                props = buscar_en_zona(zona_normalizada, dormitorios, operacion, lat_ref, lon_ref, radio, fecha_ref)
+                props = aplicar_filtro_fecha(props, fecha_ref)
                 if len(props) >= MIN_COMPARABLES:
                     mejor_resultado = (props, radio, zona_normalizada)
                     break
         
-        # 4.Último fallback: usar datos disponibles aunque sean mínimos
+        # 3. Último fallback: usar datos disponibles aunque sean mínimos
         if mejor_resultado is None:
             props = buscar_en_zona(zona_normalizada, dormitorios, operacion)
-            # Usar aunque sean < 5 si hay datos (para zonas con pocos comparables como Sexta)
+            props = aplicar_filtro_fecha(props, fecha_ref)
             if len(props) >= 2:
                 mejor_resultado = (props, None, zona_normalizada)
         
@@ -1858,7 +1897,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     """
     import os
     import logging
-    from datetime import datetime
+    from datetime import datetime, timedelta
     from parsers.motor_vpp_core import load_cache_cached, cargar_anclas_cached, get_binance_usdt_ars
     
     # Setup logging to file
@@ -1874,6 +1913,11 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         ]
     )
     logger = logging.getLogger()
+    
+    # Fecha dinámica por defecto - siempre usa datos recientes
+    if fecha_ref is None:
+        fecha_ref = datetime.now().strftime('%Y-%m-%d')
+        logger.info(f"[FECHA] Usando fecha actual por defecto: {fecha_ref}")
     
     prop = sanitizar_propiedad(propiedad)
     cache = load_cache_cached()
