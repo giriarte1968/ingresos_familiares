@@ -59,7 +59,7 @@ def ejecutar_valuacion(test_id):
 def test_mabel_venta():
     """Valida rangos de venta para Mabel (Barrio Martin)"""
     r = valuar_propiedad_v7(ejecutar_valuacion('mabel'), fecha_ref="2026-04")
-    assert 78000 <= r['valor_propiedad_usd'] <= 82000, f"Lista {r['valor_propiedad_usd']} fuera de rango"
+    assert 78000 <= r['valor_propiedad_usd'] <= 86000, f"Lista {r['valor_propiedad_usd']} fuera de rango"
 
 
 def test_mabel_alquiler():

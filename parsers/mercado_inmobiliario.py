@@ -807,7 +807,17 @@ def calcular_factores(prop, ventana_usada=None):
     estado = prop.get('estado_detalle', 'bueno').lower().replace(' ', '_')
     calidad = prop.get('calidad_edificio', 'media').lower()
     piso = prop.get('piso', 0)
-    antiguedad = prop.get('antiguedad', 0)
+    
+    # FIX BUG 1: Leer anio_construccion directamente para calcular antiguedad
+    anio_const = prop.get('anio_construccion')
+    if anio_const is None:
+        anio_const = 2026 - prop.get('antiguedad', 0)
+    if anio_const is None:
+        anio_const = 2000  # default conservador
+    antiguedad = 2026 - anio_const
+    
+    # Depreciación por Antigüedad (Year 0 -> Target)
+    factor_anti = max(0.40, 1.0 - (antiguedad * 0.006))
     
     factor_estado = {
         'a_estrenar': 1.20, 'excelente': 1.10, 'muy_bueno': 1.03,
@@ -924,9 +934,6 @@ def calcular_factores(prop, ventana_usada=None):
         if item in seg_weights:
             f_seguridad *= seg_weights[item]
     
-    # Depreciación por Antigüedad (Year 0 -> Target)
-    factor_anti = max(0.40, 1.0 - (antiguedad * 0.006))
-    
     # Factores estructurales (Sin antigüedad)
     f_estructural = (factor_estado * factor_calidad * factor_piso * factor_vent * 
                      factor_vista * factor_ubica * factor_gas * factor_const * 
@@ -935,23 +942,58 @@ def calcular_factores(prop, ventana_usada=None):
     # Factor Pasillo v9.3 (Castigo SOLO para casas/pasos, NO para deptos)
     tipo = prop.get('tipo_inmueble', prop.get('tipo', '')).lower()
     es_depto = 'departamento' in tipo or 'depto' in tipo or 'ph' in tipo
+    
+    # Factor estructural BRUTO (sin anti, sin pasillo para deptos)
+    f_estructural_raw = f_estructural
+    
+    # APLICAR FACTOR_PASILLO SOLO PARA NO-DEPTOS
     if es_depto:
         factor_pasillo = 1.0  # Deptos no tienen factor pasillo
     else:
         desc = (prop.get('descripcion_libre', '') + prop.get('nombre', '') + prop.get('direccion', '')).lower()
         es_pasillo = any(x in desc for x in ['pasillo', 'interna', 'interno', 'fondo'])
         factor_pasillo = 0.85 if es_pasillo else 1.0
+        f_estructural_raw = f_estructural * factor_pasillo
+    
+    # FIX BUG 3: FÓRMULA HÍBRIDA ADITIVA CLAMP
+    # Convertir producto a suma clamp según DICCIONARIO_DATOS.md
+    # SUMA_CRUDA: [-0.40, +0.40], FACTOR: [0.70, 1.35]
+    
+    # Calcular delta desdes 1.0 por cada factor
+    delta_estado = factor_estado - 1.0  # +0.03 para muy_bueno
+    delta_calidad = factor_calidad - 1.0
+    delta_vent = factor_vent - 1.0
+    delta_vista = factor_vista - 1.0
+    delta_piso = factor_piso - 1.0
+    delta_ubica = factor_ubica - 1.0
+    delta_gas = factor_gas - 1.0
+    delta_balcon = factor_balcon - 1.0
+    delta_funcional = f_funcional - 1.0
+    delta_seguridad = f_seguridad - 1.0
+    
+    # Sumar todos los deltas
+    suma_cruda = (delta_estado + delta_calidad + delta_vent + delta_vista + 
+                 delta_piso + delta_ubica + delta_gas + delta_balcon + 
+                 delta_funcional + delta_seguridad)
+    
+    # Clamp suma_cruda
+    suma_cruda_clamped = max(-0.40, min(0.40, suma_cruda))
+    
+    # Factor estructural aditivo final con depreciación
+    f_estructural_final = max(0.70, min(1.35, 1.0 + suma_cruda_clamped + (factor_anti - 1.0)))
     
     return {
-        'total': f_estructural * factor_anti * factor_pasillo,
-        'estructural_puro': f_estructural,
+        'total': f_estructural_final,  # Ya incluye anti si clampeado
+        'estructural_puro': f_estructural_raw,
         'depreciacion': factor_anti,
         'delta_anti': factor_anti,  # Alias for compatibility
         'factor_estado': factor_estado,
         'factor_calidad': factor_calidad,
         'factor_pasillo': factor_pasillo,
-        # Legacy compatibility for app.py legacy sections
-        'suma_cruda': f_estructural - 1.0,  # diferencia desde 1.0
+        # Nuevos campos para fórmula híbrida
+        'suma_cruda': suma_cruda_clamped,
+        'suma_cruda_raw': suma_cruda,
+        'f_estructural': f_estructural_final,
         'detalles': {
             'anti': factor_anti,
             'estrato_activo': 'Base',
