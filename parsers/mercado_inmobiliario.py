@@ -2063,13 +2063,14 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         match_altura = re.search(r'\d+', direccion)
         if match_altura:
             altura = int(match_altura.group())
-            
+        
         es_profunda = altura > 4000 or any(b in desc for b in barrios_humildes) or any(b in direccion.lower() for b in barrios_humildes)
         
         buffer_regional = 0.55 if es_profunda else 0.75
-        m2_base_alquiler *= buffer_regional # Sinceramiento periférico agresivo
+        m2_base_alquiler *= buffer_regional
     
-    GAP_ALQUILER = 0.85 # 15% negociación - balance entre Mabel y Ayacucho
+    # GAP_ALQUILER: 0.85 -> 0.92 (post-desregulación Rosario 2024+)
+    GAP_ALQUILER = 0.92
     alquiler_mensual_ars = m2_equiv_alquiler * m2_base_alquiler * factores_alquiler * GAP_ALQUILER
     
     # 4. Ajustes Extra (NLP y Moneda)
