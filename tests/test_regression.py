@@ -117,5 +117,68 @@ def test_ui_vs_python_no_diverge():
     assert 80000 <= r['valor_propiedad_usd'] <= 82000, \
         f"DIVERGENCIA CRITICA: Mabel da {r['valor_propiedad_usd']}"
 
+
+def test_normalize_year():
+    """Valida normalize_year() con distintos inputs."""
+    from parsers.mercado_inmobiliario import normalize_year
+    
+    assert normalize_year("1998") == 1998
+    assert normalize_year("1998-01-01") == 1998
+    assert normalize_year(1998) == 1998
+    assert normalize_year(1998.0) == 1998
+    assert normalize_year(None) is None
+    assert normalize_year("") is None
+    assert normalize_year("abcd") is None
+    assert normalize_year(1800) is None
+    assert normalize_year(2050) is None
+
+
+def test_m2_equiv_legado_igual():
+    """Propiedad legacy (solo m2_cubiertos, m2_semicubiertos) debe dar igual que antes."""
+    from parsers.mercado_inmobiliario import calcular_m2_equivalentes
+    
+    prop = {
+        'm2_cubiertos': 41.0,
+        'm2_semicubiertos': 7.5,
+        'm2_semicubiertos_detalle': 'medio',
+        'm2_descubiertos': 0,
+        'm2_comunes': 0,
+    }
+    m2 = calcular_m2_equivalentes(prop)
+    assert 43.5 <= m2 <= 45.5, f"m2_equiv legacy changed: {m2}"
+
+
+def test_m2_equiv_granular():
+    """Propiedad con m2_semi_propios y m2_semi_exclusivos usa modo granular."""
+    from parsers.mercado_inmobiliario import calcular_m2_equivalentes
+    
+    prop = {
+        'm2_cubiertos': 39.50,
+        'm2_semi_propios': 1.22,
+        'm2_semi_exclusivos': 5.01,
+        'm2_semicubiertos_detalle': 'medio',
+        'tipo_balcon': 'corrido',
+        'm2_descubiertos': 0,
+        'm2_comunes': 28.43,
+    }
+    m2 = calcular_m2_equivalentes(prop)
+    assert 45.5 <= m2 <= 46.5, f"m2_equiv granular: {m2}"
+
+
+def test_no_usa_m2_total_escritura_como_cubierto():
+    """m2_total_escritura NO debe usarse como fallback de cubiertos."""
+    from parsers.mercado_inmobiliario import calcular_m2_equivalentes
+    
+    prop = {
+        'm2_total_escritura': 74.16,
+        'm2_cubiertos': 39.5,
+        'm2_semicubiertos': 10.0,
+        'm2_semicubiertos_detalle': 'medio',
+        'm2_descubiertos': 5.0,
+    }
+    m2 = calcular_m2_equivalentes(prop)
+    assert m2 < 60, f"m2_equiv usa m2_total_escritura como cubiertos: {m2}"
+
+
 if __name__ == '__main__':
     pytest.main([__file__, '-v'])

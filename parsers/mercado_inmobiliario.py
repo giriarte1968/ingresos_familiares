@@ -11,6 +11,47 @@ DATOS_MERCADO_FILE = os.path.join(
     'datos_mercado.json'
 )
 
+# --- NORMALIZADORES GLOBALES ---
+def normalize_float(x):
+    """
+    Normaliza un valor a float.
+    - Convierte strings "41.0" a float
+    - Si None/''/NaN -> 0.0
+    """
+    if x is None or x == '':
+        return 0.0
+    try:
+        return float(x)
+    except (ValueError, TypeError):
+        return 0.0
+
+def normalize_year(x):
+    """
+    Normaliza año de construcción.
+    - Acepta int, float, string "1998", string "1998-01-01"
+    - Retorna int 4 dígitos si está en rango razonable (1850..año_actual)
+    - Si no, None
+    """
+    if x is None or x == '':
+        return None
+    
+    año_actual = datetime.now().year
+    
+    try:
+        if isinstance(x, str):
+            x = x.strip()
+            if '-' in x:
+                x = x.split('-')[0]
+            if not x.isdigit():
+                return None
+        año = int(float(x))
+        
+        if 1850 <= año <= año_actual:
+            return año
+        return None
+    except (ValueError, TypeError):
+        return None
+
 # --- FUNCIONES AUXILIARES DE DISTANCIA ---
 def calcular_distancia_km(lat1, lon1, lat2, lon2):
     """Calcula distancia en km usando fórmula de Haversine."""
@@ -829,24 +870,58 @@ def calcular_m2_equivalentes(prop):
     """
     Calcula m2 equivalentes con ponderación de mercado real Rosario.
     
-    Ponderaciones ajustadas:
+    MODO LEGADO: m2_cubiertos, m2_semicubiertos, m2_descubiertos, m2_comunes
+    MODO GRANULAR: m2_semi_propios, m2_semi_exclusivos (cuando existen ambos)
+    
+    Ponderaciones:
     - m2_cubiertos: 100%
-    - m2_semicubiertos: 50%
-    - m2_descubiertos: 20% (antes 30%)
-    - m2_comunes: 12% (antes 25%, solo si uso_exclusivo)
+    - m2_semicubiertos: 30%/45%/55% (chico/medio/grande)
+    - m2_descubiertos: 20% (25% si patio>=20m2)
+    - m2_comunes: 12% (15% si exterior=comun)
     
-    Clamp: no más de +25% sobre m2_cubiertos
+    Clamp: no más de +25% sobre m2_cubiertos (casas +15%)
     """
-    m2_cub = prop.get('m2_cubiertos', 0)
+    # Normalizar todos los campos
+    m2_cub = normalize_float(prop.get('m2_cubiertos'))
     
-    if not m2_cub or m2_cub == 0:
-        m2_cub = prop.get('m2', 0)
+    # Fallback: si m2_cubiertos es 0, usar m2 (para retrocompatibilidad)
+    if m2_cub == 0:
+        m2_cub = normalize_float(prop.get('m2'))
     
-    m2_cub = m2_cub or 0
-    m2_semi = prop.get('m2_semicubiertos', 0) or 0
-    m2_semi_detalle = prop.get('m2_semicubiertos_detalle', 'medio').lower()
-    m2_desc = prop.get('m2_descubiertos', 0) or 0
-    m2_com = prop.get('m2_comunes', 0) or 0
+    m2_desc = normalize_float(prop.get('m2_descubiertos'))
+    m2_com = normalize_float(prop.get('m2_comunes'))
+    
+    # Detectar MODO GRANULAR (cuando existen ambos campos)
+    m2_semi_propios = prop.get('m2_semi_propios')
+    m2_semi_exclusivos = prop.get('m2_semi_exclusivos')
+    
+    if m2_semi_propios is not None and m2_semi_exclusivos is not None:
+        # MODO GRANULAR
+        m2_semi = normalize_float(m2_semi_propios) + normalize_float(m2_semi_exclusivos)
+        m2_semi_detalle = prop.get('m2_semicubiertos_detalle', 'medio').lower()
+        
+        # Bonus balcon SOLO sobre m2_semi_exclusivos
+        tipo_balcon = prop.get('tipo_balcon', 'ninguno').lower()
+        m2_semi_excl = normalize_float(m2_semi_exclusivos)
+        bonus_m2 = 0
+        if tipo_balcon == 'corrido':
+            bonus_m2 = m2_semi_excl * 0.05
+        elif tipo_balcon == 'L':
+            bonus_m2 = m2_semi_excl * 0.10
+    else:
+        # MODO LEGADO
+        m2_semi = normalize_float(prop.get('m2_semicubiertos'))
+        m2_semi_detalle = prop.get('m2_semicubiertos_detalle', 'medio').lower()
+        
+        # Bonus balcon sobre m2_semi (legacy behavior)
+        tipo_balcon = prop.get('tipo_balcon', 'ninguno').lower()
+        bonus_m2 = 0
+        if tipo_balcon == 'corrido':
+            bonus_m2 = m2_semi * 0.05
+        elif tipo_balcon == 'L':
+            bonus_m2 = m2_semi * 0.10
+    
+    m2_total_escritura = prop.get('m2_total_escritura')
     
     # Coef según tamaño semicubiertos (tabla coef Rosario)
     coef_semi = {'chico': 0.30, 'medio': 0.45, 'grande': 0.55}.get(m2_semi_detalle, 0.45)
@@ -857,16 +932,7 @@ def calcular_m2_equivalentes(prop):
     else:
         factor_com = 0.12
     
-    # Bonus m² para balcones corrido/L (tabla coef)
-    tipo_balcon = prop.get('tipo_balcon', 'ninguno').lower()
-    bonus_m2 = 0
-    if tipo_balcon == 'corrido':
-        bonus_m2 = m2_semi * 0.05
-    elif tipo_balcon == 'L':
-        bonus_m2 = m2_semi * 0.10
-    
     # --- AJUSTE: Patio Grande (>20m² valorizado a 0.25) ---
-    # Si patio descubiertO > 20m², sube coeficiente de 0.2 a 0.25 (reconoce valor social/recreativo)
     coef_desc = 0.2
     if m2_desc >= 20:
         coef_desc = 0.25
@@ -879,13 +945,13 @@ def calcular_m2_equivalentes(prop):
         bonus_m2
     )
     
-    # Clamp dinámico v9.3: Casas tienen menos premio por m2 descubierto que Deptos
+    # Clamp dinámico v9.3: Casas tienen menos premio por m2 descubierto
     tipo = prop.get('tipo_inmueble', prop.get('tipo', 'departamento')).lower()
     if 'casa' in tipo or 'cochera' in tipo:
         max_ratio = 1.15
     else:
         max_ratio = 1.25
-
+    
     max_m2 = m2_cub * max_ratio
     
     return min(m2_equiv, max_m2)
@@ -911,12 +977,17 @@ def calcular_factores(prop, ventana_usada=None):
     calidad = prop.get('calidad_edificio', 'media').lower()
     piso = prop.get('piso', 0)
     
-    # FIX BUG 1: Leer anio_construccion directamente para calcular antiguedad
-    anio_const = prop.get('anio_construccion')
+    # FIX BUG 1: Leer anio_construccion con normalización
+    anio_const = normalize_year(prop.get('anio_construccion'))
+    anio_missing = anio_const is None
+    
     if anio_const is None:
         anio_const = 2026 - prop.get('antiguedad', 0)
+        anio_const = normalize_year(anio_const)
+    
     if anio_const is None:
         anio_const = 2000  # default conservador
+    
     antiguedad = 2026 - anio_const
     
     # Depreciación por Antigüedad (Year 0 -> Target)
