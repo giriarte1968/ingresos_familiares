@@ -8,7 +8,7 @@
       "lat": -32.9541101,
       "lon": -60.6316406,
       "ubicacion_tipo": "calle",
-      "m2_cubiertos": 41.0,
+      "m2_cubiertos": 39.5,
       "dormitorios": 1,
       "baños": 1,
       "toilet": false,
@@ -19,7 +19,7 @@
       "total_pisos": 6,
       "vista": "frente",
       "gas_ok": "si",
-      "m2_semicubiertos": 7.5,
+      "m2_semicubiertos": 6.23,
       "m2_semicubiertos_detalle": "medio",
       "m2_descubiertos": 0.0,
       "balcon": true,
@@ -198,7 +198,10 @@
           "fuente": "motor_valuacion"
         }
       ],
-      "ultima_valuacion": "2026-04-06"
+      "ultima_valuacion": "2026-04-06",
+      "m2_semi_propios": 1.22,
+      "m2_semi_exclusivos": 5.01,
+      "m2_total_escritura": 74.16
     },
     {
       "nombre": "Ayacucho",
@@ -289,10 +292,10 @@
       "lat": -32.9427375,
       "lon": -60.6673362,
       "m2": 84.0,
-      "m2_cubiertos": 35.0,
-      "m2_semicubiertos": 0.0,
+      "m2_cubiertos": 36.5,
+      "m2_semicubiertos": 4.0,
       "m2_descubiertos": 24.0,
-      "m2_comunes": 25.0,
+      "m2_comunes": 0.0,
       "dormitorios": 1,
       "baÃ±os": 1,
       "antiguedad": 15,
@@ -330,7 +333,10 @@
       "ancla_mas_cercana": "oeste_francia_mendoza",
       "ancla_usd_m2": 1300,
       "distancia_ancla_km": 0.33,
-      "geocode_status": "no_snap"
+      "geocode_status": "no_snap",
+      "m2_semi_propios": null,
+      "m2_semi_exclusivos": null,
+      "m2_semicubiertos_detalle": "medio"
     },
     {
       "id": "prop_5a46d77c",
