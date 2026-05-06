@@ -484,30 +484,41 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         props, radio_usado, zona_resol = mejor_resultado
         
 # === APLICAR BARRERAS GEOGRÁFICAS (Rosario) ===
-        # Duras: Ferrocarril (excluir) | Blandas: Avenidas (permitir)
+# Blending same-side / cross-soft para evitar contaminación
+        same_side = []
+        cross_soft = []
+        
         if lat_ref and lon_ref and props:
             try:
                 from parsers.location_engine import check_barrier_crossing, cargar_barreras
                 barreras = cargar_barreras()
                 
-                props_sin_barrera = []
+                props_barrier = []
                 for prop in props:
                     p_lat = prop.get('lat') or prop.get('latitud')
                     p_lon = prop.get('lon') or prop.get('longitud')
- 
+                    
                     if p_lat and p_lon:
                         cruza = check_barrier_crossing(
                             (lon_ref, lat_ref),
                             (p_lon, p_lat),
                             barreras
                         )
-                        # Solo excluir barreras DURAS (ferrocarril)
-                        # Blandas (avenidas) se permiten en el cluster
-                        if cruza != 'hard':
-                            props_sin_barrera.append(prop)
+                        if cruza == 'hard':
+                            continue  # exclude always
+                        elif cruza == 'soft':
+                            cross_soft.append(prop)
+                            prop['_cross_soft'] = True
+                        else:
+                            same_side.append(prop)
+                            prop['_cross_soft'] = False
+                    else:
+                        same_side.append(prop)
+                        prop['_cross_soft'] = False
                 
-                if len(props_sin_barrera) < len(props):
-                    props = props_sin_barrera
+                props_barrier = same_side + cross_soft
+                if len(props_barrier) < len(props):
+                    props = props_barrier
             except Exception as e:
                 pass  # Si falla, continuar sin barreras
         
@@ -586,15 +597,53 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 'zona_resolucion': zona_resol
             }
         
-        # Calcular percentil segun operacion (ORIGINAL - sin ponderar para mantener compatibilidad)
-        precios_ordenados = sorted(precios_filtrados)
+        # Calcular percentil CON BLENDING same-side / cross-soft
+        # Separar pools
+        precios_same = []
+        precios_cross = []
+        
+        for p in unicos:
+            val = p.get('valor_m2', 0)
+            if val <= 0:
+                continue
+            if p.get('_cross_soft', False):
+                precios_cross.append(val)
+            else:
+                precios_same.append(val)
+        
+        def calc_p33(vals):
+            if not vals:
+                return None
+            s = sorted(vals)
+            n = len(s)
+            idx = int(n * 0.33)
+            return s[min(idx, n-1)]
+        
+        p33_same = calc_p33(precios_same)
+        p33_cross = calc_p33(precios_cross)
+        
+        n_same = len(precios_same)
+        if n_same >= 15:
+            alpha = 0.70
+        elif n_same >= 8:
+            alpha = 0.60
+        elif n_same >= 5:
+            alpha = 0.55
+        else:
+            alpha = 0.50
+        
+        # Blending
+        if p33_same and p33_cross:
+            valor = alpha * p33_same + (1 - alpha) * p33_cross
+        elif p33_same:
+            valor = p33_same
+        else:
+            valor = p33_cross if p33_cross else float(np.median(precios_filtrados))
+        
         if operacion == 'venta':
-            # P33 para Venta usando np.percentile (mas preciso)
-            valor = float(np.percentile(precios_ordenados, 33))
             percentil_usado = 'P33'
         else:
-            # P50 (mediana) para ALQUILER
-            valor = float(np.median(precios_ordenados))
+            valor = float(np.median(precios_filtrados))
             percentil_usado = 'P50'
         
         n_filtradas = len(precios_filtrados)
@@ -607,7 +656,13 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             'fecha_ref': fecha_ref,
             'operacion': operacion,
             'zona_original': zona_original,
-            'zona_resolucion': zona_resol
+            'zona_resolucion': zona_resol,
+            'barrier_mode': 'blending',
+            'n_same_side': n_same,
+            'n_cross_soft': len(precios_cross),
+            'alpha': alpha,
+            'p33_same': p33_same,
+            'p33_cross': p33_cross
         }
         
         return valor, n_filtradas, meta
