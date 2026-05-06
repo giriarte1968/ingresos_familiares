@@ -494,7 +494,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 for prop in props:
                     p_lat = prop.get('lat') or prop.get('latitud')
                     p_lon = prop.get('lon') or prop.get('longitud')
-
+ 
                     if p_lat and p_lon:
                         cruza = check_barrier_crossing(
                             (lon_ref, lat_ref),
@@ -586,10 +586,10 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 'zona_resolucion': zona_resol
             }
         
-        # Calcular percentil según operación
+        # Calcular percentil segun operacion (ORIGINAL - sin ponderar para mantener compatibilidad)
         precios_ordenados = sorted(precios_filtrados)
         if operacion == 'venta':
-            # P33 para Venta usando np.percentile (más preciso)
+            # P33 para Venta usando np.percentile (mas preciso)
             valor = float(np.percentile(precios_ordenados, 33))
             percentil_usado = 'P33'
         else:
