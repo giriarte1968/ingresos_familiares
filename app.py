@@ -3119,84 +3119,26 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
                              index=["si", "no", "en_proceso"].index(prop_inicial.get('gas_ok', 'si')) if prop_inicial.get('gas_ok') in ["si", "no", "en_proceso"] else 0,
                              key=f"gas_{key_suffix}")
 
-    # === MODO SUPERFICIES: Básico vs Detallado ===
-    modo_superficies = st.radio(
-        "Nivel de detalle de superficies",
-        ["Básico", "Detallado (con plano)"],
-        index=1 if prop_inicial.get('m2_descubiertos_propios') is not None or prop_inicial.get('m2_semi_propios') is not None else 0,
-        key=f"modo_superf_{key_suffix}"
-    )
+    st.caption("Superficies")
+    col_s1, col_s2, col_s3, col_s4 = st.columns(4)
+    with col_s1:
+        m2_cubiertos = st.number_input("m² cubiertos", min_value=0.0, value=float(prop_inicial.get('m2_cubiertos', 0.0)), step=0.5, key=f"m2_cub_{key_suffix}")
+    with col_s2:
+        m2_semicubiertos = st.number_input("m² semicubiertos", min_value=0.0, value=float(prop_inicial.get('m2_semicubiertos', 0.0)), key=f"m2_semi_{key_suffix}")
+    with col_s3:
+        m2_descubiertos_propios = st.number_input("m² descubiertos propios", min_value=0.0, value=float(prop_inicial.get('m2_descubiertos_propios', 0.0)), key=f"m2_dp_{key_suffix}")
+    with col_s4:
+        m2_descubiertos_comun_exclusivo = st.number_input("m² descubiertos uso común", min_value=0.0, value=float(prop_inicial.get('m2_descubiertos_comun_exclusivo', 0.0)), key=f"m2_dce_{key_suffix}")
 
-    if modo_superficies == "Detallado (con plano)":
-        st.subheader("📐 Superficies Detalladas (según plano)")
-        
-        col_d1, col_d2 = st.columns(2)
-        with col_d1:
-            st.markdown("**Cubiertos**")
-            m2_cubiertos = st.number_input("m² cubiertos propios", min_value=0.0, value=float(prop_inicial.get('m2_cubiertos', 0.0)), step=0.5, key=f"m2_cub_det_{key_suffix}")
-        with col_d2:
-            st.markdown("**Comunes patrimoniales**")
-            m2_comunes = st.number_input("m² comunes (escritura)", min_value=0.0, value=float(prop_inicial.get('m2_comunes', 0.0)), step=0.5, key=f"m2_com_det_{key_suffix}")
-        
-        st.markdown("**Semicubiertos**")
-        col_d3, col_d4 = st.columns(2)
-        with col_d3:
-            m2_semi_propios = st.number_input("m² semicubiertos propios", min_value=0.0, value=float(prop_inicial.get('m2_semi_propios', 0.0)), step=0.5, key=f"m2_sp_det_{key_suffix}")
-        with col_d4:
-            m2_semi_exclusivos = st.number_input("m² semicubiertos uso exclusivo", min_value=0.0, value=float(prop_inicial.get('m2_semi_exclusivos', 0.0)), step=0.5, key=f"m2_se_det_{key_suffix}")
-        
-        st.markdown("**Descubiertos**")
-        col_d5, col_d6 = st.columns(2)
-        with col_d5:
-            m2_descubiertos_propios = st.number_input("m² descubiertos propios", min_value=0.0, value=float(prop_inicial.get('m2_descubiertos_propios', 0.0)), step=0.5, key=f"m2_dp_det_{key_suffix}")
-        with col_d6:
-            m2_descubiertos_comun_exclusivo = st.number_input("m² descubiertos uso común exclusivo", min_value=0.0, value=float(prop_inicial.get('m2_descubiertos_comun_exclusivo', 0.0)), step=0.5, key=f"m2_dce_det_{key_suffix}")
-        
-        m2_semicubiertos = m2_semi_propios + m2_semi_exclusivos
-        m2_descubiertos = m2_descubiertos_propios + m2_descubiertos_comun_exclusivo
-    else:
-        # MODO BÁSICO - campos actuales
-        st.caption("Superficies")
-        col_s1, col_s2, col_s3, col_s4 = st.columns(4)
-        with col_s1:
-            m2_cubiertos = st.number_input("m² cubiertos", min_value=0.0, value=float(prop_inicial.get('m2_cubiertos', 0.0)), step=0.5, key=f"m2_cub_{key_suffix}")
-        with col_s2:
-            m2_semicubiertos = st.number_input("m² semicubiertos", min_value=0.0, value=float(prop_inicial.get('m2_semicubiertos', 0.0)), key=f"m2_semi_{key_suffix}")
-        with col_s3:
-            # Tamaño solo habilita si m2_semicubiertos = 0
-            if m2_semicubiertos == 0:
-                m2_semicubiertos_detalle = st.selectbox("Tamaño (si no hay m²)", ["medio", "chico", "grande"],
-                                                       index=["medio", "chico", "grande"].index(prop_inicial.get('m2_semicubiertos_detalle', 'medio')) if prop_inicial.get('m2_semicubiertos_detalle') in ["medio", "chico", "grande"] else 0,
-                                                       key=f"m2_semi_detalle_{key_suffix}")
-            else:
-                m2_semicubiertos_detalle = prop_inicial.get('m2_semicubiertos_detalle', 'medio')
-        with col_s4:
-            m2_descubiertos = st.number_input("m² descubiertos", min_value=0.0, value=float(prop_inicial.get('m2_descubiertos', 0.0)), key=f"m2_desc_{key_suffix}")
-
-        col_s5, col_s6, col_s7 = st.columns(3)
-        with col_s5:
-            m2_comunes = st.number_input("m² comunes exclusivos", min_value=0.0, value=float(prop_inicial.get('m2_comunes', 0.0)), key=f"m2_com_{key_suffix}")
-        with col_s6:
-            balcon = st.checkbox("Balcón", value=prop_inicial.get('balcon', False), key=f"balcon_check_{key_suffix}")
-            if balcon:
-                tipo_balcon = st.selectbox("Tipo balcón", ["corrido", "L", "frances", "terraza"],
-                                           index=["corrido", "L", "frances", "terraza"].index(prop_inicial.get('tipo_balcon', 'corrido')) if prop_inicial.get('tipo_balcon') in ["corrido", "L", "frances", "terraza"] else 0,
-                                           key=f"tipo_balcon_{key_suffix}")
-            else:
-                tipo_balcon = "ninguno"
-        with col_s7:
-            orientacion = st.selectbox("Orientación", ["norte", "noreste", "este", "sureste", "sur", "suroeste", "oeste", "noroeste"],
-                                      index=["norte", "noreste", "este", "sureste", "sur", "suroeste", "oeste", "noroeste"].index(prop_inicial.get('orientacion', 'este')) if prop_inicial.get('orientacion') in ["norte", "noreste", "este", "sureste", "sur", "suroeste", "oeste", "noroeste"] else 2,
-                                      key=f"orient_{key_suffix}")
-            ventilacion = st.selectbox("Ventilación", ["cruzada", "simple"], 
-                                      index=["cruzada", "simple"].index(prop_inicial.get('ventilacion', 'simple')) if prop_inicial.get('ventilacion') in ["cruzada", "simple"] else 1,
-                                      key=f"vent_{key_suffix}")
-        
-        # Modo básico no usa campos granulares
-        m2_semi_propios = None
-        m2_semi_exclusivos = None
-        m2_descubiertos_propios = None
-        m2_descubiertos_comun_exclusivo = None
+    col_s5, col_s6 = st.columns(2)
+    with col_s5:
+        orientacion = st.selectbox("Orientación", ["norte", "noreste", "este", "sureste", "sur", "suroeste", "oeste", "noroeste"],
+                                  index=["norte", "noreste", "este", "sureste", "sur", "suroeste", "oeste", "noroeste"].index(prop_inicial.get('orientacion', 'este')) if prop_inicial.get('orientacion') in ["norte", "noreste", "este", "sureste", "sur", "suroeste", "oeste", "noroeste"] else 2,
+                                  key=f"orient_{key_suffix}")
+    with col_s6:
+        ventilacion = st.selectbox("Ventilación", ["cruzada", "simple"], 
+                                  index=["cruzada", "simple"].index(prop_inicial.get('ventilacion', 'simple')) if prop_inicial.get('ventilacion') in ["cruzada", "simple"] else 1,
+                                  key=f"vent_{key_suffix}")
 
     st.caption("Características Constructivas y Seguridad")
     col3, col4 = st.columns(2)
@@ -3275,10 +3217,9 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
             'ubicacion_tipo': ubicacion_tipo, 'm2_cubiertos': m2_cubiertos, 'dormitorios': dormitorios,
             'baños': baños, 'toilet': toilet, 'baño_servicio': baño_servicio, 'anio_construccion': anio_const, 'constructora': constructora,
             'piso': piso, 'total_pisos': total_pisos, 'vista': vista, 'gas_ok': gas_ok,
-            'm2_semicubiertos': m2_semicubiertos, 'm2_semicubiertos_detalle': m2_semicubiertos_detalle, 'm2_descubiertos': m2_descubiertos,
-            'm2_semi_propios': m2_semi_propios, 'm2_semi_exclusivos': m2_semi_exclusivos,
+            'm2_semicubiertos': m2_semicubiertos,
             'm2_descubiertos_propios': m2_descubiertos_propios, 'm2_descubiertos_comun_exclusivo': m2_descubiertos_comun_exclusivo,
-            'balcon': balcon, 'tipo_balcon': tipo_balcon, 'm2_comunes': m2_comunes,
+            'balcon': False, 'tipo_balcon': 'ninguno',
             'orientacion': orientacion, 'ventilacion': ventilacion, 'estado_detalle': estado_detalle,
             'calidad_edificio': calidad_edificio, 'seguridad': seguridad_val, 'terminaciones_suelo': terminaciones_suelo,
             'carpinteria': carpinteria, 'cochera': cochera, 'doble_ingreso': doble_ingreso,
