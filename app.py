@@ -3120,7 +3120,7 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
                              index=["si", "no", "en_proceso"].index(prop_inicial.get('gas_ok', 'si')) if prop_inicial.get('gas_ok') in ["si", "no", "en_proceso"] else 0,
                              key=f"gas_{key_suffix}")
 
-st.caption("Superficies")
+    st.caption("Superficies")
     col_s1, col_s2, col_s3, col_s4 = st.columns(4)
     with col_s1:
         m2_cubiertos = st.number_input("m² cubiertos", min_value=0.0, value=float(prop_inicial.get('m2_cubiertos', 0.0)), step=0.5, key=f"m2_cub_{key_suffix}")
