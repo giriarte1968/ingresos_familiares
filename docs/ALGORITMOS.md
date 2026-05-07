@@ -179,4 +179,34 @@ En Rosario, las grandes avenidas son una "fricción" pero no un "corte". Un cast
 ---
 
 **Generado por**: opencode (Agente de Mantenimiento)
-**Fecha**: 2026-05-05
+**Fecha**: 2026-05-07
+
+## 8. Superficies Diferenciadas (Propias vs Uso Común Exclusivo)
+
+### Coeficientes diferenciados (Rosario 2026)
+| Campo | Descripción | Coef Normal | Coef Patio Grande (≥20m²) |
+| :--- | :--- | :--- | :--- |
+| **m2_cubiertos** | Superficie cubierta habitable | 100% | 100% |
+| **m2_semicubiertos** | Balcón, terraza techada | 45% | 45% |
+| **m2_descubiertos_propios** | Patio propio, jardín escriturado | 0.25 | 0.30 |
+| **m2_descubiertos_comun_exclusivo** | Balcón descubierto, terasa común uso exclusivo | 0.15 | 0.20 |
+
+### Justificación legal
+- **m2_descubiertos_propios**: Dominio pleno del propietario → mayor valor
+- **m2_descubiertos_comun_exclusivo**: Bien común sujeto a reglamento de copropiedad → menor valor
+
+### UI Simplified (Opción A)
+4 campos exactos:
+1. m² cubiertos
+2. m² semicubiertos  
+3. m² descubiertos propios
+4. m² descubiertos uso común
+
+### Campos eliminados del UI
+- m² comunes (escritura)
+- m² comunes exclusivos
+- m² semicubiertos propios / uso exclusivo
+- Selectbox "Tamaño" semicubiertos
+- Selectbox "Tipo balcón"
+- Checkbox "Balcón"
+- Amenities duplicados (balcon_terraza, terraza_comun)

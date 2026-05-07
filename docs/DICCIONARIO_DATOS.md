@@ -105,22 +105,20 @@ Diccionario simple para ajustar la calidad del edificio.
 
 ## 6. Esquema Canónico de Superficies y Año
 
-### Campos de Superficies (obligatorios)
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| `m2_cubiertos` | float | Superficie cubierta habitable (m²). |
-| `m2_semicubiertos` | float | Balcón, terrajacubierta, etc. (m²). |
-| `m2_descubiertos` | float | Patio, jardín, terreza abierta (m²). |
-| `m2_comunes` | float | Áreas comunes del edificio (m²). |
-| `m2` | float | Superficie "publicable/mercado" (puede ser mayor a cubiertos). |
+### Campos UI (4 campos exactos - Opción A)
+| Campo | Tipo | Descripción | Coeficiente |
+|-------|------|-------------|-------------|
+| `m2_cubiertos` | float | Superficie cubierta habitable | 100% |
+| `m2_semicubiertos` | float | Balcón, terraza techada | 45% |
+| `m2_descubiertos_propios` | float | Patio propio, jardín escriturado | 0.25 (0.30 si ≥20m²) |
+| `m2_descubiertos_comun_exclusivo` | float | Balcón descubierto, terasa común uso exclusivo | 0.15 (0.20 si ≥20m²) |
 
-### Campos de Superficies (opcionales, modo granular)
+### Campos de Superficies (legado/compatibilidad)
 | Campo | Tipo | Descripción |
 |-------|------|-------------|
-| `m2_semi_propios` | float | semicubierto de uso exclusivo propio (m²). |
-| `m2_semi_exclusivos` | float | semicubierto de uso exclusivo del propietario (m²). |
-| `m2_propios_exclusivos` | float | Total superficie propia exclusiva (m²). |
-| `m2_total_escritura` | float | Superficie total según escritura (m²). ADMINISTRATIVO. |
+| `m2_descubiertos` | float | Patio, jardín, terreza abierta (m²). Legacy. |
+| `m2_comunes` | float | Áreas comunes del edificio (m²). |
+| `m2` | float | Superficie "publicable/mercado" (deprecated). |
 
 ### Campo de Año
 | Campo | Tipo | Descripción |
@@ -128,7 +126,6 @@ Diccionario simple para ajustar la calidad del edificio.
 | `anio_construccion` | int | Año de construcción del edificio. |
 
 ### Reglas de Uso
-- **MODO LEGADO**: Si `m2_semi_propios` y `m2_semi_exclusivos` son None → usar `m2_semicubiertos`.
-- **MODO GRANULAR**: Si existen ambos campos → sumar `m2_semi_propios` + `m2_semi_exclusivos`.
-- **m2_total_escritura**: NUNCA debe usarse como fallback de `m2_cubiertos`. Es administrativo.
-- **m2**: Se usa como fallback de `m2_cubiertos` solo si este es 0 (retrocompatibilidad).
+- **MODO LEGADO**: Si `m2_descubiertos_propios` y `m2_descubiertos_comun_exclusivo` son None → usar `m2_descubiertos`.
+- **MODO GRANULAR**: Usar coeficientes diferenciados para propios vs comun_exclusivo.
+- **m2**: Eliminado del UI (solo retrocompatibilidad).
