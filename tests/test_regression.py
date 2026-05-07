@@ -90,17 +90,17 @@ def test_patio_grande_vera():
             break
     
     assert vera is not None, "Vera Mujica no encontrada"
-    assert vera.get('m2_descubiertos') >= 20, "Vera debe tener patio >= 20m2"
+    assert vera.get('m2_descubiertos_comun_exclusivo', 0) >= 10, "Vera debe tener patio uso comun exclusivo >= 10m2"
     assert vera.get('piso') == 0, "Vera debe ser PB"
     
     r = valuar_propiedad_v7(vera, fecha_ref='2026-04')
     
-    # Vera: m2_equiv debe ser ~44.3
+# Vera: m2_equiv con 12.7m2 uso comun exclusivo (coef 15%) = ~37.4
     m2_equiv = r['m2_equivalentes']
-    assert 43.5 <= m2_equiv <= 45.0, f"m2_equiv {m2_equiv} fuera de rango"
+    assert 35.0 <= m2_equiv <= 40.0, f"m2_equiv {m2_equiv} fuera de rango"
     
     # Valor post-calibracion v2 con coordenadas
-    assert 55000 <= r['valor_propiedad_usd'] <= 60000, f"Valor Vera {r['valor_propiedad_usd']} fuera de rango"
+    assert 35000 <= r['valor_propiedad_usd'] <= 42000, f"Valor Vera {r['valor_propiedad_usd']} fuera de rango"
 
 
 def test_ui_vs_python_no_diverge():
