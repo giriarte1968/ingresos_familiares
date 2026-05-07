@@ -870,13 +870,18 @@ def calcular_m2_equivalentes(prop):
     """
     Calcula m2 equivalentes con ponderación de mercado real Rosario.
     
-    MODO LEGADO: m2_cubiertos, m2_semicubiertos, m2_descubiertos, m2_comunes
-    MODO GRANULAR: m2_semi_propios, m2_semi_exclusivos (cuando existen ambos)
+    MODOS DE CÁLCULO:
+    - GRANULAR: m2_descubiertos_propios + m2_descubiertos_comun_exclusivo diferenciados
+    - LEGADO: solo m2_descubiertos (sin diferenciar)
     
-    Ponderaciones:
+    Ponderaciones DESCUBIERTOS (nuevo granular):
+    - m2_descubiertos_propios: 0.25 (0.30 si >= 20m²)
+    - m2_descubiertos_comun_exclusivo: 0.15 (0.20 si >= 20m²)
+    
+    Ponderaciones legado:
+    - m2_descubiertos: 0.20 (0.25 si >= 20m²)
     - m2_cubiertos: 100%
     - m2_semicubiertos: 30%/45%/55% (chico/medio/grande)
-    - m2_descubiertos: 20% (25% si patio>=20m2)
     - m2_comunes: 12% (15% si exterior=comun)
     
     Clamp: no más de +25% sobre m2_cubiertos (casas +15%)
@@ -888,63 +893,64 @@ def calcular_m2_equivalentes(prop):
     if m2_cub == 0:
         m2_cub = normalize_float(prop.get('m2'))
     
-    m2_desc = normalize_float(prop.get('m2_descubiertos'))
     m2_com = normalize_float(prop.get('m2_comunes'))
     
-    # Detectar MODO GRANULAR (cuando existen ambos campos)
+    # === SEMICUBIERTOS (granular o legado) ===
     m2_semi_propios = prop.get('m2_semi_propios')
     m2_semi_exclusivos = prop.get('m2_semi_exclusivos')
     
     if m2_semi_propios is not None and m2_semi_exclusivos is not None:
-        # MODO GRANULAR
         m2_semi = normalize_float(m2_semi_propios) + normalize_float(m2_semi_exclusivos)
-        m2_semi_detalle = prop.get('m2_semicubiertos_detalle', 'medio').lower()
-        
-        # Bonus balcon SOLO sobre m2_semi_exclusivos
-        tipo_balcon = prop.get('tipo_balcon', 'ninguno').lower()
-        m2_semi_excl = normalize_float(m2_semi_exclusivos)
-        bonus_m2 = 0
-        if tipo_balcon == 'corrido':
-            bonus_m2 = m2_semi_excl * 0.05
-        elif tipo_balcon == 'L':
-            bonus_m2 = m2_semi_excl * 0.10
+        base_bonus_balcon = normalize_float(m2_semi_exclusivos)
     else:
-        # MODO LEGADO
         m2_semi = normalize_float(prop.get('m2_semicubiertos'))
-        m2_semi_detalle = prop.get('m2_semicubiertos_detalle', 'medio').lower()
-        
-        # Bonus balcon sobre m2_semi (legacy behavior)
-        tipo_balcon = prop.get('tipo_balcon', 'ninguno').lower()
-        bonus_m2 = 0
-        if tipo_balcon == 'corrido':
-            bonus_m2 = m2_semi * 0.05
-        elif tipo_balcon == 'L':
-            bonus_m2 = m2_semi * 0.10
+        base_bonus_balcon = m2_semi
     
-    m2_total_escritura = prop.get('m2_total_escritura')
+    m2_semi_detalle = prop.get('m2_semicubiertos_detalle', 'medio').lower()
     
-    # Coef según tamaño semicubiertos (solo si NO hay m2 especifico)
-    # Si existe m2_semicubiertos > 0, usar coef fijo 0.45
+    # Bonus balcon sobre base_bonus_balcon
+    tipo_balcon = prop.get('tipo_balcon', 'ninguno').lower()
+    bonus_m2 = 0
+    if tipo_balcon == 'corrido':
+        bonus_m2 = base_bonus_balcon * 0.05
+    elif tipo_balcon == 'L':
+        bonus_m2 = base_bonus_balcon * 0.10
+    
+    # Coef según tamaño semicubiertos (solo si m2_semi = 0)
     if m2_semi > 0:
         coef_semi = 0.45
     else:
         coef_semi = {'chico': 0.30, 'medio': 0.45, 'grande': 0.55}.get(m2_semi_detalle, 0.45)
     
-    # Si exterior es común, bajar peso
+    # === DESCUBIERTOS: GRANULAR vs LEGADO ===
+    m2_desc_propios = prop.get('m2_descubiertos_propios')
+    m2_desc_comun_excl = prop.get('m2_descubiertos_comun_exclusivo')
+    
+    if m2_desc_propios is not None or m2_desc_comun_excl is not None:
+        # MODO GRANULAR: diferenciar propio vs común exclusivo
+        m2_dp = normalize_float(m2_desc_propios)
+        m2_dce = normalize_float(m2_desc_comun_excl)
+        
+        coef_desc_propios = 0.30 if m2_dp >= 20 else 0.25
+        coef_desc_comun_excl = 0.20 if m2_dce >= 20 else 0.15
+        
+        m2_desc_aporte = (m2_dp * coef_desc_propios) + (m2_dce * coef_desc_comun_excl)
+    else:
+        # MODO LEGADO: un solo campo m2_descubiertos
+        m2_desc_raw = normalize_float(prop.get('m2_descubiertos'))
+        coef_desc = 0.25 if m2_desc_raw >= 20 else 0.20
+        m2_desc_aporte = m2_desc_raw * coef_desc
+    
+    # Si exterior es común (para m2_comunes)
     if prop.get('propiedad_exterior') == 'comun':
         factor_com = 0.15
     else:
         factor_com = 0.12
     
-    # --- AJUSTE: Patio Grande (>20m² valorizado a 0.25) ---
-    coef_desc = 0.2
-    if m2_desc >= 20:
-        coef_desc = 0.25
-    
     m2_equiv = (
         m2_cub +
         m2_semi * coef_semi +
-        m2_desc * coef_desc +
+        m2_desc_aporte +
         m2_com * factor_com +
         bonus_m2
     )
