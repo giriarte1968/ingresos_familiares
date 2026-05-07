@@ -3081,7 +3081,6 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
                                      index=["calle", "avenida", "esquina", "pasaje"].index(prop_inicial.get('ubicacion_tipo', 'calle')) if prop_inicial.get('ubicacion_tipo') in ["calle", "avenida", "esquina", "pasaje"] else 0,
                                      key=f"ubica_tipo_{key_suffix}")
     with col2:
-        m2_cubiertos = st.number_input("Metros cubiertos (m²)", min_value=0.0, value=float(prop_inicial.get('m2_cubiertos', 0.0)), step=0.5, key=f"m2_cub_{key_suffix}")
         dormitorios = st.number_input("Dormitorios", min_value=0, max_value=10, value=int(prop_inicial.get('dormitorios', 0)), key=f"dorm_{key_suffix}")
         baños = st.number_input("Baños", min_value=0, max_value=10, value=int(prop_inicial.get('baños', 0)), key=f"baños_{key_suffix}")
         toilet = st.checkbox("Toilette (baño de visitas)", value=prop_inicial.get('toilet', False), key=f"toilet_{key_suffix}")
