@@ -13,7 +13,7 @@
       "baños": 1,
       "toilet": false,
       "baño_servicio": false,
-      "anio_construccion": 2000,
+      "anio_construccion": 1998,
       "constructora": "",
       "piso": 2,
       "total_pisos": 6,
@@ -50,7 +50,7 @@
       "valor_compra_usd": 24000.0,
       "fecha_compra": "2003-01-01",
       "expensas_ars": 90000,
-      "m2": 48.5,
+      "m2": 45.730000000000004,
       "id": 9,
       "tasaciones": [
         {
@@ -198,10 +198,7 @@
           "fuente": "motor_valuacion"
         }
       ],
-      "ultima_valuacion": "2026-04-06",
-      "m2_semi_propios": 1.22,
-      "m2_semi_exclusivos": 5.01,
-      "m2_total_escritura": 74.16
+      "ultima_valuacion": "2026-04-06"
     },
     {
       "nombre": "Ayacucho",

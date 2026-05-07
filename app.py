@@ -1384,7 +1384,7 @@ def mostrar_dashboard(mes):
         if propiedades:
             st.subheader("Propiedades")
             df_props = pd.DataFrame(propiedades)
-            cols_to_show = ['nombre', 'zona', 'm2', 'valor_tasacion_ars']
+            cols_to_show = ['nombre', 'zona', 'm2_cubiertos', 'valor_tasacion_ars']
             available = [c for c in cols_to_show if c in df_props.columns]
             if available:
                 st.dataframe(df_props[available])
@@ -3120,23 +3120,31 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
                              index=["si", "no", "en_proceso"].index(prop_inicial.get('gas_ok', 'si')) if prop_inicial.get('gas_ok') in ["si", "no", "en_proceso"] else 0,
                              key=f"gas_{key_suffix}")
 
-    st.caption("Superficies y Balcón")
-    col_s1, col_s2 = st.columns(2)
+st.caption("Superficies")
+    col_s1, col_s2, col_s3, col_s4 = st.columns(4)
     with col_s1:
+        m2_cubiertos = st.number_input("m² cubiertos", min_value=0.0, value=float(prop_inicial.get('m2_cubiertos', 0.0)), step=0.5, key=f"m2_cub_{key_suffix}")
+    with col_s2:
         m2_semicubiertos = st.number_input("m² semicubiertos", min_value=0.0, value=float(prop_inicial.get('m2_semicubiertos', 0.0)), key=f"m2_semi_{key_suffix}")
-        m2_semicubiertos_detalle = st.selectbox("Tamaño semicubiertos", ["medio", "chico", "grande"],
+    with col_s3:
+        m2_semicubiertos_detalle = st.selectbox("Tamaño", ["medio", "chico", "grande"],
                                                index=["medio", "chico", "grande"].index(prop_inicial.get('m2_semicubiertos_detalle', 'medio')) if prop_inicial.get('m2_semicubiertos_detalle') in ["medio", "chico", "grande"] else 0,
                                                key=f"m2_semi_detalle_{key_suffix}")
+    with col_s4:
         m2_descubiertos = st.number_input("m² descubiertos", min_value=0.0, value=float(prop_inicial.get('m2_descubiertos', 0.0)), key=f"m2_desc_{key_suffix}")
-        balcon = st.checkbox("Tiene balcón", value=prop_inicial.get('balcon', False), key=f"balcon_check_{key_suffix}")
+
+    col_s5, col_s6, col_s7 = st.columns(3)
+    with col_s5:
+        m2_comunes = st.number_input("m² comunes", min_value=0.0, value=float(prop_inicial.get('m2_comunes', 0.0)), key=f"m2_com_{key_suffix}")
+    with col_s6:
+        balcon = st.checkbox("Balcón", value=prop_inicial.get('balcon', False), key=f"balcon_check_{key_suffix}")
         if balcon:
-            tipo_balcon = st.selectbox("Tipo de Balcón", ["corrido", "L", "frances", "terraza"],
-                                     index=["corrido", "L", "frances", "terraza"].index(prop_inicial.get('tipo_balcon', 'corrido')) if prop_inicial.get('tipo_balcon') in ["corrido", "L", "frances", "terraza"] else 0,
-                                     key=f"tipo_balcon_{key_suffix}")
+            tipo_balcon = st.selectbox("Tipo balcón", ["corrido", "L", "frances", "terraza"],
+                                       index=["corrido", "L", "frances", "terraza"].index(prop_inicial.get('tipo_balcon', 'corrido')) if prop_inicial.get('tipo_balcon') in ["corrido", "L", "frances", "terraza"] else 0,
+                                       key=f"tipo_balcon_{key_suffix}")
         else:
             tipo_balcon = "ninguno"
-    with col_s2:
-        m2_comunes = st.number_input("m² comunes (exclusivos)", min_value=0.0, value=float(prop_inicial.get('m2_comunes', 0.0)), key=f"m2_com_{key_suffix}")
+    with col_s7:
         orientacion = st.selectbox("Orientación", ["norte", "noreste", "este", "sureste", "sur", "suroeste", "oeste", "noroeste"],
                                   index=["norte", "noreste", "este", "sureste", "sur", "suroeste", "oeste", "noroeste"].index(prop_inicial.get('orientacion', 'este')) if prop_inicial.get('orientacion') in ["norte", "noreste", "este", "sureste", "sur", "suroeste", "oeste", "noroeste"] else 2,
                                   key=f"orient_{key_suffix}")
@@ -3232,7 +3240,6 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
             'detalles_categoria': detalles_cat,
             'descripcion_libre': descripcion_libre, 'valor_compra_usd': valor_compra_usd,
             'fecha_compra': fecha_compra.strftime('%Y-%m-%d'), 'expensas_ars': expensas_ars,
-            'm2': m2_cubiertos + m2_semicubiertos + m2_descubiertos + m2_comunes,
             'id': prop_inicial.get('id', f"prop_{uuid.uuid4().hex[:8]}")
         }
     return data
@@ -3380,7 +3387,7 @@ def mostrar_propiedades(mes):
     if propiedades:
         st.subheader("Propiedades Registradas")
         df = pd.DataFrame(propiedades)
-        cols = ['nombre', 'tipo_inmueble', 'zona', 'm2', 'dormitorios', 'baños',
+        cols = ['nombre', 'tipo_inmueble', 'zona', 'm2_cubiertos', 'dormitorios', 'baños',
                 'estado_detalle', 'calidad_edificio']
         available = [c for c in cols if c in df.columns]
         st.dataframe(df[available], width='stretch')
@@ -3491,7 +3498,7 @@ def mostrar_propiedades(mes):
                 st.markdown(f"**{prop['nombre']}**  `{res_badge[0]}`", unsafe_allow_html=True)
                 
                 st.caption(
-                    f"{prop.get('zona', '')} | {prop.get('m2', 0)}m² ({m2_equivalente:.1f} equiv) | "
+                    f"{prop.get('zona', '')} | {m2_equivalente:.1f}m² equiv | "
                     f"{prop.get('estado_detalle', '')} | {prop.get('calidad_edificio', '')}"
                 )
                 if valor_lista > 0:
@@ -4718,7 +4725,7 @@ def mostrar_activos():
     with tab_props:
         if propiedades:
             df_props = pd.DataFrame(propiedades)
-            cols = ['nombre', 'zona', 'm2', 'valor_tasacion_usd', 'valor_tasacion_ars']
+            cols = ['nombre', 'zona', 'm2_cubiertos', 'valor_tasacion_usd', 'valor_tasacion_ars']
             available = [c for c in cols if c in df_props.columns]
             st.dataframe(df_props[available], width='stretch', hide_index=True)
         else:
