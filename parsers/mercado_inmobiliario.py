@@ -923,8 +923,12 @@ def calcular_m2_equivalentes(prop):
     
     m2_total_escritura = prop.get('m2_total_escritura')
     
-    # Coef según tamaño semicubiertos (tabla coef Rosario)
-    coef_semi = {'chico': 0.30, 'medio': 0.45, 'grande': 0.55}.get(m2_semi_detalle, 0.45)
+    # Coef según tamaño semicubiertos (solo si NO hay m2 especifico)
+    # Si existe m2_semicubiertos > 0, usar coef fijo 0.45
+    if m2_semi > 0:
+        coef_semi = 0.45
+    else:
+        coef_semi = {'chico': 0.30, 'medio': 0.45, 'grande': 0.55}.get(m2_semi_detalle, 0.45)
     
     # Si exterior es común, bajar peso
     if prop.get('propiedad_exterior') == 'comun':

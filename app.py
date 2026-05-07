@@ -3126,9 +3126,13 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
     with col_s2:
         m2_semicubiertos = st.number_input("m² semicubiertos", min_value=0.0, value=float(prop_inicial.get('m2_semicubiertos', 0.0)), key=f"m2_semi_{key_suffix}")
     with col_s3:
-        m2_semicubiertos_detalle = st.selectbox("Tamaño", ["medio", "chico", "grande"],
-                                               index=["medio", "chico", "grande"].index(prop_inicial.get('m2_semicubiertos_detalle', 'medio')) if prop_inicial.get('m2_semicubiertos_detalle') in ["medio", "chico", "grande"] else 0,
-                                               key=f"m2_semi_detalle_{key_suffix}")
+        # Tamaño solo habilita si m2_semicubiertos = 0
+        if m2_semicubiertos == 0:
+            m2_semicubiertos_detalle = st.selectbox("Tamaño (si no hay m²)", ["medio", "chico", "grande"],
+                                                   index=["medio", "chico", "grande"].index(prop_inicial.get('m2_semicubiertos_detalle', 'medio')) if prop_inicial.get('m2_semicubiertos_detalle') in ["medio", "chico", "grande"] else 0,
+                                                   key=f"m2_semi_detalle_{key_suffix}")
+        else:
+            m2_semicubiertos_detalle = prop_inicial.get('m2_semicubiertos_detalle', 'medio')
     with col_s4:
         m2_descubiertos = st.number_input("m² descubiertos", min_value=0.0, value=float(prop_inicial.get('m2_descubiertos', 0.0)), key=f"m2_desc_{key_suffix}")
 
