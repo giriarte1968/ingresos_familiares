@@ -3191,7 +3191,7 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
         ascensores_edificio = st.number_input("Ascensores del edificio", min_value=1, max_value=4, value=int(prop_inicial.get('ascensores_edificio', 2) or 2), key=f"ascensores_{key_suffix}")
         detalles_cat = st.multiselect("Amenities / Extras", [
             "caldera_central", "radiadores", "seguridad_24hs", "seguridad_tag", "seguridad_camaras", "seguridad_totem",
-            "aberturas_premium", "balcon_terraza", "terraza_comun", "pileta", "sum", "gym"
+            "aberturas_premium", "pileta", "sum", "gym"
         ], default=prop_inicial.get('detalles_categoria', []), key=f"detalles_{key_suffix}")
     with col_f2:
         descripcion_libre = st.text_area("Descripción libre", value=prop_inicial.get('descripcion_libre', ''), placeholder="Ej: muy luminoso, balcón corrido...", key=f"desc_{key_suffix}")
