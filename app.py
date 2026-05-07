@@ -3081,11 +3081,11 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
                                      index=["calle", "avenida", "esquina", "pasaje"].index(prop_inicial.get('ubicacion_tipo', 'calle')) if prop_inicial.get('ubicacion_tipo') in ["calle", "avenida", "esquina", "pasaje"] else 0,
                                      key=f"ubica_tipo_{key_suffix}")
     with col2:
-        dormitorios = st.number_input("Dormitorios", min_value=0, max_value=10, value=int(prop_inicial.get('dormitorios', 0)), key=f"dorm_{key_suffix}")
-        baños = st.number_input("Baños", min_value=0, max_value=10, value=int(prop_inicial.get('baños', 0)), key=f"baños_{key_suffix}")
+        dormitorios = st.number_input("Dormitorios", min_value=0, max_value=10, value=int(prop_inicial.get('dormitorios', 0) or 0), key=f"dorm_{key_suffix}")
+        baños = st.number_input("Baños", min_value=0, max_value=10, value=int(prop_inicial.get('baños', 0) or 0), key=f"baños_{key_suffix}")
         toilet = st.checkbox("Toilette (baño de visitas)", value=prop_inicial.get('toilet', False), key=f"toilet_{key_suffix}")
         baño_servicio = st.checkbox("Baño de servicio", value=prop_inicial.get('baño_servicio', False), key=f"baño_serv_{key_suffix}")
-        anio_const = st.number_input("Año de construcción", min_value=1900, max_value=2026, value=int(prop_inicial.get('anio_construccion', 2000)), key=f"anio_const_{key_suffix}")
+        anio_const = st.number_input("Año de construcción", min_value=1900, max_value=2026, value=int(prop_inicial.get('anio_construccion', 2000) or 2000), key=f"anio_const_{key_suffix}")
         # Cargar constructoras para el selectbox
         try:
             import json
@@ -3109,8 +3109,8 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
     st.caption("Estructura y Altura")
     col_p1, col_p2 = st.columns(2)
     with col_p1:
-        piso = st.number_input("Piso de la unidad", min_value=0, max_value=50, value=int(prop_inicial.get('piso', 0)), key=f"piso_{key_suffix}")
-        total_pisos = st.number_input("Total de pisos del edificio", min_value=1, max_value=60, value=int(prop_inicial.get('total_pisos', 1)), key=f"total_p_{key_suffix}")
+        piso = st.number_input("Piso de la unidad", min_value=0, max_value=50, value=int(prop_inicial.get('piso', 0) or 0), key=f"piso_{key_suffix}")
+        total_pisos = st.number_input("Total de pisos del edificio", min_value=1, max_value=60, value=int(prop_inicial.get('total_pisos', 1) or 1), key=f"total_p_{key_suffix}")
     with col_p2:
         vista = st.selectbox("Calidad de Vista", ["interna", "pulmon", "frente", "despejada", "rio"],
                             index=["interna", "pulmon", "frente", "despejada", "rio"].index(prop_inicial.get('vista', 'frente')) if prop_inicial.get('vista') in ["interna", "pulmon", "frente", "despejada", "rio"] else 2,
@@ -3158,7 +3158,7 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
                                           index=["parcial", "total"].index(prop_inicial.get('reciclado_tipo', 'ninguno')) if prop_inicial.get('reciclado_tipo') in ["parcial", "total"] else 0,
                                           key=f"reciclado_tipo_{key_suffix}", horizontal=True)
                 anio_reciclado = st.number_input("Año del reciclado", min_value=2000, max_value=2026, 
-                                              value=int(prop_inicial.get('anio_reciclado', 2020)), key=f"anio_reciclado_{key_suffix}")
+                                              value=int(prop_inicial.get('anio_reciclado', 2020) or 2020), key=f"anio_reciclado_{key_suffix}")
             else:
                 reciclado_tipo = "ninguno"
                 anio_reciclado = None
@@ -3188,7 +3188,7 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
         # Fase 3: placares, despensa, ascensores
         placares_completos = st.checkbox("Placares completos", value=prop_inicial.get('placares_completos', False), key=f"placares_{key_suffix}")
         despensa = st.checkbox("Despensa", value=prop_inicial.get('despensa', False), key=f"despensa_{key_suffix}")
-        ascensores_edificio = st.number_input("Ascensores del edificio", min_value=1, max_value=4, value=int(prop_inicial.get('ascensores_edificio', 2)), key=f"ascensores_{key_suffix}")
+        ascensores_edificio = st.number_input("Ascensores del edificio", min_value=1, max_value=4, value=int(prop_inicial.get('ascensores_edificio', 2) or 2), key=f"ascensores_{key_suffix}")
         detalles_cat = st.multiselect("Amenities / Extras", [
             "caldera_central", "radiadores", "seguridad_24hs", "seguridad_tag", "seguridad_camaras", "seguridad_totem",
             "aberturas_premium", "balcon_terraza", "terraza_comun", "pileta", "sum", "gym"
