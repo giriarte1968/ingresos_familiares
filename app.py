@@ -3134,7 +3134,7 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
 
     col_s5, col_s6, col_s7 = st.columns(3)
     with col_s5:
-        m2_comunes = st.number_input("m² comunes", min_value=0.0, value=float(prop_inicial.get('m2_comunes', 0.0)), key=f"m2_com_{key_suffix}")
+        m2_comunes = st.number_input("m² comunes exclusivos", min_value=0.0, value=float(prop_inicial.get('m2_comunes', 0.0)), key=f"m2_com_{key_suffix}")
     with col_s6:
         balcon = st.checkbox("Balcón", value=prop_inicial.get('balcon', False), key=f"balcon_check_{key_suffix}")
         if balcon:
