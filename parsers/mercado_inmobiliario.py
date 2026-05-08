@@ -673,13 +673,38 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         else:
             alpha = 0.50
         
-        # Blending
+# Calcular 3 bases para rango (solo venta)
+        if operacion == 'venta' and p33_same is not None and p33_cross is not None:
+            # Conservador (usa alpha dinámico según n_same para backward compat)
+            base_conservadora = alpha * p33_same + (1 - alpha) * p33_cross
+            
+            # Mercado (punto medio fijo)
+            base_mercado = 0.60 * p33_same + 0.40 * p33_cross
+            
+            # Optimista (dinámico según ratio)
+            ratio = p33_cross / p33_same if p33_same > 0 else 1.0
+            if ratio <= 1.05:
+                alpha_opt = 0.70
+            elif ratio <= 1.15:
+                alpha_opt = 0.60
+            else:
+                alpha_opt = 0.55
+            alpha_opt = max(0.55, min(0.70, alpha_opt))
+            base_optimista = alpha_opt * p33_same + (1 - alpha_opt) * p33_cross
+        else:
+            # Alquiler o sin datos cross
+            base_conservadora = p33_same if p33_same else (p33_cross if p33_cross else 0)
+            base_mercado = base_conservadora
+            base_optimista = base_conservadora
+            alpha_opt = alpha
+        
+        # Blending principal (conservador)
         if p33_same and p33_cross:
-            valor = alpha * p33_same + (1 - alpha) * p33_cross
+            valor = base_conservadora
         elif p33_same:
             valor = p33_same
         else:
-            valor = p33_cross if p33_cross else float(np.median(precios_filtrados))
+            valor = p33_cross if p33_cross else float(np.median(precios_filtradas))
         
         if operacion == 'venta':
             percentil_usado = 'P33'
@@ -701,9 +726,17 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             'barrier_mode': 'blending',
             'n_same_side': n_same,
             'n_cross_soft': len(precios_cross),
-            'alpha': alpha,
+            'alpha': 0.70,  # conservador siempre
             'p33_same': p33_same,
-            'p33_cross': p33_cross
+            'p33_cross': p33_cross,
+            # rango de 3 escenarios
+            'base_conservadora': round(base_conservadora, 2),
+            'base_mercado': round(base_mercado, 2),
+            'base_optimista': round(base_optimista, 2),
+            'alpha_conservador': 0.70,
+            'alpha_mercado': 0.60,
+            'alpha_optimista': alpha_opt,
+            'ratio_same_cross': round(ratio, 3) if 'ratio' in dir() else 1.0
         }
         
         return valor, n_filtradas, meta

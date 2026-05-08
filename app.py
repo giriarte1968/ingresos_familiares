@@ -3753,10 +3753,11 @@ def mostrar_propiedades(mes):
                         cl_d, n_cl = 0, 0
                         meta_cluster = {}
                     
-                    aj_nlp, det_nlp = calcular_ajuste_nlp_detallado(prop.get('descripcion_libre', ''))
-                    
-                    # Fórmula v7 Multiplicativa: m2 * m2_base * factores * (1 + NLP)
-                    nlp_capped = min(aj_nlp, 0.15)
+aj_nlp, det_nlp = calcular_ajuste_nlp_detallado(prop.get('descripcion_libre', ''))
+
+                    # El motor ya aplica cap NLP por dorms (3% 1 dorm, 5% 2+ dorms)
+                    # La UI solo muestra el ajuste NLP del motor
+                    nlp_capped = aj_nlp  # Motor handlea el cap internally
                     delta_anti = fd.get('delta_anti', fd.get('depreciacion', 1.0))
                     
                     # Calculo directo con factores
