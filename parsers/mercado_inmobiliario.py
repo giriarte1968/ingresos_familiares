@@ -2326,6 +2326,27 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     logger.info(f"NLP: {ajuste_nlp}")
     logger.info(f"valor_venta (after NLP): {valor_venta}")
     
+    # === RANGO 3 ESCENARIOS (solo venta) ===
+    base_cons = meta_venta.get('base_conservadora', m2_base_venta)
+    base_mkt = meta_venta.get('base_mercado', m2_base_venta)
+    base_opt = meta_venta.get('base_optimista', m2_base_venta)
+    alpha_opt = meta_venta.get('alpha_optimista', 0.55)
+    ratio_sc = meta_venta.get('ratio_same_cross', 1.0)
+    
+    # Calcular valores para cada escenario (mismos factores y NLP)
+    factor_total = f_dict['total']
+    nlp_factor = 1 + ajuste_nlp_capped
+    
+    valor_conservador = m2_equiv * base_cons * factor_total * nlp_factor
+    valor_mercado = m2_equiv * base_mkt * factor_total * nlp_factor
+    valor_optimista = m2_equiv * base_opt * factor_total * nlp_factor
+    
+    # Spread como indicador de confianza
+    spread_pct = ((valor_optimista - valor_conservador) / valor_mercado * 100) if valor_mercado > 0 else 0
+    
+    # Valor Lista = conservador (sin GAP)
+    # Nota: valor_venta ya es el conservador por usar m2_base_venta raw
+    
     # 5. Valor Realizable (Cierre Real con GAP del 8%)
     GAP_CIERRE = 0.92
     valor_realizable = valor_venta * GAP_CIERRE
@@ -2382,7 +2403,23 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         'valor_propiedad_usd': round(valor_venta, 0),
         'valor_realizable_usd': round(valor_realizable, 0),
         'valor_m2_actual_usd': round(valor_venta / m2_equiv, 2) if m2_equiv > 0 else 0,
-        'm2_base_venta': round(m2_base_venta, 2),  # v11.0: m² base del cluster (filtrado + calibrado)
+        'm2_base_venta': round(m2_base_venta, 2),
+        # Rango 3 escenarios
+        'valor_venta_conservador': round(valor_conservador),
+        'valor_venta_mercado': round(valor_mercado),
+        'valor_venta_optimista': round(valor_optimista),
+        'valor_cierre_conservador': round(valor_conservador * GAP_CIERRE),
+        'valor_cierre_mercado': round(valor_mercado * GAP_CIERRE),
+        'valor_cierre_optimista': round(valor_optimista * GAP_CIERRE),
+        'rango_venta': {
+            'min': round(valor_conservador),
+            'mid': round(valor_mercado),
+            'max': round(valor_optimista),
+            'spread_pct': round(spread_pct, 1),
+            'alpha_conservador': 0.70,
+            'alpha_optimista': alpha_opt,
+            'ratio_same_cross': ratio_sc
+        },
         'alquiler_estimado_ars': round(alquiler_mensual_ars, 0),
         'cap_rate_anual': round(cap_rate_neto, 2), # Devolvemos NETO por defecto
         'cap_rate_bruto': round(roi_bruto_anual, 2),

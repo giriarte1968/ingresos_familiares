@@ -3431,6 +3431,14 @@ def mostrar_propiedades(mes):
             
             valor_lista = resultado['valor_propiedad_usd']
             valor_cierre = resultado['valor_realizable_usd']
+            
+            # Rango 3 escenarios del motor
+            v_cons = resultado.get('valor_venta_conservador', valor_lista)
+            v_mkt = resultado.get('valor_venta_mercado', valor_lista)
+            v_opt = resultado.get('valor_venta_optimista', valor_lista)
+            rango_meta = resultado.get('rango_venta', {})
+            spread = rango_meta.get('spread_pct', 0)
+            
             m2_equivalente = resultado['m2_equivalentes']
             m2_base = resultado.get('m2_base_venta', resultado['valor_m2_actual_usd'])
             m2_display = resultado['valor_m2_actual_usd']  # m² efectivo (con factores)
@@ -3491,15 +3499,39 @@ def mostrar_propiedades(mes):
                     f"{prop.get('estado_detalle', '')} | {prop.get('calidad_edificio', '')}"
                 )
                 if valor_lista > 0:
-                    # Mostrar valores de lista y cierre
+                    # Mostrar rango 3 escenarios
                     c1, c2, c3 = st.columns(3)
-                    c1.metric("Valor Lista", f"${valor_lista:,.0f} USD")
-                    c2.metric("Valor Cierre", f"${valor_cierre:,.0f} USD")
-                    c3.metric("Descuento", f"-{descuento_pct}%")
+                    with c1:
+                        st.metric("🔵 Conservador", f"${v_cons:,.0f}")
+                        st.caption("Venta rápida")
+                    with c2:
+                        st.metric("🟢 Mercado", f"${v_mkt:,.0f}")
+                        st.caption("Publicación std")
+                    with c3:
+                        st.metric("🟡 Optimista", f"${v_opt:,.0f}")
+                        st.caption("Mercado activo")
+                    
+                    # Indicador de confianza
+                    if spread < 8:
+                        st.success(f"✅ Rango estrecho ({spread:.1f}%) — Alta confiabilidad")
+                    elif spread < 15:
+                        st.info(f"ℹ️ Rango moderado ({spread:.1f}%) — Confiabilidad media")
+                    else:
+                        st.warning(f"⚠️ Rango amplio ({spread:.1f}%) — Zona heterogénea")
+                    
+                    # Mostrar valor cierre y descuento
+                    c4, c5, c6 = st.columns(3)
+                    with c4:
+                        st.metric("Valor Lista", f"${valor_lista:,.0f} USD")
+                    with c5:
+                        st.metric("Valor Cierre", f"${valor_cierre:,.0f} USD")
+                    with c6:
+                        st.metric("Descuento", f"-{descuento_pct}%")
+                    
                     # Mostrar alquiler y ROI
-                    c4, c5 = st.columns(2)
-                    c4.metric("Alquiler", f"${alq_ars:,.0f} ARS")
-                    c5.metric("ROI Anual", f"{cap_rate:.2f}%")
+                    c7, c8 = st.columns(2)
+                    c7.metric("Alquiler", f"${alq_ars:,.0f} ARS")
+                    c8.metric("ROI Anual", f"{cap_rate:.2f}%")
                     st.caption(f"💡 {resultado.get('metodo_base', 'Modelo Híbrido')} | Dólar Binance: ${resultado.get('usdt_ars', 1000):,.0f}")
             with c_head2:
                 if st.button("✏️ Editar", key=f"edit_btn_{prop['id']}"):
