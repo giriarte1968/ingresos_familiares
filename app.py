@@ -3594,13 +3594,13 @@ def mostrar_propiedades(mes):
                 
                 if has_qualified and not is_fallback:
                     badge = "🟢 GEO (Alta)"
-                    detail = "Nodos DBSCAN con edad (+8 muestras)"
+                    detail = "Nodos geoespaciales (+8)"
                 elif is_fallback:
-                    badge = "🟢 GEO (Media)"
-                    detail = "Mediana Geo (Sencilla) - sin clusters"
+                    badge = "🟡 GEO (Media)"
+                    detail = "Mediana geográfica"
                 else:
-                    badge = "🟢 GEO (Media)"
-                    detail = "Nodos DBSCAN sin edad (fallback)"
+                    badge = "🟡 GEO (Media)"
+                    detail = "Nodos geoespaciales"
             elif resolucion == 'ZONAL':
                 badge = "🟡 ZONAL"
                 detail = "Mediana zona"
@@ -3615,7 +3615,7 @@ def mostrar_propiedades(mes):
             
             col_v1.metric("Resolución", badge)
             col_v2.metric("USD/m²", f"${resultado.get('valor_m2_actual_usd', 0):,.0f}")
-            col_v3.metric("Cap Rate", f"{resultado.get('cap_rate_anual', 0):.1f}%")
+            col_v3.metric("Cap Rate Neto", f"{resultado.get('cap_rate_anual', 0):.1f}%")
             col_v4.metric("Confianza", resultado.get('confianza', 'media').upper())
             
             # Show raw vs filtered if available
@@ -3641,13 +3641,13 @@ def mostrar_propiedades(mes):
                         prop_lat = prop.get('lat')
                         prop_lon = prop.get('lon')
                         
-                        st.write(f"DEBUG: Lat={prop_lat}, Lon={prop_lon}") # Diagnostic
+                        # st.write(f"DEBUG: Lat={prop_lat}, Lon={prop_lon}") # Diagnostic
                         
                         if prop_lat and prop_lon:
                             # 1. Datos de Nodos y Barreras
                             res_meta = resultado.get('resolution_metadata', {})
                             n_muestras = res_meta.get('n_propiedades', 0)
-                            st.write(f"DEBUG: Muestras cluster: {n_muestras}") # Diagnostic
+                            # st.write(f"DEBUG: Muestras cluster: {n_muestras}") # Diagnostic
                             
                             barreras = cargar_barreras()
                             
@@ -3810,15 +3810,25 @@ def mostrar_propiedades(mes):
                     st.info(f"**Análisis del Modelo:**\n\n{narrativa}")
                     
                     st.write(f"**Detalle Técnico:**")
-                    st.write(f"- **m² construidos:** {me_d:.1f}")
+                    # m² construidos vs equivalentes diferenciados
+                    m2_cub = prop.get('m2_cubiertos', 0) or 0
+                    m2_semi = prop.get('m2_semicubiertos', 0) or 0
+                    m2_desc = prop.get('m2_descubiertos_propios', 0) or 0
+                    m2_desc_com = prop.get('m2_descubiertos_comun_exclusivo', 0) or 0
+                    m2_construidos = m2_cub + m2_semi + m2_desc + m2_desc_com
+                    st.write(f"- **m² construidos:** {m2_construidos:.1f}")
                     st.write(f"- **m² equivalentes:** {me_d:.1f}")
                     st.write(f"- **USD/m² mercado (Base v2):** ${cl_d:,.2f}")
                     st.write(f"- **Factor Total (Atributos):** {factores_total:.4f}")
-                    st.write(f"- **Factor NLP (1 + ajuste):** {1 + aj_nlp:.4f}")
+                    # NLP cap por dormitorios
+                    dorms = prop.get('dormitorios', 1)
+                    nlp_cap = 0.03 if dorms <= 1 else 0.05
+                    st.write(f"- **Factor NLP (cap {nlp_cap*100:.0f}%):** {1 + min(aj_nlp, nlp_cap):.4f}")
                     st.write(f"- **Factor Anti (depreciación):** {delta_anti:.4f}")
                     st.write(f"- **Ventana usaba:** {fd.get('ventana', 'ventana3')}")
-                    st.write(f"**Fórmula Final:** `({me_d:.1f} × {cl_d:,.2f} × {factores_total:.4f}) × (1 + {nlp_capped:.4f}) = ${valor_final:,.0f}`")
-                    st.write(f"**Cierre (-8%):** ${vl_d*0.92:,.0f}")
+                    # Mostrar valor del motor (no recalcular)
+                    st.write(f"**Valor Lista (motor):** ${valor_lista:,.0f}")
+                    st.write(f"**Cierre (-8%):** ${valor_cierre:,.0f}")
                     st.write(f"**Dólar Binance:** ${resultado.get('usdt_ars', 1488):,.2f}")
                 
                 except Exception as e:
