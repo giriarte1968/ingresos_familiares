@@ -673,15 +673,18 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         else:
             alpha = 0.50
         
-# Calcular 3 bases para rango (solo venta)
+        # Calcular 3 bases para rango (solo venta)
+        ALPHA_CONSERVADOR = 0.70  # FIJO para conservador
+        ALPHA_MERCADO = 0.60        # FIJO para mercado
+        
         if operacion == 'venta' and p33_same is not None and p33_cross is not None:
-            # Conservador (usa alpha dinámico según n_same para backward compat)
-            base_conservadora = alpha * p33_same + (1 - alpha) * p33_cross
+            # Conservador: alpha FIJO 0.70
+            base_conservadora = ALPHA_CONSERVADOR * p33_same + (1 - ALPHA_CONSERVADOR) * p33_cross
             
-            # Mercado (punto medio fijo)
-            base_mercado = 0.60 * p33_same + 0.40 * p33_cross
+            # Mercado: alpha FIJO 0.60
+            base_mercado = ALPHA_MERCADO * p33_same + (1 - ALPHA_MERCADO) * p33_cross
             
-            # Optimista (dinámico según ratio)
+            # Optimista: alpha dinámico según ratio
             ratio = p33_cross / p33_same if p33_same > 0 else 1.0
             if ratio <= 1.05:
                 alpha_opt = 0.70
@@ -691,12 +694,25 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 alpha_opt = 0.55
             alpha_opt = max(0.55, min(0.70, alpha_opt))
             base_optimista = alpha_opt * p33_same + (1 - alpha_opt) * p33_cross
+            
+            # GARANTIZAR ORDEN: conservador <= mercado <= optimista
+            bases_sorted = sorted([base_conservadora, base_mercado, base_optimista])
+            base_conservadora = bases_sorted[0]
+            base_mercado = bases_sorted[1]
+            base_optimista = bases_sorted[2]
+            
+            # Alpha para metadata (el que efectivamente se usó)
+            alpha_cons_actual = ALPHA_CONSERVADOR
+            alpha_mkt_actual = ALPHA_MERCADO
         else:
             # Alquiler o sin datos cross
             base_conservadora = p33_same if p33_same else (p33_cross if p33_cross else 0)
             base_mercado = base_conservadora
             base_optimista = base_conservadora
             alpha_opt = alpha
+            ratio = 1.0
+            alpha_cons_actual = 0.70
+            alpha_mkt_actual = 0.60
         
         # Blending principal (conservador)
         if p33_same and p33_cross:
@@ -733,9 +749,9 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             'base_conservadora': round(base_conservadora, 2),
             'base_mercado': round(base_mercado, 2),
             'base_optimista': round(base_optimista, 2),
-            'alpha_conservador': 0.70,
-            'alpha_mercado': 0.60,
-            'alpha_optimista': alpha_opt,
+            'alpha_conservador': alpha_cons_actual if 'alpha_cons_actual' in dir() else 0.70,
+            'alpha_mercado': alpha_mkt_actual if 'alpha_mkt_actual' in dir() else 0.60,
+            'alpha_optimista': alpha_opt if 'alpha_opt' in dir() else 0.55,
             'ratio_same_cross': round(ratio, 3) if 'ratio' in dir() else 1.0
         }
         
