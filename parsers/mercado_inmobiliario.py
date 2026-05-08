@@ -1126,18 +1126,30 @@ def calcular_factores(prop, ventana_usada=None):
     # 2. Factor Altura v10.0 (Tabla coef: piso alto >70% = +5%)
     total_pisos = max(1, prop.get('total_pisos', 1))
     ratio_altura = piso / total_pisos
-    m2_desc = prop.get('m2_descubiertos', 0)
+    m2_desc = prop.get('m2_descubiertos', 0) or 0
+    m2_desc_ce = prop.get('m2_descubiertos_comun_exclusivo', 0) or 0
+    m2_desc_p = prop.get('m2_descubiertos_propios', 0) or 0
+    m2_patio_total = m2_desc + m2_desc_ce + m2_desc_p
+    
     if piso == 0:
-        # --- AJUSTE: Patio Grande compensa planta baja ---
-        # Si tiene patio >15m², reducir penalización de -12% a solo -2%
-        if m2_desc >= 15:
-            factor_piso = 0.98  # -2% (compensa con aire/luz)
+        # --- AJUSTE: Patio compensa planta baja ---
+        # PB con patio >=10m²: patio compensa PB totalmente
+        if m2_patio_total >= 10:
+            factor_piso = 1.00  # neutro (patio compensa)
+        elif m2_patio_total >= 5:
+            factor_piso = 0.95  # patio pequeño: -5%
         else:
-            factor_piso = 0.88  # -12% estándar
+            factor_piso = 0.88  # -12% estándar (sin patio)
     elif ratio_altura >= 0.70:
         factor_piso = 1.05  # piso alto >70%
     else:
         factor_piso = 1.0 + (ratio_altura * 0.10)
+    
+    # 3. AJUSTE: Vista interna compensada por patio en PB
+    # Solo ajustar si es PB con patio >=10m² y vista interna/pulmon
+    if piso == 0 and m2_patio_total >= 10 and vista in ['interna', 'pulmon']:
+        # Reducir castigo de vista
+        factor_vista = max(factor_vista, 0.98)  # max(-0.02 en vez de -0.05/-0.10)
     
     # 3. Factor Ubicación v9.5
     u_tipo = prop.get('ubicacion_tipo', 'calle').lower()
