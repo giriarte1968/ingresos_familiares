@@ -3860,7 +3860,18 @@ def mostrar_propiedades(mes):
 
             with st.expander("🔍 Análisis de Mercado VPP v7.0"):
                 st.info(resultado['justificacion'])
-                st.write(f"**Rango de Mercado:** {resultado['rango_m2']}")
+                
+                # Usar rango_venta del motor (nuevo formato)
+                rango = resultado.get('rango_venta', {})
+                if rango:
+                    min_val = rango.get('min', 0)
+                    max_val = rango.get('max', 0)
+                    spread = rango.get('spread_pct', 0)
+                    st.write(f"**Rango de Mercado:** USD {min_val:,.0f} - {max_val:,.0f}")
+                    st.caption(f"Spread: {spread:.1f}% | Método: {rango.get('metodo_rango', 'N/A')}")
+                else:
+                    st.write(f"**Rango de Mercado:** {resultado.get('rango_m2', 'N/A')}")
+                
                 st.write(f"**Confiabilidad:** {resultado['confianza'].upper()}")
                 st.caption(f"Datos basados en el escaneo del {resultado['fecha_mercado']}")
                 
