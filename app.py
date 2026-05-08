@@ -3763,7 +3763,7 @@ def mostrar_propiedades(mes):
                     me_d = calcular_m2_equivalentes(p_deb)
                     fd = calcular_factores(p_deb, ventana_usada=ventana_usada)
                     
-                    # Usar v2 que retorna 3 valores (valor, n, meta) - WITH COORDS
+# Usar v2 que retorna 3 valores (valor, n, meta) - WITH COORDS
                     try:
                         med_result = obtener_mediana_cluster_v2(
                             zona=p_deb.get('zona'),
@@ -3785,13 +3785,12 @@ def mostrar_propiedades(mes):
                         cl_d, n_cl = 0, 0
                         meta_cluster = {}
                     
-aj_nlp, det_nlp = calcular_ajuste_nlp_detallado(prop.get('descripcion_libre', ''))
+                    aj_nlp, det_nlp = calcular_ajuste_nlp_detallado(prop.get('descripcion_libre', ''))
 
                     # El motor ya aplica cap NLP por dorms (3% 1 dorm, 5% 2+ dorms)
                     # La UI solo muestra el ajuste NLP del motor
                     nlp_capped = aj_nlp  # Motor handlea el cap internally
                     delta_anti = fd.get('delta_anti', fd.get('depreciacion', 1.0))
-                    
                     # Calculo directo con factores
                     factores_total = fd['total']  # Ya incluye depreciacion
                     valor_base = me_d * cl_d * factores_total
