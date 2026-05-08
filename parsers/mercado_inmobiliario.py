@@ -931,8 +931,15 @@ def calcular_m2_equivalentes(prop):
         m2_dp = normalize_float(m2_desc_propios)
         m2_dce = normalize_float(m2_desc_comun_excl)
         
+        piso = prop.get('piso', 0)
+        
+        # Boost para PB (piso=0) con patio comunitario > 10m²
+        if piso == 0 and m2_dce > 10:
+            coef_desc_comun_excl = 0.35  # 0.35 en lugar de 0.30
+        else:
+            coef_desc_comun_excl = 0.20 if m2_dce >= 20 else 0.15
+        
         coef_desc_propios = 0.30 if m2_dp >= 20 else 0.25
-        coef_desc_comun_excl = 0.20 if m2_dce >= 20 else 0.15
         
         m2_desc_aporte = (m2_dp * coef_desc_propios) + (m2_dce * coef_desc_comun_excl)
     else:
@@ -1181,6 +1188,12 @@ def calcular_factores(prop, ventana_usada=None):
     
     # Factor estructural aditivo final con depreciación
     f_estructural_final = max(0.70, min(1.35, 1.0 + suma_cruda_clamped + (factor_anti - 1.0)))
+    
+    # BOOST: PB (piso=0) con estado excelente → subir a 0.80 mínimo
+    estado = prop.get('estado_detalle', '')
+    piso = prop.get('piso', 0)
+    if estado == 'excelente' and piso == 0:
+        f_estructural_final = max(0.80, f_estructural_final)
     
     return {
         'total': f_estructural_final,  # Ya incluye anti si clampeado

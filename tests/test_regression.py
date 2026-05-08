@@ -95,12 +95,12 @@ def test_patio_grande_vera():
     
     r = valuar_propiedad_v7(vera, fecha_ref='2026-04')
     
-# Vera: m2_equiv con 12.7m2 uso comun exclusivo (coef 15%) = ~37.4
+# Vera: m2_equiv con 12.7m2 uso comun exclusivo (coef 35% PB) = ~40.0
     m2_equiv = r['m2_equivalentes']
-    assert 35.0 <= m2_equiv <= 40.0, f"m2_equiv {m2_equiv} fuera de rango"
+    assert 35.0 <= m2_equiv <= 42.0, f"m2_equiv {m2_equiv} fuera de rango"
     
-    # Valor post-calibracion v2 con coordenadas
-    assert 35000 <= r['valor_propiedad_usd'] <= 42000, f"Valor Vera {r['valor_propiedad_usd']} fuera de rango"
+    # Valor post-calibracion PB+patio : benchmark $45k-$55k
+    assert 45000 <= r['valor_propiedad_usd'] <= 55000, f"Valor Vera {r['valor_propiedad_usd']} fuera de rango"
 
 
 def test_ui_vs_python_no_diverge():
