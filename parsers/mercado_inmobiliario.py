@@ -1055,6 +1055,30 @@ def calcular_m2_equivalentes(prop):
     return min(m2_equiv, max_m2)
 
 
+def calcular_size_discount_alquiler(m2_equiv):
+    """
+    Descuento por tamaño para alquiler.
+    En el mercado, unidades grandes tienen menor precio/m² de renta.
+    
+    Curva basada en mercado Rosario 2026:
+    - Hasta 45m²: sin descuento (1.00)
+    - 45-60m²: descuento suave (1.00 → 0.92)
+    - 60-80m²: descuento moderado (0.92 → 0.82)
+    - 80-100m²: descuento fuerte (0.82 → 0.75)
+    - >100m²: piso (0.75)
+    """
+    if m2_equiv <= 45:
+        return 1.00
+    elif m2_equiv <= 60:
+        return 1.00 - (m2_equiv - 45) / 15 * 0.08
+    elif m2_equiv <= 80:
+        return 0.92 - (m2_equiv - 60) / 20 * 0.10
+    elif m2_equiv <= 100:
+        return 0.82 - (m2_equiv - 80) / 20 * 0.07
+    else:
+        return 0.75
+
+
 def calcular_factores(prop, ventana_usada=None):
     """
     Calcula factores de propiedad.
@@ -2455,6 +2479,14 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
             'es_fallback': True
         }
     
+    # === SIZE DISCOUNT para alquiler (unidades grandes) ===
+    size_factor = calcular_size_discount_alquiler(m2_equiv)
+    if size_factor < 1.0:
+        logger.info(f"[SIZE_DISCOUNT] m2_equiv={m2_equiv}, factor={size_factor:.3f}")
+        alquiler_mensual_ars = alquiler_mensual_ars * size_factor
+        alq_min_ars = alq_min_ars * size_factor
+        alq_max_ars = alq_max_ars * size_factor
+    
     logger.info(f"NLP: {ajuste_nlp}")
     logger.info(f"valor_venta (after NLP): {valor_venta}")
     
@@ -2603,6 +2635,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         'metodo_alquiler': metodo_alquiler,
         'es_fallback_alquiler': es_fallback,
         'confianza_alquiler': confianza_alq,
+        'size_discount_alquiler': round(size_factor, 3),
         'cap_rate_anual': round(cap_rate_neto, 2), # Devolvemos NETO por defecto
         'cap_rate_bruto': round(roi_bruto_anual, 2),
         'usdt_ars': usdt_ars,

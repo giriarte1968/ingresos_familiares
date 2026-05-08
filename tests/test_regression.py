@@ -9,6 +9,7 @@ Si un cambio en el código hace que estos tests fallen, el cambio está MAL.
 import pytest
 import os
 import sys
+import json
 
 # Asegurar que el path incluya la raíz para importar parsers
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -226,3 +227,56 @@ def test_alquiler_no_absurdo():
                 f"{nombre}: alquiler ${alq:,.0f} fuera de rango razonable"
         except:
             pass  # Skip if property not found
+
+
+# --- TESTS SIZE DISCOUNT ---
+
+def test_size_discount_no_aplica_unidad_chica():
+    """Unidades <= 45m² no tienen descuento"""
+    from parsers.mercado_inmobiliario import calcular_size_discount_alquiler
+    assert calcular_size_discount_alquiler(40) == 1.00
+
+
+def test_size_discount_aplica_unidad_grande():
+    """Unidades > 45m² tienen descuento progresivo"""
+    from parsers.mercado_inmobiliario import calcular_size_discount_alquiler
+    factor = calcular_size_discount_alquiler(90)
+    assert 0.70 <= factor <= 0.85
+
+
+def test_size_discount_progresivo():
+    """A mayor tamaño, mayor descuento"""
+    from parsers.mercado_inmobiliario import calcular_size_discount_alquiler
+    f45 = calcular_size_discount_alquiler(45)
+    f60 = calcular_size_discount_alquiler(60)
+    f80 = calcular_size_discount_alquiler(80)
+    f100 = calcular_size_discount_alquiler(100)
+    assert f45 > f60 > f80 > f100
+
+
+def test_size_discount_piso():
+    """Factor nunca baja de 0.75"""
+    from parsers.mercado_inmobiliario import calcular_size_discount_alquiler
+    factor = calcular_size_discount_alquiler(150)
+    assert factor == 0.75
+
+
+def test_alquiler_1dorm_sin_cambio():
+    """Mabel (42.6m²) no debe tener size discount"""
+    result = valuar_propiedad_v7(ejecutar_valuacion('mabel'), fecha_ref='2026-04')
+    assert result.get('size_discount_alquiler', 1.0) == 1.0
+
+
+def test_alquiler_p1200_con_discount():
+    """P1200 (88.85m²) debe tener size discount ~0.78"""
+    # Load P1200 from propiedades.json
+    with open('propiedades.json', 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    prop = [p for p in data['propiedades'] if 'P1200' in p.get('nombre', '')][0]
+    
+    result = valuar_propiedad_v7(prop, fecha_ref='2026-04')
+    sd = result.get('size_discount_alquiler', 1.0)
+    assert 0.75 <= sd <= 0.85
+    alq = result.get('alquiler_estimado_ars', 0)
+    # P1200 debe estar dentro de benchmark $600k-$900k
+    assert 600000 <= alq <= 900000, f"P1200 alquiler ${alq:,.0f} fuera de benchmark"
