@@ -2376,16 +2376,54 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     alpha_opt = meta_venta.get('alpha_optimista', 0.55)
     ratio_sc = meta_venta.get('ratio_same_cross', 1.0)
     
-    # Calcular valores para cada escenario (mismos factores y NLP)
-    factor_total = f_dict['total']
-    nlp_factor = 1 + ajuste_nlp_capped
+    # Percentiles del cluster para calcular dispersión
+    p25_c = meta_venta.get('p25_cluster', 0)
+    p50_c = meta_venta.get('p50_cluster', m2_base_venta)
+    p75_c = meta_venta.get('p75_cluster', 0)
     
-    valor_conservador = m2_equiv * base_cons * factor_total * nlp_factor
-    valor_mercado = m2_equiv * base_mkt * factor_total * nlp_factor
-    valor_optimista = m2_equiv * base_opt * factor_total * nlp_factor
+    # Calcular dispersión relativa robusta
+    if p25_c and p50_c and p75_c and p50_c > 0:
+        iqr_rel = (p75_c - p25_c) / p50_c
+        half_iqr_rel = iqr_rel / 2
+    else:
+        half_iqr_rel = 0.0
+    
+    # Margen usando solo parte de la dispersión del cluster
+    raw_margin = half_iqr_rel * 0.50
+    
+    # Definir floors/caps según calidad del cluster
+    n_muestras = n_v
+    radio = meta_venta.get('radio_usado', 999)
+    confidence = resolution_metadata.get('confidence', 'MEDIA')
+    
+    if n_muestras >= 50 and radio <= 300:
+        margin_floor = 0.05
+        margin_cap = 0.08
+    elif n_muestras >= 25:
+        margin_floor = 0.06
+        margin_cap = 0.10
+    elif n_muestras >= 10:
+        margin_floor = 0.08
+        margin_cap = 0.14
+    else:
+        margin_floor = 0.10
+        margin_cap = 0.18
+    
+    # Si hubo fallback o baja confianza, aumentar cap
+    if confidence == 'BAJA':
+        margin_cap = max(margin_cap, 0.20)
+    
+    margen_error = max(margin_floor, min(raw_margin, margin_cap))
+    
+    # Mantener valor principal como centro del rango
+    valor_estimado = valor_venta  # el valor actual del motor
+    
+    valor_venta_conservador = valor_estimado * (1 - margen_error)
+    valor_venta_mercado = valor_estimado
+    valor_venta_optimista = valor_estimado * (1 + margen_error)
     
     # Spread como indicador de confianza
-    spread_pct = ((valor_optimista - valor_conservador) / valor_mercado * 100) if valor_mercado > 0 else 0
+    spread_pct = ((valor_venta_optimista - valor_venta_conservador) / valor_venta_mercado * 100) if valor_venta_mercado > 0 else 0
     
     # Valor Lista = conservador (sin GAP)
     # Nota: valor_venta ya es el conservador por usar m2_base_venta raw
@@ -2448,20 +2486,22 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         'valor_m2_actual_usd': round(valor_venta / m2_equiv, 2) if m2_equiv > 0 else 0,
         'm2_base_venta': round(m2_base_venta, 2),
         # Rango 3 escenarios
-        'valor_venta_conservador': round(valor_conservador),
-        'valor_venta_mercado': round(valor_mercado),
-        'valor_venta_optimista': round(valor_optimista),
-        'valor_cierre_conservador': round(valor_conservador * GAP_CIERRE),
-        'valor_cierre_mercado': round(valor_mercado * GAP_CIERRE),
-        'valor_cierre_optimista': round(valor_optimista * GAP_CIERRE),
+        'valor_venta_conservador': round(valor_venta_conservador),
+        'valor_venta_mercado': round(valor_venta_mercado),
+        'valor_venta_optimista': round(valor_venta_optimista),
+        'valor_cierre_conservador': round(valor_venta_conservador * GAP_CIERRE),
+        'valor_cierre_mercado': round(valor_venta_mercado * GAP_CIERRE),
+        'valor_cierre_optimista': round(valor_venta_optimista * GAP_CIERRE),
         'rango_venta': {
-            'min': round(valor_conservador),
-            'mid': round(valor_mercado),
-            'max': round(valor_optimista),
+            'min': round(valor_venta_conservador),
+            'mid': round(valor_venta_mercado),
+            'max': round(valor_venta_optimista),
+            'margen_error': round(margen_error, 3),
             'spread_pct': round(spread_pct, 1),
-            'alpha_conservador': 0.70,
-            'alpha_optimista': alpha_opt,
-            'ratio_same_cross': ratio_sc
+            'p25_cluster': round(p25_c, 2),
+            'p50_cluster': round(p50_c, 2),
+            'p75_cluster': round(p75_c, 2),
+            'metodo_rango': 'valor_estimado_mas_margen_estadistico'
         },
         'alquiler_estimado_ars': round(alquiler_mensual_ars, 0),
         'cap_rate_anual': round(cap_rate_neto, 2), # Devolvemos NETO por defecto
