@@ -1016,7 +1016,7 @@ def calcular_m2_equivalentes(prop):
         
         # Boost para PB (piso=0) con patio comunitario > 10m²
         if piso == 0 and m2_dce > 10:
-            coef_desc_comun_excl = 0.35  # 0.35 en lugar de 0.30
+            coef_desc_comun_excl = 0.40  # 0.40 para patio PB funcional (extensión del living)
         else:
             coef_desc_comun_excl = 0.20 if m2_dce >= 20 else 0.15
         

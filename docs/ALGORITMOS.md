@@ -219,9 +219,17 @@ En Rosario, las grandes avenidas son una "fricción" pero no un "corte". Un cast
 | **m2_descubiertos_propios** | Patio propio, jardín escriturado | 0.25 | 0.30 |
 | **m2_descubiertos_comun_exclusivo** | Balcón descubierto, terasa común uso exclusivo | 0.15 | 0.20 |
 
+### Coeficientes especiales por contexto
+| Contexto | Coeficiente | Justificación |
+| :--- | :--- | :--- |
+| PB con patio ≥10m² | 0.40 | Extensión funcional del living |
+| Piso alto, < 20m² | 0.15 | Balcón/terraza recreativo |
+| Piso alto, ≥ 20m² | 0.20 | Terraza grande |
+
 ### Justificación legal
 - **m2_descubiertos_propios**: Dominio pleno del propietario → mayor valor
 - **m2_descubiertos_comun_exclusivo**: Bien común sujeto a reglamento de copropiedad → menor valor
+- **PB patio**: En Rosario, patio en PB es extensión habitable (no solo recreativo)
 
 ### UI Simplified (Opción A)
 4 campos exactos:
