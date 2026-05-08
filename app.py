@@ -3445,8 +3445,9 @@ def mostrar_propiedades(mes):
             alq_ars = resultado['alquiler_estimado_ars']
             cap_rate = resultado['cap_rate_anual']
             
-            # Calcular descuento
-            descuento_pct = int((1 - valor_cierre/valor_lista) * 100) if valor_lista > 0 else 8
+            # Unificar descuento: motor usa GAP_CIERRE = 0.92 (8%)
+            gap = 0.92
+            descuento_pct = round((1 - gap) * 100)
 
             # Plusvalía de ciclo (vs fecha de compra) - CORREGIDO
             fecha_compra = prop.get('fecha_compra', None)
@@ -3585,22 +3586,19 @@ def mostrar_propiedades(mes):
             res_meta = resultado.get('resolution_metadata', {})
             resolucion = res_meta.get('resolution', 'GLOBAL')
             
-            # Badge de resolución con color y detalle
+            # Badge de resolución con color y detalle basado en n_propiedades
+            n_prop = res_meta.get('n_propiedades', len(res_meta.get('nodes', [])))
+            
             if resolucion == 'GEO':
-                # Determinar si es Alta (qualified) o Media (fallback)
-                nodes = res_meta.get('nodes', [])
-                has_qualified = any(n.get('qualified', False) for n in nodes)
-                is_fallback = res_meta.get('note') == 'fallback_simple'
-                
-                if has_qualified and not is_fallback:
+                if n_prop >= 15:
                     badge = "🟢 GEO (Alta)"
-                    detail = "Nodos geoespaciales (+8)"
-                elif is_fallback:
+                    detail = f"Nodos geoespaciales ({n_prop} props)"
+                elif n_prop >= 8:
                     badge = "🟡 GEO (Media)"
-                    detail = "Mediana geográfica"
+                    detail = f"Nodos geoespaciales ({n_prop} props)"
                 else:
-                    badge = "🟡 GEO (Media)"
-                    detail = "Nodos geoespaciales"
+                    badge = "🔴 GEO (Baja)"
+                    detail = f"Nodos geoespaciales ({n_prop} props)"
             elif resolucion == 'ZONAL':
                 badge = "🟡 ZONAL"
                 detail = "Mediana zona"
@@ -3860,16 +3858,25 @@ def mostrar_propiedades(mes):
                 delta_color="normal"
             )
 
-            # Valor realizable (descuento 8% integrado en v7)
-            descuento_liquidez = int((1 - valor_cierre/valor_lista) * 100) if valor_lista > 0 else 8
+            # Valor realizable (descuento 8% integrado en v7) - unificado
             pc_col3.metric(
                 "💰 Valor realizable",
                 f"${valor_cierre:,.0f} USD",
-                delta=f"-{descuento_liquidez}% desc."
+                delta=f"-{descuento_pct}% desc."
             )
 
             with st.expander("🔍 Análisis de Mercado VPP v7.0"):
-                st.info(resultado['justificacion'])
+                # Mostrar justificación corregida con NLP cap
+                dorms = prop.get('dormitorios', 1)
+                nlp_cap = 0.03 if dorms <= 1 else 0.05
+                nlp_mostrado = min(resultado.get('nlp_ajuste_pct', 0) / 100, nlp_cap)
+                cap_rate_neto = resultado.get('cap_rate_anual', 0)
+                just_custom = (
+                    f"VPP v8.0: Modelo Híbrido Dinámico. "
+                    f"Ajuste NLP: {nlp_mostrado*100:+.1f}%. "
+                    f"Cap Rate Neto: {cap_rate_neto:.2f}%."
+                )
+                st.info(just_custom)
                 
                 # Usar rango_venta del motor (nuevo formato)
                 rango = resultado.get('rango_venta', {})
