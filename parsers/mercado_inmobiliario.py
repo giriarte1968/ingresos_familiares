@@ -734,15 +734,9 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         base_mercado = bases_sorted[1]
         base_optimista = bases_sorted[2]
         
-        # Blending principal (conservador)
-        if p33_same and p33_cross:
-            valor = base_conservadora
-        elif p33_same:
-            valor = p33_same
-        else:
-            valor = p33_cross if p33_cross else float(np.median(precios_filtradas))
-        
+        # Valor principal = MERCADO (para Valor Lista, no conservadora)
         if operacion == 'venta':
+            valor = base_mercado
             percentil_usado = 'P33'
         else:
             valor = float(np.median(precios_filtrados))

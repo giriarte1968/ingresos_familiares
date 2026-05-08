@@ -96,6 +96,18 @@ El alquiler se calcula derivando el Cap Rate directamente de los datos de scrapi
 - Si data-driven: derivado de confianza (ALTA: ±8%, MEDIA: ±12%, BAJA: ±15%)
 - Si fallback: ±15% fijo
 
+---
+
+### Valores de Valuación (v8.2)
+
+| Escenario | Base usada | Descripción |
+|-----------|-----------|------------|
+| **Conservador** | base_conservadora = min(P25, blend) | Precio mínimo de mercado |
+| **Mercado** | base_mercado = blend(P33, α=0.60) | **Valor Lista** (valor de publicación) |
+| **Optimista** | base_optimista = max(P75, blend) | Precio máximo de mercado |
+
+**Importante**: El Valor Lista = escenario Mercado (no conservador).
+
 ### Ancla Algorítmica de Alquiler
 Si la muestra de alquileres es insuficiente, se proyecta:
 $$Renta = (AnclaVentaUSD \times 0.045 / 12) \times USDT\_ARS$$

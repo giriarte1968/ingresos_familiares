@@ -16,6 +16,43 @@ Este documento es el "diario de trabajo". Cada agente de IA que trabaje en este 
    - Si no hay datos → ROI_ZONAL estimado
    - UI muestra 🔴 ROJO si fallback, ✅ VERDE si data-driven
 
+3. **Separación de escenarios**:
+   - Valor Lista = escenario MERCADO (base_mercado, no conservadora)
+   - Rango: conservador < mercado < optimista
+
+### Resultados Mabel:
+| Campo | Valor |
+|------|-------|
+| Cap Rate | 5.47% |
+| Método | mercado_local |
+| Confianza | ALTA |
+| Alquiler | $516,911 ARS/mes |
+| Fallback | False |
+
+### Valores finales (Mayo 2026):
+| Propiedad | Conservador | Mercado(Lista) | Optimista |
+|-----------|-------------|----------------|----------|
+| Mabel | $78,371 | $83,451 | $88,531 |
+| Ayacucho | $48,737 | $52,144 | $55,551 |
+| Vera | $49,802 | $54,132 | $58,463 |
+| P1200 | $149,812 | $166,458 | $183,103 |
+
+### Tests: 13/13 PASSED
+
+---
+
+## 📅 2026-05-08 — CORRECCIÓN VALOR LISTA = MERCADO
+
+### Acciones realizadas:
+1. **Cap Rate derivado del mercado local**:
+   - `calcular_cap_rate_local()` obtiene clusters de venta/alquiler
+   - Formula: cap_rate = (alquiler_P50_anual_USD) / (venta_P33_USD)
+   - Requiere >= 5 comparables de alquiler
+
+2. **Fallback con badge**:
+   - Si no hay datos → ROI_ZONAL estimado
+   - UI muestra 🔴 ROJO si fallback, ✅ VERDE si data-driven
+
 3. **Nuevos campos en respuesta**:
    - `cap_rate`, `alquiler_rango`, `es_fallback_alquiler`
    - `confianza_alquiler`, `metodo_alquiler`, `cap_rate_info`
