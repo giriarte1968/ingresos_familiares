@@ -103,6 +103,21 @@ Diccionario simple para ajustar la calidad del edificio.
 
 ---
 
+## 6. Campos de Cap Rate Data-Driven (v8.1)
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `cap_rate` | float | Cap Rate anual derivado del mercado local (ratio alquiler/venta). |
+| `cap_rate_min` | float | Rango mínimo del Cap Rate (±8-15% según confianza). |
+| `cap_rate_max` | float | Rango máximo del Cap Rate. |
+| `alquiler_rango` | dict | Rango de alquiler: `{min, mid, max}` en ARS. |
+| `es_fallback_alquiler` | bool | True si no hay datos locales y se usó ROI zonal estimado. |
+| `confianza_alquiler` | str | ALTA/MEDIA/BAJA basada en cantidad de comparables de alquiler. |
+| `metodo_alquiler` | str | 'mercado_local' o 'roi_zonal_fallback'. |
+| `cap_rate_info` | dict | Metadata del cálculo: n_venta, n_alquiler, venta_m2_base, alq_m2_base. |
+
+---
+
 ## 6. Esquema Canónico de Superficies y Año
 
 ### Campos UI (4 campos exactos - Opción A)

@@ -3443,7 +3443,12 @@ def mostrar_propiedades(mes):
             m2_base = resultado.get('m2_base_venta', resultado['valor_m2_actual_usd'])
             m2_display = resultado['valor_m2_actual_usd']  # m² efectivo (con factores)
             alq_ars = resultado['alquiler_estimado_ars']
-            cap_rate = resultado['cap_rate_anual']
+            rango_alq = resultado.get('alquiler_rango', {})
+            cap_rate = resultado.get('cap_rate', resultado.get('cap_rate_anual', 0))
+            metodo_alq = resultado.get('metodo_alquiler', 'metodo_antiguo')
+            es_fallback = resultado.get('es_fallback_alquiler', False)
+            confianza_alq = resultado.get('confianza_alquiler', '')
+            cap_info = resultado.get('cap_rate_info', {}).copy() if resultado.get('cap_rate_info') else {}
             
             # Unificar descuento: motor usa GAP_CIERRE = 0.92 (8%)
             gap = 0.92
@@ -3532,7 +3537,22 @@ def mostrar_propiedades(mes):
                     # Mostrar alquiler y ROI
                     c7, c8 = st.columns(2)
                     c7.metric("Alquiler", f"${alq_ars:,.0f} ARS")
-                    c8.metric("ROI Anual", f"{cap_rate:.2f}%")
+                    if rango_alq:
+                        st.caption(f"Rango: ${rango_alq.get('min',0):,.0f} — ${rango_alq.get('max',0):,.0f} ARS")
+                    c8.metric("Cap Rate", f"{cap_rate*100:.1f}%")
+                    
+                    # BADGE de método y confianza
+                    if es_fallback:
+                        st.error(f"🔴 ALERTA: Alquiler estimado por ROI zonal (sin datos locales). "
+                                f"Cap Rate {cap_rate*100:.1f}% es estimación, no dato de mercado.")
+                    else:
+                        n_alq = cap_info.get('n_alquiler', 0)
+                        if confianza_alq == 'ALTA':
+                            st.success(f"✅ Cap Rate derivado de mercado local ({n_alq} alquileres)")
+                        elif confianza_alq == 'MEDIA':
+                            st.info(f"ℹ️ Cap Rate derivado de mercado local ({n_alq} alquileres — confianza media)")
+                        else:
+                            st.warning(f"⚠️ Cap Rate con pocos datos ({n_alq} alquileres)")
                     st.caption(f"💡 {resultado.get('metodo_base', 'Modelo Híbrido')} | Dólar Binance: ${resultado.get('usdt_ars', 1000):,.0f}")
             with c_head2:
                 if st.button("✏️ Editar", key=f"edit_btn_{prop['id']}"):

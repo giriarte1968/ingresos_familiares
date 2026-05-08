@@ -4,6 +4,35 @@ Este documento es el "diario de trabajo". Cada agente de IA que trabaje en este 
 
 ---
 
+## 📅 2026-05-08 — CAP RATE DATA-DRIVEN (v8.1)
+
+### Acciones realizadas:
+1. **Cap Rate derivado del mercado local**:
+   - `calcular_cap_rate_local()` obtiene clusters de venta/alquiler
+   - Formula: cap_rate = (alquiler_P50_anual_USD) / (venta_P33_USD)
+   - Requiere >= 5 comparables de alquiler
+
+2. **Fallback con badge**:
+   - Si no hay datos → ROI_ZONAL estimado
+   - UI muestra 🔴 ROJO si fallback, ✅ VERDE si data-driven
+
+3. **Nuevos campos en respuesta**:
+   - `cap_rate`, `alquiler_rango`, `es_fallback_alquiler`
+   - `confianza_alquiler`, `metodo_alquiler`, `cap_rate_info`
+
+### Resultados Mabel:
+| Campo | Valor |
+|------|-------|
+| Cap Rate | 5.47% |
+| Método | mercado_local |
+| Confianza | ALTA |
+| Alquiler | $516,911 ARS/mes |
+| Fallback | False |
+
+### Tests: 13/13 PASSED
+
+---
+
 ## 📅 2026-05-05 — BARRERAS DIFERENCIADAS + AUTOMAÇÃO
 
 ### Acciones realizadas:

@@ -80,6 +80,22 @@ Si $\text{operación} = \text{'venta'}$ y $\text{percentil} = \text{'P33'}$ y $\
 
 ## 4. Análisis de Alquiler y ROI
 
+### Cap Rate Derivado del Mercado Local (v8.1)
+
+El alquiler se calcula derivando el Cap Rate directamente de los datos de scraping:
+
+1. **Cluster de VENTA** (P33) y **Cluster de ALQUILER** (P50) para la misma ubicación
+2. **Fórmula**: `cap_rate = (alquiler_P50_m2_anual_USD) / (venta_P33_m2_USD)`
+3. **Requisito**: >= 5 comparables de alquiler en el radio
+
+**Fallback**: Si no hay datos suficientes:
+- → ROI_ZONAL estimado (tabla de referencia por zona)
+- → La UI muestra badge 🔴 ROJO avisando que es estimación
+
+**Rango de alquiler**:
+- Si data-driven: derivado de confianza (ALTA: ±8%, MEDIA: ±12%, BAJA: ±15%)
+- Si fallback: ±15% fijo
+
 ### Ancla Algorítmica de Alquiler
 Si la muestra de alquileres es insuficiente, se proyecta:
 $$Renta = (AnclaVentaUSD \times 0.045 / 12) \times USDT\_ARS$$

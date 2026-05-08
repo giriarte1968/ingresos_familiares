@@ -2366,6 +2366,78 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     valor_venta = valor_venta * (1 + ajuste_nlp_capped)
     alquiler_mensual_ars = alquiler_mensual_ars * (1 + ajuste_nlp_capped)
     
+    # === ALQUILER: Cap Rate DATA-DRIVEN (v8.1) ===
+    # Obtener lat/lon para Cap Rate (necesario para la función)
+    lat_cr = prop.get('lat')
+    lon_cr = prop.get('lon')
+    
+    # Primero: intentar Cap Rate derivado del mercado local
+    cap_info = None
+    if lat_cr is not None and lon_cr is not None:
+        try:
+            cap_info = calcular_cap_rate_local(
+                lat_ref=lat_cr,
+                lon_ref=lon_cr,
+                dormitorios=dorms,
+                tipo_inmueble='departamento',
+                fecha_ref=fecha_ref
+            )
+        except:
+            pass
+    
+    # Determinar método y valores
+    if cap_info is not None and not cap_info.get('es_fallback', True):
+        # MODO DATA-DRIVEN: usar Cap Rate del mercado
+        cap_rate = cap_info['cap_rate']
+        # alquiler_mensual_usd = valor_realizable * cap_rate / 12
+        alquiler_mensual_usd = valor_venta * cap_rate / 12
+        alquiler_mensual_ars = alquiler_mensual_usd * usdt_ars
+        
+        # Rango de alquiler
+        cap_rate_min = cap_info.get('cap_rate_min', cap_rate * 0.90)
+        cap_rate_max = cap_info.get('cap_rate_max', cap_rate * 1.10)
+        alq_min_usd = valor_venta * cap_rate_min / 12
+        alq_max_usd = valor_venta * cap_rate_max / 12
+        alq_min_ars = alq_min_usd * usdt_ars
+        alq_max_ars = alq_max_usd * usdt_ars
+        
+        metodo_alquiler = 'mercado_local'
+        es_fallback = False
+        confianza_alq = cap_info.get('confianza', 'MEDIA')
+    else:
+        # FALLBACK: usar método existente con ROI zonal
+        ROI_ZONAL = {
+            'centro': 0.048,
+            'martin': 0.048,
+            'pichincha': 0.050,
+            'abasto': 0.052,
+            'facultades': 0.055,
+            'sexta': 0.055,
+            'sur': 0.060,
+            'norte': 0.058,
+            'oeste': 0.060,
+        }
+        zona_key = zona_txt.lower().strip() if zona_txt else 'centro'
+        cap_rate = ROI_ZONAL.get(zona_key, 0.052)
+        
+        # No recalcular: mantener el cálculo original
+        # (alquiler_mensual_ars ya fue calculado arriba)
+        alq_min_ars = alquiler_mensual_ars * 0.85
+        alq_max_ars = alquiler_mensual_ars * 1.15
+        
+        metodo_alquiler = 'roi_zonal_fallback'
+        es_fallback = True
+        confianza_alq = 'BAJA'
+        
+        cap_info = {
+            'cap_rate': cap_rate,
+            'n_venta': n_v,
+            'n_alquiler': 0,
+            'metodo': 'roi_zonal_fallback',
+            'confianza': 'BAJA',
+            'es_fallback': True
+        }
+    
     logger.info(f"NLP: {ajuste_nlp}")
     logger.info(f"valor_venta (after NLP): {valor_venta}")
     
@@ -2504,6 +2576,16 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
             'metodo_rango': 'valor_estimado_mas_margen_estadistico'
         },
         'alquiler_estimado_ars': round(alquiler_mensual_ars, 0),
+        'alquiler_rango': {
+            'min': round(alq_min_ars),
+            'mid': round(alquiler_mensual_ars),
+            'max': round(alq_max_ars),
+        },
+        'cap_rate': round(cap_rate, 4),
+        'cap_rate_info': cap_info,
+        'metodo_alquiler': metodo_alquiler,
+        'es_fallback_alquiler': es_fallback,
+        'confianza_alquiler': confianza_alq,
         'cap_rate_anual': round(cap_rate_neto, 2), # Devolvemos NETO por defecto
         'cap_rate_bruto': round(roi_bruto_anual, 2),
         'usdt_ars': usdt_ars,
@@ -2520,7 +2602,146 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         'plusvalia_12m_usd': round(plusvalia_12m_usd, 0),
         'plusvalia_12m_pct': round(plusvalia_12m_pct, 2),
         'expensas_ars': expensas_ars,
-        'mantenimiento_mensual_ars': round(mantenimiento_mensual_ars, 0),
+'mantenimiento_mensual_ars': round(mantenimiento_mensual_ars, 0),
         'serie_mensual_m2': [],
         'resolution_metadata': resolution_metadata,
+    }
+
+
+def calcular_cap_rate_local(lat_ref, lon_ref, dormitorios=2, tipo_inmueble='departamento', fecha_ref='2026-04'):
+    """
+    Deriva Cap Rate del mercado local usando clusters reales de venta y alquiler.
+    Retorna dict con cap_rate y metadata de confianza.
+    
+    Args:
+        lat_ref, lon_ref: coordenadas de referencia
+        dormitorios: cantidad de dormitorios
+        tipo_inmueble: tipo de inmueble
+        fecha_ref: fecha de referencia para el cluster
+    
+    Returns:
+        dict con cap_rate, cap_rate_min, cap_rate_max, n_venta, n_alquiler,
+        venta_m2_base, alq_m2_base, metodo, confianza, es_fallback
+    """
+    from datetime import datetime, timedelta
+    
+    try:
+        zona = None
+        
+        # Cluster de VENTA (P33)
+        venta_m2, n_venta, meta_venta = obtener_mediana_cluster_v2(
+            zona=zona,
+            dormitorios=dormitorios,
+            operacion='venta',
+            lat_ref=lat_ref,
+            lon_ref=lon_ref,
+            fecha_ref=fecha_ref
+        )
+        
+        # Cluster de ALQUILER (P50)
+        alq_m2, n_alq, meta_alq = obtener_mediana_cluster_v2(
+            zona=zona,
+            dormitorios=dormitorios,
+            operacion='alquiler',
+            lat_ref=lat_ref,
+            lon_ref=lon_ref,
+            fecha_ref=fecha_ref
+        )
+        
+        # Extraer valores base
+        if isinstance(venta_m2, dict):
+            venta_base = venta_m2.get('mercado') or venta_m2.get('conservadora') or venta_m2.get('p50') or 0
+        else:
+            venta_base = venta_m2 or 0
+        
+        if isinstance(alq_m2, dict):
+            alq_base = alq_m2.get('mercado') or alq_m2.get('p50') or alq_m2.get('conservadora') or 0
+        else:
+            alq_base = alq_m2 or 0
+        
+        # Validar datos suficientes
+        if not venta_base or venta_base <= 0:
+            return None
+        if not alq_base or alq_base <= 0:
+            return None
+        if n_alq < 5:
+            return None
+        
+        # Obtener USD rate
+        try:
+            from parsers.motor_vpp_core import get_binance_usdt_ars
+            dolar = get_binance_usdt_ars()
+        except:
+            dolar = 1500  # fallback
+        
+        if not dolar or dolar <= 0:
+            return None
+        
+        # Convertir alquiler ARS/m² a USD/m² anual
+        alq_mensual_usd = alq_base / dolar
+        alq_anual_usd = alq_mensual_usd * 12
+        
+        # Cap Rate = alquiler anual / valor venta
+        cap_rate = alq_anual_usd / venta_base
+        
+        # Rango según confianza
+        if n_alq >= 15:
+            confianza = 'ALTA'
+            margen = 0.08
+        elif n_alq >= 8:
+            confianza = 'MEDIA'
+            margen = 0.12
+        else:
+            confianza = 'BAJA'
+            margen = 0.15
+        
+        cap_rate_min = cap_rate * (1 - margen)
+        cap_rate_max = cap_rate * (1 + margen)
+        
+        return {
+            'cap_rate': round(cap_rate, 4),
+            'cap_rate_min': round(cap_rate_min, 4),
+            'cap_rate_max': round(cap_rate_max, 4),
+            'n_venta': n_venta,
+            'n_alquiler': n_alq,
+            'venta_m2_base': round(venta_base, 2),
+            'alq_m2_base': round(alq_base, 2),
+            'metodo': 'mercado_local',
+            'confianza': confianza,
+            'es_fallback': False
+        }
+        
+    except Exception as e:
+        return None
+
+
+def calcular_cap_rate_fallback(zona_normalizada=None):
+    """
+    Fallback: ROI zonal cuando no hay datos suficientes de alquiler.
+    """
+    ROI_ZONAL = {
+        'centro': 0.048,
+        'martin': 0.048,
+        'pichincha': 0.050,
+        'abasto': 0.052,
+        'facultades': 0.055,
+        'sexta': 0.055,
+        'barrio': 0.055,
+        'sur': 0.060,
+        'norte': 0.058,
+        'oeste': 0.060,
+    }
+    
+    zona_key = zona_normalizada.lower().strip() if zona_normalizada else 'centro'
+    cap_rate = ROI_ZONAL.get(zona_key, 0.052)
+    
+    return {
+        'cap_rate': cap_rate,
+        'cap_rate_min': round(cap_rate * 0.85, 4),
+        'cap_rate_max': round(cap_rate * 1.15, 4),
+        'n_venta': 0,
+        'n_alquiler': 0,
+        'metodo': 'roi_zonal_fallback',
+        'confianza': 'BAJA',
+        'es_fallback': True
     }
