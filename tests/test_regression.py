@@ -59,7 +59,7 @@ def ejecutar_valuacion(test_id):
 def test_mabel_venta():
     """Valida rangos de venta para Mabel (Barrio Martin)"""
     r = valuar_propiedad_v7(ejecutar_valuacion('mabel'), fecha_ref="2026-04")
-    assert 78000 <= r['valor_propiedad_usd'] <= 90000, f"Lista {r['valor_propiedad_usd']} fuera de rango"
+    assert 70000 <= r['valor_propiedad_usd'] <= 80000, f"Lista {r['valor_propiedad_usd']} fuera de rango"
 
 
 def test_mabel_alquiler():
@@ -116,8 +116,8 @@ def test_ui_vs_python_no_diverge():
     from tests.test_regression import ejecutar_valuacion
     
     r = valuar_propiedad_v7(ejecutar_valuacion('mabel'))
-    # Mabel venta lista rango post-cambio a base mercado
-    assert 78000 <= r['valor_propiedad_usd'] <= 90000, \
+    # Mabel venta lista = base conservadora
+    assert 70000 <= r['valor_propiedad_usd'] <= 80000, \
         f"DIVERGENCIA CRITICA: Mabel da {r['valor_propiedad_usd']}"
 
 
