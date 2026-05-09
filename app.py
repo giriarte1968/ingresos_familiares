@@ -3676,7 +3676,7 @@ def mostrar_propiedades(mes):
     # Mostrar dashboard o detalle según estado
     if st.session_state.propiedad_seleccionada is None:
         # ===== DASHBOARD (NIVEL 1) =====
-        mostrar_dashboard(propiedades, resultados_cache)
+        mostrar_dashboard(propiedades, resultados_cache, propiedades)
     else:
         # ===== DETALLE (NIVEL 2) =====
         prop_seleccionada = next((p for p in propiedades if p.get('nombre') == st.session_state.propiedad_seleccionada), None)
