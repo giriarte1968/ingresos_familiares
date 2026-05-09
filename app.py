@@ -1241,7 +1241,7 @@ def mostrar_dashboard_propiedades(props, resultados):
 
     st.markdown("---")
 
-    # GRID DE CARDS (3 por fila)
+    # GRID DE CARDS CON HOVER (3 por fila)
     cols_per_row = 3
     prop_list = list(props)
 
@@ -1264,24 +1264,50 @@ def mostrar_dashboard_propiedades(props, resultados):
                 confianza_color = "🟢" if n_comps >= 15 else "🟡" if n_comps >= 8 else "🔴"
 
                 with col:
+                    # Card con estilo hover
                     st.markdown(f"""
-                    **{nombre}** {confianza_color}
-                    {zona} · {m2:.0f}m² · {dorms}D
-                    ### ${valor_usd:,.0f} USD
-                    Cap Rate: {cap*100:.1f}% · Alq: ${alq:,.0f}
-                    """)
+                    <div style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; 
+                    background: white; transition: all 0.3s ease;">
+                        <strong>{nombre}</strong> {confianza_color}<br>
+                        <span style="color: gray;">{zona} · {m2:.0f}m² · {dorms}D</span><br>
+                        <h3 style="margin: 5px 0;">${valor_usd:,.0f} USD</h3>
+                        <span style="color: gray; font-size: 12px;">Cap Rate: {cap*100:.1f}% · Alq: ${alq:,.0f}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
 
                     if st.button(f"Ver detalle →", key=f"btn_{nombre}"):
                         st.session_state.propiedad_seleccionada = nombre
                         st.rerun()
 
 
-def mostrar_detalle(prop, resultado):
+def mostrar_detalle(prop, resultado, guardarin_propiedades_fn=None):
     """Nivel 2: Detalle de una propiedad"""
     # Botón volver
-    if st.button("← Volver al portfolio"):
-        st.session_state.propiedad_seleccionada = None
-        st.rerun()
+    col_back, col_edit = st.columns([1, 1])
+    with col_back:
+        if st.button("← Volver al portfolio"):
+            st.session_state.propiedad_seleccionada = None
+            st.rerun()
+    with col_edit:
+        if st.button("✏️ Editar propiedad"):
+            st.session_state[f"editing_prop_{prop.get('id', '')}"] = True
+    
+    # Check if editing
+    edit_key = f"editing_prop_{prop.get('id', '')}"
+    if st.session_state.get(edit_key, False):
+        with st.form(f"form_edit_{prop.get('id', '')}"):
+            prop_edit_form = ui_formulario_propiedad(prop_inicial=prop, key_suffix=f"edit_{prop.get('id', '')}")
+            e_submit = st.form_submit_button("Guardar Cambios")
+            c_submit, c_cancel = st.columns(2)
+            with c_submit:
+                st.form_submit_button("Cancelar")
+            
+            if e_submit and prop_edit_form['nombre']:
+                if guardarin_propiedades_fn:
+                    guardarin_propiedades_fn(prop_edit_form)
+                    st.success(f"Propiedad '{prop_edit_form['nombre']}' actualizada")
+                    st.session_state[edit_key] = False
+                    st.rerun()
 
     # Get variables
     nombre = prop.get('nombre', '')
@@ -3622,15 +3648,6 @@ def mostrar_propiedades(mes):
                     st.success(f"Propiedad '{prop_data_form['nombre']}' guardada")
                     st.rerun()
 
-    # Mostrar propiedades existentes
-    if propiedades:
-        st.subheader("Propiedades Registradas")
-        df = pd.DataFrame(propiedades)
-        cols = ['nombre', 'tipo_inmueble', 'zona', 'm2_cubiertos', 'dormitorios', 'baños',
-                'estado_detalle', 'calidad_edificio']
-        available = [c for c in cols if c in df.columns]
-        st.dataframe(df[available], width='stretch')
-
     # Actualizar datos de mercado (scraping + input manual)
     st.divider()
     st.subheader("📊 Datos de Mercado")
@@ -3662,6 +3679,15 @@ def mostrar_propiedades(mes):
         metadata = datos_mercado.get("metadata", {})
         st.caption(f"Última actualización: {metadata.get('ultima_actualizacion', 'Nunca')} — Fuente: {metadata.get('fuente_ultima_actualizacion', 'N/A')} — Base actual: USD {metadata.get('base_ciudad_m2_2026', 0):,.0f}/m²")
 
+    # Propiedades Registradas como expander colapsado
+    with st.expander("📋 Propiedades Registradas", expanded=False):
+        if propiedades:
+            df = pd.DataFrame(propiedades)
+            cols = ['nombre', 'tipo_inmueble', 'zona', 'm2_cubiertos', 'dormitorios', 'baños',
+                    'estado_detalle', 'calidad_edificio']
+            available = [c for c in cols if c in df.columns]
+            st.dataframe(df[available], width='stretch')
+
     # Inicializar estado para 2-niveles
     if 'propiedad_seleccionada' not in st.session_state:
         st.session_state.propiedad_seleccionada = None
@@ -3681,13 +3707,8 @@ def mostrar_propiedades(mes):
         # ===== DETALLE (NIVEL 2) =====
         prop_seleccionada = next((p for p in propiedades if p.get('nombre') == st.session_state.propiedad_seleccionada), None)
         if prop_seleccionada:
-            resultado_seleccionado = resultados_cache.get(st.session_state.propiedad_seleccionada, {})
-            mostrar_detalle(prop_seleccionada, resultado_seleccionado)
-
-    # Sección: Editar propiedades
-with st.expander("✏️ Editar propiedades", expanded=False):
-        st.caption("Administrar propiedades del portfolio")
-        st.info("Funciones de edición disponibles en futuras actualizaciones")
+resultado_seleccionado = resultados_cache.get(st.session_state.propiedad_seleccionada, {})
+            mostrar_detalle(prop_seleccionada, resultado_seleccionado, guardar_propiedades)
 
 
 def mostrar_activos():
