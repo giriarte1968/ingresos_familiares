@@ -3707,7 +3707,7 @@ def mostrar_propiedades(mes):
         # ===== DETALLE (NIVEL 2) =====
         prop_seleccionada = next((p for p in propiedades if p.get('nombre') == st.session_state.propiedad_seleccionada), None)
         if prop_seleccionada:
-resultado_seleccionado = resultados_cache.get(st.session_state.propiedad_seleccionada, {})
+            resultado_seleccionado = resultados_cache.get(st.session_state.propiedad_seleccionada, {})
             mostrar_detalle(prop_seleccionada, resultado_seleccionado, guardar_propiedades)
 
 
