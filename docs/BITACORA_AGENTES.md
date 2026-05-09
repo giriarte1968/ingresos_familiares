@@ -4,39 +4,25 @@ Este documento es el "diario de trabajo". Cada agente de IA que trabaje en este 
 
 ---
 
-## 📅 2026-05-09 — REDISEÑO UI ZILLOW-STYLE
+## 📅 2026-05-09 — REDISEÑO UI A 2 NIVELES (Dashboard + Detalle)
 
 ### Acciones realizadas:
-1. **Header simplificado** (Zillow-style):
-   - Dirección + tipo + m² + año + badge de confianza
+1. **Título cambiado**: "Gestor de Ingresos Familiares" → "VPP Rosario — Valuador de Propiedades"
 
-2. **Headline de valor principal**:
-   - USD grande centrado + ARS siempre visible + dólar
+2. **Arquitectura 2-niveles**:
+   - Nivel 1: Dashboard con cards compactos (3 por fila) + mapa general
+   - Nivel 2: Detalle de propiedad con valor, rango, métricas, mapa
 
-3. **Barra visual de rango**:
-   - 3 escenarios con gradient + spread + precio dueño
+3. **comparables_venta** añadidos al return del motor:
+   - Puntos azules sintéticos en el mapa de detalle
+   - Hasta 20 por propiedad
 
-4. **Métricas de inversión** (3 columnas):
-   - Alquiler (ARS + USD)
-   - Cap Rate + Rendimiento
-   - Plusvalía desde compra
-
-5. **Mapa Folium**:
-   - Abierto por defecto con círculo de radio
-
-6. **Metodología colapsada**:
-   - Solo visible en expander "Cómo calculamos"
-
-7. **Eliminado de vista pública**:
-   - "VPP v8.0", "factor_anti", "suma_cruda", "DBSCAN"
-   - Jerga técnica visible
-
-8. **Contexto Rosario**:
-   - Expander separado con rango + comparables
+4. **Limpieza**:
+   - Expander "Editar propiedades" colapsado por defecto
+   - Formulario original en sección de mostrar_propiedades
 
 ### Tests:
 - 19/19 regression tests passing
-- Valores sin cambios (solo cambio visual)
 
 ---
 
