@@ -950,7 +950,7 @@ def extraer_movimientos_excel(archivo, banco='galicia'):
         traceback.print_exc()
         return []
 
-st.set_page_config(page_title="Ingresos Familiares", layout="wide")
+st.set_page_config(page_title="VPP Rosario — Valuador de Propiedades", page_icon="🏠", layout="wide")
 
 # Cargar datos desde JSON al iniciar
 datos_iniciales = cargar_datos()
@@ -1197,8 +1197,258 @@ def parsear_texto(texto):
     return movimientos
 
 
+def mostrar_dashboard(props, resultados, propiedades):
+    """Nivel 1: Dashboard con cards compactos"""
+    st.title("🏠 VPP Rosario")
+    st.caption("Valuador Automático de Propiedades — Rosario, Argentina")
+
+    # RESUMEN DEL PORTFOLIO
+    total_usd = sum(r.get('valor_propiedad_usd', 0) for r in resultados.values())
+    n_props = len(props)
+    cap_promedio = sum(r.get('cap_rate', 0) for r in resultados.values()) / n_props if n_props else 0
+
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Portfolio Total", f"${total_usd:,.0f} USD")
+    col2.metric("Propiedades", f"{n_props}")
+    col3.metric("Cap Rate Promedio", f"{cap_promedio*100:.1f}%")
+
+    st.markdown("---")
+
+    # MAPA GENERAL (todas las propiedades como pins)
+    try:
+        import folium
+        from streamlit_folium import folium_static
+
+        m = folium.Map(location=[-32.95, -60.65], zoom_start=13)
+        for prop in props:
+            nombre = prop.get('nombre', '')
+            lat = prop.get('lat')
+            lon = prop.get('lon')
+            resultado = resultados.get(nombre, {})
+            valor = resultado.get('valor_propiedad_usd', 0)
+
+            if lat and lon:
+                folium.Marker(
+                    [lat, lon],
+                    popup=f"{nombre}: ${valor:,.0f}",
+                    tooltip=f"{nombre} · ${valor:,.0f}",
+                    icon=folium.Icon(color='blue', icon='home')
+                ).add_to(m)
+
+        folium_static(m, width=700, height=350)
+    except Exception as e:
+        st.caption(f"🗺️ Mapa no disponible")
+
+    st.markdown("---")
+
+    # GRID DE CARDS (3 por fila)
+    cols_per_row = 3
+    prop_list = list(props)
+
+    for i in range(0, len(prop_list), cols_per_row):
+        cols = st.columns(cols_per_row)
+        for j, col in enumerate(cols):
+            if i + j < len(prop_list):
+                prop = prop_list[i + j]
+                nombre = prop.get('nombre', '')
+                resultado = resultados.get(nombre, {})
+
+                valor_usd = resultado.get('valor_propiedad_usd', 0)
+                zona = prop.get('zona', '')
+                m2 = resultado.get('m2_equivalentes', 0)
+                dorms = prop.get('dormitorios', 0)
+                cap = resultado.get('cap_rate', 0)
+                alq = resultado.get('alquiler_estimado_ars', 0)
+                n_comps = resultado.get('resolution_metadata', {}).get('n_propiedades', 0)
+
+                confianza_color = "🟢" if n_comps >= 15 else "🟡" if n_comps >= 8 else "🔴"
+
+                with col:
+                    st.markdown(f"""
+                    **{nombre}** {confianza_color}
+                    {zona} · {m2:.0f}m² · {dorms}D
+                    ### ${valor_usd:,.0f} USD
+                    Cap Rate: {cap*100:.1f}% · Alq: ${alq:,.0f}
+                    """)
+
+                    if st.button(f"Ver detalle →", key=f"btn_{nombre}"):
+                        st.session_state.propiedad_seleccionada = nombre
+                        st.rerun()
+
+
+def mostrar_detalle(prop, resultado):
+    """Nivel 2: Detalle de una propiedad"""
+    # Botón volver
+    if st.button("← Volver al portfolio"):
+        st.session_state.propiedad_seleccionada = None
+        st.rerun()
+
+    # Get variables
+    nombre = prop.get('nombre', '')
+    zona = prop.get('zona', '')
+    tipo_inmueble = prop.get('tipo_inmueble', 'Departamento')
+    dorms = prop.get('dormitorios', 0)
+    anio = prop.get('anio_construccion', '?')
+    dolar = resultado.get('usdt_ars', 1480)
+    valor_lista = resultado.get('valor_propiedad_usd', 0)
+    valor_ars = valor_lista * dolar
+    
+    # === HEADER ===
+    n_comps = resultado.get('resolution_metadata', {}).get('n_propiedades', 0)
+    confianza = "ALTA" if n_comps >= 15 else "MEDIA" if n_comps >= 8 else "BAJA"
+    color = "🟢" if confianza == "ALTA" else "🟡" if confianza == "MEDIA" else "🔴"
+
+    st.markdown(f"""
+    ### 📍 {nombre}
+    **{zona}** · {tipo_inmueble} · {resultado.get('m2_equivalentes', 0):.0f}m² · {dorms} dorm · Año {anio}
+    {color} {confianza} confianza ({n_comps} comparables)
+    """)
+
+    # === HEADLINE VALOR ===
+    v_cons = resultado.get('valor_venta_conservador', valor_lista)
+    v_mkt = resultado.get('valor_venta_mercado', valor_lista)
+    v_opt = resultado.get('valor_venta_optimista', valor_lista)
+    spread = resultado.get('rango_venta', {}).get('spread_pct', 0)
+    m2_base = resultado.get('m2_base_venta', 0)
+
+    st.markdown(f"""
+    <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+        <h1 style="margin-bottom: 0; color: #1a1a1a;">$ {valor_lista:,.0f} USD</h1>
+        <h3 style="color: #6c757d; margin-top: 5px;">{valor_ars:,.0f} ARS · Dólar ${dolar:,.0f}</h3>
+        <p style="color: #6c757d;">m²/USD en {zona}: ${m2_base:,.0f} ({n_comps} comparables)</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # === RANGO VISUAL ===
+    st.markdown("**Rango de Mercado**")
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col1:
+        st.metric("Conservador", f"${v_cons:,.0f}", delta="Venta rápida", delta_color="off")
+    with col2:
+        st.markdown(f"""
+        <div style="text-align: center;">
+            <div style="background: linear-gradient(to right, #3498db, #2ecc71, #f1c40f); height: 12px; border-radius: 6px; margin: 10px 0;"></div>
+            <small style="color: gray;">Spread {spread:.1f}%</small>
+        </div>
+        """, unsafe_allow_html=True)
+    with col3:
+        st.metric("Optimista", f"${v_opt:,.0f}", delta="Sin apuro", delta_color="off")
+
+    # === METRICAS INVERSION ===
+    alq_ars = resultado.get('alquiler_estimado_ars', 0)
+    rango_alq = resultado.get('alquiler_rango', {})
+    cap_rate = resultado.get('cap_rate', 0)
+    es_fallback = resultado.get('es_fallback_alquiler', False)
+    valor_cierre = resultado.get('valor_realizable_usd', valor_lista * 0.92)
+
+    st.markdown("---")
+    col_inv1, col_inv2, col_inv3 = st.columns(3)
+
+    alq_usd = alq_ars / dolar if dolar else 0
+
+    with col_inv1:
+        st.markdown("**💰 Alquiler Estimado**")
+        st.markdown(f"### ${alq_ars:,.0f} ARS/mes")
+        st.caption(f"${alq_usd:,.0f} USD/mes")
+        if rango_alq:
+            st.caption(f"Rango: ${rango_alq.get('min',0):,.0f} — ${rango_alq.get('max',0):,.0f}")
+        if es_fallback:
+            st.error("⚠️ Estimado (sin datos locales)")
+
+    with col_inv2:
+        st.markdown("**📈 Rendimiento**")
+        st.markdown(f"### {cap_rate*100:.1f}% anual")
+        st.caption("Cap Rate Neto")
+        st.caption(f"Cierre estimado: ${valor_cierre:,.0f} USD (-8%)")
+
+    with col_inv3:
+        st.markdown("**📊 Plusvalía**")
+        valor_compra_real = prop.get('valor_compra_usd', 0)
+        if valor_compra_real > 0:
+            ganancia = valor_lista - valor_compra_real
+            pct = (ganancia / valor_compra_real) * 100
+            if ganancia >= 0:
+                st.markdown(f"### +${ganancia:,.0f} USD")
+            else:
+                st.markdown(f"### -${abs(ganancia):,.0f} USD")
+            st.caption(f"{pct:+.0f}% desde {prop.get('fecha_compra', '?')}")
+        else:
+            st.markdown("### —")
+            st.caption("Sin fecha de compra")
+
+    # === MAPA CON COMPARABLES ===
+    st.markdown("---")
+    if prop.get('lat') and prop.get('lon'):
+        try:
+            from streamlit_folium import st_folium
+            import folium
+
+            prop_lat = prop.get('lat')
+            prop_lon = prop.get('lon')
+            radio = resultado.get('resolution_metadata', {}).get('radio_usado', 300)
+
+            m = folium.Map(location=[prop_lat, prop_lon], zoom_start=15)
+
+            # Marker de la propiedad
+            folium.Marker(
+                [prop_lat, prop_lon],
+                popup=f"📍 {nombre} - ${valor_lista:,.0f}",
+                icon=folium.Icon(color='red', icon='home')
+            ).add_to(m)
+
+            # Círculo de radio
+            folium.Circle(
+                [prop_lat, prop_lon],
+                radius=radio,
+                color='gray',
+                fill=False,
+                dash_array='5'
+            ).add_to(m)
+
+            # Comparables (puntos azules)
+            comparables = resultado.get('comparables_venta', [])
+            for comp in comparables:
+                if comp.get('lat') and comp.get('lon'):
+                    folium.CircleMarker(
+                        [float(comp['lat']), float(comp['lon'])],
+                        radius=4,
+                        color='blue',
+                        fill=True,
+                        fill_opacity=0.6,
+                        popup=f"${comp.get('precio_m2', 0):,.0f}/m²"
+                    ).add_to(m)
+
+            st_folium(m, width=700, height=350)
+            st.caption(f"Radio: {radio}m · {n_comps} comparables de venta")
+        except Exception as e:
+            st.caption(f"🗺️ Mapa no disponible")
+    else:
+        st.caption("🗺️ Sin coordenadas")
+
+    # === METODOLOGIA COLAPSADA ===
+    with st.expander("🔍 Cómo calculamos este valor"):
+        m2_equiv = resultado.get('m2_equivalentes', 0)
+        factor = resultado.get('factor_total', 1.0)
+        delta_anti = resultado.get('delta_anti', 1.0)
+        nlp = resultado.get('nlp_ajuste', 0)
+
+        st.markdown(f"""
+        **Base de mercado:** ${m2_base:,.0f} USD/m² (percentil 33 de {n_comps} propiedades similares)
+
+        **Superficie equivalente:** {m2_equiv:.1f} m² (cubiertos + semicubiertos ponderados + descubiertos)
+
+        **Ajustes aplicados:**
+        - Atributos: {(factor-1)*100:+.1f}%
+        - Antigüedad: {(delta_anti-1)*100:+.1f}%
+        - Descripción NLP: +{nlp*100:.1f}%
+
+        **Fórmula:** {m2_equiv:.1f}m² × ${m2_base:,.0f}/m² × factores = ${valor_lista:,.0f}
+        """)
+        st.caption(f"Motor: VPP · Spread: {spread:.1f}%")
+
+
 def main():
-    st.title("Gestor de Ingresos Familiares")
+    st.title("🏠 VPP Rosario")
     
     # Inicializar datos en session state si no existen
     if 'datos' not in st.session_state:
@@ -3412,14 +3662,32 @@ def mostrar_propiedades(mes):
         metadata = datos_mercado.get("metadata", {})
         st.caption(f"Última actualización: {metadata.get('ultima_actualizacion', 'Nunca')} — Fuente: {metadata.get('fuente_ultima_actualizacion', 'N/A')} — Base actual: USD {metadata.get('base_ciudad_m2_2026', 0):,.0f}/m²")
 
-    # Sección: Valuación automática + Editar
-    for prop in propiedades:
-        with st.container():
-            st.divider()
+    # Inicializar estado para 2-niveles
+    if 'propiedad_seleccionada' not in st.session_state:
+        st.session_state.propiedad_seleccionada = None
 
-            # MOTOR V7.0 HÍBRIDO (Venda + Alquiler + ROI)
-            from parsers.mercado_inmobiliario import valuar_propiedad_v7
-            resultado = valuar_propiedad_v7(prop, fecha_ref=mes_prop)
+    # Pre-calculamos todos los resultados para el dashboard
+    resultados_cache = {}
+    for prop in propiedades:
+        from parsers.mercado_inmobiliario import valuar_propiedad_v7
+        resultado = valuar_propiedad_v7(prop, fecha_ref=mes_prop)
+        resultados_cache[prop.get('nombre', '')] = resultado
+
+    # Mostrar dashboard o detalle según estado
+    if st.session_state.propiedad_seleccionada is None:
+        # ===== DASHBOARD (NIVEL 1) =====
+        mostrar_dashboard(propiedades, resultados_cache)
+    else:
+        # ===== DETALLE (NIVEL 2) =====
+        prop_seleccionada = next((p for p in propiedades if p.get('nombre') == st.session_state.propiedad_seleccionada), None)
+        if prop_seleccionada:
+            resultado_seleccionado = resultados_cache.get(st.session_state.propiedad_seleccionada, {})
+            mostrar_detalle(prop_seleccionada, resultado_seleccionado)
+
+    # Sección: Editar propiedades
+    with st.expander("✏️ Editar propiedades", expanded=False):
+        st.caption("Administrar propiedades del portfolio")
+        st.info("Funciones de edición disponibles en futuras actualizaciones")
             
             # DEBUG: Logging controlado para identificar fuente de divergencia
             print(f"[UI_VALOR_DEBUG] {prop.get('nombre', prop.get('direccion', 'Unknown'))}")
