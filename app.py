@@ -3690,41 +3690,6 @@ with st.expander("✏️ Editar propiedades", expanded=False):
         st.info("Funciones de edición disponibles en futuras actualizaciones")
 
 
-# Plusvalías: ciclo y últimos 12 meses
-            pc_col1, pc_col2, pc_col3 = st.columns(3)
-            
-            # Plusvalía de ciclo (vs fecha de compra)
-            if plusvalia_ciclo_pct is not None:
-                pc_col1.metric(
-                    "📈 Plusvalía ciclo (desde compra)",
-                    f"USD {plusvalia_ciclo_usd:,.0f}",
-                    delta=f"{plusvalia_ciclo_pct:+.2f}%",
-                    delta_color="normal"
-                )
-                if fecha_compra:
-                    pc_col1.caption(f"Compra: {fecha_compra}")
-            else:
-                pc_col1.metric("📈 Plusvalía ciclo", "Sin fecha de compra")
-                pc_col1.caption("Configure fecha de compra para ver")
-
-            # Plusvalía últimos 12 meses
-            pc_col2.metric(
-                "📊 Últimos 12 meses",
-                f"USD {plusvalia_12m_usd:,.0f}",
-                delta=f"{plusvalia_12m_pct:+.2f}%",
-                delta_color="normal"
-            )
-
-            # Valor realizable (descuento 8% integrado en v7) - unificado
-            pc_col3.metric(
-"💰 Valor realizable",
-                f"${valor_cierre:,.0f} USD",
-                delta=f"-{descuento_pct}% desc."
-            )
-
-            st.caption(f"Motor: VPP · Datos: {resultado.get('fecha_mercado', '2026')} · {n_comps} comparables")
-
-
 def mostrar_activos():
     st.header("Activos")
 
