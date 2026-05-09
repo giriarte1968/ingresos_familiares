@@ -4,6 +4,42 @@ Este documento es el "diario de trabajo". Cada agente de IA que trabaje en este 
 
 ---
 
+## 📅 2026-05-09 — REDISEÑO UI ZILLOW-STYLE
+
+### Acciones realizadas:
+1. **Header simplificado** (Zillow-style):
+   - Dirección + tipo + m² + año + badge de confianza
+
+2. **Headline de valor principal**:
+   - USD grande centrado + ARS siempre visible + dólar
+
+3. **Barra visual de rango**:
+   - 3 escenarios con gradient + spread + precio dueño
+
+4. **Métricas de inversión** (3 columnas):
+   - Alquiler (ARS + USD)
+   - Cap Rate + Rendimiento
+   - Plusvalía desde compra
+
+5. **Mapa Folium**:
+   - Abierto por defecto con círculo de radio
+
+6. **Metodología colapsada**:
+   - Solo visible en expander "Cómo calculamos"
+
+7. **Eliminado de vista pública**:
+   - "VPP v8.0", "factor_anti", "suma_cruda", "DBSCAN"
+   - Jerga técnica visible
+
+8. **Contexto Rosario**:
+   - Expander separado con rango + comparables
+
+### Tests:
+- 19/19 regression tests passing
+- Valores sin cambios (solo cambio visual)
+
+---
+
 ## 📅 2026-05-08 — CAP RATE DATA-DRIVEN (v8.1)
 
 ### Acciones realizadas:

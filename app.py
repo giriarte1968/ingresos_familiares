@@ -3487,73 +3487,33 @@ def mostrar_propiedades(mes):
             fase_icono = {"alcista": "📈", "bajista": "📉", "neutral": "➡️"}.get(fase_ciclo, "➡️")
             fase_nombre = {"alcista": "recuperación/boom", "bajista": "caída", "neutral": "estable"}.get(fase_ciclo, "estable")
 
-            # Header de la propiedad
+            # Get data for new UI
+            n_comps = resultado.get('resolution_metadata', {}).get('n_propiedades', 0)
+            zona = prop.get('zona', '')
+            tipo_inmueble = prop.get('tipo_inmueble', 'Departamento')
+            dorms = prop.get('dormitorios', 0)
+            anio = prop.get('anio_construccion', '?')
+            dolar = resultado.get('usdt_ars', 1480)
+            valor_ars = valor_lista * dolar
+            
+            # ============================================
+            # SECCIÓN 1: HEADER SIMPLIFICADO (Zillow-style)
+            # ============================================
             c_head1, c_head2, c_head3 = st.columns([3, 1, 1])
             with c_head1:
-                # Badge de Resolución
-                res_type = resultado.get('resolution_metadata', {}).get('resolution', 'GLOBAL')
-                res_badge = {
-                    'GEO': ("🟢 Precisión Geoespacial", "success"),
-                    'ZONAL': ("🟡 Resolución Zonal", "warning"),
-                    'GLOBAL': ("🔴 Resolución Global", "error")
-                }.get(res_type, ("⚪ Desconocido", "info"))
+                # Badge de confianza (simulado)
+                if n_comps >= 15:
+                    st.success(f"🟢 ALTA CONFIANZA — {n_comps} propiedades comparables")
+                elif n_comps >= 8:
+                    st.info(f"🟡 CONFIANZA MEDIA — {n_comps} propiedades comparables")
+                else:
+                    st.warning(f"🔴 BAJA CONFIANZA — Solo {n_comps} comparables")
                 
-                st.markdown(f"**{prop['nombre']}**  `{res_badge[0]}`", unsafe_allow_html=True)
-                
-                st.caption(
-                    f"{prop.get('zona', '')} | {m2_equivalente:.1f}m² equiv | "
-                    f"{prop.get('estado_detalle', '')} | {prop.get('calidad_edificio', '')}"
-                )
-                if valor_lista > 0:
-                    # Mostrar rango 3 escenarios
-                    c1, c2, c3 = st.columns(3)
-                    with c1:
-                        st.metric("🔵 Conservador", f"${v_cons:,.0f}")
-                        st.caption("Venta rápida")
-                    with c2:
-                        st.metric("🟢 Mercado", f"${v_mkt:,.0f}")
-                        st.caption("Publicación std")
-                    with c3:
-                        st.metric("🟡 Optimista", f"${v_opt:,.0f}")
-                        st.caption("Mercado activo")
-                    
-                    # Indicador de confianza
-                    if spread < 8:
-                        st.success(f"✅ Rango estrecho ({spread:.1f}%) — Alta confiabilidad")
-                    elif spread < 15:
-                        st.info(f"ℹ️ Rango moderado ({spread:.1f}%) — Confiabilidad media")
-                    else:
-                        st.warning(f"⚠️ Rango amplio ({spread:.1f}%) — Zona heterogénea")
-                    
-                    # Mostrar valor cierre y descuento
-                    c4, c5, c6 = st.columns(3)
-                    with c4:
-                        st.metric("Valor Lista", f"${valor_lista:,.0f} USD")
-                    with c5:
-                        st.metric("Valor Cierre", f"${valor_cierre:,.0f} USD")
-                    with c6:
-                        st.metric("Descuento", f"-{descuento_pct}%")
-                    
-                    # Mostrar alquiler y ROI
-                    c7, c8 = st.columns(2)
-                    c7.metric("Alquiler", f"${alq_ars:,.0f} ARS")
-                    if rango_alq:
-                        st.caption(f"Rango: ${rango_alq.get('min',0):,.0f} — ${rango_alq.get('max',0):,.0f} ARS")
-                    c8.metric("Cap Rate", f"{cap_rate*100:.1f}%")
-                    
-                    # BADGE de método y confianza
-                    if es_fallback:
-                        st.error(f"🔴 ALERTA: Alquiler estimado por ROI zonal (sin datos locales). "
-                                f"Cap Rate {cap_rate*100:.1f}% es estimación, no dato de mercado.")
-                    else:
-                        n_alq = cap_info.get('n_alquiler', 0)
-                        if confianza_alq == 'ALTA':
-                            st.success(f"✅ Cap Rate derivado de mercado local ({n_alq} alquileres)")
-                        elif confianza_alq == 'MEDIA':
-                            st.info(f"ℹ️ Cap Rate derivado de mercado local ({n_alq} alquileres — confianza media)")
-                        else:
-                            st.warning(f"⚠️ Cap Rate con pocos datos ({n_alq} alquileres)")
-                    st.caption(f"💡 {resultado.get('metodo_base', 'Modelo Híbrido')} | Dólar Binance: ${resultado.get('usdt_ars', 1000):,.0f}")
+                st.markdown(f"""
+                ### 📍 {prop.get('nombre', prop.get('direccion', ''))}
+                **{zona}** · {tipo_inmueble} · {m2_equivalente:.0f}m² · {dorms} dorm · Año {anio}
+                """)
+            
             with c_head2:
                 if st.button("✏️ Editar", key=f"edit_btn_{prop['id']}"):
                     st.session_state[f"editing_prop_{prop['id']}"] = True
@@ -3564,8 +3524,88 @@ def mostrar_propiedades(mes):
                     guardar_propiedades(propiedades)
                     st.success(f"Propiedad '{prop['nombre']}' eliminada")
                     st.rerun()
+            
+            # ============================================
+            # SECCIÓN 2: HEADLINE DE VALOR PRINCIPAL
+            # ============================================
+            if valor_lista > 0:
+                st.markdown(f"""
+                <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                    <h1 style="margin-bottom: 0; color: #1a1a1a;">$ {valor_lista:,.0f} USD</h1>
+                    <h3 style="color: #6c757d; margin-top: 5px;">{valor_ars:,.0f} ARS · Dólar ${dolar:,.0f}</h3>
+                    <p style="color: #6c757d;">m²/USD en {zona}: ${m2_base:,.0f} ({n_comps} comparables)</p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # ============================================
+                # SECCIÓN 3: BARRA VISUAL DE RANGO
+                # ============================================
+                st.markdown("**Rango de Mercado**")
+                col1, col2, col3 = st.columns([1, 2, 1])
+                with col1:
+                    st.metric("Conservador", f"${v_cons:,.0f}", delta="Venta rápida", delta_color="off")
+                with col2:
+                    st.markdown(f"""
+                    <div style="text-align: center;">
+                        <div style="background: linear-gradient(to right, #3498db, #2ecc71, #f1c40f); height: 12px; border-radius: 6px; margin: 10px 0;"></div>
+                        <small style="color: gray;">Spread {spread:.1f}%</small>
+                    </div>
+                    """, unsafe_allow_html=True)
+                with col3:
+                    st.metric("Optimista", f"${v_opt:,.0f}", delta="Sin apuro", delta_color="off")
+                
+                # Precio del dueño (si existe)
+                precio_pedido = prop.get('precio_pedido_usd', 0)
+                if precio_pedido > 0:
+                    if precio_pedido <= v_opt * 1.05:
+                        if precio_pedido <= v_cons * 1.02:
+                            st.success(f"🎯 Precio pedido ${precio_pedido:,.0f} — Alineado con escenario conservador")
+                        elif precio_pedido <= v_mkt * 1.02:
+                            st.info(f"🎯 Precio pedido ${precio_pedido:,.0f} — Dentro del valor de mercado")
+                        else:
+                            st.warning(f"🎯 Precio pedido ${precio_pedido:,.0f} — En zona optimista del rango")
+                    else:
+                        st.error(f"🎯 Precio pedido ${precio_pedido:,.0f} — Supera el rango optimista (${v_opt:,.0f})")
+                
+                # ============================================
+                # SECCIÓN 4: MÉTRICAS DE INVERSIÓN
+                # ============================================
+                st.markdown("---")
+                col_inv1, col_inv2, col_inv3 = st.columns(3)
+                
+                alq_usd = alq_ars / dolar if dolar else 0
+                
+                with col_inv1:
+                    st.markdown("**💰 Alquiler Estimado**")
+                    st.markdown(f"### ${alq_ars:,.0f} ARS/mes")
+                    st.caption(f"${alq_usd:,.0f} USD/mes")
+                    if rango_alq:
+                        st.caption(f"Rango: ${rango_alq.get('min',0):,.0f} — ${rango_alq.get('max',0):,.0f}")
+                    if es_fallback:
+                        st.error("⚠️ Estimado (sin datos locales)")
+                
+                with col_inv2:
+                    st.markdown("**📈 Rendimiento**")
+                    st.markdown(f"### {cap_rate*100:.1f}% anual")
+                    st.caption("Cap Rate Neto")
+                    st.caption(f"Cierre estimado: ${valor_cierre:,.0f} USD (-8%)")
+                
+                with col_inv3:
+                    st.markdown("**📊 Plusvalía**")
+                    if valor_compra_real > 0:
+                        ganancia = valor_lista - valor_compra_real
+                        pct = (ganancia / valor_compra_real) * 100
+                        if ganancia >= 0:
+                            st.markdown(f"### +${ganancia:,.0f} USD")
+                        else:
+                            st.markdown(f"### -${abs(ganancia):,.0f} USD")
+                        st.caption(f"{pct:+.0f}% desde {fecha_compra}")
+                    else:
+                        st.markdown("### —")
+                        st.caption("Sin fecha de compra")
 
-            # Formulario de edición - solo mostrar si está activo en session_state
+
+            # Formulario de edición
             edit_key = f"editing_prop_{prop['id']}"
             if st.session_state.get(edit_key, False):
                 with st.form(f"form_edit_{prop['id']}"):
@@ -3593,64 +3633,67 @@ def mostrar_propiedades(mes):
                 st.rerun()
             st.divider()
 
-            # Mostrar resultados del motor v6.0
-            confianza = resultado.get('confianza', 'media')
-            desviacion = resultado.get('desviacion_pct', 0)
-            pesos = resultado.get('pesos', {'hist': 0.5, 'comp': 0.5})
-            valor_hist = resultado.get('valor_historico', 0)
-            valor_comp = resultado.get('valor_comparable', 0)
-            liquidez = resultado.get('liquidez', 1.0)
-            
-            # v7: Resolución geoespacial (no necesita anclas legacy)
-            col_v1, col_v2, col_v3, col_v4, col_v5 = st.columns(5)
-            res_meta = resultado.get('resolution_metadata', {})
-            resolucion = res_meta.get('resolution', 'GLOBAL')
-            
-            # Badge de resolución con color y detalle basado en n_propiedades
-            n_prop = res_meta.get('n_propiedades', len(res_meta.get('nodes', [])))
-            
-            if resolucion == 'GEO':
-                if n_prop >= 15:
-                    badge = "🟢 GEO (Alta)"
-                    detail = f"Nodos geoespaciales ({n_prop} props)"
-                elif n_prop >= 8:
-                    badge = "🟡 GEO (Media)"
-                    detail = f"Nodos geoespaciales ({n_prop} props)"
-                else:
-                    badge = "🔴 GEO (Baja)"
-                    detail = f"Nodos geoespaciales ({n_prop} props)"
-            elif resolucion == 'ZONAL':
-                badge = "🟡 ZONAL"
-                detail = "Mediana zona"
+            # ============================================
+            # SECCIÓN 5: MAPA SIMPLIFICADO (abierto por defecto)
+            # ============================================
+            if prop.get('lat') and prop.get('lon'):
+                try:
+                    from streamlit_folium import st_folium
+                    import folium
+                    
+                    prop_lat = prop.get('lat')
+                    prop_lon = prop.get('lon')
+                    
+                    m = folium.Map(location=[prop_lat, prop_lon], zoom_start=15)
+                    
+                    # Marker de la propiedad
+                    folium.Marker(
+                        [prop_lat, prop_lon],
+                        popup=f"📍 {prop.get('nombre')} - ${valor_lista:,.0f}",
+                        icon=folium.Icon(color='red', icon='home')
+                    ).add_to(m)
+                    
+                    # Círculo de radio
+                    radio = resultado.get('resolution_metadata', {}).get('radio_usado', 300)
+                    folium.Circle(
+                        [prop_lat, prop_lon],
+                        radius=radio,
+                        color='gray',
+                        fill=False,
+                        dash_array='5'
+                    ).add_to(m)
+                    
+                    st_folium(m, width=700, height=350)
+                    st.caption(f"Radio: {radio}m · {n_comps} comparables de venta")
+                except Exception as e:
+                    st.caption(f"🗺️ Mapa no disponible")
             else:
-                badge = "🔴 GLOBAL"
-                detail = "Default city avg"
+                st.caption("🗺️ Sin coordenadas - configure dirección para ver mapa")
             
-            n_prop = res_meta.get('n_propiedades', len(res_meta.get('nodes', [])))
-            n_raw = res_meta.get('n_props_raw', '?')
-            n_filt = res_meta.get('n_props_filtradas', '?')
-            conf_explicit = res_meta.get('confianza_explicita', '')
+            # ============================================
+            # SECCIÓN 6: METODOLOGÍA (COLAPSADA)
+            # ============================================
+            with st.expander("🔍 Cómo calculamos este valor"):
+                m2_equiv = resultado.get('m2_equivalentes', 0)
+                factor = resultado.get('factor_total', 1.0)
+                delta_anti = resultado.get('delta_anti', 1.0)
+                nlp = resultado.get('nlp_ajuste', 0)
+                
+                st.markdown(f"""
+                **Base de mercado:** ${m2_base:,.0f} USD/m² (percentil 33 de {n_comps} propiedades similares)
+                
+                **Superficie equivalente:** {m2_equiv:.1f} m² (cubiertos + semicubiertos ponderados + descubiertos)
+                
+                **Ajustes aplicados:**
+                - Atributos: {(factor-1)*100:+.1f}%
+                - Antigüedad: {(delta_anti-1)*100:+.1f}%
+                - Descripción NLP: +{nlp*100:.1f}%
+                
+                **Fórmula:** {m2_equiv:.1f}m² × ${m2_base:,.0f}/m² × factores = ${valor_lista:,.0f}
+                """)
+                st.caption(f"Motor: VPP · Spread: {spread:.1f}%")
             
-            col_v1.metric("Resolución", badge)
-            col_v2.metric("USD/m²", f"${resultado.get('valor_m2_actual_usd', 0):,.0f}")
-            col_v3.metric("Cap Rate Neto", f"{resultado.get('cap_rate_anual', 0):.1f}%")
-            col_v4.metric("Confianza", resultado.get('confianza', 'media').upper())
-            
-            # Show raw vs filtered if available
-            if n_raw != '?' and n_filt != '?':
-                caption_text = f"{detail}\nIncluidas: {n_filt} de {n_raw} propiedades"
-            else:
-                caption_text = f"{detail}\nIncluidas: {n_prop} propiedades"
-            
-            if conf_explicit:
-                caption_text += f"\nConfianza: {conf_explicit}"
-            
-            col_v5.caption(caption_text)
-            
-            # === MAPA DE NODO DINÁMICO ===
-            col_map1, col_map2 = st.columns([5, 1])
-            with col_map1:
-                with st.expander("🗺️ Análisis de Mercado Geoespacial"):
+            # Plusvalías
                     try:
                         from streamlit_folium import st_folium
                         import folium
@@ -3885,29 +3928,15 @@ def mostrar_propiedades(mes):
                 delta=f"-{descuento_pct}% desc."
             )
 
-            with st.expander("🔍 Análisis de Mercado VPP v7.0"):
-                # Mostrar justificación corregida con NLP cap
-                dorms = prop.get('dormitorios', 1)
-                nlp_cap = 0.03 if dorms <= 1 else 0.05
-                nlp_mostrado = min(resultado.get('nlp_ajuste_pct', 0) / 100, nlp_cap)
-                cap_rate_neto = resultado.get('cap_rate_anual', 0)
-                just_custom = (
-                    f"VPP v8.0: Modelo Híbrido Dinámico. "
-                    f"Ajuste NLP: {nlp_mostrado*100:+.1f}%. "
-                    f"Cap Rate Neto: {cap_rate_neto:.2f}%."
-                )
-                st.info(just_custom)
-                
-                # Usar rango_venta del motor (nuevo formato)
+            with st.expander("📊 Contexto de Mercado — Rosario"):
                 rango = resultado.get('rango_venta', {})
                 if rango:
                     min_val = rango.get('min', 0)
                     max_val = rango.get('max', 0)
-                    spread = rango.get('spread_pct', 0)
                     st.write(f"**Rango de Mercado:** USD {min_val:,.0f} - {max_val:,.0f}")
-                    st.caption(f"Spread: {spread:.1f}% | Método: {rango.get('metodo_rango', 'N/A')}")
-                else:
-                    st.write(f"**Rango de Mercado:** {resultado.get('rango_m2', 'N/A')}")
+                    st.caption(f"Spread: {spread:.1f}%")
+                
+                st.caption(f"Motor: VPP · Datos: {resultado.get('fecha_mercado', '2026')} · {n_comps} comparables")
                 
                 st.write(f"**Confiabilidad:** {resultado['confianza'].upper()}")
                 st.caption(f"Datos basados en el escaneo del {resultado['fecha_mercado']}")
