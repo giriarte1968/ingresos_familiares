@@ -1197,7 +1197,7 @@ def parsear_texto(texto):
     return movimientos
 
 
-def mostrar_dashboard(props, resultados, propiedades):
+def mostrar_dashboard(props, resultados):
     """Nivel 1: Dashboard con cards compactos"""
     st.title("🏠 VPP Rosario")
     st.caption("Valuador Automático de Propiedades — Rosario, Argentina")
