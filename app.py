@@ -1217,7 +1217,7 @@ def mostrar_dashboard_propiedades(props, resultados):
     # MAPA GENERAL (todas las propiedades como pins)
     try:
         import folium
-        from streamlit_folium import folium_static
+        from streamlit_folium import st_folium
 
         m = folium.Map(location=[-32.95, -60.65], zoom_start=13)
         for prop in props:
