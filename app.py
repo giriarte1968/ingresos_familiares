@@ -1235,7 +1235,7 @@ def mostrar_dashboard_propiedades(props, resultados):
                     icon=folium.Icon(color='blue', icon='home')
                 ).add_to(m)
 
-        folium_static(m, width=700, height=350)
+        with st_folium(m, width=700, height=350)
     except Exception as e:
         st.caption(f"🗺️ Mapa no disponible")
 
