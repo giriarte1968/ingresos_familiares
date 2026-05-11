@@ -249,6 +249,140 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     else:
         st.caption("🗺️ Mapa no disponible")
 
+    # === HISTORIAL DE VALUACIONES (NUEVO) ===
+    st.markdown("---")
+    from parsers.valuacion_historial import cargar_historial, comparar_valuaciones
+    
+    with st.expander("📈 Historial de Valuaciones"):
+        historial = cargar_historial(propiedad=nombre, limite=20)
+
+        if not historial:
+            st.info("Sin historial disponible. Se generará al primer recálculo.")
+        else:
+            # Tabla de historial
+            st.markdown(f"**{len(historial)} valuaciones registradas**")
+
+            data_tabla = []
+            for reg in historial:
+                ts = reg.get('timestamp', '')
+                try:
+                    fecha_fmt = datetime.fromisoformat(ts).strftime("%d/%m/%Y %H:%M")
+                except:
+                    fecha_fmt = ts[:16]
+
+                r_res = reg.get('resultado', {})
+                r_mkt = reg.get('snapshot_mercado', {})
+                r_razon = reg.get('razon_recalculo', '')
+
+                razones_legibles = {
+                    'primera_vez': '1° vez',
+                    'propiedad_modificada': 'Datos cambiaron',
+                    'scraping_actualizado': 'Nuevo scraping',
+                    'ttl_expirado': 'Actualización 24h',
+                    'forzado_por_usuario': 'Manual'
+                }
+
+                data_tabla.append({
+                    'Fecha': fecha_fmt,
+                    'Valor USD': f"${r_res.get('valor_venta', 0):,.0f}",
+                    'Cap Rate': f"{r_res.get('cap_rate', 0)*100:.1f}%",
+                    'Base m²': f"${r_mkt.get('m2_base_venta', 0):,.0f}",
+                    'Dólar': f"${r_mkt.get('dolar_binance', 0):,.0f}",
+                    'Comps': r_mkt.get('n_comparables_venta', 0),
+                    'Motivo': razones_legibles.get(r_razon, r_razon)
+                })
+
+            st.dataframe(pd.DataFrame(data_tabla), use_container_width=True, hide_index=True)
+
+            # Gráfico de evolución de valor
+            if len(historial) > 1:
+                try:
+                    import plotly.graph_objects as go
+
+                    fechas = []
+                    valores = []
+                    conservadores = []
+                    optimistas = []
+
+                    for reg in reversed(historial):
+                        try:
+                            fechas.append(datetime.fromisoformat(reg['timestamp']))
+                        except:
+                            continue
+                        r_res = reg.get('resultado', {})
+                        valores.append(r_res.get('valor_venta', 0))
+                        conservadores.append(r_res.get('valor_conservador', 0))
+                        optimistas.append(r_res.get('valor_optimista', 0))
+
+                    fig = go.Figure()
+                    fig.add_trace(go.Scatter(
+                        x=fechas, y=optimistas,
+                        fill=None, mode='lines',
+                        line_color='rgba(246,195,67,0.3)',
+                        name='Optimista'
+                    ))
+                    fig.add_trace(go.Scatter(
+                        x=fechas, y=conservadores,
+                        fill='tonexty', mode='lines',
+                        fillcolor='rgba(52,152,219,0.1)',
+                        line_color='rgba(52,152,219,0.3)',
+                        name='Conservador'
+                    ))
+                    fig.add_trace(go.Scatter(
+                        x=fechas, y=valores,
+                        mode='lines+markers',
+                        line=dict(color='#2ecc71', width=2),
+                        marker=dict(size=8),
+                        name='Valor Mercado'
+                    ))
+                    fig.update_layout(
+                        title=f"Evolución del valor — {nombre}",
+                        yaxis_title="USD",
+                        xaxis_title="Fecha",
+                        height=350,
+                        showlegend=True,
+                        margin=dict(l=0, r=0, t=40, b=0)
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
+                except Exception as e:
+                    st.error(f"Error generando gráfico: {e}")
+
+            # Comparador de dos fechas
+            if len(historial) >= 2:
+                st.markdown("**Comparar dos valuaciones:**")
+                col1, col2 = st.columns(2)
+
+                ids = [r['id'] for r in historial]
+                fechas_labels = []
+                for r in historial:
+                    try:
+                        f = datetime.fromisoformat(r['timestamp']).strftime("%d/%m %H:%M")
+                    except:
+                        f = r['timestamp'][:16]
+                    fechas_labels.append(f"{f} — {r.get('razon_recalculo', '')}")
+
+                with col1:
+                    idx1 = st.selectbox("Primera valuación", range(len(historial)),
+                                        format_func=lambda i: fechas_labels[i],
+                                        key=f"comp1_{nombre}")
+                with col2:
+                    idx2 = st.selectbox("Segunda valuación", range(len(historial)),
+                                        index=min(1, len(historial)-1),
+                                        format_func=lambda i: fechas_labels[i],
+                                        key=f"comp2_{nombre}")
+
+                if idx1 != idx2:
+                    diff = comparar_valuaciones(nombre, ids[idx1], ids[idx2])
+                    if diff.get('diferencias'):
+                        st.markdown("**Diferencias:**")
+                        for campo, vals in diff['diferencias'].items():
+                            var = vals['variacion']
+                            pct = vals['pct']
+                            emoji = "📈" if var > 0 else "📉"
+                            st.write(f"{emoji} **{campo.replace('_', ' ').capitalize()}:** "
+                                     f"${vals['antes']:,.0f} → ${vals['despues']:,.0f} "
+                                     f"({pct:+.1f}%)")
+
 # --- MAIN APP ---
 def main():
     if 'page' not in st.session_state: st.session_state.page = "Splash"
@@ -263,8 +397,35 @@ def main():
         
         st.markdown("---")
         datos = cargar_datos()
-        meses = sorted(datos.get('meses', {}).keys(), reverse=True) or ["2026-05"]
-        mes_sel = st.selectbox("PERÍODO", meses)
+        # Derivar fecha automáticamente del último scraping
+        import os
+        from datetime import datetime
+        cache_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache_scraping.json")
+        if os.path.exists(cache_file):
+            import json
+            with open(cache_file, 'r', encoding='utf-8') as f:
+                cache_data = json.load(f)
+            fecha_cache = cache_data.get('fecha', datetime.now().strftime('%Y-%m'))
+            st.caption(f"📅 Datos de mercado: {fecha_cache}")
+        else:
+            fecha_cache = datetime.now().strftime('%Y-%m')
+        
+        # Usar la fecha del cache como referencia (ya no es un selectbox)
+        mes_sel = fecha_cache
+        
+        st.markdown("---")
+        with st.expander("🗄️ Historial de Scrapings"):
+            from parsers.valuacion_historial import listar_snapshots_scraping
+            snapshots = listar_snapshots_scraping()
+
+            if not snapshots:
+                st.info("Sin snapshots guardados aún.")
+            else:
+                st.caption(f"{len(snapshots)} scrapings archivados")
+                for s in snapshots[:10]:
+                    st.text(f"📦 {s['fecha']} — {s['tamanio_kb']} KB")
+                if len(snapshots) > 10:
+                    st.caption(f"... y {len(snapshots) - 10} más")
         
         st.markdown("<br><br><br>", unsafe_allow_html=True)
         st.markdown('<p style="color:rgba(255,255,255,0.3);font-size:10px;text-align:center;">v2.5 · Powered by VPP Engine</p>', unsafe_allow_html=True)
