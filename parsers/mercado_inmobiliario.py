@@ -2673,6 +2673,11 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         'resolution_metadata': resolution_metadata,
         'comparables_venta': comparables_venta,
     }
+    
+    # Agregar razonamiento al resultado
+    resultado['razonamiento'] = generar_razonamiento_valuacion(propiedad, resultado, resolution_metadata)
+    
+    return resultado
 
 
 def calcular_cap_rate_local(lat_ref, lon_ref, dormitorios=2, tipo_inmueble='departamento', fecha_ref='2026-04'):
@@ -2812,3 +2817,202 @@ def calcular_cap_rate_fallback(zona_normalizada=None):
         'confianza': 'BAJA',
         'es_fallback': True
     }
+
+
+def generar_razonamiento_valuacion(prop, resultado, meta):
+    """
+    Genera un texto narrativo profesional que justifica la valuacion.
+    Inspirado en informes de tasacion del Appraisal Institute.
+    """
+    nombre = prop.get('nombre', 'La propiedad')
+    zona = prop.get('zona', '')
+    tipo = prop.get('tipo_inmueble', 'departamento')
+    m2_equiv = resultado.get('m2_equivalentes', 0)
+    m2_cub = prop.get('m2_cubiertos', 0)
+    dorms = prop.get('dormitorios', 0)
+    anio = prop.get('anio_construccion', 0)
+    estado = prop.get('estado_detalle', 'bueno')
+    ventilacion = prop.get('ventilacion', 'simple')
+    piso = prop.get('piso', 0)
+    total_pisos = prop.get('total_pisos', 0)
+    
+    valor_usd = resultado.get('valor_propiedad_usd', 0)
+    m2_base = resultado.get('m2_base_venta', 0)
+    n_comps = meta.get('n_propiedades', 0)
+    radio = meta.get('radio_usado', 300)
+    cap_rate = resultado.get('cap_rate', 0)
+    alq_ars = resultado.get('alquiler_estimado_ars', 0)
+    
+    factor_total = resultado.get('factor_total', 1.0)
+    delta_anti = resultado.get('delta_anti', 1.0)
+    nlp = resultado.get('nlp_ajuste', 0)
+    
+    vc = resultado.get('valor_venta_conservador', 0)
+    vo = resultado.get('valor_venta_optimista', 0)
+    spread = resultado.get('rango_venta', {}).get('spread_pct', 0)
+    
+    precio_compra = prop.get('valor_compra_usd', 0)
+    fecha_compra = prop.get('fecha_compra', '')
+    
+    antiguedad = (2026 - anio) if anio else 0
+    
+    lineas = []
+    
+    # PARRAFO 1: Identificacion y contexto
+    if dorms <= 1:
+        tipo_texto = "un departamento de 1 dormitorio"
+    else:
+        tipo_texto = f"un departamento de {dorms} dormitorios"
+    
+    if piso == 0:
+        piso_texto = "en planta baja"
+    elif piso >= total_pisos * 0.75 and total_pisos > 3:
+        piso_texto = f"en un piso alto ({piso} de {total_pisos})"
+    else:
+        piso_texto = f"en el piso {piso} de {total_pisos}"
+    
+    lineas.append(
+        f"**{nombre}** es {tipo_texto} ubicado en **{zona}**, Rosario, {piso_texto}. "
+        f"Con {m2_cub:.0f} m2 cubiertos ({m2_equiv:.0f} m2 equivalentes ponderados), "
+        f"fue construido en {anio} y tiene una antiguedad de {antiguedad} anos."
+    )
+    
+    # PARRAFO 2: Base de mercado y comparables
+    if n_comps >= 30:
+        mercado_texto = (
+            f"El analisis se basa en **{n_comps} propiedades comparables** "
+            f"publicadas en un radio de {radio}m, lo que constituye una muestra "
+            f"estadisticamente robusta. "
+        )
+    elif n_comps >= 15:
+        mercado_texto = (
+            f"Se identificaron **{n_comps} propiedades comparables** "
+            f"en un radio de {radio}m, una muestra adecuada para la zona. "
+        )
+    elif n_comps >= 8:
+        mercado_texto = (
+            f"Se encontraron **{n_comps} propiedades comparables** "
+            f"en un radio de {radio}m. Si bien la muestra es moderada, "
+            f"permite una estimacion razonable. "
+        )
+    else:
+        mercado_texto = (
+            f"Solo se identificaron **{n_comps} propiedades comparables** "
+            f"en un radio de {radio}m, lo que genera mayor incertidumbre "
+            f"en la estimacion. "
+        )
+    
+    mercado_texto += (
+        f"El precio base de mercado en {zona} es de **${m2_base:,.0f} USD/m2** "
+        f"(percentil 33 del cluster), lo que refleja una base conservadora "
+        f"que evita sobrevaluar por la presencia de edificios premium recientes."
+    )
+    
+    lineas.append(mercado_texto)
+    
+    # PARRAFO 3: Factores positivos y negativos
+    positivos = []
+    negativos = []
+    
+    if estado in ['excelente', 'a_estrenar', 'muy_bueno']:
+        positivos.append("su excelente estado de conservacion")
+    
+    if ventilacion == 'cruzada':
+        positivos.append("ventilacion cruzada (muy valorada en Rosario)")
+    
+    if piso >= total_pisos * 0.75 and total_pisos > 3:
+        positivos.append(f"su ubicacion en piso alto ({piso} de {total_pisos})")
+    
+    m2_desc = prop.get('m2_descubiertos_comun_exclusivo', 0) or prop.get('m2_descubiertos_propios', 0) or 0
+    if piso == 0 and m2_desc >= 10:
+        positivos.append(f"un patio de {m2_desc:.0f} m2 que funciona como extension del living")
+    
+    balcon = prop.get('tipo_balcon', 'ninguno')
+    if balcon and str(balcon).lower() not in ['ninguno', 'no', '']:
+        positivos.append(f"balcon {balcon}")
+    
+    if antiguedad > 40:
+        negativos.append(f"una antiguedad considerable ({antiguedad} anos) que genera depreciacion significativa")
+    elif antiguedad > 25:
+        negativos.append(f"una antiguedad de {antiguedad} anos que impacta moderadamente en su valor")
+    
+    if ventilacion == 'simple':
+        negativos.append("ventilacion simple (no cruzada)")
+    
+    if positivos and negativos:
+        factores_texto = (
+            f"Entre los atributos que **agregan valor** se destacan: "
+            f"{', '.join(positivos[:-1])}"
+            f"{' y ' + positivos[-1] if len(positivos) > 1 else positivos[0]}. "
+            f"Por otro lado, los factores que moderan el precio incluyen "
+            f"{', '.join(negativos[:-1])}"
+            f"{' y ' + negativos[-1] if len(negativos) > 1 else negativos[0]}."
+        )
+    elif positivos:
+        factores_texto = (
+            f"La propiedad se beneficia de: "
+            f"{', '.join(positivos[:-1])}"
+            f"{' y ' + positivos[-1] if len(positivos) > 1 else positivos[0]}. "
+            f"No se identificaron factores negativos significativos."
+        )
+    elif negativos:
+        factores_texto = (
+            f"Los factores que moderan el precio incluyen: "
+            f"{', '.join(negativos[:-1])}"
+            f"{' y ' + negativos[-1] if len(negativos) > 1 else negativos[0]}."
+        )
+    else:
+        factores_texto = "La propiedad presenta caracteristicas estandar para la zona."
+    
+    lineas.append(factores_texto)
+    
+    # PARRAFO 4: Valor y rango
+    if spread < 10:
+        certeza_texto = "con alta certeza"
+    elif spread < 15:
+        certeza_texto = "con certeza moderada"
+    else:
+        certeza_texto = "con incertidumbre significativa dado lo heterogeneo de la zona"
+    
+    lineas.append(
+        f"Considerando todos estos factores, el valor de publicacion estimado es de "
+        f"**${valor_usd:,.0f} USD** ({certeza_texto}). "
+        f"El rango de mercado se situa entre "
+        f"**${vc:,.0f} USD** (escenario conservador, venta rapida) y "
+        f"**${vo:,.0f} USD** (escenario optimista, mercado activo), "
+        f"con un spread del {spread:.1f}%."
+    )
+    
+    # PARRAFO 5: Rendimiento
+    dolar = resultado.get('usdt_ars', 1480)
+    alq_usd = alq_ars / dolar if dolar else 0
+    es_fallback = resultado.get('es_fallback_alquiler', False)
+    
+    if cap_rate > 0:
+        if cap_rate >= 0.055:
+            renta_texto = "un rendimiento atractivo para inversores"
+        elif cap_rate >= 0.045:
+            renta_texto = "un rendimiento alineado con el promedio de Rosario"
+        else:
+            renta_texto = "un rendimiento moderado"
+        
+        lineas.append(
+            f"En terminos de renta, la propiedad genera un alquiler estimado de "
+            f"**${alq_ars:,.0f} ARS/mes** (${alq_usd:,.0f} USD/mes), "
+            f"lo que representa un Cap Rate Neto del **{cap_rate*100:.1f}%** anual, "
+            f"{renta_texto}."
+        )
+    
+    # PARRAFO 6: Plusvalia
+    if precio_compra and precio_compra > 0 and fecha_compra:
+        ganancia = valor_usd - precio_compra
+        pct_ganancia = (ganancia / precio_compra) * 100
+        
+        if ganancia > 0:
+            lineas.append(
+                f"Desde su adquisicion en {fecha_compra} por **${precio_compra:,.0f} USD**, "
+                f"la propiedad sumo una plusvalia de **${ganancia:,.0f} USD ({pct_ganancia:+.0f}%)** "
+                f"en dolares, reflejando la evolucion del mercado inmobiliario de {zona}."
+            )
+    
+    return "\n\n".join(lineas)
