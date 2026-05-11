@@ -90,13 +90,15 @@ def mostrar_dashboard_valu(propiedades, resultados):
                 cache_fecha = f"📅 {fecha}"
         
         with cols[i % 3]:
+            alq_r = res.get('alquiler_rango', {})
             st.markdown(property_card(
                 nombre, prop.get('zona', 'Oeste'), res.get('m2_equivalentes', 0),
                 prop.get('dormitorios', 0), prop.get('tipo_inmueble', 'Depto'),
                 res.get('valor_propiedad_usd', 0), res.get('cap_rate', 0),
                 res.get('alquiler_estimado_ars', 0), 
                 res.get('resolution_metadata', {}).get('n_propiedades', 0),
-                cache_info=cache_fecha
+                cache_info=cache_fecha,
+                alq_min=alq_r.get('min', 0), alq_max=alq_r.get('max', 0)
             ), unsafe_allow_html=True)
             if st.button(f"Ver detalle de {nombre} →", key=f"btn_{nombre}", width='stretch'):
                 st.session_state.prop_sel = nombre
@@ -189,8 +191,16 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     # METRICAS
     m1, m2, m3 = st.columns(3)
     alq_ars = res.get('alquiler_estimado_ars', 0)
+    alq_r = res.get('alquiler_rango', {})
+    alq_min, alq_max = alq_r.get('min', 0), alq_r.get('max', 0)
     cap = res.get('cap_rate', 0)
-    with m1: st.markdown(metric_card("💰", "Alquiler Estimado", f"${alq_ars:,.0f} ARS", f"${alq_ars/dolar:,.0f} USD/mes"), unsafe_allow_html=True)
+    
+    if alq_min > 0 and alq_max > 0:
+        val_alq = f"${alq_min:,.0f} - ${alq_max:,.0f}"
+    else:
+        val_alq = f"${alq_ars:,.0f}"
+
+    with m1: st.markdown(metric_card("💰", "Alquiler Estimado", f"{val_alq} ARS", f"${alq_ars/dolar:,.0f} USD/mes promedio"), unsafe_allow_html=True)
     with m2: st.markdown(metric_card("📈", "Cap Rate Neto", f"{cap*100:.1f}% anual", f"Cierre est: ${valor_usd*0.92:,.0f} USD", border_color="#16A34A"), unsafe_allow_html=True)
     
     valor_compra = prop.get('valor_compra_usd', 0)
@@ -226,6 +236,18 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
             arguments.append(f"Ajuste por descripcion cualitativa (NLP): {nlp*100:+.1f}%.")
         
         st.markdown(insights_card(f"Analisis de Valor para {nombre}", arguments), unsafe_allow_html=True)
+
+    # === MAPA CON COMPARABLES (HTML cacheado - sin recalcular) ===
+    st.markdown("---")
+    mapa_html = res.get('mapa_html', '')
+    if mapa_html:
+        import streamlit.components.v1 as components
+        # Envolvemos en un contenedor con altura fija
+        components.html(mapa_html, height=350)
+        radio = res.get('resolution_metadata', {}).get('radio_usado', 300)
+        st.caption(f"🗺️ Radio: {radio}m · {n_comps} comparables de venta")
+    else:
+        st.caption("🗺️ Mapa no disponible")
 
 # --- MAIN APP ---
 def main():

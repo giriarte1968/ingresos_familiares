@@ -2617,6 +2617,13 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     rango_min = valor_venta * 0.90
     rango_max = valor_venta * 1.10
     
+    # Generar HTML del mapa (para caching)
+    mapa_html = _generar_html_mapa(prop, {
+        'resolution_metadata': resolution_metadata,
+        'comparables_venta': comparables_venta,
+        'valor_propiedad_usd': valor_venta,
+    })
+    
     # Generar razonamiento narrativo profesional
     try:
         razonamiento = generar_razonamiento_valuacion(prop, {
@@ -2690,6 +2697,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         'serie_mensual_m2': [],
         'resolution_metadata': resolution_metadata,
         'comparables_venta': comparables_venta,
+        'mapa_html': mapa_html,
         'razonamiento': razonamiento,
     }
 
@@ -2831,6 +2839,51 @@ def calcular_cap_rate_fallback(zona_normalizada=None):
         'confianza': 'BAJA',
         'es_fallback': True
     }
+
+
+def _generar_html_mapa(prop, resultado):
+    """Genera HTML del mapa UNA sola vez para caching."""
+    try:
+        import folium
+        lat = prop.get('lat')
+        lon = prop.get('lon')
+        if not lat or not lon:
+            return None
+        
+        radio = resultado.get('resolution_metadata', {}).get('radio_usado', 300)
+        comparables = resultado.get('comparables_venta', [])
+        valor = resultado.get('valor_propiedad_usd', 0)
+        
+        m = folium.Map(location=[lat, lon], zoom_start=15, tiles='cartodbpositron')
+        
+        folium.Marker(
+            [lat, lon],
+            popup=f"📍 Propiedad - ${valor:,.0f}",
+            icon=folium.Icon(color='red', icon='home')
+        ).add_to(m)
+        
+        folium.Circle(
+            [lat, lon],
+            radius=radio,
+            color='gray',
+            fill=False,
+            dash_array='5'
+        ).add_to(m)
+        
+        for comp in comparables:
+            if comp.get('lat') and comp.get('lon'):
+                folium.CircleMarker(
+                    [comp['lat'], comp['lon']],
+                    radius=4,
+                    color='blue',
+                    fill=True,
+                    fill_opacity=0.6,
+                    popup=f"${comp.get('precio_m2', 0):,.0f}/m²"
+                ).add_to(m)
+        
+        return m._repr_html_()
+    except Exception as e:
+        return None
 
 
 def generar_razonamiento_valuacion(prop, resultado, meta):
