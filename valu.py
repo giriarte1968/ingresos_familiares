@@ -303,7 +303,15 @@ def main():
             
             if st.session_state.prop_sel:
                 p_obj = next(p for p in propiedades if p['nombre'] == st.session_state.prop_sel)
-                mostrar_detalle_valu(p_obj, resultados[p_obj['nombre']], lambda d: st.info("Guardado demo"))
+                # Función para actualizar solo esta propiedad
+                def actualizar_propiedad(nueva_data):
+                    props = cargar_propiedades()
+                    for i, p in enumerate(props):
+                        if p.get('id') == p_obj.get('id'):
+                            props[i] = nueva_data
+                            break
+                    guardar_propiedades(props)
+                mostrar_detalle_valu(p_obj, resultados[p_obj['nombre']], actualizar_propiedad)
             else:
                 mostrar_dashboard_valu(propiedades, resultados)
 
