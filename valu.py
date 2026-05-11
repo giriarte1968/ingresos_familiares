@@ -86,7 +86,7 @@ def mostrar_dashboard_valu(propiedades, resultados):
                 res.get('alquiler_estimado_ars', 0), 
                 res.get('resolution_metadata', {}).get('n_propiedades', 0)
             ), unsafe_allow_html=True)
-            if st.button(f"Ver detalle de {nombre} →", key=f"btn_{nombre}", use_container_width=True):
+            if st.button(f"Ver detalle de {nombre} →", key=f"btn_{nombre}", width='stretch'):
                 st.session_state.prop_sel = nombre
                 st.rerun()
 
@@ -97,7 +97,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
             st.session_state.prop_sel = None
             st.rerun()
     with col_edit:
-        if st.button("✏️ Editar Propiedad", use_container_width=True):
+        if st.button("✏️ Editar Propiedad", width='stretch'):
             st.session_state[f"edit_{prop['id']}"] = True
 
     if st.session_state.get(f"edit_{prop['id']}", False):
@@ -261,7 +261,7 @@ def main():
             
             df_display = df[list(display_cols.keys())].rename(columns=display_cols)
             
-            st.dataframe(df_display, use_container_width=True, hide_index=True)
+            st.dataframe(df_display, width='stretch', hide_index=True)
             
             st.caption("💡 Puedes editar la fecha de publicación desde el detalle de cada propiedad o en el menú de Configuración.")
 
