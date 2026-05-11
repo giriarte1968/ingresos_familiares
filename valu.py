@@ -78,24 +78,61 @@ def mostrar_dashboard_valu(propiedades, resultados):
     for i, prop in enumerate(propiedades):
         nombre = prop.get('nombre', '')
         res = resultados.get(nombre, {})
+        cache_info = res.get('_cache', {})
+        
+        # Get cache date for display
+        cache_fecha = ''
+        if cache_info.get('recalculado'):
+            cache_fecha = '🆕'
+        else:
+            fecha = cache_info.get('fecha_calculo', '')
+            if fecha:
+                cache_fecha = f"📅 {fecha}"
+        
         with cols[i % 3]:
             st.markdown(property_card(
                 nombre, prop.get('zona', 'Oeste'), res.get('m2_equivalentes', 0),
                 prop.get('dormitorios', 0), prop.get('tipo_inmueble', 'Depto'),
                 res.get('valor_propiedad_usd', 0), res.get('cap_rate', 0),
                 res.get('alquiler_estimado_ars', 0), 
-                res.get('resolution_metadata', {}).get('n_propiedades', 0)
+                res.get('resolution_metadata', {}).get('n_propiedades', 0),
+                cache_info=cache_fecha
             ), unsafe_allow_html=True)
             if st.button(f"Ver detalle de {nombre} →", key=f"btn_{nombre}", width='stretch'):
                 st.session_state.prop_sel = nombre
                 st.rerun()
 
 def mostrar_detalle_valu(prop, res, guardar_fn):
-    col_back, col_edit = st.columns([5, 1])
+    # Cache indicator and recalculate button
+    cache_info = res.get('_cache', {})
+    col_cache, col_back, col_recalc, col_edit = st.columns([2, 3, 1, 1])
+    
+    with col_cache:
+        if cache_info.get('recalculado'):
+            razon = cache_info.get('razon', '')
+            razones_texto = {
+                'primera_vez': 'calculado por primera vez',
+                'propiedad_modificada': 'recalculado por cambio en datos',
+                'scraping_actualizado': 'recalculado por nuevo scraping',
+                'ttl_expirado': 'recalculado (24h expiradas)',
+                'forzado_por_usuario': 'recalculado manualmente'
+            }
+            st.success(f"✅ {razones_texto.get(razon, razon)}")
+        else:
+            fecha_calc = cache_info.get('fecha_calculo', '?')
+            st.caption(f"📅 Valuación del {fecha_calc} · Desde caché")
+    
     with col_back:
         if st.button("← Volver al Portfolio"):
             st.session_state.prop_sel = None
             st.rerun()
+    
+    with col_recalc:
+        nombre = prop.get('nombre', '')
+        if st.button("🔄", key=f"recalc_{nombre}", help="Forzar recálculo"):
+            st.session_state[f'forzar_recalculo_{nombre}'] = True
+            st.rerun()
+    
     with col_edit:
         if st.button("✏️ Editar Propiedad", width='stretch'):
             st.session_state[f"edit_{prop['id']}"] = True
@@ -221,11 +258,26 @@ def main():
         if not propiedades:
             st.info("No hay propiedades registradas. Agregá una en Configuración.")
         else:
-            from parsers.mercado_inmobiliario import valuar_propiedad_v7
+            from parsers.motor_vpp_core import valuar_con_cache
+            
+            # Botón global para recalcular todo
+            col_global, _ = st.columns([1, 4])
+            with col_global:
+                if st.button("🔄 Recalcular todo", help="Recalcula todas las propiedades ignorando el caché"):
+                    st.session_state['forzar_recalculo_global'] = True
+                    st.rerun()
+            
             resultados = {}
+            forzar_global = st.session_state.get('forzar_recalculo_global', False)
+            if forzar_global:
+                st.session_state['forzar_recalculo_global'] = False
+            
             with st.spinner("Valuando portfolio..."):
                 for p in propiedades:
-                    resultados[p['nombre']] = valuar_propiedad_v7(p, fecha_ref=mes_sel)
+                    forzar = forzar_global or st.session_state.get(f'forzar_recalculo_{p.get("nombre", "")}', False)
+                    if forzar:
+                        st.session_state[f'forzar_recalculo_{p.get("nombre", "")}'] = False
+                    resultados[p['nombre']] = valuar_con_cache(p, fecha_ref=mes_sel, forzar_recalculo=forzar)
             
             if st.session_state.prop_sel:
                 p_obj = next(p for p in propiedades if p['nombre'] == st.session_state.prop_sel)

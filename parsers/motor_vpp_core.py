@@ -1,5 +1,8 @@
 import requests
+import logging
 from bs4 import BeautifulSoup
+
+logger = logging.getLogger('valuacion_cache')
 import re
 import math
 import json
@@ -1278,3 +1281,64 @@ def actualizar_mercado_vpp_full():
         traceback.print_exc()
         return False
         return False
+
+
+# --- VALUACIÓN CON CACHÉ ---
+
+def valuar_con_cache(prop: dict,
+                     fecha_ref: str = None,
+                     forzar_recalculo: bool = False) -> dict:
+    """
+    Wrapper de valuación con caché persistente.
+    Solo recalcula si es necesario o se fuerza.
+    """
+    try:
+        from parsers.valuacion_cache import (
+            cargar_cache_valuaciones, guardar_cache_valuaciones,
+            necesita_recalcular, guardar_resultado,
+            obtener_resultado_cacheado, obtener_metadata_cache
+        )
+        from parsers.mercado_inmobiliario import valuar_propiedad_v7
+        from datetime import datetime
+    except ImportError as e:
+        logger.error(f"Error importando módulos de caché: {e}")
+        return valuar_propiedad_v7(prop, fecha_ref=fecha_ref)
+    
+    nombre = prop.get('nombre', prop.get('direccion', 'sin_nombre'))
+    cache = cargar_cache_valuaciones()
+
+    recalcular, razon = necesita_recalcular(nombre, prop, cache)
+
+    if forzar_recalculo:
+        recalcular = True
+        razon = "forzado_por_usuario"
+
+    if recalcular:
+        logger.info(f"[CACHE] {nombre}: recalculando ({razon})")
+        try:
+            resultado = valuar_propiedad_v7(prop, fecha_ref=fecha_ref)
+        except Exception as e:
+            logger.error(f"Error en valuar_propiedad_v7: {e}")
+            resultado = {'error': str(e), 'valor_propiedad_usd': 0}
+
+        resultado['_cache'] = {
+            'recalculado': True,
+            'razon': razon,
+            'timestamp': datetime.now().isoformat()
+        }
+
+        guardar_resultado(nombre, prop, resultado, cache)
+        guardar_cache_valuaciones(cache)
+    else:
+        resultado = obtener_resultado_cacheado(nombre, cache)
+        meta_cache = obtener_metadata_cache(nombre, cache)
+
+        resultado['_cache'] = {
+            'recalculado': False,
+            'razon': 'cache_valido',
+            'fecha_calculo': meta_cache.get('fecha', '?'),
+            'timestamp': meta_cache.get('timestamp', '')
+        }
+        logger.info(f"[CACHE] {nombre}: usando caché del {meta_cache.get('fecha', '?')}")
+
+    return resultado
