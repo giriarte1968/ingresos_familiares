@@ -44,10 +44,16 @@ def kpi_card(icon, title, value, subtitle, border_color="#006AFF"):
     </div>
     """
 
-def property_card(nombre, zona, m2, dorms, tipo, valor_usd, cap_rate, alq_ars, n_comps, cache_info=''):
+def property_card(nombre, zona, m2, dorms, tipo, valor_usd, cap_rate, alq_ars, n_comps, alq_min=0, alq_max=0, cache_info=''):
     tipo_color = "#006AFF" if "depart" in tipo.lower() else "#0D9488" if "casa" in tipo.lower() else "#7C3AED"
     dot_color = "#16A34A" if n_comps >= 15 else "#F59E0B" if n_comps >= 8 else "#DC2626"
     cache_line = f'<div style="color:#006AFF;font-size:11px;margin-bottom:8px;">{cache_info}</div>' if cache_info else ''
+    
+    if alq_min > 0 and alq_max > 0:
+        alq_text = f"${alq_min:,.0f} - ${alq_max:,.0f}"
+    else:
+        alq_text = f"${alq_ars:,.0f}"
+
     return f"""
     <div style="background:white;border-radius:16px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.07);border:1px solid #F0F0F5;font-family:'Inter',sans-serif;height:100%;transition:all 0.2s ease;">
         {cache_line}
@@ -61,7 +67,7 @@ def property_card(nombre, zona, m2, dorms, tipo, valor_usd, cap_rate, alq_ars, n
         </div>
         <div style="color:#9CA3AF;font-size:12px;margin-bottom:16px;">{zona} · {m2:.0f}m² · {dorms}D</div>
         <div style="color:#1A2B5C;font-size:24px;font-weight:700;margin-bottom:4px;">${valor_usd:,.0f} <span style="font-size:14px;font-weight:500;">USD</span></div>
-        <div style="color:#9CA3AF;font-size:12px;margin-bottom:16px;">Cap Rate: {cap_rate*100:.1f}% · Alq: ${alq_ars:,.0f} ARS</div>
+        <div style="color:#9CA3AF;font-size:12px;margin-bottom:16px;">Cap Rate: {cap_rate*100:.1f}% · Alq: {alq_text} ARS</div>
         <div style="height:1px;background:#F0F0F5;"></div>
     </div>
     """
@@ -113,6 +119,18 @@ def range_bar(v_cons, v_opt, spread):
         </div>
     </div>
     """
+
+def form_section(title, color="#006AFF", icon="📍"):
+    """Genera el HTML de apertura para una sección de formulario con estilo tarjeta."""
+    return f"""
+    <div style="background:white;border-radius:16px;padding:20px;margin:12px 0;border-left:4px solid {color};box-shadow:0 4px 12px rgba(0,0,0,0.08);font-family:'Inter',sans-serif;">
+        <div style="color:{color};font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;">{icon} {title}</div>
+    """
+
+def form_section_close():
+    """Cierra la sección del formulario."""
+    return "</div>"
+
 
 LANDING_HTML = """
 <div style="text-align:center;padding:60px 20px;font-family:'Inter',sans-serif;">
