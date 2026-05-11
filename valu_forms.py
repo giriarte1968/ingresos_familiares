@@ -7,28 +7,42 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
     """Función unificada para el formulario de propiedades v9.5"""
     if prop_inicial is None:
         prop_inicial = {}
+    
+    errores = []
+    
     st.caption("Datos básicos")
     col1, col2 = st.columns(2)
     with col1:
-        nombre = st.text_input("Nombre de la propiedad", value=prop_inicial.get('nombre', ''), key=f"nombre_{key_suffix}")
+        nombre = st.text_input("Nombre *", value=prop_inicial.get('nombre', ''), key=f"nombre_{key_suffix}")
+        if not nombre or not nombre.strip():
+            errores.append("El nombre es obligatorio")
+        
         tipos = ["departamento", "casa", "local", "oficina", "terreno"]
-        tipo = st.selectbox("Tipo", tipos, index=tipos.index(prop_inicial.get('tipo_inmueble', 'departamento')) if prop_inicial.get('tipo_inmueble') in tipos else 0, key=f"tipo_{key_suffix}")
+        tipo = st.selectbox("Tipo *", tipos, index=tipos.index(prop_inicial.get('tipo_inmueble', 'departamento')) if prop_inicial.get('tipo_inmueble') in tipos else 0, key=f"tipo_{key_suffix}")
+        
         zonas = ["Centro", "Macrocentro", "Barrio Inglés", "Pichincha", "Abasto", "Martin", "Facultades", "Puerto Norte", "Barrio Tigre", "Rosario Norte", "Alvear", "San Martín", "General Paz", "Echesortu", "Fisherton", "Ruta 9", "Sur", "Norte", "Oeste", "Sexta Pellegrini", "República de la Sexta", "Otro"]
-        zona = st.selectbox("Zona / Barrio", zonas, index=zonas.index(prop_inicial.get('zona', 'Otro')) if prop_inicial.get('zona') in zonas else len(zonas)-1, key=f"zona_{key_suffix}")
+        zona = st.selectbox("Zona / Barrio *", zonas, index=zonas.index(prop_inicial.get('zona', 'Otro')) if prop_inicial.get('zona') in zonas else len(zonas)-1, key=f"zona_{key_suffix}")
+        
         direccion = st.text_input("Dirección *", value=prop_inicial.get('direccion', ''), key=f"direccion_{key_suffix}")
-    if not direccion or not direccion.strip():
-        st.error("La dirección es obligatoria para continuar.")
-        st.stop()
-        lat_input = st.number_input("Latitud", value=prop_inicial.get('lat', -32.9445), format="%.7f", key=f"lat_{key_suffix}")
-        lon_input = st.number_input("Longitud", value=prop_inicial.get('lon', -60.6319), format="%.7f", key=f"lon_{key_suffix}")
+        if not direccion or not direccion.strip():
+            errores.append("La dirección es obligatoria")
+        
+        lat_input = st.number_input("Latitud *", value=prop_inicial.get('lat', -32.9445), format="%.7f", key=f"lat_{key_suffix}")
+        lon_input = st.number_input("Longitud *", value=prop_inicial.get('lon', -60.6319), format="%.7f", key=f"lon_{key_suffix}")
         ub_tipos = ["calle", "avenida", "esquina", "pasaje"]
         ubicacion_tipo = st.selectbox("Tipo de Ubicación", ub_tipos, index=ub_tipos.index(prop_inicial.get('ubicacion_tipo', 'calle')) if prop_inicial.get('ubicacion_tipo') in ub_tipos else 0, key=f"ubica_tipo_{key_suffix}")
     with col2:
-        dormitorios = st.number_input("Dormitorios", min_value=0, max_value=10, value=int(prop_inicial.get('dormitorios', 0) or 0), key=f"dorm_{key_suffix}")
+        dormitorios = st.number_input("Dormitorios *", min_value=0, max_value=10, value=int(prop_inicial.get('dormitorios', 0) or 0), key=f"dorm_{key_suffix}")
+        if dormitorios is None or dormitorios < 0:
+            errores.append("Los dormitorios son obligatorios")
+        
         baños = st.number_input("Baños", min_value=0, max_value=10, value=int(prop_inicial.get('baños', 0) or 0), key=f"baños_{key_suffix}")
         toilet = st.checkbox("Toilette", value=prop_inicial.get('toilet', False), key=f"toilet_{key_suffix}")
         baño_servicio = st.checkbox("Baño de servicio", value=prop_inicial.get('baño_servicio', False), key=f"baño_serv_{key_suffix}")
-        anio_const = st.number_input("Año construcción", min_value=1900, max_value=2026, value=int(prop_inicial.get('anio_construccion', 2000) or 2000), key=f"anio_const_{key_suffix}")
+        
+        anio_const = st.number_input("Año construcción *", min_value=1900, max_value=2026, value=int(prop_inicial.get('anio_construccion', 2000) or 2000), key=f"anio_const_{key_suffix}")
+        if not anio_const or anio_const < 1900:
+            errores.append("El año de construcción es obligatorio")
         import json, os
         try:
             with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "constructoras_rosario.json"), "r", encoding="utf-8") as f:
@@ -47,8 +61,8 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
     st.caption("Estructura y Altura")
     cp1, cp2 = st.columns(2)
     with cp1:
-        piso = st.number_input("Piso", min_value=0, max_value=50, value=int(prop_inicial.get('piso', 0) or 0), key=f"piso_{key_suffix}")
-        total_pisos = st.number_input("Total pisos edificio", min_value=1, max_value=60, value=int(prop_inicial.get('total_pisos', 1) or 1), key=f"total_p_{key_suffix}")
+        piso = st.number_input("Piso *", min_value=0, max_value=50, value=int(prop_inicial.get('piso', 0) or 0), key=f"piso_{key_suffix}")
+        total_pisos = st.number_input("Total pisos edificio *", min_value=1, max_value=60, value=int(prop_inicial.get('total_pisos', 1) or 1), key=f"total_p_{key_suffix}")
     with cp2:
         vistas = ["interna", "pulmon", "frente", "despejada", "rio"]
         vista = st.selectbox("Vista", vistas, index=vistas.index(prop_inicial.get('vista', 'frente')) if prop_inicial.get('vista') in vistas else 2, key=f"vista_{key_suffix}")
@@ -58,7 +72,9 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
     st.caption("Superficies")
     cs1, cs2, cs3, cs4 = st.columns(4)
     with cs1:
-        m2_cubiertos = st.number_input("m² cubiertos", min_value=0.0, value=float(prop_inicial.get('m2_cubiertos', 0.0)), step=0.5, key=f"m2_cub_{key_suffix}")
+        m2_cubiertos = st.number_input("m² cubiertos *", min_value=0.0, value=float(prop_inicial.get('m2_cubiertos', 0.0)), step=0.5, key=f"m2_cub_{key_suffix}")
+        if not m2_cubiertos or m2_cubiertos <= 0:
+            errores.append("Los m² cubiertos son obligatorios")
     with cs2:
         m2_semi = st.number_input("m² semicub.", min_value=0.0, value=float(prop_inicial.get('m2_semicubiertos', 0.0)), key=f"m2_semi_{key_suffix}")
     with cs3:
@@ -77,7 +93,7 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
     c3, c4 = st.columns(2)
     with c3:
         estados = ["a estrenar", "excelente", "muy bueno", "bueno", "regular", "a refaccionar"]
-        estado_detalle = st.selectbox("Estado", estados, index=estados.index(prop_inicial.get('estado_detalle', 'bueno')) if prop_inicial.get('estado_detalle') in estados else 3, key=f"estado_{key_suffix}")
+        estado_detalle = st.selectbox("Estado *", estados, index=estados.index(prop_inicial.get('estado_detalle', 'bueno')) if prop_inicial.get('estado_detalle') in estados else 3, key=f"estado_{key_suffix}")
         tiene_reciclado = st.checkbox("Reciclada", value=prop_inicial.get('reciclado', False), key=f"reciclado_{key_suffix}")
         reciclado_tipo, anio_reciclado = "ninguno", None
         if tiene_reciclado:
@@ -145,3 +161,11 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
         'expensas_ars': expensas_ars,
         'id': prop_inicial.get('id', f"prop_{uuid.uuid4().hex[:8]}")
     }
+    
+    # Validar campos obligatorios
+    if errores:
+        for err in errores:
+            st.error(err)
+        st.stop()
+    
+    return data
