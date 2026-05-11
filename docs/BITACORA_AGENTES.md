@@ -4,6 +4,27 @@ Este documento es el "diario de trabajo". Cada agente de IA que trabaje en este 
 
 ---
 
+## 📅 2026-05-10 — RAZONAMIENTO NARRATIVO DE VALUACIÓN (Prompt 1)
+
+### Acciones realizadas:
+1. **Nueva función** `generar_razonamiento_valuacion()` en `parsers/mercado_inmobiliario.py`:
+   - 6 párrafos: identificación, mercado, factores +/-, valor, rental, plusvalía
+   - Lenguaje humano profesional (no técnico)
+   - Incluye nombre, zona, m², año, antigüedad, comparables, cap rate
+
+2. **Integración al motor**:
+   - El razonamiento se genera automáticamente en `valuar_propiedad_v7`
+   - Se agrega al return como `'razonamiento'`
+
+3. **Display en UI**:
+   - `valu.py` ahora muestra el narrativo en expander "📋 Informe de Valuación"
+   - Fallback al formato viejo si no existe el campo
+
+### Tests:
+- 19/19 regression tests passing
+
+---
+
 ## 📅 2026-05-09 — REDISEÑO UI A 2 NIVELES (Dashboard + Detalle)
 
 ### Acciones realizadas:
