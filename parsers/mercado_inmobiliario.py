@@ -2617,6 +2617,24 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     rango_min = valor_venta * 0.90
     rango_max = valor_venta * 1.10
     
+    # Generar razonamiento narrativo profesional
+    try:
+        razonamiento = generar_razonamiento_valuacion(prop, {
+            'valor_propiedad_usd': valor_venta,
+            'valor_venta': valor_venta,
+            'valor_venta_conservador': valor_venta_conservador,
+            'valor_venta_optimista': valor_venta_optimista,
+            'm2_equivalentes': m2_equiv,
+            'm2_base_venta': m2_base_venta,
+            'cap_rate': cap_rate,
+            'alquiler_estimado_ars': alquiler_mensual_ars,
+            'usdt_ars': usdt_ars,
+            'es_fallback_alquiler': es_fallback,
+            'rango_venta': {'spread_pct': spread_pct},
+        }, resolution_metadata)
+    except Exception as e:
+        razonamiento = f"Error generando razonamiento: {str(e)}"
+    
     return {
         'valor_propiedad_usd': round(valor_venta, 0),
         'valor_realizable_usd': round(valor_realizable, 0),
@@ -2672,12 +2690,8 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         'serie_mensual_m2': [],
         'resolution_metadata': resolution_metadata,
         'comparables_venta': comparables_venta,
+        'razonamiento': razonamiento,
     }
-    
-    # Agregar razonamiento al resultado
-    resultado['razonamiento'] = generar_razonamiento_valuacion(propiedad, resultado, resolution_metadata)
-    
-    return resultado
 
 
 def calcular_cap_rate_local(lat_ref, lon_ref, dormitorios=2, tipo_inmueble='departamento', fecha_ref='2026-04'):
