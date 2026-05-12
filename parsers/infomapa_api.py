@@ -18,7 +18,7 @@ from typing import Optional, Dict, List, Any
 
 logger = logging.getLogger(__name__)
 
-INFOMAPA_BASE = "https://infomapa.rosario.gov.ar"
+INFOMAPA_BASE = "https://mapa.rosario.gob.ar"
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
 CSV_PATH = os.path.join(DATA_DIR, 'rosario_avm_full.csv')
 
