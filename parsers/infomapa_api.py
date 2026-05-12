@@ -2,40 +2,138 @@
 Infomapa Rosario API - Integración con datos catastrales oficiales.
 
 Proporciona acceso a:
-- Profesionales (Arquitecto/Ingeniero)
-- Número de Plano
-- Fecha de Inscripción
-- Expediente
-- URL al PDF del plano de mensura
+- Número de PH (carpeta)
+- Año de construcción
 - Nomenclatura catastral (sección, manzana, gráfico, división)
+- Coordenadas
+- URL al PDF del plano de mensura
+
+Usa los datos de rosario_avm_full.csv para evitar consultas directas a la API.
 """
 
-import requests
+import os
+import csv
 import logging
 from typing import Optional, Dict, List, Any
 
 logger = logging.getLogger(__name__)
 
-INFOMAPA_BASE = "https://mapa.rosario.gob.ar"
+INFOMAPA_BASE = "https://infomapa.rosario.gov.ar"
+DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
+CSV_PATH = os.path.join(DATA_DIR, 'rosario_avm_full.csv')
 
 
-def construir_url_plano(ruta: str) -> Optional[str]:
+def construir_url_plano(ph: str, year: str) -> Optional[str]:
     """
-    Construye la URL completa del plano PDF.
+    Construye la URL completa del plano PDF usando el formato de Infomapa.
     
     Args:
-        ruta: Ruta relativa del archivo (ej: 'pl_mens/2009/161583.pdf')
+        ph: Número de carpeta PH (ej: "2874")
+        year: Año del plano (ej: "1968")
     
     Returns:
-        URL completa o None si la ruta es inválida
+        URL completa al PDF del plano
     """
-    if not ruta:
+    if not ph:
         return None
     
-    if ruta.startswith('http'):
-        return ruta
+    year_str = str(int(year)) if year else "unknown"
+    return f"{INFOMAPA_BASE}/emapa/servlets/verArchivo?path=pl_mens/{year_str}/c_{ph}.pdf"
+
+
+def cargar_datos_infomapa() -> List[Dict]:
+    """
+    Carga los datos de Infomapa desde el CSV local.
     
-    return f"{INFOMAPA_BASE}/emapa/servlets/verArchivo?path={ruta}"
+    Returns:
+        Lista de diccionarios con los datos de PHs
+    """
+    datos = []
+    
+    if not os.path.exists(CSV_PATH):
+        logger.warning(f"CSV de Infomapa no encontrado: {CSV_PATH}")
+        return datos
+    
+    try:
+        with open(CSV_PATH, 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                if row.get('ph'):
+                    datos.append({
+                        'ph': str(row.get('ph', '')),
+                        'year': row.get('year', ''),
+                        'seccion': row.get('seccion', ''),
+                        'manzana': row.get('manzana', ''),
+                        'grafico': row.get('grafico', ''),
+                        'division': row.get('division', ''),
+                        'latitud': row.get('latitud', ''),
+                        'longitud': row.get('longitud', ''),
+                        'direccion': row.get('direccion_nominatim', '')
+                    })
+    except Exception as e:
+        logger.error(f"Error leyendo CSV de Infomapa: {e}")
+    
+    logger.info(f"Cargados {len(datos)} registros de Infomapa desde CSV")
+    return datos
+
+
+def buscar_por_coordenadas(lat: float, lon: float, tolerancia: float = 0.0005) -> Optional[Dict]:
+    """
+    Busca un PH en el CSV usando coordenadas cercanas.
+    
+    Args:
+        lat: Latitud de referencia
+        lon: Longitud de referencia
+        tolerancia: Tolerancia para encontrar coincidencias (en grados)
+    
+    Returns:
+        Dict con datos del PH o None
+    """
+    datos = cargar_datos_infomapa()
+    
+    mejor_match = None
+    menor_distancia = float('inf')
+    
+    for row in datos:
+        try:
+            lat_row = float(row.get('latitud', 0))
+            lon_row = float(row.get('longitud', 0))
+            
+            if lat_row and lon_row:
+                distancia = ((lat - lat_row)**2 + (lon - lon_row)**2)**0.5
+                
+                if distancia < menor_distancia and distancia <= tolerancia:
+                    menor_distancia = distancia
+                    mejor_match = row
+        except (ValueError, TypeError):
+            continue
+    
+    return mejor_match
+
+
+def buscar_por_direccion(direccion: str) -> Optional[Dict]:
+    """
+    Busca un PH en el CSV usando la dirección.
+    
+    Args:
+        direccion: Dirección a buscar
+    
+    Returns:
+        Dict con datos del PH o None
+    """
+    if not direccion:
+        return None
+    
+    datos = cargar_datos_infomapa()
+    
+    direccion_lower = direccion.lower().strip()
+    
+    for row in datos:
+        dir_row = row.get('direccion', '').lower().strip()
+        if dir_row and direccion_lower in dir_row or dir_row in direccion_lower:
+            return row
+    
+    return None
 
 
 def parsear_nomenclatura(nomenclatura: str) -> Dict[str, str]:
@@ -199,8 +297,7 @@ def consultar_infomapa_desde_propiedad(propiedad: Dict) -> Optional[Dict[str, An
     """
     Consulta Infomapa usando datos de la propiedad.
     
-    Usa el número de carpeta PH si está disponible. Es el método principal
-    de la API de Infomapa Rosario.
+    Busca en el CSV local (rosario_avm_full.csv) usando coordenadas o dirección.
     
     Args:
         propiedad: Dict con datos de la propiedad
@@ -208,12 +305,37 @@ def consultar_infomapa_desde_propiedad(propiedad: Dict) -> Optional[Dict[str, An
     Returns:
         Dict con datos catastrales o None
     """
-    nro_carpeta = propiedad.get('ph_carpeta') or propiedad.get('nro_carpeta') or propiedad.get('carpeta_ph')
+    lat = propiedad.get('lat')
+    lon = propiedad.get('lon')
+    direccion = propiedad.get('direccion', '')
     
-    if nro_carpeta:
-        return consultar_infomapa_por_carpeta(str(nro_carpeta))
+    ph_data = None
     
-    logger.info("Propiedad sin número de carpeta PH. No se puede consultar Infomapa.")
+    if lat and lon:
+        ph_data = buscar_por_coordenadas(float(lat), float(lon))
+    
+    if not ph_data and direccion:
+        ph_data = buscar_por_direccion(direccion)
+    
+    if ph_data:
+        ph = ph_data.get('ph', '')
+        year = ph_data.get('year', '')
+        
+        url_pdf = construir_url_plano(ph, year)
+        
+        return {
+            'ph': ph,
+            'year': year,
+            'seccion': ph_data.get('seccion', ''),
+            'manzana': ph_data.get('manzana', ''),
+            'grafico': ph_data.get('grafico', ''),
+            'division': ph_data.get('division', ''),
+            'url_plano_pdf': url_pdf,
+            'direccion': ph_data.get('direccion', ''),
+            'fuente': 'csv'
+        }
+    
+    logger.info(f"No se encontró datos de Infomapa para: {propiedad.get('nombre', 'propiedad')}")
     return None
 
 
