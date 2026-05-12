@@ -62,34 +62,32 @@ def parsear_nomenclatura(nomenclatura: str) -> Dict[str, str]:
     return result
 
 
-def consultar_infomapa_por_nomenclatura(seccion: str, manzana: str, grafico: str, 
-                                         division: str = "000") -> Optional[Dict[str, Any]]:
+def consultar_infomapa_por_carpeta(nro_carpeta: str) -> Optional[Dict[str, Any]]:
     """
-    Consulta la API de Infomapa Rosario por nomenclatura catastral.
+    Consulta la API de Infomapa Rosario por número de carpeta PH.
     
     Args:
-        seccion: Sección (01-99)
-        manzana: Manzana (001-999)
-        grafico: Gráfico (0001-9999)
-        division: División (000-999)
+        nro_carpeta: Número de carpeta PH (ej: "2874")
     
     Returns:
         Dict con datos del catastro o None si hay error
     """
     try:
-        url = f"{INFOMAPA_BASE}/emapa/servlets/buscarPorNomenclatura"
-        params = {
-            'seccion': seccion,
-            'manzana': manzana,
-            'grafico': grafico,
-            'division': division
-        }
+        url = f"{INFOMAPA_BASE}/emapa/planos/mensura/buscarPorCarpeta.htm"
+        data = {'nroCarpeta': nro_carpeta}
         
-        response = requests.get(url, params=params, timeout=10)
+        response = requests.post(url, data=data, timeout=15, headers={'Content-Type': 'application/x-www-form-urlencoded'})
         
         if response.status_code == 200:
-            data = response.json()
-            return _procesar_respuesta_infomapa(data)
+            json_data = response.json()
+            
+            if isinstance(json_data, list) and len(json_data) > 0:
+                return _procesar_respuesta_infomapa(json_data[0])
+            elif isinstance(json_data, dict) and json_data.get('carpeta'):
+                return _procesar_respuesta_infomapa(json_data)
+            else:
+                logger.warning(f"Infomapa: No se encontraron datos para carpeta {nro_carpeta}")
+                return None
         else:
             logger.warning(f"Infomapa API respondió con código {response.status_code}")
             return None
@@ -105,9 +103,31 @@ def consultar_infomapa_por_nomenclatura(seccion: str, manzana: str, grafico: str
         return None
 
 
+def consultar_infomapa_por_nomenclatura(seccion: str, manzana: str, grafico: str, 
+                                         division: str = "000") -> Optional[Dict[str, Any]]:
+    """
+    Consulta la API de Infomapa Rosario por nomenclatura catastral.
+    NOTA: El endpoint principal es buscarPorCarpeta. Este método intenta
+    buscar por nomenclatura si está disponible.
+    
+    Args:
+        seccion: Sección (01-99)
+        manzana: Manzana (001-999)
+        grafico: Gráfico (0001-9999)
+        division: División (000-999)
+    
+    Returns:
+        Dict con datos del catastro o None si hay error
+    """
+    logger.warning("Búsqueda por nomenclatura no disponible directamente. Use número de carpeta PH.")
+    return None
+
+
 def consultar_infomapa_por_coordenadas(lat: float, lon: float) -> Optional[Dict[str, Any]]:
     """
     Consulta la API de Infomapa Rosario por coordenadas geográficas.
+    NOTA: El endpoint principal es buscarPorCarpeta. Este método intenta
+    buscar por coordenadas si está disponible.
     
     Args:
         lat: Latitud
@@ -116,22 +136,8 @@ def consultar_infomapa_por_coordenadas(lat: float, lon: float) -> Optional[Dict[
     Returns:
         Dict con datos del catastro o None si hay error
     """
-    try:
-        url = f"{INFOMAPA_BASE}/emapa/servlets/buscarPorCoordenadas"
-        params = {'lat': lat, 'lon': lon}
-        
-        response = requests.get(url, params=params, timeout=10)
-        
-        if response.status_code == 200:
-            data = response.json()
-            return _procesar_respuesta_infomapa(data)
-        else:
-            logger.warning(f"Infomapa API respondió con código {response.status_code}")
-            return None
-            
-    except Exception as e:
-        logger.error(f"Error consultando Infomapa por coordenadas: {e}")
-        return None
+    logger.warning("Búsqueda por coordenadas no disponible directamente. Use número de carpeta PH.")
+    return None
 
 
 def _procesar_respuesta_infomapa(data: Dict) -> Dict[str, Any]:
@@ -193,7 +199,8 @@ def consultar_infomapa_desde_propiedad(propiedad: Dict) -> Optional[Dict[str, An
     """
     Consulta Infomapa usando datos de la propiedad.
     
-    Intenta usar nomenclatura catastral primero, luego coordenadas.
+    Usa el número de carpeta PH si está disponible. Es el método principal
+    de la API de Infomapa Rosario.
     
     Args:
         propiedad: Dict con datos de la propiedad
@@ -201,23 +208,12 @@ def consultar_infomapa_desde_propiedad(propiedad: Dict) -> Optional[Dict[str, An
     Returns:
         Dict con datos catastrales o None
     """
-    nomenclatura = propiedad.get('nomenclatura_catastral', '')
+    nro_carpeta = propiedad.get('ph_carpeta') or propiedad.get('nro_carpeta') or propiedad.get('carpeta_ph')
     
-    if nomenclatura:
-        parsed = parsear_nomenclatura(nomenclatura)
-        return consultar_infomapa_por_nomenclatura(
-            parsed['seccion'],
-            parsed['manzana'],
-            parsed['grafico'],
-            parsed['division']
-        )
+    if nro_carpeta:
+        return consultar_infomapa_por_carpeta(str(nro_carpeta))
     
-    lat = propiedad.get('lat')
-    lon = propiedad.get('lon')
-    
-    if lat and lon:
-        return consultar_infomapa_por_coordenadas(lat, lon)
-    
+    logger.info("Propiedad sin número de carpeta PH. No se puede consultar Infomapa.")
     return None
 
 
