@@ -60,6 +60,56 @@ header[data-testid="stHeader"] { background: #0F1629 !important; }
 .feature-card-v2 { padding: 28px 24px; }
 .feature-icon-wrapper { width: 48px; height: 48px; border-radius: 12px; background: #ecfdf5; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
 .feature-title { color: #0f172a; font-weight: 700; margin-bottom: 8px; }
+
+/* Hero with image background */
+.hero-with-image {
+    position: relative;
+    background-image: url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&q=70&fm=webp');
+    background-size: cover;
+    background-position: center 40%;
+    min-height: 600px;
+}
+.hero-overlay {
+    background: linear-gradient(180deg, rgba(15, 22, 42, 0.92) 0%, rgba(15, 22, 42, 0.85) 50%, rgba(15, 22, 42, 0.95) 100%);
+    padding: 80px 20px;
+    min-height: 600px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.hero-content { text-align: center; max-width: 900px; margin: 0 auto; color: white; }
+.hero-title { font-size: 2.5rem; font-weight: 800; margin-bottom: 20px; line-height: 1.2; }
+.hero-sub { font-size: 1.1rem; opacity: 0.9; max-width: 700px; margin: 0 auto; }
+
+/* Divider with image */
+.landing-divider-image {
+    background-image: url('https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1200&q=70&fm=webp');
+    background-size: cover;
+    background-position: center;
+    height: 250px;
+}
+.divider-overlay {
+    background: rgba(15, 22, 42, 0.80);
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.divider-stats { display: flex; gap: 80px; color: white; text-align: center; }
+.divider-stat-number { font-size: 2.5rem; font-weight: 800; color: #10b981; }
+.divider-stat-label { font-size: 0.9rem; opacity: 0.8; margin-top: 4px; }
+
+/* Target cards with images */
+.target-card-v2 { border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+.target-card-v2:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+.target-image { height: 160px; background-size: cover; background-position: center; }
+.target-card-content { padding: 24px; text-align: center; }
+
+@media (max-width: 768px) {
+    .hero-title { font-size: 1.8rem; }
+    .divider-stats { flex-direction: column; gap: 24px; }
+    .landing-divider-image { height: auto; padding: 40px 0; }
+}
 </style>
 """
 

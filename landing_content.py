@@ -46,53 +46,25 @@ def get_landing_stats() -> dict:
 
 def get_hero_html(stats: dict) -> str:
     return f"""
-    <div class="landing-hero">
-        <div class="hero-illustration">
-            <svg viewBox="0 0 800 200" xmlns="http://www.w3.org/2000/svg" class="city-svg">
-                <rect x="50" y="80" width="60" height="120" rx="4" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
-                <rect x="55" y="90" width="12" height="12" rx="1" fill="rgba(16,185,129,0.15)"/>
-                <rect x="72" y="90" width="12" height="12" rx="1" fill="rgba(16,185,129,0.1)"/>
-                <rect x="55" y="108" width="12" height="12" rx="1" fill="rgba(16,185,129,0.1)"/>
-                <rect x="72" y="108" width="12" height="12" rx="1" fill="rgba(16,185,129,0.15)"/>
-                <rect x="55" y="126" width="12" height="12" rx="1" fill="rgba(16,185,129,0.08)"/>
-                <rect x="72" y="126" width="12" height="12" rx="1" fill="rgba(16,185,129,0.12)"/>
-                <rect x="140" y="40" width="80" height="160" rx="4" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
-                <rect x="148" y="52" width="14" height="10" rx="1" fill="rgba(16,185,129,0.12)"/>
-                <rect x="168" y="52" width="14" height="10" rx="1" fill="rgba(16,185,129,0.08)"/>
-                <rect x="188" y="52" width="14" height="10" rx="1" fill="rgba(16,185,129,0.15)"/>
-                <rect x="148" y="68" width="14" height="10" rx="1" fill="rgba(16,185,129,0.08)"/>
-                <rect x="168" y="68" width="14" height="10" rx="1" fill="rgba(16,185,129,0.12)"/>
-                <rect x="188" y="68" width="14" height="10" rx="1" fill="rgba(16,185,129,0.1)"/>
-                <rect x="148" y="84" width="14" height="10" rx="1" fill="rgba(16,185,129,0.15)"/>
-                <rect x="168" y="84" width="14" height="10" rx="1" fill="rgba(16,185,129,0.08)"/>
-                <rect x="188" y="84" width="14" height="10" rx="1" fill="rgba(16,185,129,0.12)"/>
-                <rect x="250" y="100" width="50" height="100" rx="4" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
-                <rect x="330" y="60" width="70" height="140" rx="4" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
-                <rect x="430" y="120" width="40" height="80" rx="4" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
-                <rect x="500" y="50" width="90" height="150" rx="4" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
-                <circle cx="520" cy="30" r="15" fill="rgba(16,185,129,0.08)"/>
-                <rect x="620" y="90" width="55" height="110" rx="4" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
-                <rect x="700" y="70" width="65" height="130" rx="4" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
-                <line x1="0" y1="200" x2="800" y2="200" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
-            </svg>
-        </div>
-        <div class="landing-badge">Datos de mercado actualizados · {stats['fecha_ultimo_scraping']}</div>
-        <h1>Sabé cuánto vale tu propiedad en Rosario</h1>
-        <p class="hero-sub">
-            Valuación automática basada en <b>{stats['total_propiedades_scraping']:,}</b> 
-            propiedades reales del mercado.
-        </p>
-        <div class="landing-mockup">
-            <div class="mockup-card">
-                <div class="mockup-header">RESULTADO DE VALUACIÓN</div>
-                <div class="mockup-price">USD {stats['ejemplo_valor_usd']:,}</div>
-                <div class="mockup-range">Rango: USD {stats['ejemplo_rango_min']:,} — {stats['ejemplo_rango_max']:,}</div>
-                <div class="mockup-bar">
-                    <div class="mockup-progress"></div>
-                </div>
-                <div class="mockup-labels">
-                    <span>Conservador</span>
-                    <span>Optimista</span>
+    <div class="hero-with-image">
+        <div class="hero-overlay">
+            <div class="hero-content">
+                <div class="landing-badge">Datos de mercado actualizados · Rosario</div>
+                <h1 class="hero-title">Sabé cuánto vale tu propiedad<br>en Rosario</h1>
+                <p class="hero-sub">Valuación automática basada en más de <b>{stats['total_propiedades_scraping']:,}</b> propiedades reales del mercado. El estándar de datos para el mercado inmobiliario local.</p>
+                <div class="landing-mockup">
+                    <div class="mockup-card">
+                        <div class="mockup-header">EJEMPLO DE RESULTADO</div>
+                        <div class="mockup-price">USD {stats['ejemplo_valor_usd']:,}</div>
+                        <div class="mockup-range">Rango: USD {stats['ejemplo_rango_min']:,} — {stats['ejemplo_rango_max']:,}</div>
+                        <div class="mockup-bar">
+                            <div class="mockup-progress"></div>
+                        </div>
+                        <div class="mockup-labels">
+                            <span>Conservador</span>
+                            <span>Optimista</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -284,34 +256,50 @@ def get_example_html(ejemplo_propiedad: str, stats: dict) -> str:
     </div>
     """
 
-def get_target_html() -> str:
-    # Iconos SVG inline para Propietarios, Inversores, Corredores
-    svg_user = '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>'
-    svg_chart = '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>'
-    svg_briefcase = '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>'
-    
-    return f"""
-    <div class="landing-section">
-        <h2 style="text-align: center; margin-bottom: 48px;">¿Para quién es Valu?</h2>
-        <div class="landing-grid-3">
-            <div style="text-align: center;">
-                <div style="margin-bottom: 16px;">{svg_user}</div>
-                <h3 style="margin-bottom: 12px; color: #0f162a;">Propietarios</h3>
-                <p style="color: #64748b; font-size: 0.95rem;">Sabé cuánto vale tu casa o departamento hoy mismo, sin compromisos ni esperas.</p>
-            </div>
-            <div style="text-align: center;">
-                <div style="margin-bottom: 16px;">{svg_chart}</div>
-                <h3 style="margin-bottom: 12px; color: #0f162a;">Inversores</h3>
-                <p style="color: #64748b; font-size: 0.95rem;">Compará rendimientos reales entre barrios usando el Cap Rate calculado con datos frescos.</p>
-            </div>
-            <div style="text-align: center;">
-                <div style="margin-bottom: 16px;">{svg_briefcase}</div>
-                <h3 style="margin-bottom: 12px; color: #0f162a;">Corredores</h3>
-                <p style="color: #64748b; font-size: 0.95rem;">Tasaciones rápidas para captación con un informe profesional que respalda tu opinión de valor.</p>
+def get_divider_edificios_html() -> str:
+    return """
+    <div class="landing-divider-image">
+        <div class="divider-overlay">
+            <div class="divider-stats">
+                <div class="divider-stat">
+                    <div class="divider-stat-number">9,000+</div>
+                    <div class="divider-stat-label">Propiedades analizadas</div>
+                </div>
+                <div class="divider-stat">
+                    <div class="divider-stat-number">21,000+</div>
+                    <div class="divider-stat-label">Registros catastrales</div>
+                </div>
+                <div class="divider-stat">
+                    <div class="divider-stat-number">300m</div>
+                    <div class="divider-stat-label">Radio de comparables</div>
+                </div>
             </div>
         </div>
     </div>
     """
+
+def get_target_html() -> str:
+    targets = [
+        ("Propietarios", "Sabé cuánto vale tu casa o departamento hoy mismo, sin compromisos ni esperas.", "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=70&fm=webp"),
+        ("Inversores", "Compará rendimientos reales entre barrios usando el Cap Rate calculado con datos frescos.", "https://images.unsplash.com/photo-1554469384-e58fac16e23a?w=400&q=70&fm=webp"),
+        ("Corredores", "Tasaciones rápidas para captación con un informe profesional que respalda tu opinión de valor.", "https://images.unsplash.com/photo-1560520653-9e0e4c89eb11?w=400&q=70&fm=webp"),
+    ]
+    cards = ''.join(
+        f'<div class="target-card-v2">'
+        f'<div class="target-image" style="background-image: url(\'{img}\');"></div>'
+        '<div class="target-card-content">'
+        f'<h3 style="margin-bottom: 12px; color: #0f162a;">{titulo}</h3>'
+        f'<p style="color: #64748b; font-size: 0.95rem;">{desc}</p>'
+        '</div>'
+        '</div>'
+        for titulo, desc, img in targets
+    )
+    return (
+        '<div class="landing-section">'
+        '<h2 style="text-align: center; margin-bottom: 48px;">¿Para quién es Valu?</h2>'
+        f'<div class="landing-grid-3">{cards}</div>'
+        '</div>'
+    )
 
 def get_trust_html() -> str:
     svg_check = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>'
