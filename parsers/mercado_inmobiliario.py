@@ -2854,7 +2854,7 @@ def _generar_html_mapa(prop, resultado):
         comparables = resultado.get('comparables_venta', [])
         valor = resultado.get('valor_propiedad_usd', 0)
         
-        m = folium.Map(location=[lat, lon], zoom_start=15, tiles='cartodbpositron')
+        m = folium.Map(location=[lat + 0.003, lon], zoom_start=14, tiles='cartodbpositron')
         
         folium.Marker(
             [lat, lon],

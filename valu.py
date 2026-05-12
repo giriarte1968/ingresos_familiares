@@ -217,6 +217,14 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
 
     # RAZONAMIENTO DE VALUACION (nuevo formato narrativo)
     razonamiento = res.get('razonamiento', '')
+    
+    # Verificar si el razonamiento tiene el bug de palabras concatenadas (cache old)
+    if razonamiento and ('conincertidumbre' in razonamiento or 'dado lo heterogeneo' in razonamiento.replace(' ', '')):
+        # Regenerar el razonamiento
+        from parsers.mercado_inmobiliario import generar_razonamiento_valuacion
+        meta = res.get('resolution_metadata', {})
+        razonamiento = generar_razonamiento_valuacion(prop, res, meta)
+    
     if razonamiento:
         with st.expander("📋 Informe de Valuación", expanded=True):
             st.markdown(razonamiento)
