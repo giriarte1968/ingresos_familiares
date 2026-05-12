@@ -31,6 +31,35 @@ header[data-testid="stHeader"] { background: #0F1629 !important; }
 
 /* Expanders */
 .streamlit-expanderHeader { font-weight: 600 !important; color: #1A2B5C !important; }
+
+/* Steps v2 — rediseño centrado */
+.steps-grid { position: relative; }
+.step-card-v2 { text-align: center; padding: 32px 20px; position: relative; background: white; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: box-shadow 0.3s ease; }
+.step-card-v2:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+.step-icon-circle { width: 72px; height: 72px; border-radius: 50%; background: #ecfdf5; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+.step-number-small { font-size: 14px; font-weight: 800; color: #10b981; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+.step-number-small::before { content: 'PASO '; }
+.step-title-v2 { font-size: 1.15rem; font-weight: 700; color: #0f172a; margin-bottom: 12px; }
+.card-text { font-size: 0.9rem; color: #64748b; line-height: 1.6; }
+
+@media (min-width: 769px) {
+    .step-connector-wrapper { position: relative; }
+    .step-connector-wrapper::before { content: ''; position: absolute; top: 68px; left: 20%; width: 60%; height: 2px; background: linear-gradient(to right, #10b981, #e2e8f0, #10b981); z-index: 0; }
+    .step-card-v2 { position: relative; z-index: 1; }
+}
+
+/* Hero SVG illustration */
+.hero-illustration { max-width: 800px; margin: 0 auto 24px; opacity: 0.6; }
+.city-svg { width: 100%; height: auto; }
+
+/* Example mini-map */
+.example-map-mini { text-align: center; margin-bottom: 24px; }
+.example-map-mini svg { max-width: 280px; width: 100%; }
+
+/* Feature cards v2 */
+.feature-card-v2 { padding: 28px 24px; }
+.feature-icon-wrapper { width: 48px; height: 48px; border-radius: 12px; background: #ecfdf5; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+.feature-title { color: #0f172a; font-weight: 700; margin-bottom: 8px; }
 </style>
 """
 
@@ -156,4 +185,131 @@ LANDING_HTML = """
     </div>
     <p style="color:#9CA3AF;font-size:13px;">Seleccioná una opción del menú lateral para comenzar →</p>
 </div>
+"""
+
+LANDING_CSS = """
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --primary: #0f162a;
+        --primary-light: #1a2332;
+        --accent: #10b981;
+        --accent-hover: #059669;
+        --light-bg: #f8fafc;
+        --text: #334155;
+        --text-light: #64748b;
+        --border: #e2e8f0;
+        --warning-bg: #fffbeb;
+        --warning-border: #f59e0b;
+    }
+
+    /* Landing Components */
+    .landing-hero { 
+        padding: 100px 20px; 
+        background: var(--primary); 
+        text-align: center; 
+        color: white;
+        font-family: 'Inter', sans-serif;
+    }
+    .landing-hero h1 { 
+        font-size: 3.5rem; 
+        font-weight: 800; 
+        margin-bottom: 24px;
+        line-height: 1.1;
+    }
+    
+    .landing-section { 
+        padding: 80px 20px; 
+        max-width: 1100px; 
+        margin: 0 auto;
+        font-family: 'Inter', sans-serif;
+    }
+    .landing-section-alt { 
+        background: var(--light-bg); 
+    }
+    
+    .landing-card { 
+        background: white; 
+        border-radius: 16px; 
+        padding: 32px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        border: 1px solid var(--border);
+        transition: transform 0.2s ease;
+    }
+    .landing-card:hover {
+        transform: translateY(-4px);
+    }
+    
+    .landing-badge { 
+        display: inline-block; 
+        border: 1px solid var(--accent);
+        border-radius: 20px; 
+        padding: 6px 16px; 
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--accent); 
+        margin-bottom: 24px; 
+    }
+    
+    .landing-grid-3 { 
+        display: grid; 
+        grid-template-columns: repeat(3, 1fr); 
+        gap: 32px; 
+    }
+    .landing-grid-2 { 
+        display: grid; 
+        grid-template-columns: repeat(2, 1fr); 
+        gap: 32px; 
+    }
+    
+    .landing-step-number { 
+        font-size: 64px; 
+        color: var(--accent); 
+        font-weight: 800;
+        opacity: 0.3;
+        line-height: 1;
+    }
+    
+    .landing-disclaimer { 
+        border-left: 6px solid var(--warning-border);
+        background: var(--warning-bg); 
+        padding: 40px;
+        border-radius: 0 16px 16px 0; 
+    }
+    
+    .hero-sub { font-size: 1.25rem; opacity: 0.9; max-width: 800px; margin: 0 auto 32px; }
+    .landing-mockup { max-width: 500px; margin: 0 auto; }
+    .mockup-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 24px; text-align: left; }
+    .mockup-header { color: var(--accent); font-weight: 700; margin-bottom: 8px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
+    .mockup-price { font-size: 32px; font-weight: 800; margin-bottom: 4px; }
+    .mockup-range { font-size: 14px; opacity: 0.7; }
+    .mockup-bar { margin-top: 16px; height: 4px; background: #334155; border-radius: 2px; }
+    .mockup-progress { width: 60%; height: 100%; background: var(--accent); border-radius: 2px; }
+    .mockup-labels { display: flex; justify-content: space-between; font-size: 12px; margin-top: 8px; opacity: 0.6; }
+
+    .landing-example { 
+        background: white; 
+        border: 2px solid var(--border);
+        border-radius: 24px; 
+        padding: 40px; 
+        max-width: 700px; 
+        margin: 0 auto;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .landing-footer { 
+        background: #0a0f1e; 
+        color: white; 
+        padding: 60px 20px;
+        text-align: center;
+        font-family: 'Inter', sans-serif;
+    }
+
+    @media (max-width: 768px) {
+        .landing-grid-3, .landing-grid-2 { grid-template-columns: 1fr; }
+        .landing-hero h1 { font-size: 2.2rem; }
+        .landing-hero { padding: 60px 20px; }
+        .landing-section { padding: 60px 20px; }
+    }
+</style>
 """

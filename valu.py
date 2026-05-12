@@ -292,7 +292,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                     'Motivo': razones_legibles.get(r_razon, r_razon)
                 })
 
-            st.dataframe(pd.DataFrame(data_tabla), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(data_tabla), hide_index=True, width='stretch')
 
             # Gráfico de evolución de valor
             if len(historial) > 1:
@@ -343,7 +343,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                         showlegend=True,
                         margin=dict(l=0, r=0, t=40, b=0)
                     )
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
                 except Exception as e:
                     st.error(f"Error generando gráfico: {e}")
 
@@ -397,15 +397,15 @@ def main():
         
         st.markdown("---")
         datos = cargar_datos()
-        # Derivar fecha automáticamente del último scraping
+        # Derivar fecha automáticamente del último scraping (usar mtime del archivo)
         import os
         from datetime import datetime
         cache_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache_scraping.json")
         if os.path.exists(cache_file):
-            import json
-            with open(cache_file, 'r', encoding='utf-8') as f:
-                cache_data = json.load(f)
-            fecha_cache = cache_data.get('fecha', datetime.now().strftime('%Y-%m'))
+            # Usar el mtime del archivo como fuente de verdad
+            mtime = os.path.getmtime(cache_file)
+            fecha_dt = datetime.fromtimestamp(mtime)
+            fecha_cache = fecha_dt.strftime('%Y-%m-%d')
             st.caption(f"📅 Datos de mercado: {fecha_cache}")
         else:
             fecha_cache = datetime.now().strftime('%Y-%m')
