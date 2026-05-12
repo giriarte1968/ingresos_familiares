@@ -2624,6 +2624,40 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         'valor_propiedad_usd': valor_venta,
     })
     
+    # Enriquecer con datos de Infomapa (catastro oficial)
+    catastro_detalle = None
+    try:
+        from parsers.infomapa_api import (
+            consultar_infomapa_desde_propiedad,
+            calcular_bonus_estudio_premium,
+            generar_texto_profesionales
+        )
+        catastro_raw = consultar_infomapa_desde_propiedad(prop)
+        
+        if catastro_raw:
+            bonus_premium = calcular_bonus_estudio_premium(catastro_raw.get('profesionales', []))
+            
+            catastro_detalle = {
+                'arquitecto': catastro_raw.get('profesionales', []),
+                'arquitecto_texto': generar_texto_profesionales(catastro_raw.get('profesionales', [])),
+                'nro_plano': catastro_raw.get('numero', ''),
+                'expediente': catastro_raw.get('expediente', ''),
+                'fecha_inscripcion': catastro_raw.get('fechaIns', ''),
+                'url_plano_pdf': catastro_raw.get('url_plano_pdf'),
+                'nomenclatura': catastro_raw.get('nomenclatura', {}),
+                'superficie_oficial': catastro_raw.get('superficie', 0),
+                'domicilio_oficial': catastro_raw.get('domicilio', ''),
+                'tipo_documento': catastro_raw.get('tipo', 'MENSURA Y DIVISION PH'),
+                'bonus_estudio_premium': bonus_premium,
+                'es_estudio_premium': bonus_premium > 0
+            }
+            
+            if bonus_premium > 0:
+                logger.info(f"[INFOMAPA] Estudio premium detectado: +{bonus_premium*100}% de bonus")
+    except Exception as e:
+        logger.warning(f"[INFOMAPA] Error consultando catastro: {e}")
+        catastro_detalle = None
+    
     # Generar razonamiento narrativo profesional
     try:
         razonamiento = generar_razonamiento_valuacion(prop, {
@@ -2699,6 +2733,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         'comparables_venta': comparables_venta,
         'mapa_html': mapa_html,
         'razonamiento': razonamiento,
+        'catastro_detalle': catastro_detalle,
     }
 
 

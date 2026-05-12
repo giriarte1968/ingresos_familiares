@@ -259,6 +259,36 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     else:
         st.caption("🗺️ Mapa no disponible")
 
+    # === DOCUMENTACIÓN OFICIAL (INFOMAPA) ===
+    catastro = res.get('catastro_detalle', None)
+    if catastro:
+        st.markdown("---")
+        st.subheader("📋 Información Oficial de Catastro")
+        
+        with st.container(border=True):
+            c1, c2 = st.columns(2)
+            with c1:
+                st.markdown(f"**Arquitecto/s:** {catastro.get('arquitecto_texto', 'No informado')}")
+                st.markdown(f"**Nro. de Plano:** {catastro.get('nro_plano', 'N/A')}")
+                st.markdown(f"**Expediente:** {catastro.get('expediente', 'N/A')}")
+                if catastro.get('es_estudio_premium'):
+                    st.success("🏆 Estudio premium detectado (+bonus de calidad)")
+            
+            with c2:
+                st.markdown(f"**Fecha Inscripción:** {catastro.get('fecha_inscripcion', 'N/A')}")
+                st.markdown(f"**Tipo de Documento:** {catastro.get('tipo_documento', 'MENSURA Y DIVISION PH')}")
+                st.markdown(f"**Superficie Oficial:** {catastro.get('superficie_oficial', 0):.1f} m²" if catastro.get('superficie_oficial') else "**Superficie Oficial:** N/A")
+                
+                url_pdf = catastro.get('url_plano_pdf')
+                if url_pdf:
+                    st.link_button("📄 Ver Plano Original (PDF)", url_pdf, help="Abre el plano de mensura oficial en Infomapa Rosario")
+                else:
+                    st.warning("⚠️ Plano PDF no disponible en la base municipal")
+            
+            nomenclatura = catastro.get('nomenclatura', {})
+            if nomenclatura:
+                st.caption(f"📍 Nomenclatura: Sección {nomenclatura.get('seccion', '')}, Manzana {nomenclatura.get('manzana', '')}, Gráfico {nomenclatura.get('grafico', '')}, División {nomenclatura.get('division', '')}")
+
     # === HISTORIAL DE VALUACIONES (NUEVO) ===
     st.markdown("---")
     from parsers.valuacion_historial import cargar_historial, comparar_valuaciones
