@@ -515,6 +515,8 @@ def mostrar_dashboard():
                     df[col] = "—"
             
             df_display = df[list(display_cols.keys())].rename(columns=display_cols)
+            # Convertir todas las columnas a string para evitar errores de tipo en Streamlit
+            df_display = df_display.astype(str)
             st.dataframe(df_display, width='stretch', hide_index=True)
             st.caption("💡 Puedes editar la fecha de publicación desde el detalle de cada propiedad o en el menú de Configuración.")
 
