@@ -8,6 +8,7 @@ import requests
 from datetime import datetime
 from valu_design import VALU_CSS, kpi_card, property_card, hero_price, metric_card, range_bar, LANDING_HTML, insights_card
 from valu_forms import ui_formulario_propiedad
+from landing import mostrar_landing
 
 # --- CONFIGURACIÓN ---
 st.set_page_config(page_title="Valu — Valuador de Propiedades", page_icon="🏠", layout="wide")
@@ -102,6 +103,7 @@ def mostrar_dashboard_valu(propiedades, resultados):
             ), unsafe_allow_html=True)
             if st.button(f"Ver detalle de {nombre} →", key=f"btn_{nombre}", width='stretch'):
                 st.session_state.prop_sel = nombre
+                st.session_state.page = "Detalle"
                 st.rerun()
 
 def mostrar_detalle_valu(prop, res, guardar_fn):
@@ -383,14 +385,168 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                                      f"${vals['antes']:,.0f} → ${vals['despues']:,.0f} "
                                      f"({pct:+.1f}%)")
 
+def mostrar_dashboard():
+    if st.session_state.page == "Splash":
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        # Dashboard stats
+        props = cargar_propiedades()
+        if props:
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.markdown(kpi_card("📊", "Portafolio", f"{len(props)}", "Propiedades en gestión"), unsafe_allow_html=True)
+            with col2:
+                # Calcular valor total (estimado)
+                total_val = sum([p.get('valor_compra_usd', 0) for p in props])
+                st.markdown(kpi_card("💰", "Valor Total", f"USD {total_val:,.0f}", "Estimación de cartera"), unsafe_allow_html=True)
+            with col3:
+                st.markdown(kpi_card("📈", "Mercado", "Rosario", "Actualizado hoy"), unsafe_allow_html=True)
+            
+            st.markdown("---")
+            st.subheader("📍 Mapa de Activos")
+            
+            # Crear mapa con folium para mejor centrado
+            import folium
+            from streamlit.components.v1 import html
+            
+            props_con_coords = [p for p in props if p.get('lat') and p.get('lon')]
+            
+            if props_con_coords:
+                # Calcular centro del mapa (promedio de todas las props)
+                lat_center = sum(p['lat'] for p in props_con_coords) / len(props_con_coords)
+                lon_center = sum(p['lon'] for p in props_con_coords) / len(props_con_coords)
+                
+                # Crear mapa centrado en las propiedades
+                m = folium.Map(location=[lat_center, lon_center], zoom_start=13, tiles='cartodbpositron')
+                
+                # Agregar marcadores para cada propiedad
+                for p in props_con_coords:
+                    folium.Marker(
+                        [p['lat'], p['lon']],
+                        popup=f"📍 {p.get('nombre', 'Propiedad')}<br>{p.get('direccion', '')}",
+                        icon=folium.Icon(color='blue', icon='home')
+                    ).add_to(m)
+                
+                # Renderizar mapa
+                html(m._repr_html_(), height=350)
+                st.caption(f"📍 {len(props_con_coords)} propiedades en el mapa")
+            else:
+                st.info("No hay propiedades con coordenadas GPS registradas.")
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+
+    elif st.session_state.page == "Portfolio":
+        st.title("📂 Mi Portafolio")
+        propiedades = cargar_propiedades()
+        
+        if not propiedades:
+            st.info("No tienes propiedades cargadas aún. Ve a Configuración para agregar una.")
+        else:
+            from parsers.motor_vpp_core import valuar_con_cache
+            
+            # Botón global para recalcular todo
+            col_global, _ = st.columns([1, 4])
+            with col_global:
+                if st.button("🔄 Recalcular todo", help="Recalcula todas las propiedades ignorando el caché"):
+                    st.session_state['forzar_recalculo_global'] = True
+                    st.rerun()
+            
+            resultados = {}
+            forzar_global = st.session_state.get('forzar_recalculo_global', False)
+            if forzar_global:
+                st.session_state['forzar_recalculo_global'] = False
+            
+            with st.spinner("Valuando portfolio..."):
+                for p in propiedades:
+                    forzar = forzar_global or st.session_state.get(f'forzar_recalculo_{p.get("nombre", "")}', False)
+                    if forzar:
+                        st.session_state[f'forzar_recalculo_{p.get("nombre", "")}'] = False
+                    resultados[p['nombre']] = valuar_con_cache(p, forzar_recalculo=forzar)
+            
+            if st.session_state.prop_sel:
+                p_obj = next((p for p in propiedades if p['nombre'] == st.session_state.prop_sel), None)
+                if p_obj:
+                    # Botón Volver
+                    if st.button("← Volver al Portafolio"):
+                        st.session_state.prop_sel = None
+                        st.rerun()
+                    
+                    # Guardar función
+                    def actualizar_propiedad(nueva_data):
+                        props = cargar_propiedades()
+                        for i, p in enumerate(props):
+                            if p.get('nombre') == p_obj.get('nombre'):
+                                props[i] = nueva_data
+                                break
+                        guardar_propiedades(props)
+                    mostrar_detalle_valu(p_obj, resultados[p_obj['nombre']], actualizar_propiedad)
+            else:
+                # Usar la función original para mostrar el grid de propiedades
+                mostrar_dashboard_valu(propiedades, resultados)
+
+    elif st.session_state.page == "Inventario":
+        st.header("📋 Inventario de Propiedades")
+        props = cargar_propiedades()
+        if not props:
+            st.info("Sin propiedades.")
+        else:
+            df = pd.DataFrame(props)
+            # Columnas a mostrar
+            display_cols = {
+                'nombre': 'Nombre',
+                'zona': 'Zona',
+                'm2_cubiertos': 'm² Cub.',
+                'dormitorios': 'Dorm.',
+                'fecha_publicacion': 'Publicada el',
+                'id': 'ID'
+            }
+            
+            # Asegurar que existan todas las columnas
+            for col in display_cols.keys():
+                if col not in df.columns:
+                    df[col] = "—"
+            
+            df_display = df[list(display_cols.keys())].rename(columns=display_cols)
+            st.dataframe(df_display, width='stretch', hide_index=True)
+            st.caption("💡 Puedes editar la fecha de publicación desde el detalle de cada propiedad o en el menú de Configuración.")
+
+    elif st.session_state.page == "Cargar Mercado":
+        st.header("🔄 Actualización de Mercado")
+        st.info("Esta sección permite sincronizar con los portales inmobiliarios.")
+        if st.button("Sincronizar VPP Sync (Scraping)", type="primary"):
+            st.warning("Iniciando scraping en background...")
+
+    elif st.session_state.page == "Configuración":
+        st.header("⚙️ Configuración")
+        with st.expander("➕ Agregar Nueva Propiedad", expanded=True):
+            new_prop = ui_formulario_propiedad(key_suffix="new")
+            if st.button("Guardar Propiedad", type="primary"):
+                props = cargar_propiedades()
+                props.append(new_prop)
+                guardar_propiedades(props)
+                st.success(f"Propiedad {new_prop['nombre']} guardada!")
+                st.rerun()
+
 # --- MAIN APP ---
 def main():
+    if 'vista_actual' not in st.session_state:
+        st.session_state.vista_actual = 'landing'
+    
+    if st.session_state.vista_actual == 'landing':
+        from landing import mostrar_landing
+        mostrar_landing()
+        return
+
     if 'page' not in st.session_state: st.session_state.page = "Splash"
     if 'prop_sel' not in st.session_state: st.session_state.prop_sel = None
 
-    # Sidebar Navigation
     with st.sidebar:
         st.markdown('<div style="padding:10px 0;"><h2 style="color:white;margin:0;">🏠 Valu</h2><p style="color:#006AFF;font-size:11px;margin:0;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Valuador de Propiedades</p></div>', unsafe_allow_html=True)
+        
+        def ir_al_inicio():
+            st.session_state.vista_actual = 'landing'
+            
+        st.button("← Volver al Inicio", use_container_width=True, on_click=ir_al_inicio)
         st.markdown("---")
         
         st.session_state.page = st.radio("NAVEGACIÓN", ["Splash", "Portfolio", "Inventario", "Cargar Mercado", "Configuración"])
@@ -430,100 +586,7 @@ def main():
         st.markdown("<br><br><br>", unsafe_allow_html=True)
         st.markdown('<p style="color:rgba(255,255,255,0.3);font-size:10px;text-align:center;">v2.5 · Powered by VPP Engine</p>', unsafe_allow_html=True)
 
-    if st.session_state.page == "Splash":
-        st.markdown(LANDING_HTML, unsafe_allow_html=True)
-        if st.button("Comenzar →", type="primary"):
-            st.session_state.page = "Portfolio"
-            st.rerun()
-
-    elif st.session_state.page == "Portfolio":
-        propiedades = cargar_propiedades()
-        if not propiedades:
-            st.info("No hay propiedades registradas. Agregá una en Configuración.")
-        else:
-            from parsers.motor_vpp_core import valuar_con_cache
-            
-            # Botón global para recalcular todo
-            col_global, _ = st.columns([1, 4])
-            with col_global:
-                if st.button("🔄 Recalcular todo", help="Recalcula todas las propiedades ignorando el caché"):
-                    st.session_state['forzar_recalculo_global'] = True
-                    st.rerun()
-            
-            resultados = {}
-            forzar_global = st.session_state.get('forzar_recalculo_global', False)
-            if forzar_global:
-                st.session_state['forzar_recalculo_global'] = False
-            
-            with st.spinner("Valuando portfolio..."):
-                for p in propiedades:
-                    forzar = forzar_global or st.session_state.get(f'forzar_recalculo_{p.get("nombre", "")}', False)
-                    if forzar:
-                        st.session_state[f'forzar_recalculo_{p.get("nombre", "")}'] = False
-                    resultados[p['nombre']] = valuar_con_cache(p, fecha_ref=mes_sel, forzar_recalculo=forzar)
-            
-            if st.session_state.prop_sel:
-                p_obj = next(p for p in propiedades if p['nombre'] == st.session_state.prop_sel)
-                # Función para actualizar solo esta propiedad
-                def actualizar_propiedad(nueva_data):
-                    props = cargar_propiedades()
-                    for i, p in enumerate(props):
-                        if p.get('id') == p_obj.get('id'):
-                            props[i] = nueva_data
-                            break
-                    guardar_propiedades(props)
-                mostrar_detalle_valu(p_obj, resultados[p_obj['nombre']], actualizar_propiedad)
-            else:
-                mostrar_dashboard_valu(propiedades, resultados)
-
-    elif st.session_state.page == "Inventario":
-        st.markdown('<div class="page-header"><div><h1 style="margin:0;color:#1A2B5C;">📋 Inventario & Seguimiento</h1><p style="margin:0;color:#6B7280;">Listado detallado de propiedades y fechas de publicación</p></div></div>', unsafe_allow_html=True)
-        
-        propiedades = cargar_propiedades()
-        if not propiedades:
-            st.info("No hay propiedades registradas.")
-        else:
-            df = pd.DataFrame(propiedades)
-            
-            # Formatear para visualización
-            display_cols = {
-                'nombre': 'Nombre',
-                'tipo_inmueble': 'Tipo',
-                'zona': 'Zona',
-                'm2_cubiertos': 'm² Cub.',
-                'dormitorios': 'Dorm.',
-                'baños': 'Baños',
-                'fecha_publicacion': 'Publicado el',
-                'estado_detalle': 'Estado'
-            }
-            
-            # Asegurar que existan todas las columnas
-            for col in display_cols.keys():
-                if col not in df.columns:
-                    df[col] = "—"
-            
-            df_display = df[list(display_cols.keys())].rename(columns=display_cols)
-            
-            st.dataframe(df_display, width='stretch', hide_index=True)
-            
-            st.caption("💡 Puedes editar la fecha de publicación desde el detalle de cada propiedad o en el menú de Configuración.")
-
-    elif st.session_state.page == "Cargar Mercado":
-        st.header("🔄 Actualización de Mercado")
-        st.info("Esta sección permite sincronizar con los portales inmobiliarios.")
-        if st.button("Sincronizar VPP Sync (Scraping)", type="primary"):
-            st.warning("Iniciando scraping en background...")
-
-    elif st.session_state.page == "Configuración":
-        st.header("⚙️ Configuración")
-        with st.expander("➕ Agregar Nueva Propiedad", expanded=True):
-            new_prop = ui_formulario_propiedad(key_suffix="new")
-            if st.button("Guardar Propiedad", type="primary"):
-                props = cargar_propiedades()
-                props.append(new_prop)
-                guardar_propiedades(props)
-                st.success(f"Propiedad {new_prop['nombre']} guardada!")
-                st.rerun()
+    mostrar_dashboard()
 
 if __name__ == "__main__":
     main()

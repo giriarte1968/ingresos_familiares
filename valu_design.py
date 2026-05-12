@@ -134,7 +134,7 @@ def property_card(nombre, zona, m2, dorms, tipo, valor_usd, cap_rate, alq_ars, n
         alq_text = f"${alq_ars:,.0f}"
 
     return f"""
-    <div style="background:white;border-radius:16px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.07);border:1px solid #F0F0F5;font-family:'Inter',sans-serif;height:100%;transition:all 0.2s ease;">
+    <div style="background:white;border-radius:16px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.07);border:1px solid #F0F0F5;font-family:'Inter',sans-serif;min-height:180px;">
         {cache_line}
         <div style="margin-bottom:12px;">
             <span style="background:{tipo_color}15;color:{tipo_color};font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;">{tipo.upper()}</span>

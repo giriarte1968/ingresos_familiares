@@ -3006,28 +3006,27 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
     if ventilacion == 'simple':
         negativos.append("ventilacion simple (no cruzada)")
     
+    def format_list(items):
+        if not items:
+            return ""
+        if len(items) == 1:
+            return items[0]
+        if len(items) == 2:
+            return f"{items[0]} y {items[1]}"
+        return ", ".join(items[:-1]) + " y " + items[-1]
+    
     if positivos and negativos:
         factores_texto = (
-            f"Entre los atributos que **agregan valor** se destacan: "
-            f"{', '.join(positivos[:-1])}"
-            f"{' y ' + positivos[-1] if len(positivos) > 1 else positivos[0]}. "
-            f"Por otro lado, los factores que moderan el precio incluyen "
-            f"{', '.join(negativos[:-1])}"
-            f"{' y ' + negativos[-1] if len(negativos) > 1 else negativos[0]}."
+            f"Entre los atributos que **agregan valor** se destacan: {format_list(positivos)}. "
+            f"Por otro lado, los factores que moderan el precio incluyen: {format_list(negativos)}."
         )
     elif positivos:
         factores_texto = (
-            f"La propiedad se beneficia de: "
-            f"{', '.join(positivos[:-1])}"
-            f"{' y ' + positivos[-1] if len(positivos) > 1 else positivos[0]}. "
+            f"La propiedad se beneficia de: {format_list(positivos)}. "
             f"No se identificaron factores negativos significativos."
         )
     elif negativos:
-        factores_texto = (
-            f"Los factores que moderan el precio incluyen: "
-            f"{', '.join(negativos[:-1])}"
-            f"{' y ' + negativos[-1] if len(negativos) > 1 else negativos[0]}."
-        )
+        factores_texto = f"Los factores que moderan el precio incluyen: {format_list(negativos)}."
     else:
         factores_texto = "La propiedad presenta caracteristicas estandar para la zona."
     
