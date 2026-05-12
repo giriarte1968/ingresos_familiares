@@ -5,6 +5,13 @@ VALU_CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 
+/* Fix for HTML cards in Streamlit columns */
+div[data-testid="stVerticalBlock"] div[data-testid="stMarkdownContainer"] > div {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
 /* Sidebar dark navy */
 [data-testid="stSidebar"] { background: linear-gradient(180deg, #0F1629 0%, #1A2340 100%) !important; }
 [data-testid="stSidebar"] * { color: rgba(255,255,255,0.85) !important; }
@@ -134,20 +141,19 @@ def property_card(nombre, zona, m2, dorms, tipo, valor_usd, cap_rate, alq_ars, n
         alq_text = f"${alq_ars:,.0f}"
 
     return f"""
-    <div style="background:white;border-radius:16px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.07);border:1px solid #F0F0F5;font-family:'Inter',sans-serif;min-height:180px;">
+    <div style="background:white;border-radius:16px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.07);border:1px solid #F0F0F5;font-family:'Inter',sans-serif;min-height:180px;box-sizing:border-box;width:100%;">
         {cache_line}
-        <div style="margin-bottom:12px;">
-            <span style="background:{tipo_color}15;color:{tipo_color};font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;">{tipo.upper()}</span>
-            <span style="background:#0D948815;color:#0D9488;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;margin-left:4px;">{zona.upper()}</span>
+        <div style="margin-bottom:10px;">
+            <span style="background:{tipo_color}15;color:{tipo_color};font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;">{tipo.upper()}</span>
+            <span style="background:#0D948815;color:#0D9488;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;margin-left:4px;">{zona.upper()}</span>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
-            <strong style="color:#1A2B5C;font-size:17px;font-weight:700;">{nombre}</strong>
+            <strong style="color:#1A2B5C;font-size:16px;font-weight:700;word-wrap:break-word;">{nombre}</strong>
             <span style="width:10px;height:10px;border-radius:50%;background:{dot_color};display:inline-block;margin-top:4px;flex-shrink:0;"></span>
         </div>
-        <div style="color:#9CA3AF;font-size:12px;margin-bottom:16px;">{zona} · {m2:.0f}m² · {dorms}D</div>
-        <div style="color:#1A2B5C;font-size:24px;font-weight:700;margin-bottom:4px;">${valor_usd:,.0f} <span style="font-size:14px;font-weight:500;">USD</span></div>
-        <div style="color:#9CA3AF;font-size:12px;margin-bottom:16px;">Cap Rate: {cap_rate*100:.1f}% · Alq: {alq_text} ARS</div>
-        <div style="height:1px;background:#F0F0F5;"></div>
+        <div style="color:#9CA3AF;font-size:12px;margin-bottom:12px;">{zona} · {m2:.0f}m² · {dorms}D</div>
+        <div style="color:#1A2B5C;font-size:22px;font-weight:700;margin-bottom:4px;">${valor_usd:,.0f} <span style="font-size:13px;font-weight:500;">USD</span></div>
+        <div style="color:#9CA3AF;font-size:12px;">Cap Rate: {cap_rate*100:.1f}% · Alq: {alq_text} ARS</div>
     </div>
     """
 
