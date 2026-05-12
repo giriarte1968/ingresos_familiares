@@ -23,13 +23,13 @@ DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__
 CSV_PATH = os.path.join(DATA_DIR, 'rosario_avm_full.csv')
 
 
-def construir_url_plano(ph: str, year: str) -> Optional[str]:
+def construir_url_plano(ph: str, year: any) -> Optional[str]:
     """
     Construye la URL completa del plano PDF usando el formato de Infomapa.
     
     Args:
         ph: Número de carpeta PH (ej: "2874")
-        year: Año del plano (ej: "1968")
+        year: Año del plano (ej: "1968" o 1998.0)
     
     Returns:
         URL completa al PDF del plano
@@ -37,7 +37,11 @@ def construir_url_plano(ph: str, year: str) -> Optional[str]:
     if not ph:
         return None
     
-    year_str = str(int(year)) if year else "unknown"
+    try:
+        year_str = str(int(float(year)))
+    except (ValueError, TypeError):
+        year_str = "unknown"
+    
     return f"{INFOMAPA_BASE}/emapa/servlets/verArchivo?path=pl_mens/{year_str}/c_{ph}.pdf"
 
 
