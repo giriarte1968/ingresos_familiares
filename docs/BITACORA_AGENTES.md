@@ -311,6 +311,20 @@ Implementar un registro inmutable y permanente de cada tasación para evitar la 
 
 ---
 
+## 📅 2026-05-12 — OPTIMIZACIÓN: Flujo Portfolio separado en A (general) vs B (detalle)
+
+### Cambios:
+- `valu.py`: El Portfolio ahora bifurca en dos caminos:
+  - **Flujo A (sin selección)**: itera todas las propiedades y muestra grid
+  - **Flujo B (con `prop_sel`)**: valúa solo 1 propiedad y muestra detalle
+- Botón "🔄" → "🔄 Recalcular valuación" con label visible
+
+### Impacto:
+- Con N=1000 propiedades: ver detalle antes hacía 1000 iteraciones → ahora hace 1
+- Usa `st.session_state.pop()` en vez de get+set para más claridad
+
+---
+
 ## 📅 2026-05-12 — INFOMAPA: Candidatos múltiples + selección manual + imágenes múltiples
 
 ### Cambios:

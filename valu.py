@@ -133,7 +133,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     
     with col_recalc:
         nombre = prop.get('nombre', '')
-        if st.button("🔄", key=f"recalc_{nombre}", help="Forzar recálculo"):
+        if st.button("🔄 Recalcular valuación", key=f"recalc_{nombre}", use_container_width=True):
             st.session_state[f'forzar_recalculo_{nombre}'] = True
             st.rerun()
     
@@ -508,7 +508,6 @@ def mostrar_dashboard():
         st.markdown("<br>", unsafe_allow_html=True)
 
     elif st.session_state.page == "Portfolio":
-        st.title("📂 Mi Portafolio")
         propiedades = cargar_propiedades()
         
         if not propiedades:
@@ -516,34 +515,15 @@ def mostrar_dashboard():
         else:
             from parsers.motor_vpp_core import valuar_con_cache
             
-            # Botón global para recalcular todo
-            col_global, _ = st.columns([1, 4])
-            with col_global:
-                if st.button("🔄 Recalcular todo", help="Recalcula todas las propiedades ignorando el caché"):
-                    st.session_state['forzar_recalculo_global'] = True
-                    st.rerun()
-            
-            resultados = {}
-            forzar_global = st.session_state.get('forzar_recalculo_global', False)
-            if forzar_global:
-                st.session_state['forzar_recalculo_global'] = False
-            
-            with st.spinner("Valuando portfolio..."):
-                for p in propiedades:
-                    forzar = forzar_global or st.session_state.get(f'forzar_recalculo_{p.get("nombre", "")}', False)
-                    if forzar:
-                        st.session_state[f'forzar_recalculo_{p.get("nombre", "")}'] = False
-                    resultados[p['nombre']] = valuar_con_cache(p, forzar_recalculo=forzar)
-            
+            # ─── FLUJO B: DETALLE DE UNA PROPIEDAD ───
             if st.session_state.prop_sel:
                 p_obj = next((p for p in propiedades if p['nombre'] == st.session_state.prop_sel), None)
                 if p_obj:
-                    # Botón Volver
-                    if st.button("← Volver al Portafolio"):
-                        st.session_state.prop_sel = None
-                        st.rerun()
+                    # Solo valuar esta propiedad
+                    forzar = st.session_state.pop(f'forzar_recalculo_{p_obj["nombre"]}', False)
+                    with st.spinner(f"Valuando {p_obj['nombre']}..."):
+                        resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar)
                     
-                    # Guardar función
                     def actualizar_propiedad(nueva_data):
                         props = cargar_propiedades()
                         for i, p in enumerate(props):
@@ -551,9 +531,30 @@ def mostrar_dashboard():
                                 props[i] = nueva_data
                                 break
                         guardar_propiedades(props)
-                    mostrar_detalle_valu(p_obj, resultados[p_obj['nombre']], actualizar_propiedad)
+                    
+                    if st.button("← Volver al Portafolio"):
+                        st.session_state.prop_sel = None
+                        st.rerun()
+                    
+                    mostrar_detalle_valu(p_obj, resultado, actualizar_propiedad)
+            
+            # ─── FLUJO A: VISTA GENERAL DEL PORTFOLIO ───
             else:
-                # Usar la función original para mostrar el grid de propiedades
+                st.title("📂 Mi Portafolio")
+                
+                col_global, _ = st.columns([1, 4])
+                with col_global:
+                    if st.button("🔄 Recalcular todo", help="Recalcula TODAS las propiedades ignorando el caché"):
+                        st.session_state['forzar_recalculo_global'] = True
+                        st.rerun()
+                
+                resultados = {}
+                forzar_global = st.session_state.pop('forzar_recalculo_global', False)
+                
+                with st.spinner("Valuando portfolio..."):
+                    for p in propiedades:
+                        resultados[p['nombre']] = valuar_con_cache(p, forzar_recalculo=forzar_global)
+                
                 mostrar_dashboard_valu(propiedades, resultados)
 
     elif st.session_state.page == "Inventario":
