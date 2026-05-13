@@ -107,39 +107,21 @@ def mostrar_dashboard_valu(propiedades, resultados):
                 st.rerun()
 
 def mostrar_detalle_valu(prop, res, guardar_fn):
-    # Cache indicator and recalculate button
-    cache_info = res.get('_cache', {})
-    col_cache, col_back, col_recalc, col_edit = st.columns([2, 3, 1, 1])
+    nombre = prop.get('nombre', '')
     
-    with col_cache:
-        if cache_info.get('recalculado'):
-            razon = cache_info.get('razon', '')
-            razones_texto = {
-                'primera_vez': 'calculado por primera vez',
-                'propiedad_modificada': 'recalculado por cambio en datos',
-                'scraping_actualizado': 'recalculado por nuevo scraping',
-                'ttl_expirado': 'recalculado (24h expiradas)',
-                'forzado_por_usuario': 'recalculado manualmente'
-            }
-            st.success(f"✅ {razones_texto.get(razon, razon)}")
-        else:
-            fecha_calc = cache_info.get('fecha_calculo', '?')
-            st.caption(f"📅 Valuación del {fecha_calc} · Desde caché")
-    
+    # Barra de acciones: 3 botones iguales contiguos a la izquierda
+    col_back, col_edit, col_recalc = st.columns(3)
     with col_back:
-        if st.button("← Volver al Portfolio"):
+        if st.button("← Volver", use_container_width=True):
             st.session_state.prop_sel = None
             st.rerun()
-    
+    with col_edit:
+        if st.button("✏️ Editar", use_container_width=True):
+            st.session_state[f"edit_{prop['id']}"] = True
     with col_recalc:
-        nombre = prop.get('nombre', '')
-        if st.button("🔄 Recalcular valuación", key=f"recalc_{nombre}", use_container_width=True):
+        if st.button("🔄 Revaluar", use_container_width=True):
             st.session_state[f'forzar_recalculo_{nombre}'] = True
             st.rerun()
-    
-    with col_edit:
-        if st.button("✏️ Editar Propiedad", width='stretch'):
-            st.session_state[f"edit_{prop['id']}"] = True
 
     if st.session_state.get(f"edit_{prop['id']}", False):
         with st.form(f"f_edit_{prop['id']}"):
@@ -152,7 +134,6 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                 st.session_state[f"edit_{prop['id']}"] = False
                 st.rerun()
 
-    nombre = prop.get('nombre', '')
     zona = prop.get('zona', 'Oeste')
     dolar = res.get('usdt_ars', 1480)
     valor_usd = res.get('valor_propiedad_usd', 0)
