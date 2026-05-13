@@ -26,7 +26,7 @@ def _extraer_calle_numero(direccion: str):
     """Extrae (calle, numero) de una dirección tipo 'Ayacucho 1805'."""
     if not direccion:
         return None, None
-    m = re.search(r'([A-Za-z\u00C0-\u024F\s.]+?)\s+(\d+)$', direccion.strip())
+    m = re.search(r'([A-Za-z0-9\u00C0-\u024F\s.]+?)\s+(\d+)$', direccion.strip())
     if m:
         return m.group(1).strip().lower(), int(m.group(2))
     return None, None
