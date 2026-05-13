@@ -127,7 +127,7 @@ def enriquecer_con_infomapa(prop: Dict) -> Optional[Dict]:
         logger.info(f"[INFOMAPA] Sin candidatos para ({lat}, {lon})")
         return None
 
-    candidatos = candidatos[:10]
+    candidatos = candidatos[:3]
 
     # Determinar recomendado por dirección
     calle, numero = _extraer_calle_numero(prop.get('direccion', ''))
