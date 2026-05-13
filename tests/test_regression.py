@@ -280,3 +280,29 @@ def test_alquiler_p1200_con_discount():
     alq = result.get('alquiler_estimado_ars', 0)
     # P1200 debe estar dentro de benchmark $600k-$900k
     assert 600000 <= alq <= 900000, f"P1200 alquiler ${alq:,.0f} fuera de benchmark"
+
+
+# ─── FASE 1: ENRIQUECIMIENTO DE AÑO DESDE CATASTRO ───
+
+def test_fase1_no_cambia_valores():
+    """Enriquecimiento NO debe cambiar valores de venta/alquiler"""
+    valores_referencia = {
+        'mabel': (70000, 85000),
+        'ayacucho': (44000, 50000),
+    }
+    for nombre, (lo, hi) in valores_referencia.items():
+        r = valuar_propiedad_v7(ejecutar_valuacion(nombre), fecha_ref='2026-04')
+        valor = r.get('valor_propiedad_usd', 0)
+        assert lo <= valor <= hi, f"{nombre}: valor ${valor} fuera de rango esperado (${lo}-${hi})"
+
+
+def test_fase1_pool_enriquecido():
+    """Verificar que al menos algunos comparables se enriquecen"""
+    r = valuar_propiedad_v7(ejecutar_valuacion('mabel'), fecha_ref='2026-04')
+    meta = r.get('resolution_metadata', {})
+    pct = meta.get('pct_con_anio', 0)
+    total = meta.get('n_comparables_total', 0)
+    alta = meta.get('n_con_anio_alta', 0)
+    media = meta.get('n_con_anio_media', 0)
+    print(f"\n[FASE1] Mabel: pool={total}, ALTA={alta}, MEDIA={media}, pct={pct}%")
+    assert pct > 0, f"Mabel: {pct}% enriquecido (esperado >0%)"

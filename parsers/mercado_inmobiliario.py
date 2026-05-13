@@ -2,9 +2,12 @@ import json
 import os
 import re
 import math
+import logging
 import numpy as np
 from datetime import datetime
 from parsers.location_engine import cargar_anclas, calcular_precio_m2, estimar_confianza, get_ancla_mas_cercana
+
+logger = logging.getLogger(__name__)
 
 DATOS_MERCADO_FILE = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
@@ -327,6 +330,120 @@ def obtener_mediana_cluster(zona, dormitorios, operacion='venta'):
         return 0, 0
 
 
+# ─── FASE 1: ENRIQUECIMIENTO DE AÑO DESDE CATASTRO ───
+
+_CATASTRO_CACHE = None
+
+def cargar_catastro():
+    """
+    Carga el CSV de Infomapa (rosario_avm_full.csv) con años de construcción.
+    Cachea globalmente para no leer disco múltiples veces.
+    """
+    global _CATASTRO_CACHE
+    if _CATASTRO_CACHE is not None:
+        return _CATASTRO_CACHE
+    try:
+        import pandas as pd
+        path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            'data', 'rosario_avm_full.csv'
+        )
+        if not os.path.exists(path):
+            logger.error(f"[CATASTRO] Archivo no encontrado: {path}")
+            return None
+        df = pd.read_csv(path)
+        required = ['ph', 'year', 'latitud', 'longitud', 'direccion_nominatim']
+        if not all(col in df.columns for col in required):
+            logger.error(f"[CATASTRO] Faltan columnas. Tengo: {list(df.columns)}")
+            return None
+        df = df.dropna(subset=['year', 'latitud', 'longitud'])
+        df['year'] = df['year'].astype(int)
+        df = df[(df['year'] >= 1900) & (df['year'] <= 2026)]
+        _CATASTRO_CACHE = df
+        logger.info(f"[CATASTRO] Cargado: {len(df)} registros")
+        return df
+    except Exception as e:
+        logger.error(f"[CATASTRO] Error: {e}")
+        return None
+
+
+def enriquecer_anio_comparable(comp, max_dist_m=50):
+    """
+    Asigna año de construcción a un comparable usando catastro.
+    
+    Args:
+        comp: dict de comparable (del scraping)
+        max_dist_m: distancia máxima en metros para considerar match
+    
+    Returns:
+        dict con anio_estimado, distancia_match, confianza, o None
+    """
+    catastro = cargar_catastro()
+    if catastro is None:
+        return None
+
+    lat = comp.get('lat') or comp.get('latitud')
+    lon = comp.get('lon') or comp.get('longitud')
+    dir_comp = comp.get('direccion', comp.get('address', ''))
+
+    if not lat or not lon:
+        return None
+
+    try:
+        lat, lon = float(lat), float(lon)
+    except:
+        return None
+
+    # Búsqueda espacial aproximada (bounding box ~111m)
+    bbox = 0.001
+    cercanos = catastro[
+        (catastro['latitud'].between(lat - bbox, lat + bbox)) &
+        (catastro['longitud'].between(lon - bbox, lon + bbox))
+    ]
+    if cercanos.empty:
+        return None
+
+    mejor_dist = float('inf')
+    mejor_row = None
+
+    for _, row in cercanos.iterrows():
+        d = calcular_distancia_km(lat, lon, row['latitud'], row['longitud']) * 1000
+        if d < mejor_dist:
+            mejor_dist = d
+            mejor_row = row
+
+    if mejor_dist > max_dist_m:
+        return None
+
+    # Determinar confianza
+    if mejor_dist < 30:
+        confianza = 'ALTA'
+    elif mejor_dist < 50:
+        confianza = 'MEDIA'
+    else:
+        return None
+
+    # Validación por dirección
+    dir_catastro = str(mejor_row.get('direccion_nominatim', '')).lower()
+    match_calle = False
+    if dir_comp and dir_catastro:
+        calle_comp = dir_comp.lower().split()[0] if dir_comp.split() else ''
+        calle_cat = dir_catastro.split()[0] if dir_catastro.split() else ''
+        match_calle = bool(calle_comp and calle_cat and calle_comp == calle_cat)
+
+    if confianza == 'MEDIA' and not match_calle:
+        return None  # Baja confianza → descartar
+
+    return {
+        'anio_estimado': int(mejor_row['year']),
+        'ph_match': str(mejor_row.get('ph', '?')),
+        'distancia_m': round(mejor_dist, 1),
+        'confianza': confianza,
+        'match_calle': match_calle,
+        'direccion_catastro': str(mejor_row.get('direccion_nominatim', ''))
+    }
+
+
 def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=None, lon_ref=None, fecha_ref=None):
     """
     Obtiene la mediana del cluster desde cache_scraping.json.
@@ -572,6 +689,34 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 seen.add(key)
                 unicos.append(p)
         
+        # FASE 1: Enriquecer pool con año del catastro (solo informativo)
+        n_enriquecidos_alta = 0
+        n_enriquecidos_media = 0
+
+        for comp in unicos:
+            if comp.get('anio_construccion') or comp.get('anio_estimado'):
+                continue
+            enriq = enriquecer_anio_comparable(comp)
+            if enriq:
+                comp['anio_estimado'] = enriq['anio_estimado']
+                comp['anio_confianza'] = enriq['confianza']
+                comp['anio_ph_match'] = enriq['ph_match']
+                comp['anio_distancia_match'] = enriq['distancia_m']
+
+                if enriq['confianza'] == 'ALTA':
+                    n_enriquecidos_alta += 1
+                elif enriq['confianza'] == 'MEDIA':
+                    n_enriquecidos_media += 1
+
+        total_pool = len(unicos)
+        n_enriq_total = n_enriquecidos_alta + n_enriquecidos_media
+        pct_enriq = (n_enriq_total / total_pool * 100) if total_pool else 0
+
+        logger.info(f"[ENRIQUECIMIENTO_FASE1] Pool: {total_pool}, "
+                    f"Enriquecidos: {n_enriq_total} ({pct_enriq:.0f}%), "
+                    f"ALTA: {n_enriquecidos_alta}, "
+                    f"MEDIA: {n_enriquecidos_media}")
+
         precios = [p['valor_m2'] for p in unicos]
         n_raw = len(precios)
         
@@ -784,7 +929,12 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             'p50_cluster': round(p50_cluster, 2),
             'p75_cluster': round(p75_cluster, 2),
             # Fuente del rango
-            'fuente_rango': fuente_rango
+            'fuente_rango': fuente_rango,
+            # Enriquecimiento Fase 1 (catastro)
+            'n_comparables_total': total_pool,
+            'n_con_anio_alta': n_enriquecidos_alta,
+            'n_con_anio_media': n_enriquecidos_media,
+            'pct_con_anio': round(pct_enriq, 1),
         }
         
         return valor, n_filtradas, meta
@@ -2314,7 +2464,12 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         'radio_usado': meta_venta.get('radio_usado'),
         'percentil_usado': meta_venta.get('percentil_usado'),
         'zona_resol': meta_venta.get('zona_resolucion'),
-        'm2_base_source': metodo_origen
+        'm2_base_source': metodo_origen,
+        # Fase 1: Enriquecimiento de año
+        'n_comparables_total': meta_venta.get('n_comparables_total', 0),
+        'n_con_anio_alta': meta_venta.get('n_con_anio_alta', 0),
+        'n_con_anio_media': meta_venta.get('n_con_anio_media', 0),
+        'pct_con_anio': meta_venta.get('pct_con_anio', 0),
     }
     
     # Generar comparables sintéticos para el mapa (basados en los nodos del cluster)
