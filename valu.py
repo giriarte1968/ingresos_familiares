@@ -125,7 +125,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
 
     if st.session_state.get(f"edit_{prop['id']}", False):
         with st.form(f"f_edit_{prop['id']}"):
-            new_data = ui_formulario_propiedad(prop_inicial=prop, key_suffix="edit")
+            new_data = ui_formulario_propiedad(prop_inicial=prop, key_suffix="edit", show_geocode=False)
             if st.form_submit_button("Guardar Cambios", type="primary"):
                 guardar_fn(new_data)
                 st.session_state[f"edit_{prop['id']}"] = False
