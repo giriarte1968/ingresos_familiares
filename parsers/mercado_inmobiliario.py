@@ -2624,22 +2624,19 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         'valor_propiedad_usd': valor_venta,
     })
     
-    # Enriquecer con datos de Infomapa (CSV lookup + API)
+    # Enriquecer con datos de Infomapa (candidatos + imágenes)
     catastro_detalle = None
     try:
         from parsers.infomapa_api import enriquecer_con_infomapa
         catastro_raw = enriquecer_con_infomapa(prop)
-        
         if catastro_raw:
             catastro_detalle = {
-                'ph': catastro_raw.get('ph'),
-                'year': catastro_raw.get('year'),
-                'seccion': catastro_raw.get('seccion'),
-                'manzana': catastro_raw.get('manzana'),
-                'grafico': catastro_raw.get('grafico'),
-                'url_plano': catastro_raw.get('url_plano'),
+                'candidatos': catastro_raw.get('candidatos', []),
+                'imagenes_disponibles': catastro_raw.get('imagenes_disponibles', {}),
             }
-            logger.info(f"[INFOMAPA] PH={catastro_raw['ph']}, plano={'SI' if catastro_raw.get('url_plano') else 'NO'}")
+            n_cand = len(catastro_raw['candidatos'])
+            n_ph_con_img = sum(1 for ph in catastro_raw['imagenes_disponibles'])
+            logger.info(f"[INFOMAPA] {n_cand} candidatos, {n_ph_con_img} PHs con imágenes")
     except Exception as e:
         logger.warning(f"[INFOMAPA] Error: {e}")
         catastro_detalle = None

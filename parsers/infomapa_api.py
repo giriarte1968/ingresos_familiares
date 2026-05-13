@@ -2,15 +2,17 @@
 Infomapa Rosario API - Integración con datos catastrales oficiales.
 
 Flujo:
-1. Buscar PH en CSV local (rosario_avm_full.csv) por coordenadas
-2. Llamar a API real de Infomapa con ese PH para obtener URL del plano PDF
+1. Buscar candidatos PH en CSV (rosario_avm_full.csv) por coordenadas
+2. Obtener imágenes disponibles de la API para cada PH candidato
+3. El analista selecciona manualmente el PH correcto en la UI
 """
 
 import os
 import csv
+import re
 import requests
 import logging
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 logger = logging.getLogger(__name__)
 
@@ -20,13 +22,26 @@ DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__
 CSV_PATH = os.path.join(DATA_DIR, 'rosario_avm_full.csv')
 
 
-def obtener_url_plano(ph) -> Optional[str]:
+def _extraer_calle_numero(direccion: str):
+    """Extrae (calle, numero) de una dirección tipo 'Ayacucho 1805'."""
+    if not direccion:
+        return None, None
+    m = re.search(r'([A-Za-z\u00C0-\u024F\s.]+?)\s+(\d+)$', direccion.strip())
+    if m:
+        return m.group(1).strip().lower(), int(m.group(2))
+    return None, None
+
+
+def obtener_url_plano(ph) -> list:
     """
-    Consulta API de Infomapa y devuelve URL completa del PDF.
-    Retorna None si hay error o no existe.
+    Consulta API de Infomapa y retorna lista de imágenes disponibles.
+    
+    Returns:
+        [{"ruta": "/emapa/...", "url": "https://infomapa..."}, ...]
+        Lista vacía si hay error o no hay imágenes.
     """
     if not ph:
-        return None
+        return []
     try:
         resp = requests.post(
             API_URL,
@@ -37,14 +52,13 @@ def obtener_url_plano(ph) -> Optional[str]:
         if resp.status_code == 200:
             data = resp.json()
             if isinstance(data, list) and len(data) > 0:
-                imagenes = data[0].get("imagenes", [])
-                if imagenes and len(imagenes) > 0:
-                    ruta = imagenes[0].get("ruta")
-                    if ruta:
-                        return BASE + ruta
+                return [
+                    {"ruta": img.get("ruta", ""), "url": BASE + img.get("ruta", "")}
+                    for img in data[0].get("imagenes", []) if img.get("ruta")
+                ]
     except Exception as e:
-        logger.error(f"[INFOMAPA] Error buscando PH {ph}: {e}")
-    return None
+        logger.error(f"[INFOMAPA] Error PH {ph}: {e}")
+    return []
 
 
 def _cargar_csv() -> list:
@@ -60,28 +74,44 @@ def _cargar_csv() -> list:
         return []
 
 
-def _match_coordenadas(filas, lat: float, lon: float, tol: float = 0.0005) -> Optional[Dict]:
-    """Busca fila del CSV más cercana a las coordenadas dadas."""
-    mejor = None
-    menor = float('inf')
+def _match_coordenadas(filas: list, lat: float, lon: float, tol: float = 0.0005) -> list:
+    """
+    Retorna TODAS las filas del CSV dentro de tolerancia, ordenadas por distancia.
+    Cada fila incluye campo extra 'distancia' en grados decimales.
+    """
+    matches = []
     for row in filas:
         try:
             dl = (lat - float(row.get('latitud', 0))) ** 2
             dn = (lon - float(row.get('longitud', 0))) ** 2
             d = (dl + dn) ** 0.5
-            if d < menor and d <= tol:
-                menor = d
-                mejor = row
+            if d <= tol:
+                row['distancia'] = d
+                matches.append(row)
         except (ValueError, TypeError):
             continue
-    return mejor
+    matches.sort(key=lambda x: x['distancia'])
+    return matches
 
 
 def enriquecer_con_infomapa(prop: Dict) -> Optional[Dict]:
     """
-    Busca PH del CSV por coordenadas, luego llama API para obtener PDF.
+    Busca candidatos PH en CSV por coordenadas, obtiene imágenes de la API.
     
-    Returns dict con {ph, year, seccion, manzana, grafico, url_plano} o None.
+    Returns:
+        {
+            "candidatos": [
+                {"ph": "17817", "year": "2010", "direccion_nominatim": "Ayacucho 1805",
+                 "seccion": "1", "manzana": "211", "grafico": "22",
+                 "distancia": 0.000369, "recomendado": True},
+                ...
+            ],
+            "imagenes_disponibles": {
+                "17817": [{"ruta": "...", "url": "..."}, ...],
+                ...
+            }
+        }
+        None si no hay datos.
     """
     lat, lon = prop.get('lat'), prop.get('lon')
     if not lat or not lon:
@@ -92,22 +122,32 @@ def enriquecer_con_infomapa(prop: Dict) -> Optional[Dict]:
     if not filas:
         return None
 
-    match = _match_coordenadas(filas, float(lat), float(lon))
-    if not match:
-        logger.info(f"[INFOMAPA] Sin match CSV para ({lat}, {lon})")
+    candidatos = _match_coordenadas(filas, float(lat), float(lon), tol=0.0006)
+    if not candidatos:
+        logger.info(f"[INFOMAPA] Sin candidatos para ({lat}, {lon})")
         return None
 
-    ph = match.get('ph', '')
-    if not ph:
-        return None
+    candidatos = candidatos[:10]
 
-    url_plano = obtener_url_plano(ph)
+    # Determinar recomendado por dirección
+    calle, numero = _extraer_calle_numero(prop.get('direccion', ''))
+    for c in candidatos:
+        c_csv, n_csv = _extraer_calle_numero(c.get('direccion_nominatim', ''))
+        c['recomendado'] = (
+            c_csv and calle
+            and (c_csv == calle or c_csv in calle or calle in c_csv)
+            and n_csv and numero
+            and abs(n_csv - numero) <= 5
+        ) if (calle and numero and c_csv) else False
+
+    phs = [c['ph'] for c in candidatos]
+    imagenes = {}
+    for ph in phs:
+        imgs = obtener_url_plano(ph)
+        if imgs:
+            imagenes[ph] = imgs
 
     return {
-        'ph': ph,
-        'year': match.get('year', ''),
-        'seccion': match.get('seccion', ''),
-        'manzana': match.get('manzana', ''),
-        'grafico': match.get('grafico', ''),
-        'url_plano': url_plano,
+        "candidatos": candidatos,
+        "imagenes_disponibles": imagenes,
     }

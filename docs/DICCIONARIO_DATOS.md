@@ -144,3 +144,50 @@ Diccionario simple para ajustar la calidad del edificio.
 - **MODO LEGADO**: Si `m2_descubiertos_propios` y `m2_descubiertos_comun_exclusivo` son None → usar `m2_descubiertos`.
 - **MODO GRANULAR**: Usar coeficientes diferenciados para propios vs comun_exclusivo.
 - **m2**: Eliminado del UI (solo retrocompatibilidad).
+
+---
+
+## 7. `valuaciones_historial.jsonl`
+
+Archivo append-only que registra cada evento de valuación. Formato: una línea JSON por evento.
+
+### Estructura del Registro
+| Campo | Tipo | Descripción |
+| :--- | :--- | :--- |
+| `id` | string | ID único del evento (`val_YYYYMMDD_HHMMSS_Nombre`). |
+| `timestamp` | string | ISO string del momento del cálculo. |
+| `propiedad` | string | Nombre de la propiedad valuada. |
+| `razon_recalculo` | string | `primera_vez`, `scraping_actualizado`, `propiedad_modificada`, etc. |
+| `snapshot_propiedad` | dict | Copia completa de los atributos físicos de la propiedad en ese momento. |
+| `snapshot_mercado` | dict | Variables de entorno: Dólar, m² base, n_comparables, hash_scraping. |
+| `resultado` | dict | Valores finales calculados (venta, alquiler, cap_rate). |
+
+### Snapshot de Mercado (Detalle)
+- `hash_scraping`: Primeros 12 caracteres del hash MD5 de `cache_scraping.json`.
+- `archivo_scraping`: Nombre del snapshot guardado en `data/scraping_history/`.
+- `dolar_binance`: Cotización USDT/ARS usada.
+- `m2_base_venta`: Precio base del cluster detectado.
+
+---
+
+## 7. `resultado.catastro_detalle` (Infomapa)
+
+Agregado a valuación vía `enriquecer_con_infomapa()`.
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `candidatos` | `list[dict]` | Lista de PHs candidatos dentro del radio de tolerancia |
+| `candidatos[].ph` | `str` | Número de carpeta PH |
+| `candidatos[].year` | `str` | Año de construcción |
+| `candidatos[].direccion_nominatim` | `str` | Dirección del CSV |
+| `candidatos[].seccion` | `str` | Sección catastral |
+| `candidatos[].manzana` | `str` | Manzana catastral |
+| `candidatos[].grafico` | `str` | Gráfico catastral |
+| `candidatos[].distancia` | `float` | Distancia en grados decimales desde la propiedad |
+| `candidatos[].recomendado` | `bool` | `True` si coincide con la dirección de la propiedad |
+| `imagenes_disponibles` | `dict` | Mapa `PH → list[{ruta, url}]` con las imágenes del plano |
+
+---
+
+**Generado por**: Antigravity (IA de Desarrollo)
+**Fecha**: 2026-05-12

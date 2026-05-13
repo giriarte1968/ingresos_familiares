@@ -264,24 +264,64 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     st.subheader("📋 Datos Catastrales (Infomapa)")
     
     catastro = res.get('catastro_detalle', None)
+    candidatos = catastro.get('candidatos', []) if catastro else []
+    imagenes_por_ph = catastro.get('imagenes_disponibles', {}) if catastro else {}
     
-    with st.container(border=True):
-        c1, c2 = st.columns(2)
-        with c1:
-            st.write(f"**PH:** {catastro.get('ph', 'No registrado') if catastro else 'No registrado'}")
-            if catastro:
-                st.write(f"**Sección:** {catastro.get('seccion', 'N/A')} · **Manzana:** {catastro.get('manzana', 'N/A')}")
-                st.write(f"**Gráfico:** {catastro.get('grafico', 'N/A')}")
+    if not candidatos:
+        with st.container(border=True):
+            st.info("Sin datos catastrales para esta ubicación")
+    else:
+        key_ph = f"ph_sel_{nombre}"
+        if key_ph not in st.session_state:
+            rec = next((c for c in candidatos if c.get('recomendado')), candidatos[0])
+            st.session_state[key_ph] = rec['ph']
         
-        with c2:
-            if catastro and catastro.get('url_plano'):
-                st.link_button("📄 Ver Plano Original (PDF)", catastro['url_plano'], type="primary", use_container_width=True)
-            elif catastro and catastro.get('ph'):
-                st.button("📄 Plano no disponible", disabled=True, use_container_width=True)
-            elif catastro:
-                st.info("Sin plano disponible")
-            else:
-                st.info("Coordenadas no disponibles en base de datos municipal")
+        ph_sel = st.session_state[key_ph]
+        
+        with st.container(border=True):
+            col_botones, col_info = st.columns(2)
+            
+            with col_botones:
+                st.write("**Candidatos disponibles:**")
+                for c in candidatos:
+                    is_sel = c['ph'] == ph_sel
+                    label = c.get('direccion_nominatim', 'PH ' + str(c['ph']))
+                    d = float(c.get('distancia', 0)) * 111000
+                    sub = f"({d:.0f}m)"
+                    if c.get('recomendado'):
+                        sub += " ✅"
+                    text = f"{label} {sub}"
+                    st.button(
+                        text,
+                        key=f"btn_{nombre}_ph_{c['ph']}",
+                        type="primary" if is_sel else "secondary",
+                        use_container_width=True,
+                        on_click=lambda ph=c['ph'], k=key_ph: st.session_state.update({k: ph})
+                    )
+            
+            with col_info:
+                sel_data = next((c for c in candidatos if c['ph'] == ph_sel), None)
+                if sel_data:
+                    st.write(f"**PH:** {sel_data['ph']}")
+                    st.write(f"**Año:** {sel_data.get('year', 'N/A')}")
+                    st.write(f"**Sección:** {sel_data.get('seccion', 'N/A')} · **Manzana:** {sel_data.get('manzana', 'N/A')}")
+                    st.write(f"**Gráfico:** {sel_data.get('grafico', 'N/A')}")
+                
+                imagenes = imagenes_por_ph.get(ph_sel, [])
+                if len(imagenes) > 1:
+                    idx = st.selectbox(
+                        "Imagen:",
+                        options=range(len(imagenes)),
+                        format_func=lambda i: imagenes[i]['ruta'].rsplit('/', 1)[-1],
+                        key=f"img_sel_{nombre}_{ph_sel}"
+                    )
+                    st.link_button("📄 Abrir Plano", imagenes[idx]['url'],
+                                  type="primary", use_container_width=True)
+                elif len(imagenes) == 1:
+                    st.link_button("📄 Ver Plano Original (PDF)", imagenes[0]['url'],
+                                  type="primary", use_container_width=True)
+                else:
+                    st.button("📄 Plano no disponible", disabled=True, use_container_width=True)
 
     # === HISTORIAL DE VALUACIONES (NUEVO) ===
     st.markdown("---")

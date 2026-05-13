@@ -4,6 +4,87 @@ Este documento es el "diario de trabajo". Cada agente de IA que trabaje en este 
 
 ---
 
+## 📅 2026-05-11 — REFACTORIZACIÓN LANDING PAGE A PLANTILLAS DINÁMICAS
+
+### Objetivo:
+Reemplazar constantes estáticas de HTML por funciones generadoras que inyecten datos reales del motor de valuación (VPP).
+
+### Acciones realizadas:
+1. **Refactorización de `landing_content.py`**:
+   - Reemplazo de cadenas estáticas por funciones (`get_hero_html`, `get_example_html`, etc.).
+   - Creación de `get_landing_stats()` para leer `cache_scraping.json` y `propiedades.json`.
+   - Se removieron emojis y se implementaron SVGs inline.
+2. **Refactorización de `landing.py`**:
+   - Cambio del flujo de renderizado para llamar a las funciones.
+   - El botón CTA se movió al interior de `landing.py` antes del footer.
+3. **Estilos en `valu_design.py`**:
+   - Incorporación de las clases faltantes para la tarjeta de ejemplo y el hero (`.mockup-card`, `.mockup-price`, etc.).
+
+---
+
+## 📅 2026-05-11 — IMPLEMENTACIÓN DE LANDING PAGE PROFESIONAL (AVM)
+
+### Objetivo:
+Crear una página de aterrizaje (landing page) inspirada en Zillow/Redfin para presentar Valu a nuevos usuarios, explicando la propuesta de valor y las limitaciones del modelo estadístico.
+
+### Acciones realizadas:
+1. **Nuevo Módulo** `landing_content.py`:
+   - 9 secciones HTML (Hero, Problema, Cómo funciona, Features, Ejemplo Real, Target, Trust/Disclaimer, CTA, Footer).
+   - Uso de tipografía Inter y paleta de colores corporativa (Navy/Emerald).
+   - Implementación de animaciones de scroll (Reveal on scroll) mediante Intersection Observer.
+
+2. **Estilos** en `valu_design.py`:
+   - Definición de `LANDING_CSS` con variables CSS, grids responsivos y animaciones.
+
+3. **Routing en `valu.py`**:
+   - Implementación de estado `vista_actual` para alternar entre Landing y Dashboard.
+   - Ocultamiento de sidebar de Streamlit durante la visualización de la landing.
+   - Botón "Volver al Inicio" integrado en el sidebar del dashboard.
+
+4. **Transparencia y Trust**:
+   - Sección explícita de "Lo que Valu es y lo que no es" para gestionar expectativas del usuario.
+
+### Resultados:
+- Experiencia de onboarding mejorada para nuevos usuarios.
+- Diseño profesional y responsivo que eleva la percepción de marca.
+- Mayor claridad sobre la metodología estadística (modelo hedónico) vs IA.
+
+---
+
+## 📅 2026-05-11 — SISTEMA DE HISTORIAL DE VALUACIONES (v15.0)
+
+### Objetivo:
+Implementar un registro inmutable y permanente de cada tasación para evitar la pérdida de datos en recálculos y permitir el análisis temporal.
+
+### Acciones realizadas:
+1. **Nuevo Módulo** `parsers/valuacion_historial.py`:
+   - Persistencia en JSONL (`data/valuaciones_historial.jsonl`)
+   - Sistema de snapshots de scraping con hash MD5 en `data/scraping_history/`
+   - Funciones para cargar, filtrar y comparar registros históricos.
+
+2. **Integración en Core**:
+   - `motor_vpp_core.py` (función `valuar_con_cache`) ahora invoca `registrar_valuacion` en cada acierto de recálculo.
+
+3. **Interfaz de Usuario (valu.py)**:
+   - Sección expandible "📈 Historial de Valuaciones" en el detalle de propiedad.
+   - Gráfico de evolución de valor usando Plotly.
+   - Herramienta de comparación entre dos fechas con desglose de variaciones.
+   - Historial de snapshots de scraping en la barra lateral.
+
+4. **Herramientas de Soporte**:
+   - CLI: `scripts/ver_historial.py` para consultas rápidas desde terminal.
+   - Tests: `tests/test_historial.py` (7 tests de integridad y lógica).
+
+### Resultados:
+- Las valuaciones ya no se sobrescriben.
+- Es posible auditar por qué cambió un precio (cambio en dólares vs. cambio en mercado).
+- Se preserva el contexto exacto (snapshot) de cada comparable usado.
+
+### Tests:
+- 7/7 passed en `test_historial.py`
+
+---
+
 ## 📅 2026-05-10 — RAZONAMIENTO NARRATIVO DE VALUACIÓN (Prompt 1)
 
 ### Acciones realizadas:
@@ -227,6 +308,24 @@ Este documento es el "diario de trabajo". Cada agente de IA que trabaje en este 
 [OK] → git add . && git commit -m "..." && git push
               ↓
 [FAIL] → Corregir errores → Repe
+
+---
+
+## 📅 2026-05-12 — INFOMAPA: Candidatos múltiples + selección manual + imágenes múltiples
+
+### Cambios:
+- `parsers/infomapa_api.py`: Refactor completo. `enriquecer_con_infomapa()` retorna lista de candidatos (top 10 por coordenadas) + imágenes disponibles por PH.
+- `parsers/mercado_inmobiliario.py`: Bloque simplificado que propaga `candidatos[]` e `imagenes_disponibles{}`.
+- `valu.py`: Nueva UI interactiva en detalle de propiedad:
+  - Columna izquierda: botones para cada candidato (clic → selecciona)
+  - Columna derecha: info del PH seleccionado + selector de imágenes si hay varias + botón "Abrir Plano"
+  - El recomendado por dirección se marca con "✅" y se selecciona automáticamente
+
+### Decisiones:
+- Límite de 10 candidatos para evitar ~50 llamadas API
+- Tolerancia de coordenadas aumentada a 0.0006° (~67m)
+- `st.session_state` persiste la selección de PH entre re-renders
+- Opción A para imágenes múltiples: selectbox + botón "Abrir Plano"
 
 # Docs .MD a mantener sincronizados:
 - ALGORITMOS.md (lógica)
