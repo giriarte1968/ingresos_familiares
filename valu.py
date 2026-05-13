@@ -284,9 +284,12 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                 sel_data = next((c for c in candidatos if c['ph'] == ph_sel), None)
                 if sel_data:
                     st.write(f"**PH:** {sel_data['ph']}")
-                    st.write(f"**Año:** {sel_data.get('year', 'N/A')}")
-                    st.write(f"**Sección:** {sel_data.get('seccion', 'N/A')} · **Manzana:** {sel_data.get('manzana', 'N/A')}")
-                    st.write(f"**Gráfico:** {sel_data.get('grafico', 'N/A')}")
+                    anio = int(float(sel_data['year'])) if sel_data.get('year') else 'N/A'
+                    st.write(f"**Año:** {anio}")
+                    secc = int(float(sel_data['seccion'])) if sel_data.get('seccion') else '-'
+                    mza = int(float(sel_data['manzana'])) if sel_data.get('manzana') else '-'
+                    graf = int(float(sel_data['grafico'])) if sel_data.get('grafico') else '-'
+                    st.write(f"**Sección {secc} · Manzana {mza} · Gráfico {graf}**")
                 
                 imagenes = imagenes_por_ph.get(ph_sel, [])
                 if len(imagenes) > 1:
