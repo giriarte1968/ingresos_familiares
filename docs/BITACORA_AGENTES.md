@@ -341,6 +341,18 @@ Implementar un registro inmutable y permanente de cada tasación para evitar la 
 - `st.session_state` persiste la selección de PH entre re-renders
 - Opción A para imágenes múltiples: selectbox + botón "Abrir Plano"
 
+---
+
+## 📅 2026-05-12 — GEOCODING + MATCHING INFOMAPA POR DIRECCIÓN
+
+### Cambios:
+- `parsers/infomapa_api.py`: Nueva función `_match_por_direccion()` que busca el PH por calle+número en todo el CSV. `enriquecer_con_infomapa()` ahora prioriza: 1) match por dirección (siempre incluido) + 2) top 2 por coordenadas.
+- `valu_forms.py`: Botón "📍 Geocodificar dirección" que llama a Nominatim para auto-completar lat/lon (campos siguen siendo editables).
+
+### Resultados de matching:
+- Ayacucho 1805 → PH 17817 ✅ (recomendado por dirección)
+- 3 de Febrero 520 → PH 6966 (3 de Febrero 519) ✅ (diff=1)
+
 # Docs .MD a mantener sincronizados:
 - ALGORITMOS.md (lógica)
 - DICCIONARIO_DATOS.md (datos)

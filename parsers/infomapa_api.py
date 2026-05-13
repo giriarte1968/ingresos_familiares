@@ -2,9 +2,11 @@
 Infomapa Rosario API - Integración con datos catastrales oficiales.
 
 Flujo:
-1. Buscar candidatos PH en CSV (rosario_avm_full.csv) por coordenadas
-2. Obtener imágenes disponibles de la API para cada PH candidato
-3. El analista selecciona manualmente el PH correcto en la UI
+1. Cargar CSV de PHs (rosario_avm_full.csv)
+2. Buscar candidato por DIRECCIÓN (calle + número más cercano) — SIEMPRE incluido
+3. Buscar top 2 por COORDENADAS como alternativas
+4. Obtener imágenes + nomenclatura de la API para cada candidato
+5. El analista selecciona manualmente el PH correcto en la UI
 """
 
 import os
@@ -107,9 +109,34 @@ def _match_coordenadas(filas: list, lat: float, lon: float, tol: float = 0.0005)
     return matches
 
 
+def _match_por_direccion(filas: list, calle: str, numero: int) -> Optional[Dict]:
+    """
+    Busca en TODAS las filas del CSV la misma calle + número más cercano.
+    No depende de coordenadas, busca por texto de dirección.
+    
+    Returns:
+        La fila con diff num mínima (máx 10 de diferencia) o None.
+    """
+    mejores = []
+    for row in filas:
+        csv_calle, csv_num = _extraer_calle_numero(row.get('direccion_nominatim', ''))
+        if not csv_calle or not csv_num:
+            continue
+        if csv_calle != calle and calle not in csv_calle and csv_calle not in calle:
+            continue
+        diff = abs(csv_num - numero)
+        if diff <= 10:
+            mejores.append((diff, row))
+    if not mejores:
+        return None
+    mejores.sort(key=lambda x: x[0])
+    return mejores[0][1]
+
+
 def enriquecer_con_infomapa(prop: Dict) -> Optional[Dict]:
     """
-    Busca candidatos PH en CSV por coordenadas, obtiene imágenes de la API.
+    Busca candidatos: 1 por dirección (prioritario) + 2 por coordenadas.
+    Luego obtiene imágenes + nomenclatura de la API.
     
     Returns:
         {
@@ -119,10 +146,7 @@ def enriquecer_con_infomapa(prop: Dict) -> Optional[Dict]:
                  "distancia": 0.000369, "recomendado": True},
                 ...
             ],
-            "imagenes_disponibles": {
-                "17817": [{"ruta": "...", "url": "..."}, ...],
-                ...
-            }
+            "imagenes_disponibles": {"17817": [{"ruta": "...", "url": "..."}, ...]}
         }
         None si no hay datos.
     """
@@ -135,39 +159,46 @@ def enriquecer_con_infomapa(prop: Dict) -> Optional[Dict]:
     if not filas:
         return None
 
-    candidatos = _match_coordenadas(filas, float(lat), float(lon), tol=0.0006)
+    # PASO 1: Top 2 por coordenadas
+    coord_candidates = _match_coordenadas(filas, float(lat), float(lon), tol=0.0006)[:2]
+
+    # PASO 2: Candidato por dirección (sobre TODAS las filas del CSV)
+    calle, numero = _extraer_calle_numero(prop.get('direccion', ''))
+    dir_candidate = None
+    if calle and numero:
+        dir_candidate = _match_por_direccion(filas, calle, numero)
+
+    # PASO 3: Combinar (máximo 3, sin duplicados)
+    candidatos = []
+    phs_vistos = set()
+
+    if dir_candidate:
+        dir_candidate['recomendado'] = True
+        candidatos.append(dir_candidate)
+        phs_vistos.add(dir_candidate['ph'])
+
+    for c in coord_candidates:
+        if c['ph'] not in phs_vistos and len(candidatos) < 3:
+            c['recomendado'] = False
+            candidatos.append(c)
+            phs_vistos.add(c['ph'])
+
     if not candidatos:
         logger.info(f"[INFOMAPA] Sin candidatos para ({lat}, {lon})")
         return None
 
-    candidatos = candidatos[:3]
-
-    # Determinar recomendado por dirección
-    calle, numero = _extraer_calle_numero(prop.get('direccion', ''))
-    for c in candidatos:
-        c_csv, n_csv = _extraer_calle_numero(c.get('direccion_nominatim', ''))
-        c['recomendado'] = (
-            c_csv and calle
-            and (c_csv == calle or c_csv in calle or calle in c_csv)
-            and n_csv and numero
-            and abs(n_csv - numero) <= 5
-        ) if (calle and numero and c_csv) else False
-
-    phs = [c['ph'] for c in candidatos]
+    # PASO 4: Llamar API para imágenes + nomenclatura
     imagenes = {}
-    for ph in phs:
-        datos_api = obtener_datos_ph(ph)
+    for c in candidatos:
+        datos_api = obtener_datos_ph(c['ph'])
         if datos_api.get('imagenes'):
-            imagenes[ph] = datos_api['imagenes']
-        # Enriquecer candidato con datos de la API si el CSV no los tiene
-        c = next((x for x in candidatos if x['ph'] == ph), None)
-        if c:
-            if not c.get('seccion') and datos_api.get('seccion'):
-                c['seccion'] = datos_api['seccion']
-            if not c.get('manzana') and datos_api.get('manzana'):
-                c['manzana'] = datos_api['manzana']
-            if not c.get('grafico') and datos_api.get('grafico'):
-                c['grafico'] = datos_api['grafico']
+            imagenes[c['ph']] = datos_api['imagenes']
+        if not c.get('seccion') and datos_api.get('seccion'):
+            c['seccion'] = datos_api['seccion']
+        if not c.get('manzana') and datos_api.get('manzana'):
+            c['manzana'] = datos_api['manzana']
+        if not c.get('grafico') and datos_api.get('grafico'):
+            c['grafico'] = datos_api['grafico']
 
     return {
         "candidatos": candidatos,

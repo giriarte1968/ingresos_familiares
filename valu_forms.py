@@ -37,8 +37,24 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
             if not direccion or not direccion.strip():
                 errores.append("La dirección es obligatoria")
         with col2:
-            lat_input = st.number_input("Latitud *", value=prop_inicial.get('lat', -32.9445), format="%.7f", key=f"lat_{key_suffix}")
-            lon_input = st.number_input("Longitud *", value=prop_inicial.get('lon', -60.6319), format="%.7f", key=f"lon_{key_suffix}")
+            # Geocodificar si se solicitó
+            geo_result = st.session_state.pop(f'geo_{key_suffix}', None)
+            lat_default = geo_result['lat'] if geo_result else prop_inicial.get('lat', -32.9445)
+            lon_default = geo_result['lon'] if geo_result else prop_inicial.get('lon', -60.6319)
+            
+            lat_input = st.number_input("Latitud *", value=lat_default, format="%.7f", key=f"lat_{key_suffix}")
+            lon_input = st.number_input("Longitud *", value=lon_default, format="%.7f", key=f"lon_{key_suffix}")
+            
+            if st.button("📍 Geocodificar dirección", use_container_width=True,
+                         disabled=not direccion.strip(), key=f"geobtn_{key_suffix}"):
+                from parsers.geocoder import geocoding_manager
+                with st.spinner("Buscando coordenadas..."):
+                    geo = geocoding_manager(direccion)
+                if geo and geo.get('lat'):
+                    st.session_state[f'geo_{key_suffix}'] = geo
+                    st.rerun()
+                else:
+                    st.error("No se encontró la dirección en OpenStreetMap")
             
             ub_tipos = ["calle", "avenida", "esquina", "pasaje"]
             ubicacion_tipo = st.selectbox("Tipo de Ubicación", ub_tipos, index=ub_tipos.index(prop_inicial.get('ubicacion_tipo', 'calle')) if prop_inicial.get('ubicacion_tipo') in ub_tipos else 0, key=f"ubica_tipo_{key_suffix}")
