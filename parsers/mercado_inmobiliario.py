@@ -2624,41 +2624,24 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         'valor_propiedad_usd': valor_venta,
     })
     
-    # Enriquecer con datos de Infomapa (catastro oficial desde CSV)
+    # Enriquecer con datos de Infomapa (CSV lookup + API)
     catastro_detalle = None
     try:
-        from parsers.infomapa_api import (
-            consultar_infomapa_desde_propiedad
-        )
-        catastro_raw = consultar_infomapa_desde_propiedad(prop)
+        from parsers.infomapa_api import enriquecer_con_infomapa
+        catastro_raw = enriquecer_con_infomapa(prop)
         
         if catastro_raw:
-            nomenclatura = {
-                'seccion': catastro_raw.get('seccion', ''),
-                'manzana': catastro_raw.get('manzana', ''),
-                'grafico': catastro_raw.get('grafico', ''),
-                'division': catastro_raw.get('division', '')
-            }
-            
             catastro_detalle = {
-                'arquitecto': [],
-                'arquitecto_texto': 'No disponible desde CSV',
-                'nro_plano': catastro_raw.get('ph', ''),
-                'expediente': '',
-                'fecha_inscripcion': catastro_raw.get('year', ''),
-                'url_plano_pdf': catastro_raw.get('url_plano_pdf'),
-                'nomenclatura': nomenclatura,
-                'superficie_oficial': 0,
-                'domicilio_oficial': catastro_raw.get('direccion', ''),
-                'tipo_documento': 'MENSURA Y DIVISION PH',
-                'bonus_estudio_premium': 0,
-                'es_estudio_premium': False,
-                'fuente': 'csv'
+                'ph': catastro_raw.get('ph'),
+                'year': catastro_raw.get('year'),
+                'seccion': catastro_raw.get('seccion'),
+                'manzana': catastro_raw.get('manzana'),
+                'grafico': catastro_raw.get('grafico'),
+                'url_plano': catastro_raw.get('url_plano'),
             }
-            
-            logger.info(f"[INFOMAPA] PH={catastro_raw.get('ph')}, Año={catastro_raw.get('year')}, URL={catastro_raw.get('url_plano_pdf', '')[:50]}...")
+            logger.info(f"[INFOMAPA] PH={catastro_raw['ph']}, plano={'SI' if catastro_raw.get('url_plano') else 'NO'}")
     except Exception as e:
-        logger.warning(f"[INFOMAPA] Error consultando catastro: {e}")
+        logger.warning(f"[INFOMAPA] Error: {e}")
         catastro_detalle = None
     
     # Generar razonamiento narrativo profesional

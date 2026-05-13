@@ -261,40 +261,27 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
 
     # === DOCUMENTACIÓN OFICIAL (INFOMAPA) ===
     st.markdown("---")
-    st.subheader("📋 Información Oficial de Catastro")
+    st.subheader("📋 Datos Catastrales (Infomapa)")
     
     catastro = res.get('catastro_detalle', None)
     
-    if catastro:
-        with st.container(border=True):
-            c1, c2 = st.columns(2)
-            with c1:
-                st.markdown(f"**Arquitecto/s:** {catastro.get('arquitecto_texto', 'No informado')}")
-                st.markdown(f"**Nro. de Plano:** {catastro.get('nro_plano', 'N/A')}")
-                st.markdown(f"**Expediente:** {catastro.get('expediente', 'N/A')}")
-                if catastro.get('es_estudio_premium'):
-                    st.success("🏆 Estudio premium detectado (+bonus de calidad)")
-            
-            with c2:
-                st.markdown(f"**Fecha Inscripción:** {catastro.get('fecha_inscripcion', 'N/A')}")
-                st.markdown(f"**Tipo de Documento:** {catastro.get('tipo_documento', 'MENSURA Y DIVISION PH')}")
-                if catastro.get('superficie_oficial'):
-                    st.markdown(f"**Superficie Oficial:** {catastro.get('superficie_oficial', 0):.1f} m²")
-                else:
-                    st.markdown("**Superficie Oficial:** N/A")
-                
-                url_pdf = catastro.get('url_plano_pdf')
-                if url_pdf:
-                    st.link_button("📄 Ver Plano Original (PDF)", url_pdf, help="Abre el plano de mensura oficial en Infomapa Rosario", type="primary")
-                else:
-                    st.warning("⚠️ Plano PDF no disponible en la base municipal")
-            
-            nomenclatura = catastro.get('nomenclatura', {})
-            if nomenclatura and nomenclatura.get('seccion'):
-                st.caption(f"📍 Nomenclatura: Sección {nomenclatura.get('seccion', '')}, Manzana {nomenclatura.get('manzana', '')}, Gráfico {nomenclatura.get('grafico', '')}, División {nomenclatura.get('division', '')}")
-    else:
-        st.info("ℹ️ Datos de Infomapa no disponibles. Verificando conexión con el servidor municipal...")
-        st.caption("La base de datos de Infomapa puede no estar accesible temporalmente.")
+    with st.container(border=True):
+        c1, c2 = st.columns(2)
+        with c1:
+            st.write(f"**PH:** {catastro.get('ph', 'No registrado') if catastro else 'No registrado'}")
+            if catastro:
+                st.write(f"**Sección:** {catastro.get('seccion', 'N/A')} · **Manzana:** {catastro.get('manzana', 'N/A')}")
+                st.write(f"**Gráfico:** {catastro.get('grafico', 'N/A')}")
+        
+        with c2:
+            if catastro and catastro.get('url_plano'):
+                st.link_button("📄 Ver Plano Original (PDF)", catastro['url_plano'], type="primary", use_container_width=True)
+            elif catastro and catastro.get('ph'):
+                st.button("📄 Plano no disponible", disabled=True, use_container_width=True)
+            elif catastro:
+                st.info("Sin plano disponible")
+            else:
+                st.info("Coordenadas no disponibles en base de datos municipal")
 
     # === HISTORIAL DE VALUACIONES (NUEVO) ===
     st.markdown("---")
