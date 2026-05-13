@@ -32,16 +32,21 @@ def _extraer_calle_numero(direccion: str):
     return None, None
 
 
-def obtener_url_plano(ph) -> list:
+def obtener_datos_ph(ph) -> dict:
     """
-    Consulta API de Infomapa y retorna lista de imágenes disponibles.
+    Consulta API de Infomapa y retorna imágenes + nomenclatura catastral.
     
     Returns:
-        [{"ruta": "/emapa/...", "url": "https://infomapa..."}, ...]
-        Lista vacía si hay error o no hay imágenes.
+        {
+            "imagenes": [{"ruta": "...", "url": "..."}, ...],
+            "seccion": "9",
+            "manzana": "48", 
+            "grafico": "11",
+        }
+        Dict vacío si hay error.
     """
     if not ph:
-        return []
+        return {}
     try:
         resp = requests.post(
             API_URL,
@@ -52,13 +57,21 @@ def obtener_url_plano(ph) -> list:
         if resp.status_code == 200:
             data = resp.json()
             if isinstance(data, list) and len(data) > 0:
-                return [
+                entry = data[0]
+                imagenes = [
                     {"ruta": img.get("ruta", ""), "url": BASE + img.get("ruta", "")}
-                    for img in data[0].get("imagenes", []) if img.get("ruta")
+                    for img in entry.get("imagenes", []) if img.get("ruta")
                 ]
+                cat = entry.get("catastrales", [{}])[0] if entry.get("catastrales") else {}
+                return {
+                    "imagenes": imagenes,
+                    "seccion": cat.get("seccion", ""),
+                    "manzana": cat.get("manzana", ""),
+                    "grafico": cat.get("grafico", ""),
+                }
     except Exception as e:
         logger.error(f"[INFOMAPA] Error PH {ph}: {e}")
-    return []
+    return {}
 
 
 def _cargar_csv() -> list:
@@ -143,9 +156,18 @@ def enriquecer_con_infomapa(prop: Dict) -> Optional[Dict]:
     phs = [c['ph'] for c in candidatos]
     imagenes = {}
     for ph in phs:
-        imgs = obtener_url_plano(ph)
-        if imgs:
-            imagenes[ph] = imgs
+        datos_api = obtener_datos_ph(ph)
+        if datos_api.get('imagenes'):
+            imagenes[ph] = datos_api['imagenes']
+        # Enriquecer candidato con datos de la API si el CSV no los tiene
+        c = next((x for x in candidatos if x['ph'] == ph), None)
+        if c:
+            if not c.get('seccion') and datos_api.get('seccion'):
+                c['seccion'] = datos_api['seccion']
+            if not c.get('manzana') and datos_api.get('manzana'):
+                c['manzana'] = datos_api['manzana']
+            if not c.get('grafico') and datos_api.get('grafico'):
+                c['grafico'] = datos_api['grafico']
 
     return {
         "candidatos": candidatos,
