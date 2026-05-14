@@ -61,7 +61,7 @@ def test_mabel_venta():
     """Valida rangos de venta para Mabel (Barrio Martin)"""
     r = valuar_propiedad_v7(ejecutar_valuacion('mabel'), fecha_ref="2026-04")
     # Aceptar rango +-10% del valor esperado
-    assert 70000 <= r['valor_propiedad_usd'] <= 85000, f"Lista {r['valor_propiedad_usd']} fuera de rango"
+    assert 75000 <= r['valor_propiedad_usd'] <= 82000, f"Lista {r['valor_propiedad_usd']} fuera de rango"
 
 
 def test_mabel_alquiler():
@@ -76,7 +76,7 @@ def test_mabel_alquiler():
 def test_ayacucho_venta():
     """Valida rangos de venta para Ayacucho (6ta Pellegrini)"""
     r = valuar_propiedad_v7(ejecutar_valuacion('ayacucho'))
-    assert 44000 <= r['valor_propiedad_usd'] <= 50000, f"Lista {r['valor_propiedad_usd']} fuera de rango"
+    assert 48000 <= r['valor_propiedad_usd'] <= 52000, f"Lista {r['valor_propiedad_usd']} fuera de rango"
 
 
 def test_patio_grande_vera():
@@ -103,9 +103,9 @@ def test_patio_grande_vera():
     m2_equiv = r['m2_equivalentes']
     assert 35.0 <= m2_equiv <= 42.0, f"m2_equiv {m2_equiv} fuera de rango"
     
-    # Valor principal dentro del rango (benchmark $42k-$55k)
+    # Valor principal dentro del rango definitivo (age-filtered, P40, 8 comps)
     valor_principal = r.get('valor_propiedad_usd', 0)
-    assert 40000 <= valor_principal <= 55000, f"Valor Vera {valor_principal} fuera de rango"
+    assert 50000 <= valor_principal <= 55000, f"Valor Vera {valor_principal} fuera de rango"
 
 
 def test_ui_vs_python_no_diverge():
@@ -118,8 +118,8 @@ def test_ui_vs_python_no_diverge():
     from tests.test_regression import ejecutar_valuacion
     
     r = valuar_propiedad_v7(ejecutar_valuacion('mabel'))
-    # Valor Lista = blend P33 con alpha 0.70
-    assert 70000 <= r['valor_propiedad_usd'] <= 85000, \
+    # Valor Lista = blend P50_age con alpha 0.70
+    assert 75000 <= r['valor_propiedad_usd'] <= 82000, \
         f"DIVERGENCIA CRITICA: Mabel da {r['valor_propiedad_usd']}"
 
 

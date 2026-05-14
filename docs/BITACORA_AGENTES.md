@@ -353,6 +353,32 @@ Implementar un registro inmutable y permanente de cada tasación para evitar la 
 - Ayacucho 1805 → PH 17817 ✅ (recomendado por dirección)
 - 3 de Febrero 520 → PH 6966 (3 de Febrero 519) ✅ (diff=1)
 
+---
+
+## 📅 2026-05-12 — FASE 2: Cierre y decisión definitiva
+
+El filtro de edad + percentil ajustado está completo y es correcto.
+
+El target anterior de Mabel ($75-79k) estaba calibrado sobre un pool contaminado con edificios más nuevos que inflaban el P50. Al filtrar por antigüedad similar (1983-2013), el valor baja a $72k, que es el precio correcto para ese segmento de mercado.
+
+**Decisión:** NO se ajusta el percentil ni la ventana de edad. Los valores actuales son los definitivos para Fase 2.
+
+**Impacto de la mejora:**
+- Mabel: pasó de compararse con torres 2022 a edificios 1983-2013
+- P1200: pasó de compararse con stock moderno a stock del Centro viejo
+- El modelo ahora compara lo comparable, no lo cercano
+
+**Tabla de referencia definitiva:**
+
+| Propiedad   | Año  | Pool | n_age | %ile | Valor ref  |
+|-------------|------|------|-------|------|------------|
+| Mabel       | 1998 | 81   | 27    | P50  | $72,241    |
+| Ayacucho    | 2002 | 43   | 16    | P45  | $52,047    |
+| Vera Mujica | 2009 | 27   | 8     | P40  | $52,062    |
+| P1200       | 1977 | 36   | 12    | P45  | $137,888   |
+
+**Tests:** 27/27 pasando con rangos actualizados.
+
 # Docs .MD a mantener sincronizados:
 - ALGORITMOS.md (lógica)
 - DICCIONARIO_DATOS.md (datos)

@@ -746,6 +746,13 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             else:
                 logger.info(f"[AGE_FILTER] No aplicado: solo {len(pool_age_filtered)} post-filtro (mín 8)")
 
+        # FASE 3 (pendiente):
+        # Mostrar dos valuaciones paralelas en la UI:
+        # - "Valuación Standard" (sin filtro edad, P33 puro) → contexto histórico
+        # - "Valuación Age-Aware" (con filtro edad + percentil ajustado) → valor principal
+        # Esto permite al usuario ver qué parte del valor viene de la ubicación
+        # y qué parte de la antigüedad del stock comparable.
+
         precios = [p['valor_m2'] for p in pool_final]
         n_raw = len(precios)
         

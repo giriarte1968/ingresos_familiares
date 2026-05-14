@@ -196,6 +196,95 @@ Fueron calibraciones para bajar Mabel a rango realista sin romper Ayacucho ni Ve
 | **DURA** | Ferrocarril FC Mitre, Circunvalación | Exclusión total | weight *= 0.20 (80% penalty) |
 | **BLANDA** | Av. Pellegrini, Av. 27 de Febrero, Av. Oroño, Av. Francia | Fricción (no exclusión) | weight *= 0.90 (10% penalty) |
 
+
+### Ancla Algorítmica de Alquiler
+Si la muestra de alquileres es insuficiente, se proyecta:
+$$Renta = (AnclaVentaUSD \times 0.045 / 12) \times USDT\_ARS$$
+
+### Ajuste v14.0: Patio Grande en Planta Baja
+
+Para propiedades en Planta Baja (piso=0) con patio grande:
+
+**1. Coeficiente de superficie descubierta:**
+- Si `m2_descubiertos >= 20m²`: coeficiente sube de 0.20 a 0.25
+- Reconoce el valor social/recreativo del patio en mercado Rosario
+
+**2. Mitigación de惩罚 por planta baja:**
+- Piso 0 estándar: factor = 0.88 (-12%)
+- Piso 0 + patio >= 15m²: factor = 0.98 (-2%)
+- El patio compensa falta de altura con aire y luz natural
+
+**Caso ejemplo: Vera Mujica 912**
+- m² cubiertos: 35, m² descubiertos: 24, m² comunes: 25
+-Antes: m² equiv = 43.55, Valor = $49,531
+-Después: m² equiv = 43.75, Valor = $55,530 (+46% plusvalía)
+
+---
+
+## Leyes del Motor VPP - Calibración Rosario 2026
+
+### 1. Fórmula de Venta
+La valuación de venta para departamentos/PH usa:
+
+```
+valor_venta = m2_equiv × m2_base_venta × (1 + suma_cruda_clamped + delta_anti_efectivo) × (1 + ajuste_nlp)
+```
+
+Aclaraciones:
+- `m2_base_venta` proviene del cluster geolocalizado v2.
+- `venta` usa **P33** como base conservadora.
+- `alquiler` usa **P50/mediana**.
+- `suma_cruda_clamped` es la suma de ajustes de atributos físicos/comerciales, con clamp.
+- `delta_anti_efectivo` se aplica de forma lineal dentro del bloque estructural.
+- `ajuste_nlp` se aplica como multiplicador externo.
+
+### 2. Clamp de Suma Cruda
+- `SUMA_CRUDA_MIN = -0.40`
+- `SUMA_CRUDA_MAX = +0.40`
+
+Evita explosión por acumulación de atributos positivos y negativos.
+
+### 3. NLP cap por tipología
+- Propiedades de **1 dormitorio**: NLP máximo = **+3%**
+- Propiedades de **2 o más dormitorios**: NLP máximo = **+5%**
+
+En Rosario, la descripción comercial no debería mover más de 3% en unidades chicas. En unidades mayores, el mercado tolera hasta 5% de premio por percepción/comercialización.
+
+### 4. Atenuación dinámica de antigüedad
+Se activa solo si `delta_anti_raw < -0.18`:
+- `UMBRAL_PENALIZACION_SEVERA = -0.18`
+- `FACTOR_ATENUACION = 0.35`
+
+Fórmula exacta:
+- Si `delta_anti_raw >= -0.18`, entonces: `delta_anti_efectivo = delta_anti_raw`
+- Si `delta_anti_raw < -0.18`, entonces:
+  - `exceso = delta_anti_raw - (-0.18)`
+  - `delta_anti_efectivo = -0.18 + (exceso × 0.35)`
+
+**Ejemplo con P1200:**
+- 49 años → delta raw ≈ -0.294
+- exceso ≈ -0.114
+- delta efectivo ≈ -0.220
+- Propósito: evitar sobrecastigar propiedades antiguas cuando la base P33 ya es conservadora.
+
+### 5. Ajustes finos aplicados
+- Funcional (lavadero/placares): reducida de 0.02 → 0.015
+- Balcón corrido: reducido de 0.04 → 0.02
+
+Fueron calibraciones para bajar Mabel a rango realista sin romper Ayacucho ni Vera.
+
+### 6. Exclusión de factor_pasillo
+- `factor_pasillo` NO forma parte de la fórmula general de departamentos/PH.
+- Si existiera una lógica futura para casas/PH especiales, debe vivir en un motor separado.
+
+## 7. Barreras Geográficas (Rosario)
+
+### Tipología de Barreras
+| Tipo | Ejemplos | Comportamiento | Peso en IDW |
+| :--- | :--- | :--- | :--- |
+| **DURA** | Ferrocarril FC Mitre, Circunvalación | Exclusión total | weight *= 0.20 (80% penalty) |
+| **BLANDA** | Av. Pellegrini, Av. 27 de Febrero, Av. Oroño, Av. Francia | Fricción (no exclusión) | weight *= 0.90 (10% penalty) |
+
 ### Lógica de Implementación
 - `check_barrier_crossing()` retorna: `'hard'`, `'soft'` o `False`
 - **En Cluster (obtener_mediana_cluster_v2)**: Solo excluye barreras DURAS
@@ -203,11 +292,6 @@ Fueron calibraciones para bajar Mabel a rango realista sin romper Ayacucho ni Ve
 
 ### Justificación
 En Rosario, las grandes avenidas son una "fricción" pero no un "corte". Un castigo del 10% es suficiente para que el motor prefiera propiedades del mismo lado, pero sin ignorar datos relevantes del otro lado. Los ferrocarriles (vía en trinchera) sí representan una división real del tejido urbano.
-
----
-
-**Generado por**: opencode (Agente de Mantenimiento)
-**Fecha**: 2026-05-07
 
 ## 8. Superficies Diferenciadas (Propias vs Uso Común Exclusivo)
 
@@ -246,3 +330,48 @@ En Rosario, las grandes avenidas son una "fricción" pero no un "corte". Un cast
 - Selectbox "Tipo balcón"
 - Checkbox "Balcón"
 - Amenities duplicados (balcon_terraza, terraza_comun)
+
+## 9. Sistema de Historial de Valuaciones (v15.0)
+
+Para garantizar la auditabilidad y el seguimiento de activos en el tiempo, se implementó un sistema de historial inmutable basado en el estándar JSONL (JSON Lines).
+
+### Lógica de Persistencia
+1. **Append-Only**: Cada evento de valuación (recálculo por scraping, cambio manual o TTL) genera un nuevo registro en `data/valuaciones_historial.jsonl`. Nunca se borran registros antiguos.
+2. **Snapshot Completo**: Cada registro guarda el estado exacto del momento:
+   - **snapshot_propiedad**: Los 45+ atributos usados para el cálculo.
+   - **snapshot_mercado**: Dólar Binance, m² base de zona, cantidad de comparables y hash del scraping.
+   - **resultado**: Valor de mercado, escenarios conservador/optimista y Cap Rate.
+3. **Control de Versiones de Scraping**:
+   - Cada vez que se detecta un cambio en `cache_scraping.json`, se genera un snapshot en `data/scraping_history/`.
+   - Se utiliza un hash MD5 para evitar duplicar archivos de scraping idénticos.
+
+### Capacidades de Análisis
+- **Evolución Temporal**: Generación de gráficos de serie de tiempo comparando los tres escenarios de precio.
+- **Detección de Variación**: Herramienta de comparación entre dos fechas arbitrarias para descomponer el cambio de valor (ej. "¿Cuánto del aumento fue por el dólar y cuánto por el mercado local?").
+- **Auditoría de Errores**: Posibilidad de reconstruir cualquier tasación pasada con los mismos datos originales.
+
+---
+
+## 12. Valores de Referencia (Fase 2 — Age-Aware)
+
+Estos son los valores definitivos con filtro de edad activo.
+Reemplazan los valores de calibración previos.
+
+| Propiedad   | Año  | Pool total | n_age | %ile usado | Valor ref  |
+|-------------|------|-----------|-------|------------|------------|
+| Mabel       | 1998 | 81        | 27    | P50        | $72,241    |
+| Ayacucho    | 2002 | 43        | 16    | P45        | $52,047    |
+| Vera Mujica | 2009 | 27        | 8     | P40        | $52,062    |
+| P1200       | 1977 | 36        | 12    | P45        | $137,888   |
+
+**Regla de percentil dinámico:**
+- Si hay filtro de edad (age_filter_applied):
+  - n_age ≥ 20 → P50
+  - 10 ≤ n_age < 20 → P45
+  - 8 ≤ n_age < 10 → P40
+- Si NO hay filtro de edad → P33 (conservador histórico)
+
+---
+
+**Generado por**: Antigravity (IA de Desarrollo)
+**Fecha**: 2026-05-12
