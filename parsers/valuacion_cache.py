@@ -7,6 +7,7 @@ CACHE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file_
 CACHE_PATH = os.path.join(CACHE_DIR, 'valuaciones_cache.json')
 SCRAPING_CACHE_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'cache_scraping.json')
 TTL_HORAS = 24
+CACHE_VERSION = "v3_age_filter"  # Incrementar cuando cambie la lógica de valuación
 
 def _calcular_hash_propiedad(prop: dict) -> str:
     """Hash de los campos que afectan la valuación."""
@@ -65,6 +66,10 @@ def necesita_recalcular(nombre: str, prop: dict, cache: dict) -> tuple[bool, str
 
     entrada = cache[nombre]
 
+    # Invalidar por versión del código
+    if entrada.get('cache_version', '') != CACHE_VERSION:
+        return True, f"version_cambio ({entrada.get('cache_version', '')} -> {CACHE_VERSION})"
+
     try:
         ts = datetime.fromisoformat(entrada.get('timestamp', ''))
         if datetime.now() - ts > timedelta(hours=TTL_HORAS):
@@ -88,6 +93,7 @@ def guardar_resultado(nombre: str, prop: dict, resultado: dict, cache: dict):
         "timestamp": datetime.now().isoformat(),
         "hash_prop": _calcular_hash_propiedad(prop),
         "hash_scraping": _calcular_hash_scraping(),
+        "cache_version": CACHE_VERSION,
         "resultado_completo": resultado,
         "fecha_legible": datetime.now().strftime("%d/%m/%Y %H:%M")
     }
