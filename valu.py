@@ -581,258 +581,254 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                                      f"({pct:+.1f}%)")
 
 def mostrar_dashboard():
-    # Transicion: limpiar pantalla al cambiar de pagina
-    page_actual = st.session_state.page
-    if page_actual != st.session_state.get('_last_page', ''):
-        st.session_state._last_page = page_actual
-        st.markdown("<br><br><div style='text-align:center;color:#9CA3AF;padding:60px;'>🔄 Cargando...</div>", unsafe_allow_html=True)
-        st.rerun()
+    content = st.empty()
     
-    if st.session_state.page == "Splash":
-        st.markdown("<br>", unsafe_allow_html=True)
+    with content.container():
+        if st.session_state.page == "Splash":
+            st.markdown("<br>", unsafe_allow_html=True)
         
-        # Dashboard stats
-        props = cargar_propiedades()
-        if props:
-            from parsers.valuacion_cache import cargar_cache_valuaciones
-            cache_valu = cargar_cache_valuaciones()
-            total_valor = sum(
-                cache_valu.get(p['nombre'], {}).get('resultado_completo', {}).get('valor_propiedad_usd', 0)
-                for p in props
-            )
-            
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.markdown(kpi_card("📊", "Portafolio", f"{len(props)}", "Propiedades en gestión"), unsafe_allow_html=True)
-            with col2:
-                st.markdown(kpi_card("💰", "Valor Total Estimado", f"USD {total_valor:,.0f}", "Valuaciones cacheadas"), unsafe_allow_html=True)
-            with col3:
-                st.markdown(kpi_card("📈", "Mercado", "Rosario", "Actualizado hoy"), unsafe_allow_html=True)
-            
-            st.markdown("---")
-            st.subheader("📍 Mapa de Activos")
-            
-            import folium
-            from streamlit.components.v1 import html
-            
-            props_con_coords = [p for p in props if p.get('lat') and p.get('lon')]
-            
-            if props_con_coords:
-                # Crear mapa y ajustar vista para mostrar TODAS las propiedades
-                lats = [p['lat'] for p in props_con_coords]
-                lons = [p['lon'] for p in props_con_coords]
-                
-                m = folium.Map(tiles='cartodbpositron')
-                
-                for p in props_con_coords:
-                    folium.Marker(
-                        [p['lat'], p['lon']],
-                        popup=f"📍 {p.get('nombre', 'Propiedad')}<br>{p.get('direccion', '')}",
-                        icon=folium.Icon(color='blue', icon='home')
-                    ).add_to(m)
-                
-                # Auto-centrar usando fit_bounds con padding
-                m.fit_bounds([[min(lats), min(lons)], [max(lats), max(lons)]], padding=(200,200), max_zoom=12)
-                
-                html(m._repr_html_(), height=400)
-                st.caption(f"📍 {len(props_con_coords)} propiedades en el mapa")
-            else:
-                st.info("No hay propiedades con coordenadas GPS registradas.")
-        
-        st.markdown("<br>", unsafe_allow_html=True)
-
-    elif st.session_state.page == "Portfolio":
-        propiedades = cargar_propiedades()
-        
-        if not propiedades:
-            st.info("No tienes propiedades cargadas aún. Ve a Configuración para agregar una.")
-        else:
-            from parsers.motor_vpp_core import valuar_con_cache
-            
-            # ─── FLUJO B: DETALLE DE UNA PROPIEDAD ───
-            if st.session_state.prop_sel:
-                p_obj = next((p for p in propiedades if p['nombre'] == st.session_state.prop_sel), None)
-                if p_obj:
-                    forzar = st.session_state.pop(f'forzar_recalculo_{p_obj["nombre"]}', False)
-                    
-                    from parsers.valuacion_cache import cargar_cache_valuaciones, CACHE_VERSION
-                    cache_existente = cargar_cache_valuaciones()
-                    entrada_antigua = cache_existente.get(p_obj['nombre'], {})
-                    if entrada_antigua.get('cache_version', '') != CACHE_VERSION and not forzar:
-                        st.info(f"🔄 Actualizando valuación de **{p_obj['nombre']}** "
-                                f"a la nueva versión del motor ({CACHE_VERSION})...")
-                    
-                    with st.spinner(f"Valuando {p_obj['nombre']}..."):
-                        resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar)
-                    
-                    def actualizar_propiedad(nueva_data):
-                        props = cargar_propiedades()
-                        for i, p in enumerate(props):
-                            if p.get('nombre') == p_obj.get('nombre'):
-                                props[i] = nueva_data
-                                break
-                        guardar_propiedades(props)
-                    
-                    if st.button("← Volver al Portafolio"):
-                        st.session_state.prop_sel = None
-                        st.rerun()
-                    
-                    mostrar_detalle_valu(p_obj, resultado, actualizar_propiedad)
-            
-            # ─── FLUJO A: VISTA GENERAL DEL PORTFOLIO ───
-            else:
-                st.title("📂 Mi Portafolio")
-                
-                col_global, _ = st.columns([1, 4])
-                with col_global:
-                    if st.button("🔄 Recalcular todo", help="Recalcula TODAS las propiedades ignorando el caché"):
-                        st.session_state['forzar_recalculo_global'] = True
-                        st.rerun()
-                
-                resultados = {}
-                forzar_global = st.session_state.pop('forzar_recalculo_global', False)
-                
-                # Detectar cuántas propiedades tienen cache desactualizado
-                from parsers.valuacion_cache import cargar_cache_valuaciones, CACHE_VERSION
-                cache_existente = cargar_cache_valuaciones()
-                por_actualizar = sum(
-                    1 for p in propiedades
-                    if p['nombre'] not in cache_existente
-                    or cache_existente[p['nombre']].get('cache_version', '') != CACHE_VERSION
+            # Dashboard stats
+            props = cargar_propiedades()
+            if props:
+                from parsers.valuacion_cache import cargar_cache_valuaciones
+                cache_valu = cargar_cache_valuaciones()
+                total_valor = sum(
+                    cache_valu.get(p['nombre'], {}).get('resultado_completo', {}).get('valor_propiedad_usd', 0)
+                    for p in props
                 )
                 
-                if por_actualizar > 0 and not forzar_global:
-                    st.info(f"🔄 **{por_actualizar}** propiedades serán actualizadas automáticamente "
-                            f"a la nueva versión del motor de valuación ({CACHE_VERSION}).")
-                    st.caption("Esto ocurre solo una vez por propiedad después de mejoras en el algoritmo.")
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.markdown(kpi_card("📊", "Portafolio", f"{len(props)}", "Propiedades en gestión"), unsafe_allow_html=True)
+                with col2:
+                    st.markdown(kpi_card("💰", "Valor Total Estimado", f"USD {total_valor:,.0f}", "Valuaciones cacheadas"), unsafe_allow_html=True)
+                with col3:
+                    st.markdown(kpi_card("📈", "Mercado", "Rosario", "Actualizado hoy"), unsafe_allow_html=True)
                 
-                n_recalculadas = 0
-                barra = st.progress(0.0, text="Preparando valuaciones...")
+                st.markdown("---")
+                st.subheader("📍 Mapa de Activos")
                 
-                for i, p in enumerate(propiedades):
-                    resultados[p['nombre']] = valuar_con_cache(p, forzar_recalculo=forzar_global)
+                import folium
+                from streamlit.components.v1 import html
+                
+                props_con_coords = [p for p in props if p.get('lat') and p.get('lon')]
+                
+                if props_con_coords:
+                    # Crear mapa y ajustar vista para mostrar TODAS las propiedades
+                    lats = [p['lat'] for p in props_con_coords]
+                    lons = [p['lon'] for p in props_con_coords]
                     
-                    # Verificar si realmente se recalculó (rastrear cambios de versión)
-                    cache_actual = cargar_cache_valuaciones()
-                    entrada = cache_actual.get(p['nombre'], {})
-                    if entrada.get('cache_version') == CACHE_VERSION:
-                        n_recalculadas += 1
+                    m = folium.Map(tiles='cartodbpositron')
                     
-                    barra.progress((i + 1) / len(propiedades),
-                                   text=f"Valuando {p['nombre']} ({i+1}/{len(propiedades)})")
-                
-                if forzar_global:
-                    st.success(f"✅ **{len(propiedades)}** propiedades recalculadas por solicitud manual.")
-                elif n_recalculadas > 0:
-                    st.success(f"✅ **{n_recalculadas}** propiedades actualizadas a {CACHE_VERSION}.")
-                
-                mostrar_dashboard_valu(propiedades, resultados)
-
-    elif st.session_state.page == "Inventario":
-        st.header("📋 Inventario de Propiedades")
-        props = cargar_propiedades()
-        if not props:
-            st.info("Sin propiedades.")
-        else:
-            df = pd.DataFrame(props)
-            # Columnas a mostrar
-            display_cols = {
-                'nombre': 'Nombre',
-                'zona': 'Zona',
-                'm2_cubiertos': 'm² Cub.',
-                'dormitorios': 'Dorm.',
-                'fecha_publicacion': 'Publicada el',
-                'id': 'ID'
-            }
+                    for p in props_con_coords:
+                        folium.Marker(
+                            [p['lat'], p['lon']],
+                            popup=f"📍 {p.get('nombre', 'Propiedad')}<br>{p.get('direccion', '')}",
+                            icon=folium.Icon(color='blue', icon='home')
+                        ).add_to(m)
+                    
+                    # Auto-centrar usando fit_bounds con padding
+                    m.fit_bounds([[min(lats), min(lons)], [max(lats), max(lons)]], padding=(200,200), max_zoom=12)
+                    
+                    html(m._repr_html_(), height=400)
+                    st.caption(f"📍 {len(props_con_coords)} propiedades en el mapa")
+                else:
+                    st.info("No hay propiedades con coordenadas GPS registradas.")
             
-            # Asegurar que existan todas las columnas
-            for col in display_cols.keys():
-                if col not in df.columns:
-                    df[col] = "—"
+            st.markdown("<br>", unsafe_allow_html=True)
             
-            df_display = df[list(display_cols.keys())].rename(columns=display_cols)
-            # Convertir todas las columnas a string para evitar errores de tipo en Streamlit
-            df_display = df_display.astype(str)
-            st.dataframe(df_display, width='stretch', hide_index=True)
-            st.caption("💡 Puedes editar la fecha de publicación desde el detalle de cada propiedad o en el menú de Configuración.")
-
-    elif st.session_state.page == "Cargar Mercado":
-        st.header("🔄 Actualización de Mercado")
-        st.info("Esta sección permite sincronizar con los portales inmobiliarios.")
-        if st.button("Sincronizar VPP Sync (Scraping)", type="primary"):
-            st.warning("Iniciando scraping en background...")
-
-    elif st.session_state.page == "Configuración":
-        st.header("⚙️ Configuración")
-        with st.expander("➕ Agregar Nueva Propiedad", expanded=True):
-            new_prop = ui_formulario_propiedad(key_suffix="new")
-            if st.button("Guardar Propiedad", type="primary"):
-                props = cargar_propiedades()
-                props.append(new_prop)
-                guardar_propiedades(props)
-                st.success(f"Propiedad {new_prop['nombre']} guardada!")
-                st.rerun()
-
-# --- MAIN APP ---
-def main():
-    if 'vista_actual' not in st.session_state:
-        st.session_state.vista_actual = 'landing'
-    
-    if st.session_state.vista_actual == 'landing':
-        from landing import mostrar_landing
-        mostrar_landing()
-        return
-
-    if 'page' not in st.session_state: st.session_state.page = "Splash"
-    if 'prop_sel' not in st.session_state: st.session_state.prop_sel = None
-
-    with st.sidebar:
-        st.markdown('<div style="padding:10px 0;"><h2 style="color:white;margin:0;">🏠 Valu</h2><p style="color:#006AFF;font-size:11px;margin:0;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Valuador de Propiedades</p></div>', unsafe_allow_html=True)
-        
-        def ir_al_inicio():
-            st.session_state.vista_actual = 'landing'
+        elif st.session_state.page == "Portfolio":
+            propiedades = cargar_propiedades()
             
-        st.button("← Volver al Inicio", use_container_width=True, on_click=ir_al_inicio)
-        st.markdown("---")
-        
-        st.session_state.page = st.radio("NAVEGACIÓN", ["Splash", "Portfolio", "Inventario", "Cargar Mercado", "Configuración"])
-        
-        st.markdown("---")
-        datos = cargar_datos()
-        # Derivar fecha automáticamente del último scraping (usar mtime del archivo)
-        import os
-        from datetime import datetime
-        cache_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache_scraping.json")
-        if os.path.exists(cache_file):
-            # Usar el mtime del archivo como fuente de verdad
-            mtime = os.path.getmtime(cache_file)
-            fecha_dt = datetime.fromtimestamp(mtime)
-            fecha_cache = fecha_dt.strftime('%Y-%m-%d')
-            st.caption(f"📅 Datos de mercado: {fecha_cache}")
-        else:
-            fecha_cache = datetime.now().strftime('%Y-%m')
-        
-        # Usar la fecha del cache como referencia (ya no es un selectbox)
-        mes_sel = fecha_cache
-        
-        st.markdown("---")
-        with st.expander("🗄️ Historial de Scrapings"):
-            from parsers.valuacion_historial import listar_snapshots_scraping
-            snapshots = listar_snapshots_scraping()
-
-            if not snapshots:
-                st.info("Sin snapshots guardados aún.")
+            if not propiedades:
+                st.info("No tienes propiedades cargadas aún. Ve a Configuración para agregar una.")
             else:
-                st.caption(f"{len(snapshots)} scrapings archivados")
-                for s in snapshots[:10]:
-                    st.text(f"📦 {s['fecha']} — {s['tamanio_kb']} KB")
-                if len(snapshots) > 10:
-                    st.caption(f"... y {len(snapshots) - 10} más")
+                from parsers.motor_vpp_core import valuar_con_cache
+                
+                # ─── FLUJO B: DETALLE DE UNA PROPIEDAD ───
+                if st.session_state.prop_sel:
+                    p_obj = next((p for p in propiedades if p['nombre'] == st.session_state.prop_sel), None)
+                    if p_obj:
+                        forzar = st.session_state.pop(f'forzar_recalculo_{p_obj["nombre"]}', False)
+                        
+                        from parsers.valuacion_cache import cargar_cache_valuaciones, CACHE_VERSION
+                        cache_existente = cargar_cache_valuaciones()
+                        entrada_antigua = cache_existente.get(p_obj['nombre'], {})
+                        if entrada_antigua.get('cache_version', '') != CACHE_VERSION and not forzar:
+                            st.info(f"🔄 Actualizando valuación de **{p_obj['nombre']}** "
+                                    f"a la nueva versión del motor ({CACHE_VERSION})...")
+                        
+                        with st.spinner(f"Valuando {p_obj['nombre']}..."):
+                            resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar)
+                        
+                        def actualizar_propiedad(nueva_data):
+                            props = cargar_propiedades()
+                            for i, p in enumerate(props):
+                                if p.get('nombre') == p_obj.get('nombre'):
+                                    props[i] = nueva_data
+                                    break
+                            guardar_propiedades(props)
+                        
+                        if st.button("← Volver al Portafolio"):
+                            st.session_state.prop_sel = None
+                            st.rerun()
+                        
+                        mostrar_detalle_valu(p_obj, resultado, actualizar_propiedad)
+                
+                # ─── FLUJO A: VISTA GENERAL DEL PORTFOLIO ───
+                else:
+                    st.title("📂 Mi Portafolio")
+                    
+                    col_global, _ = st.columns([1, 4])
+                    with col_global:
+                        if st.button("🔄 Recalcular todo", help="Recalcula TODAS las propiedades ignorando el caché"):
+                            st.session_state['forzar_recalculo_global'] = True
+                            st.rerun()
+                    
+                    resultados = {}
+                    forzar_global = st.session_state.pop('forzar_recalculo_global', False)
+                    
+                    # Detectar cuántas propiedades tienen cache desactualizado
+                    from parsers.valuacion_cache import cargar_cache_valuaciones, CACHE_VERSION
+                    cache_existente = cargar_cache_valuaciones()
+                    por_actualizar = sum(
+                        1 for p in propiedades
+                        if p['nombre'] not in cache_existente
+                        or cache_existente[p['nombre']].get('cache_version', '') != CACHE_VERSION
+                    )
+                    
+                    if por_actualizar > 0 and not forzar_global:
+                        st.info(f"🔄 **{por_actualizar}** propiedades serán actualizadas automáticamente "
+                                f"a la nueva versión del motor de valuación ({CACHE_VERSION}).")
+                        st.caption("Esto ocurre solo una vez por propiedad después de mejoras en el algoritmo.")
+                    
+                    n_recalculadas = 0
+                    barra = st.progress(0.0, text="Preparando valuaciones...")
+                    
+                    for i, p in enumerate(propiedades):
+                        resultados[p['nombre']] = valuar_con_cache(p, forzar_recalculo=forzar_global)
+                        
+                        # Verificar si realmente se recalculó (rastrear cambios de versión)
+                        cache_actual = cargar_cache_valuaciones()
+                        entrada = cache_actual.get(p['nombre'], {})
+                        if entrada.get('cache_version') == CACHE_VERSION:
+                            n_recalculadas += 1
+                        
+                        barra.progress((i + 1) / len(propiedades),
+                                       text=f"Valuando {p['nombre']} ({i+1}/{len(propiedades)})")
+                    
+                    if forzar_global:
+                        st.success(f"✅ **{len(propiedades)}** propiedades recalculadas por solicitud manual.")
+                    elif n_recalculadas > 0:
+                        st.success(f"✅ **{n_recalculadas}** propiedades actualizadas a {CACHE_VERSION}.")
+                    
+                    mostrar_dashboard_valu(propiedades, resultados)
+    
+        elif st.session_state.page == "Inventario":
+            st.header("📋 Inventario de Propiedades")
+            props = cargar_propiedades()
+            if not props:
+                st.info("Sin propiedades.")
+            else:
+                df = pd.DataFrame(props)
+                # Columnas a mostrar
+                display_cols = {
+                    'nombre': 'Nombre',
+                    'zona': 'Zona',
+                    'm2_cubiertos': 'm² Cub.',
+                    'dormitorios': 'Dorm.',
+                    'fecha_publicacion': 'Publicada el',
+                    'id': 'ID'
+                }
+                
+                # Asegurar que existan todas las columnas
+                for col in display_cols.keys():
+                    if col not in df.columns:
+                        df[col] = "—"
+                
+                df_display = df[list(display_cols.keys())].rename(columns=display_cols)
+                # Convertir todas las columnas a string para evitar errores de tipo en Streamlit
+                df_display = df_display.astype(str)
+                st.dataframe(df_display, width='stretch', hide_index=True)
+                st.caption("💡 Puedes editar la fecha de publicación desde el detalle de cada propiedad o en el menú de Configuración.")
+    
+        elif st.session_state.page == "Cargar Mercado":
+            st.header("🔄 Actualización de Mercado")
+            st.info("Esta sección permite sincronizar con los portales inmobiliarios.")
+            if st.button("Sincronizar VPP Sync (Scraping)", type="primary"):
+                st.warning("Iniciando scraping en background...")
+    
+        elif st.session_state.page == "Configuración":
+            st.header("⚙️ Configuración")
+            with st.expander("➕ Agregar Nueva Propiedad", expanded=True):
+                new_prop = ui_formulario_propiedad(key_suffix="new")
+                if st.button("Guardar Propiedad", type="primary"):
+                    props = cargar_propiedades()
+                    props.append(new_prop)
+                    guardar_propiedades(props)
+                    st.success(f"Propiedad {new_prop['nombre']} guardada!")
+                    st.rerun()
+    
+    # --- MAIN APP ---
+    def main():
+        if 'vista_actual' not in st.session_state:
+            st.session_state.vista_actual = 'landing'
         
-        st.markdown("<br><br><br>", unsafe_allow_html=True)
-        st.markdown('<p style="color:rgba(255,255,255,0.3);font-size:10px;text-align:center;">v2.5 · Powered by VPP Engine</p>', unsafe_allow_html=True)
-
-    mostrar_dashboard()
-
-if __name__ == "__main__":
-    main()
+        if st.session_state.vista_actual == 'landing':
+            from landing import mostrar_landing
+            mostrar_landing()
+            return
+    
+        if 'page' not in st.session_state: st.session_state.page = "Splash"
+        if 'prop_sel' not in st.session_state: st.session_state.prop_sel = None
+    
+        with st.sidebar:
+            st.markdown('<div style="padding:10px 0;"><h2 style="color:white;margin:0;">🏠 Valu</h2><p style="color:#006AFF;font-size:11px;margin:0;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Valuador de Propiedades</p></div>', unsafe_allow_html=True)
+            
+            def ir_al_inicio():
+                st.session_state.vista_actual = 'landing'
+                
+            st.button("← Volver al Inicio", use_container_width=True, on_click=ir_al_inicio)
+            st.markdown("---")
+            
+            st.session_state.page = st.radio("NAVEGACIÓN", ["Splash", "Portfolio", "Inventario", "Cargar Mercado", "Configuración"])
+            
+            st.markdown("---")
+            datos = cargar_datos()
+            # Derivar fecha automáticamente del último scraping (usar mtime del archivo)
+            import os
+            from datetime import datetime
+            cache_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache_scraping.json")
+            if os.path.exists(cache_file):
+                # Usar el mtime del archivo como fuente de verdad
+                mtime = os.path.getmtime(cache_file)
+                fecha_dt = datetime.fromtimestamp(mtime)
+                fecha_cache = fecha_dt.strftime('%Y-%m-%d')
+                st.caption(f"📅 Datos de mercado: {fecha_cache}")
+            else:
+                fecha_cache = datetime.now().strftime('%Y-%m')
+            
+            # Usar la fecha del cache como referencia (ya no es un selectbox)
+            mes_sel = fecha_cache
+            
+            st.markdown("---")
+            with st.expander("🗄️ Historial de Scrapings"):
+                from parsers.valuacion_historial import listar_snapshots_scraping
+                snapshots = listar_snapshots_scraping()
+    
+                if not snapshots:
+                    st.info("Sin snapshots guardados aún.")
+                else:
+                    st.caption(f"{len(snapshots)} scrapings archivados")
+                    for s in snapshots[:10]:
+                        st.text(f"📦 {s['fecha']} — {s['tamanio_kb']} KB")
+                    if len(snapshots) > 10:
+                        st.caption(f"... y {len(snapshots) - 10} más")
+            
+            st.markdown("<br><br><br>", unsafe_allow_html=True)
+            st.markdown('<p style="color:rgba(255,255,255,0.3);font-size:10px;text-align:center;">v2.5 · Powered by VPP Engine</p>', unsafe_allow_html=True)
+    
+        mostrar_dashboard()
+    
+    if __name__ == "__main__":
+        main()
