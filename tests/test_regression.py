@@ -330,3 +330,41 @@ def test_anio_no_hardcodeado():
     r = valuar_propiedad_v7(ejecutar_valuacion('mabel'))
     assert r.get('valor_propiedad_usd', 0) > 0
     print(f"\n[ANIO_DINAMICO] Año actual={datetime.datetime.now().year}, valor=${r.get('valor_propiedad_usd', 0):,.0f}")
+
+
+# ─── FASE 3: PERCENTIL AJUSTADO POR EDAD ───
+
+def test_percentil_p50_con_age_filter():
+    """Mabel (n=27 >=20) debe usar P50_age"""
+    r = valuar_propiedad_v7(ejecutar_valuacion('mabel'), fecha_ref='2026-04')
+    meta = r.get('resolution_metadata', {})
+    if meta.get('age_filter_applied') and meta.get('n_age_filtered', 0) >= 20:
+        assert meta.get('percentil_usado') == 'P50_age', \
+            f"Esperaba P50_age, obtuvo {meta.get('percentil_usado')}"
+
+
+def test_percentil_p45_con_age_filter():
+    """Si n entre 10 y 19, debe usar P45_age"""
+    r = valuar_propiedad_v7(ejecutar_valuacion('ayacucho'), fecha_ref='2026-04')
+    meta = r.get('resolution_metadata', {})
+    n = meta.get('n_age_filtered', 0)
+    if meta.get('age_filter_applied') and 10 <= n < 20:
+        assert meta.get('percentil_usado') == 'P45_age', \
+            f"n={n} esperaba P45_age, obtuvo {meta.get('percentil_usado')}"
+
+
+def test_alquiler_sigue_p50():
+    """Alquiler siempre usa P50 aunque haya age_filter"""
+    r = valuar_propiedad_v7(ejecutar_valuacion('mabel'), fecha_ref='2026-04')
+    meta = r.get('resolution_metadata', {})
+    alq = r.get('alquiler_estimado_ars', 0)
+    assert 380000 <= alq <= 600000, f"Alquiler {alq} fuera de rango"
+
+
+def test_percentil_p33_sin_age_filter():
+    """Sin age filter, venta debe usar P33"""
+    r = valuar_propiedad_v7(ejecutar_valuacion('ayacucho'), fecha_ref='2026-04')
+    meta = r.get('resolution_metadata', {})
+    if not meta.get('age_filter_applied'):
+        assert meta.get('percentil_usado') == 'P33', \
+            f"Sin filtro esperaba P33, obtuvo {meta.get('percentil_usado')}"

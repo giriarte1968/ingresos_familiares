@@ -826,16 +826,35 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             else:
                 precios_same.append(val)
         
-        def calc_p33(vals):
+        # Calcular percentil según operación
+        if operacion == 'alquiler':
+            percentil_venta = 50
+            percentil_usado = 'P50_alquiler'
+        else:
+            percentil_venta = 33
+            percentil_usado = 'P33'
+            if age_filter_applied:
+                if n_age_filtered >= 20:
+                    percentil_venta = 50
+                    percentil_usado = 'P50_age'
+                elif n_age_filtered >= 10:
+                    percentil_venta = 45
+                    percentil_usado = 'P45_age'
+                elif n_age_filtered >= 8:
+                    percentil_venta = 40
+                    percentil_usado = 'P40_age'
+
+        def calc_percentil(vals, pct=None):
             if not vals:
                 return None
+            p = pct if pct is not None else percentil_venta
             s = sorted(vals)
             n = len(s)
-            idx = int(n * 0.33)
+            idx = int(n * p / 100)
             return s[min(idx, n-1)]
-        
-        p33_same = calc_p33(precios_same)
-        p33_cross = calc_p33(precios_cross)
+
+        pct_same = calc_percentil(precios_same)
+        pct_cross = calc_percentil(precios_cross)
         
         # Calcular percentiles del cluster completo (para dispersión estadística)
         precios_todos = precios_same + precios_cross
@@ -848,7 +867,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             p25_cluster = p33_cluster = p50_cluster = p75_cluster = None
         
         # VALOR PRINCIPAL: fallback inicial (se recalcula dentro de las ramas)
-        valor_principal = p33_same if p33_same else (p33_cross if p33_cross else (p50_cluster if p50_cluster else 0))
+        valor_principal = pct_same if pct_same else (pct_cross if pct_cross else (p50_cluster if p50_cluster else 0))
         
         n_same = len(precios_same)
         if n_same >= 15:
@@ -865,15 +884,15 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         ALPHA_MERCADO = 0.60        # FIJO para mercado
         
         # Combinar dispersión del cluster + alpha blending
-        if p33_same is not None and p33_cross is not None:
+        if pct_same is not None and pct_cross is not None:
             # Hay 2 fuentes: percentiles del cluster + alpha blending
             
             # Alpha blending
-            blend_cons = ALPHA_CONSERVADOR * p33_same + (1 - ALPHA_CONSERVADOR) * p33_cross
-            blend_mkt = ALPHA_MERCADO * p33_same + (1 - ALPHA_MERCADO) * p33_cross
+            blend_cons = ALPHA_CONSERVADOR * pct_same + (1 - ALPHA_CONSERVADOR) * pct_cross
+            blend_mkt = ALPHA_MERCADO * pct_same + (1 - ALPHA_MERCADO) * pct_cross
             
             # Optimista: alpha dinámico según ratio
-            ratio = p33_cross / p33_same if p33_same > 0 else 1.0
+            ratio = pct_cross / pct_same if pct_same > 0 else 1.0
             if ratio <= 1.05:
                 alpha_opt = 0.70
             elif ratio <= 1.15:
@@ -881,10 +900,10 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             else:
                 alpha_opt = 0.55
             alpha_opt = max(0.55, min(0.70, alpha_opt))
-            blend_opt = alpha_opt * p33_same + (1 - alpha_opt) * p33_cross
+            blend_opt = alpha_opt * pct_same + (1 - alpha_opt) * pct_cross
             
             # Valor principal: blend puro con alpha 0.70 (SIN min con P25)
-            valor_principal = blend_cons  # 0.70 * p33_same + 0.30 * p33_cross
+            valor_principal = blend_cons  # 0.70 * pct_same + 0.30 * pct_cross
             
             # Rango: estos SÍ usan percentiles
             base_conservadora = p25_cluster if p25_cluster else valor_principal
@@ -906,7 +925,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             
         else:
             # Datos insuficientes
-            base_conservadora = base_mercado = base_optimista = p33_same if p33_same else p50_cluster
+            base_conservadora = base_mercado = base_optimista = pct_same if pct_same else p50_cluster
             alpha_opt = 0.70
             ratio = 1.0
             fuente_rango = 'p33_unico'
@@ -921,11 +940,10 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         # Valor principal = BLEND PURO con alpha 0.70 (para Venta Lista)
         # Las otras bases quedan disponibles para el rango
         if operacion == 'venta':
-            valor = valor_principal  # blend_cons = 0.70*p33_same + 0.30*p33_cross
-            percentil_usado = 'P33'
+            valor = valor_principal
         else:
             valor = float(np.median(precios_filtrados))
-            percentil_usado = 'P50'
+            percentil_usado = 'P50_alquiler'
         
         n_filtradas = len(precios_filtrados)
         
@@ -942,8 +960,8 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             'n_same_side': n_same,
             'n_cross_soft': len(precios_cross),
             'alpha': 0.70,  # conservador siempre
-            'p33_same': p33_same,
-            'p33_cross': p33_cross,
+            'pct_same': pct_same,
+            'pct_cross': pct_cross,
             # rango de 3 escenarios
             'base_conservadora': round(base_conservadora, 2),
             'base_mercado': round(base_mercado, 2),

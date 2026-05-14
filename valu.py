@@ -243,13 +243,14 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     # === BADGE DE FILTRO DE EDAD (FASE 2) ===
     meta_filter = res.get('resolution_metadata', {})
     if meta_filter.get('age_filter_applied'):
-        st.success(f"🏗️ Cluster filtrado por antigüedad: "
-                   f"{meta_filter.get('n_age_filtered', '?')} comparables "
-                   f"({meta_filter.get('age_window', '±15 años')})")
+        n_age = meta_filter.get('n_age_filtered', 0)
+        pct_label = meta_filter.get('percentil_usado', 'P33')
+        st.success(f"🏗️ Comparables filtrados por antigüedad: "
+                   f"{n_age} unidades · percentil {pct_label}")
     else:
         pct = meta_filter.get('pct_con_anio', 0)
         if pct > 0:
-            st.info(f"🏗️ {pct:.0f}% comparables con año, insuficientes para filtrar por edad")
+            st.info(f"🏗️ {pct:.0f}% comparables con año, sin filtro de edad")
         else:
             st.caption("🏗️ Sin datos de antigüedad en comparables")
 
