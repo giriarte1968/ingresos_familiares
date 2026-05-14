@@ -312,8 +312,14 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     razonamiento = res.get('razonamiento', '')
     
     # Verificar si el razonamiento tiene el bug de palabras concatenadas (cache old)
-    if razonamiento and ('conincertidumbre' in razonamiento or 'dado lo heterogeneo' in razonamiento.replace(' ', '')):
+    if razonamiento and ('conincertidumbre' in razonamiento or 'incertidumbresignificativa' in razonamiento.replace(' ', '')):
         # Regenerar el razonamiento
+        from parsers.mercado_inmobiliario import generar_razonamiento_valuacion
+        meta = res.get('resolution_metadata', {})
+        razonamiento = generar_razonamiento_valuacion(prop, res, meta)
+    
+    # Safety: si persiste sin espacios entre palabras, forzar regeneracion limpia
+    if razonamiento and 'incertidumbresignificativa' in razonamiento.replace(' ', ''):
         from parsers.mercado_inmobiliario import generar_razonamiento_valuacion
         meta = res.get('resolution_metadata', {})
         razonamiento = generar_razonamiento_valuacion(prop, res, meta)
