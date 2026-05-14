@@ -329,8 +329,9 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         razonamiento = generar_razonamiento_valuacion(prop, res, meta)
     
     if razonamiento:
-        with st.expander("📋 Informe de Valuación", expanded=True):
-            st.markdown(f"<div style='line-height:1.7;font-size:14px;'>{razonamiento}</div>", unsafe_allow_html=True)
+        st.markdown("---")
+        st.markdown("📋 **Informe de Valuación**")
+        st.markdown(razonamiento.replace('\n', '<br>'), unsafe_allow_html=True)
     else:
         # Fallback al formato viejo si no hay razonamiento
         m2_equiv = res.get('m2_equivalentes', 0)

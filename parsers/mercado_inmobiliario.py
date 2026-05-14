@@ -3177,7 +3177,7 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
         piso_texto = f"en el piso {piso} de {total_pisos}"
     
     lineas.append(
-        f"<b>{nombre}</b> es {tipo_texto} ubicado en <b>{zona}</b>, Rosario, {piso_texto}. "
+        f"**{nombre}** es {tipo_texto} ubicado en **{zona}**, Rosario, {piso_texto}. "
         f"Con {m2_cub:.0f} m2 cubiertos ({m2_equiv:.0f} m2 equivalentes ponderados), "
         f"fue construido en {anio} y tiene una antigüedad de {antiguedad} años."
     )
@@ -3185,24 +3185,24 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
     # PARRAFO 2: Base de mercado y comparables
     if n_comps >= 30:
         mercado_texto = (
-            f"El analisis se basa en <b>{n_comps} propiedades comparables</b> "
+            f"El analisis se basa en **{n_comps} propiedades comparables** "
             f"publicadas en un radio de {radio}m, lo que constituye una muestra "
             f"estadisticamente robusta. "
         )
     elif n_comps >= 15:
         mercado_texto = (
-            f"Se identificaron <b>{n_comps} propiedades comparables</b> "
+            f"Se identificaron **{n_comps} propiedades comparables** "
             f"en un radio de {radio}m, una muestra adecuada para la zona. "
         )
     elif n_comps >= 8:
         mercado_texto = (
-            f"Se encontraron <b>{n_comps} propiedades comparables</b> "
+            f"Se encontraron **{n_comps} propiedades comparables** "
             f"en un radio de {radio}m. Si bien la muestra es moderada, "
             f"permite una estimacion razonable. "
         )
     else:
         mercado_texto = (
-            f"Solo se identificaron <b>{n_comps} propiedades comparables</b> "
+            f"Solo se identificaron **{n_comps} propiedades comparables** "
             f"en un radio de {radio}m, lo que genera mayor incertidumbre "
             f"en la estimacion. "
         )
@@ -3218,7 +3218,7 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
         base_texto = "precio base conservador (por debajo del valor típico de mercado)"
     
     mercado_texto += (
-        f"El precio base de mercado en {zona} es de <b>${m2_base:,.0f} USD/m2</b> "
+        f"El precio base de mercado en {zona} es de **${m2_base:,.0f} USD/m2** "
         f"({base_texto}), calculado a partir de {n_comps} comparables "
         f"del mismo perfil constructivo."
     )
@@ -3265,7 +3265,7 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
     
     if positivos and negativos:
         factores_texto = (
-            f"Entre los atributos que <b>agregan valor</b> se destacan: {format_list(positivos)}. "
+            f"Entre los atributos que **agregan valor** se destacan: {format_list(positivos)}. "
             f"Por otro lado, los factores que moderan el precio incluyen: {format_list(negativos)}."
         )
     elif positivos:
@@ -3293,10 +3293,10 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
     
     lineas.append(
         f"Considerando todos estos factores, el valor de publicacion estimado es de "
-        f"<b>${valor_usd:,.0f} USD</b> ({certeza_texto}). "
+        f"**${valor_usd:,.0f} USD** ({certeza_texto}). "
         f"El rango de mercado se situa entre "
-        f"<b>${vc:,.0f} USD</b> (escenario conservador, venta rapida) y "
-        f"<b>${vo:,.0f} USD</b> (escenario optimista, mercado activo), "
+        f"**${vc:,.0f} USD** (escenario conservador, venta rapida) y "
+        f"**${vo:,.0f} USD** (escenario optimista, mercado activo), "
         f"con un spread del {spread:.1f}%."
     )
     
@@ -3315,8 +3315,8 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
         
         lineas.append(
             f"En terminos de renta, la propiedad genera un alquiler estimado de "
-            f"<b>${alq_ars:,.0f} ARS/mes</b> (${alq_usd:,.0f} USD/mes), "
-            f"lo que representa un Cap Rate Neto del <b>{cap_rate*100:.1f}%</b> anual, "
+            f"**${alq_ars:,.0f} ARS/mes** (${alq_usd:,.0f} USD/mes), "
+            f"lo que representa un Cap Rate Neto del **{cap_rate*100:.1f}%** anual, "
             f"{renta_texto}."
         )
     
@@ -3327,8 +3327,8 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
         
         if ganancia > 0:
             lineas.append(
-                f"Desde su adquisicion en {fecha_compra} por <b>${precio_compra:,.0f} USD</b>, "
-                f"la propiedad sumo una plusvalia de <b>${ganancia:,.0f} USD ({pct_ganancia:+.0f}%)</b> "
+                f"Desde su adquisicion en {fecha_compra} por **${precio_compra:,.0f} USD**, "
+                f"la propiedad sumo una plusvalia de **${ganancia:,.0f} USD ({pct_ganancia:+.0f}%)** "
                 f"en dolares, reflejando la evolucion del mercado inmobiliario de {zona}."
             )
     
