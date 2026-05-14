@@ -3179,7 +3179,7 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
     lineas.append(
         f"**{nombre}** es {tipo_texto} ubicado en **{zona}**, Rosario, {piso_texto}. "
         f"Con {m2_cub:.0f} m2 cubiertos ({m2_equiv:.0f} m2 equivalentes ponderados), "
-        f"fue construido en {anio} y tiene una antiguedad de {antiguedad} anos."
+        f"fue construido en {anio} y tiene una antigüedad de {antiguedad} años."
     )
     
     # PARRAFO 2: Base de mercado y comparables
@@ -3207,10 +3207,20 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
             f"en la estimacion. "
         )
     
+    pct_usado = meta.get('percentil_usado', 'P33')
+    if pct_usado in ('P50_age', 'P50_alquiler'):
+        base_texto = "valor típico de mercado para propiedades de antigüedad similar"
+    elif pct_usado == 'P45_age':
+        base_texto = "valor de referencia para propiedades de características y antigüedad similares"
+    elif pct_usado == 'P40_age':
+        base_texto = "precio moderado para propiedades de antigüedad comparable"
+    else:
+        base_texto = "precio base conservador (por debajo del valor típico de mercado)"
+    
     mercado_texto += (
         f"El precio base de mercado en {zona} es de **${m2_base:,.0f} USD/m2** "
-        f"(percentil 33 del cluster), lo que refleja una base conservadora "
-        f"que evita sobrevaluar por la presencia de edificios premium recientes."
+        f"({base_texto}), calculado a partir de {n_comps} comparables "
+        f"del mismo perfil constructivo."
     )
     
     lineas.append(mercado_texto)
@@ -3271,12 +3281,15 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
     lineas.append(factores_texto)
     
     # PARRAFO 4: Valor y rango
-    if spread < 10:
-        certeza_texto = "con alta certeza"
+    pct_usado = meta.get('percentil_usado', 'P33')
+    if spread < 10 and pct_usado in ('P50_age', 'P45_age'):
+        certeza_texto = "con alta confianza en propiedades de antigüedad comparable"
+    elif spread < 10:
+        certeza_texto = "con alta certeza en la estimación"
     elif spread < 15:
-        certeza_texto = "con certeza moderada"
+        certeza_texto = "con buena confianza en el rango estimado"
     else:
-        certeza_texto = "con incertidumbre significativa dado lo heterogeneo de la zona"
+        certeza_texto = "con un margen de variación propio de la heterogeneidad de la zona"
     
     lineas.append(
         f"Considerando todos estos factores, el valor de publicacion estimado es de "

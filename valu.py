@@ -311,17 +311,21 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     # RAZONAMIENTO DE VALUACION (nuevo formato narrativo)
     razonamiento = res.get('razonamiento', '')
     
-    # Verificar si el razonamiento tiene el bug de palabras concatenadas (cache old)
-    if razonamiento and ('conincertidumbre' in razonamiento or 'incertidumbresignificativa' in razonamiento.replace(' ', '')):
-        # Regenerar el razonamiento
-        from parsers.mercado_inmobiliario import generar_razonamiento_valuacion
-        meta = res.get('resolution_metadata', {})
-        razonamiento = generar_razonamiento_valuacion(prop, res, meta)
-    
-    # Safety: si persiste sin espacios entre palabras, forzar regeneracion limpia
+    # Regenerar si el cache tiene texto concatenado (bug legacy)
     if razonamiento and 'incertidumbresignificativa' in razonamiento.replace(' ', ''):
         from parsers.mercado_inmobiliario import generar_razonamiento_valuacion
         meta = res.get('resolution_metadata', {})
+        razonamiento = generar_razonamiento_valuacion(prop, res, meta)
+        # Persistir en cache para que no se regenere en cada vista
+        try:
+            from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
+            cache = cargar_cache_valuaciones()
+            nombre_prop = prop.get('nombre', '')
+            if nombre_prop in cache:
+                cache[nombre_prop]['resultado_completo']['razonamiento'] = razonamiento
+                guardar_cache_valuaciones(cache)
+        except:
+            pass
         razonamiento = generar_razonamiento_valuacion(prop, res, meta)
     
     if razonamiento:
