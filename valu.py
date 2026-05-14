@@ -331,7 +331,9 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     if razonamiento:
         st.markdown("---")
         st.markdown("📋 **Informe de Valuación**")
-        st.markdown(razonamiento.replace('\n', '<br>'), unsafe_allow_html=True)
+        for parrafo in razonamiento.split('\n\n'):
+            if parrafo.strip():
+                st.write(parrafo.strip())
     else:
         # Fallback al formato viejo si no hay razonamiento
         m2_equiv = res.get('m2_equivalentes', 0)
