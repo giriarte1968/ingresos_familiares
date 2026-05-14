@@ -587,34 +587,37 @@ def mostrar_dashboard():
         # Dashboard stats
         props = cargar_propiedades()
         if props:
+            # Cargar valuaciones cacheadas para mostrar valor actual
+            from parsers.valuacion_cache import cargar_cache_valuaciones
+            cache_valu = cargar_cache_valuaciones()
+            total_valor = sum(
+                cache_valu.get(p['nombre'], {}).get('resultado_completo', {}).get('valor_propiedad_usd', 0)
+                for p in props
+            )
+            
             col1, col2, col3 = st.columns(3)
             with col1:
                 st.markdown(kpi_card("📊", "Portafolio", f"{len(props)}", "Propiedades en gestión"), unsafe_allow_html=True)
             with col2:
-                # Calcular valor total (estimado)
-                total_val = sum([p.get('valor_compra_usd', 0) for p in props])
-                st.markdown(kpi_card("💰", "Valor Total", f"USD {total_val:,.0f}", "Estimación de cartera"), unsafe_allow_html=True)
+                st.markdown(kpi_card("💰", "Valor Total Estimado", f"USD {total_valor:,.0f}", "Valuación de cartera"), unsafe_allow_html=True)
             with col3:
                 st.markdown(kpi_card("📈", "Mercado", "Rosario", "Actualizado hoy"), unsafe_allow_html=True)
             
             st.markdown("---")
             st.subheader("📍 Mapa de Activos")
             
-            # Crear mapa con folium para mejor centrado
             import folium
             from streamlit.components.v1 import html
             
             props_con_coords = [p for p in props if p.get('lat') and p.get('lon')]
             
             if props_con_coords:
-                # Calcular centro del mapa (promedio de todas las props)
-                lat_center = sum(p['lat'] for p in props_con_coords) / len(props_con_coords)
-                lon_center = sum(p['lon'] for p in props_con_coords) / len(props_con_coords)
+                # Crear mapa y ajustar vista para mostrar TODAS las propiedades
+                lats = [p['lat'] for p in props_con_coords]
+                lons = [p['lon'] for p in props_con_coords]
                 
-                # Crear mapa centrado en las propiedades
-                m = folium.Map(location=[lat_center, lon_center], zoom_start=13, tiles='cartodbpositron')
+                m = folium.Map(tiles='cartodbpositron')
                 
-                # Agregar marcadores para cada propiedad
                 for p in props_con_coords:
                     folium.Marker(
                         [p['lat'], p['lon']],
@@ -622,8 +625,10 @@ def mostrar_dashboard():
                         icon=folium.Icon(color='blue', icon='home')
                     ).add_to(m)
                 
-                # Renderizar mapa
-                html(m._repr_html_(), height=350)
+                # Auto-centrar usando fit_bounds con padding
+                m.fit_bounds([[min(lats), min(lons)], [max(lats), max(lons)]], padding=(50, 50))
+                
+                html(m._repr_html_(), height=400)
                 st.caption(f"📍 {len(props_con_coords)} propiedades en el mapa")
             else:
                 st.info("No hay propiedades con coordenadas GPS registradas.")
