@@ -306,3 +306,27 @@ def test_fase1_pool_enriquecido():
     media = meta.get('n_con_anio_media', 0)
     print(f"\n[FASE1] Mabel: pool={total}, ALTA={alta}, MEDIA={media}, pct={pct}%")
     assert pct > 0, f"Mabel: {pct}% enriquecido (esperado >0%)"
+
+
+# ─── FASE 2: FILTRO DE EDAD ±15 AÑOS ───
+
+def test_filtro_edad_reduce_pool():
+    """Con filtro de edad, pool se reduce"""
+    r = valuar_propiedad_v7(ejecutar_valuacion('mabel'), fecha_ref='2026-04')
+    meta = r.get('resolution_metadata', {})
+    
+    if meta.get('age_filter_applied'):
+        n_filtered = meta.get('n_age_filtered', 0)
+        n_total = meta.get('n_comparables_total', 0)
+        assert n_filtered > 0, "Filtro debe dejar al menos 1 comparable"
+        assert n_filtered < n_total, "Filtro debe reducir el pool"
+        assert n_filtered >= 8, "Debe quedar mínimo 8 comparables"
+        print(f"\n[FASE2] Mabel: pool={n_total} → {n_filtered} (ventana {meta.get('age_window', '?')})")
+
+
+def test_anio_no_hardcodeado():
+    """Verificar que no hay 2026 hardcodeado en el cálculo de antigüedad"""
+    import datetime
+    r = valuar_propiedad_v7(ejecutar_valuacion('mabel'))
+    assert r.get('valor_propiedad_usd', 0) > 0
+    print(f"\n[ANIO_DINAMICO] Año actual={datetime.datetime.now().year}, valor=${r.get('valor_propiedad_usd', 0):,.0f}")

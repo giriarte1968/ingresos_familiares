@@ -18,6 +18,9 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
     if prop_inicial is None:
         prop_inicial = {}
     
+    from datetime import datetime
+    ANIO_ACTUAL = datetime.now().year
+
     errores = []
     
     # === SECCIÓN 1: UBICACIÓN ===
@@ -69,7 +72,7 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
             tipos = ["departamento", "casa", "local", "oficina", "terreno"]
             tipo = st.selectbox("Tipo *", tipos, index=tipos.index(prop_inicial.get('tipo_inmueble', 'departamento')) if prop_inicial.get('tipo_inmueble') in tipos else 0, key=f"tipo_{key_suffix}")
             
-            anio_const = st.number_input("Año construcción *", min_value=1900, max_value=2026, value=int(prop_inicial.get('anio_construccion', 2000) or 2000), key=f"anio_const_{key_suffix}")
+            anio_const = st.number_input("Año construcción *", min_value=1900, max_value=ANIO_ACTUAL, value=int(prop_inicial.get('anio_construccion', 2000) or 2000), key=f"anio_const_{key_suffix}")
             if not anio_const or anio_const < 1900:
                 errores.append("El año de construcción es obligatorio")
             
@@ -134,7 +137,7 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
             reciclado_tipo, anio_reciclado = "ninguno", None
             if tiene_reciclado:
                 reciclado_tipo = st.radio("Tipo reciclado", ["parcial", "total"], index=["parcial", "total"].index(prop_inicial.get('reciclado_tipo', 'parcial')) if prop_inicial.get('reciclado_tipo') in ["parcial", "total"] else 0, key=f"reciclado_tipo_{key_suffix}", horizontal=True)
-                anio_reciclado = st.number_input("Año reciclado", min_value=2000, max_value=2026, value=int(prop_inicial.get('anio_reciclado', 2020) or 2020), key=f"anio_reciclado_{key_suffix}")
+                anio_reciclado = st.number_input("Año reciclado", min_value=2000, max_value=ANIO_ACTUAL, value=int(prop_inicial.get('anio_reciclado', 2020) or 2020), key=f"anio_reciclado_{key_suffix}")
             
             calidades = ["premium", "media", "economica"]
             calidad_edificio = st.selectbox("Calidad", calidades, index=calidades.index(prop_inicial.get('calidad_edificio', 'media')) if prop_inicial.get('calidad_edificio') in calidades else 1, key=f"calidad_{key_suffix}")

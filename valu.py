@@ -240,6 +240,19 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     else:
         st.caption("🗺️ Mapa no disponible")
 
+    # === BADGE DE FILTRO DE EDAD (FASE 2) ===
+    meta_filter = res.get('resolution_metadata', {})
+    if meta_filter.get('age_filter_applied'):
+        st.success(f"🏗️ Cluster filtrado por antigüedad: "
+                   f"{meta_filter.get('n_age_filtered', '?')} comparables "
+                   f"({meta_filter.get('age_window', '±15 años')})")
+    else:
+        pct = meta_filter.get('pct_con_anio', 0)
+        if pct > 0:
+            st.info(f"🏗️ {pct:.0f}% comparables con año, insuficientes para filtrar por edad")
+        else:
+            st.caption("🏗️ Sin datos de antigüedad en comparables")
+
     # === DOCUMENTACIÓN OFICIAL (INFOMAPA) ===
     st.markdown("---")
     st.subheader("📋 Datos Catastrales (Infomapa)")

@@ -1329,6 +1329,19 @@ def valuar_con_cache(prop: dict,
 
         guardar_resultado(nombre, prop, resultado, cache)
         guardar_cache_valuaciones(cache)
+
+        # Registrar en historial inmutable (append-only)
+        try:
+            from parsers.valuacion_historial import registrar_valuacion
+            registrar_valuacion(
+                nombre=nombre,
+                prop=prop,
+                resultado=resultado,
+                razon=razon,
+                fecha_ref=fecha_ref
+            )
+        except Exception as e:
+            logger.error(f"Error registrando en historial: {e}")
     else:
         resultado = obtener_resultado_cacheado(nombre, cache)
         meta_cache = obtener_metadata_cache(nombre, cache)

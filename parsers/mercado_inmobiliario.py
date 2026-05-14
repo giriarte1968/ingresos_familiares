@@ -8,6 +8,7 @@ from datetime import datetime
 from parsers.location_engine import cargar_anclas, calcular_precio_m2, estimar_confianza, get_ancla_mas_cercana
 
 logger = logging.getLogger(__name__)
+ANIO_ACTUAL = datetime.now().year
 
 DATOS_MERCADO_FILE = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
@@ -180,7 +181,7 @@ def valuar_entrada(propiedad, fecha_ref=None):
         from parsers.location_engine import get_ancla_mas_cercana
         ancla = get_ancla_mas_cercana(lat, lon, cargar_anclas())
         valor_ancla = ancla.get('usd_m2', 1500) if ancla else 1500
-        antiguedad = 2026 - anio_const
+        antiguedad = ANIO_ACTUAL - anio_const
         factor_deprec = max(0.5, 1.0 - (antiguedad * 0.006))
         m2_base = valor_ancla * factor_deprec
         metodo = f"Ancla ({n_muestras} muestras)"
@@ -358,7 +359,7 @@ def cargar_catastro():
             return None
         df = df.dropna(subset=['year', 'latitud', 'longitud'])
         df['year'] = df['year'].astype(int)
-        df = df[(df['year'] >= 1900) & (df['year'] <= 2026)]
+        df = df[(df['year'] >= 1900) & (df['year'] <= ANIO_ACTUAL)]
         _CATASTRO_CACHE = df
         logger.info(f"[CATASTRO] Cargado: {len(df)} registros")
         return df
@@ -444,7 +445,7 @@ def enriquecer_anio_comparable(comp, max_dist_m=50):
     }
 
 
-def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=None, lon_ref=None, fecha_ref=None):
+def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=None, lon_ref=None, fecha_ref=None, anio_sujeto=None):
     """
     Obtiene la mediana del cluster desde cache_scraping.json.
     Versión v2 con metadata extendida Y radios progresivos.
@@ -717,7 +718,35 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                     f"ALTA: {n_enriquecidos_alta}, "
                     f"MEDIA: {n_enriquecidos_media}")
 
-        precios = [p['valor_m2'] for p in unicos]
+        # FASE 2: Filtrar por ventana de edad (±15 años)
+        age_filter_applied = False
+        age_window = ''
+        n_age_filtered = 0
+        rango_anio_usado = ''
+        pool_final = unicos
+
+        if anio_sujeto and n_enriq_total >= 10:
+            VENTANA_EDAD = 15
+            anio_min = anio_sujeto - VENTANA_EDAD
+            anio_max = anio_sujeto + VENTANA_EDAD
+
+            pool_con_anio = [p for p in unicos if p.get('anio_estimado')]
+            pool_age_filtered = [
+                p for p in pool_con_anio
+                if anio_min <= p['anio_estimado'] <= anio_max
+            ]
+
+            if len(pool_age_filtered) >= 8:
+                pool_final = pool_age_filtered
+                age_filter_applied = True
+                age_window = f"±{VENTANA_EDAD} años"
+                n_age_filtered = len(pool_age_filtered)
+                rango_anio_usado = f"{anio_min}-{anio_max}"
+                logger.info(f"[AGE_FILTER] Aplicado: {len(pool_age_filtered)} en rango {anio_min}-{anio_max}")
+            else:
+                logger.info(f"[AGE_FILTER] No aplicado: solo {len(pool_age_filtered)} post-filtro (mín 8)")
+
+        precios = [p['valor_m2'] for p in pool_final]
         n_raw = len(precios)
         
         if not precios:
@@ -935,6 +964,11 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             'n_con_anio_alta': n_enriquecidos_alta,
             'n_con_anio_media': n_enriquecidos_media,
             'pct_con_anio': round(pct_enriq, 1),
+            # Fase 2: Filtro de edad
+            'age_filter_applied': age_filter_applied,
+            'age_window': age_window,
+            'n_age_filtered': n_age_filtered,
+            'rango_anio_usado': rango_anio_usado,
         }
         
         return valor, n_filtradas, meta
@@ -964,7 +998,7 @@ def calcular_base_calibrada(valor_ancla, prop_data):
     lat = prop_data.get('lat')
     lon = prop_data.get('lon')
     anio_const = prop_data.get('anio_construccion', 2020)
-    anio_tasacion = prop_data.get('anio_tasacion', 2026)
+    anio_tasacion = prop_data.get('anio_tasacion', ANIO_ACTUAL)
     
     # Usar v2 con coordenadas (IGUAL que valuar_propiedad_v7)
     valor_cluster, muestras, meta = obtener_mediana_cluster_v2(
@@ -982,7 +1016,7 @@ def calcular_base_calibrada(valor_ancla, prop_data):
         muestras = 0
     
     # 2. Depreciar ancla por antigüedad
-    antiguedad = 2026 - anio_const
+    antiguedad = ANIO_ACTUAL - anio_const
     factor_deprec = max(0.5, 1.0 - (antiguedad * 0.006))
     valor_ancla_ajustado = valor_ancla * factor_deprec
     
@@ -1005,7 +1039,7 @@ def calcular_base_calibrada(valor_ancla, prop_data):
     # aquí devolvemos la base de mercado pura.
     
     # 5. Factor temporal (ratio) - NEUTRALIZA el índice 2026
-    anio_actual = 2026
+    anio_actual = ANIO_ACTUAL
     datos = cargar_datos()
     indice_data = datos.get('indice_ciudad', {}).get('data', {})
     idx_actual = indice_data.get(str(anio_actual), 1.25)
@@ -1079,7 +1113,7 @@ def obtener_indice_cercano(indice, año):
 
 def obtener_base_year(data):
     """✅ Base year explícito - evita drift."""
-    return data.get('indice_ciudad', {}).get('base_year', 2026)
+    return data.get('indice_ciudad', {}).get('base_year', ANIO_ACTUAL)
 
 
 def obtener_pesos(ratio):
@@ -1254,13 +1288,13 @@ def calcular_factores(prop, ventana_usada=None):
     anio_missing = anio_const is None
     
     if anio_const is None:
-        anio_const = 2026 - prop.get('antiguedad', 0)
+        anio_const = ANIO_ACTUAL - prop.get('antiguedad', 0)
         anio_const = normalize_year(anio_const)
     
     if anio_const is None:
         anio_const = 2000  # default conservador
     
-    antiguedad = 2026 - anio_const
+    antiguedad = ANIO_ACTUAL - anio_const
     
     # Depreciación por Antigüedad (Year 0 -> Target)
     # 1. Calcular depreciación lineal normal
@@ -2367,8 +2401,8 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     # 1. Obtener m2 equivalentes y Antigüedad Dinámica
     m2_equiv = calcular_m2_equivalentes(prop)
     
-    anio_const = prop.get('anio_construccion', 2026 - prop.get('antiguedad', 0))
-    antiguedad_dinamica = 2026 - anio_const
+    anio_const = prop.get('anio_construccion', ANIO_ACTUAL - prop.get('antiguedad', 0))
+    antiguedad_dinamica = ANIO_ACTUAL - anio_const
     # Actualizamos el diccionario prop para que calcular_factores use la dinámica
     prop['antiguedad'] = antiguedad_dinamica 
     
@@ -2431,7 +2465,8 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         operacion='venta',
         lat_ref=lat,
         lon_ref=lon,
-        fecha_ref=fecha_ref
+        fecha_ref=fecha_ref,
+        anio_sujeto=anio_const
     )
     
     # Si v2 tiene valor, usarlo; si no, fallback a ancla
@@ -2440,7 +2475,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         metodo_origen = f"cluster_v2 (P{meta_venta.get('percentil_usado','33')}, {n_v} props)"
     else:
         # Fallback a ancla
-        antiguedad = 2026 - anio_const
+        antiguedad = ANIO_ACTUAL - anio_const
         factor_deprec = max(0.5, 1.0 - (antiguedad * 0.006))
         m2_base_venta = valor_ancla_geo * factor_deprec
         metodo_origen = "Ancla (fallback)"
@@ -2470,6 +2505,11 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         'n_con_anio_alta': meta_venta.get('n_con_anio_alta', 0),
         'n_con_anio_media': meta_venta.get('n_con_anio_media', 0),
         'pct_con_anio': meta_venta.get('pct_con_anio', 0),
+        # Fase 2: Filtro de edad
+        'age_filter_applied': meta_venta.get('age_filter_applied', False),
+        'age_window': meta_venta.get('age_window', ''),
+        'n_age_filtered': meta_venta.get('n_age_filtered', 0),
+        'rango_anio_usado': meta_venta.get('rango_anio_usado', ''),
     }
     
     # Generar comparables sintéticos para el mapa (basados en los nodos del cluster)
@@ -3094,7 +3134,7 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
     precio_compra = prop.get('valor_compra_usd', 0)
     fecha_compra = prop.get('fecha_compra', '')
     
-    antiguedad = (2026 - anio) if anio else 0
+    antiguedad = (ANIO_ACTUAL - anio) if anio else 0
     
     lineas = []
     
