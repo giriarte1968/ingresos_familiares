@@ -817,7 +817,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         precios_same = []
         precios_cross = []
         
-        for p in unicos:
+        for p in pool_final:
             val = p.get('valor_m2', 0)
             if val <= 0:
                 continue
