@@ -149,11 +149,10 @@ def mostrar_dashboard_valu(propiedades, resultados):
 
     # === TABLA PARA MUCHOS, CARDS PARA POCOS ===
     if len(props_filtradas) <= 12:
+        cols = st.columns(3)
         for i, p in enumerate(props_filtradas):
             nombre = p.get('nombre', '')
             res = resultados.get(nombre, {})
-            if i % 3 == 0:
-                cols = st.columns(3)
             with cols[i % 3]:
                 alq_r = res.get('alquiler_rango', {})
                 st.markdown(property_card(
