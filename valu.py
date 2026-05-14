@@ -581,13 +581,19 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                                      f"({pct:+.1f}%)")
 
 def mostrar_dashboard():
+    # Transicion: limpiar pantalla al cambiar de pagina
+    page_actual = st.session_state.page
+    if page_actual != st.session_state.get('_last_page', ''):
+        st.session_state._last_page = page_actual
+        st.markdown("<br><br><div style='text-align:center;color:#9CA3AF;padding:60px;'>🔄 Cargando...</div>", unsafe_allow_html=True)
+        st.rerun()
+    
     if st.session_state.page == "Splash":
         st.markdown("<br>", unsafe_allow_html=True)
         
         # Dashboard stats
         props = cargar_propiedades()
         if props:
-            # Cargar valuaciones cacheadas para mostrar valor actual
             from parsers.valuacion_cache import cargar_cache_valuaciones
             cache_valu = cargar_cache_valuaciones()
             total_valor = sum(
@@ -599,7 +605,7 @@ def mostrar_dashboard():
             with col1:
                 st.markdown(kpi_card("📊", "Portafolio", f"{len(props)}", "Propiedades en gestión"), unsafe_allow_html=True)
             with col2:
-                st.markdown(kpi_card("💰", "Valor Total Estimado", f"USD {total_valor:,.0f}", "Valuación de cartera"), unsafe_allow_html=True)
+                st.markdown(kpi_card("💰", "Valor Total Estimado", f"USD {total_valor:,.0f}", "Valuaciones cacheadas"), unsafe_allow_html=True)
             with col3:
                 st.markdown(kpi_card("📈", "Mercado", "Rosario", "Actualizado hoy"), unsafe_allow_html=True)
             
@@ -626,7 +632,7 @@ def mostrar_dashboard():
                     ).add_to(m)
                 
                 # Auto-centrar usando fit_bounds con padding
-                m.fit_bounds([[min(lats), min(lons)], [max(lats), max(lons)]], padding=(50, 50))
+                m.fit_bounds([[min(lats), min(lons)], [max(lats), max(lons)]], padding=(200,200), max_zoom=12)
                 
                 html(m._repr_html_(), height=400)
                 st.caption(f"📍 {len(props_con_coords)} propiedades en el mapa")
