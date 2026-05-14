@@ -5,6 +5,14 @@ VALU_CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 
+/* Neutralize Streamlit's green metric styling in write() */
+div[data-testid="stMarkdownContainer"] p {
+    color: inherit !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+    line-height: 1.7 !important;
+}
+
 /* Sidebar dark navy */
 [data-testid="stSidebar"] { background: linear-gradient(180deg, #0F1629 0%, #1A2340 100%) !important; }
 [data-testid="stSidebar"] * { color: rgba(255,255,255,0.85) !important; }
