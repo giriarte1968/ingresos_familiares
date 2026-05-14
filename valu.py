@@ -61,50 +61,163 @@ def obtener_precios_historicos(fecha=None):
 # --- UI COMPONENTS ---
 
 def mostrar_dashboard_valu(propiedades, resultados):
-    st.markdown('<div class="page-header"><div><h1 style="margin:0;color:#1A2B5C;">🏘️ Propiedades</h1><p style="margin:0;color:#6B7280;">Portfolio Inmobiliario · Rosario, Argentina</p></div></div>', unsafe_allow_html=True)
-    
     total_usd = sum(r.get('valor_propiedad_usd', 0) for r in resultados.values())
     n_props = len(propiedades)
     cap_prom = sum(r.get('cap_rate', 0) for r in resultados.values()) / n_props if n_props else 0
     usdt_ars = obtener_usdt_ars_binance()
 
-    c1, c2, c3 = st.columns(3)
+    # === KPIS SUPERIORES ===
+    st.markdown('<div class="page-header"><div><h1 style="margin:0;color:#1A2B5C;">🏘️ Portfolio</h1><p style="margin:0;color:#6B7280;">Rosario, Argentina</p></div></div>', unsafe_allow_html=True)
+
+    c1, c2, c3, c4 = st.columns(4)
     with c1: st.markdown(kpi_card("💼", "Portfolio Total", f"${total_usd:,.0f} USD", f"${total_usd*usdt_ars/1e6:.1f}M ARS"), unsafe_allow_html=True)
-    with c2: st.markdown(kpi_card("🏘️", "Propiedades", f"{n_props}", "unidades activas"), unsafe_allow_html=True)
-    with c3: st.markdown(kpi_card("📈", "Cap Rate Promedio", f"{cap_prom*100:.1f}%", "rendimiento neto", border_color="#16A34A"), unsafe_allow_html=True)
+    with c2: st.markdown(kpi_card("🏘️", "Propiedades", f"{n_props}", "activas"), unsafe_allow_html=True)
+    with c3: st.markdown(kpi_card("📈", "Cap Rate Prom.", f"{cap_prom*100:.1f}%", "rendimiento neto", border_color="#16A34A"), unsafe_allow_html=True)
+    with c4:
+        alq_total = sum(r.get('alquiler_estimado_ars', 0) for r in resultados.values())
+        st.markdown(kpi_card("💰", "Alquiler Total", f"${alq_total:,.0f} ARS", f"${alq_total/usdt_ars:,.0f} USD", border_color="#F59E0B"), unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
-    
-    cols = st.columns(3)
-    for i, prop in enumerate(propiedades):
-        nombre = prop.get('nombre', '')
+
+    # === FILTROS ===
+    zonas = sorted(set(p.get('zona', '') for p in propiedades))
+    tipos = sorted(set(p.get('tipo_inmueble', '') for p in propiedades))
+    dorms_op = sorted(set(p.get('dormitorios', 0) for p in propiedades))
+
+    col_f1, col_f2, col_f3, col_f4 = st.columns(4)
+    with col_f1: f_zona = st.multiselect("Zona", zonas, key="filtro_zona")
+    with col_f2: f_tipo = st.multiselect("Tipo", tipos, key="filtro_tipo")
+    with col_f3: f_dorms = st.multiselect("Dorm.", dorms_op, key="filtro_dorms")
+    with col_f4: f_busq = st.text_input("🔍 Buscar", placeholder="Nombre o dirección", key="filtro_busq")
+
+    col_s1, col_s2, col_s3 = st.columns(3)
+    max_valor = max((r.get('valor_propiedad_usd', 0) for r in resultados.values()), default=500000)
+    with col_s1: f_valor_min, f_valor_max = st.slider("Rango valor USD", 0, int(max_valor * 1.1), (0, int(max_valor * 1.1)), key="filtro_valor")
+    with col_s2: f_cap_min = st.slider("Cap Rate min.", 0.0, 10.0, 0.0, 0.5, key="filtro_cap", format="%.1f%%")
+    with col_s3:
+        orden = st.selectbox("Ordenar", [
+            "Valor USD ↓", "Valor USD ↑",
+            "Cap Rate ↓", "Cap Rate ↑",
+            "Alquiler ↓", "Alquiler ↑",
+            "Nombre A→Z", "Nombre Z→A",
+        ], key="filtro_orden")
+
+    # === FILTRAR ===
+    props_filtradas = []
+    for p in propiedades:
+        nombre = p.get('nombre', '')
         res = resultados.get(nombre, {})
-        cache_info = res.get('_cache', {})
-        
-        # Get cache date for display
-        cache_fecha = ''
-        if cache_info.get('recalculado'):
-            cache_fecha = '🆕'
-        else:
-            fecha = cache_info.get('fecha_calculo', '')
-            if fecha:
-                cache_fecha = f"📅 {fecha}"
-        
-        with cols[i % 3]:
-            alq_r = res.get('alquiler_rango', {})
-            st.markdown(property_card(
-                nombre, prop.get('zona', 'Oeste'), res.get('m2_equivalentes', 0),
-                prop.get('dormitorios', 0), prop.get('tipo_inmueble', 'Depto'),
-                res.get('valor_propiedad_usd', 0), res.get('cap_rate', 0),
-                res.get('alquiler_estimado_ars', 0), 
-                res.get('resolution_metadata', {}).get('n_propiedades', 0),
-                cache_info=cache_fecha,
-                alq_min=alq_r.get('min', 0), alq_max=alq_r.get('max', 0)
-            ), unsafe_allow_html=True)
-            if st.button(f"Ver detalle de {nombre} →", key=f"btn_{nombre}", width='stretch'):
-                st.session_state.prop_sel = nombre
-                st.session_state.page = "Detalle"
-                st.rerun()
+        zona = p.get('zona', '')
+        tipo = p.get('tipo_inmueble', '')
+        dorms = p.get('dormitorios', 0)
+        valor = res.get('valor_propiedad_usd', 0)
+        cap = res.get('cap_rate', 0)
+        alq = res.get('alquiler_estimado_ars', 0)
+        dir_ = p.get('direccion', '')
+
+        if f_zona and zona not in f_zona: continue
+        if f_tipo and tipo not in f_tipo: continue
+        if f_dorms and dorms not in f_dorms: continue
+        if f_busq and f_busq.lower() not in nombre.lower() and f_busq.lower() not in dir_.lower(): continue
+        if not (f_valor_min <= valor <= f_valor_max): continue
+        if cap < f_cap_min / 100: continue
+
+        props_filtradas.append(p)
+
+    if not props_filtradas:
+        st.info("😶 Ninguna propiedad coincide con los filtros.")
+        return
+
+    # === AGRUPAR POR ZONA ===
+    grupos = {}
+    for p in props_filtradas:
+        zona = p.get('zona', 'Sin zona')
+        nombre = p.get('nombre', '')
+        res = resultados.get(nombre, {})
+        if zona not in grupos:
+            grupos[zona] = {'props': [], 'valor_total': 0, 'alquiler_total': 0, 'cap_rates': []}
+        grupos[zona]['props'].append(p)
+        grupos[zona]['valor_total'] += res.get('valor_propiedad_usd', 0)
+        grupos[zona]['alquiler_total'] += res.get('alquiler_estimado_ars', 0)
+        cap = res.get('cap_rate')
+        if cap: grupos[zona]['cap_rates'].append(cap)
+
+    st.markdown(f"**{len(props_filtradas)}** propiedades encontradas en **{len(grupos)}** zonas")
+
+    # === ORDENAR GRUPOS ===
+    zonas_ordenadas = sorted(grupos.keys())
+
+    # === TABLA PARA MUCHOS, CARDS PARA POCOS ===
+    if len(props_filtradas) <= 12:
+        for i, p in enumerate(props_filtradas):
+            nombre = p.get('nombre', '')
+            res = resultados.get(nombre, {})
+            if i % 3 == 0:
+                cols = st.columns(3)
+            with cols[i % 3]:
+                alq_r = res.get('alquiler_rango', {})
+                st.markdown(property_card(
+                    nombre, p.get('zona', ''), res.get('m2_equivalentes', 0),
+                    p.get('dormitorios', 0), p.get('tipo_inmueble', 'Depto'),
+                    res.get('valor_propiedad_usd', 0), res.get('cap_rate', 0),
+                    res.get('alquiler_estimado_ars', 0),
+                    res.get('resolution_metadata', {}).get('n_propiedades', 0),
+                    alq_min=alq_r.get('min', 0), alq_max=alq_r.get('max', 0)
+                ), unsafe_allow_html=True)
+                if st.button(f"Ver detalle de {nombre} →", key=f"btn_{nombre}", use_container_width=True):
+                    st.session_state.prop_sel = nombre
+                    st.session_state.page = "Detalle"
+                    st.rerun()
+    else:
+        # Tabla compacta
+        rows = []
+        for p in props_filtradas:
+            nombre = p.get('nombre', '')
+            res = resultados.get(nombre, {})
+            meta = res.get('resolution_metadata', {})
+            pct_label = meta.get('percentil_usado', meta.get('method', ''))
+            rows.append({
+                'Nombre': nombre,
+                'Zona': p.get('zona', ''),
+                'Tipo': p.get('tipo_inmueble', ''),
+                'Dorms': p.get('dormitorios', 0),
+                'm²': res.get('m2_equivalentes', 0),
+                'Valor USD': res.get('valor_propiedad_usd', 0),
+                'Cap Rate': f"{res.get('cap_rate', 0)*100:.1f}%",
+                'Alquiler': f"${res.get('alquiler_estimado_ars', 0):,.0f}",
+                'Conf.': pct_label[:6],
+            })
+
+        df = pd.DataFrame(rows)
+
+        orden_map = {
+            "Valor USD ↓": ("Valor USD", False),
+            "Valor USD ↑": ("Valor USD", True),
+            "Cap Rate ↓": ("Cap Rate", False),
+            "Cap Rate ↑": ("Cap Rate", True),
+            "Alquiler ↓": ("Alquiler", False),
+            "Alquiler ↑": ("Alquiler", True),
+            "Nombre A→Z": ("Nombre", True),
+            "Nombre Z→A": ("Nombre", False),
+        }
+        if orden in orden_map:
+            col, asc = orden_map[orden]
+            df = df.sort_values(col, ascending=asc)
+
+        st.dataframe(df, use_container_width=True, hide_index=True)
+
+        # Selector de propiedad
+        nombres = df['Nombre'].tolist()
+        sel = st.selectbox("Seleccionar propiedad para ver detalle", nombres, key="portfolio_sel")
+        if st.button("📄 Ver detalle completo", type="primary", use_container_width=True):
+            st.session_state.prop_sel = sel
+            st.session_state.page = "Detalle"
+            st.rerun()
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.caption(f"💡 {len(props_filtradas)} propiedades mostradas · {len(grupos)} zonas · "
+               f"Datos de caché · {'Cards' if len(props_filtradas) <= 12 else 'Tabla'}")
+
 
 def mostrar_detalle_valu(prop, res, guardar_fn):
     nombre = prop.get('nombre', '')
