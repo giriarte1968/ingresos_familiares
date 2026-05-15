@@ -3092,7 +3092,7 @@ def _generar_html_mapa(prop, resultado):
         comparables = resultado.get('comparables_venta', [])
         valor = resultado.get('valor_propiedad_usd', 0)
         
-        m = folium.Map(location=[lat + 0.003, lon], zoom_start=14, tiles='cartodbpositron')
+        m = folium.Map(tiles='cartodbpositron')
         
         folium.Marker(
             [lat, lon],
@@ -3118,6 +3118,11 @@ def _generar_html_mapa(prop, resultado):
                     fill_opacity=0.6,
                     popup=f"${comp.get('precio_m2', 0):,.0f}/m²"
                 ).add_to(m)
+        
+        # Centrar el mapa para que incluya TODOS los markers (propiedad + comparables)
+        todas_lats = [float(lat)] + [float(c['lat']) for c in comparables if c.get('lat')]
+        todas_lons = [float(lon)] + [float(c['lon']) for c in comparables if c.get('lon')]
+        m.fit_bounds([[min(todas_lats), min(todas_lons)], [max(todas_lats), max(todas_lons)]], padding=(60, 60))
         
         return m._repr_html_()
     except Exception as e:

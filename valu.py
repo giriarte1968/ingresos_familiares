@@ -345,27 +345,26 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         # Envolvemos en un contenedor con altura fija
         components.html(mapa_html, height=350)
         radio = res.get('resolution_metadata', {}).get('radio_usado', 300)
-        st.caption(f"🗺️ Radio: {radio}m · {n_comps} comparables de venta")
+        st.caption(f"🗺️ {n_comps} comparables de venta")
     else:
         st.caption("🗺️ Mapa no disponible")
 
-    # === BADGE DE FILTRO DE EDAD (FASE 2) ===
-    meta_filter = res.get('resolution_metadata', {})
-    if meta_filter.get('age_filter_applied'):
-        n_age = meta_filter.get('n_age_filtered', 0)
-        pct_label = meta_filter.get('percentil_usado', 'P33')
-        st.success(f"🏗️ Comparables filtrados por antigüedad: "
-                   f"{n_age} unidades · percentil {pct_label}")
-    else:
-        pct = meta_filter.get('pct_con_anio', 0)
-        if pct > 0:
-            st.info(f"🏗️ {pct:.0f}% comparables con año, sin filtro de edad")
-        else:
-            st.caption("🏗️ Sin datos de antigüedad en comparables")
+    # === TABLA DE COMPARABLES ===
+    comparables = res.get('comparables_venta', [])
+    if comparables:
+        with st.expander(f"📊 {len(comparables)} propiedades comparables utilizadas"):
+            comp_rows = []
+            for i, c in enumerate(comparables):
+                comp_rows.append({
+                    '#': i+1,
+                    'Precio/m²': f"${c.get('precio_m2', 0):,.0f}",
+                    'Distancia': f"{c.get('distancia_m', 0):.0f}m" if c.get('distancia_m') else '',
+                })
+            st.dataframe(pd.DataFrame(comp_rows), use_container_width=True, hide_index=True)
 
-    # === DOCUMENTACIÓN OFICIAL (INFOMAPA) ===
+    # === DOCUMENTACIÓN OFICIAL ===
     st.markdown("---")
-    st.subheader("📋 Datos Catastrales (Infomapa)")
+    st.subheader("📋 Datos Catastrales")
     
     catastro = res.get('catastro_detalle', None)
     candidatos = catastro.get('candidatos', []) if catastro else []
