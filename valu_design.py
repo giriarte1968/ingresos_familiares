@@ -70,7 +70,7 @@ header[data-testid="stHeader"] { background: #0F1629 !important; }
     min-height: 600px;
 }
 .hero-overlay {
-    background: linear-gradient(180deg, rgba(15, 22, 42, 0.92) 0%, rgba(15, 22, 42, 0.85) 50%, rgba(15, 22, 42, 0.95) 100%);
+    background: linear-gradient(180deg, rgba(15, 22, 42, 0.70) 0%, rgba(15, 22, 42, 0.60) 50%, rgba(15, 22, 42, 0.80) 100%);
     padding: 80px 20px;
     min-height: 600px;
     display: flex;
