@@ -379,6 +379,30 @@ El target anterior de Mabel ($75-79k) estaba calibrado sobre un pool contaminado
 
 **Tests:** 27/27 pasando con rangos actualizados.
 
+---
+
+## 📅 2026-05-15 — Recalibración temporal de anclas v4.1
+
+Script: `scripts/recalibrar_anclas_v41_temporal.py`
+
+### Metodología
+- Ventanas progresivas: 90d → 180d → 365d (con decay exponencial λ=0.005)
+- P50 robusto con limpieza IQR sobre pool temporal
+- Sin filtro de dormitorios ni edad (es valor zonal, no de propiedad)
+
+### Resultados (122 anclas)
+| Estado | Cantidad |
+|--------|----------|
+| Auto-aprobables (n≥100, desvío≤20%) | 31 |
+| Revisión manual (n≥20) | 47 |
+| Mantener v3 (sin datos) | 44 |
+
+### Archivos generados
+- `data/anclas_rosario_v41_temporal.json` — propuesta de recalibración
+- `reports/anclas_recalibracion_temporal.csv` — comparativa completa
+
+**NO se modifica el motor.** v3 sigue activo hasta aprobar v4.1.
+
 # Docs .MD a mantener sincronizados:
 - ALGORITMOS.md (lógica)
 - DICCIONARIO_DATOS.md (datos)

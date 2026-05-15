@@ -373,5 +373,43 @@ Reemplazan los valores de calibración previos.
 
 ---
 
+## 13. Recalibración Temporal de Anclas (v4.1)
+
+### Ventanas temporales progresivas
+
+Cada ancla se recalibra contra el scraping actual usando ventanas con prioridad a lo más reciente:
+
+| Ventana | Ponderación | Objetivo |
+|---------|------------|----------|
+| 90 días | P50 simple | Mercado inmediato (77 anclas alcanzan) |
+| 180 días | P50 simple | Mercado reciente (1 ancla adicional) |
+| 365 días | P50 con decay exponencial (λ=0.005) | Mercado amplio (0 adicionales) |
+| Sin datos | Mantener v3 | Zonas sin cobertura (44 anclas) |
+
+### Decaimiento temporal
+
+`peso = exp(-0.005 * dias)`:
+- 90 días → pesa 64%
+- 180 días → pesa 41%  
+- 365 días → pesa 16%
+
+### Clasificación
+
+| Estado | Criterio | Acción |
+|--------|----------|--------|
+| auto_aprobable | n≥100 y desvío≤20% | Reemplazar v3 automáticamente |
+| revision_manual | n≥20 (resto) | Revisar antes de reemplazar |
+| mantener_v3 | n<20 en 365d | Mantener valor original |
+
+### Resultados (122 anclas)
+
+| Estado | Cantidad |
+|--------|----------|
+| Auto-aprobables | 31 |
+| Revisión manual | 47 |
+| Mantener v3 | 44 |
+
+---
+
 **Generado por**: Antigravity (IA de Desarrollo)
-**Fecha**: 2026-05-12
+**Fecha**: 2026-05-15
