@@ -994,6 +994,23 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             'age_window': age_window,
             'n_age_filtered': n_age_filtered,
             'rango_anio_usado': rango_anio_usado,
+            # Comparables reales (muestra de hasta 30)
+            'comparables_reales': [
+                {
+                    'precio': p.get('precio'),
+                    'm2': p.get('m2'),
+                    'precio_m2': p.get('valor_m2'),
+                    'dormitorios': p.get('dormitorios'),
+                    'direccion': p.get('direccion', '')[:60],
+                    'lat': p.get('lat'),
+                    'lon': p.get('lon'),
+                    'zona': p.get('zona'),
+                    'tipo': p.get('tipo'),
+                    'anio_estimado': p.get('anio_estimado'),
+                    'distancia_m': round(calcular_distancia_km(lat_ref, lon_ref, float(p['lat']), float(p['lon'])) * 1000, 0) if lat_ref and lon_ref and p.get('lat') and p.get('lon') else None,
+                }
+                for p in pool_final[:30]
+            ] if pool_final else [],
         }
         
         return valor, n_filtradas, meta
@@ -2535,23 +2552,12 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         'age_window': meta_venta.get('age_window', ''),
         'n_age_filtered': meta_venta.get('n_age_filtered', 0),
         'rango_anio_usado': meta_venta.get('rango_anio_usado', ''),
+        # Comparables reales del cluster
+        'comparables_reales': meta_venta.get('comparables_reales', []),
     }
     
-    # Generar comparables sintéticos para el mapa (basados en los nodos del cluster)
-    comparables_venta = []
-    if lat and lon:
-        import random
-        random.seed(hash(f"{lat}{lon}") % 10000)
-        for i in range(min(n_v, 20)):  # hasta 20 puntos sintéticos
-            offset_lat = (random.random() - 0.5) * 0.004  # ~200m
-            offset_lon = (random.random() - 0.5) * 0.004
-            precio_m2 = m2_base_venta * (0.9 + random.random() * 0.2)
-            comparables_venta.append({
-                'lat': lat + offset_lat,
-                'lon': lon + offset_lon,
-                'precio_m2': round(precio_m2, 0),
-                'direccion': f'Comp #{i+1}'
-            })
+    # Comparables reales para el mapa y tabla (NO sintéticos)
+    comparables_venta = meta_venta.get('comparables_reales', [])
     
     logger.info(f"--- RESOLUTION ---")
     logger.info(f"resolution: {resolution}, confidence: {confidence}")

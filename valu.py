@@ -313,11 +313,10 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         razonamiento = generar_razonamiento_valuacion(prop, res, meta)
     
     if razonamiento:
-        st.markdown("---")
-        st.markdown("📋 **Informe de Valuación**")
-        for parrafo in razonamiento.split('\n\n'):
-            if parrafo.strip():
-                st.write(parrafo.strip())
+        with st.expander("📋 Informe de Valuación", expanded=False):
+            for parrafo in razonamiento.split('\n\n'):
+                if parrafo.strip():
+                    st.write(parrafo.strip())
     else:
         # Fallback al formato viejo si no hay razonamiento
         m2_equiv = res.get('m2_equivalentes', 0)
@@ -357,8 +356,14 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
             for i, c in enumerate(comparables):
                 comp_rows.append({
                     '#': i+1,
+                    'Precio': f"${c.get('precio', 0):,.0f}",
+                    'm²': f"{c.get('m2', 0):.0f}",
                     'Precio/m²': f"${c.get('precio_m2', 0):,.0f}",
-                    'Distancia': f"{c.get('distancia_m', 0):.0f}m" if c.get('distancia_m') else '',
+                    'Dorm.': c.get('dormitorios', '?'),
+                    'Tipo': (c.get('tipo') or '')[:12] if c.get('tipo') else '',
+                    'Zona': (c.get('zona') or '')[:15],
+                    'Año est.': c.get('anio_estimado', '') if c.get('anio_estimado') else '',
+                    'Dist.': f"{c.get('distancia_m', 0):.0f}m" if c.get('distancia_m') else '',
                 })
             st.dataframe(pd.DataFrame(comp_rows), use_container_width=True, hide_index=True)
 
