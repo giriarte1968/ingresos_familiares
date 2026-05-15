@@ -403,6 +403,27 @@ Script: `scripts/recalibrar_anclas_v41_temporal.py`
 
 **NO se modifica el motor.** v3 sigue activo hasta aprobar v4.1.
 
+---
+
+## 📅 2026-05-15 — ACTIVACIÓN DEFINITIVA DE ANCLAS V5
+
+Recalibración de Anclas v5 activada.
+
+### Decisión
+- Validación contra COCIR y Zonaprop completada.
+- Sesgo general de -9.2% confirmado como corrección saludable de Asking Price a valor más cercano a cierre.
+- Zonas de Echesortu y Periferia validadas en baja por micro-segmentación.
+- **Se reemplaza `anclas_rosario_v3_grid.json` por `data/anclas_rosario_v5_activo.json`**
+
+### Archivos modificados
+| Archivo | Cambio |
+|---------|--------|
+| `data/anclas_rosario_v5_activo.json` | **NUEVO**: 122 anclas (78 recalibradas + 44 heredadas v3) |
+| `parsers/location_engine.py` | Ruta actualizada a `data/anclas_rosario_v5_activo.json` |
+| `parsers/motor_vpp_core.py` | `ANCLAS_FILE` actualizado a `data/anclas_rosario_v5_activo.json` |
+
+### Tests: 27/27 pasando.
+
 # Docs .MD a mantener sincronizados:
 - ALGORITMOS.md (lógica)
 - DICCIONARIO_DATOS.md (datos)

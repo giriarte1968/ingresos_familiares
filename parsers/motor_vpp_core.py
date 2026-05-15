@@ -27,7 +27,7 @@ except ImportError:
 # Rutas y Configuración
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CACHE_FILE = os.path.join(BASE_DIR, "cache_scraping.json")
-ANCLAS_FILE = os.path.join(BASE_DIR, "anclas_rosario_v3_grid.json")
+ANCLAS_FILE = os.path.join(BASE_DIR, "data", "anclas_rosario_v5_activo.json")
 CACHE_TTL_MINUTES = 60
 
 USER_AGENTS = [

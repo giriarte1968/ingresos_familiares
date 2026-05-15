@@ -6,7 +6,7 @@ from sklearn.cluster import DBSCAN
 
 def cargar_anclas(path=None):
     if path is None:
-        path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'anclas_rosario_v3_grid.json')
+        path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'anclas_rosario_v5_activo.json')
     if not os.path.exists(path):
         return []
     with open(path, "r", encoding="utf-8") as f:
