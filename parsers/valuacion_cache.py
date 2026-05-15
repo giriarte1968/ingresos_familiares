@@ -7,7 +7,7 @@ CACHE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file_
 CACHE_PATH = os.path.join(CACHE_DIR, 'valuaciones_cache.json')
 SCRAPING_CACHE_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'cache_scraping.json')
 TTL_HORAS = 24
-CACHE_VERSION = "v3_age_filter"  # Incrementar cuando cambie la lógica de valuación
+CACHE_VERSION = "v4_real_comparables"  # Incrementar cuando cambie la lógica de valuación
 
 def _calcular_hash_propiedad(prop: dict) -> str:
     """Hash de los campos que afectan la valuación."""
