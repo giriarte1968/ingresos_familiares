@@ -622,39 +622,29 @@ def mostrar_dashboard():
                 resultados = {}
                 forzar_global = st.session_state.pop('forzar_recalculo_global', False)
                 
-                # Detectar cuántas propiedades tienen cache desactualizado
-                from parsers.valuacion_cache import cargar_cache_valuaciones, CACHE_VERSION
-                cache_existente = cargar_cache_valuaciones()
-                por_actualizar = sum(
-                    1 for p in propiedades
-                    if p['nombre'] not in cache_existente
-                    or cache_existente[p['nombre']].get('cache_version', '') != CACHE_VERSION
-                )
-                
-                if por_actualizar > 0 and not forzar_global:
-                    st.info(f"🔄 **{por_actualizar}** propiedades serán actualizadas automáticamente "
-                            f"a la nueva versión del motor de valuación ({CACHE_VERSION}).")
-                    st.caption("Esto ocurre solo una vez por propiedad después de mejoras en el algoritmo.")
-                
-                n_recalculadas = 0
-                barra = st.progress(0.0, text="Preparando valuaciones...")
-                
-                for i, p in enumerate(propiedades):
-                    resultados[p['nombre']] = valuar_con_cache(p, forzar_recalculo=forzar_global)
-                    
-                    # Verificar si realmente se recalculó (rastrear cambios de versión)
-                    cache_actual = cargar_cache_valuaciones()
-                    entrada = cache_actual.get(p['nombre'], {})
-                    if entrada.get('cache_version') == CACHE_VERSION:
-                        n_recalculadas += 1
-                    
-                    barra.progress((i + 1) / len(propiedades),
-                                   text=f"Valuando {p['nombre']} ({i+1}/{len(propiedades)})")
-                
                 if forzar_global:
-                    st.success(f"✅ **{len(propiedades)}** propiedades recalculadas por solicitud manual.")
-                elif n_recalculadas > 0:
-                    st.success(f"✅ **{n_recalculadas}** propiedades actualizadas a {CACHE_VERSION}.")
+                    from parsers.valuacion_cache import CACHE_VERSION
+                    barra = st.progress(0.0, text="Recalculando...")
+                    for i, p in enumerate(propiedades):
+                        resultados[p['nombre']] = valuar_con_cache(p, forzar_recalculo=True)
+                        barra.progress((i+1)/len(propiedades), text=f"Valuando {p['nombre']} ({i+1}/{len(propiedades)})")
+                    st.success(f"✅ {len(propiedades)} propiedades recalculadas.")
+                else:
+                    # Cargar resultados cacheados SIN forzar recálculo masivo
+                    for p in propiedades:
+                        resultados[p['nombre']] = valuar_con_cache(p, forzar_recalculo=False)
+                
+                    # Mostrar aviso de versión si hay propiedades desactualizadas
+                    from parsers.valuacion_cache import cargar_cache_valuaciones, CACHE_VERSION
+                    cache_existente = cargar_cache_valuaciones()
+                    por_actualizar = sum(
+                        1 for p in propiedades
+                        if p['nombre'] not in cache_existente
+                        or cache_existente[p['nombre']].get('cache_version', '') != CACHE_VERSION
+                    )
+                    if por_actualizar > 0:
+                        st.info(f"🔄 **{por_actualizar}** propiedades serán actualizadas automáticamente "
+                                f"al abrir su detalle. Versión del motor: {CACHE_VERSION}.")
                 
                 # KPIS DEL PORTFOLIO
                 total_usd = sum(r.get('valor_propiedad_usd', 0) for r in resultados.values())
