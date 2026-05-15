@@ -368,3 +368,53 @@ def test_percentil_p33_sin_age_filter():
     if not meta.get('age_filter_applied'):
         assert meta.get('percentil_usado') == 'P33', \
             f"Sin filtro esperaba P33, obtuvo {meta.get('percentil_usado')}"
+
+
+# ─── VALIDACIÓN DE ANCLAS V5.1 ───
+
+def test_anclas_sin_auto_gap():
+    """Ninguna ancla debe tener nombre auto_gap_*"""
+    import json
+    with open('data/anclas_rosario_v5_1_limpio.json', 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    anclas = data['anclas'] if isinstance(data, dict) else data
+    for a in anclas:
+        nombre = a.get('id', a.get('nombre', ''))
+        assert not nombre.startswith('auto_gap'), f"Ancla con nombre opaco: {nombre}"
+
+
+def test_anclas_sin_fuera_rosario():
+    """No debe haber anclas en Funes/Victoria"""
+    import json
+    with open('data/anclas_rosario_v5_1_limpio.json', 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    anclas = data['anclas'] if isinstance(data, dict) else data
+    palabras_prohibidas = ['funes', 'victoria']
+    for a in anclas:
+        nombre = a.get('id', a.get('nombre', '')).lower()
+        for p in palabras_prohibidas:
+            assert p not in nombre, f"Ancla fuera de Rosario: {a.get('id', a.get('nombre', ''))}"
+
+
+def test_anclas_todas_con_coords():
+    """Todas las anclas deben tener coordenadas"""
+    import json
+    with open('data/anclas_rosario_v5_1_limpio.json', 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    anclas = data['anclas'] if isinstance(data, dict) else data
+    for a in anclas:
+        lat = a.get('lat') or a.get('latitud')
+        lon = a.get('lon') or a.get('longitud')
+        assert lat and lon, f"Ancla sin coords: {a.get('id', a.get('nombre', ''))}"
+
+
+def test_anclas_rango_razonable():
+    """Valores entre 400 y 2500 USD/m²"""
+    import json
+    with open('data/anclas_rosario_v5_1_limpio.json', 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    anclas = data['anclas'] if isinstance(data, dict) else data
+    for a in anclas:
+        usd = a.get('usd_m2', 0)
+        nombre = a.get('id', a.get('nombre', ''))
+        assert 400 <= usd <= 2500, f"{nombre}: ${usd} fuera de rango razonable"
