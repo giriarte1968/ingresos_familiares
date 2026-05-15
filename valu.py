@@ -147,7 +147,7 @@ def mostrar_dashboard_valu(propiedades, resultados):
                     res.get('resolution_metadata', {}).get('n_propiedades', 0),
                     alq_min=alq_r.get('min', 0), alq_max=alq_r.get('max', 0)
                 ), unsafe_allow_html=True)
-                if st.button(f"Ver detalle de {nombre} →", key=f"btn_{nombre}", use_container_width=True):
+                if st.button(f"Ver detalle de {nombre} →", key=f"btn_{nombre}", width='stretch'):
                     st.session_state.prop_sel = nombre
                     st.session_state.page = "Detalle"
                     st.rerun()
@@ -187,12 +187,12 @@ def mostrar_dashboard_valu(propiedades, resultados):
             col, asc = orden_map[orden]
             df = df.sort_values(col, ascending=asc)
 
-        st.dataframe(df, use_container_width=True, hide_index=True)
+        st.dataframe(df, width='stretch', hide_index=True)
 
         # Selector de propiedad
         nombres = df['Nombre'].tolist()
         sel = st.selectbox("Seleccionar propiedad para ver detalle", nombres, key="portfolio_sel")
-        if st.button("📄 Ver detalle completo", type="primary", use_container_width=True):
+        if st.button("📄 Ver detalle completo", type="primary", width='stretch'):
             st.session_state.prop_sel = sel
             st.session_state.page = "Detalle"
             st.rerun()
@@ -208,14 +208,14 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     # Barra de acciones: 3 botones iguales contiguos a la izquierda
     col_back, col_edit, col_recalc = st.columns(3)
     with col_back:
-        if st.button("← Volver", use_container_width=True):
+        if st.button("← Volver", width='stretch'):
             st.session_state.prop_sel = None
             st.rerun()
     with col_edit:
-        if st.button("✏️ Editar", use_container_width=True):
+        if st.button("✏️ Editar", width='stretch'):
             st.session_state[f"edit_{prop['id']}"] = True
     with col_recalc:
-        if st.button("🔄 Revaluar", use_container_width=True):
+        if st.button("🔄 Revaluar", width='stretch'):
             st.session_state[f'forzar_recalculo_{nombre}'] = True
             st.rerun()
 
@@ -365,7 +365,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                     'Año est.': c.get('anio_estimado', '') if c.get('anio_estimado') else '',
                     'Dist.': f"{c.get('distancia_m', 0):.0f}m" if c.get('distancia_m') else '',
                 })
-            st.dataframe(pd.DataFrame(comp_rows), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(comp_rows), width='stretch', hide_index=True)
 
     # === DOCUMENTACIÓN OFICIAL ===
     st.markdown("---")
@@ -403,7 +403,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                         text,
                         key=f"btn_{nombre}_ph_{c['ph']}",
                         type="primary" if is_sel else "secondary",
-                        use_container_width=True,
+                        width='stretch',
                         on_click=lambda ph=c['ph'], k=key_ph: st.session_state.update({k: ph})
                     )
             
@@ -427,12 +427,12 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                         key=f"img_sel_{nombre}_{ph_sel}"
                     )
                     st.link_button("📄 Abrir Plano", imagenes[idx]['url'],
-                                  type="primary", use_container_width=True)
+                                  type="primary", width='stretch')
                 elif len(imagenes) == 1:
                     st.link_button("📄 Ver Plano Original (PDF)", imagenes[0]['url'],
-                                  type="primary", use_container_width=True)
+                                  type="primary", width='stretch')
                 else:
-                    st.button("📄 Plano no disponible", disabled=True, use_container_width=True)
+                    st.button("📄 Plano no disponible", disabled=True, width='stretch')
 
     # === HISTORIAL DE VALUACIONES (NUEVO) ===
     st.markdown("---")
@@ -752,7 +752,7 @@ def main():
         def ir_al_inicio():
             st.session_state.vista_actual = 'landing'
             
-        st.button("← Volver al Inicio", use_container_width=True, on_click=ir_al_inicio)
+        st.button("← Volver al Inicio", width='stretch', on_click=ir_al_inicio)
         st.markdown("---")
         
         st.session_state.page = st.radio("NAVEGACIÓN", ["Portfolio", "Inventario", "Cargar Mercado", "Configuración"])

@@ -49,7 +49,7 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
             lon_input = st.number_input("Longitud *", value=lon_default, format="%.7f", key=f"lon_{key_suffix}")
             
             if show_geocode:
-                if st.button("📍 Geocodificar dirección", use_container_width=True,
+                if st.button("📍 Geocodificar dirección", width='stretch',
                              disabled=not direccion.strip(), key=f"geobtn_{key_suffix}"):
                     from parsers.geocoder import geocoding_manager
                     with st.spinner("Buscando coordenadas..."):
