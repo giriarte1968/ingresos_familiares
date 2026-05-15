@@ -42,7 +42,7 @@ def mostrar_landing():
     # Callback para el botón
     def ir_al_dashboard():
         st.session_state.vista_actual = 'dashboard'
-        st.session_state.page = "Splash"
+        st.session_state.page = "Portfolio"
         
     _, col2, _ = st.columns([1, 2, 1])
     with col2:

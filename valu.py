@@ -61,24 +61,8 @@ def obtener_precios_historicos(fecha=None):
 # --- UI COMPONENTS ---
 
 def mostrar_dashboard_valu(propiedades, resultados):
-    total_usd = sum(r.get('valor_propiedad_usd', 0) for r in resultados.values())
-    n_props = len(propiedades)
-    cap_prom = sum(r.get('cap_rate', 0) for r in resultados.values()) / n_props if n_props else 0
-    usdt_ars = obtener_usdt_ars_binance()
-
-    # === KPIS SUPERIORES ===
     st.markdown('<div class="page-header"><div><h1 style="margin:0;color:#1A2B5C;">🏘️ Portfolio</h1><p style="margin:0;color:#6B7280;">Rosario, Argentina</p></div></div>', unsafe_allow_html=True)
-
-    c1, c2, c3, c4 = st.columns(4)
-    with c1: st.markdown(kpi_card("💼", "Portfolio Total", f"${total_usd:,.0f} USD", f"${total_usd*usdt_ars/1e6:.1f}M ARS"), unsafe_allow_html=True)
-    with c2: st.markdown(kpi_card("🏘️", "Propiedades", f"{n_props}", "activas"), unsafe_allow_html=True)
-    with c3: st.markdown(kpi_card("📈", "Cap Rate Prom.", f"{cap_prom*100:.1f}%", "rendimiento neto", border_color="#16A34A"), unsafe_allow_html=True)
-    with c4:
-        alq_total = sum(r.get('alquiler_estimado_ars', 0) for r in resultados.values())
-        st.markdown(kpi_card("💰", "Alquiler Total", f"${alq_total:,.0f} ARS", f"${alq_total/usdt_ars:,.0f} USD", border_color="#F59E0B"), unsafe_allow_html=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
+    
     # === FILTROS ===
     zonas = sorted(set(p.get('zona', '') for p in propiedades))
     tipos = sorted(set(p.get('tipo_inmueble', '') for p in propiedades))
@@ -581,67 +565,9 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                                      f"({pct:+.1f}%)")
 
 def mostrar_dashboard():
-    # Transicion: limpiar pantalla al cambiar de pagina
-    page_actual = st.session_state.page
-    if page_actual != st.session_state.get('_last_page', ''):
-        st.session_state._last_page = page_actual
-        st.markdown("<br><br><div style='text-align:center;color:#9CA3AF;padding:60px;'>🔄 Cargando...</div>", unsafe_allow_html=True)
-        st.rerun()
+    page = st.session_state.page
     
-    if st.session_state.page == "Splash":
-        st.markdown("<br>", unsafe_allow_html=True)
-        
-        # Dashboard stats
-        props = cargar_propiedades()
-        if props:
-            from parsers.valuacion_cache import cargar_cache_valuaciones
-            cache_valu = cargar_cache_valuaciones()
-            total_valor = sum(
-                cache_valu.get(p['nombre'], {}).get('resultado_completo', {}).get('valor_propiedad_usd', 0)
-                for p in props
-            )
-            
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.markdown(kpi_card("📊", "Portafolio", f"{len(props)}", "Propiedades en gestión"), unsafe_allow_html=True)
-            with col2:
-                st.markdown(kpi_card("💰", "Valor Total Estimado", f"USD {total_valor:,.0f}", "Valuaciones cacheadas"), unsafe_allow_html=True)
-            with col3:
-                st.markdown(kpi_card("📈", "Mercado", "Rosario", "Actualizado hoy"), unsafe_allow_html=True)
-            
-            st.markdown("---")
-            st.subheader("📍 Mapa de Activos")
-            
-            import folium
-            from streamlit.components.v1 import html
-            
-            props_con_coords = [p for p in props if p.get('lat') and p.get('lon')]
-            
-            if props_con_coords:
-                # Crear mapa y ajustar vista para mostrar TODAS las propiedades
-                lats = [p['lat'] for p in props_con_coords]
-                lons = [p['lon'] for p in props_con_coords]
-                
-                m = folium.Map(tiles='cartodbpositron')
-                
-                for p in props_con_coords:
-                    folium.Marker(
-                        [p['lat'], p['lon']],
-                        popup=f"📍 {p.get('nombre', 'Propiedad')}<br>{p.get('direccion', '')}",
-                        icon=folium.Icon(color='blue', icon='home')
-                    ).add_to(m)
-                
-                # Auto-centrar usando fit_bounds con padding
-                m.fit_bounds([[min(lats), min(lons)], [max(lats), max(lons)]], padding=(200,200), max_zoom=12)
-                
-                html(m._repr_html_(), height=400)
-                st.caption(f"📍 {len(props_con_coords)} propiedades en el mapa")
-            else:
-                st.info("No hay propiedades con coordenadas GPS registradas.")
-        
-        st.markdown("<br>", unsafe_allow_html=True)
-
-    elif st.session_state.page == "Portfolio":
+    if page == "Portfolio":
         propiedades = cargar_propiedades()
         
         if not propiedades:
@@ -726,6 +652,36 @@ def mostrar_dashboard():
                 elif n_recalculadas > 0:
                     st.success(f"✅ **{n_recalculadas}** propiedades actualizadas a {CACHE_VERSION}.")
                 
+                # KPIS DEL PORTFOLIO
+                total_usd = sum(r.get('valor_propiedad_usd', 0) for r in resultados.values())
+                n_props = len(propiedades)
+                cap_prom = sum(r.get('cap_rate', 0) for r in resultados.values()) / n_props if n_props else 0
+                usdt_ars = obtener_usdt_ars_binance()
+                
+                c1, c2, c3, c4 = st.columns(4)
+                with c1: st.markdown(kpi_card("💼", "Portfolio Total", f"${total_usd:,.0f} USD", f"${total_usd*usdt_ars/1e6:.1f}M ARS"), unsafe_allow_html=True)
+                with c2: st.markdown(kpi_card("🏘️", "Propiedades", f"{n_props}", "activas"), unsafe_allow_html=True)
+                with c3: st.markdown(kpi_card("📈", "Cap Rate Prom.", f"{cap_prom*100:.1f}%", "rendimiento neto", border_color="#16A34A"), unsafe_allow_html=True)
+                with c4:
+                    alq_total = sum(r.get('alquiler_estimado_ars', 0) for r in resultados.values())
+                    st.markdown(kpi_card("💰", "Alquiler Total", f"${alq_total:,.0f} ARS", f"${alq_total/usdt_ars:,.0f} USD", border_color="#F59E0B"), unsafe_allow_html=True)
+                
+                # MAPA DE ACTIVOS
+                import folium
+                from streamlit.components.v1 import html
+                props_con_coords = [p for p in propiedades if p.get('lat') and p.get('lon')]
+                if props_con_coords:
+                    lats = [p['lat'] for p in props_con_coords]
+                    lons = [p['lon'] for p in props_con_coords]
+                    m = folium.Map(tiles='cartodbpositron')
+                    for p in props_con_coords:
+                        folium.Marker([p['lat'], p['lon']], popup=f"📍 {p.get('nombre', '')}", icon=folium.Icon(color='blue', icon='home')).add_to(m)
+                    m.fit_bounds([[min(lats), min(lons)], [max(lats), max(lons)]], padding=(200,200), max_zoom=12)
+                    html(m._repr_html_(), height=300)
+                    st.caption(f"📍 {len(props_con_coords)} propiedades")
+                
+                st.markdown("---")
+                
                 mostrar_dashboard_valu(propiedades, resultados)
 
     elif st.session_state.page == "Inventario":
@@ -783,7 +739,7 @@ def main():
         mostrar_landing()
         return
 
-    if 'page' not in st.session_state: st.session_state.page = "Splash"
+    if 'page' not in st.session_state: st.session_state.page = "Portfolio"
     if 'prop_sel' not in st.session_state: st.session_state.prop_sel = None
 
     with st.sidebar:
@@ -795,7 +751,7 @@ def main():
         st.button("← Volver al Inicio", use_container_width=True, on_click=ir_al_inicio)
         st.markdown("---")
         
-        st.session_state.page = st.radio("NAVEGACIÓN", ["Splash", "Portfolio", "Inventario", "Cargar Mercado", "Configuración"])
+        st.session_state.page = st.radio("NAVEGACIÓN", ["Portfolio", "Inventario", "Cargar Mercado", "Configuración"])
         
         st.markdown("---")
         datos = cargar_datos()
