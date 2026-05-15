@@ -244,20 +244,16 @@ def get_divider_edificios_html() -> str:
     return """
     <div class="landing-divider-image">
         <div class="divider-overlay">
-            <div class="divider-stats">
-                <div class="divider-stat">
-                    <div class="divider-stat-number">9,000+</div>
-                    <div class="divider-stat-label">Propiedades analizadas</div>
+                <div class="divider-stats">
+                    <div class="divider-stat">
+                        <div class="divider-stat-number">9,000+</div>
+                        <div class="divider-stat-label">Propiedades analizadas</div>
+                    </div>
+                    <div class="divider-stat">
+                        <div class="divider-stat-number">21,000+</div>
+                        <div class="divider-stat-label">Registros catastrales</div>
+                    </div>
                 </div>
-                <div class="divider-stat">
-                    <div class="divider-stat-number">21,000+</div>
-                    <div class="divider-stat-label">Registros catastrales</div>
-                </div>
-                <div class="divider-stat">
-                    <div class="divider-stat-number">300m</div>
-                    <div class="divider-stat-label">Radio de comparables</div>
-                </div>
-            </div>
         </div>
     </div>
     """
