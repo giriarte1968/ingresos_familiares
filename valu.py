@@ -670,7 +670,7 @@ def mostrar_dashboard():
                     m = folium.Map(tiles='cartodbpositron')
                     for p in props_con_coords:
                         folium.Marker([p['lat'], p['lon']], popup=f"📍 {p.get('nombre', '')}", icon=folium.Icon(color='blue', icon='home')).add_to(m)
-                    m.fit_bounds([[min(lats), min(lons)], [max(lats), max(lons)]], padding=(200,200), max_zoom=12)
+                    m.fit_bounds([[min(lats), min(lons)], [max(lats), max(lons)]], padding=(100,100), max_zoom=13)
                     html(m._repr_html_(), height=300)
                     st.caption(f"📍 {len(props_con_coords)} propiedades")
                 

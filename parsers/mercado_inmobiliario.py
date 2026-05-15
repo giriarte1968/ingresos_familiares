@@ -3128,7 +3128,7 @@ def _generar_html_mapa(prop, resultado):
         # Centrar el mapa para que incluya TODOS los markers (propiedad + comparables)
         todas_lats = [float(lat)] + [float(c['lat']) for c in comparables if c.get('lat')]
         todas_lons = [float(lon)] + [float(c['lon']) for c in comparables if c.get('lon')]
-        m.fit_bounds([[min(todas_lats), min(todas_lons)], [max(todas_lats), max(todas_lons)]], padding=(60, 60))
+        m.fit_bounds([[min(todas_lats), min(todas_lons)], [max(todas_lats), max(todas_lons)]], padding=(40, 40), max_zoom=15)
         
         return m._repr_html_()
     except Exception as e:
