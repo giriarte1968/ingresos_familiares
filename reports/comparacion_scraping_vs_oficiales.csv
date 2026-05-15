@@ -1,0 +1,22 @@
+zona,ancla_id,scraping_usd_m2,v3_usd_m2,n_zonal,estado
+Puerto Norte,rio_puerto_norte,2100.0,2100,0.0,mantener_v3
+Bv Oroño,rio_bv_oroño,,1850,,
+Parque España,parque_espana_norte,1429.2,1850,132.0,revision_manual
+Martín (Río Uruguay),martin_rio_urquiza,1634.78,1850,212.0,auto_aprobable
+Martín Centro,martin_centro_residencial,1742.33,1480,338.0,auto_aprobable
+Martín Av Pellegrini,martin_av_pellegrini_bajo,1743.9,1650,419.0,auto_aprobable
+Centro (Mendoza/Maipú),centro_mendoza_maipu,1574.42,1550,237.0,auto_aprobable
+Peatonal Córdoba,peatonal_cordoba_centro,1420.12,1700,203.0,auto_aprobable
+Pellegrini/Oroño,pellegrini_oroño,,1750,,
+Pellegrini/Paraguay,pellegrini_paraguay,1548.52,1700,321.0,auto_aprobable
+Abasto,abasto_corazon_residencial,1668.0,1380,143.0,revision_manual
+Sexta Pellegrini,sexta_pellegrini_sur,1585.37,1400,253.0,auto_aprobable
+Lourdes,lourdes_parque_independencia,1832.88,1450,370.0,revision_manual
+Pichincha Centro,pichincha_centro_aristobulo,1940.0,1680,294.0,auto_aprobable
+Echesortu,echesortu_plaza_costa,1035.17,1420,84.0,revision_manual
+Macrocentro,macrocentro_catamarca_espana,1666.67,1580,250.0,auto_aprobable
+Oeste (Godoy),zona_oeste_godoy,626.8,1100,36.0,revision_manual
+Sur (Tablada),zona_sur_tablada,658.36,1000,42.0,revision_manual
+Fisherton Golf,fisherton_golf,1700.0,1700,0.0,mantener_v3
+Sur (Grandoli),zona_sur_grandoli,950.0,950,0.0,mantener_v3
+Ayacucho/Mendoza,ayacucho_mendoza,1712.33,1500,425.0,auto_aprobable
