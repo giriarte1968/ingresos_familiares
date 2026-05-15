@@ -106,7 +106,7 @@ def get_how_html() -> str:
         {
             'numero': '2',
             'titulo': 'Valu analiza el mercado',
-            'desc': 'Nuestro motor busca comparables en un radio de 300m, ajusta por antigüedad y calidad, y calcula los escenarios.',
+            'desc': 'Nuestro motor busca comparables en un radio cercano, ajusta por antigüedad y calidad, y calcula los escenarios.',
             'icon': '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/><line x1="11" y1="8" x2="11" y2="14"/></svg>'
         },
         {
@@ -213,28 +213,6 @@ def get_example_html(ejemplo_propiedad: str, stats: dict) -> str:
         <div class="landing-section">
             <h2 style="text-align: center; margin-bottom: 48px;">Ejemplo real</h2>
             <div class="landing-example">
-                <div class="example-map-mini">
-                    <svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
-                        <rect width="200" height="120" rx="8" fill="#f1f5f9"/>
-                        <line x1="30" y1="0" x2="30" y2="120" stroke="#e2e8f0" stroke-width="0.5"/>
-                        <line x1="80" y1="0" x2="80" y2="120" stroke="#e2e8f0" stroke-width="0.5"/>
-                        <line x1="130" y1="0" x2="130" y2="120" stroke="#e2e8f0" stroke-width="0.5"/>
-                        <line x1="180" y1="0" x2="180" y2="120" stroke="#e2e8f0" stroke-width="0.5"/>
-                        <line x1="0" y1="30" x2="200" y2="30" stroke="#e2e8f0" stroke-width="0.5"/>
-                        <line x1="0" y1="60" x2="200" y2="60" stroke="#e2e8f0" stroke-width="0.5"/>
-                        <line x1="0" y1="90" x2="200" y2="90" stroke="#e2e8f0" stroke-width="0.5"/>
-                        <circle cx="100" cy="60" r="40" fill="none" stroke="#10b981" stroke-width="1" stroke-dasharray="4 2" opacity="0.4"/>
-                        <circle cx="85" cy="50" r="3" fill="#94a3b8"/>
-                        <circle cx="110" cy="45" r="3" fill="#94a3b8"/>
-                        <circle cx="120" cy="65" r="3" fill="#94a3b8"/>
-                        <circle cx="90" cy="70" r="3" fill="#94a3b8"/>
-                        <circle cx="75" cy="62" r="3" fill="#94a3b8"/>
-                        <circle cx="105" cy="78" r="3" fill="#94a3b8"/>
-                        <circle cx="115" cy="52" r="3" fill="#94a3b8"/>
-                        <circle cx="100" cy="60" r="5" fill="#ef4444"/>
-                        <text x="100" y="105" text-anchor="middle" font-size="8" fill="#94a3b8" font-family="Inter">Radio 300m · 81 comparables</text>
-                    </svg>
-                </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
                     <div>
                         <div style="font-weight: 800; font-size: 1.2rem;">Departamento en Barrio Martín</div>
