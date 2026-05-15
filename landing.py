@@ -8,10 +8,12 @@ from landing_content import (
 from valu_design import LANDING_CSS
 
 def mostrar_landing():
-    # Transición: si venimos de un clic en CTA, mostrar solo spinner
+    # Transición: si venimos de un clic en CTA, mostrar spinner y redirigir
     if st.session_state.pop('_transition_clear', False):
-        st.markdown("<div style='text-align:center;padding:80px 20px;color:#9CA3AF;font-family:Inter;'>🔄 Cargando...</div>", unsafe_allow_html=True)
-        return
+        st.markdown("<div style='text-align:center;padding:80px 20px;color:#9CA3AF;font-family:Inter;font-size:18px;'>🔄 Cargando...</div>", unsafe_allow_html=True)
+        st.session_state.vista_actual = 'dashboard'
+        st.session_state.page = "Portfolio"
+        st.rerun()
     
     # Ocultar sidebar de Streamlit y headers en la landing
     st.markdown("""
@@ -60,8 +62,6 @@ def mostrar_landing():
     # Callback para el botón
     def ir_al_dashboard():
         st.session_state._transition_clear = True
-        st.session_state.vista_actual = 'dashboard'
-        st.session_state.page = "Portfolio"
     
     # BOTÓN CTA — ARRIBA, visible sin scroll
     _, col2, _ = st.columns([1, 2, 1])
