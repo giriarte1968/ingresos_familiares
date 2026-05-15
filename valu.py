@@ -680,6 +680,7 @@ def mostrar_dashboard():
                     )
                     html(m._repr_html_(), height=300)
                     st.caption(f"📍 {len(props_con_coords)} propiedades")
+                    st.markdown("<br>", unsafe_allow_html=True)
                 
                 st.markdown("---")
                 
