@@ -16,6 +16,30 @@ def mostrar_landing():
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     .block-container { padding: 0 !important; max-width: 100% !important; }
+    
+    /* CTA button styling landing */
+    div[data-testid="baseButton-primary"] {
+        background: #10b981 !important;
+        border: none !important;
+        border-radius: 12px !important;
+        padding: 12px 32px !important;
+        font-family: 'Inter', sans-serif !important;
+        font-weight: 700 !important;
+        font-size: 17px !important;
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4) !important;
+        transition: all 0.3s ease !important;
+        height: auto !important;
+    }
+    div[data-testid="baseButton-primary"]:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5) !important;
+        background: #059669 !important;
+    }
+    div[data-testid="baseButton-primary"] p {
+        font-family: 'Inter', sans-serif !important;
+        font-weight: 700 !important;
+        font-size: 17px !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
