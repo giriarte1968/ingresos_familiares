@@ -8,6 +8,11 @@ from landing_content import (
 from valu_design import LANDING_CSS
 
 def mostrar_landing():
+    # Transición: si venimos de un clic en CTA, mostrar solo spinner
+    if st.session_state.pop('_transition_clear', False):
+        st.markdown("<div style='text-align:center;padding:80px 20px;color:#9CA3AF;font-family:Inter;'>🔄 Cargando...</div>", unsafe_allow_html=True)
+        return
+    
     # Ocultar sidebar de Streamlit y headers en la landing
     st.markdown("""
     <style>
@@ -17,28 +22,28 @@ def mostrar_landing():
     footer {visibility: hidden;}
     .block-container { padding: 0 !important; max-width: 100% !important; }
     
-    /* CTA button styling landing */
+    /* CTA button transparent with rounded border */
     div[data-testid="baseButton-primary"] {
-        background: #10b981 !important;
-        border: none !important;
-        border-radius: 12px !important;
+        background: transparent !important;
+        border: 2px solid white !important;
+        border-radius: 50px !important;
         padding: 12px 32px !important;
         font-family: 'Inter', sans-serif !important;
         font-weight: 700 !important;
         font-size: 17px !important;
-        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4) !important;
         transition: all 0.3s ease !important;
         height: auto !important;
+        color: white !important;
     }
     div[data-testid="baseButton-primary"]:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5) !important;
-        background: #059669 !important;
+        background: rgba(255,255,255,0.15) !important;
+        transform: scale(1.03) !important;
     }
     div[data-testid="baseButton-primary"] p {
         font-family: 'Inter', sans-serif !important;
         font-weight: 700 !important;
         font-size: 17px !important;
+        color: white !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -54,6 +59,7 @@ def mostrar_landing():
     
     # Callback para el botón
     def ir_al_dashboard():
+        st.session_state._transition_clear = True
         st.session_state.vista_actual = 'dashboard'
         st.session_state.page = "Portfolio"
     
