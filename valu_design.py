@@ -32,12 +32,13 @@ header[data-testid="stHeader"] { background: #0F1629 !important; }
 /* Boton oscuro generico para detalle (reutilizable con clase) */
 .detail-btn {
     display: inline-flex; align-items: center; justify-content: center;
-    width: 100%; padding: 0.5rem 1rem; border-radius: 12px;
-    font-weight: 600; font-size: 0.95rem; text-decoration: none;
+    width: 100%; padding: 0.55rem 1rem; border-radius: 12px;
+    font-weight: 600; font-size: 0.9rem; text-decoration: none;
     background: #064e3b; color: white !important;
     border: 1px solid #065f46; box-sizing: border-box;
     transition: all 0.25s ease; cursor: pointer;
-    line-height: 1.5; font-family: inherit;
+    line-height: 1.4; font-family: inherit;
+    min-height: 2.6rem;
 }
 .detail-btn:hover {
     background: #059669; color: white !important;
@@ -46,10 +47,15 @@ header[data-testid="stHeader"] { background: #0F1629 !important; }
     text-decoration: none;
 }
 
-/* Botones primary de Streamlit (Volver, Editar, Revaluar) */
+/* Botones primary de Streamlit (Volver, Editar, Revaluar) - mismas dimensiones que detail-btn */
 .stButton > button[kind="primary"] {
     background: #064e3b !important; color: white !important;
     border: 1px solid #065f46 !important;
+    padding: 0.55rem 1rem !important;
+    font-size: 0.9rem !important;
+    line-height: 1.4 !important;
+    min-height: 2.6rem !important;
+    height: auto !important;
 }
 .stButton > button[kind="primary"]:hover {
     background: #059669 !important; color: white !important;
