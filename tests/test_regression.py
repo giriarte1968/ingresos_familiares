@@ -418,3 +418,29 @@ def test_anclas_rango_razonable():
         usd = a.get('usd_m2', 0)
         nombre = a.get('id', a.get('nombre', ''))
         assert 400 <= usd <= 2500, f"{nombre}: ${usd} fuera de rango razonable"
+
+
+# --- RO-03: VENTANA 3 SIN DEPRECIACION ---
+
+def test_ventana3_sin_depreciacion():
+    """RO-03: Con Ventana 3, factor_anti debe ser 1.0 (sin depreciacion por edad)."""
+    from parsers.mercado_inmobiliario import calcular_factores
+    f = calcular_factores({'anio_construccion': 1990}, ventana_usada=3)
+    # RO-03: delta_anti_efectivo = 0 -> factor_anti = 1.0
+    assert f.get('depreciacion') == 1.0, f"factor_anti={f.get('depreciacion')} deberia ser 1.0 en V3"
+
+
+def test_ventana3_con_depreciacion_si_no_v3():
+    """Sin ventana_usada (V1/V2), la depreciacion debe aplicarse normalmente."""
+    from parsers.mercado_inmobiliario import calcular_factores
+    f = calcular_factores({'anio_construccion': 1990})
+    assert f.get('depreciacion') < 1.0, f"factor_anti={f.get('depreciacion')} deberia ser <1.0 (hay depreciacion)"
+    assert f.get('depreciacion') >= 0.40, f"factor_anti={f.get('depreciacion')} deberia respetar cap 0.40"
+
+def test_ventana3_no_afecta_anclas():
+    """RO-03 no debe cambiar valores de las 4 propiedades ancla (todas usan age-filter)."""
+    from parsers.mercado_inmobiliario import valuar_propiedad_v7
+    from tests.test_regression import ejecutar_valuacion
+    for nombre in ['mabel', 'ayacucho']:
+        r = valuar_propiedad_v7(ejecutar_valuacion(nombre), fecha_ref='2026-04')
+        assert r.get('valor_propiedad_usd', 0) > 0

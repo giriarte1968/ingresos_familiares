@@ -1294,14 +1294,16 @@ def calcular_factores(prop, ventana_usada=None):
     
     Args:
         propiedad: dict con datos de la propiedad
-        ventana_usada: opcional, ventana temporal a usar (para compatibilidad con UI)
+        ventana_usada: opcional, ventana temporal a usar.
+                       3 o "ventana3" → RO-03: no aplicar depreciacion por edad
+                       (la base P33 ya incorpora edad implicitamente)
+                       None o V1/V2 → aplicar depreciacion normal
     """
     import json
     import os
     
-    # Default ventana si no se spécifiquea
-    if ventana_usada is None:
-        ventana_usada = "ventana3"
+    # RO-03: Si la base viene de Ventana 3 (P33), NO aplicar depreciacion
+    es_ventana3 = ventana_usada in (3, "3", "ventana3")
     
     estado = prop.get('estado_detalle', 'bueno').lower().replace(' ', '_')
     calidad = prop.get('calidad_edificio', 'media').lower()
@@ -1320,21 +1322,25 @@ def calcular_factores(prop, ventana_usada=None):
     
     antiguedad = ANIO_ACTUAL - anio_const
     
-    # Depreciación por Antigüedad (Year 0 -> Target)
-    # 1. Calcular depreciación lineal normal
-    delta_anti_raw = max(-0.60, -(antiguedad * 0.006))
-    
-    # 2. Atenuación dinámica para propiedades viejas (>30 años)
-    UMBRAL_PENALIZACION_SEVERA = -0.18
-    FACTOR_ATENUACION = 0.35
-    
-    if delta_anti_raw < UMBRAL_PENALIZACION_SEVERA:
-        # Castigo severo: atenuamos el exceso
-        exceso = delta_anti_raw - UMBRAL_PENALIZACION_SEVERA
-        delta_anti_efectivo = UMBRAL_PENALIZACION_SEVERA + (exceso * FACTOR_ATENUACION)
+    # RO-03: delta_anti = 0 cuando la base viene de P33 sin age filter
+    if es_ventana3:
+        delta_anti_efectivo = 0.0
     else:
-        # Propiedades jóvenes: sin cambios
-        delta_anti_efectivo = delta_anti_raw
+        # Depreciación por Antigüedad (Year 0 -> Target)
+        # 1. Calcular depreciación lineal normal
+        delta_anti_raw = max(-0.60, -(antiguedad * 0.006))
+        
+        # 2. Atenuación dinámica para propiedades viejas (>30 años)
+        UMBRAL_PENALIZACION_SEVERA = -0.18
+        FACTOR_ATENUACION = 0.35
+        
+        if delta_anti_raw < UMBRAL_PENALIZACION_SEVERA:
+            # Castigo severo: atenuamos el exceso
+            exceso = delta_anti_raw - UMBRAL_PENALIZACION_SEVERA
+            delta_anti_efectivo = UMBRAL_PENALIZACION_SEVERA + (exceso * FACTOR_ATENUACION)
+        else:
+            # Propiedades jóvenes: sin cambios
+            delta_anti_efectivo = delta_anti_raw
     
     # Factor anti final
     factor_anti = max(0.40, 1.0 + delta_anti_efectivo)
@@ -2547,7 +2553,9 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     m2_base_alquiler = m2_base_alq_raw if m2_base_alq_raw > 0 else (11500 if dorms >= 2 else 13500)
     
     # 2. Factores Físicos Propios v10.1 (Con CAP)
-    f_dict = calcular_factores(prop)
+    # RO-03: detectar si estamos en Ventana 3 (P33 sin age filter)
+    es_ventana3 = not meta_venta.get("age_filter_applied") and meta_venta.get("percentil_usado") == "P33"
+    f_dict = calcular_factores(prop, ventana_usada=3 if es_ventana3 else None)
     factores_base = f_dict['total']
     
     logger.info(f"--- FACTORES ---")
