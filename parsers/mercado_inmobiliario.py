@@ -7,6 +7,10 @@ import numpy as np
 from datetime import datetime
 from parsers.location_engine import cargar_anclas, calcular_precio_m2, estimar_confianza, get_ancla_mas_cercana
 from parsers import cluster_filters
+from parsers.cluster_filters import (
+    filtrar_por_fecha,
+    seleccionar_percentil_por_edad,
+)
 
 logger = logging.getLogger(__name__)
 ANIO_ACTUAL = datetime.now().year
@@ -443,6 +447,35 @@ def enriquecer_anio_comparable(comp, max_dist_m=50):
     }
 
 
+def _filtrar_por_ventana_edad(pool, anio_sujeto, ventana=15, min_con_anio=10):
+    """
+    Filtra comparables por ventana de edad ±años alrededor del año sujeto.
+    
+    Returns:
+        (pool_filtrado, age_filter_applied, n_age_filtered, anio_min, anio_max)
+    """
+    if not anio_sujeto:
+        return pool, False, 0, 0, 0
+    
+    pool_con_anio = [p for p in pool if p.get('anio_estimado')]
+    
+    if len(pool_con_anio) < min_con_anio:
+        return pool, False, 0, 0, 0
+    
+    anio_min = anio_sujeto - ventana
+    anio_max = anio_sujeto + ventana
+    
+    pool_age_filtered = [
+        p for p in pool_con_anio
+        if anio_min <= p['anio_estimado'] <= anio_max
+    ]
+    
+    if len(pool_age_filtered) >= 8:
+        return pool_age_filtered, True, len(pool_age_filtered), anio_min, anio_max
+    
+    return pool, False, 0, 0, 0
+
+
 def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=None, lon_ref=None, fecha_ref=None, anio_sujeto=None):
     """
     Obtiene la mediana del cluster desde cache_scraping.json.
@@ -706,45 +739,16 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         n_enriq_total = n_enriquecidos_alta + n_enriquecidos_media
         pct_enriq = (n_enriq_total / total_pool * 100) if total_pool else 0
 
-        logger.info(f"[ENRIQUECIMIENTO_FASE1] Pool: {total_pool}, "
-                    f"Enriquecidos: {n_enriq_total} ({pct_enriq:.0f}%), "
-                    f"ALTA: {n_enriquecidos_alta}, "
-                    f"MEDIA: {n_enriquecidos_media}")
-
         # FASE 2: Filtrar por ventana de edad (±15 años)
-        age_filter_applied = False
-        age_window = ''
-        n_age_filtered = 0
-        rango_anio_usado = ''
-        pool_final = unicos
-
-        if anio_sujeto and n_enriq_total >= 10:
-            VENTANA_EDAD = 15
-            anio_min = anio_sujeto - VENTANA_EDAD
-            anio_max = anio_sujeto + VENTANA_EDAD
-
-            pool_con_anio = [p for p in unicos if p.get('anio_estimado')]
-            pool_age_filtered = [
-                p for p in pool_con_anio
-                if anio_min <= p['anio_estimado'] <= anio_max
-            ]
-
-            if len(pool_age_filtered) >= 8:
-                pool_final = pool_age_filtered
-                age_filter_applied = True
-                age_window = f"±{VENTANA_EDAD} años"
-                n_age_filtered = len(pool_age_filtered)
-                rango_anio_usado = f"{anio_min}-{anio_max}"
-                logger.info(f"[AGE_FILTER] Aplicado: {len(pool_age_filtered)} en rango {anio_min}-{anio_max}")
-            else:
-                logger.info(f"[AGE_FILTER] No aplicado: solo {len(pool_age_filtered)} post-filtro (mín 8)")
-
-        # FASE 3 (pendiente):
-        # Mostrar dos valuaciones paralelas en la UI:
-        # - "Valuación Standard" (sin filtro edad, P33 puro) → contexto histórico
-        # - "Valuación Age-Aware" (con filtro edad + percentil ajustado) → valor principal
-        # Esto permite al usuario ver qué parte del valor viene de la ubicación
-        # y qué parte de la antigüedad del stock comparable.
+        pool_final, age_filter_applied, n_age_filtered, anio_min, anio_max = _filtrar_por_ventana_edad(
+            unicos, anio_sujeto, ventana=15
+        )
+        age_window = f"\u00b1{15} a\u00f1os" if age_filter_applied else ''
+        rango_anio_usado = f"{anio_min}-{anio_max}" if age_filter_applied else ''
+        if age_filter_applied:
+            logger.info(f"[AGE_FILTER] Aplicado: {n_age_filtered} en rango {anio_min}-{anio_max}")
+        else:
+            logger.info(f"[AGE_FILTER] No aplicado: solo {n_age_filtered} post-filtro (mín 8)")
 
         precios = [p['valor_m2'] for p in pool_final]
         n_raw = len(precios)
