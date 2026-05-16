@@ -28,6 +28,34 @@ header[data-testid="stHeader"] { background: #0F1629 !important; }
 .stButton > button, .stLinkButton > a { border-radius: 12px !important; font-weight: 600 !important; transition: all 0.2s ease !important; }
 .stButton > button:hover, .stLinkButton > a:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(16, 185, 129, 0.25) !important; }
 .stButton > button[kind="primary"], .stLinkButton > a[kind="primary"] { background: #10b981 !important; border: none !important; color: white !important; }
+
+/* Boton oscuro generico para detalle (reutilizable con clase) */
+.detail-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 100%; padding: 0.5rem 1rem; border-radius: 12px;
+    font-weight: 600; font-size: 0.95rem; text-decoration: none;
+    background: #064e3b; color: white !important;
+    border: 1px solid #065f46; box-sizing: border-box;
+    transition: all 0.25s ease; cursor: pointer;
+    line-height: 1.5; font-family: inherit;
+}
+.detail-btn:hover {
+    background: #059669; color: white !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(5, 150, 105, 0.35);
+    text-decoration: none;
+}
+
+/* Botones primary de Streamlit (Volver, Editar, Revaluar) */
+.stButton > button[kind="primary"] {
+    background: #064e3b !important; color: white !important;
+    border: 1px solid #065f46 !important;
+}
+.stButton > button[kind="primary"]:hover {
+    background: #059669 !important; color: white !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(5, 150, 105, 0.35) !important;
+}
 .stButton > button[kind="primary"]:hover, .stLinkButton > a[kind="primary"]:hover { background: #34d399 !important; box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4) !important; }
 
 /* Expanders */

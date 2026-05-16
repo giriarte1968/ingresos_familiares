@@ -15,14 +15,14 @@ def render_actions(prop, guardar_fn):
     nombre = prop.get('nombre', '')
     col_back, col_edit, col_recalc = st.columns(3)
     with col_back:
-        if st.button("<- Volver", width='stretch'):
+        if st.button("<- Volver", type="primary", use_container_width=True):
             st.session_state.prop_sel = None
             st.rerun()
     with col_edit:
-        if st.button("Editar", width='stretch'):
+        if st.button("Editar", type="primary", use_container_width=True):
             st.session_state[f"edit_{prop['id']}"] = True
     with col_recalc:
-        if st.button("Revaluar", width='stretch'):
+        if st.button("Revaluar", type="primary", use_container_width=True):
             st.session_state[f'forzar_recalculo_{nombre}'] = True
             st.rerun()
 
@@ -242,14 +242,13 @@ def render_catastro(prop, res):
             if len(imagenes) > 1:
                 idx = st.selectbox("Archivos oficiales", options=range(len(imagenes)),
                                    format_func=lambda i: imagenes[i]['ruta'].rsplit('/', 1)[-1])
-                # Botón estándar (secundario) alineado con el desplegable
-                st.link_button("📄 Ver Plano PDF", imagenes[idx]['url'], use_container_width=True)
+                st.markdown(f'<a href="{imagenes[idx]["url"]}" target="_blank" class="detail-btn">Ver Plano PDF</a>', unsafe_allow_html=True)
             elif len(imagenes) == 1:
                 st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
-                st.link_button("📄 Ver Plano de Mensura", imagenes[0]['url'], use_container_width=True)
+                st.markdown(f'<a href="{imagenes[0]["url"]}" target="_blank" class="detail-btn">Ver Plano de Mensura</a>', unsafe_allow_html=True)
             else:
                 st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
-                st.button("Plano no disponible", disabled=True, use_container_width=True)
+                st.markdown('<div class="detail-btn" style="opacity:0.5;cursor:not-allowed;">Plano no disponible</div>', unsafe_allow_html=True)
 
 
 def render_street_view(prop):
@@ -267,25 +266,7 @@ def render_street_view(prop):
         with c1:
             st.markdown("<p style='color:#64748b; font-size:0.95rem; margin-top:4px;'>Explorá la calle, el barrio y la fachada de la propiedad interactuando en 360° desde Google Street View.</p>", unsafe_allow_html=True)
         with c2:
-            btn_style = """
-            <style>
-            .street-view-btn {
-                display: inline-flex; align-items: center; justify-content: center;
-                width: 100%; padding: 0.5rem 1rem; border-radius: 12px;
-                font-weight: 600; font-size: 0.95rem; text-decoration: none;
-                background: #064e3b; color: white !important;
-                border: 1px solid #065f46; box-sizing: border-box;
-                transition: all 0.25s ease;
-            }
-            .street-view-btn:hover {
-                background: #059669; color: white !important;
-                transform: translateY(-2px);
-                box-shadow: 0 6px 16px rgba(5, 150, 105, 0.35);
-            }
-            </style>
-            """
-            st.markdown(btn_style, unsafe_allow_html=True)
-            st.markdown(f'<a href="{url}" target="_blank" class="street-view-btn">Abrir Street View</a>', unsafe_allow_html=True)
+            st.markdown(f'<a href="{url}" target="_blank" class="detail-btn">Abrir Street View</a>', unsafe_allow_html=True)
 
 
 def render_historial(nombre):
