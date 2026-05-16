@@ -1,0 +1,817 @@
+{
+  "fuente": "anclas_rosario_v3_grid.json",
+  "fecha_generacion": "2026-05-15",
+  "anclas_v3_originales": 122,
+  "anclas_v4_final": 101,
+  "auto_gap_eliminadas": 11,
+  "anclas": [
+    {
+      "id": "parque_espana_sur",
+      "lat": -32.95,
+      "lon": -60.628,
+      "usd_m2": 2262,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "pichincha_centro_aristobulo",
+      "lat": -32.9385,
+      "lon": -60.643,
+      "usd_m2": 2116,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "rio_puerto_norte",
+      "lat": -32.9315,
+      "lon": -60.6375,
+      "usd_m2": 2013,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "auto_gap_medio_798",
+      "lat": -32.936787,
+      "lon": -60.638644,
+      "usd_m2": 1892,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "auto_gap_medio_802",
+      "lat": -32.938884,
+      "lon": -60.648625,
+      "usd_m2": 1882,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "auto_gap_medio_805",
+      "lat": -32.950487,
+      "lon": -60.653333,
+      "usd_m2": 1823,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "pellegrini_oroÃ±o",
+      "lat": -32.9505,
+      "lon": -60.65,
+      "usd_m2": 1805,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "pichincha_norte_brown",
+      "lat": -32.935,
+      "lon": -60.648,
+      "usd_m2": 1795,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "macrocentro_3febrero_francia",
+      "lat": -32.941,
+      "lon": -60.658,
+      "usd_m2": 1769,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "abasto_corazon_residencial",
+      "lat": -32.955,
+      "lon": -60.656,
+      "usd_m2": 1764,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "auto_gap_medio_801",
+      "lat": -32.94113,
+      "lon": -60.652391,
+      "usd_m2": 1699,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "zona_norte_sorrento",
+      "lat": -32.91,
+      "lon": -60.67,
+      "usd_m2": 1661,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "fisherton_evita",
+      "lat": -32.9305,
+      "lon": -60.78,
+      "usd_m2": 1650,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "pellegrini_paraguay",
+      "lat": -32.952,
+      "lon": -60.6455,
+      "usd_m2": 1633,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "lourdes_parque_independencia",
+      "lat": -32.946,
+      "lon": -60.655,
+      "usd_m2": 1605,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "martin_av_pellegrini_bajo",
+      "lat": -32.9535,
+      "lon": -60.635,
+      "usd_m2": 1595,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "transicion_pre_sexta",
+      "lat": -32.9595,
+      "lon": -60.6395,
+      "usd_m2": 1569,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "zona_norte_arroyito_central",
+      "lat": -32.918,
+      "lon": -60.652,
+      "usd_m2": 1533,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "pellegrini_libertad",
+      "lat": -32.957,
+      "lon": -60.638,
+      "usd_m2": 1525,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "ayacucho_mendoza",
+      "lat": -32.953,
+      "lon": -60.637,
+      "usd_m2": 1522,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "sur_antartida",
+      "lat": -32.933644,
+      "lon": -60.742317,
+      "usd_m2": 1507,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "auto_gap_alto_781",
+      "lat": -32.941504,
+      "lon": -60.634971,
+      "usd_m2": 1505,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "parque_espana_norte",
+      "lat": -32.947,
+      "lon": -60.634,
+      "usd_m2": 1499,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "martin_rio_urquiza",
+      "lat": -32.958,
+      "lon": -60.626,
+      "usd_m2": 1499,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "macrocentro_catamarca_espana",
+      "lat": -32.9425,
+      "lon": -60.644,
+      "usd_m2": 1487,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "zona_norte_alberdi_rio",
+      "lat": -32.91,
+      "lon": -60.64,
+      "usd_m2": 1487,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "auto_gap_medio_796",
+      "lat": -32.956101,
+      "lon": -60.620847,
+      "usd_m2": 1404,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "auto_gap_medio_806",
+      "lat": -32.95161,
+      "lon": -60.642034,
+      "usd_m2": 1404,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "lourdes_core_santiago",
+      "lat": -32.943,
+      "lon": -60.649,
+      "usd_m2": 1388,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "fisherton_wilder",
+      "lat": -32.935,
+      "lon": -60.8,
+      "usd_m2": 1350,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "centro_mendoza_maipu",
+      "lat": -32.95,
+      "lon": -60.638,
+      "usd_m2": 1345,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "auto_gap_medio_807",
+      "lat": -32.956101,
+      "lon": -60.633559,
+      "usd_m2": 1333,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "abasto_sur_27feb",
+      "lat": -32.958,
+      "lon": -60.659,
+      "usd_m2": 1294,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "fisherton_golf",
+      "lat": -32.925,
+      "lon": -60.77,
+      "usd_m2": 1289,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "sexta_pellegrini_sur",
+      "lat": -32.959,
+      "lon": -60.648,
+      "usd_m2": 1284,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "auto_gap_medio_803",
+      "lat": -32.955353,
+      "lon": -60.649567,
+      "usd_m2": 1270,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "auto_gap_medio_800",
+      "lat": -32.949364,
+      "lon": -60.667458,
+      "usd_m2": 1262,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "rio_bv_oroÃ±o",
+      "lat": -32.9445,
+      "lon": -60.639,
+      "usd_m2": 1259,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "sur_lisandro_torre",
+      "lat": -32.912309,
+      "lon": -60.67452,
+      "usd_m2": 1258,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "peatonal_cordoba_centro",
+      "lat": -32.947,
+      "lon": -60.6425,
+      "usd_m2": 1252,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "oeste_francia_mendoza",
+      "lat": -32.945,
+      "lon": -60.665,
+      "usd_m2": 1224,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "ayacucho_27feb",
+      "lat": -32.9625,
+      "lon": -60.6405,
+      "usd_m2": 1164,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "auto_gap_medio_804",
+      "lat": -32.954978,
+      "lon": -60.642034,
+      "usd_m2": 1157,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "echesortu_plaza_costa",
+      "lat": -32.947,
+      "lon": -60.675,
+      "usd_m2": 1102,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "oeste_circunvalacion_pellegrini",
+      "lat": -32.955,
+      "lon": -60.735,
+      "usd_m2": 1100,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "oeste_francia_pellegrini",
+      "lat": -32.955,
+      "lon": -60.665,
+      "usd_m2": 1083,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "sur_moderno",
+      "lat": -32.974068,
+      "lon": -60.697119,
+      "usd_m2": 1070,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "sur_empalme_graneros",
+      "lat": -32.925783,
+      "lon": -60.709831,
+      "usd_m2": 1060,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "republica_sexta_interno",
+      "lat": -32.9665,
+      "lon": -60.645,
+      "usd_m2": 1054,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "fisherton_cordoba_oeste",
+      "lat": -32.93,
+      "lon": -60.74,
+      "usd_m2": 1045,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "sudoeste_uriburu_provincias_unidas",
+      "lat": -32.972,
+      "lon": -60.71,
+      "usd_m2": 1020,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "oeste_avellaneda_mendoza",
+      "lat": -32.945,
+      "lon": -60.685,
+      "usd_m2": 956,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "echesortu_mendoza_avellaneda",
+      "lat": -32.94,
+      "lon": -60.685,
+      "usd_m2": 920,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "ayacucho_segundo_cordoba",
+      "lat": -32.968,
+      "lon": -60.642,
+      "usd_m2": 896,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "oeste_circunvalacion_mendoza",
+      "lat": -32.945,
+      "lon": -60.735,
+      "usd_m2": 885,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "auto_gap_medio_799",
+      "lat": -32.972945,
+      "lon": -60.634971,
+      "usd_m2": 880,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "sur_rueda",
+      "lat": -32.971822,
+      "lon": -60.640622,
+      "usd_m2": 855,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "zona_oeste_felipe_more",
+      "lat": -32.945,
+      "lon": -60.69,
+      "usd_m2": 840,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "sudoeste_uriburu_avellaneda",
+      "lat": -32.97,
+      "lon": -60.695,
+      "usd_m2": 826,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "oeste_lisandro_torre",
+      "lat": -32.919046,
+      "lon": -60.688644,
+      "usd_m2": 805,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "zona_oeste_empalme",
+      "lat": -32.93,
+      "lon": -60.72,
+      "usd_m2": 776,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "zona_norte_circunvalacion",
+      "lat": -32.915,
+      "lon": -60.69,
+      "usd_m2": 771,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "zona_sur_san_martin_saavedra",
+      "lat": -32.975,
+      "lon": -60.645,
+      "usd_m2": 751,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "sur_espana_hospitales",
+      "lat": -32.974068,
+      "lon": -60.651921,
+      "usd_m2": 751,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "sur_san_martin_oeste",
+      "lat": -32.97781,
+      "lon": -60.633559,
+      "usd_m2": 746,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "oeste_provincias_unidas_cordoba",
+      "lat": -32.94,
+      "lon": -60.725,
+      "usd_m2": 743,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "zona_sur_tablada",
+      "lat": -32.98,
+      "lon": -60.64,
+      "usd_m2": 741,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "sur_espana_hospitales_oeste",
+      "lat": -32.971822,
+      "lon": -60.647684,
+      "usd_m2": 735,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "sur_alvear_este",
+      "lat": -32.974068,
+      "lon": -60.680169,
+      "usd_m2": 730,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "zona_sur_hospitales",
+      "lat": -32.97,
+      "lon": -60.652,
+      "usd_m2": 729,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "zona_sur_uriburu",
+      "lat": -32.975,
+      "lon": -60.67,
+      "usd_m2": 725,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "sudoeste_amenabar_avellaneda",
+      "lat": -32.9635,
+      "lon": -60.695,
+      "usd_m2": 713,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "zona_oeste_godoy",
+      "lat": -32.94,
+      "lon": -60.71,
+      "usd_m2": 705,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "sur_domingo_matheu",
+      "lat": -32.982302,
+      "lon": -60.665575,
+      "usd_m2": 704,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "oeste_provincias_unidas_mendoza",
+      "lat": -32.945,
+      "lon": -60.72,
+      "usd_m2": 700,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "sur_ayolas_circunvalacion",
+      "lat": -32.98,
+      "lon": -60.67,
+      "usd_m2": 696,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "zona_norte_parque_field",
+      "lat": -32.9,
+      "lon": -60.7,
+      "usd_m2": 691,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "zona_sur_ayolas_oeste",
+      "lat": -32.97,
+      "lon": -60.68,
+      "usd_m2": 689,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "sudoeste_amenabar_provincias_unidas",
+      "lat": -32.9655,
+      "lon": -60.705,
+      "usd_m2": 688,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "sur_villa_urquiza",
+      "lat": -32.961716,
+      "lon": -60.699944,
+      "usd_m2": 686,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "zona_oeste_mendoza_oeste",
+      "lat": -32.945,
+      "lon": -60.715,
+      "usd_m2": 685,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "sur_alvear_sur",
+      "lat": -32.987542,
+      "lon": -60.684407,
+      "usd_m2": 684,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "sur_belgrano_sur",
+      "lat": -32.948241,
+      "lon": -60.709831,
+      "usd_m2": 683,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "sur_altos_mendoza",
+      "lat": -32.947118,
+      "lon": -60.723955,
+      "usd_m2": 683,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "sudoeste_bv_segundo_avellaneda",
+      "lat": -32.96,
+      "lon": -60.705,
+      "usd_m2": 681,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "zona_oeste_avellaneda_oeste",
+      "lat": -32.95,
+      "lon": -60.705,
+      "usd_m2": 670,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "sur_triangulo_oeste",
+      "lat": -32.96733,
+      "lon": -60.698531,
+      "usd_m2": 670,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "zona_oeste_ludueÃ±a",
+      "lat": -32.925,
+      "lon": -60.69,
+      "usd_m2": 669,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "sur_belgrano",
+      "lat": -32.949364,
+      "lon": -60.714067,
+      "usd_m2": 668,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "sur_battle_ordonez_san_martin",
+      "lat": -32.985,
+      "lon": -60.645,
+      "usd_m2": 667,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "sur_las_heras",
+      "lat": -32.986045,
+      "lon": -60.632617,
+      "usd_m2": 659,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "sur_san_martin",
+      "lat": -32.97781,
+      "lon": -60.626027,
+      "usd_m2": 658,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "sur_alvear_oeste",
+      "lat": -32.981928,
+      "lon": -60.675932,
+      "usd_m2": 654,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "oeste_ludueÃ±a_sur",
+      "lat": -32.935,
+      "lon": -60.71,
+      "usd_m2": 651,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "sur_battle_ordonez_oeste",
+      "lat": -32.985,
+      "lon": -60.68,
+      "usd_m2": 648,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "sur_sanchez_thompson",
+      "lat": -32.975,
+      "lon": -60.63,
+      "usd_m2": 646,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "sur_triangulo",
+      "lat": -32.969576,
+      "lon": -60.702768,
+      "usd_m2": 645,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "sur_grandoli_circunvalacion",
+      "lat": -32.99,
+      "lon": -60.66,
+      "usd_m2": 636,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "sur_alvear",
+      "lat": -32.981554,
+      "lon": -60.683465,
+      "usd_m2": 619,
+      "tipo": "auto_renombrada",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "oeste_ludueÃ±a_norte",
+      "lat": -32.925,
+      "lon": -60.705,
+      "usd_m2": 616,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    },
+    {
+      "id": "zona_sur_grandoli",
+      "lat": -32.99,
+      "lon": -60.63,
+      "usd_m2": 595,
+      "tipo": "manual",
+      "fecha_calibracion": "2026-05-15"
+    }
+  ]
+}

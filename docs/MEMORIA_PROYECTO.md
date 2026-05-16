@@ -8,6 +8,13 @@
 > Antes de modificar CUALQUIER código, leer este archivo completo.
 > Si un cambio viola una "Regla de Oro", NO implementarlo sin
 > aprobación explícita del usuario (Gustavo).
+>
+> ### 📍 RUTA DEL PROYECTO (CRÍTICO)
+> - **Directorio de trabajo:** `C:\Users\Gustavo\ingresos_familiares_st`
+> - **NUNCA usar:** `C:\Users\Gustavo\opencode` (esta carpeta es diferente)
+> - **UI entrada:** `streamlit run valu.py` (desde el directorio de trabajo)
+> - **Motor de valuación:** `parsers/mercado_inmobiliario.py` → función `valuar_propiedad_v7()`
+> - **Tests:** `tests/test_regression.py` (ejecutar con `pytest`)
 
 ---
 

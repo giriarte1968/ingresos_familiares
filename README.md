@@ -4,29 +4,34 @@ Sistema avanzado de scraping y valuación de propiedades en Rosario, Argentina. 
 
 ## 🚀 Componentes Principales
 
-### 1. Motor de Valuación (VPP)
-El núcleo del sistema reside en `parsers/mercado_inmobiliario.py` y `parsers/motor_vpp_core.py`:
+### 1. Aplicación Valu (Nueva Interfaz)
+El punto de entrada principal para la gestión inmobiliaria es `valu.py`:
+- **Zillow-inspired UI**: Interfaz de clase mundial con diseño moderno y minimalista.
+- **Valuation Insights**: Razonamiento detallado de los factores que componen la valuación.
+- **Inventario & Seguimiento**: Control de fechas de publicación y seguimiento de activos.
+
+### 2. Motor de Valuación (VPP)
+El núcleo del sistema reside en `parsers/mercado_inmobiliario.py`:
 - **Clustering IQR**: Elimina ruido estadístico de las muestras.
 - **Geoweighting (IDW)**: Da más peso a las propiedades físicamente más cercanas.
 - **Dual Anchor Mode**: Combina señales del mercado en tiempo real con anclas estructurales de la zona.
 
-### 2. Scraping Engine
+### 3. Scraping Engine
 Sistema de recolección de datos distribuido:
 - `buscar_inmobiliarias.py`: Descubrimiento de fuentes directas.
-- `cache_scraping.json`: Base de datos local de miles de muestras del mercado de Rosario.
+- `cache_scraping.json`: Base de datos local de miles de muestras.
 
-### 3. Analítica de Alquileres & ROI
-- Estimación de renta mensual basada en mercado local y anclas algorítmicas.
-- Cálculo de ROI (Cap Rate) utilizando cotización de **Dólar Binance** (USDT/ARS).
+---
 
 ## 🛠️ Instalación y Uso
 
-### Requisitos
-- Python 3.11+
-- Ver `requirements.txt` para dependencias de Python.
-
 ### Ejecución
-Para iniciar la interfaz de usuario (Streamlit):
+Para iniciar la aplicación principal (**Valu**):
+```bash
+streamlit run valu.py
+```
+
+Para acceder a la versión anterior o gestión financiera (**Legacy**):
 ```bash
 streamlit run app.py
 ```

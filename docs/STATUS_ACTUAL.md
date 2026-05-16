@@ -36,19 +36,23 @@ El núcleo del sistema incluye los siguientes componentes:
 - Soporte para NLP con cap 3-5%.
 - Cap Rate neto: 3-5% para alquiler.
 
-## 3. Automatización
-
-- **auto_validate.py**: Valida tests + syntax + imports automáticamente.
-- **update_docs.py**: Actualiza documentación .MD.
-- **Workflow**: código → validate → commit → push.
+## 3. Nueva Interfaz Valu (UX Premium)
+Se ha completado la transición hacia una arquitectura de frontend desacoplada:
+- **Tecnología**: Streamlit + CSS Custom (Glassmorphism) + Componentes HTML5.
+- **Valuación Explicable**: Nuevo módulo de "Razonamiento de Valuación" que justifica el precio basado en m² base, antigüedad y factores de ajuste.
+- **Historial Inmutable**: Sistema de registro por eventos (`JSONL`) que preserva cada tasación y snapshot del mercado para análisis temporal.
+- **Landing Page Pública**: Página de presentación profesional inspirada en Zillow/Redfin con disclaimer de responsabilidad y onboarding para nuevos usuarios.
+- **Seguimiento de Inventario**: Gestión de fechas de publicación para análisis de absorción de mercado.
 
 ## 4. Estructura de Archivos
-- `parsers/`: Lógica de procesamiento y motores de cálculo.
-- `scripts/`: Utilidades de actualización y patching.
-- `docs/`: Documentación técnica y funcional.
+- `valu.py`: App principal enfocada en Real Estate.
+- `valu_design.py`: Design Tokens y componentes visuales.
+- `valu_forms.py`: Captura de datos (45+ variables).
+- `app.py`: Versión legacy / Gestión financiera.
+- `parsers/`: Motores de cálculo y scraping.
 - `cache_scraping.json`: Base de datos de mercado.
 
 ---
-**Actualizado por**: opencode (Agente de Mantenimiento)
-**Fecha**: 2026-05-05
-**Ubicación**: `ingresos_familiares_st/docs/STATUS_ACTUAL.md`
+**Actualizado por**: Antigravity (IA de Desarrollo)
+**Fecha**: 2026-05-11
+**Ubicación**: `ingresos_familiares_st/valu.py`

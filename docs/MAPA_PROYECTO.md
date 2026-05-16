@@ -18,12 +18,15 @@ Ubicación de la lógica principal de valuación y procesamiento.
 
 | Archivo | Responsabilidad |
 |---------|-----------------|
-| `app.py` | Punto de entrada principal. Interfaz Streamlit, visualización de mapas y reportes. |
-| `parsers/mercado_inmobiliario.py` | **El cerebro.** Contiene `valuar_propiedad_v7` y la lógica de clustering/IDW. Incluye la selección de percentiles: P33 para venta (proxy antigüedad) y P50 para alquiler (mediana). |
-| `parsers/motor_vpp_core.py` | Utilidades core, integración con Binance (USDT/ARS) y scrapers base. |
-| `parsers/location_engine.py` | Motor geoespacial. Cálculo de distancias, clustering DBSCAN y pesos IDW. |
-| `parsers/nlp_inmobiliario.py` | Análisis de descripciones libres para extraer features (ej. "balcón", "amenities"). |
-| `parsers/geocoder.py` | Integración con servicios de geocodificación (Nominatim/Google). |
+| `valu.py` | **Punto de entrada principal (Valu).** Aplicación moderna enfocada 100% en propiedades. |
+| `valu_design.py` | Sistema de diseño premium, CSS estilo Zillow y componentes HTML. |
+| `valu_forms.py` | Formularios modulares para la carga de datos de propiedades. |
+| `app.py` | Punto de entrada **Legacy**. Gestión financiera e ingresos familiares. |
+| `parsers/mercado_inmobiliario.py` | **El cerebro.** Motor AVM (Valuación Automatizada) y lógica de clustering. |
+| `parsers/motor_vpp_core.py` | Utilidades core, integración con Binance (USDT/ARS). |
+| `parsers/location_engine.py` | Motor geoespacial. Cálculo de distancias y pesos IDW. |
+| `parsers/nlp_inmobiliario.py` | Análisis de descripciones libres para extracción de features. |
+| `parsers/geocoder.py` | Integración con servicios de geocodificación. |
 
 ## 2. DATOS Y CONTEXTO (DATA)
 

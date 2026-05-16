@@ -1,0 +1,37 @@
+{
+  "fecha_analisis": "2026-05-15 14:26",
+  "fuentes": {
+    "zonaprop_html_local": {
+      "valor": 1873,
+      "n_listings": 23,
+      "tipo": "mediana_asking"
+    },
+    "zonaprop_indice_jul25": {
+      "valor": 1725,
+      "rango": "1700-1750",
+      "tipo": "asking_usados"
+    },
+    "cocir_sept25": {
+      "valor": 1933,
+      "tipo": "asking_propia",
+      "fuente": "cocir.org.ar"
+    },
+    "properati_general": {
+      "valor": 1850,
+      "rango": "1750-1950",
+      "tipo": "asking"
+    },
+    "reporte_inmobiliario_sept25": {
+      "valor": 1450,
+      "tipo": "cierre_real",
+      "nota": "15-20% bajo asking"
+    }
+  },
+  "promedio_asking_general": 1845,
+  "sesgo_global_pct": -12.6,
+  "sesgo_mediana_pct": -9.2,
+  "n_zonas_ok": 7,
+  "n_zonas_mod": 7,
+  "n_zonas_alto": 0,
+  "n_zonas_muy_alto": 3
+}

@@ -24,27 +24,29 @@ def mostrar_landing():
     footer {visibility: hidden;}
     .block-container { padding: 0 !important; max-width: 100% !important; }
     
-    /* CTA button transparent with rounded border */
-    div[data-testid="baseButton-primary"] {
-        background: transparent !important;
-        border: 2px solid white !important;
+    /* CTA button matching landing page look and feel (Emerald Green) */
+    .stButton > button[kind="primary"] {
+        background: #10b981 !important;
+        border: none !important;
         border-radius: 50px !important;
-        padding: 12px 32px !important;
+        padding: 16px 32px !important;
         font-family: 'Inter', sans-serif !important;
         font-weight: 700 !important;
-        font-size: 17px !important;
+        font-size: 18px !important;
         transition: all 0.3s ease !important;
         height: auto !important;
         color: white !important;
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3) !important;
     }
-    div[data-testid="baseButton-primary"]:hover {
-        background: rgba(255,255,255,0.15) !important;
-        transform: scale(1.03) !important;
+    .stButton > button[kind="primary"]:hover {
+        background: #059669 !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4) !important;
     }
-    div[data-testid="baseButton-primary"] p {
+    .stButton > button[kind="primary"] p {
         font-family: 'Inter', sans-serif !important;
         font-weight: 700 !important;
-        font-size: 17px !important;
+        font-size: 18px !important;
         color: white !important;
     }
     </style>
