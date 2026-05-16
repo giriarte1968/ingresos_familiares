@@ -411,22 +411,30 @@ El target anterior de Mabel ($75-79k) estaba calibrado sobre un pool contaminado
 
 ---
 
-## 📅 2026-05-15 — FASE 2 — Limpieza de imports y constantes muertas
+## 📅 2026-05-15 — FASE 5.1 — Helpers de cluster (preparación)
 
 ### Cambios realizados
 
-| Archivo | Cambio |
+| Archivo | Acción |
 |---------|--------|
-| `valu.py` | Eliminado `LANDING_HTML` del import (no se usaba) |
-| `parsers/infomapa_api.py` | Eliminados `Any`, `List` de typing (no se usaban) |
-| `parsers/valuacion_historial.py` | Eliminado `from pathlib import Path` (no se usaba) |
-| `parsers/mercado_inmobiliario.py` | Eliminadas constantes huérfanas `NEGOCIACION_ESTANDAR`, `ZONAS_PREMIUM`, `NEGOCIACION_PREMIUM` |
+| `parsers/cluster_filters.py` | **Creado** — 7 funciones helper puras |
+| `tests/test_cluster_filters.py` | **Creado** — 31 tests unitarios |
 
-### Falsos positivos detectados
-- `numpy`, `pandas`, `plotly`, `streamlit` — importados como módulos, usados mediante alias (`np.xxx`, `pd.xxx`, `go.xxx`, `st.xxx`)
-- Constantes en `motor_vpp_core.py` — no removidas por precaución (archivo sensible)
+### Nuevas funciones (7)
+1. `filtrar_por_radio()` — filtro geoespacial por distancia
+2. `filtrar_por_tipo_operacion_dorms()` — filtro por atributos
+3. `filtrar_por_fecha()` — filtro por ventana temporal
+4. `separar_por_barreras()` — separación same/cross/hard
+5. `calcular_percentil()` — percentil vía numpy
+6. `calcular_blend_p33()` — blend de P33 same/cross
+7. `seleccionar_percentil_por_edad()` — regla de percentil dinámico
 
-### Tests: **31/31 pasando**
+### NO se modificó
+- `obtener_mediana_cluster_v2()` — intacta
+- `valuar_propiedad_v7()` — intacta
+- Ningún valor de venta/alquiler
+
+### Tests: **62/62 pasando** (31 nuevos + 31 regresión)
 
 # Docs .MD a mantener sincronizados:
 - ALGORITMOS.md (lógica)
