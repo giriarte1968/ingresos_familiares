@@ -20,10 +20,10 @@ def tmp_historial(tmp_path):
 def test_registrar_es_append_only(tmp_historial):
     """Dos registros se acumulan, no se sobrescriben."""
     prop = {'nombre': 'Test', 'zona': 'Martin', 'm2_cubiertos': 40}
-    resultado = {'valor_venta': 70000, 'dolar_binance': 1480}
+    resultado = {'valor_propiedad_usd': 70000, 'dolar_binance': 1480}
 
     registrar_valuacion('Test', prop, resultado, 'primera_vez')
-    registrar_valuacion('Test', prop, {**resultado, 'valor_venta': 75000}, 'scraping')
+    registrar_valuacion('Test', prop, {**resultado, 'valor_propiedad_usd': 75000}, 'scraping')
 
     historial = cargar_historial('Test')
     assert len(historial) == 2
@@ -31,8 +31,8 @@ def test_registrar_es_append_only(tmp_historial):
 def test_historial_inmutable(tmp_historial):
     """Registrar no modifica entradas anteriores."""
     prop = {'nombre': 'Test'}
-    res1 = {'valor_venta': 70000, 'dolar_binance': 1480}
-    res2 = {'valor_venta': 80000, 'dolar_binance': 1500}
+    res1 = {'valor_propiedad_usd': 70000, 'dolar_binance': 1480}
+    res2 = {'valor_propiedad_usd': 80000, 'dolar_binance': 1500}
 
     registrar_valuacion('Test', prop, res1, 'primera_vez')
     registrar_valuacion('Test', prop, res2, 'manual')
@@ -44,9 +44,9 @@ def test_historial_inmutable(tmp_historial):
 
 def test_filtrar_por_propiedad(tmp_historial):
     """Filtrar por propiedad devuelve solo sus registros."""
-    registrar_valuacion('Mabel', {}, {'valor_venta': 77000}, 'test')
-    registrar_valuacion('P1200', {}, {'valor_venta': 137000}, 'test')
-    registrar_valuacion('Mabel', {}, {'valor_venta': 78000}, 'test')
+    registrar_valuacion('Mabel', {}, {'valor_propiedad_usd': 77000, 'dolar_binance': 1480}, 'test')
+    registrar_valuacion('P1200', {}, {'valor_propiedad_usd': 137000, 'dolar_binance': 1480}, 'test')
+    registrar_valuacion('Mabel', {}, {'valor_propiedad_usd': 78000, 'dolar_binance': 1480}, 'test')
 
     solo_mabel = cargar_historial('Mabel')
     assert len(solo_mabel) == 2
@@ -55,9 +55,9 @@ def test_filtrar_por_propiedad(tmp_historial):
 def test_ordenado_por_mas_reciente(tmp_historial):
     """El historial debe venir del más reciente al más antiguo."""
     import time
-    registrar_valuacion('Test', {}, {'valor_venta': 70000}, 'a')
+    registrar_valuacion('Test', {}, {'valor_propiedad_usd': 70000, 'dolar_binance': 1480}, 'a')
     time.sleep(0.01)
-    registrar_valuacion('Test', {}, {'valor_venta': 80000}, 'b')
+    registrar_valuacion('Test', {}, {'valor_propiedad_usd': 80000, 'dolar_binance': 1480}, 'b')
 
     historial = cargar_historial('Test')
     assert historial[0]['resultado']['valor_venta'] == 80000
@@ -65,9 +65,9 @@ def test_ordenado_por_mas_reciente(tmp_historial):
 def test_obtener_ultima_valuacion(tmp_historial):
     """obtener_ultima_valuacion retorna solo el registro más reciente."""
     import time
-    registrar_valuacion('Test', {}, {'valor_venta': 70000}, 'primero')
+    registrar_valuacion('Test', {}, {'valor_propiedad_usd': 70000, 'dolar_binance': 1480}, 'primero')
     time.sleep(0.01)
-    registrar_valuacion('Test', {}, {'valor_venta': 80000}, 'segundo')
+    registrar_valuacion('Test', {}, {'valor_propiedad_usd': 80000, 'dolar_binance': 1480}, 'segundo')
 
     ultima = obtener_ultima_valuacion('Test')
     assert ultima['resultado']['valor_venta'] == 80000
@@ -82,9 +82,9 @@ def test_comparar_dos_valuaciones(tmp_historial):
     """comparar_valuaciones detecta diferencias correctamente."""
     prop = {'nombre': 'Test'}
     registrar_valuacion('Test', prop,
-        {'valor_venta': 70000, 'cap_rate': 0.05}, 'primera')
+        {'valor_propiedad_usd': 70000, 'cap_rate': 0.05, 'dolar_binance': 1480, 'm2_base_venta': 1500}, 'primera')
     registrar_valuacion('Test', prop,
-        {'valor_venta': 77000, 'cap_rate': 0.055}, 'segunda')
+        {'valor_propiedad_usd': 77000, 'cap_rate': 0.055, 'dolar_binance': 1480, 'm2_base_venta': 1500}, 'segunda')
 
     hist = cargar_historial('Test')
     # Use IDs from the created records

@@ -12,6 +12,7 @@ from parsers.motor_vpp_core import (
     cargar_anclas_cached,
     _BINANCE_CACHE,
     _CACHE_DATA,
+    _CACHE_LOAD_TS,
     _ANCLAS_CACHE
 )
 
@@ -107,6 +108,10 @@ class TestCacheReload:
             
             assert r == {"propiedades": [1,2,3]}
             mock_load.assert_called_once()
+        
+        import parsers.motor_vpp_core as mvc
+        mvc._CACHE_DATA = None
+        mvc._CACHE_LOAD_TS = 0
     
     def test_force_reload_anclas(self):
         """force_reload debe ignorar TTL para anclas."""
