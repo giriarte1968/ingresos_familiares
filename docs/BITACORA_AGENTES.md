@@ -409,6 +409,25 @@ El target anterior de Mabel ($75-79k) estaba calibrado sobre un pool contaminado
 - Ningún archivo eliminado (todo en `_archive/`)
 - Ningún archivo activo afectado
 
+---
+
+## 📅 2026-05-15 — FASE 2 — Limpieza de imports y constantes muertas
+
+### Cambios realizados
+
+| Archivo | Cambio |
+|---------|--------|
+| `valu.py` | Eliminado `LANDING_HTML` del import (no se usaba) |
+| `parsers/infomapa_api.py` | Eliminados `Any`, `List` de typing (no se usaban) |
+| `parsers/valuacion_historial.py` | Eliminado `from pathlib import Path` (no se usaba) |
+| `parsers/mercado_inmobiliario.py` | Eliminadas constantes huérfanas `NEGOCIACION_ESTANDAR`, `ZONAS_PREMIUM`, `NEGOCIACION_PREMIUM` |
+
+### Falsos positivos detectados
+- `numpy`, `pandas`, `plotly`, `streamlit` — importados como módulos, usados mediante alias (`np.xxx`, `pd.xxx`, `go.xxx`, `st.xxx`)
+- Constantes en `motor_vpp_core.py` — no removidas por precaución (archivo sensible)
+
+### Tests: **31/31 pasando**
+
 # Docs .MD a mantener sincronizados:
 - ALGORITMOS.md (lógica)
 - DICCIONARIO_DATOS.md (datos)

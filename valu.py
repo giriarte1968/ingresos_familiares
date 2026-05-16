@@ -6,7 +6,7 @@ import uuid
 import time
 import requests
 from datetime import datetime
-from valu_design import VALU_CSS, kpi_card, property_card, hero_price, metric_card, range_bar, LANDING_HTML, insights_card
+from valu_design import VALU_CSS, kpi_card, property_card, hero_price, metric_card, range_bar, insights_card
 from valu_forms import ui_formulario_propiedad
 from landing import mostrar_landing
 

@@ -3,7 +3,6 @@ import os
 import shutil
 import hashlib
 from datetime import datetime
-from pathlib import Path
 
 HISTORIAL_PATH = "data/valuaciones_historial.jsonl"
 SCRAPING_HISTORY_DIR = "data/scraping_history"

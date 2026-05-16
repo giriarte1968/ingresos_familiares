@@ -14,7 +14,7 @@ import csv
 import re
 import requests
 import logging
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict
 
 logger = logging.getLogger(__name__)
 

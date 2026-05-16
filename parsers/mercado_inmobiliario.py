@@ -210,9 +210,6 @@ def valuar_entrada(propiedad, fecha_ref=None):
 
 # --- PARÁMETROS DE CALIBRACIÓN V10.1 ---
 UMBRAL_CONFIANZA_SCRAPING = 8   # Muestras mínimas para confiar en el scraping
-NEGOCIACION_ESTANDAR = 0.92    # -8% (Precio lista vs cierre en Rosario 2026)
-ZONAS_PREMIUM = ["Martin", "Puerto Norte", "Centro"]  # Menos negociación
-NEGOCIACION_PREMIUM = 0.94   # -6% en zonas premium
 MAX_BONUS_ATRIBUTOS = 1.30   # Cap +30% para evitar valores locos
 
 # --- CONFIGURACIÓN DE BÚSQUEDA GEOESPACIAL ---
