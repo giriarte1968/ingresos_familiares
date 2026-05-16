@@ -231,6 +231,18 @@ def render_catastro(prop, res):
                 st.button("Plano no disponible", disabled=True, width='stretch')
 
 
+def render_street_view(prop):
+    """Boton para abrir Google Street View de la fachada en el navegador."""
+    lat = prop.get('lat')
+    lon = prop.get('lon')
+    if not lat or not lon:
+        return
+    st.markdown("---")
+    st.subheader("Street View")
+    url = f"https://www.google.com/maps/@?api=1&map_action=pano&viewpoint={lat},{lon}"
+    st.link_button("Ver Fachada en Google Street View", url, type="secondary", use_container_width=True)
+
+
 def render_historial(nombre):
     """Historial de valuaciones con tabla y grafico."""
     st.markdown("---")
