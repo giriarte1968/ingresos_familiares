@@ -361,7 +361,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                     'Precio/m²': f"${c.get('precio_m2', 0):,.0f}",
                     'Dorm.': c.get('dormitorios', '?'),
                     'Tipo': (c.get('tipo') or '')[:12] if c.get('tipo') else '',
-                    'Zona': (c.get('zona') or '')[:15],
+
                     'Año est.': c.get('anio_estimado', '') if c.get('anio_estimado') else '',
                     'Dist.': f"{c.get('distancia_m', 0):.0f}m" if c.get('distancia_m') else '',
                 })
