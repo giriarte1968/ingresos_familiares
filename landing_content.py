@@ -177,69 +177,6 @@ def get_features_html() -> str:
         '</div>'
     )
 
-def get_example_html(ejemplo_propiedad: str, stats: dict) -> str:
-    # Tratar de valuar en tiempo real si existe la propiedad
-    valor_usd = stats['ejemplo_valor_usd']
-    min_usd = stats['ejemplo_rango_min']
-    max_usd = stats['ejemplo_rango_max']
-    alq = stats['ejemplo_alquiler']
-    cap = stats['ejemplo_cap_rate']
-    
-    try:
-        # Cargar propiedad
-        props_path = os.path.join(os.path.dirname(__file__), "propiedades.json")
-        if os.path.exists(props_path):
-            with open(props_path, 'r', encoding='utf-8') as f:
-                props = json.load(f)
-            
-            p_obj = next((p for p in props if p.get('nombre') == ejemplo_propiedad), None)
-            if p_obj:
-                from parsers.motor_vpp_core import valuar_con_cache
-                res = valuar_con_cache(p_obj)
-                
-                if res and res.get('valor_propiedad_usd'):
-                    valor_usd = int(res['valor_propiedad_usd'])
-                    alq = int(res.get('alquiler_estimado_ars', alq))
-                    cap = round(res.get('cap_rate', cap), 1)
-                    rango_m = res.get('valor_rango', {})
-                    if rango_m:
-                        min_usd = int(rango_m.get('min', valor_usd*0.95))
-                        max_usd = int(rango_m.get('max', valor_usd*1.05))
-    except Exception:
-        pass
-        
-    return f"""
-    <div class="landing-section-alt">
-        <div class="landing-section">
-            <h2 style="text-align: center; margin-bottom: 48px;">Ejemplo real</h2>
-            <div class="landing-example">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                    <div>
-                        <div style="font-weight: 800; font-size: 1.2rem;">Departamento en Barrio Martín</div>
-                        <div style="color: #64748b; font-size: 0.9rem;">1 dormitorio · 43 m² · Año 1998</div>
-                    </div>
-                    <div style="background: #ecfdf5; color: #10b981; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700;">ALTA CONFIANZA</div>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px;">
-                    <div>
-                        <div style="font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Valor estimado</div>
-                        <div style="font-size: 2rem; font-weight: 800; color: #0f162a;">USD {valor_usd:,}</div>
-                        <div style="font-size: 0.9rem; color: #64748b;">Rango: {min_usd//1000}k — {max_usd//1000}k</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Renta & ROI</div>
-                        <div style="font-size: 1.5rem; font-weight: 700; color: #0f162a;">${alq:,}<span style="font-size: 1rem; font-weight: 400;">/mes</span></div>
-                        <div style="font-size: 0.9rem; color: #10b981; font-weight: 600;">Cap Rate: {cap}% anual</div>
-                    </div>
-                </div>
-                <div style="background: #f8fafc; border-radius: 12px; padding: 20px; font-size: 0.9rem; border-left: 4px solid #10b981; color: #475569;">
-                    "Se ubica en una zona con alta actividad inmobiliaria. Propiedades comparables en el área sustentan la valuación..."
-                </div>
-            </div>
-        </div>
-    </div>
-    """
-
 def get_divider_edificios_html() -> str:
     return """
     <div class="landing-divider-image">

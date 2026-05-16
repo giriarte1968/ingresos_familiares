@@ -192,20 +192,6 @@ def cargar_anclas_cached(force_reload=False):
     _ANCLAS_TS = now
     return data
 
-def cargar_anclas_con_distancia(lat, lon, limite=5):
-    """Retorna las N anclas más cercanas con distancia calculada"""
-    anclas = cargar_anclas()
-    if not lat or not lon:
-        return []
-    resultado = []
-    for a_id, a in anclas.items():
-        distancia = calcular_distancia(lat, lon, a.get('lat', 0), a.get('lon', 0))
-        a_copy = a.copy()
-        a_copy['distancia_km'] = distancia
-        resultado.append(a_copy)
-    resultado.sort(key=lambda x: x['distancia_km'])
-    return resultado[:limite]
-
 def calcular_distancia(lat1, lon1, lat2, lon2):
     R = 6371
     dlat = math.radians(lat2 - lat1)

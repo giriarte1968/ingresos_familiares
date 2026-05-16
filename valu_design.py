@@ -203,10 +203,6 @@ def form_section(title, color="#006AFF", icon="📍"):
         <div style="color:{color};font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;">{icon} {title}</div>
     """
 
-def form_section_close():
-    """Cierra la sección del formulario."""
-    return "</div>"
-
 
 LANDING_HTML = """
 <div style="text-align:center;padding:60px 20px;font-family:'Inter',sans-serif;">

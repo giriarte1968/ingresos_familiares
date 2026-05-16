@@ -100,21 +100,6 @@ def geocodificar_nominatim(direccion):
 geocodificar_arcgis = geocodificar_nominatim
 
 
-def detectar_zona_por_texto(direccion, anclas):
-    """Detecta anclas relacionadas por palabras en la dirección."""
-    d = direccion.lower()
-    keywords = ["pellegrini", "oroño", "pichincha", "abasto", "lourdes", "bv", "cordoba", "paraguay", "necochea"]
-    
-    candidatos = []
-    for kw in keywords:
-        if kw in d:
-            for a in anclas:
-                if kw in a["id"]:
-                    candidatos.append(a)
-    
-    return candidatos
-
-
 def validar_y_corregir(direccion, geo, anclas):
     """
     Valida el resultado de ArcGIS y aplica snap a anclas.
@@ -197,35 +182,6 @@ def geocoding_manager(direccion):
     guardar_cache(cache)
     
     return result
-
-
-def geocode_property(prop):
-    """
-    Geocodifica una propiedad y retorna con coordenadas actualizadas.
-    """
-    direccion = prop.get('direccion', '')
-    prop_id = prop.get('id')
-    
-    if not direccion:
-        return prop
-    
-    result = geocoding_manager(direccion)
-    
-    if result.get("lat"):
-        prop['lat'] = result["lat"]
-        prop['lon'] = result["lon"]
-        prop['ancla_mas_cercana'] = result.get("ancla_id")
-        prop['ancla_usd_m2'] = result.get("ancla_usd")
-        prop['distancia_ancla_km'] = result.get("distancia_km")
-        prop['geocode_status'] = result.get("status")
-        
-        # Guardar en archivo
-        if prop_id:
-            update_property_coords(prop_id, result["lat"], result["lon"], 
-                                   result.get("ancla_id"), result.get("ancla_usd"), 
-                                   result.get("distancia_km"))
-    
-    return prop
 
 
 def update_property_coords(prop_id, lat, lon, ancla_id=None, ancla_usd=None, distancia_km=None):
