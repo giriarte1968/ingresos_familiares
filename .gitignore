@@ -8,3 +8,6 @@ data/valuaciones_historial.jsonl
 data/scraping_history/
 cache_scraping.json
 parsers/log_valuacion/
+
+# Archivos archivados (limpieza FASE 1)
+_archive/

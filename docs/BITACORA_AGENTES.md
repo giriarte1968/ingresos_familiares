@@ -381,48 +381,33 @@ El target anterior de Mabel ($75-79k) estaba calibrado sobre un pool contaminado
 
 ---
 
-## 📅 2026-05-15 — Recalibración temporal de anclas v4.1
+## 📅 2026-05-15 — FASE 1 — Limpieza de archivos obsoletos
 
-Script: `scripts/recalibrar_anclas_v41_temporal.py`
+### Archivos movidos a _archive/
 
-### Metodología
-- Ventanas progresivas: 90d → 180d → 365d (con decay exponencial λ=0.005)
-- P50 robusto con limpieza IQR sobre pool temporal
-- Sin filtro de dormitorios ni edad (es valor zonal, no de propiedad)
+| Categoría | Cantidad | Destino |
+|-----------|----------|---------|
+| Anclas viejas | 5 | `_archive/anclas_viejas/` |
+| Scripts debug/diagnóstico | 49 | `_archive/scripts_debug/` |
+| Scripts calibración one-shot | 19 | `_archive/scripts_calibracion/` |
+| Backups (cache, logs) | 3 | `_archive/backups/` |
+| Tests sueltos de raíz | 33 | `_archive/tests_sueltos/` |
+| Directorios enteros | 3 (scratch, logs, reports) | `_archive/` |
+| **Total archivado** | **~112** | |
 
-### Resultados (122 anclas)
-| Estado | Cantidad |
-|--------|----------|
-| Auto-aprobables (n≥100, desvío≤20%) | 31 |
-| Revisión manual (n≥20) | 47 |
-| Mantener v3 (sin datos) | 44 |
+### Archivos activos que permanecen
 
-### Archivos generados
-- `data/anclas_rosario_v41_temporal.json` — propuesta de recalibración
-- `reports/anclas_recalibracion_temporal.csv` — comparativa completa
+| Categoría | Archivos restantes |
+|-----------|-------------------|
+| Anclas en `data/` | `anclas_rosario_v3_grid.json`, `anclas_rosario_v5_1_limpio.json` |
+| Anclas en raíz | `anclas_rosario_v3_grid.json` |
+| Tests oficiales | `tests/test_regression.py` |
+| Scripts activos | `scripts/auto_validate.py`, `scripts/ver_historial.py` |
 
-**NO se modifica el motor.** v3 sigue activo hasta aprobar v4.1.
-
----
-
-## 📅 2026-05-15 — ACTIVACIÓN DEFINITIVA DE ANCLAS V5
-
-Recalibración de Anclas v5 activada.
-
-### Decisión
-- Validación contra COCIR y Zonaprop completada.
-- Sesgo general de -9.2% confirmado como corrección saludable de Asking Price a valor más cercano a cierre.
-- Zonas de Echesortu y Periferia validadas en baja por micro-segmentación.
-- **Se reemplaza `anclas_rosario_v3_grid.json` por `data/anclas_rosario_v5_activo.json`**
-
-### Archivos modificados
-| Archivo | Cambio |
-|---------|--------|
-| `data/anclas_rosario_v5_activo.json` | **NUEVO**: 122 anclas (78 recalibradas + 44 heredadas v3) |
-| `parsers/location_engine.py` | Ruta actualizada a `data/anclas_rosario_v5_activo.json` |
-| `parsers/motor_vpp_core.py` | `ANCLAS_FILE` actualizado a `data/anclas_rosario_v5_activo.json` |
-
-### Tests: 27/27 pasando.
+### Resultados
+- **31/31 tests pasando** (sin cambios en lógica de valuación)
+- Ningún archivo eliminado (todo en `_archive/`)
+- Ningún archivo activo afectado
 
 # Docs .MD a mantener sincronizados:
 - ALGORITMOS.md (lógica)
