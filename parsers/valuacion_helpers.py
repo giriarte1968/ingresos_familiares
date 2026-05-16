@@ -164,6 +164,7 @@ def ensamblar_metadata_resolucion(
     meta_venta: Dict[str, Any],
     n_v: int,
     zona_txt: str,
+    m2_base_source: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Arma el diccionario 'resolution_metadata' para la UI.
@@ -172,6 +173,7 @@ def ensamblar_metadata_resolucion(
         meta_venta: Dict con metadata del cluster de venta
         n_v: Cantidad de propiedades en el cluster
         zona_txt: Nombre de zona
+        m2_base_source: Fuente del m2 base (opcional, del caller)
     
     Returns:
         Dict 'resolution_metadata' completo
@@ -201,7 +203,7 @@ def ensamblar_metadata_resolucion(
         'radio_usado': radio_usado,
         'percentil_usado': meta_venta.get('percentil_usado'),
         'zona_resol': meta_venta.get('zona_resolucion'),
-        'm2_base_source': meta_venta.get('fuente_rango', ''),
+        'm2_base_source': m2_base_source or meta_venta.get('fuente_rango', ''),
         'n_comparables_total': meta_venta.get('n_comparables_total', 0),
         'n_con_anio_alta': meta_venta.get('n_con_anio_alta', 0),
         'n_con_anio_media': meta_venta.get('n_con_anio_media', 0),

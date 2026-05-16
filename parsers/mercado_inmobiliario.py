@@ -14,6 +14,7 @@ from parsers.cluster_filters import (
     calcular_percentil,
     calcular_blend_p33,
 )
+from parsers.valuacion_helpers import ensamblar_metadata_resolucion
 
 logger = logging.getLogger(__name__)
 ANIO_ACTUAL = datetime.now().year
@@ -2514,28 +2515,10 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         resolution = 'GLOBAL'
         confidence = 'BAJA'
     
-    resolution_metadata = {
-        'resolution': resolution,
-        'confidence': confidence,
-        'method': 'cluster_v2',
-        'n_propiedades': n_v,
-        'radio_usado': meta_venta.get('radio_usado'),
-        'percentil_usado': meta_venta.get('percentil_usado'),
-        'zona_resol': meta_venta.get('zona_resolucion'),
-        'm2_base_source': metodo_origen,
-        # Fase 1: Enriquecimiento de año
-        'n_comparables_total': meta_venta.get('n_comparables_total', 0),
-        'n_con_anio_alta': meta_venta.get('n_con_anio_alta', 0),
-        'n_con_anio_media': meta_venta.get('n_con_anio_media', 0),
-        'pct_con_anio': meta_venta.get('pct_con_anio', 0),
-        # Fase 2: Filtro de edad
-        'age_filter_applied': meta_venta.get('age_filter_applied', False),
-        'age_window': meta_venta.get('age_window', ''),
-        'n_age_filtered': meta_venta.get('n_age_filtered', 0),
-        'rango_anio_usado': meta_venta.get('rango_anio_usado', ''),
-        # Comparables reales del cluster
-        'comparables_reales': meta_venta.get('comparables_reales', []),
-    }
+    resolution_metadata = ensamblar_metadata_resolucion(
+        meta_venta=meta_venta, n_v=n_v, zona_txt=zona_txt,
+        m2_base_source=metodo_origen
+    )
     
     # Comparables reales para el mapa y tabla (NO sintéticos)
     comparables_venta = meta_venta.get('comparables_reales', [])
