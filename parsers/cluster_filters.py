@@ -3,7 +3,6 @@ Funciones helper puras para filtrado y cálculo de cluster.
 Preparación para refactor seguro de obtener_mediana_cluster_v2().
 Sin dependencias del motor de valuación. Solo cálculos puros.
 """
-import numpy as np
 from datetime import datetime, timedelta
 from typing import Optional, List, Dict, Callable, Tuple, Any
 
@@ -169,21 +168,26 @@ def separar_por_barreras(props: List[Dict], lat_ref: float, lon_ref: float,
 
 def calcular_percentil(precios: List[float], percentil: int) -> Optional[float]:
     """
-    Calcula el valor en un percentil dado usando numpy.
+    Calcula percentil por metodo discreto/posicional.
+    Usa indexacion entera sobre la lista ordenada.
+    NO interpola entre comparables.
     
     Args:
         precios: Lista de precios ordenables
         percentil: Percentil a calcular (0-100)
     
     Returns:
-        Valor en el percentil, o None si la lista está vacía
+        Valor en el percentil, o None si la lista esta vacia
     """
     if not precios:
         return None
-    try:
-        return float(np.percentile(precios, percentil))
-    except (IndexError, ValueError):
-        return None
+    
+    s = sorted(precios)
+    n = len(s)
+    idx = int(n * percentil / 100)
+    idx = min(idx, n - 1)
+    idx = max(idx, 0)
+    return float(s[idx])
 
 
 def calcular_blend_p33(p33_same: Optional[float], p33_cross: Optional[float],

@@ -371,6 +371,25 @@ Reemplazan los valores de calibración previos.
   - 8 ≤ n_age < 10 → P40
 - Si NO hay filtro de edad → P33 (conservador histórico)
 
+### Método de Cálculo del Percentil
+
+El motor usa **percentil posicional discreto** (no interpolación lineal):
+
+```
+idx = int(n * p / 100)
+idx = min(idx, n - 1)
+idx = max(idx, 0)
+valor = lista_ordenada[idx]
+```
+
+**NO se usa `np.percentile()` con interpolación lineal porque:**
+- El sistema fue calibrado sobre percentiles discretos desde su origen
+- Con muestras chicas (8-12 comparables) la interpolación genera drift artificial de hasta ~3.6%
+- En comparables inmobiliarios es más defendible usar valores realmente observados en el mercado
+- El método discreto es más auditable: cualquier persona puede verificar que el percentil es un valor real de la muestra
+
+Implementación en `parsers/cluster_filters.py` → `calcular_percentil()`.
+
 ---
 
 ## 13. Recalibración Temporal de Anclas (v4.1)
@@ -421,7 +440,7 @@ obtener_mediana_cluster_v2() → orquestador (~100 líneas)
       ├── filtrar_por_tipo_operacion_dorms() — filtro por atributos
       ├── filtrar_por_fecha()           — filtro por ventana temporal
       ├── separar_por_barreras()        — separación same/cross/hard
-      ├── calcular_percentil()          — percentil vía numpy
+       ├── calcular_percentil()          — percentil discreto (no interpola)
       ├── calcular_blend_p33()          — blend de P33 same/cross
       └── seleccionar_percentil_por_edad() — regla de percentil dinámico
 ```
@@ -450,9 +469,9 @@ valuar_propiedad_v7() → función principal (~400 líneas, 6 secciones)
 | Regresión (4 propiedades ancla) | 31 | `tests/test_regression.py` |
 | Cluster filters | 31 | `tests/test_cluster_filters.py` |
 | Valuación helpers | 14 | `tests/test_valuacion_helpers.py` |
-| **Total** | **76** | |
+| **Total** | **92** | |
 
 ---
 
-**Generado por**: Antigravity (IA de Desarrollo)
-**Fecha**: 2026-05-15
+**Generado por**: OpenCode
+**Fecha**: 2026-05-16

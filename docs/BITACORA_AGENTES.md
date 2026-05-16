@@ -464,6 +464,44 @@ Se decidió NO extraer `calcular_rango_venta()` ni `procesar_alquiler()` como he
 | Tests unitarios nuevos | 0 | 45 |
 | Valores ancla | — | Intactos |
 
+## 2026-05-16 — FIX: FASE 5 contaminó percentil con np.percentile (baseline restored)
+
+### Bug detectado
+En FASE 5 (2026-05-15), `calcular_percentil()` en `cluster_filters.py` se implementó
+usando `np.percentile()` con interpolación lineal. El código original usaba un método
+discreto por índice entero.
+
+### Impacto real
+Vera (pool=8 comps, P40): drift de hasta ~3.6%
+P1200 (pool=12 comps, P45): drift de ~1-2%
+Mabel/Ayacucho (81/43 comps): sin impacto apreciable
+
+### Causa raíz
+`np.percentile()` interpola entre los dos valores más cercanos al percentil.
+El método original (`int(n * p / 100)`) selecciona un valor real de la muestra.
+Para pools chicos la diferencia es significativa y no defendible en un AVM de real estate.
+
+### Fix
+- `calcular_percentil()` vuelve a método discreto (sin numpy)
+- Eliminado `import numpy as np` de `cluster_filters.py`
+- Tests actualizados y fortalecidos con casos reales (P40_n8, P45_n12, P50_n4)
+
+### Validacion
+**92/92 tests pasando. Baseline restaurado al 100%:**
+
+| Propiedad | Antes (FASE 5 roto) | Despues (fix) | Diferencia |
+|-----------|---------------------|---------------|------------|
+| Mabel | $72,241 | $72,241 | 0.00% |
+| Ayacucho | $52,135 | $52,047 | -0.17% |
+| Vera Mujica | $50,026 | $52,062 | +4.07% |
+| P1200 | $134,650 | $137,888 | +2.40% |
+
+### Leccion aprendida
+Cualquier refactor que toque `calcular_percentil()` debe validar contra baseline completo.
+Cambiar metodo de percentil altera resultados sin cambiar datos ni logica de negocio.
+
+---
+
 # Docs .MD a mantener sincronizados:
 - ALGORITMOS.md (lógica)
 - DICCIONARIO_DATOS.md (datos)

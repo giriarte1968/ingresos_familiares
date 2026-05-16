@@ -175,20 +175,36 @@ def test_separar_sin_coords():
 # ─── TESTS calcular_percentil ───
 
 def test_percentil_p50():
-    """P50 de [100, 200, 300, 400] debe ser 250."""
-    assert calcular_percentil([100, 200, 300, 400], 50) == 250.0
+    """P50 de [100, 200, 300, 400] con metodo discreto: idx=2 → 300."""
+    assert calcular_percentil([100, 200, 300, 400], 50) == 300.0
 
 
 def test_percentil_p25():
-    """P25 de [100, 200, 300, 400] debe ser 175."""
-    assert calcular_percentil([100, 200, 300, 400], 25) == 175.0
+    """P25 de [100, 200, 300, 400] con metodo discreto: idx=1 → 200."""
+    assert calcular_percentil([100, 200, 300, 400], 25) == 200.0
 
 
 def test_percentil_p33():
-    """P33 de [1, 2, 3, 4, 5, 6] debe ser ~2.65."""
-    p33 = calcular_percentil([1, 2, 3, 4, 5, 6], 33)
-    assert p33 is not None
-    assert 2.6 <= p33 <= 2.7
+    """P33 de [1, 2, 3, 4, 5, 6] con metodo discreto: idx=1 → 2."""
+    assert calcular_percentil([1, 2, 3, 4, 5, 6], 33) == 2.0
+
+
+def test_percentil_p40_n8():
+    """P40 de 8 comps (caso Vera): idx=3 → 160."""
+    precios = [100, 120, 140, 160, 180, 200, 220, 240]
+    assert calcular_percentil(precios, 40) == 160.0
+
+
+def test_percentil_p45_n12():
+    """P45 de 12 comps (caso P1200): idx=5 → 200."""
+    precios = [100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300, 320]
+    assert calcular_percentil(precios, 45) == 200.0
+
+
+def test_percentil_p50_n4():
+    """P50 de 4 comps: idx=2 → 30."""
+    precios = [10, 20, 30, 40]
+    assert calcular_percentil(precios, 50) == 30.0
 
 
 def test_percentil_lista_vacia():
