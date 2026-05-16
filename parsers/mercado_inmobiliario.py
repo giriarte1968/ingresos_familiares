@@ -1004,7 +1004,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                     'direccion': p.get('direccion', '')[:60],
                     'lat': p.get('lat'),
                     'lon': p.get('lon'),
-                    'zona': p.get('zona'),
+                    'zona': inferir_zona_por_coordenadas(float(p['lat']), float(p['lon'])) if p.get('lat') and p.get('lon') else p.get('zona'),
                     'tipo': p.get('tipo'),
                     'anio_estimado': p.get('anio_estimado'),
                     'distancia_m': round(calcular_distancia_km(lat_ref, lon_ref, float(p['lat']), float(p['lon'])) * 1000, 0) if lat_ref and lon_ref and p.get('lat') and p.get('lon') else None,
