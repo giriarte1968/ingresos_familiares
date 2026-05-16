@@ -436,6 +436,34 @@ El target anterior de Mabel ($75-79k) estaba calibrado sobre un pool contaminado
 
 ### Tests: **62/62 pasando** (31 nuevos + 31 regresión)
 
+---
+
+## 📅 2026-05-15 — FASE 5.4 — Decisión de Congelamiento
+
+### Decisión
+Se decidió NO extraer `calcular_rango_venta()` ni `procesar_alquiler()` como helpers externos de `valuar_propiedad_v7()`.
+
+### Razón técnica
+- Ambos bloques tienen lógica compleja acoplada al contexto (márgenes dinámicos por IQR, size_discount, cap_rate_local vs fallback)
+- Los helpers creados en FASE 5.3 quedaron simplificados y no replicaban la lógica real
+- Forzar la extracción tiene más riesgo de romper valores que el beneficio de reducir líneas
+
+### Razón de ingeniería
+- Principio YAGNI: no refactorizar lo que no se va a reutilizar
+- La función ya bajó de 552 a ~400 líneas organizadas
+- Las secciones críticas (cluster, metadata) ya están modularizadas
+- 10 helpers extraídos con 45 tests unitarios
+
+### Estado final post FASE 5
+
+| Métrica | Antes | Después |
+|---------|-------|---------|
+| `obtener_mediana_cluster_v2()` | 580 líneas monolíticas | ~100 líneas (orquestador) |
+| `valuar_propiedad_v7()` | 552 líneas | ~400 líneas (6 secciones) |
+| Helpers con tests | 0 | 10 |
+| Tests unitarios nuevos | 0 | 45 |
+| Valores ancla | — | Intactos |
+
 # Docs .MD a mantener sincronizados:
 - ALGORITMOS.md (lógica)
 - DICCIONARIO_DATOS.md (datos)

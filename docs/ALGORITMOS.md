@@ -411,5 +411,48 @@ Cada ancla se recalibra contra el scraping actual usando ventanas con prioridad 
 
 ---
 
+## 14. Arquitectura de Funciones (post FASE 5)
+
+### Motor de Clustering
+```
+obtener_mediana_cluster_v2() → orquestador (~100 líneas)
+  └── parsers/cluster_filters.py (7 helpers)
+      ├── filtrar_por_radio()           — filtro geoespacial
+      ├── filtrar_por_tipo_operacion_dorms() — filtro por atributos
+      ├── filtrar_por_fecha()           — filtro por ventana temporal
+      ├── separar_por_barreras()        — separación same/cross/hard
+      ├── calcular_percentil()          — percentil vía numpy
+      ├── calcular_blend_p33()          — blend de P33 same/cross
+      └── seleccionar_percentil_por_edad() — regla de percentil dinámico
+```
+
+### Motor de Valuación
+```
+valuar_propiedad_v7() → función principal (~400 líneas, 6 secciones)
+  
+  Secciones internas:
+  ├── SECCIÓN 1: Datos de entrada y logging
+  ├── SECCIÓN 2: m2 equivalentes y antigüedad
+  ├── SECCIÓN 3: Rango de venta (inline, márgenes IQR)
+  ├── SECCIÓN 4: Resolution metadata (delegada a helper)
+  │   └── parsers/valuacion_helpers.py → ensamblar_metadata_resolucion()
+  ├── SECCIÓN 5: Razonamiento narrativo
+  └── SECCIÓN 6: Return con resultado completo
+
+  Helpers disponibles (creados pero NO integrados):
+  ├── calcular_rango_venta()   ← simplificado, no replica lógica IQR
+  └── procesar_alquiler()      ← simplificado, no replica tamaño/disccount
+```
+
+### Tests
+| Suite | Cantidad | Ubicación |
+|-------|----------|-----------|
+| Regresión (4 propiedades ancla) | 31 | `tests/test_regression.py` |
+| Cluster filters | 31 | `tests/test_cluster_filters.py` |
+| Valuación helpers | 14 | `tests/test_valuacion_helpers.py` |
+| **Total** | **76** | |
+
+---
+
 **Generado por**: Antigravity (IA de Desarrollo)
 **Fecha**: 2026-05-15

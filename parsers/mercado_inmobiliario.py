@@ -2378,6 +2378,9 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     🚀 Modelo v7.0 - Evolución Híbrida PROFESIONAL
     Fusiona el Motor VPP (Clusters/Market) con Factores Físicos (Legacy).
     """
+    # ══════════════════════════════════════════════
+    # SECCIÓN 1: Datos de entrada y logging
+    # ══════════════════════════════════════════════
     import os
     import logging
     from datetime import datetime, timedelta
@@ -2422,7 +2425,9 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     m2_obj = prop.get('m2', 30)
     zona_txt = prop.get('zona', 'centro')
     
-    # 1. Obtener m2 equivalentes y Antigüedad Dinámica
+    # ══════════════════════════════════════════════
+    # SECCIÓN 2: m2 equivalentes y antigüedad dinámica
+    # ══════════════════════════════════════════════
     m2_equiv = calcular_m2_equivalentes(prop)
     
     anio_const = prop.get('anio_construccion', ANIO_ACTUAL - prop.get('antiguedad', 0))
@@ -2505,6 +2510,9 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         metodo_origen = "Ancla (fallback)"
     
     # Metadata REALES de v2
+    # ══════════════════════════════════════════════
+    # SECCIÓN 4: Resolution metadata (DELEGADA a helper)
+    # ══════════════════════════════════════════════
     if meta_venta.get('radio_usado'):
         resolution = 'GEO'
         confidence = 'ALTA' if n_v >= 15 else 'MEDIA' if n_v >= 8 else 'BAJA'
@@ -2696,6 +2704,12 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     logger.info(f"NLP: {ajuste_nlp}")
     logger.info(f"valor_venta (after NLP): {valor_venta}")
     
+    # ══════════════════════════════════════════════
+    # SECCIÓN 3: Rango de venta (3 escenarios)
+    # NOTA: No extraído a helper. Lógica de márgenes
+    # dinámicos IQR acoplada al contexto de la valuación.
+    # Ver decisión FASE 5.4 en BITACORA.
+    # ══════════════════════════════════════════════
     # === RANGO 3 ESCENARIOS (solo venta) ===
     base_cons = meta_venta.get('base_conservadora', m2_base_venta)
     base_mkt = meta_venta.get('base_mercado', m2_base_venta)
@@ -2831,6 +2845,9 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         logger.warning(f"[INFOMAPA] Error: {e}")
         catastro_detalle = None
     
+    # ══════════════════════════════════════════════
+    # SECCIÓN 5: Generar razonamiento narrativo
+    # ══════════════════════════════════════════════
     # Generar razonamiento narrativo profesional
     try:
         razonamiento = generar_razonamiento_valuacion(prop, {
@@ -2849,6 +2866,9 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     except Exception as e:
         razonamiento = f"Error generando razonamiento: {str(e)}"
     
+    # ══════════════════════════════════════════════
+    # SECCIÓN 6: Return con resultado completo
+    # ══════════════════════════════════════════════
     return {
         'valor_propiedad_usd': round(valor_venta, 0),
         'valor_realizable_usd': round(valor_realizable, 0),
