@@ -249,8 +249,8 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
             <h1 style="color:#1A2B5C;margin:0;font-size:36px;">📍 {nombre}</h1>
             <p style="color:#6B7280;font-size:16px;">{prop.get('direccion', 'Rosario, Argentina')}</p>
             <div style="display:flex;align-items:center;margin-top:20px;">
-                <span style="width:12px;height:12px;border-radius:50%;background:#16A34A;margin-right:8px;"></span>
-                <span style="color:#1A2B5C;font-weight:600;font-size:14px;">Alta confianza</span>
+                <span style="width:12px;height:12px;border-radius:50%;background:{'#16A34A' if n_comps >= 15 else '#F59E0B' if n_comps >= 8 else '#DC2626'};margin-right:8px;"></span>
+                <span style="color:#1A2B5C;font-weight:600;font-size:14px;">{'Alta confianza' if n_comps >= 15 else 'Confianza media' if n_comps >= 8 else 'Confianza baja'}</span>
                 <span style="color:#9CA3AF;font-size:14px;margin-left:8px;">({n_comps} comparables)</span>
             </div>
         </div>
@@ -661,6 +661,7 @@ def mostrar_dashboard():
                     st.markdown(kpi_card("💰", "Alquiler Total", f"${alq_total:,.0f} ARS", f"${alq_total/usdt_ars:,.0f} USD", border_color="#F59E0B"), unsafe_allow_html=True)
                 
                 # MAPA DE ACTIVOS
+                st.markdown('<div style="margin-top:18px;"></div>', unsafe_allow_html=True)
                 import folium
                 from streamlit.components.v1 import html
                 props_con_coords = [p for p in propiedades if p.get('lat') and p.get('lon')]
@@ -670,13 +671,21 @@ def mostrar_dashboard():
                     m = folium.Map(tiles='cartodbpositron')
                     for p in props_con_coords:
                         folium.Marker([p['lat'], p['lon']], popup=f"📍 {p.get('nombre', '')}", icon=folium.Icon(color='blue', icon='home')).add_to(m)
-                    # Ajustar bounds para que las propiedades no queden al borde inferior
+                    # Centrado del mapa: para que las propiedades queden en
+                    # el tercio SUPERIOR del viewport hay que agregar mas
+                    # padding al SUR (min_lat). Eso mueve el centro del mapa
+                    # hacia el sur y las propiedades suben visualmente.
                     lat_range = max(lats) - min(lats)
                     lon_range = max(lons) - min(lons)
+                    # Minimo de padding cuando todas las props estan muy juntas
+                    base = max(lat_range, 0.012)  # ~1.3km minimo
+                    pad_s = base * 0.9            # mucho espacio al sur -> props suben
+                    pad_n = base * 0.15           # poco espacio al norte
+                    pad_h = max(lon_range * 0.25, 0.01)
                     m.fit_bounds(
-                        [[min(lats) - lat_range * 0.3, min(lons) - lon_range * 0.1],
-                         [max(lats) + lat_range * 0.5, max(lons) + lon_range * 0.1]],
-                        max_zoom=13
+                        [[min(lats) - pad_s, min(lons) - pad_h],
+                         [max(lats) + pad_n, max(lons) + pad_h]],
+                        max_zoom=14
                     )
                     html(m._repr_html_(), height=300)
                     st.caption(f"📍 {len(props_con_coords)} propiedades")
