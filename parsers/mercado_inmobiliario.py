@@ -10,6 +10,9 @@ from parsers import cluster_filters
 from parsers.cluster_filters import (
     filtrar_por_fecha,
     seleccionar_percentil_por_edad,
+    separar_por_barreras,
+    calcular_percentil,
+    calcular_blend_p33,
 )
 
 logger = logging.getLogger(__name__)
@@ -678,28 +681,20 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 from parsers.location_engine import check_barrier_crossing, cargar_barreras
                 barreras = cargar_barreras()
                 
-                props_barrier = []
-                for prop in props:
-                    p_lat = prop.get('lat') or prop.get('latitud')
-                    p_lon = prop.get('lon') or prop.get('longitud')
-                    
-                    if p_lat and p_lon:
-                        cruza = check_barrier_crossing(
-                            (lon_ref, lat_ref),
-                            (p_lon, p_lat),
-                            barreras
-                        )
-                        if cruza == 'hard':
-                            continue  # exclude always
-                        elif cruza == 'soft':
-                            cross_soft.append(prop)
-                            prop['_cross_soft'] = True
-                        else:
-                            same_side.append(prop)
-                            prop['_cross_soft'] = False
-                    else:
-                        same_side.append(prop)
-                        prop['_cross_soft'] = False
+                barreras_result = separar_por_barreras(
+                    props=props,
+                    lat_ref=lat_ref,
+                    lon_ref=lon_ref,
+                    check_barrier_fn=lambda p1, p2: check_barrier_crossing(p1, p2, barreras)
+                )
+                
+                same_side = barreras_result['same_side']
+                cross_soft = barreras_result['cross_soft']
+                
+                for p in same_side:
+                    p['_cross_soft'] = False
+                for p in cross_soft:
+                    p['_cross_soft'] = True
                 
                 props_barrier = same_side + cross_soft
                 if len(props_barrier) < len(props):
@@ -848,17 +843,8 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                     percentil_venta = 40
                     percentil_usado = 'P40_age'
 
-        def calc_percentil(vals, pct=None):
-            if not vals:
-                return None
-            p = pct if pct is not None else percentil_venta
-            s = sorted(vals)
-            n = len(s)
-            idx = int(n * p / 100)
-            return s[min(idx, n-1)]
-
-        pct_same = calc_percentil(precios_same)
-        pct_cross = calc_percentil(precios_cross)
+        pct_same = calcular_percentil(precios_same, percentil_venta)
+        pct_cross = calcular_percentil(precios_cross, percentil_venta)
         
         # Calcular percentiles del cluster completo (para dispersión estadística)
         precios_todos = precios_same + precios_cross
@@ -889,10 +875,8 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         
         # Combinar dispersión del cluster + alpha blending
         if pct_same is not None and pct_cross is not None:
-            # Hay 2 fuentes: percentiles del cluster + alpha blending
-            
             # Alpha blending
-            blend_cons = ALPHA_CONSERVADOR * pct_same + (1 - ALPHA_CONSERVADOR) * pct_cross
+            blend_cons = calcular_blend_p33(pct_same, pct_cross, alpha=ALPHA_CONSERVADOR)
             blend_mkt = ALPHA_MERCADO * pct_same + (1 - ALPHA_MERCADO) * pct_cross
             
             # Optimista: alpha dinámico según ratio
