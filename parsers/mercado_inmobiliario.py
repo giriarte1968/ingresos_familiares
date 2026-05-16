@@ -6,6 +6,7 @@ import logging
 import numpy as np
 from datetime import datetime
 from parsers.location_engine import cargar_anclas, calcular_precio_m2, estimar_confianza, get_ancla_mas_cercana
+from parsers import cluster_filters
 
 logger = logging.getLogger(__name__)
 ANIO_ACTUAL = datetime.now().year
@@ -557,20 +558,15 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         # 1. Intentar búsqueda geográfica primero si hay coordenadas
         if lat_ref is not None and lon_ref is not None:
             for radio in RADIOS_PROGRESIVOS:
-                props_geo = []
-                for p in cache.get('propiedades', []):
-                    p_lat = p.get('lat') or p.get('latitud')
-                    p_lon = p.get('lon') or p.get('longitud')
-                    if not (p_lat and p_lon): continue
-                    
-                    dist = calcular_distancia_km(lat_ref, lon_ref, p_lat, p_lon)
-                    if dist > radio / 1000: continue
-                    
-                    if p.get('dormitorios') != dormitorios: continue
-                    if p.get('operacion') != operacion: continue
-                    if p.get('valor_m2', 0) <= 0: continue
-                    
-                    props_geo.append(p)
+                props_geo = cluster_filters.filtrar_por_radio(
+                    cache.get('propiedades', []), lat_ref, lon_ref,
+                    radio, calcular_distancia_km
+                )
+                props_geo = cluster_filters.filtrar_por_tipo_operacion_dorms(
+                    props_geo, operacion=operacion, dormitorios=dormitorios,
+                    tolerancia_dorms=0
+                )
+                props_geo = [p for p in props_geo if p.get('valor_m2', 0) > 0]
                 
                 # Aplicar filtro de fecha
                 props_geo = aplicar_filtro_fecha(props_geo, fecha_ref)
