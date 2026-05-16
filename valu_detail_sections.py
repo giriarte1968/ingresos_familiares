@@ -196,39 +196,60 @@ def render_catastro(prop, res):
     ph_sel = st.session_state[key_ph]
 
     with st.container(border=True):
-        col_botones, col_info = st.columns(2)
-        with col_botones:
-            st.write("**Candidatos disponibles:**")
-            for c in candidatos:
-                is_sel = c['ph'] == ph_sel
-                label = c.get('direccion_nominatim', 'PH ' + str(c['ph']))
-                d = float(c.get('distancia', 0)) * 111000
-                sub = f"({d:.0f}m)" + (" OK" if c.get('recomendado') else "")
-                st.button(f"{label} {sub}", key=f"btn_{nombre}_ph_{c['ph']}",
-                         type="primary" if is_sel else "secondary", width='stretch',
-                         on_click=lambda ph=c['ph'], k=key_ph: st.session_state.update({k: ph}))
+        st.markdown("<div style='padding-top:10px;'></div>", unsafe_allow_html=True)
+        col_data, col_docs = st.columns([2, 1])
+        
+        ph_options = {c['ph']: c for c in candidatos}
+        
+        with col_data:
+            # Selector nativo mucho más limpio que N botones apilados
+            ph_sel = st.selectbox(
+                "📍 Coincidencia Catastral", 
+                options=[c['ph'] for c in candidatos],
+                format_func=lambda x: f"{ph_options[x].get('direccion_nominatim', f'PH {x}')} — {float(ph_options[x].get('distancia', 0))*111000:.0f}m" + (" ⭐ Recomendado" if ph_options[x].get('recomendado') else "")
+            )
+            
+            sel_data = ph_options[ph_sel]
+            anio = int(float(sel_data['year'])) if sel_data.get('year') else 'N/A'
+            secc = int(float(sel_data['seccion'])) if sel_data.get('seccion') else '-'
+            mza = int(float(sel_data['manzana'])) if sel_data.get('manzana') else '-'
+            graf = int(float(sel_data['grafico'])) if sel_data.get('grafico') else '-'
+            
+            # Distribución limpia de los datos con texto grande
+            c1, c2, c3 = st.columns(3)
+            c1.markdown(f"""
+                <div style="background:#f8fafc;border-radius:10px;padding:12px;text-align:center;">
+                    <div style="color:#64748b;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Cuenta (PH)</div>
+                    <div style="color:#0f172a;font-size:1.3rem;font-weight:700;">{sel_data['ph']}</div>
+                </div>
+            """, unsafe_allow_html=True)
+            c2.markdown(f"""
+                <div style="background:#f8fafc;border-radius:10px;padding:12px;text-align:center;">
+                    <div style="color:#64748b;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Año Const.</div>
+                    <div style="color:#0f172a;font-size:1.3rem;font-weight:700;">{anio}</div>
+                </div>
+            """, unsafe_allow_html=True)
+            c3.markdown(f"""
+                <div style="background:#f8fafc;border-radius:10px;padding:12px;text-align:center;">
+                    <div style="color:#64748b;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Ubicación</div>
+                    <div style="color:#0f172a;font-size:1.3rem;font-weight:700;">S {secc} · M {mza} · G {graf}</div>
+                </div>
+            """, unsafe_allow_html=True)
 
-        with col_info:
-            sel_data = next((c for c in candidatos if c['ph'] == ph_sel), None)
-            if sel_data:
-                st.write(f"**PH:** {sel_data['ph']}")
-                anio = int(float(sel_data['year'])) if sel_data.get('year') else 'N/A'
-                st.write(f"**Ano:** {anio}")
-                secc = int(float(sel_data['seccion'])) if sel_data.get('seccion') else '-'
-                mza = int(float(sel_data['manzana'])) if sel_data.get('manzana') else '-'
-                graf = int(float(sel_data['grafico'])) if sel_data.get('grafico') else '-'
-                st.write(f"**Seccion {secc} . Manzana {mza} . Grafico {graf}**")
-
+        with col_docs:
             imagenes = imagenes_por_ph.get(ph_sel, [])
+            
             if len(imagenes) > 1:
-                idx = st.selectbox("Imagen:", options=range(len(imagenes)),
-                                   format_func=lambda i: imagenes[i]['ruta'].rsplit('/', 1)[-1],
-                                   key=f"img_sel_{nombre}_{ph_sel}")
-                st.link_button("Abrir Plano", imagenes[idx]['url'], type="primary", width='stretch')
+                idx = st.selectbox("Archivos oficiales", options=range(len(imagenes)),
+                                   format_func=lambda i: imagenes[i]['ruta'].rsplit('/', 1)[-1])
+                # Botón estándar (secundario) alineado con el desplegable
+                st.link_button("📄 Ver Plano PDF", imagenes[idx]['url'], use_container_width=True)
             elif len(imagenes) == 1:
-                st.link_button("Ver Plano Original (PDF)", imagenes[0]['url'], type="primary", width='stretch')
+                st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
+                st.link_button("📄 Ver Plano de Mensura", imagenes[0]['url'], use_container_width=True)
             else:
-                st.button("Plano no disponible", disabled=True, width='stretch')
+                st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
+                st.button("Plano no disponible", disabled=True, use_container_width=True)
 
 
 def render_street_view(prop):
@@ -238,9 +259,33 @@ def render_street_view(prop):
     if not lat or not lon:
         return
     st.markdown("---")
-    st.subheader("Street View")
+    st.subheader("Entorno y Fachada")
     url = f"https://www.google.com/maps/@?api=1&map_action=pano&viewpoint={lat},{lon}"
-    st.link_button("Ver Fachada en Google Street View", url, type="secondary", use_container_width=True)
+    
+    with st.container(border=True):
+        c1, c2 = st.columns([3, 1])
+        with c1:
+            st.markdown("<p style='color:#64748b; font-size:0.95rem; margin-top:4px;'>Explorá la calle, el barrio y la fachada de la propiedad interactuando en 360° desde Google Street View.</p>", unsafe_allow_html=True)
+        with c2:
+            btn_style = """
+            <style>
+            .street-view-btn {
+                display: inline-flex; align-items: center; justify-content: center;
+                width: 100%; padding: 0.5rem 1rem; border-radius: 12px;
+                font-weight: 600; font-size: 0.95rem; text-decoration: none;
+                background: #064e3b; color: white !important;
+                border: 1px solid #065f46; box-sizing: border-box;
+                transition: all 0.25s ease;
+            }
+            .street-view-btn:hover {
+                background: #059669; color: white !important;
+                transform: translateY(-2px);
+                box-shadow: 0 6px 16px rgba(5, 150, 105, 0.35);
+            }
+            </style>
+            """
+            st.markdown(btn_style, unsafe_allow_html=True)
+            st.markdown(f'<a href="{url}" target="_blank" class="street-view-btn">Abrir Street View</a>', unsafe_allow_html=True)
 
 
 def render_historial(nombre):

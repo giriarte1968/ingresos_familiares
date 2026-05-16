@@ -25,9 +25,10 @@ header[data-testid="stHeader"] { background: #0F1629 !important; }
 .stDeployButton { display: none; }
 
 /* Botones premium */
-.stButton > button { border-radius: 10px !important; font-weight: 600 !important; transition: all 0.2s ease !important; }
-.stButton > button:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,106,255,0.25) !important; }
-.stButton > button[kind="primary"] { background: linear-gradient(135deg, #006AFF, #004FC4) !important; border: none !important; }
+.stButton > button, .stLinkButton > a { border-radius: 12px !important; font-weight: 600 !important; transition: all 0.2s ease !important; }
+.stButton > button:hover, .stLinkButton > a:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(16, 185, 129, 0.25) !important; }
+.stButton > button[kind="primary"], .stLinkButton > a[kind="primary"] { background: #10b981 !important; border: none !important; color: white !important; }
+.stButton > button[kind="primary"]:hover, .stLinkButton > a[kind="primary"]:hover { background: #34d399 !important; box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4) !important; }
 
 /* Expanders */
 .streamlit-expanderHeader { font-weight: 600 !important; color: #1A2B5C !important; }
