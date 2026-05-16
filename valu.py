@@ -343,8 +343,8 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         import streamlit.components.v1 as components
         # Envolvemos en un contenedor con altura fija
         components.html(mapa_html, height=350)
-        radio = res.get('resolution_metadata', {}).get('radio_usado', 300)
-        st.caption(f"🗺️ {n_comps} comparables de venta")
+        n_comps_reales = len(res.get('comparables_venta', []))
+        st.caption(f"🗺️ {n_comps_reales} comparables de venta")
     else:
         st.caption("🗺️ Mapa no disponible")
 
