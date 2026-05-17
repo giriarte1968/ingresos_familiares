@@ -272,40 +272,17 @@ def mostrar_dashboard():
             
             # ─── FLUJO A: VISTA GENERAL DEL PORTFOLIO ───
             else:
-                st.title("📂 Mi Portafolio")
+                st.title("Mi Portafolio")
                 
-                col_global, _ = st.columns([1, 4])
-                with col_global:
-                    if st.button("🔄 Recalcular todo", help="Recalcula TODAS las propiedades ignorando el caché"):
-                        st.session_state['forzar_recalculo_global'] = True
-                        st.rerun()
-                
+                # Cargar resultados del cache SIN valuar
                 resultados = {}
-                forzar_global = st.session_state.pop('forzar_recalculo_global', False)
-                
-                if forzar_global:
-                    from parsers.valuacion_cache import CACHE_VERSION
-                    barra = st.progress(0.0, text="Recalculando...")
-                    for i, p in enumerate(propiedades):
-                        resultados[p['nombre']] = valuar_con_cache(p, forzar_recalculo=True)
-                        barra.progress((i+1)/len(propiedades), text=f"Valuando {p['nombre']} ({i+1}/{len(propiedades)})")
-                    st.success(f"✅ {len(propiedades)} propiedades recalculadas.")
-                else:
-                    # Cargar resultados cacheados SIN forzar recálculo masivo
-                    for p in propiedades:
-                        resultados[p['nombre']] = valuar_con_cache(p, forzar_recalculo=False)
-                
-                    # Mostrar aviso de versión si hay propiedades desactualizadas
-                    from parsers.valuacion_cache import cargar_cache_valuaciones, CACHE_VERSION
-                    cache_existente = cargar_cache_valuaciones()
-                    por_actualizar = sum(
-                        1 for p in propiedades
-                        if p['nombre'] not in cache_existente
-                        or cache_existente[p['nombre']].get('cache_version', '') != CACHE_VERSION
-                    )
-                    if por_actualizar > 0:
-                        st.info(f"🔄 **{por_actualizar}** propiedades serán actualizadas automáticamente "
-                                f"al abrir su detalle. Versión del motor: {CACHE_VERSION}.")
+                from parsers.valuacion_cache import cargar_cache_valuaciones, CACHE_VERSION
+                cache_vals = cargar_cache_valuaciones()
+                for p in propiedades:
+                    nombre = p.get('nombre', '')
+                    entrada = cache_vals.get(nombre)
+                    if entrada and entrada.get('cache_version') == CACHE_VERSION:
+                        resultados[nombre] = entrada.get('resultado_completo', {})
                 
                 # KPIS DEL PORTFOLIO
                 total_usd = sum(r.get('valor_propiedad_usd', 0) for r in resultados.values())
