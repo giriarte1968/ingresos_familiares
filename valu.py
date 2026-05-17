@@ -131,75 +131,73 @@ def mostrar_dashboard_valu(propiedades, resultados):
     # === ORDENAR GRUPOS ===
     zonas_ordenadas = sorted(grupos.keys())
 
-    # === TABLA PARA MUCHOS, CARDS PARA POCOS ===
-    if len(props_filtradas) <= 12:
-        cols = st.columns(3)
-        for i, p in enumerate(props_filtradas):
-            nombre = p.get('nombre', '')
-            res = resultados.get(nombre, {})
-            with cols[i % 3]:
-                alq_r = res.get('alquiler_rango', {})
-                st.markdown(property_card(
-                    nombre, p.get('zona', ''), res.get('m2_equivalentes', 0),
-                    p.get('dormitorios', 0), p.get('tipo_inmueble', 'Depto'),
-                    res.get('valor_propiedad_usd', 0), res.get('cap_rate', 0),
-                    res.get('alquiler_estimado_ars', 0),
-                    res.get('resolution_metadata', {}).get('n_propiedades', 0),
-                    alq_min=alq_r.get('min', 0), alq_max=alq_r.get('max', 0)
-                ), unsafe_allow_html=True)
-                if st.button(f"Ver detalle de {nombre} →", key=f"btn_{nombre}", width='stretch'):
-                    st.session_state.prop_sel = nombre
-                    st.session_state.page = "Detalle"
-                    st.rerun()
-    else:
-        # Tabla compacta
-        rows = []
-        for p in props_filtradas:
-            nombre = p.get('nombre', '')
-            res = resultados.get(nombre, {})
-            meta = res.get('resolution_metadata', {})
-            pct_label = meta.get('percentil_usado', meta.get('method', ''))
-            rows.append({
-                'Nombre': nombre,
-                'Zona': p.get('zona', ''),
-                'Tipo': p.get('tipo_inmueble', ''),
-                'Dorms': p.get('dormitorios', 0),
-                'm²': res.get('m2_equivalentes', 0),
-                'Valor USD': res.get('valor_propiedad_usd', 0),
-                'Cap Rate': f"{res.get('cap_rate', 0)*100:.1f}%",
-                'Alquiler': f"${res.get('alquiler_estimado_ars', 0):,.0f}",
-                'Conf.': pct_label[:6],
-            })
+    # ─── TABLA PAGINADA ───
+    POR_PAGINA = 25
+    total_pag = max(1, (len(props_filtradas) + POR_PAGINA - 1) // POR_PAGINA)
+    pagina = st.selectbox(
+        "Pagina",
+        range(1, total_pag + 1),
+        format_func=lambda p: f"Pag. {p} / {total_pag}",
+        key="pagina_portfolio"
+    )
 
-        df = pd.DataFrame(rows)
+    inicio = (pagina - 1) * POR_PAGINA
+    props_pag = props_filtradas[inicio:inicio + POR_PAGINA]
 
-        orden_map = {
-            "Valor USD ↓": ("Valor USD", False),
-            "Valor USD ↑": ("Valor USD", True),
-            "Cap Rate ↓": ("Cap Rate", False),
-            "Cap Rate ↑": ("Cap Rate", True),
-            "Alquiler ↓": ("Alquiler", False),
-            "Alquiler ↑": ("Alquiler", True),
-            "Nombre A→Z": ("Nombre", True),
-            "Nombre Z→A": ("Nombre", False),
-        }
-        if orden in orden_map:
-            col, asc = orden_map[orden]
-            df = df.sort_values(col, ascending=asc)
+    rows = []
+    for p in props_pag:
+        nombre = p.get('nombre', '')
+        res = resultados.get(nombre, {})
+        rows.append({
+            'Nombre': nombre,
+            'Zona': p.get('zona', ''),
+            'Tipo': p.get('tipo_inmueble', ''),
+            'Dorms': p.get('dormitorios', 0),
+            'm2': res.get('m2_equivalentes', 0) if res else '—',
+            'Valor USD': (
+                f"${res.get('valor_propiedad_usd', 0):,.0f}"
+                if res and res.get('valor_propiedad_usd') else '— Pendiente —'
+            ),
+            'Cap Rate': (
+                f"{res.get('cap_rate', 0)*100:.1f}%"
+                if res and res.get('cap_rate') else '—'
+            ),
+            'Alquiler': (
+                f"${res.get('alquiler_estimado_ars', 0):,.0f}"
+                if res and res.get('alquiler_estimado_ars') else '—'
+            ),
+        })
 
-        st.dataframe(df, width='stretch', hide_index=True)
+    df = pd.DataFrame(rows)
 
-        # Selector de propiedad
-        nombres = df['Nombre'].tolist()
-        sel = st.selectbox("Seleccionar propiedad para ver detalle", nombres, key="portfolio_sel")
-        if st.button("📄 Ver detalle completo", type="primary", width='stretch'):
-            st.session_state.prop_sel = sel
-            st.session_state.page = "Detalle"
-            st.rerun()
+    orden_map = {
+        "Valor USD ↓": ("Valor USD", False),
+        "Valor USD ↑": ("Valor USD", True),
+        "Cap Rate ↓": ("Cap Rate", False),
+        "Cap Rate ↑": ("Cap Rate", True),
+        "Alquiler ↓": ("Alquiler", False),
+        "Alquiler ↑": ("Alquiler", True),
+        "Nombre A-Z": ("Nombre", True),
+        "Nombre Z-A": ("Nombre", False),
+    }
+    if orden in orden_map:
+        col, asc = orden_map[orden]
+        df = df.sort_values(col, ascending=asc)
 
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.caption(f"💡 {len(props_filtradas)} propiedades mostradas · {len(grupos)} zonas · "
-               f"Datos de caché · {'Cards' if len(props_filtradas) <= 12 else 'Tabla'}")
+    st.dataframe(df, width='stretch', hide_index=True)
+
+    st.markdown(f"**{len(props_filtradas)}** propiedades · **{len(grupos)}** zonas · Pagina {pagina}/{total_pag}")
+
+    # Boton Ver detalle por fila
+    for i, row in df.iterrows():
+        c1, c2 = st.columns([4, 1])
+        with c1:
+            st.write(f"**{row['Nombre']}** — {row['Zona']}")
+        with c2:
+            if st.button("Ver detalle", key=f"det_{pagina}_{i}"):
+                st.session_state.prop_sel = row['Nombre']
+                st.session_state.page = "Detalle"
+                st.rerun()
 
 
 def mostrar_detalle_valu(prop, res, guardar_fn):
