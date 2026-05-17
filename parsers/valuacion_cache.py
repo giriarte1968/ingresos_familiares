@@ -1,12 +1,11 @@
 import json
 import hashlib
 import os
-from datetime import datetime, timedelta
+from datetime import datetime
 
 CACHE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
 CACHE_PATH = os.path.join(CACHE_DIR, 'valuaciones_cache.json')
 SCRAPING_CACHE_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'cache_scraping.json')
-TTL_HORAS = 24
 CACHE_VERSION = "v4_real_comparables"  # Incrementar cuando cambie la lógica de valuación
 
 def _calcular_hash_propiedad(prop: dict) -> str:
@@ -69,13 +68,6 @@ def necesita_recalcular(nombre: str, prop: dict, cache: dict) -> tuple[bool, str
     # Invalidar por versión del código
     if entrada.get('cache_version', '') != CACHE_VERSION:
         return True, f"version_cambio ({entrada.get('cache_version', '')} -> {CACHE_VERSION})"
-
-    try:
-        ts = datetime.fromisoformat(entrada.get('timestamp', ''))
-        if datetime.now() - ts > timedelta(hours=TTL_HORAS):
-            return True, f"ttl_expirado ({TTL_HORAS}h)"
-    except:
-        return True, "timestamp_invalido"
 
     hash_actual = _calcular_hash_propiedad(prop)
     if hash_actual != entrada.get('hash_prop'):
