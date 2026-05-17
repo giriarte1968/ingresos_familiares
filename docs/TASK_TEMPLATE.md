@@ -1,11 +1,15 @@
 # Formato TAREA — Template para cambios estructurados
 
 Cada cambio significativo debe documentarse en este formato antes de implementar.
-El template se guarda como plan temporal (`.opencode/plans/tarea_nombre.md`) y se elimina al ejecutar.
+Los planes se guardan permanentemente en `.opencode/plans/TAREA-NNN.md` con ID secuencial.
+
+## INDICE DE TAREAS EJECUTADAS
+
+Ver `.opencode/plans/TAREAS_INDEX.md` para el listado completo.
 
 ---
 
-## TAREA: [Nombre corto] — Riesgo [BAJO/MEDIO/ALTO]
+## TAREA: TAREA-NNN — [Nombre corto] — Riesgo [BAJO/MEDIO/ALTO]
 
 ### CONTEXTO
 
@@ -62,9 +66,18 @@ Problema actual que motiva el cambio, con referencias a código y comportamiento
 
 - `docs/BITACORA_AGENTES.md`
 - `docs/STATUS_ACTUAL.md`
+- `docs/TASK_TEMPLATE.md` (si se modifica el formato)
+- `.opencode/plans/TAREAS_INDEX.md` (agregar entrada de la tarea ejecutada)
+
+### ARCHIVO DE PLAN
+
+El plan se guarda permanentemente en `.opencode/plans/TAREA-NNN.md`.
+El ID secuencial se asigna al crear el plan (ver ultimo ID en TAREAS_INDEX.md).
+NO se elimina al ejecutar. Sirve como registro historico.
 
 ### ENTREGABLES
 
 - Lista de archivos modificados
 - `pytest` pasando
 - Verificacion funcional completa
+- Plan archivado en `.opencode/plans/TAREA-NNN.md`
