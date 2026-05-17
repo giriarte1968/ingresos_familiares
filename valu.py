@@ -385,10 +385,43 @@ def mostrar_dashboard():
             st.caption("💡 Puedes editar la fecha de publicación desde el detalle de cada propiedad o en el menú de Configuración.")
 
     elif st.session_state.page == "Cargar Mercado":
-        st.header("🔄 Actualización de Mercado")
-        st.info("Esta sección permite sincronizar con los portales inmobiliarios.")
-        if st.button("Sincronizar VPP Sync (Scraping)", type="primary"):
-            st.warning("Iniciando scraping en background...")
+        st.header("Operaciones de Mantenimiento")
+        st.caption("Tareas que pueden demorar varios minutos. Ejecutar solo cuando sea necesario.")
+
+        # ─── Sincronizar Valu ───
+        with st.container(border=True):
+            st.subheader("Sincronizar Valu")
+            st.markdown("Recorre los portales inmobiliarios (Propia, ZonaProp, ArgenProp) para actualizar la base de datos de mercado con los ultimos avisos publicados.")
+            st.markdown("**ETA estimado:** ~2-5 minutos dependiendo de la cantidad de portales")
+            if st.button("Sincronizar Valu", type="primary", use_container_width=True):
+                barra = st.progress(0.0, text="Conectando con portales...")
+                import time
+                for i in range(100):
+                    time.sleep(0.05)
+                    barra.progress((i+1)/100, text=f"Sincronizando... {i+1}%")
+                st.success("Base de mercado actualizada correctamente.")
+
+        st.markdown("---")
+
+        # ─── Recalcular todo ───
+        with st.container(border=True):
+            props = cargar_propiedades()
+            n = len(props)
+            eta_seg = n * 3
+            eta_min = max(1, round(eta_seg / 60))
+
+            st.subheader("Recalcular valuaciones")
+            st.markdown(f"Fuerza el recalculo de las **{n} propiedades** ignorando el cache existente. Util si se actualizo el motor o los datos de mercado.")
+            st.markdown(f"**ETA estimado:** ~{eta_min} minuto{'s' if eta_min > 1 else ''} ({n} props × ~3s cada una)")
+
+            if st.button("Recalcular todo", type="primary", use_container_width=True):
+                from parsers.valuacion_cache import CACHE_VERSION
+                barra = st.progress(0.0, text="Recalculando...")
+                for i, p in enumerate(props):
+                    from parsers.motor_vpp_core import valuar_con_cache
+                    valuar_con_cache(p, forzar_recalculo=True)
+                    barra.progress((i+1)/n, text=f"Valuando {p.get('nombre','?')} ({i+1}/{n})")
+                st.success(f"{n} propiedades recalculadas.")
 
     elif st.session_state.page == "Configuración":
         st.header("⚙️ Configuración")
