@@ -251,6 +251,30 @@ def render_catastro(prop, res):
                 st.markdown('<div class="detail-btn" style="opacity:0.5;cursor:not-allowed;">Plano no disponible</div>', unsafe_allow_html=True)
 
 
+def render_macrozona(res):
+    """Muestra la macrozona de depreciacion asignada a la propiedad."""
+    mz = res.get('macrozona_depreciacion', {})
+    if not mz:
+        return
+    mz_id = mz.get('macrozona_id', '')
+    mz_nombre = mz.get('macrozona_nombre', '')
+    metodo = mz.get('metodo', '')
+    confianza = mz.get('confianza', '')
+    if not mz_id:
+        return
+    badges = {"ALTA": "#16A34A", "MEDIA": "#F59E0B", "BAJA": "#DC2626"}
+    color = badges.get(confianza, "#6B7280")
+    st.markdown(f"""
+    <div style="display:flex;align-items:center;gap:8px;margin-top:8px;padding:8px 12px;background:#f8fafc;border-radius:8px;font-size:0.85rem;">
+        <span style="color:#64748b;">Macrozona:</span>
+        <span style="font-weight:600;color:#0f172a;">{mz_nombre}</span>
+        <span style="display:inline-block;padding:2px 8px;border-radius:6px;background:{color}20;color:{color};font-size:0.75rem;font-weight:600;">{metodo.upper()}</span>
+        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{color};"></span>
+        <span style="color:#64748b;font-size:0.75rem;">{confianza}</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+
 def render_street_view(prop):
     """Boton para abrir Google Street View de la fachada en el navegador."""
     lat = prop.get('lat')

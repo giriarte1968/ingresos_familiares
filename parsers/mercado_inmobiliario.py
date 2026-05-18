@@ -2877,6 +2877,19 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     # ══════════════════════════════════════════════
     # SECCIÓN 6: Return con resultado completo
     # ══════════════════════════════════════════════
+    
+    # Macrozona de depreciacion (FASE 7A - solo metadata, no afecta valores)
+    try:
+        from parsers.zonas_manager import resolver_macrozona
+        macrozona_info = resolver_macrozona(prop)
+    except Exception:
+        macrozona_info = {
+            'macrozona_id': 'resto_rosario',
+            'macrozona_nombre': 'Resto de Rosario',
+            'metodo': 'default',
+            'confianza': 'BAJA',
+        }
+    
     return {
         'valor_propiedad_usd': round(valor_venta, 0),
         'valor_realizable_usd': round(valor_realizable, 0),
@@ -2935,7 +2948,9 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         'mapa_html': mapa_html,
         'razonamiento': razonamiento,
         'catastro_detalle': catastro_detalle,
+        'macrozona_depreciacion': macrozona_info,
     }
+
 
 
 def calcular_cap_rate_local(lat_ref, lon_ref, dormitorios=2, tipo_inmueble='departamento', fecha_ref='2026-04'):

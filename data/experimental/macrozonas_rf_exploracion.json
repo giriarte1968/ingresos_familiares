@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "fecha": "2026-05-17",
+  "descripcion": "Macrozonas inmobiliarias de Rosario para exploracion de senal RF de depreciacion",
+  "basado_en": "Analisis geoespacial del cache_scraping.json + rosario_avm_full.csv",
+  "comentario": "Los bounding boxes son excluyentes. Centro_premium tiene prioridad porque es el area mas pequena. Norte/Sur/Oeste son complementarias.",
+  "macrozonas": [
+    {
+      "id": "centro_premium",
+      "nombre": "Centro Premium",
+      "descripcion": "Martin, Pichincha, Puerto Norte, Lourdes, Bv. Oronio, Parque Independencia. Area de mayor precio USD/m2 de Rosario.",
+      "bbox": {
+        "lat_min": -32.960,
+        "lat_max": -32.925,
+        "lon_min": -60.668,
+        "lon_max": -60.620
+      },
+      "precio_m2_tipico": "1700-2300",
+      "n_props_estimado": 0
+    },
+    {
+      "id": "macrocentro",
+      "nombre": "Macrocentro",
+      "descripcion": "Centro (sur), Pellegrini, Sexta, Abasto, Facultades, Echesortu. Area de transicion entre centro premium y periferia.",
+      "bbox": {
+        "lat_min": -32.975,
+        "lat_max": -32.960,
+        "lon_min": -60.668,
+        "lon_max": -60.625
+      },
+      "precio_m2_tipico": "1200-1700",
+      "n_props_estimado": 0
+    },
+    {
+      "id": "norte",
+      "nombre": "Norte",
+      "descripcion": "Alberdi, Fisherton, Arroyito, Granadero Baigorria. Zona norte de Rosario, mas alla del centro.",
+      "bbox": {
+        "lat_min": -33.100,
+        "lat_max": -32.925,
+        "lon_min": -60.800,
+        "lon_max": -60.560
+      },
+      "precio_m2_tipico": "800-1400",
+      "n_props_estimado": 0
+    },
+    {
+      "id": "oeste",
+      "nombre": "Oeste",
+      "descripcion": "Godoy, Triangulo, Moderno, Luduena, Empalme, Uriburu Zona oeste de Rosario, tipicamente de menor precio.",
+      "bbox": {
+        "lat_min": -33.080,
+        "lat_max": -32.920,
+        "lon_min": -60.780,
+        "lon_max": -60.668
+      },
+      "precio_m2_tipico": "600-1000",
+      "n_props_estimado": 0
+    },
+    {
+      "id": "sur",
+      "nombre": "Sur",
+      "descripcion": "Tablada, Flores, Industrial, Sudoeste. Zona sur de Rosario, tipicamente la de menor precio.",
+      "bbox": {
+        "lat_min": -33.080,
+        "lat_max": -32.975,
+        "lon_min": -60.675,
+        "lon_max": -60.600
+      },
+      "precio_m2_tipico": "500-900",
+      "n_props_estimado": 0
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "fecha_creacion": "2026-05-17",
+  "descripcion": "Macrozonas inmobiliarias de Rosario para depreciacion diferenciada",
+  "default_macrozona": "resto_rosario",
+  "macrozonas": [
+    {
+      "id": "centro_premium",
+      "nombre": "Centro Premium",
+      "descripcion": "Centro, Martin, Pichincha, Bv Ono, Puerto Norte y zonas premium consolidadas. Mayor densidad de valor de Rosario.",
+      "zonas_match_textual": [
+        "centro premium",
+        "centro",
+        "martin",
+        "martin",
+        "pichincha",
+        "bv orono",
+        "bv ono",
+        "puerto norte",
+        "parque espaa",
+        "parque espana",
+        "lourdes"
+      ],
+      "bbox": {
+        "lat_min": -32.9600,
+        "lat_max": -32.9300,
+        "lon_min": -60.6700,
+        "lon_max": -60.6200
+      }
+    },
+    {
+      "id": "macrocentro",
+      "nombre": "Macrocentro",
+      "descripcion": "Centro extendido, Abasto, Sexta, Facultades, Echesortu, Pellegrini. Zona de transicion entre centro premium y periferia.",
+      "zonas_match_textual": [
+        "macrocentro",
+        "abasto",
+        "sexta",
+        "sexta pellegrini",
+        "facultades",
+        "echesortu",
+        "pellegrini"
+      ],
+      "bbox": {
+        "lat_min": -32.9750,
+        "lat_max": -32.9300,
+        "lon_min": -60.6900,
+        "lon_max": -60.6250
+      }
+    },
+    {
+      "id": "resto_rosario",
+      "nombre": "Resto de Rosario",
+      "descripcion": "Norte, Oeste, Sur, Sudoeste y periferias no incluidas en zonas premium o macrocentro.",
+      "zonas_match_textual": [
+        "resto rosario",
+        "norte",
+        "alberdi",
+        "fisherton",
+        "arroyito",
+        "oeste",
+        "sur",
+        "sudoeste",
+        "bella vista",
+        "luduena",
+        "ludueña",
+        "godoy",
+        "triangulo",
+        "moderno",
+        "tablada",
+        "flores",
+        "industrial",
+        "empalme",
+        "uriburu",
+        "felipe more",
+        "felipe mor",
+        "otro"
+      ],
+      "bbox": null
+    }
+  ]
+}

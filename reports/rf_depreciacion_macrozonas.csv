@@ -1,0 +1,5 @@
+macrozona,n_props,r2,imp_anti_pct,imp_lat,imp_lon,pendiente_rf,clase,edad_prom,factor_motor,factor_rf
+centro_premium,3950,0.796,8.4,0.643,0.44,-0.181,baja,35.0,0.8095,0.7934
+macrocentro,819,0.933,6.3,0.795,0.349,-0.283,media,38.0,0.8032,0.7934
+norte,1554,0.903,5.7,0.58,0.586,0.057,baja,35.0,0.8095,0.7934
+oeste,112,0.948,13.5,0.082,0.721,-0.853,alta,30.0,0.82,0.7934

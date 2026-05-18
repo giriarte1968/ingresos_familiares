@@ -208,7 +208,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     from valu_detail_sections import (
         render_actions, render_header, render_rango, render_metricas,
         render_razonamiento, render_mapa_y_comparables, render_catastro,
-        render_street_view, render_historial,
+        render_macrozona, render_street_view, render_historial,
     )
 
     render_actions(prop, guardar_fn)
@@ -224,6 +224,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     render_razonamiento(prop, res)
     render_mapa_y_comparables(res)
     render_catastro(prop, res)
+    render_macrozona(res)
     render_street_view(prop)
     render_historial(nombre)
 
