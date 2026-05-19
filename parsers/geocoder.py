@@ -85,12 +85,14 @@ def geocodificar_nominatim(direccion):
         location = geolocator.geocode(full_address)
         
         if location:
+            raw = location.raw if hasattr(location, 'raw') and location.raw else {}
+            osm_type = raw.get('type', 'unknown') if isinstance(raw, dict) else 'unknown'
             return {
                 "lat": location.latitude,
                 "lon": location.longitude,
-                "address": location.address,
-                "score": location.raw.get("importance", 100) if hasattr(location, 'raw') and location.raw else 100,
-                "type": "PointAddress",
+                "address": location.address or '',
+                "score": raw.get('importance', 0.5) if isinstance(raw, dict) else 0.5,
+                "type": osm_type,
             }
     except Exception as e:
         print(f"Error geocodificación Nominatim: {e}")
@@ -102,9 +104,20 @@ def geocodificar_nominatim(direccion):
 geocodificar_arcgis = geocodificar_nominatim
 
 
+# Bounding box para Rosario centro (~radio 5km desde punto central)
+CENTRO_LAT, CENTRO_LON = -32.945, -60.632
+RADIO_MAX_KM = 8.0
+
+
+def _validar_dentro_de_rosario(lat, lon):
+    """Retorna True si las coordenadas estan dentro del area de Rosario."""
+    d = haversine_distance(lat, lon, CENTRO_LAT, CENTRO_LON)
+    return d <= RADIO_MAX_KM
+
+
 def validar_y_corregir(direccion, geo, anclas):
     """
-    Valida el resultado de ArcGIS y aplica snap a anclas.
+    Valida el resultado de Nominatim y aplica snap a anclas.
     Retorna: (lat, lon, status, ancla_id, ancla_usd)
     """
     lat = geo["lat"]
@@ -112,7 +125,10 @@ def validar_y_corregir(direccion, geo, anclas):
     score = geo["score"]
     tipo = geo["type"]
     
-    # Aplicar snap a anclas (mejora coords hacia zonas de precio correctas)
+    # Validar que este dentro del area de Rosario
+    dentro = _validar_dentro_de_rosario(lat, lon)
+    
+    # Aplicar snap a anclas (deshabilitado, devuelve original)
     lat_snap, lon_snap, snap_status = snap_a_anclas(lat, lon, anclas)
     
     # Buscar ancla más cercana a las coordenadas (snap o originales)
@@ -124,15 +140,17 @@ def validar_y_corregir(direccion, geo, anclas):
             min_dist = d
             ancla_cerca = a
     
-    # Estado combina calidad ArcGIS + snap
-    baja_confianza = score < 90 or tipo not in ["PointAddress", "StreetAddress", "StreetAddressExt"]
+    # Calidad del resultado
+    tipos_validos = ["house", "building", "yes", "residential", "apartments", "detached", "terrace", "house_number"]
+    score_alto = score >= 0.4  # importance de Nominatim > 0.4 = resultado bueno
+    tipo_valido = tipo in tipos_validos
     
-    if snap_status == "exact" and not baja_confianza:
-        status = "ok"
-    elif snap_status == "snap_global":
-        status = "snap_global"
+    if not dentro:
+        status = "fuera_de_rosario"
+    elif not tipo_valido or not score_alto:
+        status = "low_confidence"
     else:
-        status = "low_confidence" if baja_confianza else "ok"
+        status = "ok"
     
     return lat_snap, lon_snap, status, ancla_cerca["id"], ancla_cerca["usd_m2"], min_dist
 
@@ -153,7 +171,7 @@ def geocoding_manager(direccion):
         anclas_data = json.load(f)
     anclas = anclas_data.get('anclas', [])
     
-    # 2. Geocodificar
+    # 2. Geocodificar (primer intento)
     direccion_full = f"{direccion}, Rosario, Santa Fe, Argentina"
     geo = geocodificar_arcgis(direccion_full)
     
@@ -167,6 +185,15 @@ def geocoding_manager(direccion):
     
     # 3. Validar y corregir
     lat, lon, status, ancla_id, ancla_usd, dist = validar_y_corregir(direccion, geo, anclas)
+    
+    # Si quedo fuera de Rosario, reintentar con query mas especifica
+    if status == "fuera_de_rosario":
+        time.sleep(0.5)
+        direccion_full2 = f"{direccion}, Rosario Centro, Santa Fe, Argentina"
+        geo2 = geocodificar_arcgis(direccion_full2)
+        if geo2:
+            geo = geo2
+            lat, lon, status, ancla_id, ancla_usd, dist = validar_y_corregir(direccion, geo2, anclas)
     
     result = {
         "lat": lat,
