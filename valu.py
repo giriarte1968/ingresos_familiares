@@ -148,12 +148,13 @@ def mostrar_dashboard_valu(propiedades, resultados):
     for p in props_pag:
         nombre = p.get('nombre', '')
         res = resultados.get(nombre, {})
+        m2_val = res.get('m2_equivalentes', 0) if res else None
         rows.append({
             'Nombre': nombre,
             'Zona': p.get('zona', ''),
             'Tipo': p.get('tipo_inmueble', ''),
-            'Dorms': p.get('dormitorios', 0),
-            'm2': res.get('m2_equivalentes', 0) if res else '—',
+            'Dorms': str(p.get('dormitorios', '—')),
+            'm2': f"{m2_val:.1f}" if m2_val else '—',
             'Valor USD': (
                 f"${res.get('valor_propiedad_usd', 0):,.0f}"
                 if res and res.get('valor_propiedad_usd') else '— Pendiente —'
@@ -184,6 +185,8 @@ def mostrar_dashboard_valu(propiedades, resultados):
         col, asc = orden_map[orden]
         df = df.sort_values(col, ascending=asc)
 
+    # Convertir todas las columnas a string para evitar errores Arrow
+    df = df.astype(str)
     st.dataframe(df, width='stretch', hide_index=True)
 
     st.markdown(f"**{len(props_filtradas)}** propiedades · **{len(grupos)}** zonas · Pagina {pagina}/{total_pag}")
