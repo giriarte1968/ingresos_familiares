@@ -88,7 +88,9 @@ def geocodificar_nominatim(direccion):
             return {
                 "lat": location.latitude,
                 "lon": location.longitude,
-                "address": location.address
+                "address": location.address,
+                "score": location.raw.get("importance", 100) if hasattr(location, 'raw') and location.raw else 100,
+                "type": "PointAddress",
             }
     except Exception as e:
         print(f"Error geocodificación Nominatim: {e}")
