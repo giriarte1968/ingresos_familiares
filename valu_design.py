@@ -64,6 +64,25 @@ header[data-testid="stHeader"] { background: #0F1629 !important; }
 }
 .stButton > button[kind="primary"]:hover, .stLinkButton > a[kind="primary"]:hover { background: #34d399 !important; box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4) !important; }
 
+/* Form submit buttons (Guardar Cambios, Cancelar) - mismo estilo dark green */
+.stFormSubmitButton > button {
+    background: #064e3b !important; color: white !important;
+    border: 1px solid #065f46 !important;
+    padding: 0.55rem 1rem !important;
+    font-size: 0.9rem !important;
+    line-height: 1.4 !important;
+    min-height: 2.6rem !important;
+    height: auto !important;
+    border-radius: 12px !important;
+    font-weight: 600 !important;
+    transition: all 0.2s ease !important;
+}
+.stFormSubmitButton > button:hover {
+    background: #059669 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(5, 150, 105, 0.35) !important;
+}
+
 /* Expanders */
 .streamlit-expanderHeader { font-weight: 600 !important; color: #1A2B5C !important; }
 
