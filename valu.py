@@ -144,17 +144,26 @@ def mostrar_dashboard_valu(propiedades, resultados):
     inicio = (pagina - 1) * POR_PAGINA
     props_pag = props_filtradas[inicio:inicio + POR_PAGINA]
 
+    def _fmt(v, fmt=None):
+        """Convierte a string manejando None y '' sin romper Arrow."""
+        if v is None or v == '':
+            return '—'
+        if fmt:
+            return fmt(v)
+        return str(v)
+
     rows = []
     for p in props_pag:
         nombre = p.get('nombre', '')
         res = resultados.get(nombre, {})
         m2_val = res.get('m2_equivalentes', 0) if res else None
+        dorms = p.get('dormitorios')
         rows.append({
             'Nombre': nombre,
-            'Zona': p.get('zona', ''),
-            'Tipo': p.get('tipo_inmueble', ''),
-            'Dorms': str(p.get('dormitorios', '—')),
-            'm2': f"{m2_val:.1f}" if m2_val else '—',
+            'Zona': _fmt(p.get('zona')),
+            'Tipo': _fmt(p.get('tipo_inmueble')),
+            'Dorms': _fmt(dorms),
+            'm2': f"{m2_val:.1f}" if isinstance(m2_val, (int, float)) and m2_val else '—',
             'Valor USD': (
                 f"${res.get('valor_propiedad_usd', 0):,.0f}"
                 if res and res.get('valor_propiedad_usd') else '— Pendiente —'
