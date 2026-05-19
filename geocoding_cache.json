@@ -58,5 +58,25 @@
     "ancla_id": "oeste_provincias_unidas_cordoba",
     "ancla_usd": 1120,
     "distancia_km": 0.95
+  },
+  "entre r\u00edos 400": {
+    "lat": -32.9327172,
+    "lon": -60.7302353,
+    "status": "low_confidence",
+    "score": 6.83916990920427e-05,
+    "type": "PointAddress",
+    "ancla_id": "oeste_provincias_unidas_cordoba",
+    "ancla_usd": 1120,
+    "distancia_km": 0.95
+  },
+  "entre r\u00edos 455": {
+    "lat": -32.9327172,
+    "lon": -60.7302353,
+    "status": "low_confidence",
+    "score": 6.83916990920427e-05,
+    "type": "PointAddress",
+    "ancla_id": "oeste_provincias_unidas_cordoba",
+    "ancla_usd": 1120,
+    "distancia_km": 0.95
   }
 }

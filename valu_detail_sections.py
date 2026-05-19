@@ -49,22 +49,31 @@ def render_actions(prop, guardar_fn):
 
     if st.session_state.get(f"edit_{prop['id']}", False):
         # Geocodificar ANTES del form (st.button no funciona dentro de st.form)
-        direccion_actual = st.session_state.get(f"direccion_edit", prop.get('direccion', ''))
+        geo_cache = st.session_state.get(f'geo_edit_coords')
+        direccion_actual = prop.get('direccion', '')
         st.markdown(f"**Direccion actual:** {direccion_actual}")
+        if geo_cache:
+            st.info(f"Coordenadas geocodificadas: {geo_cache[0]:.6f}, {geo_cache[1]:.6f}")
         if st.button("Geocodificar direccion", key=f"geo_edit_{prop['id']}"):
             from parsers.geocoder import geocoding_manager
             with st.spinner("Buscando coordenadas..."):
                 geo = geocoding_manager(direccion_actual)
             if geo and geo.get('lat'):
-                st.session_state[f'geo_edit'] = geo
-                st.success(f"Coordenadas encontradas: {geo['lat']:.6f}, {geo['lon']:.6f}")
+                st.session_state[f'geo_edit_coords'] = (geo['lat'], geo['lon'])
                 st.rerun()
             else:
                 st.error("No se encontro la direccion en OpenStreetMap")
 
+        # Merge coordenadas geocodificadas en prop_inicial para que form las use
+        prop_form = dict(prop)
+        if geo_cache:
+            prop_form['lat'] = geo_cache[0]
+            prop_form['lon'] = geo_cache[1]
+            st.session_state.pop(f'geo_edit_coords', None)
+
         with st.form(f"f_edit_{prop['id']}"):
             from valu_forms import ui_formulario_propiedad
-            new_data = ui_formulario_propiedad(prop_inicial=prop, key_suffix="edit", show_geocode=False)
+            new_data = ui_formulario_propiedad(prop_inicial=prop_form, key_suffix="edit", show_geocode=False)
             if st.form_submit_button("Guardar Cambios", type="primary"):
                 guardar_fn(new_data)
                 st.session_state[f"edit_{prop['id']}"] = False
