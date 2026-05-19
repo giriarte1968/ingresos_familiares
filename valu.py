@@ -241,12 +241,10 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     render_historial(nombre)
 
 def mostrar_dashboard():
-    # CSS para transicion suave entre paginas (evita parpadeo y deformacion)
+    # CSS para transicion suave entre paginas
     st.markdown("""
     <style>
-    .main .block-container { transition: opacity 0.12s ease; min-height: 60vh; }
-    .stApp > div { contain: layout style; }
-    iframe { contain: layout; }
+    .main .block-container { transition: opacity 0.15s ease; min-height: 60vh; }
     </style>
     """, unsafe_allow_html=True)
     

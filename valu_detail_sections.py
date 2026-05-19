@@ -57,9 +57,10 @@ def render_actions(prop, guardar_fn):
                 geo = geocoding_manager(direccion_actual)
             if geo and geo.get('lat'):
                 st.session_state[f'geo_edit'] = geo
+                st.success(f"Coordenadas encontradas: {geo['lat']:.6f}, {geo['lon']:.6f}")
                 st.rerun()
             else:
-                st.error("No se encontro la direccion")
+                st.error("No se encontro la direccion en OpenStreetMap")
 
         with st.form(f"f_edit_{prop['id']}"):
             from valu_forms import ui_formulario_propiedad
@@ -199,14 +200,17 @@ def render_mapa_y_comparables(res):
         with st.expander(f" {len(comparables)} propiedades comparables utilizadas"):
             rows = []
             for i, c in enumerate(comparables):
+                anio_est = c.get('anio_estimado', '')
                 rows.append({
                     '#': i+1, 'Precio': f"${c.get('precio', 0):,.0f}",
                     'm2': f"{c.get('m2', 0):.0f}", 'Precio/m2': f"${c.get('precio_m2', 0):,.0f}",
-                    'Dorm.': c.get('dormitorios', '?'), 'Tipo': (c.get('tipo') or '')[:12] if c.get('tipo') else '',
-                    'Ano est.': c.get('anio_estimado', '') if c.get('anio_estimado') else '',
+                    'Dorm.': str(c.get('dormitorios', '?')),
+                    'Tipo': str((c.get('tipo') or '')[:12]) if c.get('tipo') else '',
+                    'Ano est.': str(anio_est) if anio_est is not None and anio_est != '' else '',
                     'Dist.': f"{c.get('distancia_m', 0):.0f}m" if c.get('distancia_m') else '',
                 })
-            st.dataframe(pd.DataFrame(rows), width='stretch', hide_index=True)
+            df = pd.DataFrame(rows).astype(str)
+            st.dataframe(df, width='stretch', hide_index=True)
 
 
 def render_catastro(prop, res):
@@ -439,6 +443,10 @@ def cargar_propiedades():
 
 def guardar_propiedades(props):
     try:
-        with open(_propiedades_path(), "w", encoding="utf-8") as f:
+        path = _propiedades_path()
+        with open(path, "w", encoding="utf-8") as f:
             json.dump({"propiedades": props}, f, indent=2, ensure_ascii=False)
-    except: pass
+        return True
+    except Exception as e:
+        st.error(f"Error guardando: {e}")
+        return False

@@ -363,10 +363,10 @@
       "geocode_status": "no_snap"
     },
     {
-      "nombre": "Entre Rios 400",
+      "nombre": "Entre Rios ",
       "tipo_inmueble": "departamento",
       "zona": "Centro",
-      "direccion": "Entre Rios 400",
+      "direccion": "Entre Ríos 400",
       "lat": -32.9445,
       "lon": -60.6319,
       "ubicacion_tipo": "calle",
