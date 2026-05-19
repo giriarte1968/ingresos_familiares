@@ -48,9 +48,22 @@ def render_actions(prop, guardar_fn):
                 st.rerun()
 
     if st.session_state.get(f"edit_{prop['id']}", False):
+        # Geocodificar ANTES del form (st.button no funciona dentro de st.form)
+        direccion_actual = st.session_state.get(f"direccion_edit", prop.get('direccion', ''))
+        st.markdown(f"**Direccion actual:** {direccion_actual}")
+        if st.button("Geocodificar direccion", key=f"geo_edit_{prop['id']}"):
+            from parsers.geocoder import geocoding_manager
+            with st.spinner("Buscando coordenadas..."):
+                geo = geocoding_manager(direccion_actual)
+            if geo and geo.get('lat'):
+                st.session_state[f'geo_edit'] = geo
+                st.rerun()
+            else:
+                st.error("No se encontro la direccion")
+
         with st.form(f"f_edit_{prop['id']}"):
             from valu_forms import ui_formulario_propiedad
-            new_data = ui_formulario_propiedad(prop_inicial=prop, key_suffix="edit", show_geocode=True)
+            new_data = ui_formulario_propiedad(prop_inicial=prop, key_suffix="edit", show_geocode=False)
             if st.form_submit_button("Guardar Cambios", type="primary"):
                 guardar_fn(new_data)
                 st.session_state[f"edit_{prop['id']}"] = False
