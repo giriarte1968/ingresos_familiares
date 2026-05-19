@@ -5,15 +5,16 @@ Son llamadas desde mostrar_detalle_valu() en valu.py.
 """
 import streamlit as st
 import pandas as pd
+import json, os
 from datetime import datetime
 from valu_design import kpi_card, metric_card, hero_price, range_bar, insights_card, property_card
 from streamlit.components.v1 import html
 
 
 def render_actions(prop, guardar_fn):
-    """Barra de acciones: Volver, Editar, Revaluar."""
+    """Barra de acciones: Volver, Editar, Revaluar, Eliminar."""
     nombre = prop.get('nombre', '')
-    col_back, col_edit, col_recalc = st.columns(3)
+    col_back, col_edit, col_recalc, col_delete = st.columns(4)
     with col_back:
         if st.button("<- Volver", type="primary", use_container_width=True):
             st.session_state.prop_sel = None
@@ -25,11 +26,31 @@ def render_actions(prop, guardar_fn):
         if st.button("Revaluar", type="primary", use_container_width=True):
             st.session_state[f'forzar_recalculo_{nombre}'] = True
             st.rerun()
+    with col_delete:
+        if st.button("Eliminar", type="primary", use_container_width=True):
+            st.session_state[f"delete_confirm_{prop['id']}"] = True
+
+    # Confirmacion de eliminacion
+    if st.session_state.get(f"delete_confirm_{prop['id']}", False):
+        st.warning(f"Confirma que desea eliminar la propiedad **{nombre}**?")
+        c1, c2 = st.columns(2)
+        with c1:
+            if st.button("Si, eliminar", type="primary", use_container_width=True):
+                props = cargar_propiedades()
+                props = [p for p in props if p.get('id') != prop['id']]
+                guardar_propiedades(props)
+                st.session_state.pop(f"delete_confirm_{prop['id']}", None)
+                st.session_state.prop_sel = None
+                st.rerun()
+        with c2:
+            if st.button("Cancelar", use_container_width=True):
+                st.session_state.pop(f"delete_confirm_{prop['id']}", None)
+                st.rerun()
 
     if st.session_state.get(f"edit_{prop['id']}", False):
         with st.form(f"f_edit_{prop['id']}"):
             from valu_forms import ui_formulario_propiedad
-            new_data = ui_formulario_propiedad(prop_inicial=prop, key_suffix="edit", show_geocode=False)
+            new_data = ui_formulario_propiedad(prop_inicial=prop, key_suffix="edit", show_geocode=True)
             if st.form_submit_button("Guardar Cambios", type="primary"):
                 guardar_fn(new_data)
                 st.session_state[f"edit_{prop['id']}"] = False
@@ -388,3 +409,23 @@ def render_historial(nombre):
                         var, pct = vals['variacion'], vals['pct']
                         st.write(f"{' +' if var > 0 else ' -'} **{campo.replace('_', ' ').capitalize()}:** "
                                  f"${vals['antes']:,.0f} -> ${vals['despues']:,.0f} ({pct:+.1f}%)")
+
+
+# ─── HELPERS PARA ELIMINACION ───
+def _propiedades_path():
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), "propiedades.json")
+
+def cargar_propiedades():
+    try:
+        p = _propiedades_path()
+        if os.path.exists(p):
+            with open(p, "r", encoding="utf-8") as f:
+                return json.load(f).get("propiedades", [])
+    except: pass
+    return []
+
+def guardar_propiedades(props):
+    try:
+        with open(_propiedades_path(), "w", encoding="utf-8") as f:
+            json.dump({"propiedades": props}, f, indent=2, ensure_ascii=False)
+    except: pass
