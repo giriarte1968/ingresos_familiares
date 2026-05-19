@@ -7,7 +7,7 @@ from datetime import datetime
 def _auto_geocode_cb(key_suffix, lat_key, lon_key):
     """Callback para auto-geocodificar ante cualquier cambio en la dirección."""
     direccion = st.session_state.get(f"direccion_{key_suffix}", "").strip()
-    if not direccion:
+    if not direccion or len(direccion) < 5 or not any(c.isdigit() for c in direccion):
         return
 
     last_key = f"_last_geo_{key_suffix}"
@@ -20,6 +20,7 @@ def _auto_geocode_cb(key_suffix, lat_key, lon_key):
         st.session_state[lat_key] = geo['lat']
         st.session_state[lon_key] = geo['lon']
         st.session_state[last_key] = direccion
+        st.rerun()
 
 
 def _titulo_seccion(titulo, icono, color):
