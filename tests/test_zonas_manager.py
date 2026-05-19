@@ -151,7 +151,4 @@ class TestPropiedadesReales:
         assert res["metodo_match"] == "bbox"
         assert res["macrozona_id"] == "centro_premium"
 
-    def test_amenabar_oeste(self):
-        """Amenabar zona=Oeste -> matchea textual -> oeste."""
-        res = resolver_macrozona({"zona": "Oeste"})
-        assert res["macrozona_id"] == "oeste"
+

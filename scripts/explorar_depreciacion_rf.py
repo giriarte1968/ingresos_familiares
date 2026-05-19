@@ -273,12 +273,11 @@ with open("propiedades.json", encoding="utf-8") as f:
         n = p.get("nombre","")
         if "Vera" in n: ANCLAS["Vera Mujica"] = p
         if "P1200" in n: ANCLAS["P1200"] = p
-        if "Amenabar" in n: ANCLAS["Amenabar"] = p
+
 
 print(f"\n{'Ancla':<15} {'Macrozona':<20} {'Edad':>5} {'Anti_motor':>11} {'Anti_RFprop':>12} {'Val.actual':>10} {'Val.RF':>10} {'Dif%':>7}")
 print("-" * 95)
 for nombre, prop in ANCLAS.items():
-    if nombre == "Amenabar": continue
     lat = prop.get("lat", -32.95); lon = prop.get("lon", -60.63)
     anio_prop = prop.get("anio_construccion", 2000) or 2000
     anti_prop = 2026 - int(anio_prop)

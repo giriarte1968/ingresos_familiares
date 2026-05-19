@@ -209,13 +209,6 @@ def test_cap_rate_rango_alquiler():
             "Rango alquiler debe ser min < mid < max"
 
 
-def test_fallback_badge_amenabar():
-    """Amenabar puede usar fallback si hay pocos datos de alquiler"""
-    try:
-        r = valuar_propiedad_v7(ejecutar_valuacion('amenabar'), fecha_ref='2026-04')
-    except:
-        pass  # Skip if property not found
-
 
 def test_alquiler_no_absurdo():
     """Ningún alquiler debe ser < $100k o > $2M ARS"""
