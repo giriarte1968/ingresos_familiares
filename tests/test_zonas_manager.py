@@ -74,11 +74,11 @@ class TestMatchTextual:
         res = resolver_macrozona({"zona": "Tablada"})
         assert res["macrozona_id"] == "sur_default"
 
-    def test_keyword_generica_no_exacta(self):
-        """'Centro' sin mas contexto NO debe matchear centro_premium."""
+    def test_keyword_centro(self):
+        """'Centro' matchea centro_premium por texto."""
         res = resolver_macrozona({"zona": "Centro"})
-        # 'centro' no esta en keywords de ninguna zona -> cae a bbox sin coords -> default
-        assert res["metodo_match"] == "default" or res["macrozona_id"] != "centro_premium"
+        assert res["metodo_match"] == "textual"
+        assert res["macrozona_id"] == "centro_premium"
 
     def test_keyword_pellegrini_no_exacta(self):
         """'Pellegrini' sin mas contexto NO debe matchear."""
@@ -181,9 +181,9 @@ class TestPropiedadesReales:
         assert res["bbox_conflict"] == True  # coords caen en centro_premium
 
     def test_p1200(self):
-        """P1200 zona=Centro -> no matchea textual -> cae a bbox (centro_premium)."""
+        """P1200 zona=Centro -> matchea textual -> centro_premium."""
         res = resolver_macrozona({"zona": "Centro", "lat": -32.9487, "lon": -60.6407})
-        assert res["metodo_match"] == "bbox"
+        assert res["metodo_match"] == "textual"
         assert res["macrozona_id"] == "centro_premium"
 
 
