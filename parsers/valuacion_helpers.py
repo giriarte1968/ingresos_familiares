@@ -14,61 +14,74 @@ ROI_ZONAL = {
 
 
 def calcular_rango_venta(
-    m2_equiv: float,
-    bases_venta: Dict[str, float],
-    factor_total: float,
-    ajuste_nlp: float = 0.0,
+    valor_estimado: float,
+    p25_cluster: float = 0,
+    p50_cluster: float = 0,
+    p75_cluster: float = 0,
+    n_muestras: int = 0,
+    radio: float = 999,
+    confidence: str = 'MEDIA',
 ) -> Dict[str, Any]:
     """
-    Calcula los 3 escenarios de venta (conservador, mercado, optimista).
+    Calcula el rango simétrico de valuación (3 escenarios) usando IQR del cluster.
+    Única fuente de verdad del rango de venta.
     
     Args:
-        m2_equiv: Metros cuadrados equivalentes
-        bases_venta: Dict con 'conservadora', 'mercado', 'optimista' (USD/m²)
-        factor_total: Factor total de ajuste
-        ajuste_nlp: Ajuste por NLP (0.0-0.05)
+        valor_estimado: Valor principal ya calculado por el motor
+        p25_cluster: Percentil 25 del cluster (USD/m²)
+        p50_cluster: Percentil 50 del cluster (USD/m²)
+        p75_cluster: Percentil 75 del cluster (USD/m²)
+        n_muestras: Cantidad de propiedades en el cluster
+        radio: Radio de búsqueda usado (metros)
+        confidence: Confianza de la resolución ('ALTA', 'MEDIA', 'BAJA')
     
     Returns:
-        Dict con 'valor_principal', 'rango_venta' con llaves internas
+        Dict con 'rango_venta' (min/mid/max/spread_pct/margen_error/percentiles)
     """
-    base_cons = bases_venta.get('base_conservadora', bases_venta.get('conservadora', 0))
-    base_mkt = bases_venta.get('base_mercado', bases_venta.get('mercado', 0))
-    base_opt = bases_venta.get('base_optimista', bases_venta.get('optimista', 0))
+    if valor_estimado <= 0:
+        return {'rango_venta': {'min': 0, 'mid': 0, 'max': 0, 'spread_pct': 0, 'margen_error': 0}}
 
-    if not base_cons or not base_mkt:
-        return {'valor_principal': 0, 'rango_venta': {}}
+    # Calcular dispersión relativa robusta
+    half_iqr_rel = 0.0
+    if p25_cluster and p50_cluster and p75_cluster and p50_cluster > 0:
+        iqr_rel = (p75_cluster - p25_cluster) / p50_cluster
+        half_iqr_rel = iqr_rel / 2
 
-    valor_cons = m2_equiv * base_cons * factor_total * (1 + ajuste_nlp)
-    valor_mkt = m2_equiv * base_mkt * factor_total * (1 + ajuste_nlp)
-    valor_opt = m2_equiv * base_opt * factor_total * (1 + ajuste_nlp)
+    raw_margin = half_iqr_rel * 0.50
 
-    # Asegurar orden conservador <= mercado <= optimista
-    valores = sorted([valor_cons, valor_mkt, valor_opt])
-    valor_cons, valor_mkt, valor_opt = valores
+    # Floors/caps según calidad del cluster
+    if n_muestras >= 50 and radio <= 300:
+        margin_floor, margin_cap = 0.05, 0.08
+    elif n_muestras >= 25:
+        margin_floor, margin_cap = 0.06, 0.10
+    elif n_muestras >= 10:
+        margin_floor, margin_cap = 0.08, 0.14
+    else:
+        margin_floor, margin_cap = 0.10, 0.18
 
-    # Spread relativo al valor de mercado
-    spread_pct = ((valor_opt - valor_cons) / valor_mkt * 100) if valor_mkt > 0 else 0
+    if confidence == 'BAJA':
+        margin_cap = max(margin_cap, 0.20)
 
-    p25 = bases_venta.get('p25_cluster', 0)
-    p50 = bases_venta.get('p50_cluster', base_mkt)
-    p75 = bases_venta.get('p75_cluster', 0)
+    margen_error = max(margin_floor, min(raw_margin, margin_cap))
+
+    valor_min = int(valor_estimado * (1 - margen_error))
+    valor_mid = int(valor_estimado)
+    valor_max = int(valor_estimado * (1 + margen_error))
+    spread_pct = ((valor_max - valor_min) / valor_mid * 100) if valor_mid > 0 else 0
 
     rango = {
-        'min': round(valor_cons, 0),
-        'mid': round(valor_mkt, 0),
-        'max': round(valor_opt, 0),
+        'min': valor_min,
+        'mid': valor_mid,
+        'max': valor_max,
         'spread_pct': round(spread_pct, 1),
-        'margen_error': round(spread_pct / 100, 3),
-        'p25_cluster': round(p25, 2) if p25 else None,
-        'p50_cluster': round(p50, 2) if p50 else None,
-        'p75_cluster': round(p75, 2) if p75 else None,
+        'margen_error': round(margen_error, 3),
+        'p25_cluster': round(p25_cluster, 2) if p25_cluster else None,
+        'p50_cluster': round(p50_cluster, 2) if p50_cluster else None,
+        'p75_cluster': round(p75_cluster, 2) if p75_cluster else None,
         'metodo_rango': 'valor_estimado_mas_margen_estadistico',
     }
 
-    return {
-        'valor_principal': round(valor_mkt, 0),
-        'rango_venta': rango,
-    }
+    return {'rango_venta': rango}
 
 
 def procesar_alquiler(

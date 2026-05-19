@@ -4,6 +4,24 @@ import uuid
 from datetime import datetime
 
 
+def _auto_geocode_cb(key_suffix, lat_key, lon_key):
+    """Callback para auto-geocodificar ante cualquier cambio en la dirección."""
+    direccion = st.session_state.get(f"direccion_{key_suffix}", "").strip()
+    if not direccion:
+        return
+
+    last_key = f"_last_geo_{key_suffix}"
+    if st.session_state.get(last_key) == direccion:
+        return
+
+    from parsers.geocoder import geocoding_manager
+    geo = geocoding_manager(direccion)
+    if geo and geo.get('lat'):
+        st.session_state[lat_key] = geo['lat']
+        st.session_state[lon_key] = geo['lon']
+        st.session_state[last_key] = direccion
+
+
 def _titulo_seccion(titulo, icono, color):
     """Muestra el título de la sección con estilo."""
     st.markdown(f"""
@@ -23,6 +41,9 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
 
     errores = []
     
+    lat_key = f"lat_{key_suffix}"
+    lon_key = f"lon_{key_suffix}"
+    
     # === SECCIÓN 1: UBICACIÓN ===
     with st.container(border=True):
         _titulo_seccion("Ubicación", "📍", "#006AFF")
@@ -36,12 +57,12 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
             zonas = ["Centro", "Macrocentro", "Barrio Inglés", "Pichincha", "Abasto", "Martin", "Facultades", "Puerto Norte", "Barrio Tigre", "Rosario Norte", "Alvear", "San Martín", "General Paz", "Echesortu", "Fisherton", "Ruta 9", "Sur", "Norte", "Oeste", "Sexta Pellegrini", "República de la Sexta", "Otro"]
             zona = st.selectbox("Zona / Barrio *", zonas, index=zonas.index(prop_inicial.get('zona', 'Otro')) if prop_inicial.get('zona') in zonas else len(zonas)-1, key=f"zona_{key_suffix}")
             
-            direccion = st.text_input("Dirección *", value=prop_inicial.get('direccion', ''), key=f"direccion_{key_suffix}")
+            direccion = st.text_input("Dirección *", value=prop_inicial.get('direccion', ''), key=f"direccion_{key_suffix}",
+                                         on_change=_auto_geocode_cb if show_geocode else None,
+                                         args=(key_suffix, lat_key, lon_key) if show_geocode else None)
             if not direccion or not direccion.strip():
                 errores.append("La dirección es obligatoria")
         with col2:
-            lat_key = f"lat_{key_suffix}"
-            lon_key = f"lon_{key_suffix}"
             # Inicializar session_state si no existe (evita warning de value duplicado)
             if lat_key not in st.session_state:
                 st.session_state[lat_key] = prop_inicial.get('lat', -32.9445)
@@ -58,6 +79,7 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
                     if geo and geo.get('lat'):
                         st.session_state[lat_key] = geo['lat']
                         st.session_state[lon_key] = geo['lon']
+                        st.success(f"Coordenadas: {geo['lat']:.7f}, {geo['lon']:.7f}")
                         st.rerun()
                     else:
                         st.error("No se encontró la dirección en OpenStreetMap")

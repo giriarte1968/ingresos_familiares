@@ -53,7 +53,7 @@ def render_actions(prop, guardar_fn):
         direccion_actual = prop.get('direccion', '')
         st.markdown(f"**Direccion actual:** {direccion_actual}")
         if geo_cache:
-            st.info(f"Coordenadas geocodificadas: {geo_cache[0]:.6f}, {geo_cache[1]:.6f}")
+            st.info(f"Coordenadas geocodificadas: {geo_cache[0]:.7f}, {geo_cache[1]:.7f}")
         if st.button("Geocodificar direccion", key=f"geo_edit_{prop['id']}"):
             from parsers.geocoder import geocoding_manager
             with st.spinner("Buscando coordenadas..."):

@@ -106,6 +106,21 @@ def geocodificar_nominatim_freeform(direccion_full):
 geocodificar_arcgis = geocodificar_nominatim
 
 
+def haversine_distance(lat1, lon1, lat2, lon2):
+    """Distancia Haversine entre dos puntos (km)."""
+    R = 6371.0
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    a = math.sin(dlat/2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon/2)**2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return R * c
+
+
+def snap_a_anclas(lat, lon, anclas, max_dist_km=3.0):
+    """Snap coordenadas al ancla más cercana. Deshabilitado: devuelve originales."""
+    return lat, lon, 'no_snap'
+
+
 # Bounding box para Rosario centro (~radio 5km desde punto central)
 CENTRO_LAT, CENTRO_LON = -32.945, -60.632
 RADIO_MAX_KM = 8.0

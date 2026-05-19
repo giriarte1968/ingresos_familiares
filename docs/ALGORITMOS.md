@@ -458,18 +458,64 @@ valuar_propiedad_v7() → función principal (~400 líneas, 6 secciones)
   ├── SECCIÓN 5: Razonamiento narrativo
   └── SECCIÓN 6: Return con resultado completo
 
-  Helpers disponibles (creados pero NO integrados):
-  ├── calcular_rango_venta()   ← simplificado, no replica lógica IQR
-  └── procesar_alquiler()      ← simplificado, no replica tamaño/disccount
+## 7. Rango de Valuación (3 Escenarios) — FASE 2
+
+El rango de valuación se calcula como un margen simétrico alrededor del valor principal (`valor_venta`), usando la dispersión estadística del cluster.
+
+### Algoritmo (`calcular_rango_venta()` en `valuacion_helpers.py`)
+
+Es la única fuente de verdad del rango de venta. No hay lógica inline duplicada.
+
+```
+1. Calcular IQR relativo del cluster:
+   iqr_rel = (P75 - P25) / P50
+   half_iqr_rel = iqr_rel / 2
+
+2. Margen raw (solo 50% del half-IQR):
+   raw_margin = half_iqr_rel * 0.50
+
+3. Floors y caps según calidad del cluster:
+   ≥50 muestras y radio ≤300m → floor=0.05, cap=0.08
+   ≥25 muestras               → floor=0.06, cap=0.10
+   ≥10 muestras               → floor=0.08, cap=0.14
+   <10 muestras               → floor=0.10, cap=0.18
+   Confianza BAJA             → cap = max(cap, 0.20)
+
+4. Margen final:
+   margen_error = clamp(raw_margin, floor, cap)
+
+5. 3 escenarios simétricos:
+   conservador = valor * (1 - margen_error)
+   mercado     = valor
+   optimista   = valor * (1 + margen_error)
+
+6. Spread:
+   spread_pct = (opt - cons) / mercado * 100
 ```
 
-### Tests
-| Suite | Cantidad | Ubicación |
-|-------|----------|-----------|
-| Regresión (4 propiedades ancla) | 31 | `tests/test_regression.py` |
-| Cluster filters | 31 | `tests/test_cluster_filters.py` |
-| Valuación helpers | 14 | `tests/test_valuacion_helpers.py` |
-| **Total** | **92** | |
+### Output dict (`rango_venta`):
+```python
+{
+    'min': int,           # valor conservador
+    'mid': int,           # valor principal (centro)
+    'max': int,           # valor optimista
+    'spread_pct': float,  # spread relativo (%)
+    'margen_error': float,# margen aplicado (decimal)
+    'p25_cluster': float, # P25 del cluster (USD/m²)
+    'p50_cluster': float, # P50 del cluster (USD/m²)
+    'p75_cluster': float, # P75 del cluster (USD/m²)
+    'metodo_rango': str,  # 'valor_estimado_mas_margen_estadistico'
+}
+```
+
+**Nota**: El `rango_m2` que ve el usuario en UI ya no es ±10% hardcodeado. Usa el rango real del cluster. Para clusters grandes (≥50 muestras, ≤300m) el margen puede ser tan ajustado como ±5%; para clusters chicos puede llegar a ±18%.
+
+### Helpers integrados (todos activos y con tests):
+```
+calcular_rango_venta()    ← fuente única de rango (IQR + floors/caps)
+procesar_alquiler()       ← alquiler con cap rate data-driven o fallback zonal
+ensamblar_metadata_resolucion() ← metadata de resolución para UI
+```
 
 ---
 

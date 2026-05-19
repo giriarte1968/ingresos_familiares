@@ -13,54 +13,79 @@ from parsers.valuacion_helpers import (
 # ─── TESTS calcular_rango_venta ───
 
 def test_rango_venta_basico():
-    """Caso básico: 3 escenarios con spread calculable."""
-    bases = {
-        'base_conservadora': 1400,
-        'base_mercado': 1500,
-        'base_optimista': 1600,
-    }
+    """Valor de entrada -> rango simétrico centrado en valor_estimado."""
     res = calcular_rango_venta(
-        m2_equiv=50, bases_venta=bases,
-        factor_total=1.0, ajuste_nlp=0.0
+        valor_estimado=100000, p25_cluster=1200,
+        p50_cluster=1500, p75_cluster=1800, n_muestras=30
     )
-    assert res['valor_principal'] > 0
     r = res['rango_venta']
     assert r['min'] <= r['mid'] <= r['max']
+    assert r['mid'] == 100000
     assert r['spread_pct'] > 0
 
 
-def test_rango_venta_con_factor():
-    """Factor total debe escalar los valores."""
-    bases = {'base_conservadora': 1400, 'base_mercado': 1500, 'base_optimista': 1600}
-    res = calcular_rango_venta(50, bases, factor_total=1.10)
+def test_rango_venta_margen_error():
+    """Con 30 muestras, IQR=0.40, floor=0.06 cap=0.10 -> margen debe estar entre 0.06 y 0.10."""
+    res = calcular_rango_venta(
+        valor_estimado=100000, p25_cluster=1200,
+        p50_cluster=1500, p75_cluster=1800, n_muestras=30
+    )
     r = res['rango_venta']
-    ref = 50 * 1500 * 1.10
-    assert abs(r['mid'] - ref) <= 1
+    # IQR = (1800-1200)/1500 = 0.40, half = 0.20, raw = 0.10
+    # n >= 25 -> floor=0.06, cap=0.10, so margen = 0.10
+    assert 0.06 <= r['margen_error'] <= 0.12
+    assert r['min'] == 90000
+    assert r['max'] == 110000
 
 
-def test_rango_venta_spread_pct():
-    """Spread debe calcularse correctamente."""
-    bases = {'base_conservadora': 1000, 'base_mercado': 1500, 'base_optimista': 2000}
-    res = calcular_rango_venta(50, bases, factor_total=1.0)
+def test_rango_venta_confidence_baja():
+    """Confianza BAJA debe aumentar cap a 0.20."""
+    res = calcular_rango_venta(
+        valor_estimado=100000, p25_cluster=1200,
+        p50_cluster=1500, p75_cluster=1800, n_muestras=5,
+        confidence='BAJA'
+    )
     r = res['rango_venta']
-    # (2000-1000)/1500 * 100 = 66.7%
-    assert 65 <= r['spread_pct'] <= 68
+    # n < 10 -> floor=0.10, cap=0.18, BAJA -> cap = max(0.18, 0.20) = 0.20
+    # raw_margin = 0.10 -> margen = max(0.10, min(0.10, 0.20)) = 0.10
+    assert 0.10 <= r['margen_error'] <= 0.21
 
 
-def test_rango_venta_sin_bases():
-    """Sin bases, debe retornar 0."""
-    res = calcular_rango_venta(50, {}, factor_total=1.0)
-    assert res['valor_principal'] == 0
-    assert res['rango_venta'] == {}
-
-
-def test_rango_venta_con_nlp():
-    """NLP debe ajustar valores."""
-    bases = {'base_conservadora': 1400, 'base_mercado': 1500, 'base_optimista': 1600}
-    res = calcular_rango_venta(50, bases, factor_total=1.0, ajuste_nlp=0.03)
+def test_rango_venta_sin_dispersion():
+    """Sin percentiles -> half_iqr_rel=0.0 -> margen usa floor."""
+    res = calcular_rango_venta(
+        valor_estimado=100000, p25_cluster=0,
+        p50_cluster=0, p75_cluster=0, n_muestras=30
+    )
     r = res['rango_venta']
-    ref = round(50 * 1500 * 1.0 * 1.03, 0)
-    assert abs(r['mid'] - ref) <= 2
+    # raw_margin = 0, floor = 0.06, cap = 0.10 -> margen = 0.06
+    assert r['margen_error'] == 0.06
+    assert r['min'] == 94000
+    assert r['max'] == 106000
+
+
+def test_rango_venta_valor_cero():
+    """Valor estimado 0 debe retornar dict vacío."""
+    res = calcular_rango_venta(
+        valor_estimado=0, p25_cluster=1200,
+        p50_cluster=1500, p75_cluster=1800, n_muestras=30
+    )
+    r = res['rango_venta']
+    assert r['min'] == 0
+    assert r['mid'] == 0
+    assert r['spread_pct'] == 0
+
+
+def test_rango_venta_muestras_grandes():
+    """Con 60+ muestras y radio <= 300 -> floor=0.05, cap=0.08."""
+    res = calcular_rango_venta(
+        valor_estimado=200000, p25_cluster=1200,
+        p50_cluster=1500, p75_cluster=1800, n_muestras=60,
+        radio=250, confidence='ALTA'
+    )
+    r = res['rango_venta']
+    # raw_margin = 0.10, floor=0.05, cap=0.08 -> margen = min(0.10, 0.08) = 0.08
+    assert 0.05 <= r['margen_error'] <= 0.08
 
 
 # ─── TESTS procesar_alquiler ───

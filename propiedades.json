@@ -20,11 +20,10 @@
       "vista": "frente",
       "gas_ok": "si",
       "m2_semicubiertos": 6.23,
-      "m2_semicubiertos_detalle": "medio",
-      "m2_descubiertos": 0.0,
-      "balcon": true,
-      "tipo_balcon": "corrido",
-      "m2_comunes": 0.0,
+      "m2_descubiertos_propios": 0.0,
+      "m2_descubiertos_comun_exclusivo": 0.0,
+      "balcon": false,
+      "tipo_balcon": "ninguno",
       "orientacion": "sur",
       "ventilacion": "cruzada",
       "estado_detalle": "muy bueno",
@@ -49,156 +48,9 @@
       "descripcion_libre": " luminoso, con aire acondicionado",
       "valor_compra_usd": 24000.0,
       "fecha_compra": "2003-01-01",
+      "fecha_publicacion": "2026-05-19",
       "expensas_ars": 90000,
-      "m2": 45.730000000000004,
-      "id": 9,
-      "tasaciones": [
-        {
-          "fecha": "2026-04-02",
-          "valor_usd": 64240.0,
-          "valor_ars": 93478836.0,
-          "valor_m2_usd": 1690.53,
-          "mes": "2026-04",
-          "fuente": "motor_valuacion"
-        },
-        {
-          "fecha": "2026-04-02",
-          "valor_usd": 64240.0,
-          "valor_ars": 93478836.0,
-          "valor_m2_usd": 1690.53,
-          "mes": "2026-01",
-          "fuente": "motor_valuacion"
-        },
-        {
-          "fecha": "2026-04-02",
-          "valor_usd": 59101.0,
-          "valor_ars": 86000820.15,
-          "valor_m2_usd": 1555.28,
-          "mes": "2023-09",
-          "fuente": "motor_valuacion"
-        },
-        {
-          "fecha": "2026-04-02",
-          "valor_usd": 64240.0,
-          "valor_ars": 93478836.0,
-          "valor_m2_usd": 1690.53,
-          "mes": "2026-03",
-          "fuente": "motor_valuacion"
-        },
-        {
-          "fecha": "2026-04-02",
-          "valor_usd": 64668.0,
-          "valor_ars": 94066072.8,
-          "valor_m2_usd": 1701.8,
-          "mes": "2026-03",
-          "fuente": "motor_valuacion"
-        },
-        {
-          "fecha": "2026-04-02",
-          "valor_usd": 64882.0,
-          "valor_ars": 94548645.68,
-          "valor_m2_usd": 1707.43,
-          "mes": "2026-04",
-          "fuente": "motor_valuacion"
-        },
-        {
-          "fecha": "2026-04-02",
-          "valor_usd": 95107.0,
-          "valor_ars": 138593724.68,
-          "valor_m2_usd": 2502.81,
-          "mes": "2026-04",
-          "fuente": "motor_valuacion"
-        },
-        {
-          "fecha": "2026-04-06",
-          "valor_usd": 94793.0,
-          "valor_ars": 137756031.39000002,
-          "valor_m2_usd": 2494.55,
-          "mes": "2026-03",
-          "fuente": "motor_valuacion"
-        },
-        {
-          "fecha": "2026-04-06",
-          "valor_usd": 94793.0,
-          "valor_ars": 137756031.39000002,
-          "valor_m2_usd": 2494.55,
-          "mes": "2026-03",
-          "fuente": "motor_valuacion"
-        },
-        {
-          "fecha": "2026-04-06",
-          "valor_usd": 94793.0,
-          "valor_ars": 137756031.39000002,
-          "valor_m2_usd": 2494.55,
-          "mes": "2026-03",
-          "fuente": "motor_valuacion"
-        },
-        {
-          "fecha": "2026-04-06",
-          "valor_usd": 95107.0,
-          "valor_ars": 138212345.61,
-          "valor_m2_usd": 2502.81,
-          "mes": "2026-04",
-          "fuente": "motor_valuacion"
-        },
-        {
-          "fecha": "2026-04-06",
-          "valor_usd": 94793.0,
-          "valor_ars": 139272719.39000002,
-          "valor_m2_usd": 2494.55,
-          "mes": "2026-03",
-          "fuente": "motor_valuacion"
-        },
-        {
-          "fecha": "2026-04-06",
-          "valor_usd": 94793.0,
-          "valor_ars": 139272719.39000002,
-          "valor_m2_usd": 2494.55,
-          "mes": "2026-03",
-          "fuente": "motor_valuacion"
-        },
-        {
-          "fecha": "2026-04-06",
-          "valor_usd": 94793.0,
-          "valor_ars": 139272719.39000002,
-          "valor_m2_usd": 2494.55,
-          "mes": "2026-03",
-          "fuente": "motor_valuacion"
-        },
-        {
-          "fecha": "2026-04-06",
-          "valor_usd": 96360.0,
-          "valor_ars": 141180890.4,
-          "valor_m2_usd": 2535.79,
-          "mes": "2016-01",
-          "fuente": "motor_valuacion"
-        },
-        {
-          "fecha": "2026-04-06",
-          "valor_usd": 94165.0,
-          "valor_ars": 137891459.39999998,
-          "valor_m2_usd": 2478.03,
-          "mes": "2026-04",
-          "fuente": "motor_valuacion"
-        },
-        {
-          "fecha": "2026-04-06",
-          "valor_usd": 94165.0,
-          "valor_ars": 137879217.95,
-          "valor_m2_usd": 2478.03,
-          "mes": "2026-04",
-          "fuente": "motor_valuacion"
-        },
-        {
-          "fecha": "2026-04-06",
-          "valor_usd": 96360.0,
-          "valor_ars": 141093202.8,
-          "valor_m2_usd": 2535.79,
-          "mes": "2016-01",
-          "fuente": "motor_valuacion"
-        }
-      ],
-      "ultima_valuacion": "2026-04-06"
+      "id": 9
     },
     {
       "nombre": "Ayacucho",
@@ -366,9 +218,9 @@
       "nombre": "Entre Rios ",
       "tipo_inmueble": "departamento",
       "zona": "Centro",
-      "direccion": "Entre Ríos 400",
-      "lat": -32.941225,
-      "lon": -60.639799,
+      "direccion": "Entre Ríos 480",
+      "lat": -32.9412249,
+      "lon": -60.6397994,
       "ubicacion_tipo": "calle",
       "m2_cubiertos": 34.0,
       "dormitorios": 1,

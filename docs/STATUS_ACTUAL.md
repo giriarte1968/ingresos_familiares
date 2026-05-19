@@ -50,9 +50,25 @@ Se ha completado la transición hacia una arquitectura de frontend desacoplada:
 - `valu_forms.py`: Captura de datos (45+ variables).
 - `app.py`: Versión legacy / Gestión financiera.
 - `parsers/`: Motores de cálculo y scraping.
+- `parsers/valuacion_helpers.py`: funciones puras: `calcular_rango_venta()` (fuente única de rango), `procesar_alquiler()`, `ensamblar_metadata_resolucion()`
+- `parsers/cluster_filters.py`: 7 helpers puros con 34 tests: `calcular_percentil()` (discreto, no numpy), `calcular_blend_p33()`, `seleccionar_percentil_por_edad()`, etc.
 - `cache_scraping.json`: Base de datos de mercado.
 
+## 5. FASE 2 — Rango Unificado ✅
+- `calcular_rango_venta()` en `valuacion_helpers.py` es la única fuente de verdad para el rango de venta
+- El motor `valuar_propiedad_v7()` ya no tiene lógica inline de rango; llama al helper
+- El rango UI (`rango_m2`) usa el rango real del cluster, no ±10% hardcodeado
+- Hardcode `rango_min = valor_venta * 0.90` y `rango_max = valor_venta * 1.10` eliminados
+
+## 6. FASE 3 — Consolidación de Helpers ✅
+- `seleccionar_percentil_por_edad()` ahora sí se llama desde producción (reemplaza inline de 15 líneas)
+- `calcular_blend_p33()` ahora se usa en los 3 escenarios (conservador, mercado, optimista), no solo en blend_cons
+- Los 4 helpers de cluster (`calcular_percentil`, `calcular_blend_p33`, `seleccionar_percentil_por_edad`, `calcular_rango_venta`) están 100% activos
+- Sin helpers muertos — todos llamados desde producción
+- **82/82 tests pasan** — baseline anclas sin cambios: Mabel $72,241 / Ayacucho $52,047 / Vera $52,062 / P1200 $137,888
+
 ---
-**Actualizado por**: Antigravity (IA de Desarrollo)
-**Fecha**: 2026-05-11
+
+**Actualizado por**: opencode (Agente IA)
+**Fecha**: 2026-05-19
 **Ubicación**: `ingresos_familiares_st/valu.py`

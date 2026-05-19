@@ -26,6 +26,8 @@ Ubicación de la lógica principal de valuación y procesamiento.
 | `parsers/motor_vpp_core.py` | Utilidades core, integración con Binance (USDT/ARS). |
 | `parsers/location_engine.py` | Motor geoespacial. Cálculo de distancias y pesos IDW. |
 | `parsers/nlp_inmobiliario.py` | Análisis de descripciones libres para extracción de features. |
+| `parsers/valuacion_helpers.py` | Funciones puras desacopladas del motor: `calcular_rango_venta()` (única fuente de rango), `procesar_alquiler()`, `ensamblar_metadata_resolucion()`. |
+| `parsers/cluster_filters.py` | 7 helpers puros con 34 tests: filtro geográfico, percentil discreto, blend alpha, regla de percentil por edad. |
 | `parsers/geocoder.py` | Integración con servicios de geocodificación. |
 
 ## 2. DATOS Y CONTEXTO (DATA)

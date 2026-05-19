@@ -9,12 +9,12 @@ from parsers.location_engine import cargar_anclas, calcular_precio_m2, estimar_c
 from parsers import cluster_filters
 from parsers.cluster_filters import (
     filtrar_por_fecha,
-    seleccionar_percentil_por_edad,
     separar_por_barreras,
     calcular_percentil,
     calcular_blend_p33,
+    seleccionar_percentil_por_edad,
 )
-from parsers.valuacion_helpers import ensamblar_metadata_resolucion
+from parsers.valuacion_helpers import calcular_rango_venta, ensamblar_metadata_resolucion
 
 logger = logging.getLogger(__name__)
 ANIO_ACTUAL = datetime.now().year
@@ -454,6 +454,7 @@ def enriquecer_anio_comparable(comp, max_dist_m=50):
 def _filtrar_por_ventana_edad(pool, anio_sujeto, ventana=15, min_con_anio=10):
     """
     Filtra comparables por ventana de edad ±años alrededor del año sujeto.
+    Si ±15 no alcanza mínimo, prueba ±30 antes de saltar filtro.
     
     Returns:
         (pool_filtrado, age_filter_applied, n_age_filtered, anio_min, anio_max)
@@ -466,21 +467,23 @@ def _filtrar_por_ventana_edad(pool, anio_sujeto, ventana=15, min_con_anio=10):
     if len(pool_con_anio) < min_con_anio:
         return pool, False, 0, 0, 0
     
-    anio_min = anio_sujeto - ventana
-    anio_max = anio_sujeto + ventana
-    
-    pool_age_filtered = [
-        p for p in pool_con_anio
-        if anio_min <= p['anio_estimado'] <= anio_max
-    ]
-    
-    if len(pool_age_filtered) >= 8:
-        return pool_age_filtered, True, len(pool_age_filtered), anio_min, anio_max
+    for ventana_actual in [ventana, 30]:
+        anio_min = anio_sujeto - ventana_actual
+        anio_max = anio_sujeto + ventana_actual
+        
+        pool_age_filtered = [
+            p for p in pool_con_anio
+            if anio_min <= p['anio_estimado'] <= anio_max
+        ]
+        
+        if len(pool_age_filtered) >= 8:
+            ventana_label = f"\u00b1{ventana_actual} a\u00f1os"
+            return pool_age_filtered, True, len(pool_age_filtered), anio_min, anio_max
     
     return pool, False, 0, 0, 0
 
 
-def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=None, lon_ref=None, fecha_ref=None, anio_sujeto=None):
+def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=None, lon_ref=None, fecha_ref=None, anio_sujeto=None, tipo_inmueble=None):
     """
     Obtiene la mediana del cluster desde cache_scraping.json.
     Versión v2 con metadata extendida Y radios progresivos.
@@ -555,6 +558,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 and p.get('dormitorios') == dorms
                 and p.get('operacion') == oper
                 and p.get('valor_m2', 0) > 0
+                and (not tipo_inmueble or tipo_inmueble in str(p.get('tipo', p.get('tipo_inmueble', ''))).lower())
             ]
 
             
@@ -600,7 +604,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                     radio, calcular_distancia_km
                 )
                 props_geo = cluster_filters.filtrar_por_tipo_operacion_dorms(
-                    props_geo, operacion=operacion, dormitorios=dormitorios,
+                    props_geo, tipo=tipo_inmueble, operacion=operacion, dormitorios=dormitorios,
                     tolerancia_dorms=0
                 )
                 props_geo = [p for p in props_geo if p.get('valor_m2', 0) > 0]
@@ -622,6 +626,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                     if p.get('dormitorios') != dormitorios: continue
                     if p.get('operacion') != operacion: continue
                     if p.get('valor_m2', 0) <= 0: continue
+                    if tipo_inmueble and tipo_inmueble not in str(p.get('tipo', p.get('tipo_inmueble', ''))).lower(): continue
                     props_geo.append(p)
                 
                 props_geo = aplicar_filtro_fecha(props_geo, fecha_ref)
@@ -735,11 +740,12 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         n_enriq_total = n_enriquecidos_alta + n_enriquecidos_media
         pct_enriq = (n_enriq_total / total_pool * 100) if total_pool else 0
 
-        # FASE 2: Filtrar por ventana de edad (±15 años)
+        # FASE 2: Filtrar por ventana de edad (±15 años, fallback ±30)
         pool_final, age_filter_applied, n_age_filtered, anio_min, anio_max = _filtrar_por_ventana_edad(
             unicos, anio_sujeto, ventana=15
         )
-        age_window = f"\u00b1{15} a\u00f1os" if age_filter_applied else ''
+        ventana_real = anio_max - anio_sujeto if age_filter_applied else 0
+        age_window = f"\u00b1{ventana_real} a\u00f1os" if age_filter_applied else ''
         rango_anio_usado = f"{anio_min}-{anio_max}" if age_filter_applied else ''
         if age_filter_applied:
             logger.info(f"[AGE_FILTER] Aplicado: {n_age_filtered} en rango {anio_min}-{anio_max}")
@@ -831,18 +837,10 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             percentil_venta = 50
             percentil_usado = 'P50_alquiler'
         else:
-            percentil_venta = 33
-            percentil_usado = 'P33'
-            if age_filter_applied:
-                if n_age_filtered >= 20:
-                    percentil_venta = 50
-                    percentil_usado = 'P50_age'
-                elif n_age_filtered >= 10:
-                    percentil_venta = 45
-                    percentil_usado = 'P45_age'
-                elif n_age_filtered >= 8:
-                    percentil_venta = 40
-                    percentil_usado = 'P40_age'
+            percentil_venta, percentil_usado = seleccionar_percentil_por_edad(
+                age_filter_applied=age_filter_applied,
+                n_age_filtered=n_age_filtered
+            )
 
         pct_same = calcular_percentil(precios_same, percentil_venta)
         pct_cross = calcular_percentil(precios_cross, percentil_venta)
@@ -878,7 +876,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         if pct_same is not None and pct_cross is not None:
             # Alpha blending
             blend_cons = calcular_blend_p33(pct_same, pct_cross, alpha=ALPHA_CONSERVADOR)
-            blend_mkt = ALPHA_MERCADO * pct_same + (1 - ALPHA_MERCADO) * pct_cross
+            blend_mkt = calcular_blend_p33(pct_same, pct_cross, alpha=ALPHA_MERCADO)
             
             # Optimista: alpha dinámico según ratio
             ratio = pct_cross / pct_same if pct_same > 0 else 1.0
@@ -889,7 +887,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             else:
                 alpha_opt = 0.55
             alpha_opt = max(0.55, min(0.70, alpha_opt))
-            blend_opt = alpha_opt * pct_same + (1 - alpha_opt) * pct_cross
+            blend_opt = calcular_blend_p33(pct_same, pct_cross, alpha=alpha_opt)
             
             # Valor principal: blend puro con alpha 0.70 (SIN min con P25)
             valor_principal = blend_cons  # 0.70 * pct_same + 0.30 * pct_cross
@@ -2512,7 +2510,8 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         lat_ref=lat,
         lon_ref=lon,
         fecha_ref=fecha_ref,
-        anio_sujeto=anio_const
+        anio_sujeto=anio_const,
+        tipo_inmueble=prop.get('tipo_inmueble', prop.get('tipo', 'departamento'))
     )
     
     # Si v2 tiene valor, usarlo; si no, fallback a ancla
@@ -2557,7 +2556,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     # NOTA: El cluster devuelve ARS/m2 directamente (no USD)
     # Usar zona normalizada para mejor match con cache
     zona_alq = normalizar_zona(zona_txt)
-    m2_base_alq_raw, n_a, meta_alq = obtener_mediana_cluster_v2(zona=zona_alq, dormitorios=dorms, operacion='alquiler', lat_ref=lat, lon_ref=lon)
+    m2_base_alq_raw, n_a, meta_alq = obtener_mediana_cluster_v2(zona=zona_alq, dormitorios=dorms, operacion='alquiler', lat_ref=lat, lon_ref=lon, tipo_inmueble=prop.get('tipo_inmueble', prop.get('tipo', 'departamento')))
     
     # Fallback si no hay datos específicos (en ARS/m²)
     # Ajustar para entrar en rango:
@@ -2725,68 +2724,30 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     
     # ══════════════════════════════════════════════
     # SECCIÓN 3: Rango de venta (3 escenarios)
-    # NOTA: No extraído a helper. Lógica de márgenes
-    # dinámicos IQR acoplada al contexto de la valuación.
-    # Ver decisión FASE 5.4 en BITACORA.
+    # FASE 2: Extraído a calcular_rango_venta() en valuacion_helpers.py
+    # como única fuente de verdad del rango.
     # ══════════════════════════════════════════════
     # === RANGO 3 ESCENARIOS (solo venta) ===
-    base_cons = meta_venta.get('base_conservadora', m2_base_venta)
-    base_mkt = meta_venta.get('base_mercado', m2_base_venta)
-    base_opt = meta_venta.get('base_optimista', m2_base_venta)
-    alpha_opt = meta_venta.get('alpha_optimista', 0.55)
-    ratio_sc = meta_venta.get('ratio_same_cross', 1.0)
-    
-    # Percentiles del cluster para calcular dispersión
     p25_c = meta_venta.get('p25_cluster', 0)
     p50_c = meta_venta.get('p50_cluster', m2_base_venta)
     p75_c = meta_venta.get('p75_cluster', 0)
     
-    # Calcular dispersión relativa robusta
-    if p25_c and p50_c and p75_c and p50_c > 0:
-        iqr_rel = (p75_c - p25_c) / p50_c
-        half_iqr_rel = iqr_rel / 2
-    else:
-        half_iqr_rel = 0.0
+    rango_result = calcular_rango_venta(
+        valor_estimado=valor_venta,
+        p25_cluster=p25_c,
+        p50_cluster=p50_c,
+        p75_cluster=p75_c,
+        n_muestras=n_v,
+        radio=meta_venta.get('radio_usado', 999),
+        confidence=resolution_metadata.get('confidence', 'MEDIA'),
+    )
     
-    # Margen usando solo parte de la dispersión del cluster
-    raw_margin = half_iqr_rel * 0.50
-    
-    # Definir floors/caps según calidad del cluster
-    n_muestras = n_v
-    radio = meta_venta.get('radio_usado', 999)
-    confidence = resolution_metadata.get('confidence', 'MEDIA')
-    
-    if n_muestras >= 50 and radio <= 300:
-        margin_floor = 0.05
-        margin_cap = 0.08
-    elif n_muestras >= 25:
-        margin_floor = 0.06
-        margin_cap = 0.10
-    elif n_muestras >= 10:
-        margin_floor = 0.08
-        margin_cap = 0.14
-    else:
-        margin_floor = 0.10
-        margin_cap = 0.18
-    
-    # Si hubo fallback o baja confianza, aumentar cap
-    if confidence == 'BAJA':
-        margin_cap = max(margin_cap, 0.20)
-    
-    margen_error = max(margin_floor, min(raw_margin, margin_cap))
-    
-    # Mantener valor principal como centro del rango
-    valor_estimado = valor_venta  # el valor actual del motor
-    
-    valor_venta_conservador = valor_estimado * (1 - margen_error)
-    valor_venta_mercado = valor_estimado
-    valor_venta_optimista = valor_estimado * (1 + margen_error)
-    
-    # Spread como indicador de confianza
-    spread_pct = ((valor_venta_optimista - valor_venta_conservador) / valor_venta_mercado * 100) if valor_venta_mercado > 0 else 0
-    
-    # Valor Lista = conservador (sin GAP)
-    # Nota: valor_venta ya es el conservador por usar m2_base_venta raw
+    rango_venta = rango_result['rango_venta']
+    margen_error = rango_venta['margen_error']
+    spread_pct = rango_venta['spread_pct']
+    valor_venta_conservador = rango_venta['min']
+    valor_venta_mercado = rango_venta['mid']
+    valor_venta_optimista = rango_venta['max']
     
     # 5. Valor Realizable (Cierre Real con GAP del 8%)
     GAP_CIERRE = 0.92
@@ -2836,9 +2797,6 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         f"Cap Rate Neto: {cap_rate_neto:.2f}% (Cap Bruto: {roi_bruto_anual:.1f}%). "
         f"Plusvalia {tipo_plusvalia}: {plusvalia_ciclo_pct:+.1f}%."
     )
-    
-    rango_min = valor_venta * 0.90
-    rango_max = valor_venta * 1.10
     
     # Generar HTML del mapa (para caching)
     mapa_html = _generar_html_mapa(prop, {
@@ -2907,23 +2865,13 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         'valor_m2_actual_usd': round(valor_venta / m2_equiv, 2) if m2_equiv > 0 else 0,
         'm2_base_venta': round(m2_base_venta, 2),
         # Rango 3 escenarios
-        'valor_venta_conservador': round(valor_venta_conservador),
-        'valor_venta_mercado': round(valor_venta_mercado),
-        'valor_venta_optimista': round(valor_venta_optimista),
-        'valor_cierre_conservador': round(valor_venta_conservador * GAP_CIERRE),
-        'valor_cierre_mercado': round(valor_venta_mercado * GAP_CIERRE),
-        'valor_cierre_optimista': round(valor_venta_optimista * GAP_CIERRE),
-        'rango_venta': {
-            'min': round(valor_venta_conservador),
-            'mid': round(valor_venta_mercado),
-            'max': round(valor_venta_optimista),
-            'margen_error': round(margen_error, 3),
-            'spread_pct': round(spread_pct, 1),
-            'p25_cluster': round(p25_c, 2),
-            'p50_cluster': round(p50_c, 2),
-            'p75_cluster': round(p75_c, 2),
-            'metodo_rango': 'valor_estimado_mas_margen_estadistico'
-        },
+        'valor_venta_conservador': int(rango_venta['min']),
+        'valor_venta_mercado': int(rango_venta['mid']),
+        'valor_venta_optimista': int(rango_venta['max']),
+        'valor_cierre_conservador': int(rango_venta['min'] * GAP_CIERRE),
+        'valor_cierre_mercado': int(rango_venta['mid'] * GAP_CIERRE),
+        'valor_cierre_optimista': int(rango_venta['max'] * GAP_CIERRE),
+        'rango_venta': rango_venta,
         'alquiler_estimado_ars': round(alquiler_mensual_ars, 0),
         'alquiler_rango': {
             'min': round(alq_min_ars),
@@ -2942,7 +2890,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         'fecha_mercado': cache.get("fecha") if cache else "Sin datos",
         'm2_equivalentes': m2_equiv,
         'justificacion': justificacion,
-        'rango_m2': f"USD {rango_min:,.0f} - {rango_max:,.0f}",
+        'rango_m2': f"USD {rango_venta['min']:,} - {rango_venta['max']:,}",
         'confianza': 'alta' if n_v > 10 else 'media',
         'nlp_detecciones': detecciones_nlp,
         'nlp_ajuste_pct': round(ajuste_nlp * 100, 2),
@@ -2999,7 +2947,8 @@ def calcular_cap_rate_local(lat_ref, lon_ref, dormitorios=2, tipo_inmueble='depa
             operacion='venta',
             lat_ref=lat_ref,
             lon_ref=lon_ref,
-            fecha_ref=fecha_ref
+            fecha_ref=fecha_ref,
+            tipo_inmueble=tipo_inmueble
         )
         
         # Cluster de ALQUILER (P50)
@@ -3009,7 +2958,8 @@ def calcular_cap_rate_local(lat_ref, lon_ref, dormitorios=2, tipo_inmueble='depa
             operacion='alquiler',
             lat_ref=lat_ref,
             lon_ref=lon_ref,
-            fecha_ref=fecha_ref
+            fecha_ref=fecha_ref,
+            tipo_inmueble=tipo_inmueble
         )
         
         # Extraer valores base

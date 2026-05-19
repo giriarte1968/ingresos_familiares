@@ -509,3 +509,83 @@ Cambiar metodo de percentil altera resultados sin cambiar datos ni logica de neg
 - STATUS_ACTUAL.md (estado)
 - BITACORA_AGENTES.md (decisiones)
 ```
+
+## 📅 2026-05-19 — FASE 2: UNIFICAR LÓGICA DEL RANGO DE VALUACIÓN
+
+### Objetivo:
+Eliminar la lógica paralela de rango de valuación. Antes había 2 rutas: el bloque inline en `valuar_propiedad_v7()` y el helper `calcular_rango_venta()` que nunca se llamaba. Ahora el helper es la única fuente de verdad.
+
+### Acciones realizadas:
+1. **Reescritura completa de `calcular_rango_venta()`** en `valuacion_helpers.py`:
+   - Nueva firma: `valor_estimado, p25/p50/p75_cluster, n_muestras, radio, confidence`
+   - Replica exactamente la lógica productiva: IQR → half → raw_margin → floor/cap por calidad de cluster → confidence BAJA aumenta cap → margen simétrico
+   - Retorna `{'rango_venta': {min, mid, max, spread_pct, margen_error, percentiles}}`
+2. **Refactor del motor** (`mercado_inmobiliario.py`):
+   - Líneas 2736-2789 (rango inline) reemplazadas por llamada a `calcular_rango_venta()`
+   - Import actualizado: se agregó `calcular_rango_venta`, se eliminó `seleccionar_percentil_por_edad` (nunca llamada)
+   - Líneas 2844-2845 (`rango_min/MAX = valor_venta * ±10%`) eliminadas
+   - `rango_m2` ahora usa el rango real del helper (antes era ±10% hardcodeado)
+   - `rango_venta` dict en return simplificado: ahora apunta directamente al dict del helper
+3. **Tests actualizados** (`test_valuacion_helpers.py`):
+   - 6 tests nuevos para la nueva firma: básico, margen con IQR, confidence baja, sin dispersión, valor cero, muestras grandes
+   - Los 15 tests pasan
+
+### Impacto en valuaciones:
+- El valor principal (`valor_venta`) no cambia — es el mismo blending P33/P45/P50
+- El `margen_error` ahora usa la misma lógica IQR + floors/caps (exactamente igual que antes)
+- **Cambio visible**: `rango_m2` ya no es ±10% hardcodeado; ahora es el rango real del cluster
+  - Para clusters grandes (≥50, ≤300m): margen más ajustado (0.08)
+  - Para clusters chicos (<10): margen más amplio (0.10-0.18)
+  - Antes siempre era ±10% independiente de la calidad del cluster
+
+### Tests: 82/82 pasando
+- 15 tests `test_valuacion_helpers.py` ✅
+- 34 tests `test_cluster_filters.py` ✅
+- 33 tests `test_regression.py` ✅ (incluye baseline Mabel $76k, Ayacucho $53k, Vera $53k, P1200 $142k)
+
+---
+
+## 📅 2026-05-19 — FASE 3: CONSOLIDAR HELPERS DE PERCENTIL Y BLEND
+
+### Objetivo:
+Eliminar duplicación de lógica en percentiles, bases y helpers muertos. Consolidar `seleccionar_percentil_por_edad()` y `calcular_blend_p33()` como fuentes únicas de verdad.
+
+### Acciones realizadas:
+1. **PASO 1 — Auditoría completa de helpers**:
+   - `calcular_percentil`: ALIVE (called from producción líneas 852-853)
+   - `calcular_blend_p33`: ALIVE (solo usado en blend_cons; mkt/opt eran inline)
+   - `seleccionar_percentil_por_edad`: **DEAD** — import removido en FASE 2, lógica duplicada inline
+   - `calcular_rango_venta`: ALIVE (FASE 2)
+
+2. **PASO 2 — Consolidación de percentil selection**:
+   - Se agregó `seleccionar_percentil_por_edad` al import
+   - Se reemplazaron 15 líneas inline (líneas 834-848) por `seleccionar_percentil_por_edad(age_filter_applied, n_age_filtered)`
+   - Lógica idéntica: mismo `P33 → P40 → P45 → P50` escalado por `n_age_filtered`
+
+3. **PASO 3 — Consolidación de blend**:
+   - `blend_mkt = ALPHA_MERCADO * pct_same + (1 - ALPHA_MERCADO) * pct_cross` → `calcular_blend_p33(pct_same, pct_cross, alpha=ALPHA_MERCADO)`
+   - `blend_opt = alpha_opt * pct_same + (1 - alpha_opt) * pct_cross` → `calcular_blend_p33(pct_same, pct_cross, alpha=alpha_opt)`
+   - Todos los blends ahora exponen la misma fórmula: simple álgebra lineal.
+
+4. **PASO 4 — Verificación de rango residuals**:
+   - Los ±10% `rango_min/rango_max` restantes están en funciones legacy (`calcular_valuacion_v5`, `AVM v6`), NO en `valuar_propiedad_v7()`. Sin cambios.
+
+5. **PASO 5 — Eliminación de helpers muertos**:
+   - Los 4 helpers de cluster están 100% activos. Ninguno eliminado.
+
+6. **PASO 6 — Tests de fuente de verdad**:
+   - **82/82 tests pasan** (49 helper + 33 regression)
+   - `auto_validate.py` ✅ — sintaxis e imports OK
+
+### Impacto en valuaciones:
+- **Sin cambios numéricos.** La fórmula de blend es algebraicamente idéntica: `alpha * same + (1-alpha) * cross`
+- La lógica de percentil es idéntica: las mismas condiciones y los mismos valores
+- **Baseline intacto:** Mabel $72,241 / Ayacucho $52,047 / Vera $52,062 / P1200 $137,888
+
+### Estado de helpers post-FASE 3:
+| Helper | Antes | Ahora |
+|--------|-------|-------|
+| `calcular_percentil` | ALIVE | ALIVE |
+| `calcular_blend_p33` | ALIVE (1 caller) | ALIVE (3 callers) |
+| `seleccionar_percentil_por_edad` | DEAD (import removido) | ALIVE (1 caller) |
+| `calcular_rango_venta` | ALIVE | ALIVE |
