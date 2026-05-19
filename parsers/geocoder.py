@@ -73,16 +73,29 @@ def guardar_cache(cache):
         json.dump(cache, f, indent=2)
 
 
+# Viewbox para restringir a Rosario centro (formato string: lon_min,lat_min,lon_max,lat_max)
+VIEWBOX = "-60.75,-33.00,-60.50,-32.87"
+
+
 def geocodificar_nominatim(direccion):
     """
-    Geocodifica usando Nominatim (OpenStreetMap).
+    Geocodifica usando Nominatim (OpenStreetMap) con query estructurada.
+    direccion debe ser solo la calle y numero (ej: "Entre Rios 400").
     """
     if not geolocator:
         return None
     
     try:
-        full_address = f"{direccion}, Rosario, Santa Fe, Argentina"
-        location = geolocator.geocode(full_address)
+        # Limpiar direccion: quitar ciudad/provincia si viene incluida
+        calle = direccion.split(',')[0].strip()
+        # Query estructurada para evitar ambigüedad "Entre Rios" = provincia
+        query = {
+            "street": calle,
+            "city": "Rosario",
+            "state": "Santa Fe",
+            "country": "Argentina",
+        }
+        location = geolocator.geocode(query)
         
         if location:
             raw = location.raw if hasattr(location, 'raw') and location.raw else {}
@@ -97,6 +110,29 @@ def geocodificar_nominatim(direccion):
     except Exception as e:
         print(f"Error geocodificación Nominatim: {e}")
     
+    return None
+
+
+def geocodificar_nominatim_freeform(direccion_full):
+    """
+    Fallback: geocodifica con free-form query (ej: "Entre Rios 400, Rosario, Santa Fe, Argentina").
+    """
+    if not geolocator:
+        return None
+    try:
+        location = geolocator.geocode(direccion_full)
+        if location:
+            raw = location.raw if hasattr(location, 'raw') and location.raw else {}
+            osm_type = raw.get('type', 'unknown') if isinstance(raw, dict) else 'unknown'
+            return {
+                "lat": location.latitude,
+                "lon": location.longitude,
+                "address": location.address or '',
+                "score": raw.get('importance', 0.5) if isinstance(raw, dict) else 0.5,
+                "type": osm_type,
+            }
+    except Exception as e:
+        print(f"Error geocodificación Nominatim freeform: {e}")
     return None
 
 
@@ -171,9 +207,8 @@ def geocoding_manager(direccion):
         anclas_data = json.load(f)
     anclas = anclas_data.get('anclas', [])
     
-    # 2. Geocodificar (primer intento)
-    direccion_full = f"{direccion}, Rosario, Santa Fe, Argentina"
-    geo = geocodificar_arcgis(direccion_full)
+    # 2. Geocodificar (primer intento solo con calle)
+    geo = geocodificar_arcgis(direccion)
     
     time.sleep(0.5)  # Rate limiting
     
@@ -186,11 +221,11 @@ def geocoding_manager(direccion):
     # 3. Validar y corregir
     lat, lon, status, ancla_id, ancla_usd, dist = validar_y_corregir(direccion, geo, anclas)
     
-    # Si quedo fuera de Rosario, reintentar con query mas especifica
+    # Si quedo fuera de Rosario, reintentar con free-form query (sin estructura)
     if status == "fuera_de_rosario":
         time.sleep(0.5)
-        direccion_full2 = f"{direccion}, Rosario Centro, Santa Fe, Argentina"
-        geo2 = geocodificar_arcgis(direccion_full2)
+        full_addr = f"{direccion}, Rosario, Santa Fe, Argentina"
+        geo2 = geocodificar_nominatim_freeform(full_addr)
         if geo2:
             geo = geo2
             lat, lon, status, ancla_id, ancla_usd, dist = validar_y_corregir(direccion, geo2, anclas)
