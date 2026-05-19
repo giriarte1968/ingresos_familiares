@@ -229,7 +229,22 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     render_historial(nombre)
 
 def mostrar_dashboard():
+    # CSS para transicion suave entre paginas (evita parpadeo y deformacion)
+    st.markdown("""
+    <style>
+    .main .block-container { transition: opacity 0.12s ease; min-height: 60vh; }
+    .stApp > div { contain: layout style; }
+    iframe { contain: layout; }
+    </style>
+    """, unsafe_allow_html=True)
+    
     page = st.session_state.page
+    
+    # Limpiar residuos visuales de la pagina anterior
+    if 'page' in st.session_state and 'prev_page' in st.session_state:
+        if st.session_state.prev_page != page:
+            st.session_state['_cleanup'] = True
+    st.session_state.prev_page = page
     
     if page == "Portfolio":
         propiedades = cargar_propiedades()
@@ -252,7 +267,7 @@ def mostrar_dashboard():
                         st.info(f"🔄 Actualizando valuación de **{p_obj['nombre']}** "
                                 f"a la nueva versión del motor ({CACHE_VERSION})...")
                     
-                    with st.spinner(f"Valuando {p_obj['nombre']}..."):
+                    with st.spinner(f"Abriendo detalle de {p_obj['nombre']}..."):
                         resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar)
                     
                     def actualizar_propiedad(nueva_data):
@@ -265,6 +280,7 @@ def mostrar_dashboard():
                     
                     if st.button("← Volver al Portafolio"):
                         st.session_state.prop_sel = None
+                        st.session_state['_returning'] = True
                         st.rerun()
                     
                     mostrar_detalle_valu(p_obj, resultado, actualizar_propiedad)

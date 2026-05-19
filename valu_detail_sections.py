@@ -152,7 +152,9 @@ def render_mapa_y_comparables(res):
     st.markdown("---")
     mapa_html = res.get('mapa_html', '')
     if mapa_html:
-        html(mapa_html, height=350)
+        # Usar container con clave fija para evitar recreacion innecesaria
+        with st.container(key="mapa_propiedad"):
+            html(mapa_html, height=350)
         n_comps_reales = len(res.get('comparables_venta', []))
         st.caption(f" {n_comps_reales} comparables de venta")
     else:
