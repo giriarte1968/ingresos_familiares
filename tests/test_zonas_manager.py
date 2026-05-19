@@ -11,6 +11,7 @@ from parsers.zonas_manager import (
     resolver_macrozona,
     normalizar_texto_zona,
     limpiar_cache,
+    obtener_tasa_depreciacion_macrozona,
 )
 
 
@@ -129,6 +130,40 @@ class TestConflictoTextoBbox:
         assert res["confianza_macrozona"] == "ALTA"
         assert res["bbox_conflict"] == True
         assert res["bbox_sugerido"] == "centro_premium"
+
+
+class TestTasaDepreciacion:
+    """Tests de tasa zonificada (FASE 7B)."""
+
+    def test_tasa_centro_premium(self):
+        prop = {"zona": "Martin", "lat": -32.9541, "lon": -60.6316}
+        tasa, mz = obtener_tasa_depreciacion_macrozona(prop)
+        assert tasa == 0.004, f"centro_premium deberia tener tasa 0.004, obtuvo {tasa}"
+
+    def test_tasa_macrocentro(self):
+        prop = {"zona": "Facultades", "lat": -32.9603, "lon": -60.6299}
+        tasa, mz = obtener_tasa_depreciacion_macrozona(prop)
+        assert tasa == 0.005, f"macrocentro deberia tener tasa 0.005, obtuvo {tasa}"
+
+    def test_tasa_norte(self):
+        prop = {"zona": "Alberdi"}
+        tasa, mz = obtener_tasa_depreciacion_macrozona(prop)
+        assert tasa == 0.006, f"norte deberia tener tasa 0.006, obtuvo {tasa}"
+
+    def test_tasa_oeste(self):
+        prop = {"zona": "Oeste"}
+        tasa, mz = obtener_tasa_depreciacion_macrozona(prop)
+        assert tasa == 0.006, f"oeste deberia tener tasa 0.006, obtuvo {tasa}"
+
+    def test_tasa_sur(self):
+        prop = {"zona": "Tablada"}
+        tasa, mz = obtener_tasa_depreciacion_macrozona(prop)
+        assert tasa == 0.006, f"sur deberia tener tasa 0.006, obtuvo {tasa}"
+
+    def test_tasa_default(self):
+        prop = {"zona": "Zona Inexistente"}
+        tasa, mz = obtener_tasa_depreciacion_macrozona(prop)
+        assert tasa == 0.006, f"default deberia tener tasa 0.006, obtuvo {tasa}"
 
 
 class TestPropiedadesReales:

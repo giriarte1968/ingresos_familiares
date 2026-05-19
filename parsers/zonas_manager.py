@@ -162,6 +162,28 @@ def resolver_macrozona(prop):
     }
 
 
+def obtener_tasa_depreciacion_macrozona(prop):
+    """
+    Retorna la tasa anual de depreciacion segun la macrozona resuelta.
+    
+    Args:
+        prop: dict con datos de la propiedad
+    
+    Returns:
+        (tasa_anual, metadata_macrozona)
+        tasa_anual: float (0.004, 0.005, 0.006)
+        metadata_macrozona: dict del resolver_macrozona
+    """
+    mz = resolver_macrozona(prop)
+    macro_id = mz.get("macrozona_id", "resto_rosario")
+    data = _cargar_macrozonas()
+    for m in data.get("macrozonas", []):
+        if m.get("id") == macro_id:
+            tasa = m.get("tasa_depreciacion_anual", 0.006)
+            return tasa, mz
+    return 0.006, mz
+
+
 def limpiar_cache():
     """Fuerza recarga del JSON en la proxima llamada."""
     _CACHE["data"] = None

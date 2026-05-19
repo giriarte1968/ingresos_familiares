@@ -7,6 +7,7 @@
       "id": "centro_premium",
       "nombre": "Centro Premium",
       "descripcion": "Martin, Pichincha, Puerto Norte, Bv Ono, Parque Espana y zonas premium consolidadas",
+      "tasa_depreciacion_anual": 0.004,
       "zonas_match_textual": [
         "martin",
         "martin",
@@ -28,6 +29,7 @@
       "id": "macrocentro",
       "nombre": "Macrocentro",
       "descripcion": "Centro extendido, Lourdes, Abasto, Sexta, Facultades, Echesortu consolidado",
+      "tasa_depreciacion_anual": 0.005,
       "zonas_match_textual": [
         "abasto",
         "lourdes",
@@ -49,6 +51,7 @@
       "id": "norte",
       "nombre": "Norte",
       "descripcion": "Alberdi, Arroyito, Fisherton y eje norte",
+      "tasa_depreciacion_anual": 0.006,
       "zonas_match_textual": [
         "norte",
         "alberdi",
@@ -66,6 +69,7 @@
       "id": "oeste",
       "nombre": "Oeste",
       "descripcion": "Godoy, Luduena, Triangulo, Bella Vista y oeste consolidado",
+      "tasa_depreciacion_anual": 0.006,
       "zonas_match_textual": [
         "oeste",
         "godoy",
@@ -89,6 +93,7 @@
       "id": "sur_default",
       "nombre": "Sur (default)",
       "descripcion": "Sur y sudoeste, sin senal RF suficiente por ahora",
+      "tasa_depreciacion_anual": 0.006,
       "zonas_match_textual": [
         "sur",
         "tablada",

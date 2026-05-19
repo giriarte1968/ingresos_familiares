@@ -1322,13 +1322,21 @@ def calcular_factores(prop, ventana_usada=None):
     
     antiguedad = ANIO_ACTUAL - anio_const
     
+    # FASE 7B: Obtener tasa zonificada segun macrozona
+    try:
+        from parsers.zonas_manager import obtener_tasa_depreciacion_macrozona
+        _tasa_zonal, _meta_mz = obtener_tasa_depreciacion_macrozona(prop)
+    except Exception:
+        _tasa_zonal = 0.006
+        _meta_mz = None
+    
     # RO-03: delta_anti = 0 cuando la base viene de P33 sin age filter
     if es_ventana3:
         delta_anti_efectivo = 0.0
     else:
         # Depreciación por Antigüedad (Year 0 -> Target)
-        # 1. Calcular depreciación lineal normal
-        delta_anti_raw = max(-0.60, -(antiguedad * 0.006))
+        # 1. Calcular depreciación lineal normal con tasa zonificada
+        delta_anti_raw = max(-0.60, -(antiguedad * _tasa_zonal))
         
         # 2. Atenuación dinámica para propiedades viejas (>30 años)
         UMBRAL_PENALIZACION_SEVERA = -0.18
@@ -1544,7 +1552,10 @@ def calcular_factores(prop, ventana_usada=None):
             'ventana': ventana_usada
         },
         'anti': factor_anti,  # Direct access for compatibility
-        'ventana': ventana_usada
+        'ventana': ventana_usada,
+        # FASE 7B: tasa zonificada de depreciacion
+        'tasa_zonal': _tasa_zonal if not es_ventana3 else 0.0,
+        'meta_mz': _meta_mz,
     }
 
 def scrapear_m2_argenprop():
@@ -2949,6 +2960,14 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         'razonamiento': razonamiento,
         'catastro_detalle': catastro_detalle,
         'macrozona_depreciacion': macrozona_info,
+        # FASE 7B: depreciacion zonificada aplicada
+        'depreciacion_zonificada': {
+            'macrozona': macrozona_info.get('macrozona_nombre', 'Resto de Rosario'),
+            'macrozona_id': macrozona_info.get('macrozona_id', 'resto_rosario'),
+            'tasa_anual': f_dict.get('tasa_zonal', 0.006),
+            'metodo_match': macrozona_info.get('metodo_match', 'default'),
+            'confianza': macrozona_info.get('confianza_macrozona', 'BAJA'),
+        },
     }
 
 
