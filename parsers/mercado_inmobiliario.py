@@ -1553,8 +1553,8 @@ def calcular_factores(prop, ventana_usada=None):
         },
         'anti': factor_anti,  # Direct access for compatibility
         'ventana': ventana_usada,
-        # FASE 7B: tasa zonificada de depreciacion
-        'tasa_zonal': _tasa_zonal if not es_ventana3 else 0.0,
+        # FASE 7B: tasa zonificada de depreciacion (siempre mostrar la real)
+        'tasa_zonal': _tasa_zonal,
         'meta_mz': _meta_mz,
     }
 
