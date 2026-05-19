@@ -159,8 +159,8 @@ def enriquecer_con_infomapa(prop: Dict) -> Optional[Dict]:
     if not filas:
         return None
 
-    # PASO 1: Top 3 por coordenadas
-    coord_candidates = _match_coordenadas(filas, float(lat), float(lon), tol=0.0006)[:3]
+    # PASO 1: Top 3 por coordenadas (~220m radio)
+    coord_candidates = _match_coordenadas(filas, float(lat), float(lon), tol=0.002)[:3]
 
     # PASO 2: Candidato por dirección (sobre TODAS las filas del CSV)
     calle, numero = _extraer_calle_numero(prop.get('direccion', ''))
@@ -185,7 +185,7 @@ def enriquecer_con_infomapa(prop: Dict) -> Optional[Dict]:
 
     # Si quedan menos de 3, buscar más en el pool completo
     if len(candidatos) < 3:
-        pool = _match_coordenadas(filas, float(lat), float(lon), tol=0.0006)
+        pool = _match_coordenadas(filas, float(lat), float(lon), tol=0.002)
         for c in pool:
             if c['ph'] not in phs_vistos and len(candidatos) < 3:
                 c['recomendado'] = False

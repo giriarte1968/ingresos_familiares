@@ -40,14 +40,15 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
             if not direccion or not direccion.strip():
                 errores.append("La dirección es obligatoria")
         with col2:
-            # Geocodificar si se solicitó
-            geo_result = st.session_state.pop(f'geo_{key_suffix}', None)
-            lat_default = geo_result['lat'] if geo_result else prop_inicial.get('lat', -32.9445)
-            lon_default = geo_result['lon'] if geo_result else prop_inicial.get('lon', -60.6319)
-            
-            lat_input = st.number_input("Latitud *", value=lat_default, format="%.7f", key=f"lat_{key_suffix}")
-            lon_input = st.number_input("Longitud *", value=lon_default, format="%.7f", key=f"lon_{key_suffix}")
-            
+            lat_key = f"lat_{key_suffix}"
+            lon_key = f"lon_{key_suffix}"
+            # Inicializar session_state si no existe (evita warning de value duplicado)
+            if lat_key not in st.session_state:
+                st.session_state[lat_key] = prop_inicial.get('lat', -32.9445)
+            if lon_key not in st.session_state:
+                st.session_state[lon_key] = prop_inicial.get('lon', -60.6319)
+            lat_input = st.number_input("Latitud *", format="%.7f", key=lat_key)
+            lon_input = st.number_input("Longitud *", format="%.7f", key=lon_key)
             if show_geocode:
                 if st.button("📍 Geocodificar dirección", width='stretch',
                              disabled=not direccion.strip(), key=f"geobtn_{key_suffix}"):
@@ -55,7 +56,8 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
                     with st.spinner("Buscando coordenadas..."):
                         geo = geocoding_manager(direccion)
                     if geo and geo.get('lat'):
-                        st.session_state[f'geo_{key_suffix}'] = geo
+                        st.session_state[lat_key] = geo['lat']
+                        st.session_state[lon_key] = geo['lon']
                         st.rerun()
                     else:
                         st.error("No se encontró la dirección en OpenStreetMap")
