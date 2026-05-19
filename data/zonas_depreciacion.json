@@ -1,25 +1,21 @@
 {
-  "version": 1,
+  "version": 2,
   "fecha_creacion": "2026-05-17",
-  "descripcion": "Macrozonas inmobiliarias de Rosario para depreciacion diferenciada",
   "default_macrozona": "resto_rosario",
   "macrozonas": [
     {
       "id": "centro_premium",
       "nombre": "Centro Premium",
-      "descripcion": "Centro, Martin, Pichincha, Bv Ono, Puerto Norte y zonas premium consolidadas. Mayor densidad de valor de Rosario.",
+      "descripcion": "Martin, Pichincha, Puerto Norte, Bv Ono, Parque Espana y zonas premium consolidadas",
       "zonas_match_textual": [
-        "centro premium",
-        "centro",
         "martin",
         "martin",
         "pichincha",
+        "puerto norte",
         "bv orono",
         "bv ono",
-        "puerto norte",
-        "parque espaa",
         "parque espana",
-        "lourdes"
+        "parque espaa"
       ],
       "bbox": {
         "lat_min": -32.9600,
@@ -31,15 +27,16 @@
     {
       "id": "macrocentro",
       "nombre": "Macrocentro",
-      "descripcion": "Centro extendido, Abasto, Sexta, Facultades, Echesortu, Pellegrini. Zona de transicion entre centro premium y periferia.",
+      "descripcion": "Centro extendido, Lourdes, Abasto, Sexta, Facultades, Echesortu consolidado",
       "zonas_match_textual": [
-        "macrocentro",
         "abasto",
+        "lourdes",
         "sexta",
         "sexta pellegrini",
         "facultades",
         "echesortu",
-        "pellegrini"
+        "republica de la sexta",
+        "repblica de la sexta"
       ],
       "bbox": {
         "lat_min": -32.9750,
@@ -49,33 +46,70 @@
       }
     },
     {
-      "id": "resto_rosario",
-      "nombre": "Resto de Rosario",
-      "descripcion": "Norte, Oeste, Sur, Sudoeste y periferias no incluidas en zonas premium o macrocentro.",
+      "id": "norte",
+      "nombre": "Norte",
+      "descripcion": "Alberdi, Arroyito, Fisherton y eje norte",
       "zonas_match_textual": [
-        "resto rosario",
         "norte",
         "alberdi",
-        "fisherton",
         "arroyito",
+        "fisherton"
+      ],
+      "bbox": {
+        "lat_min": -32.9300,
+        "lat_max": -32.8500,
+        "lon_min": -60.7800,
+        "lon_max": -60.6000
+      }
+    },
+    {
+      "id": "oeste",
+      "nombre": "Oeste",
+      "descripcion": "Godoy, Luduena, Triangulo, Bella Vista y oeste consolidado",
+      "zonas_match_textual": [
         "oeste",
-        "sur",
-        "sudoeste",
-        "bella vista",
-        "luduena",
-        "ludueña",
         "godoy",
+        "luduea",
+        "luduena",
         "triangulo",
+        "triangulo",
+        "bella vista",
         "moderno",
+        "felipe more",
+        "felipe mor"
+      ],
+      "bbox": {
+        "lat_min": -32.9750,
+        "lat_max": -32.9000,
+        "lon_min": -60.7800,
+        "lon_max": -60.6700
+      }
+    },
+    {
+      "id": "sur_default",
+      "nombre": "Sur (default)",
+      "descripcion": "Sur y sudoeste, sin senal RF suficiente por ahora",
+      "zonas_match_textual": [
+        "sur",
         "tablada",
         "flores",
         "industrial",
-        "empalme",
+        "sudoeste",
         "uriburu",
-        "felipe more",
-        "felipe mor",
-        "otro"
+        "grandoli"
       ],
+      "bbox": {
+        "lat_min": -33.0500,
+        "lat_max": -32.9750,
+        "lon_min": -60.7600,
+        "lon_max": -60.6000
+      }
+    },
+    {
+      "id": "resto_rosario",
+      "nombre": "Resto de Rosario",
+      "descripcion": "Fallback para zonas no clasificadas",
+      "zonas_match_textual": [],
       "bbox": null
     }
   ]

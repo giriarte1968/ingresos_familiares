@@ -258,12 +258,16 @@ def render_macrozona(res):
         return
     mz_id = mz.get('macrozona_id', '')
     mz_nombre = mz.get('macrozona_nombre', '')
-    metodo = mz.get('metodo', '')
-    confianza = mz.get('confianza', '')
+    metodo = mz.get('metodo_match', mz.get('metodo', ''))
+    confianza = mz.get('confianza_macrozona', mz.get('confianza', ''))
+    bbox_conflict = mz.get('bbox_conflict', False)
     if not mz_id:
         return
     badges = {"ALTA": "#16A34A", "MEDIA": "#F59E0B", "BAJA": "#DC2626"}
     color = badges.get(confianza, "#6B7280")
+    conflict_html = ''
+    if bbox_conflict:
+        conflict_html = f'<span style="display:inline-block;padding:2px 6px;border-radius:4px;background:#FEF3C7;color:#92400E;font-size:0.75rem;">conflicto bbox: {mz.get("bbox_sugerido","")}</span>'
     st.markdown(f"""
     <div style="display:flex;align-items:center;gap:8px;margin-top:8px;padding:8px 12px;background:#f8fafc;border-radius:8px;font-size:0.85rem;">
         <span style="color:#64748b;">Macrozona:</span>
@@ -271,6 +275,7 @@ def render_macrozona(res):
         <span style="display:inline-block;padding:2px 8px;border-radius:6px;background:{color}20;color:{color};font-size:0.75rem;font-weight:600;">{metodo.upper()}</span>
         <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{color};"></span>
         <span style="color:#64748b;font-size:0.75rem;">{confianza}</span>
+        {conflict_html}
     </div>
     """, unsafe_allow_html=True)
 

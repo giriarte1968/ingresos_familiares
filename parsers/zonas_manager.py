@@ -2,10 +2,14 @@
 Sistema de macrozonas inmobiliarias para depreciacion diferenciada.
 Provee resolucion de macrozona para cualquier propiedad del sistema.
 
+Jerarquia de resolucion:
+  1. Texto especifico (keywords de alta precision) -> confianza ALTA
+  2. Bounding box geografico (lat/lon) -> confianza MEDIA
+  3. Default (resto_rosario) -> confianza BAJA
+
 Uso:
     from parsers.zonas_manager import resolver_macrozona
     resultado = resolver_macrozona(prop)
-    # -> {"macrozona_id": "...", "macrozona_nombre": "...", "metodo": "...", "confianza": "..."}
 """
 import json
 import os
@@ -13,7 +17,6 @@ import re
 
 _ZONAS_FILE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                             "data", "zonas_depreciacion.json")
-
 _CACHE = {"data": None, "version": 0}
 
 
@@ -31,18 +34,10 @@ def _cargar_macrozonas():
 
 
 def normalizar_texto_zona(texto):
-    """
-    Normaliza texto de zona para busqueda textual.
-    - lower
-    - elimina tildes y dieresis
-    - elimina puntuacion
-    - strip
-    - colapsa espacios multiples
-    """
+    """Normaliza texto de zona: lower, sin tildes, sin puntuacion, espacios compactos."""
     if not texto:
         return ""
     t = texto.lower().strip()
-    # Reemplazar caracteres acentuados y especiales
     reemplazos = {
         'a': ['á', 'à', 'ä', 'â'],
         'e': ['é', 'è', 'ë', 'ê'],
@@ -55,83 +50,115 @@ def normalizar_texto_zona(texto):
     for target, chars in reemplazos.items():
         for ch in chars:
             t = t.replace(ch, target)
-
-    # Eliminar caracteres no alfanumericos (excepto espacios)
     t = re.sub(r'[^a-z0-9\s]', ' ', t)
-    # Colapsar espacios multiples
     t = re.sub(r'\s+', ' ', t).strip()
     return t
 
 
+def _nombre_por_id(mid):
+    """Obtiene nombre legible de una macrozona por su id."""
+    data = _cargar_macrozonas()
+    for m in data["macrozonas"]:
+        if m["id"] == mid:
+            return m["nombre"]
+    return mid
+
+
 def resolver_macrozona(prop):
     """
-    Resuelve la macrozona de una propiedad.
+    Resuelve la macrozona de una propiedad siguiendo la jerarquia:
+    1) texto especifico (confianza ALTA)
+    2) bbox geografico (confianza MEDIA)
+    3) default (confianza BAJA)
 
     Args:
-        prop: dict con datos de la propiedad.
-              Debe contener al menos 'zona' (string) o 'lat'/'lon' (float).
+        prop: dict con datos de la propiedad (zona, barrio, lat, lon)
 
     Returns:
-        dict con:
-            macrozona_id: str
-            macrozona_nombre: str
-            metodo: "textual" | "bbox" | "default"
-            confianza: "ALTA" | "MEDIA" | "BAJA"
+        dict con macrozona_id, macrozona_nombre, metodo_match, confianza_macrozona, bbox_conflict
     """
     data = _cargar_macrozonas()
     default_id = data.get("default_macrozona", "resto_rosario")
 
-    # Encontrar la macrozona default para nombre
-    def _nombre_por_id(mid):
-        for m in data["macrozonas"]:
-            if m["id"] == mid:
-                return m["nombre"]
-        return mid
-
-    # 1. MATCH TEXTUAL
-    zona = prop.get("zona", "") or prop.get("barrio", "") or ""
-    if zona:
-        zona_norm = normalizar_texto_zona(zona)
+    # --- 1. MATCH TEXTUAL ---
+    texto_zona = (prop.get("zona") or prop.get("barrio") or prop.get("direccion") or "")
+    match_textual = None
+    if texto_zona:
+        zona_norm = normalizar_texto_zona(texto_zona)
         for mz in data["macrozonas"]:
             for keyword in mz.get("zonas_match_textual", []):
                 kw_norm = normalizar_texto_zona(keyword)
                 if kw_norm and kw_norm in zona_norm:
-                    return {
-                        "macrozona_id": mz["id"],
-                        "macrozona_nombre": mz["nombre"],
-                        "metodo": "textual",
-                        "confianza": "ALTA",
-                    }
+                    match_textual = mz
+                    break
+            if match_textual:
+                break
 
-    # 2. MATCH POR BBOX
+    # --- 2. MATCH POR BBOX ---
+    match_bbox = None
     lat = prop.get("lat")
     lon = prop.get("lon")
     if lat is not None and lon is not None:
         try:
-            lat_f = float(lat)
-            lon_f = float(lon)
-            # Iterar macrozonas con bbox definido
+            lat_f, lon_f = float(lat), float(lon)
             for mz in data["macrozonas"]:
                 bbox = mz.get("bbox")
                 if bbox is None:
                     continue
                 if (bbox["lat_min"] <= lat_f <= bbox["lat_max"]
                         and bbox["lon_min"] <= lon_f <= bbox["lon_max"]):
-                    return {
-                        "macrozona_id": mz["id"],
-                        "macrozona_nombre": mz["nombre"],
-                        "metodo": "bbox",
-                        "confianza": "MEDIA",
-                    }
+                    match_bbox = mz
+                    break
         except (ValueError, TypeError):
             pass
 
-    # 3. DEFAULT
+    # --- 3. RESOLVER ---
+    if match_textual and match_bbox:
+        # Conflicto: texto dice una zona, bbox dice otra
+        if match_textual["id"] != match_bbox["id"]:
+            return {
+                "macrozona_id": match_textual["id"],
+                "macrozona_nombre": match_textual["nombre"],
+                "metodo_match": "textual",
+                "confianza_macrozona": "ALTA",
+                "bbox_conflict": True,
+                "bbox_sugerido": match_bbox["id"],
+            }
+        else:
+            # Coinciden: solo metadata textual
+            return {
+                "macrozona_id": match_textual["id"],
+                "macrozona_nombre": match_textual["nombre"],
+                "metodo_match": "textual",
+                "confianza_macrozona": "ALTA",
+                "bbox_conflict": False,
+            }
+
+    if match_textual:
+        return {
+            "macrozona_id": match_textual["id"],
+            "macrozona_nombre": match_textual["nombre"],
+            "metodo_match": "textual",
+            "confianza_macrozona": "ALTA",
+            "bbox_conflict": False,
+        }
+
+    if match_bbox:
+        return {
+            "macrozona_id": match_bbox["id"],
+            "macrozona_nombre": match_bbox["nombre"],
+            "metodo_match": "bbox",
+            "confianza_macrozona": "MEDIA",
+            "bbox_conflict": False,
+        }
+
+    # Default
     return {
         "macrozona_id": default_id,
         "macrozona_nombre": _nombre_por_id(default_id),
-        "metodo": "default",
-        "confianza": "BAJA",
+        "metodo_match": "default",
+        "confianza_macrozona": "BAJA",
+        "bbox_conflict": False,
     }
 
 

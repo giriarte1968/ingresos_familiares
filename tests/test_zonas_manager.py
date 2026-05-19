@@ -1,5 +1,5 @@
 """
-Tests para el sistema de macrozonas de depreciacion (FASE 7A).
+Tests para el sistema de macrozonas de depreciacion (FASE 7A ajustada).
 """
 import pytest
 import os
@@ -15,8 +15,6 @@ from parsers.zonas_manager import (
 
 
 class TestNormalizarTexto:
-    """Tests de normalizacion de texto de zona."""
-
     def test_lowercase(self):
         assert normalizar_texto_zona("Martin") == "martin"
 
@@ -26,8 +24,8 @@ class TestNormalizarTexto:
     def test_tildes_multiples(self):
         assert "sexta pellegrini" in normalizar_texto_zona("Sexta Pellegrini")
 
-    def test_tilde_otras(self):
-        assert "luduena" in normalizar_texto_zona("Ludueña")
+    def test_republica_sexta(self):
+        assert normalizar_texto_zona("República de la Sexta") == "republica de la sexta"
 
     def test_vacio(self):
         assert normalizar_texto_zona("") == ""
@@ -36,115 +34,124 @@ class TestNormalizarTexto:
         assert normalizar_texto_zona(None) == ""
 
 
-class TestResolverTexto:
-    """Tests de resolucion por match textual."""
-
+class TestMatchTextual:
     def test_mabel_martin(self):
-        """Mabel (zona=Martin) -> centro_premium con confianza ALTA."""
-        prop = {"zona": "Martin"}
-        res = resolver_macrozona(prop)
-        assert res["macrozona_id"] == "centro_premium", f"Esperaba centro_premium, obtuvo {res}"
-        assert res["confianza"] == "ALTA"
-        assert res["metodo"] == "textual"
+        """Mabel (zona=Martin) -> centro_premium ALTA."""
+        res = resolver_macrozona({"zona": "Martin"})
+        assert res["macrozona_id"] == "centro_premium"
+        assert res["confianza_macrozona"] == "ALTA"
+        assert res["metodo_match"] == "textual"
 
-    def test_ayacucho_sexta(self):
-        """Ayacucho (zona=Sexta Pellegrini) -> macrocentro."""
-        prop = {"zona": "Sexta Pellegrini"}
-        res = resolver_macrozona(prop)
-        assert res["macrozona_id"] == "macrocentro", f"Esperaba macrocentro, obtuvo {res}"
-        assert res["confianza"] == "ALTA"
+    def test_ayacucho_sexta_pellegrini(self):
+        """Ayacucho (zona=Sexta Pellegrini) -> macrocentro ALTA."""
+        res = resolver_macrozona({"zona": "Sexta Pellegrini"})
+        assert res["macrozona_id"] == "macrocentro"
+        assert res["confianza_macrozona"] == "ALTA"
 
     def test_vera_facultades(self):
-        """Vera (zona=Facultades) -> macrocentro."""
-        prop = {"zona": "Facultades"}
-        res = resolver_macrozona(prop)
-        assert res["macrozona_id"] == "macrocentro", f"Esperaba macrocentro, obtuvo {res}"
-        assert res["confianza"] == "ALTA"
-
-    def test_p1200_centro(self):
-        """P1200 (zona=Centro) -> centro_premium (textual match)."""
-        prop = {"zona": "Centro"}
-        res = resolver_macrozona(prop)
-        assert res["macrozona_id"] == "centro_premium", f"Esperaba centro_premium, obtuvo {res}"
-        assert res["confianza"] == "ALTA"
-
-    def test_amenabar_otro(self):
-        """Amenabar (zona=Oeste) -> resto_rosario."""
-        limpiar_cache()
-        prop = {"zona": "Oeste", "lat": -32.95, "lon": -60.68}
-        res = resolver_macrozona(prop)
-        assert res["macrozona_id"] == "resto_rosario"
-        assert res["confianza"] == "ALTA"
-
-    def test_pichincha_premium(self):
-        prop = {"zona": "Pichincha"}
-        res = resolver_macrozona(prop)
-        assert res["macrozona_id"] == "centro_premium", f"obtuvo {res}"
-
-    def test_abasto_macrocentro(self):
-        prop = {"zona": "Abasto"}
-        res = resolver_macrozona(prop)
+        """Vera (zona=Facultades) -> macrocentro ALTA."""
+        res = resolver_macrozona({"zona": "Facultades"})
         assert res["macrozona_id"] == "macrocentro"
 
+    def test_abasto_macrocentro(self):
+        res = resolver_macrozona({"zona": "Abasto"})
+        assert res["macrozona_id"] == "macrocentro"
 
-class TestResolverBbox:
-    """Tests de resolucion por bounding box."""
-
-    def test_bbox_centro_premium(self):
-        """Coordenadas en zona centro premium sin zona textual -> bbox."""
-        prop = {"lat": -32.945, "lon": -60.640}
-        res = resolver_macrozona(prop)
-        assert res["macrozona_id"] == "centro_premium", f"obtuvo {res}"
-        assert res["confianza"] == "MEDIA"
-        assert res["metodo"] == "bbox"
-
-    def test_bbox_macrocentro(self):
-        """Coordenadas en macrocentro."""
-        prop = {"lat": -32.965, "lon": -60.635}
-        res = resolver_macrozona(prop)
-        assert res["macrozona_id"] == "macrocentro", f"obtuvo {res}"
-
-    def test_bbox_sin_texto(self):
-        """Sin zona textual pero con coordenadas en centro premium."""
-        prop = {"zona": "Otra Zona Desconocida", "lat": -32.945, "lon": -60.640}
-        res = resolver_macrozona(prop)
-        # Primero intenta textual -> falla -> bbox
+    def test_pichincha_premium(self):
+        res = resolver_macrozona({"zona": "Pichincha"})
         assert res["macrozona_id"] == "centro_premium"
-        assert res["confianza"] == "MEDIA"
-        assert res["metodo"] == "bbox"
 
-    def test_bbox_fuera(self):
-        """Coordenadas fuera de toda bbox + zona desconocida -> default."""
-        prop = {"zona": "Zona Desconocida"}
-        res = resolver_macrozona(prop)
+    def test_oeste_es_oeste(self):
+        res = resolver_macrozona({"zona": "Oeste"})
+        assert res["macrozona_id"] == "oeste"
+
+    def test_alberdi_norte(self):
+        res = resolver_macrozona({"zona": "Alberdi"})
+        assert res["macrozona_id"] == "norte"
+
+    def test_tablada_sur(self):
+        res = resolver_macrozona({"zona": "Tablada"})
+        assert res["macrozona_id"] == "sur_default"
+
+    def test_keyword_generica_no_exacta(self):
+        """'Centro' sin mas contexto NO debe matchear centro_premium."""
+        res = resolver_macrozona({"zona": "Centro"})
+        # 'centro' no esta en keywords de ninguna zona -> cae a bbox sin coords -> default
+        assert res["metodo_match"] == "default" or res["macrozona_id"] != "centro_premium"
+
+    def test_keyword_pellegrini_no_exacta(self):
+        """'Pellegrini' sin mas contexto NO debe matchear."""
+        res = resolver_macrozona({"zona": "Pellegrini"})
+        # 'pellegrini' no es keyword especifica
+        assert res["metodo_match"] == "default"
+
+
+class TestMatchBbox:
+    def test_bbox_centro_premium(self):
+        """Coordenadas en zona centro premium sin zona -> bbox MEDIA."""
+        res = resolver_macrozona({"lat": -32.945, "lon": -60.640})
+        assert res["macrozona_id"] == "centro_premium"
+        assert res["confianza_macrozona"] == "MEDIA"
+        assert res["metodo_match"] == "bbox"
+
+    def test_bbox_norte(self):
+        res = resolver_macrozona({"lat": -32.910, "lon": -60.680})
+        assert res["macrozona_id"] == "norte"
+
+    def test_bbox_oeste(self):
+        res = resolver_macrozona({"lat": -32.950, "lon": -60.710})
+        assert res["macrozona_id"] == "oeste"
+
+    def test_bbox_sur(self):
+        res = resolver_macrozona({"lat": -33.000, "lon": -60.650})
+        assert res["macrozona_id"] == "sur_default"
+
+    def test_fallback_sin_coords(self):
+        """Sin zona, sin coords -> default BAJA."""
+        res = resolver_macrozona({"zona": "Zona Desconocida"})
         assert res["macrozona_id"] == "resto_rosario"
-        assert res["confianza"] == "BAJA"
-        assert res["metodo"] == "default"
+        assert res["confianza_macrozona"] == "BAJA"
+
+    def test_fallback_sin_bbox_ni_texto(self):
+        res = resolver_macrozona({})
+        assert res["macrozona_id"] == "resto_rosario"
+
+
+class TestConflictoTextoBbox:
+    def test_conflicto_facultades_coords_premium(self):
+        """Vera: texto=Facultades(macrocentro), coords en centro_premium -> gana texto con conflicto."""
+        res = resolver_macrozona({
+            "zona": "Facultades",
+            "lat": -32.945,
+            "lon": -60.640,
+        })
+        assert res["macrozona_id"] == "macrocentro"  # gana texto
+        assert res["confianza_macrozona"] == "ALTA"
+        assert res["bbox_conflict"] == True
+        assert res["bbox_sugerido"] == "centro_premium"
 
 
 class TestPropiedadesReales:
-    """Tests con las propiedades ancla reales."""
+    def test_mabel(self):
+        res = resolver_macrozona({"zona": "Martin", "lat": -32.9541, "lon": -60.6316})
+        assert res["macrozona_id"] == "centro_premium"
 
-    def test_mabel_real(self):
-        """Mabel desde propiedades.json."""
-        prop = {"zona": "Martin", "lat": -32.9541, "lon": -60.6316}
-        res = resolver_macrozona(prop)
-        assert res["macrozona_id"] == "centro_premium", f"obtuvo {res}"
+    def test_ayacucho(self):
+        res = resolver_macrozona({"zona": "Sexta Pellegrini", "lat": -32.9603, "lon": -60.6299})
+        assert res["macrozona_id"] == "macrocentro"
 
-    def test_ayacucho_real(self):
-        """Ayacucho desde propiedades.json."""
-        prop = {"zona": "Sexta Pellegrini", "lat": -32.9603, "lon": -60.6299}
-        res = resolver_macrozona(prop)
-        assert res["macrozona_id"] == "macrocentro", f"obtuvo {res}"
+    def test_vera(self):
+        res = resolver_macrozona({"zona": "Facultades", "lat": -32.9452, "lon": -60.6377})
+        assert res["macrozona_id"] == "macrocentro"
+        assert res["bbox_conflict"] == True  # coords caen en centro_premium
 
-    def test_vera_real(self):
-        """Vera desde propiedades.json."""
-        prop = {"zona": "Facultades", "lat": -32.9452, "lon": -60.6377}
-        res = resolver_macrozona(prop)
-        assert res["macrozona_id"] == "macrocentro", f"obtuvo {res}"
+    def test_p1200(self):
+        """P1200 zona=Centro -> no matchea textual -> cae a bbox (centro_premium)."""
+        res = resolver_macrozona({"zona": "Centro", "lat": -32.9487, "lon": -60.6407})
+        assert res["metodo_match"] == "bbox"
+        assert res["macrozona_id"] == "centro_premium"
 
-    def test_p1200_real(self):
-        """P1200 desde propiedades.json."""
-        prop = {"zona": "Centro", "lat": -32.9487, "lon": -60.6407}
-        res = resolver_macrozona(prop)
-        assert res["macrozona_id"] == "centro_premium", f"obtuvo {res}"
+    def test_amenabar_oeste(self):
+        """Amenabar zona=Oeste -> matchea textual -> oeste."""
+        res = resolver_macrozona({"zona": "Oeste"})
+        assert res["macrozona_id"] == "oeste"
