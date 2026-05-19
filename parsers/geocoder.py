@@ -15,7 +15,7 @@ except ImportError:
     GEOPY_AVAILABLE = False
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-ANCLAS_FILE = os.path.join(BASE_DIR, "anclas_rosario_v2_grid.json")  # V2
+ANCLAS_FILE = os.path.join(BASE_DIR, "anclas_rosario_v3_grid.json")  # V3
 PROPIEDADES_FILE = os.path.join(BASE_DIR, "propiedades.json")
 CACHE_FILE = os.path.join(BASE_DIR, "geocoding_cache.json")
 
