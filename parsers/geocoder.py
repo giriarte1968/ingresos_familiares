@@ -36,41 +36,7 @@ def cargar_cache():
 
 def guardar_cache(cache):
     with open(CACHE_FILE, 'w', encoding='utf-8') as f:
-        json.dump(cache, f, indent=2)
-
-
-def haversine_distance(lat1, lon1, lat2, lon2):
-    """Calcula distancia en km entre dos puntos."""
-    R = 6371
-    lat1_r, lat2_r = math.radians(lat1), math.radians(lat2)
-    dlat = math.radians(lat2 - lat1)
-    dlon = math.radians(lon2 - lon1)
-    a = math.sin(dlat/2)**2 + math.cos(lat1_r) * math.cos(lat2_r) * math.sin(dlon/2)**2
-    return 2 * R * math.asin(math.sqrt(a))
-
-
-def snap_a_anclas(lat, lon, anclas, k=5):
-    """
-    Deshabilitado: Nominatim ya es preciso (~32m).
-    Retorna coordenadas originales.
-    """
-    return lat, lon, "no_snap"
-
-
-def normalizar_direccion(direccion):
-    return direccion.strip().lower()
-
-
-def cargar_cache():
-    if os.path.exists(CACHE_FILE):
-        with open(CACHE_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    return {}
-
-
-def guardar_cache(cache):
-    with open(CACHE_FILE, 'w', encoding='utf-8') as f:
-        json.dump(cache, f, indent=2)
+        json.dump(cache, f, indent=2, ensure_ascii=False)
 
 
 # Viewbox para restringir a Rosario centro (formato string: lon_min,lat_min,lon_max,lat_max)
