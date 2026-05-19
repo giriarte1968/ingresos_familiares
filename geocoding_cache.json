@@ -49,7 +49,7 @@
     "ancla_usd": 1100,
     "distancia_km": 0.54
   },
-  "entre r\u00edos 400": {
+  "entre ríos 400": {
     "lat": -32.9412249,
     "lon": -60.6397994,
     "status": "low_confidence",
@@ -58,5 +58,15 @@
     "ancla_id": "macrocentro_salta_lagos",
     "ancla_usd": 1620,
     "distancia_km": 0.14
+  },
+  "entre ríos  1000": {
+    "lat": -32.9484766,
+    "lon": -60.6415897,
+    "status": "low_confidence",
+    "score": 6.83916990920427e-05,
+    "type": "house",
+    "ancla_id": "centro_san_juan_entre_rios",
+    "ancla_usd": 1600,
+    "distancia_km": 0.05
   }
 }
