@@ -116,12 +116,12 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
             if show_geocode:
                 dbg = f"_debug_geo_{key_suffix}"
                 last_key = f"_last_geo_{key_suffix}"
-                debug_msg = st.session_state.get(dbg, "")
-                last_addr = st.session_state.get(last_key, "")
+                debug_msg = st.session_state.get(dbg, "esperando...")
+                last_addr = st.session_state.get(last_key, "(none)")
                 current_addr = st.session_state.get(f"direccion_{key_suffix}", "")
-                cur_lat = st.session_state.get(lat_key, None)
-                cur_lon = st.session_state.get(lon_key, None)
-                st.caption(f"Debug: addr={current_addr!r} last_geo={last_addr!r} lat={cur_lat} lon={cur_lon} | {debug_msg}")
+                cur_lat = st.session_state.get(lat_key, "?")
+                cur_lon = st.session_state.get(lon_key, "?")
+                st.info(f"**Debug Geo** addr={current_addr!r}  last_geo={last_addr!r}  lat={cur_lat}  lon={cur_lon}  |  {debug_msg}")
             
             ub_tipos = ["calle", "avenida", "esquina", "pasaje"]
             ubicacion_tipo = st.selectbox("Tipo de Ubicación", ub_tipos, index=ub_tipos.index(prop_inicial.get('ubicacion_tipo', 'calle')) if prop_inicial.get('ubicacion_tipo') in ub_tipos else 0, key=f"ubica_tipo_{key_suffix}")

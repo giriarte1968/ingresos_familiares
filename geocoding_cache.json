@@ -88,5 +88,15 @@
     "ancla_id": "macrocentro_salta_lagos",
     "ancla_usd": 1620,
     "distancia_km": 0.14
+  },
+  "entre ríos  401": {
+    "lat": -32.9414023,
+    "lon": -60.6397314,
+    "status": "low_confidence",
+    "score": 6.83916990920427e-05,
+    "type": "house",
+    "ancla_id": "macrocentro_salta_lagos",
+    "ancla_usd": 1620,
+    "distancia_km": 0.16
   }
 }
