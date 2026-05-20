@@ -68,9 +68,11 @@
       ">50": 0.97
     },
     "calidad": {
-      "alta": 1.15,
+      "premium": 1.08,
+      "excelente": 1.06,
+      "alta": 1.04,
       "media": 1.0,
-      "baja": 0.85
+      "baja": 0.95
     }
   },
   "tracking": {},

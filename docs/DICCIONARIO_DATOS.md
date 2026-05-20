@@ -80,6 +80,45 @@ Diccionario simple para ajustar la calidad del edificio.
 
 ---
 
+## 4b. Normalización de `estado_detalle` vs `calidad_edificio` (TAREA 2026-05-20)
+
+Regla aplicada en `calcular_factores()` vía helper `normalizar_estado_y_calidad(prop)`:
+
+- `estado_detalle = "premium"` → se normaliza a estado `"excelente"` (factor 1.05)
+- `calidad_edificio` se promueve a `"premium"` solo si estaba vacío o `"media"`
+- Si `calidad_edificio` ya tenía otro valor (ej. `"alta"`), se respeta sin cambios
+
+### Factor de Estado (nueva tabla, sin premium)
+
+| Clave | Factor | Descripción |
+|-------|--------|-------------|
+| `malo` | 0.85 | Estado de conservación deficiente |
+| `regular` | 0.92 | Estado regular |
+| `bueno` | 1.00 | Estado normal (neutro) |
+| `muy_bueno` | 1.03 | Buen estado de conservación |
+| `excelente` | 1.05 | Excelente estado |
+| `a_estrenar` | 1.08 | Propiedad nueva sin uso |
+
+### Factor de Calidad (nueva tabla, con premium)
+
+| Clave | Factor | Descripción |
+|-------|--------|-------------|
+| `baja` | 0.95 | Calidad constructiva baja |
+| `media` | 1.00 | Calidad estándar (neutro) |
+| `alta` | 1.04 | Calidad superior |
+| `excelente` | 1.06 | Calidad excelente |
+| `premium` | 1.08 | Calidad premium (categoría, no estado) |
+
+### Factor de Ventilación (suavizado)
+
+| Clave | Factor | Descripción |
+|-------|--------|-------------|
+| `simple` | 0.95 | Ventilación simple (antes 0.90) |
+| `doble` | 1.00 | Doble ventilación (neutro) |
+| `cruzada` | 1.05 | Ventilación cruzada (antes 1.10) |
+
+---
+
 ## 5. Parámetros de Atenuación Dinámica y Guardrails (V13.0)
 
 - `UMBRAL_PENALIZACION` (float): Límite de castigo por antigüedad antes de aplicar atenuación agresiva (ej. -0.15).

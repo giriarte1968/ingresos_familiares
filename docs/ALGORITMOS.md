@@ -184,7 +184,53 @@ Fórmula exacta:
 
 Fueron calibraciones para bajar Mabel a rango realista sin romper Ayacucho ni Vera.
 
-### 6. Exclusión de factor_pasillo
+### 6. Ajustes finos v2 — Recalibración de Factores Constructivos (TAREA 2026-05-20)
+
+Corrección semántica: `premium` NO es un estado de conservación sino una categoría de calidad.
+
+#### factor_estado (nueva tabla)
+
+Solo estados de conservación, `premium` eliminado:
+
+| Estado | Factor | Variación vs 1.0 |
+|--------|--------|-------------------|
+| malo | 0.85 | -15% |
+| regular | 0.92 | -8% |
+| bueno | 1.00 | 0% |
+| muy_bueno | 1.03 | +3% |
+| excelente | 1.05 | +5% |
+| a_estrenar | 1.08 | +8% |
+
+#### factor_calidad (nueva tabla)
+
+`premium` agregado como categoría de calidad:
+
+| Calidad | Factor | Variación vs 1.0 |
+|---------|--------|-------------------|
+| baja | 0.95 | -5% |
+| media | 1.00 | 0% |
+| alta | 1.04 | +4% |
+| excelente | 1.06 | +6% |
+| premium | 1.08 | +8% |
+
+#### Normalización defensiva
+
+Cuando `estado_detalle = "premium"`:
+- `estado_norm = "excelente"` (factor 1.05)
+- Si `calidad_edificio` está vacío o `"media"` → promueve a `"premium"` (factor 1.08)
+- Nunca aplica doble premio
+
+#### Ventilación suavizada
+
+| Tipo | Antes | Ahora |
+|------|-------|-------|
+| simple | 0.90 | 0.95 |
+| doble | 1.00 | 1.00 |
+| cruzada | 1.10 | 1.05 |
+
+Swing total reducido de 20% a 10%.
+
+### 7. Exclusión de factor_pasillo
 - `factor_pasillo` NO forma parte de la fórmula general de departamentos/PH.
 - Si existiera una lógica futura para casas/PH especiales, debe vivir en un motor separado.
 
@@ -273,7 +319,53 @@ Fórmula exacta:
 
 Fueron calibraciones para bajar Mabel a rango realista sin romper Ayacucho ni Vera.
 
-### 6. Exclusión de factor_pasillo
+### 6. Ajustes finos v2 — Recalibración de Factores Constructivos (TAREA 2026-05-20)
+
+Corrección semántica: `premium` NO es un estado de conservación sino una categoría de calidad.
+
+#### factor_estado (nueva tabla)
+
+Solo estados de conservación, `premium` eliminado:
+
+| Estado | Factor | Variación vs 1.0 |
+|--------|--------|-------------------|
+| malo | 0.85 | -15% |
+| regular | 0.92 | -8% |
+| bueno | 1.00 | 0% |
+| muy_bueno | 1.03 | +3% |
+| excelente | 1.05 | +5% |
+| a_estrenar | 1.08 | +8% |
+
+#### factor_calidad (nueva tabla)
+
+`premium` agregado como categoría de calidad:
+
+| Calidad | Factor | Variación vs 1.0 |
+|---------|--------|-------------------|
+| baja | 0.95 | -5% |
+| media | 1.00 | 0% |
+| alta | 1.04 | +4% |
+| excelente | 1.06 | +6% |
+| premium | 1.08 | +8% |
+
+#### Normalización defensiva
+
+Cuando `estado_detalle = "premium"`:
+- `estado_norm = "excelente"` (factor 1.05)
+- Si `calidad_edificio` está vacío o `"media"` → promueve a `"premium"` (factor 1.08)
+- Nunca aplica doble premio
+
+#### Ventilación suavizada
+
+| Tipo | Antes | Ahora |
+|------|-------|-------|
+| simple | 0.90 | 0.95 |
+| doble | 1.00 | 1.00 |
+| cruzada | 1.10 | 1.05 |
+
+Swing total reducido de 20% a 10%.
+
+### 7. Exclusión de factor_pasillo
 - `factor_pasillo` NO forma parte de la fórmula general de departamentos/PH.
 - Si existiera una lógica futura para casas/PH especiales, debe vivir en un motor separado.
 

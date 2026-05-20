@@ -624,3 +624,45 @@ Evitar que el motor descarte completamente la señal de edad cuando hay 5-7 comp
 - Propiedades con n_age 5-7 ya no saltan bruscamente al pool completo
 - Ejemplo: "Entre Ríos 400 (2016)" — si cae en 5-7, el blend mantiene señal de edad
 - El modelo es más continuo y menos binario
+
+---
+
+## 📅 2026-05-20 — TAREA: Recalibración de factores constructivos
+
+### Objetivo:
+Separar `premium` de estado de conservación, moverlo a calidad, y suavizar ventilación para evitar saltos excesivos en la valuación.
+
+### Problema detectado:
+Cambiar `bueno/media/simple` → `premium/excelente/cruzada` producía un salto de $61,231 → $85,270 (+39.2%) sin cambios en m2_base. El salto se explicaba por compounding de factores que llevaba la suma_cruda al clamp +0.40.
+
+### Cambios realizados:
+
+| Archivo | Acción |
+|---------|--------|
+| `parsers/mercado_inmobiliario.py` | `calcular_factores()`: nuevo helper `normalizar_estado_y_calidad()`; `premium` quitado de `factor_estado`; agregado a `factor_calidad` (1.08); ventilación suavizada (0.95/1.05); tablas recalibradas |
+| `datos_mercado.json` | Sección `factores.calidad` actualizada con premium, excelente, alta, baja |
+| `tests/test_factores_helpers.py` | **Creado** — 9 tests: premium no es estado, calidad premium, ventilación suavizada, no doble premio, tablas completas, ratio 1.15-1.25 del caso problemático |
+| `tests/test_regression.py` | Rango Ayacucho ajustado (48k-52k→44k-50k) por recalibración |
+| `docs/ALGORITMOS.md` | Sección 6 agregada con tablas de nuevos factores y normalización |
+
+### Nuevos valores de factor:
+
+**factor_estado** (sin premium):
+- a_estrenar=1.08, excelente=1.05, muy_bueno=1.03, bueno=1.0, regular=0.92, malo=0.85
+
+**factor_calidad** (con premium):
+- premium=1.08, excelente=1.06, alta=1.04, media=1.0, baja=0.95
+
+**Ventilación**:
+- simple=0.95, doble=1.0, cruzada=1.05 (swing 10% vs 20% anterior)
+
+### Normalización defensiva:
+Cuando `estado_detalle = "premium"`:
+- Se normaliza a estado `excelente` (1.05)
+- Si calidad es `media` o vacía → promueve a calidad `premium` (1.08)
+- Nunca hay doble premio estado+calidad
+
+### Tests: 146/146 pasando
+- 9 nuevos tests de factores
+- Anclas intactas (Mabel $79,069, dentro de rango $75k-$85k)
+- Ayacucho $46,430 (ajuste esperado por recalibración)

@@ -76,7 +76,7 @@ def test_mabel_alquiler():
 def test_ayacucho_venta():
     """Valida rangos de venta para Ayacucho (6ta Pellegrini)"""
     r = valuar_propiedad_v7(ejecutar_valuacion('ayacucho'))
-    assert 48000 <= r['valor_propiedad_usd'] <= 52000, f"Lista {r['valor_propiedad_usd']} fuera de rango"
+    assert 44000 <= r['valor_propiedad_usd'] <= 50000, f"Lista {r['valor_propiedad_usd']} fuera de rango"
 
 
 def test_patio_grande_vera():

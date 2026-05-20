@@ -1349,8 +1349,21 @@ def calcular_factores(prop, ventana_usada=None):
     # RO-03: Si la base viene de Ventana 3 (P33), NO aplicar depreciacion
     es_ventana3 = ventana_usada in (3, "3", "ventana3")
     
-    estado = prop.get('estado_detalle', 'bueno').lower().replace(' ', '_')
-    calidad = prop.get('calidad_edificio', 'media').lower()
+    # Normalización defensiva: premium no es estado, es calidad
+    def normalizar_estado_y_calidad(prop):
+        estado_raw = prop.get('estado_detalle', 'bueno').lower().replace(' ', '_')
+        calidad_raw = prop.get('calidad_edificio', 'media').lower()
+        if estado_raw == 'premium':
+            estado_norm = 'excelente'
+            if calidad_raw in (None, '', 'media'):
+                calidad_norm = 'premium'
+            else:
+                calidad_norm = calidad_raw
+        else:
+            estado_norm = estado_raw
+            calidad_norm = calidad_raw or 'media'
+        return estado_norm, calidad_norm
+    estado, calidad = normalizar_estado_y_calidad(prop)
     piso = prop.get('piso', 0)
     
     # FIX BUG 1: Leer anio_construccion con normalización
@@ -1398,12 +1411,13 @@ def calcular_factores(prop, ventana_usada=None):
     factor_anti = max(0.40, 1.0 + delta_anti_efectivo)
     
     factor_estado = {
-        'a_estrenar': 1.20, 'excelente': 1.10, 'muy_bueno': 1.03,
-        'bueno': 1.0, 'regular': 0.85, 'a_refaccionar': 0.7
+        'a_estrenar': 1.08, 'excelente': 1.05, 'muy_bueno': 1.03,
+        'bueno': 1.0, 'regular': 0.92, 'malo': 0.85, 'a_refaccionar': 0.70
     }.get(estado, 1.0)
     
     factor_calidad = {
-        'premium': 1.2, 'alta': 1.1, 'media': 1.0, 'economica': 0.85, 'baja': 0.85
+        'premium': 1.08, 'excelente': 1.06, 'alta': 1.04, 'media': 1.0,
+        'baja': 0.95, 'economica': 0.90
     }.get(calidad, 1.0)
     
     # 1. Factor Vista v9.5
@@ -1479,7 +1493,7 @@ def calcular_factores(prop, ventana_usada=None):
     }.get(t_balcon, 1.0)
     
     ventilacion = prop.get('ventilacion', 'simple').lower()
-    factor_vent = 1.10 if 'cruzada' in ventilacion else 1.0 if 'doble' in ventilacion else 0.90
+    factor_vent = 1.05 if 'cruzada' in ventilacion else 1.0 if 'doble' in ventilacion else 0.95
     
     # 7. Detalles Funcionales v10.0
     f_funcional = 1.0
