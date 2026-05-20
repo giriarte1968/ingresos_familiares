@@ -7,11 +7,15 @@ from datetime import datetime
 def _auto_geocode_cb(key_suffix, lat_key, lon_key):
     """Callback para auto-geocodificar al cambiar la dirección (Tab/Enter/blur)."""
     addr = st.session_state.get(f"direccion_{key_suffix}", "").strip()
+    dbg = f"_debug_geo_{key_suffix}"
     if len(addr) < 3:
+        st.session_state[dbg] = f"[CB] Skip: addr={addr!r} len<3"
         return
     last_key = f"_last_geo_{key_suffix}"
     if st.session_state.get(last_key) == addr:
+        st.session_state[dbg] = f"[CB] Skip: ya geocodificado {addr!r}"
         return
+    st.session_state[dbg] = f"[CB] Geocodificando {addr!r}..."
     try:
         from parsers.geocoder import geocoding_manager
         geo = geocoding_manager(addr)
@@ -19,9 +23,12 @@ def _auto_geocode_cb(key_suffix, lat_key, lon_key):
             st.session_state[lat_key] = geo['lat']
             st.session_state[lon_key] = geo['lon']
             st.session_state[last_key] = addr
+            st.session_state[dbg] = f"[CB] OK: ({geo['lat']:.5f}, {geo['lon']:.5f})"
             st.rerun()
-    except Exception:
-        pass
+        else:
+            st.session_state[dbg] = f"[CB] Fallo: Nominatim sin resultado para {addr!r}"
+    except Exception as e:
+        st.session_state[dbg] = f"[CB] Error: {e}"
 
 
 def _titulo_seccion(titulo, icono, color):
@@ -70,6 +77,7 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
                 addr = st.session_state.get(f"direccion_{key_suffix}", "").strip()
                 if len(addr) >= 3:
                     last_key = f"_last_geo_{key_suffix}"
+                    dbg = f"_debug_geo_{key_suffix}"
                     if st.session_state.get(last_key) != addr:
                         try:
                             from parsers.geocoder import geocoding_manager
@@ -78,8 +86,11 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
                                 st.session_state[lat_key] = geo['lat']
                                 st.session_state[lon_key] = geo['lon']
                                 st.session_state[last_key] = addr
-                        except Exception:
-                            pass
+                                st.session_state[dbg] = f"[INLINE] OK: ({geo['lat']:.5f}, {geo['lon']:.5f})"
+                            else:
+                                st.session_state[dbg] = f"[INLINE] Fallo: Nominatim sin resultado para {addr!r}"
+                        except Exception as e:
+                            st.session_state[dbg] = f"[INLINE] Error: {e}"
             # Inicializar session_state si no existe (evita warning de value duplicado)
             if lat_key not in st.session_state:
                 st.session_state[lat_key] = prop_inicial.get('lat', -32.9445)
@@ -100,6 +111,17 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
                         st.rerun()
                     else:
                         st.error("No se encontró la dirección en OpenStreetMap")
+            
+            # Debug: mostrar estado de la auto-geocodificación
+            if show_geocode:
+                dbg = f"_debug_geo_{key_suffix}"
+                last_key = f"_last_geo_{key_suffix}"
+                debug_msg = st.session_state.get(dbg, "")
+                last_addr = st.session_state.get(last_key, "")
+                current_addr = st.session_state.get(f"direccion_{key_suffix}", "")
+                cur_lat = st.session_state.get(lat_key, None)
+                cur_lon = st.session_state.get(lon_key, None)
+                st.caption(f"Debug: addr={current_addr!r} last_geo={last_addr!r} lat={cur_lat} lon={cur_lon} | {debug_msg}")
             
             ub_tipos = ["calle", "avenida", "esquina", "pasaje"]
             ubicacion_tipo = st.selectbox("Tipo de Ubicación", ub_tipos, index=ub_tipos.index(prop_inicial.get('ubicacion_tipo', 'calle')) if prop_inicial.get('ubicacion_tipo') in ub_tipos else 0, key=f"ubica_tipo_{key_suffix}")
