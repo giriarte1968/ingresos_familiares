@@ -209,6 +209,37 @@ Archivo append-only que registra cada evento de valuación. Formato: una línea 
 
 ---
 
+## 7b. `resultado.audit_log` — Log Técnico de Auditoría (TAREA 2026-05-20)
+
+Cada valuación genera un `audit_log` estructurado en `resultado['audit_log']`.
+
+### Estructura completa
+
+| Sección | Campos principales |
+|---------|-------------------|
+| `timestamp` | ISO timestamp de la valuación |
+| `motor_version` | Versión del motor ('v7.0') |
+| `nombre` | Nombre de la propiedad |
+| `propiedad` | inputs: nombre, zona, tipo, dirección, lat/lon, año, dorms, estado, calidad, piso, ventilación, etc. |
+| `superficies` | m2_cubiertos, m2_semi, m2_descubiertos, m2_equiv |
+| `cluster_venta` | n_total_cluster, n_con_anio, age_filter, percentil_usado, p33_same/cross, bases, comparables_usados[] |
+| `factores` | estado, calidad, depreciacion, suma_cruda, f_estructural, nlp_bruto, nlp_cap_aplicado, es_ventana3 |
+| `venta` | valor_conservador/mercado/optimista, spread, m2_base, m2_base_source |
+| `alquiler` | metodo_alquiler, cap_rate, rango alquiler, size_discount, es_fallback |
+| `final` | valor_venta, valor_realizable, alquiler, plusvalia, cap_rates |
+| `resolution_metadata` | Copia de la metadata de resolución del cluster |
+
+### Persistencia
+
+Los audit_logs se guardan en `data/history/audit_logs/` con formato:
+```
+YYYY-MM-DD_HH-MM-SS__Nombre_Propiedad.json
+```
+
+Se acceden desde la aplicación en **Configuración → Auditoría Técnica**.
+
+---
+
 ## 7. `resultado.catastro_detalle` (Infomapa)
 
 Agregado a valuación vía `enriquecer_con_infomapa()`.

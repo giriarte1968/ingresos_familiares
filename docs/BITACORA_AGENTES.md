@@ -666,3 +666,42 @@ Cuando `estado_detalle = "premium"`:
 - 9 nuevos tests de factores
 - Anclas intactas (Mabel $79,069, dentro de rango $75k-$85k)
 - Ayacucho $46,430 (ajuste esperado por recalibración)
+
+---
+
+## 📅 2026-05-20 — TAREA: Log Técnico de Auditoría de Valuación
+
+### Objetivo:
+Crear un log técnico completo, persistente y auditable por valuación, accesible desde la aplicación.
+
+### Cambios realizados:
+
+| Archivo | Acción |
+|---------|--------|
+| `parsers/audit_logger.py` | **Creado** — módulo con `generar_audit_log()`, `guardar_audit_log()`, `cargar_audit_logs()`, `obtener_ultimo_audit_log()` |
+| `parsers/mercado_inmobiliario.py` | `valuar_propiedad_v7()` refactorizada: return convertido a variable `resultado`; se inyecta `audit_log` y se persiste vía `guardar_audit_log()` |
+| `valu.py` | Nueva opción "Auditoría Técnica" en navegación; pantalla con selectbox de propiedad, selector de snapshot, 7 tabs (Inputs, Superficies, Cluster, Factores, Venta, Alquiler, JSON crudo) + botón descarga |
+| `tests/test_audit_logger.py` | **Creado** — 6 tests: retención, campos mínimos, consistencia valores, positivos, generación directa, no alteración |
+
+### Estructura del audit_log:
+```
+audit_log = {
+  timestamp, motor_version, nombre,
+  propiedad: { nombre, zona, tipo, dirección, lat, lon, año, dorms, estado, calidad, piso, ... },
+  superficies: { m2_cubiertos, m2_semi, m2_desc, m2_equiv },
+  cluster_venta: { n_total, n_con_anio, age_filter, percentil, p33_same/cross, bases, comparables_usados[] },
+  factores: { estado, calidad, depreciacion, suma_cruda, f_estructural, nlp, es_ventana3 },
+  venta: { conservador, mercado, optimista, spread, m2_base },
+  alquiler: { metodo, cap_rate, rango, size_discount, fallback },
+  final: { valor_venta, realizable, alquiler, plusvalia, cap_rates },
+  resolution_metadata: { ... }
+}
+```
+
+### Persistencia:
+- Archivos en `data/history/audit_logs/YYYY-MM-DD_HH-MM-SS__Nombre.json`
+- Acceso desde Configuración → "🧾 Auditoría Técnica"
+
+### Tests: 152/152 pasando
+- 6 nuevos tests de audit_logger
+- 146 existentes intactos (sin cambios en lógica)

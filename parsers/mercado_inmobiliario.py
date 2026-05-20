@@ -2919,7 +2919,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
             'confianza': 'BAJA',
         }
     
-    return {
+    resultado = {
         'valor_propiedad_usd': round(valor_venta, 0),
         'valor_realizable_usd': round(valor_realizable, 0),
         'valor_m2_actual_usd': round(valor_venta / m2_equiv, 2) if m2_equiv > 0 else 0,
@@ -2977,6 +2977,26 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
             'confianza': macrozona_info.get('confianza_macrozona', 'BAJA'),
         },
     }
+    from parsers.audit_logger import generar_audit_log, guardar_audit_log
+    audit_log = generar_audit_log(
+        propiedad=prop, resultado=resultado,
+        f_dict=f_dict, meta_venta=meta_venta, n_v=n_v,
+        m2_base_venta_raw=m2_base_venta_raw,
+        meta_alq=meta_alq, n_a=n_a, es_ventana3=es_ventana3,
+        m2_equiv_alquiler=m2_equiv_alquiler,
+        factores_alquiler=factores_alquiler,
+        m2_base_alquiler=m2_base_alquiler,
+        ajuste_nlp=ajuste_nlp, nlp_cap=nlp_cap,
+        resolution_metadata=resolution_metadata,
+        rango_venta=rango_venta,
+        comparables_venta=comparables_venta,
+    )
+    resultado['audit_log'] = audit_log
+    try:
+        guardar_audit_log(audit_log)
+    except Exception:
+        pass
+    return resultado
 
 
 

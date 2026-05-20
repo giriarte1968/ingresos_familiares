@@ -436,6 +436,138 @@ def mostrar_dashboard():
                 st.success(f"Propiedad {new_prop['nombre']} guardada!")
                 st.rerun()
 
+    elif st.session_state.page == "Auditoría Técnica":
+        st.header("🧾 Auditoría Técnica")
+        propiedades = cargar_propiedades()
+        nombres = [p['nombre'] for p in propiedades]
+        sel_nombre = st.selectbox("Seleccionar propiedad", nombres, key="audit_prop_sel")
+        from parsers.audit_logger import cargar_audit_logs, obtener_ultimo_audit_log
+        logs = cargar_audit_logs(propiedad=sel_nombre)
+        if not logs:
+            st.info("No hay audit_logs para esta propiedad. Recalcule la valuación primero.")
+        else:
+            opciones = {f"{ts.split('__')[0]}": ts for ts, log in logs}
+            sel_log_key = st.selectbox("Snapshot de auditoría",
+                                       list(opciones.keys()),
+                                       key="audit_snap_sel")
+            sel_log_path = opciones[sel_log_key]
+            audit = next(log for p, log in logs if p == sel_log_path)
+            tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(
+                ["Inputs", "Superficies", "Cluster Venta", "Factores", "Venta", "Alquiler", "JSON crudo"]
+            )
+            with tab1:
+                p = audit.get("propiedad", {})
+                cols = st.columns(2)
+                with cols[0]:
+                    st.markdown(f"**Nombre:** {p.get('nombre', '')}")
+                    st.markdown(f"**Zona:** {p.get('zona', '')}")
+                    st.markdown(f"**Tipo:** {p.get('tipo_inmueble', '')}")
+                    st.markdown(f"**Dirección:** {p.get('direccion', '')}")
+                    st.markdown(f"**Lat/Lon:** {p.get('lat', '')}, {p.get('lon', '')}")
+                with cols[1]:
+                    st.markdown(f"**Año constr.:** {p.get('anio_construccion', '')}")
+                    st.markdown(f"**Dormitorios:** {p.get('dormitorios', '')}")
+                    st.markdown(f"**Estado:** {p.get('estado_detalle', '')}")
+                    st.markdown(f"**Calidad:** {p.get('calidad_edificio', '')}")
+                    st.markdown(f"**Piso:** {p.get('piso', '')}/{p.get('total_pisos', '')}")
+                    st.markdown(f"**Ventilación:** {p.get('ventilacion', '')}")
+                st.markdown(f"**Timestamp:** {audit.get('timestamp', '')}")
+                st.markdown(f"**Motor:** {audit.get('motor_version', '')}")
+            with tab2:
+                s = audit.get("superficies", {})
+                cols = st.columns(2)
+                with cols[0]:
+                    st.markdown(f"**m² cubiertos:** {s.get('m2_cubiertos', '')}")
+                    st.markdown(f"**m² semicubiertos:** {s.get('m2_semicubiertos', '')}")
+                    st.markdown(f"**m² desc. propios:** {s.get('m2_descubiertos_propios', '')}")
+                with cols[1]:
+                    st.markdown(f"**m² desc. común excl.:** {s.get('m2_descubiertos_comun_exclusivo', '')}")
+                    st.markdown(f"**m² comunes:** {s.get('m2_comunes', '')}")
+                    st.markdown(f"**m² equivalentes:** **{s.get('m2_equiv', '')}**")
+            with tab3:
+                c = audit.get("cluster_venta", {})
+                cols = st.columns(3)
+                with cols[0]:
+                    st.markdown("**Pool**")
+                    st.markdown(f"n total: {c.get('n_total_cluster', '')}")
+                    st.markdown(f"n con año: {c.get('n_con_anio', '')}")
+                    st.markdown(f"% con año: {c.get('pct_con_anio', '')}")
+                    st.markdown(f"Radio: {c.get('radio_usado', '')}m")
+                with cols[1]:
+                    st.markdown("**Age Filter**")
+                    st.markdown(f"Aplicado: {'✅' if c.get('age_filter_applied') else '❌'}")
+                    st.markdown(f"n age: {c.get('n_age_filtered', '')}")
+                    st.markdown(f"Rango años: {c.get('rango_anio_usado', '')}")
+                    st.markdown(f"Percentil: {c.get('percentil_usado', '')}")
+                with cols[2]:
+                    st.markdown("**Bases**")
+                    st.markdown(f"P33 same: {c.get('p33_same', '')}")
+                    st.markdown(f"P33 cross: {c.get('p33_cross', '')}")
+                    st.markdown(f"Base ppal: {c.get('base_principal', '')}")
+                    st.markdown(f"Blend edad: {'✅' if c.get('age_blend_applied') else '❌'} α={c.get('alpha_age_blend', '')}")
+                st.markdown("**Comparables usados**")
+                comps = c.get("comparables_usados", [])
+                if comps:
+                    data = [{"Dirección": cmp.get("direccion", ""),
+                             "Dist (m)": cmp.get("dist_m", ""),
+                             "Precio/m²": cmp.get("precio_m2", ""),
+                             "Año": cmp.get("anio_estimado", ""),
+                             "Grupo": cmp.get("grupo", "")} for cmp in comps]
+                    st.dataframe(data, use_container_width=True, hide_index=True)
+                else:
+                    st.caption("Sin datos de comparables individuales en este log.")
+            with tab4:
+                fx = audit.get("factores", {})
+                data = [
+                    ("Estado", fx.get("estado"), ""),
+                    ("Calidad", fx.get("calidad"), ""),
+                    ("Depreciación", fx.get("depreciacion"), f"raw={fx.get('delta_anti_raw')}, ef={fx.get('delta_anti_efectivo')}"),
+                    ("Suma cruda", fx.get("suma_cruda"), f"raw={fx.get('suma_cruda_raw')}"),
+                    ("Factor estructural", fx.get("f_estructural"), ""),
+                    ("NLP bruto", fx.get("nlp_bruto"), f"cap={fx.get('nlp_cap_aplicado')}"),
+                    ("Factor NLP", fx.get("f_nlp"), ""),
+                ]
+                for label, val, extra in data:
+                    st.markdown(f"**{label}:** {val}  {extra if extra else ''}")
+            with tab5:
+                v = audit.get("venta", {})
+                cols = st.columns(2)
+                with cols[0]:
+                    st.markdown(f"**Conservador:** ${v.get('valor_conservador', ''):,}")
+                    st.markdown(f"**Mercado:** ${v.get('valor_mercado', ''):,}")
+                    st.markdown(f"**Optimista:** ${v.get('valor_optimista', ''):,}")
+                with cols[1]:
+                    st.markdown(f"**Valor principal:** ${v.get('valor_principal', ''):,}")
+                    st.markdown(f"**Realizable:** ${v.get('valor_realizable', ''):,}")
+                    st.markdown(f"**Spread:** {v.get('spread_pct', '')}%")
+                    st.markdown(f"**m² base:** ${v.get('m2_base_venta', '')}")
+                st.caption(f"Fuente: {v.get('m2_base_source', '')}")
+            with tab6:
+                a = audit.get("alquiler", {})
+                cols = st.columns(2)
+                with cols[0]:
+                    st.markdown(f"**Método:** {a.get('metodo_alquiler', '')}")
+                    st.markdown(f"**Cap Rate:** {a.get('cap_rate', '')}")
+                    st.markdown(f"**Cap Rate min/max:** {a.get('cap_rate_min', '')} / {a.get('cap_rate_max', '')}")
+                    st.markdown(f"**Alquiler mensual:** ${a.get('alq_mensual_ars', ''):,} ARS")
+                with cols[1]:
+                    st.markdown(f"**Rango:** ${a.get('alq_rango_min', ''):,} - ${a.get('alq_rango_max', ''):,}")
+                    st.markdown(f"**Size discount:** {a.get('size_discount_alquiler', '')}")
+                    st.markdown(f"**n alquiler:** {a.get('n_alquiler', '')}")
+                    st.markdown(f"**Fallback:** {'✅' if a.get('es_fallback_alquiler') else '❌'}")
+            with tab7:
+                st.code(json.dumps(audit, ensure_ascii=False, indent=2, default=str))
+                if st.button("📥 Descargar JSON", key="dl_audit"):
+                    import os as _os
+                    from datetime import datetime as _dt
+                    _d = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "data", "history", "audit_logs")
+                    _os.makedirs(_d, exist_ok=True)
+                    _fn = f"{_dt.now().strftime('%Y-%m-%d_%H-%M-%S')}__{sel_nombre.replace(' ', '_')}_export.json"
+                    _fp = _os.path.join(_d, _fn)
+                    with open(_fp, "w", encoding="utf-8") as _f:
+                        json.dump(audit, _f, ensure_ascii=False, indent=2, default=str)
+                    st.success(f"Archivo guardado: `{_fn}`")
+
 # --- MAIN APP ---
 def main():
     if 'vista_actual' not in st.session_state:
@@ -458,7 +590,7 @@ def main():
         st.button("← Volver al Inicio", width='stretch', on_click=ir_al_inicio)
         st.markdown("---")
         
-        st.session_state.page = st.radio("NAVEGACIÓN", ["Portfolio", "Inventario", "Cargar Mercado", "Configuración"])
+        st.session_state.page = st.radio("NAVEGACIÓN", ["Portfolio", "Inventario", "Cargar Mercado", "Configuración", "Auditoría Técnica"])
         
         st.markdown("---")
         datos = cargar_datos()
