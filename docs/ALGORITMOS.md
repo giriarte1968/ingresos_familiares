@@ -444,6 +444,20 @@ Para garantizar la auditabilidad y el seguimiento de activos en el tiempo, se im
 
 ---
 
+## 11b. Ventanas Progresivas de Edad
+
+La función `_filtrar_por_ventana_edad()` usa tres ventanas progresivas en lugar del salto binario ±15→±30 anterior:
+
+```
+±10 años → si n ≥ 8, acepta pool
+±15 años → si n ≥ 8, acepta pool
+±20 años → si n ≥ 8, acepta pool
+           si 5 ≤ n < 8, acepta pool (activa P33_age_blend)
+           si n < 5, fallback total al pool completo (P33)
+```
+
+Esto evita que propiedades modernas en zonas con edificios viejos (ej. Centro) se vean contaminadas por comparables 20-30 años más antiguos. Al progresar de a ±10→±15→±20, el pool se acerca gradualmente a la edad del sujeto sin saltar a ±30.
+
 ## 12. Valores de Referencia (Fase 2 — Age-Aware)
 
 Estos son los valores definitivos con filtro de edad activo.
@@ -451,8 +465,8 @@ Reemplazan los valores de calibración previos.
 
 | Propiedad   | Año  | Pool total | n_age | %ile usado | Valor ref  |
 |-------------|------|-----------|-------|------------|------------|
-| Mabel       | 1998 | 81        | 27    | P50        | $72,241    |
-| Ayacucho    | 2002 | 43        | 16    | P45        | $52,047    |
+| Mabel       | 2000 | 40        | 11    | P45        | $78,250    |
+| Ayacucho    | 2002 | 40        | 8     | P40        | $39,896    |
 | Vera Mujica | 2009 | 27        | 8     | P40        | $52,062    |
 | P1200       | 1977 | 36        | 12    | P45        | $137,888   |
 

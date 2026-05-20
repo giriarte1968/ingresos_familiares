@@ -705,3 +705,41 @@ audit_log = {
 ### Tests: 152/152 pasando
 - 6 nuevos tests de audit_logger
 - 146 existentes intactos (sin cambios en lógica)
+
+---
+
+## 📅 2026-05-20 — TAREA: Ventanas progresivas de edad ±10→±15→±20
+
+### Problema
+`_filtrar_por_ventana_edad()` saltaba de ±15 a ±30, permitiendo que propiedades 25+ años más viejas que el sujeto entraran al pool. Para "Entre Ríos 400" (2016, premium, Centro), los comparables de 1991/1993 pasaban el filtro con ±30, alcanzando n=8 y saltándose el age_blend (que requiere 5-7).
+
+### Cambio
+`_filtrar_por_ventana_edad()` ahora usa ventanas progresivas:
+
+```
+±10 → si n ≥ 8, acepta
+±15 → si n ≥ 8, acepta
+±20 → si n ≥ 8, acepta
+      si 5 ≤ n < 8, acepta (activa P33_age_blend)
+      si n < 5, fallback al pool completo (P33)
+```
+
+| Parámetro | Antes | Después |
+|-----------|-------|---------|
+| Ventanas | [15, 30] | [10, 15, 20] |
+| Fallback | ±30 con min 8 | ±20 con min 5 (blend 5-7) |
+| Blend | Solo si n_age 5-7 llegaba | Ahora llega en más casos |
+
+### Archivos modificados
+- `parsers/mercado_inmobiliario.py`: `_filtrar_por_ventana_edad()` rewriten, call site actualizado
+- `tests/test_regression.py`: rango Ayacucho ajustado de $44k-$52k a $36k-$44k
+- `docs/ALGORITMOS.md`: §11b nuevo (ventanas progresivas), §12 tabla actualizada
+- `docs/BITACORA_AGENTES.md`: esta entrada
+
+### Impacto
+- **Entre Ríos 400**: ±10→0, ±15→~3, ±20→6 → **P33_age_blend activado** (alpha=0.75). Valor $69,599 (correcto, sin comparables 1991/1993)
+- **Mabel**: ±10 da 11 → P45_age → $78,250 (cambio mínimo, -1%)
+- **Ayacucho**: ±10 da 8 → P40_age → $39,896 (antes $46,430 con ±15). El nuevo valor refleja solo comparables 1992-2012 sin inflación de viejos
+- **Anclas sin cambios**: Vera Mujica, P1200 intactos
+
+### Tests: 39/39 regression, 152/152 total pasando

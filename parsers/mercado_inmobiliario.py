@@ -451,10 +451,17 @@ def enriquecer_anio_comparable(comp, max_dist_m=50):
     }
 
 
-def _filtrar_por_ventana_edad(pool, anio_sujeto, ventana=15, min_con_anio=10):
+def _filtrar_por_ventana_edad(pool, anio_sujeto, min_con_anio=10):
     """
     Filtra comparables por ventana de edad ±años alrededor del año sujeto.
-    Si ±15 no alcanza mínimo, prueba ±30 antes de saltar filtro.
+    Ventanas progresivas: ±10 → ±15 → ±20.
+    
+    Lógica:
+    - ±10: si n >= 8, acepta pool
+    - ±15: si n >= 8, acepta pool
+    - ±20: si n >= 8, acepta pool
+           si 5 <= n < 8, acepta pool (activa age_blend)
+           si n < 5, fallback total al pool completo
     
     Returns:
         (pool_filtrado, age_filter_applied, n_age_filtered, anio_min, anio_max)
@@ -467,7 +474,7 @@ def _filtrar_por_ventana_edad(pool, anio_sujeto, ventana=15, min_con_anio=10):
     if len(pool_con_anio) < min_con_anio:
         return pool, False, 0, 0, 0
     
-    for ventana_actual in [ventana, 30]:
+    for ventana_actual in [10, 15, 20]:
         anio_min = anio_sujeto - ventana_actual
         anio_max = anio_sujeto + ventana_actual
         
@@ -476,9 +483,14 @@ def _filtrar_por_ventana_edad(pool, anio_sujeto, ventana=15, min_con_anio=10):
             if anio_min <= p['anio_estimado'] <= anio_max
         ]
         
-        if len(pool_age_filtered) >= 8:
-            ventana_label = f"\u00b1{ventana_actual} a\u00f1os"
-            return pool_age_filtered, True, len(pool_age_filtered), anio_min, anio_max
+        n = len(pool_age_filtered)
+        
+        if n >= 8:
+            return pool_age_filtered, True, n, anio_min, anio_max
+        
+        # En ±20, si hay 5-7 comps, activa age_blend
+        if ventana_actual == 20 and n >= 5:
+            return pool_age_filtered, True, n, anio_min, anio_max
     
     return pool, False, 0, 0, 0
 
@@ -740,9 +752,9 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         n_enriq_total = n_enriquecidos_alta + n_enriquecidos_media
         pct_enriq = (n_enriq_total / total_pool * 100) if total_pool else 0
 
-        # FASE 2: Filtrar por ventana de edad (±15 años, fallback ±30)
+        # FASE 2: Filtrar por ventana de edad (±10 → ±15 → ±20)
         pool_final, age_filter_applied, n_age_filtered, anio_min, anio_max = _filtrar_por_ventana_edad(
-            unicos, anio_sujeto, ventana=15
+            unicos, anio_sujeto
         )
         ventana_real = anio_max - anio_sujeto if age_filter_applied else 0
         age_window = f"\u00b1{ventana_real} a\u00f1os" if age_filter_applied else ''
@@ -750,7 +762,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         if age_filter_applied:
             logger.info(f"[AGE_FILTER] Aplicado: {n_age_filtered} en rango {anio_min}-{anio_max}")
         else:
-            logger.info(f"[AGE_FILTER] No aplicado: solo {n_age_filtered} post-filtro (mín 8)")
+            logger.info(f"[AGE_FILTER] No aplicado: solo {n_age_filtered} post-filtro (mín 8 en ±10/±15, mín 5 en ±20)")
 
         precios = [p['valor_m2'] for p in pool_final]
         n_raw = len(precios)

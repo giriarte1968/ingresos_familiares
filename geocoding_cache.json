@@ -98,5 +98,32 @@
     "ancla_id": "macrocentro_salta_lagos",
     "ancla_usd": 1620,
     "distancia_km": 0.16
+  },
+  "entre ríos  410": {
+    "lat": -32.9414585,
+    "lon": -60.6398576,
+    "status": "low_confidence",
+    "score": 9.99999999995449e-06,
+    "type": "house",
+    "ancla_id": "macrocentro_salta_lagos",
+    "ancla_usd": 1620,
+    "distancia_km": 0.15
+  },
+  "entre ríos  7000": {
+    "lat": -32.9751464,
+    "lon": -60.6483129,
+    "status": "low_confidence",
+    "score": 0.053401725032425386,
+    "type": "residential",
+    "ancla_id": "zona_sur_san_martin_saavedra",
+    "ancla_usd": 1100,
+    "distancia_km": 0.31
+  },
+  "entre ríos  7": {
+    "lat": null,
+    "lon": null,
+    "status": "error",
+    "ancla_id": null,
+    "ancla_usd": null
   }
 }
