@@ -586,6 +586,41 @@ Eliminar duplicación de lógica en percentiles, bases y helpers muertos. Consol
 | Helper | Antes | Ahora |
 |--------|-------|-------|
 | `calcular_percentil` | ALIVE | ALIVE |
-| `calcular_blend_p33` | ALIVE (1 caller) | ALIVE (3 callers) |
+| `calcular_blend_p33` | ALIVE (1 caller) | ALIVE (4 callers) |
 | `seleccionar_percentil_por_edad` | DEAD (import removido) | ALIVE (1 caller) |
 | `calcular_rango_venta` | ALIVE | ALIVE |
+
+---
+
+## 📅 2026-05-20 — FASE 3 EXT: AGE BLEND PARA 5-7 COMPARABLES
+
+### Objetivo:
+Evitar que el motor descarte completamente la señal de edad cuando hay 5-7 comparables de edad similar (regla anterior: n < 8 → pool completo). Implementar un blend suave entre el pool etario y el pool completo.
+
+### Cambios realizados:
+1. **`parsers/cluster_filters.py` — `seleccionar_percentil_por_edad()`**:
+   - Nuevo rango `5 <= n_age_filtered < 8` → retorna `(33, 'P33_age_blend')`
+   - `n_age_filtered < 5` → retorna `(33, 'P33')` (fallback total, igual que antes)
+
+2. **`parsers/mercado_inmobiliario.py` — `obtener_mediana_cluster_v2()`**:
+   - Cuando `percentil_usado == 'P33_age_blend'`, calcula `base_all` desde `unicos` (pool completo) usando P33 con blend same/cross α=0.70
+   - Aplica blend: `valor = alpha * base_age + (1-alpha) * base_all`
+   - alpha = 0.75 (n=7), 0.60 (n=6), 0.45 (n=5)
+   - Agrega metadata: `age_blend_applied`, `alpha_age_blend`, `base_age`, `base_all`
+
+3. **`valu_detail_sections.py` — `render_razonamiento()`**:
+   - Muestra `st.info()` azul con detalles del blend si `age_blend_applied == True`
+
+4. **Tests**:
+   - `test_cluster_filters.py`: 4 tests nuevos (n7, n6, n5, n4_fallback)
+   - `test_regression.py`: 6 tests nuevos (alpha n7/n6/n5, fallback n4, anclas no regresión, metadata solo donde corresponde)
+   - Total: **137 tests pasan** (antes 131)
+
+### Baseline:
+- **Sin cambios en anclas**: Mabel $72,241 / Ayacucho $52,047 / Vera $52,062 / P1200 $137,888
+- El nuevo blend solo se activa cuando una propiedad cae en rango 5-7 (ninguna ancla actual lo usa)
+
+### Impacto futuro:
+- Propiedades con n_age 5-7 ya no saltan bruscamente al pool completo
+- Ejemplo: "Entre Ríos 400 (2016)" — si cae en 5-7, el blend mantiene señal de edad
+- El modelo es más continuo y menos binario

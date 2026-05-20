@@ -24,7 +24,6 @@ def _auto_geocode_cb(key_suffix, lat_key, lon_key):
             st.session_state[lon_key] = geo['lon']
             st.session_state[last_key] = addr
             st.session_state[dbg] = f"[CB] OK: ({geo['lat']:.5f}, {geo['lon']:.5f})"
-            st.rerun()
         else:
             st.session_state[dbg] = f"[CB] Fallo: Nominatim sin resultado para {addr!r}"
     except Exception as e:

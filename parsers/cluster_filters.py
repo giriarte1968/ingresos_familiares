@@ -223,6 +223,8 @@ def seleccionar_percentil_por_edad(age_filter_applied: bool,
     - n_age >= 20 → P50
     - 10 <= n_age < 20 → P45
     - 8 <= n_age < 10 → P40
+    - 5 <= n_age < 8 → P33_age_blend (blend entre pool etario y pool completo)
+    - n_age < 5 → P33 (fallback total al pool completo)
     
     Args:
         age_filter_applied: Si el filtro de edad está activo
@@ -240,5 +242,7 @@ def seleccionar_percentil_por_edad(age_filter_applied: bool,
         return 45, 'P45_age'
     elif n_age_filtered >= 8:
         return 40, 'P40_age'
+    elif n_age_filtered >= 5:
+        return 33, 'P33_age_blend'
     else:
         return 33, 'P33'

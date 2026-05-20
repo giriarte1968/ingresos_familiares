@@ -268,6 +268,21 @@ def test_edad_n8():
     assert seleccionar_percentil_por_edad(True, 8) == (40, 'P40_age')
 
 
+def test_edad_n7():
+    """n=7 entre 5 y 8 → P33_age_blend."""
+    assert seleccionar_percentil_por_edad(True, 7) == (33, 'P33_age_blend')
+
+
+def test_edad_n6():
+    """n=6 entre 5 y 8 → P33_age_blend."""
+    assert seleccionar_percentil_por_edad(True, 6) == (33, 'P33_age_blend')
+
+
 def test_edad_n5():
-    """n=5 < 8 → P33 (fallback)."""
-    assert seleccionar_percentil_por_edad(True, 5) == (33, 'P33')
+    """n=5 entre 5 y 8 → P33_age_blend."""
+    assert seleccionar_percentil_por_edad(True, 5) == (33, 'P33_age_blend')
+
+
+def test_edad_n4_fallback():
+    """n=4 < 5 → P33 (fallback total)."""
+    assert seleccionar_percentil_por_edad(True, 4) == (33, 'P33')

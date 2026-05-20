@@ -369,7 +369,41 @@ Reemplazan los valores de calibración previos.
   - n_age ≥ 20 → P50
   - 10 ≤ n_age < 20 → P45
   - 8 ≤ n_age < 10 → P40
-- Si NO hay filtro de edad → P33 (conservador histórico)
+  - 5 ≤ n_age < 8 → P33_age_blend (blend entre pool etario y pool completo)
+- Si NO hay filtro de edad o n_age < 5 → P33 (conservador histórico)
+
+### FASE 3: Age Blend para 5-7 Comparables
+
+Cuando hay 5-7 comparables de edad similar, el motor NO descarta toda la señal de edad. En lugar de volcar al pool completo, aplica un blend lineal:
+
+```
+base_final = alpha_age * base_age + (1 - alpha_age) * base_all
+```
+
+Donde:
+- `base_age` = P33 del pool filtrado por edad (con blend same/cross α=0.70)
+- `base_all` = P33 del pool completo (sin filtro de edad, mismo blend)
+- `alpha_age` según n:
+
+| n_age | alpha_age | Interpretación |
+|-------|-----------|----------------|
+| 7     | 0.75      | 75% peso del pool etario |
+| 6     | 0.60      | 60% peso del pool etario |
+| 5     | 0.45      | 45% peso del pool etario (mayoría pool completo) |
+
+**Comportamiento:**
+- Si n_age ≥ 8 → igual que hoy (P40/P45/P50 directo)
+- Si 5 ≤ n_age < 8 → blend suave, NO se pierde señal de edad
+- Si n_age < 5 → pool completo (igual que hoy)
+
+**Metadata expuesta en `meta` del cluster:**
+- `age_blend_applied`: True/False
+- `alpha_age_blend`: valor de alpha aplicado
+- `base_age`: P33 del pool etario
+- `base_all`: P33 del pool completo
+
+**En UI (detalle técnico):** se muestra un recuadro azul con:
+"Cluster con edad similar insuficiente (n=6). Se aplicó blend entre pool etario y pool completo. Alpha edad = 0.60."
 
 ### Método de Cálculo del Percentil
 

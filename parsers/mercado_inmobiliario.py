@@ -926,6 +926,47 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         
         # Valor principal = BLEND PURO con alpha 0.70 (para Venta Lista)
         # Las otras bases quedan disponibles para el rango
+        
+        # FASE 3: Si hay 5-7 comparables de edad similar, blend entre pool etario y pool completo
+        if percentil_usado == 'P33_age_blend':
+            base_age = valor_principal
+            precios_same_all = []
+            precios_cross_all = []
+            for p in unicos:
+                val = p.get('valor_m2', 0)
+                if val <= 0:
+                    continue
+                if p.get('_cross_soft', False):
+                    precios_cross_all.append(val)
+                else:
+                    precios_same_all.append(val)
+            p33_same_all = calcular_percentil(precios_same_all, 33)
+            p33_cross_all = calcular_percentil(precios_cross_all, 33)
+            base_all = calcular_blend_p33(p33_same_all, p33_cross_all, alpha=0.70)
+            if base_all is not None:
+                n = n_age_filtered
+                if n >= 7:
+                    alpha_age = 0.75
+                elif n == 6:
+                    alpha_age = 0.60
+                else:
+                    alpha_age = 0.45
+                valor_principal = alpha_age * base_age + (1 - alpha_age) * base_all
+                age_blend_applied = True
+                alpha_age_blend = alpha_age
+                base_age_val = base_age
+                base_all_val = base_all
+            else:
+                age_blend_applied = False
+                alpha_age_blend = None
+                base_age_val = None
+                base_all_val = None
+        else:
+            age_blend_applied = False
+            alpha_age_blend = None
+            base_age_val = None
+            base_all_val = None
+        
         if operacion == 'venta':
             valor = valor_principal
         else:
@@ -974,6 +1015,11 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             'age_window': age_window,
             'n_age_filtered': n_age_filtered,
             'rango_anio_usado': rango_anio_usado,
+            # Fase 3: Age blend (solo aplica si 5 <= n_age_filtered < 8)
+            'age_blend_applied': age_blend_applied,
+            'alpha_age_blend': alpha_age_blend,
+            'base_age': round(base_age_val, 2) if base_age_val is not None else None,
+            'base_all': round(base_all_val, 2) if base_all_val is not None else None,
             # Comparables reales (muestra de hasta 30)
             'comparables_reales': [
                 {

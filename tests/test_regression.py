@@ -437,3 +437,64 @@ def test_ventana3_no_afecta_anclas():
     for nombre in ['mabel', 'ayacucho']:
         r = valuar_propiedad_v7(ejecutar_valuacion(nombre), fecha_ref='2026-04')
         assert r.get('valor_propiedad_usd', 0) > 0
+
+
+# ─── FASE 3: AGE BLEND (5-7 comparables de edad similar) ───
+
+def test_age_blend_n7_alpha():
+    """n_age=7 debe dar alpha=0.75 en la fórmula de blend."""
+    from parsers.cluster_filters import seleccionar_percentil_por_edad
+    percentil, label = seleccionar_percentil_por_edad(True, 7)
+    assert label == 'P33_age_blend', f"Esperaba P33_age_blend, obtuvo {label}"
+    assert percentil == 33
+
+
+def test_age_blend_n6_alpha():
+    """n_age=6 debe dar alpha=0.60 en la fórmula de blend."""
+    from parsers.cluster_filters import seleccionar_percentil_por_edad
+    percentil, label = seleccionar_percentil_por_edad(True, 6)
+    assert label == 'P33_age_blend'
+    assert percentil == 33
+
+
+def test_age_blend_n5_alpha():
+    """n_age=5 debe dar alpha=0.45 en la fórmula de blend."""
+    from parsers.cluster_filters import seleccionar_percentil_por_edad
+    percentil, label = seleccionar_percentil_por_edad(True, 5)
+    assert label == 'P33_age_blend'
+    assert percentil == 33
+
+
+def test_age_blend_n4_fallback():
+    """n_age=4 < 5 debe caer a P33 (fallback completo)."""
+    from parsers.cluster_filters import seleccionar_percentil_por_edad
+    percentil, label = seleccionar_percentil_por_edad(True, 4)
+    assert label == 'P33', f"Esperaba P33, obtuvo {label}"
+    assert percentil == 33
+
+
+def test_age_blend_anclas_no_regresion():
+    """Las 4 anclas no deben cambiar con el nuevo blend (ninguna usa n_age 5-7)."""
+    from parsers.mercado_inmobiliario import valuar_propiedad_v7
+    from tests.test_regression import ejecutar_valuacion
+    for nombre in ['mabel', 'ayacucho']:
+        r = valuar_propiedad_v7(ejecutar_valuacion(nombre), fecha_ref='2026-04')
+        meta = r.get('resolution_metadata', {})
+        assert meta.get('age_blend_applied', False) == False, \
+            f"{nombre}: age_blend_applied debería ser False (n={meta.get('n_age_filtered', '?')})"
+        assert r.get('valor_propiedad_usd', 0) > 0
+
+
+def test_age_blend_metadata_solo_cuando_corresponde():
+    """age_blend_applied debe ser True solo cuando el label es P33_age_blend."""
+    from parsers.cluster_filters import seleccionar_percentil_por_edad
+    # Casos que NO deberían tener blend
+    assert seleccionar_percentil_por_edad(False, 0)[1] != 'P33_age_blend'
+    assert seleccionar_percentil_por_edad(True, 20)[1] != 'P33_age_blend'
+    assert seleccionar_percentil_por_edad(True, 10)[1] != 'P33_age_blend'
+    assert seleccionar_percentil_por_edad(True, 8)[1] != 'P33_age_blend'
+    assert seleccionar_percentil_por_edad(True, 4)[1] != 'P33_age_blend'
+    # Casos que SÍ deberían tener blend
+    assert seleccionar_percentil_por_edad(True, 7)[1] == 'P33_age_blend'
+    assert seleccionar_percentil_por_edad(True, 6)[1] == 'P33_age_blend'
+    assert seleccionar_percentil_por_edad(True, 5)[1] == 'P33_age_blend'

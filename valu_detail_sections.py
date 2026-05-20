@@ -48,37 +48,41 @@ def render_actions(prop, guardar_fn):
                 st.rerun()
 
     if st.session_state.get(f"edit_{prop['id']}", False):
-        # Geocodificar ANTES del form (st.button no funciona dentro de st.form)
-        geo_cache = st.session_state.get('geo_edit_coords')
-        direccion_actual = prop.get('direccion', '')
-        st.markdown(f"**Direccion actual:** {direccion_actual}")
-        if geo_cache:
-            st.info(f"Coordenadas geocodificadas: {geo_cache[0]:.7f}, {geo_cache[1]:.7f}")
-        if st.button("Geocodificar direccion", key=f"geo_edit_{prop['id']}"):
-            from parsers.geocoder import geocoding_manager
-            with st.spinner("Buscando coordenadas..."):
-                geo = geocoding_manager(direccion_actual)
-            if geo and geo.get('lat'):
-                st.session_state['geo_edit_coords'] = (geo['lat'], geo['lon'])
-                st.rerun()
-            else:
-                st.error("No se encontro la direccion en OpenStreetMap")
-
-        # Escribir coordenadas directo en session_state para que Streamlit las muestre
-        # (Streamlit prioriza session_state sobre el parametro value del widget)
-        if geo_cache:
-            st.session_state["lat_edit"] = geo_cache[0]
-            st.session_state["lon_edit"] = geo_cache[1]
-            st.session_state.pop('geo_edit_coords', None)
-
-        with st.form(f"f_edit_{prop['id']}"):
-            from valu_forms import ui_formulario_propiedad
-            new_data = ui_formulario_propiedad(prop_inicial=prop, key_suffix="edit", show_geocode=False)
-            if st.form_submit_button("Guardar Cambios", type="primary"):
+        from valu_forms import ui_formulario_propiedad
+        # Usamos un key_suffix único para evitar colisiones y habilitamos el geocoding automático reactivo
+        new_data = ui_formulario_propiedad(prop_inicial=prop, key_suffix=f"edit_{prop['id']}", show_geocode=True)
+        
+        col_b1, col_b2 = st.columns(2)
+        with col_b1:
+            if st.button("Guardar Cambios", type="primary", key=f"save_edit_{prop['id']}", use_container_width=True):
+                # Por seguridad, si la dirección cambió y no se disparó el callback (ej: clic directo), geocodificamos antes de guardar
+                nueva_dir = (new_data.get('direccion') or '').strip()
+                vieja_dir = (prop.get('direccion') or '').strip()
+                if nueva_dir and nueva_dir != vieja_dir:
+                    try:
+                        from parsers.geocoder import geocoding_manager
+                        geo = geocoding_manager(nueva_dir)
+                        if geo and geo.get('lat'):
+                            new_data['lat'] = geo['lat']
+                            new_data['lon'] = geo['lon']
+                    except Exception:
+                        pass
+                
                 guardar_fn(new_data)
+                
+                # Limpiar el estado de edición
+                keys_to_clear = [k for k in st.session_state.keys() if k.endswith(f"_edit_{prop['id']}")]
+                for k in keys_to_clear:
+                    st.session_state.pop(k, None)
                 st.session_state[f"edit_{prop['id']}"] = False
                 st.rerun()
-            if st.form_submit_button("Cancelar"):
+                
+        with col_b2:
+            if st.button("Cancelar", key=f"cancel_edit_{prop['id']}", use_container_width=True):
+                # Limpiar el estado de edición al cancelar
+                keys_to_clear = [k for k in st.session_state.keys() if k.endswith(f"_edit_{prop['id']}")]
+                for k in keys_to_clear:
+                    st.session_state.pop(k, None)
                 st.session_state[f"edit_{prop['id']}"] = False
                 st.rerun()
 
@@ -167,6 +171,20 @@ def render_razonamiento(prop, res):
                 guardar_cache_valuaciones(cache)
         except:
             pass
+
+    # FASE 3: Age blend info en detalle técnico
+    meta = res.get('resolution_metadata', {})
+    if meta.get('age_blend_applied'):
+        n_age = meta.get('n_age_filtered', 0)
+        alpha = meta.get('alpha_age_blend', 0)
+        base_age = meta.get('base_age', 0)
+        base_all = meta.get('base_all', 0)
+        st.info(
+            f"**Cluster con edad similar insuficiente (n={n_age}).**  "
+            f"Se aplicó blend entre pool etario y pool completo.  "
+            f"Alpha edad = {alpha:.2f}.  "
+            f"Base edad: ${base_age:.0f}, Base pool completo: ${base_all:.0f}"
+        )
 
     if razonamiento:
         with st.expander("Informe de Valuacion", expanded=False):
