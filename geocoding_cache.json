@@ -68,5 +68,25 @@
     "ancla_id": "centro_san_juan_entre_rios",
     "ancla_usd": 1600,
     "distancia_km": 0.05
+  },
+  "entre ríos  4000": {
+    "lat": -32.9833415,
+    "lon": -60.650467,
+    "status": "low_confidence",
+    "score": 6.83916990920427e-05,
+    "type": "house",
+    "ancla_id": "sur_battle_ordonez_san_martin",
+    "ancla_usd": 1020,
+    "distancia_km": 0.54
+  },
+  "entre ríos  400": {
+    "lat": -32.9412249,
+    "lon": -60.6397994,
+    "status": "low_confidence",
+    "score": 6.83916990920427e-05,
+    "type": "house",
+    "ancla_id": "macrocentro_salta_lagos",
+    "ancla_usd": 1620,
+    "distancia_km": 0.14
   }
 }

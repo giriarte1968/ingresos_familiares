@@ -4,6 +4,26 @@ import uuid
 from datetime import datetime
 
 
+def _auto_geocode_cb(key_suffix, lat_key, lon_key):
+    """Callback para auto-geocodificar al cambiar la dirección (Tab/Enter/blur)."""
+    addr = st.session_state.get(f"direccion_{key_suffix}", "").strip()
+    if len(addr) < 3:
+        return
+    last_key = f"_last_geo_{key_suffix}"
+    if st.session_state.get(last_key) == addr:
+        return
+    try:
+        from parsers.geocoder import geocoding_manager
+        geo = geocoding_manager(addr)
+        if geo and geo.get('lat'):
+            st.session_state[lat_key] = geo['lat']
+            st.session_state[lon_key] = geo['lon']
+            st.session_state[last_key] = addr
+            st.rerun()
+    except Exception:
+        pass
+
+
 def _titulo_seccion(titulo, icono, color):
     """Muestra el título de la sección con estilo."""
     st.markdown(f"""
@@ -39,13 +59,15 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
             zonas = ["Centro", "Macrocentro", "Barrio Inglés", "Pichincha", "Abasto", "Martin", "Facultades", "Puerto Norte", "Barrio Tigre", "Rosario Norte", "Alvear", "San Martín", "General Paz", "Echesortu", "Fisherton", "Ruta 9", "Sur", "Norte", "Oeste", "Sexta Pellegrini", "República de la Sexta", "Otro"]
             zona = st.selectbox("Zona / Barrio *", zonas, index=zonas.index(prop_inicial.get('zona', 'Otro')) if prop_inicial.get('zona') in zonas else len(zonas)-1, key=f"zona_{key_suffix}")
             
-            direccion = st.text_input("Dirección *", value=prop_inicial.get('direccion', ''), key=f"direccion_{key_suffix}")
+            direccion = st.text_input("Dirección *", value=prop_inicial.get('direccion', ''), key=f"direccion_{key_suffix}",
+                                         on_change=_auto_geocode_cb if show_geocode else None,
+                                         args=(key_suffix, lat_key, lon_key) if show_geocode else None)
             if not direccion or not direccion.strip():
                 errores.append("La dirección es obligatoria")
         with col2:
-            # Auto-geocodificar si la dirección cambió
+            # Auto-geocodificar inline (backup por si on_change no se dispare)
             if show_geocode:
-                addr = direccion.strip()
+                addr = st.session_state.get(f"direccion_{key_suffix}", "").strip()
                 if len(addr) >= 3:
                     last_key = f"_last_geo_{key_suffix}"
                     if st.session_state.get(last_key) != addr:
