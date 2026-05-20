@@ -453,15 +453,15 @@ def enriquecer_anio_comparable(comp, max_dist_m=50):
 
 def _filtrar_por_ventana_edad(pool, anio_sujeto, min_con_anio=10):
     """
-    Filtra comparables por ventana de edad ±años alrededor del año sujeto.
-    Ventanas progresivas: ±10 → ±15 → ±20.
+    Filtra comparables por ventana de edad alrededor del año sujeto.
+    Ventanas progresivas prudentes: ±15 → ±20.
     
     Lógica:
-    - ±10: si n >= 8, acepta pool
     - ±15: si n >= 8, acepta pool
     - ±20: si n >= 8, acepta pool
-           si 5 <= n < 8, acepta pool (activa age_blend)
-           si n < 5, fallback total al pool completo
+    - Si ninguna alcanza 8, se toma la mejor ventana:
+        - 5 <= n < 8: activa age_blend
+        - n < 5: fallback total al pool completo
     
     Returns:
         (pool_filtrado, age_filter_applied, n_age_filtered, anio_min, anio_max)
@@ -474,7 +474,12 @@ def _filtrar_por_ventana_edad(pool, anio_sujeto, min_con_anio=10):
     if len(pool_con_anio) < min_con_anio:
         return pool, False, 0, 0, 0
     
-    for ventana_actual in [10, 15, 20]:
+    mejor_pool = None
+    mejor_n = 0
+    mejor_min = 0
+    mejor_max = 0
+    
+    for ventana_actual in [15, 20]:
         anio_min = anio_sujeto - ventana_actual
         anio_max = anio_sujeto + ventana_actual
         
@@ -485,12 +490,17 @@ def _filtrar_por_ventana_edad(pool, anio_sujeto, min_con_anio=10):
         
         n = len(pool_age_filtered)
         
+        if n > mejor_n:
+            mejor_pool = pool_age_filtered
+            mejor_n = n
+            mejor_min = anio_min
+            mejor_max = anio_max
+        
         if n >= 8:
             return pool_age_filtered, True, n, anio_min, anio_max
-        
-        # En ±20, si hay 5-7 comps, activa age_blend
-        if ventana_actual == 20 and n >= 5:
-            return pool_age_filtered, True, n, anio_min, anio_max
+    
+    if mejor_pool is not None and 5 <= mejor_n < 8:
+        return mejor_pool, True, mejor_n, mejor_min, mejor_max
     
     return pool, False, 0, 0, 0
 
@@ -752,7 +762,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         n_enriq_total = n_enriquecidos_alta + n_enriquecidos_media
         pct_enriq = (n_enriq_total / total_pool * 100) if total_pool else 0
 
-        # FASE 2: Filtrar por ventana de edad (±10 → ±15 → ±20)
+        # FASE 2: Filtrar por ventana de edad (±15 → ±20)
         pool_final, age_filter_applied, n_age_filtered, anio_min, anio_max = _filtrar_por_ventana_edad(
             unicos, anio_sujeto
         )
@@ -762,7 +772,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         if age_filter_applied:
             logger.info(f"[AGE_FILTER] Aplicado: {n_age_filtered} en rango {anio_min}-{anio_max}")
         else:
-            logger.info(f"[AGE_FILTER] No aplicado: solo {n_age_filtered} post-filtro (mín 8 en ±10/±15, mín 5 en ±20)")
+            logger.info(f"[AGE_FILTER] No aplicado: solo {n_age_filtered} post-filtro (mín 8 en ±15/±20, mín 5 para blend)")
 
         precios = [p['valor_m2'] for p in pool_final]
         n_raw = len(precios)

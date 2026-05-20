@@ -743,3 +743,37 @@ audit_log = {
 - **Anclas sin cambios**: Vera Mujica, P1200 intactos
 
 ### Tests: 39/39 regression, 152/152 total pasando
+
+---
+
+## 📅 2026-05-20 — TAREA: Ajuste a ventanas prudentes (±15 → ±20 → blend)
+
+### Problema detectado
+La estrategia anterior (±10→±15→±20) era demasiado agresiva. Para propiedades como Ayacucho (2002), ±10 redujo el pool de 16 a 8 comps y bajó el percentil de P45 a P40, generando una caída de ~14% ($46,430 → $39,896). En Rosario, departamentos usados con 10-15 años de diferencia siguen siendo comercialmente comparables.
+
+### Cambio final
+Se reemplazó ±10→±15→±20 por una política más prudente:
+
+```
+±15 → si n ≥ 8, acepta (mantiene comportamiento histórico en ~90% de casos)
+±20 → si n ≥ 8, acepta
+      si 5 ≤ n < 8, activa age_blend
+      si n < 5, fallback al pool completo
+```
+
+### Impacto final
+| Propiedad | Antes (±15→±30) | Después (±15→±20→blend) | Cambio |
+|-----------|:----------------:|:------------------------:|:------:|
+| Mabel     | $79,069          | $79,069                  | 0%     |
+| Ayacucho  | $46,430          | $46,430                  | 0%     |
+| Vera Mujica | $52,062       | $52,062                  | 0%     |
+| P1200     | $137,888         | $137,888                 | 0%     |
+| **Entre Ríos 400** | inflado por 1991/1993 | **$69,599** (con blend) | ✅ |
+
+### Archivos modificados
+- `parsers/mercado_inmobiliario.py`: `_filtrar_por_ventana_edad()` con ventanas [15, 20]
+- `tests/test_regression.py`: rangos Ayacucho restaurados a $44k-$50k y $44k-$52k
+- `docs/ALGORITMOS.md`: §11b actualizado, tabla valores ref restaurada
+- `docs/BITACORA_AGENTES.md`: esta entrada
+
+### Tests: 39/39 regression, 152/152 total pasando
