@@ -1,16 +1,17 @@
 """
 Infomapa Rosario API - Integración con datos catastrales oficiales.
 
-Flujo ESTRICTO:
+Flujo:
 1. Cargar CSV de PHs (rosario_avm_full.csv)
 2. Buscar candidato por DIRECCIÓN (misma calle + misma centena + diff ≤ 10)
-3. Si NO hay match por dirección → retorna None (no ofrecer planos de otra cuadra)
-4. Si hay match → buscar top 2 por COORDENADAS como alternativas
-5. Obtener imágenes + nomenclatura de la API para cada candidato
-6. El analista selecciona manualmente el PH correcto en la UI
+3. Buscar top 2 por COORDENADAS como alternativas (solo misma calle)
+4. Obtener imágenes + nomenclatura de la API para cada candidato
+5. El analista selecciona manualmente el PH correcto en la UI
 
-Regla: NUNCA ofrecer candidatos catastrales de una calle o centena diferente
-a la de la propiedad valuada. Si no hay datos exactos, informar ausencia.
+Regla: los candidatos por coordenadas se filtran a la MISMA CALLE que la
+propiedad valuada. No se ofrecen planos catastrales de otras calles, aunque
+estén a pocos metros. Si no hay candidatos en la misma calle, se informa
+ausencia de datos catastrales.
 """
 
 import os
@@ -175,40 +176,48 @@ def enriquecer_con_infomapa(prop: Dict) -> Optional[Dict]:
     if calle and numero:
         dir_candidate = _match_por_direccion(filas, calle, numero)
 
-    # Si no hay match por dirección (misma calle + centena), NO ofrecer candidatos
-    # de otras calles/cuadras — serían planos incorrectos
-    if not dir_candidate:
-        return None
-
     # PASO 2: Top 3 por coordenadas (~220m radio) como alternativas
     coord_candidates = _match_coordenadas(filas, float(lat), float(lon), tol=0.002)[:3]
+
+    # Helper: filtrar candidato por coordenadas a la MISMA CALLE
+    # (no ofrecer planos de calles diferentes, que serían incorrectos)
+    def _misma_calle(row: dict) -> bool:
+        if not calle:
+            return True  # sin referencia de calle, no filtrar
+        csv_calle, _ = _extraer_calle_numero(row.get('direccion_nominatim', ''))
+        if not csv_calle:
+            return False
+        return csv_calle == calle or calle in csv_calle or csv_calle in calle
 
     # PASO 3: Combinar (máximo 3, sin duplicados)
     candidatos = []
     phs_vistos = set()
 
-    dir_candidate['recomendado'] = True
-    if 'centena_match' not in dir_candidate:
-        dir_candidate['centena_match'] = 'exacta'
-    candidatos.append(dir_candidate)
-    phs_vistos.add(dir_candidate['ph'])
+    if dir_candidate:
+        dir_candidate['recomendado'] = True
+        if 'centena_match' not in dir_candidate:
+            dir_candidate['centena_match'] = 'exacta'
+        candidatos.append(dir_candidate)
+        phs_vistos.add(dir_candidate['ph'])
 
     for c in coord_candidates:
         if c['ph'] not in phs_vistos and len(candidatos) < 3:
-            c['recomendado'] = False
-            c['centena_match'] = 'coordenadas'
-            candidatos.append(c)
-            phs_vistos.add(c['ph'])
+            if _misma_calle(c):
+                c['recomendado'] = False
+                c['centena_match'] = 'coordenadas'
+                candidatos.append(c)
+                phs_vistos.add(c['ph'])
 
     # Si quedan menos de 3, buscar más en el pool completo
     if len(candidatos) < 3:
         pool = _match_coordenadas(filas, float(lat), float(lon), tol=0.002)
         for c in pool:
             if c['ph'] not in phs_vistos and len(candidatos) < 3:
-                c['recomendado'] = False
-                c['centena_match'] = 'coordenadas'
-                candidatos.append(c)
-                phs_vistos.add(c['ph'])
+                if _misma_calle(c):
+                    c['recomendado'] = False
+                    c['centena_match'] = 'coordenadas'
+                    candidatos.append(c)
+                    phs_vistos.add(c['ph'])
 
     if not candidatos:
         logger.info(f"[INFOMAPA] Sin candidatos para ({lat}, {lon})")
