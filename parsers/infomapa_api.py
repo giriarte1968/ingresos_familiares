@@ -112,11 +112,12 @@ def _match_coordenadas(filas: list, lat: float, lon: float, tol: float = 0.0005)
 def _match_por_direccion(filas: list, calle: str, numero: int) -> Optional[Dict]:
     """
     Busca en TODAS las filas del CSV la misma calle + número más cercano.
-    No depende de coordenadas, busca por texto de dirección.
+    Solo considera candidatos de la MISMA CENTENA (misma cuadra en Rosario).
     
     Returns:
-        La fila con diff num mínima (máx 10 de diferencia) o None.
+        La fila con diff num mínima (máx 10 de diferencia, misma centena) o None.
     """
+    centena_sujeto = (numero // 100) * 100
     mejores = []
     for row in filas:
         csv_calle, csv_num = _extraer_calle_numero(row.get('direccion_nominatim', ''))
@@ -124,8 +125,13 @@ def _match_por_direccion(filas: list, calle: str, numero: int) -> Optional[Dict]
             continue
         if csv_calle != calle and calle not in csv_calle and csv_calle not in calle:
             continue
+        # Rosario: la centena del número define la cuadra
+        centena_csv = (csv_num // 100) * 100
+        if centena_csv != centena_sujeto:
+            continue
         diff = abs(csv_num - numero)
         if diff <= 10:
+            row['centena_match'] = 'exacta'
             mejores.append((diff, row))
     if not mejores:
         return None
@@ -174,12 +180,15 @@ def enriquecer_con_infomapa(prop: Dict) -> Optional[Dict]:
 
     if dir_candidate:
         dir_candidate['recomendado'] = True
+        if 'centena_match' not in dir_candidate:
+            dir_candidate['centena_match'] = 'exacta'
         candidatos.append(dir_candidate)
         phs_vistos.add(dir_candidate['ph'])
 
     for c in coord_candidates:
         if c['ph'] not in phs_vistos and len(candidatos) < 3:
             c['recomendado'] = False
+            c['centena_match'] = 'coordenadas'
             candidatos.append(c)
             phs_vistos.add(c['ph'])
 

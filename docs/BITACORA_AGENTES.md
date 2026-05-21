@@ -708,6 +708,33 @@ audit_log = {
 
 ---
 
+## 📅 2026-05-21 — TAREA-001: Filtro catastral por centena exacta
+
+### Problema
+`_match_por_direccion()` usaba `diff <= 10` para seleccionar candidatos catastrales. Para "Pellegrini 1200" (P1200), esto seleccionaba "Pellegrini 1195" (centena 11xx) como candidato recomendado, siendo una cuadra diferente. En Rosario la centena define la cuadra.
+
+### Cambio
+- `_match_por_direccion()` ahora filtra por `centena_csv == centena_sujeto` antes de evaluar diff
+- Solo candidatos de la **misma centena** (misma cuadra) pueden ser "recomendados"
+- Los candidatos por coordenadas llevan `centena_match = 'coordenadas'`
+- UI muestra badge "📍 Misma cuadra" o "📍 Coordenadas" según el tipo
+
+### Resultado
+| Propiedad | Antes | Después |
+|-----------|-------|---------|
+| P1200 (Pellegrini 1200) | 1195 como recomendado | Solo candidatos por coordenadas (sin 11xx como dirección) |
+| Ayacucho (Ayacucho 1805) | Normal | Sin cambio |
+| Mabel (3 de Febrero 520) | Normal | Sin cambio |
+
+### Archivos
+- `parsers/infomapa_api.py` — filtro de centena + propagación
+- `valu_detail_sections.py` — badge en UI
+- `docs/DICCIONARIO_DATOS.md` §7 — campo `centena_match`
+- `.opencode/plans/TAREA-001.md` — plan archivado
+- `.opencode/plans/TAREAS_INDEX.md` — índice actualizado
+
+### Tests: 152/152 pasando
+
 ## 📅 2026-05-20 — TAREA: Ventanas progresivas de edad ±10→±15→±20
 
 ### Problema

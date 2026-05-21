@@ -255,6 +255,7 @@ Agregado a valuación vía `enriquecer_con_infomapa()`.
 | `candidatos[].grafico` | `str` | Gráfico catastral |
 | `candidatos[].distancia` | `float` | Distancia en grados decimales desde la propiedad |
 | `candidatos[].recomendado` | `bool` | `True` si coincide con la dirección de la propiedad |
+| `candidatos[].centena_match` | `str` | Tipo: `'exacta'` (misma cuadra por dirección), `'coordenadas'` (por proximidad geográfica) |
 | `imagenes_disponibles` | `dict` | Mapa `PH → list[{ruta, url}]` con las imágenes del plano |
 
 ---

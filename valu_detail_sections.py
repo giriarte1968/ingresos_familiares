@@ -270,10 +270,18 @@ def render_catastro(prop, res):
         
         with col_data:
             # Selector nativo mucho más limpio que N botones apilados
+            def _fmt_candidato(ph):
+                c = ph_options[ph]
+                dir_ = c.get('direccion_nominatim', f'PH {ph}')
+                dist = float(c.get('distancia', 0))*111000
+                cm = c.get('centena_match', '')
+                badge = {"exacta": "📍 Misma cuadra", "coordenadas": "📍 Coordenadas"}.get(cm, '')
+                rec = " ⭐ Recomendado" if c.get('recomendado') else ""
+                return f"{dir_} — {dist:.0f}m {badge}{rec}"
             ph_sel = st.selectbox(
                 "📍 Coincidencia Catastral", 
                 options=[c['ph'] for c in candidatos],
-                format_func=lambda x: f"{ph_options[x].get('direccion_nominatim', f'PH {x}')} — {float(ph_options[x].get('distancia', 0))*111000:.0f}m" + (" ⭐ Recomendado" if ph_options[x].get('recomendado') else "")
+                format_func=_fmt_candidato
             )
             
             sel_data = ph_options[ph_sel]
