@@ -176,6 +176,32 @@ def get_how_html() -> str:
         '</div>'
     )
 
+def get_deliverables_html() -> str:
+    items = [
+        ("Valor estimado", "Precio de referencia en USD y ARS para publicación y análisis."),
+        ("Rango de venta", "Escenarios conservador, mercado y optimista para negociar mejor."),
+        ("Alquiler y Cap Rate", "Estimación de renta mensual y rendimiento anual esperado."),
+        ("Comparables reales", "Muestras de mercado cercanas usadas como respaldo del cálculo."),
+    ]
+    cards = ''.join(
+        f'<div class="deliverable-card">'
+        f'<div class="deliverable-icon">{i}</div>'
+        f'<h3>{title}</h3>'
+        f'<p>{desc}</p>'
+        f'</div>'
+        for i, (title, desc) in enumerate(items, 1)
+    )
+    return (
+        '<div class="landing-section-alt">'
+        '<div class="landing-section">'
+        '<div class="section-kicker">Informe claro</div>'
+        '<h2 class="section-title">Qué recibís con Valu</h2>'
+        '<p class="section-subtitle">No solo un número: una lectura completa del activo y su contexto de mercado.</p>'
+        f'<div class="deliverables-grid">{cards}</div>'
+        '</div>'
+        '</div>'
+    )
+
 def get_features_html() -> str:
     features = [
         ("3 escenarios de precio",

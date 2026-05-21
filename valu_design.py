@@ -401,6 +401,19 @@ LANDING_CSS = """
     .mockup-progress { width: 60%; height: 100%; background: var(--accent); border-radius: 2px; }
     .mockup-labels { display: flex; justify-content: space-between; font-size: 12px; margin-top: 8px; opacity: 0.6; }
 
+    /* Section shared styles */
+    .section-kicker { color: var(--accent); font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; text-align: center; }
+    .section-title { font-size: 2rem; font-weight: 800; color: var(--primary); margin-bottom: 12px; text-align: center; }
+    .section-subtitle { color: var(--text-light); font-size: 1.05rem; max-width: 600px; margin: 0 auto 40px; text-align: center; }
+
+    /* Deliverables section */
+    .deliverables-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+    .deliverable-card { background: white; border-radius: 16px; padding: 28px; border: 1px solid var(--border); text-align: center; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .deliverable-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+    .deliverable-icon { width: 48px; height: 48px; border-radius: 50%; background: #ecfdf5; color: var(--accent); font-size: 1.2rem; font-weight: 800; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+    .deliverable-card h3 { font-size: 1.1rem; font-weight: 700; color: var(--primary); margin: 0 0 8px; }
+    .deliverable-card p { font-size: 0.9rem; color: var(--text-light); margin: 0; line-height: 1.5; }
+
     .landing-example { 
         background: white; 
         border: 2px solid var(--border);
