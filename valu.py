@@ -220,7 +220,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     from valu_detail_sections import (
         render_actions, render_header, render_rango, render_metricas,
         render_razonamiento, render_mapa_y_comparables, render_catastro,
-        render_street_view, render_historial,
+        render_street_view, render_historial, generar_reporte_pdf,
     )
 
     render_actions(prop, guardar_fn)
@@ -234,6 +234,17 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     st.markdown("<br>", unsafe_allow_html=True)
 
     render_razonamiento(prop, res)
+
+    pdf_bytes = generar_reporte_pdf(prop, res)
+    st.download_button(
+        "Descargar Reporte PDF",
+        data=pdf_bytes,
+        file_name=f"valuacion_{prop.get('nombre','propiedad').replace(' ','_')}.pdf",
+        mime="application/pdf",
+        type="primary",
+        use_container_width=True,
+    )
+
     render_mapa_y_comparables(res)
     render_catastro(prop, res)
     render_street_view(prop)

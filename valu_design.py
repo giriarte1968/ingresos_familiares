@@ -850,8 +850,8 @@ LANDING_CSS = """
 
     .final-cta {
         background:
-            radial-gradient(circle at 20% 20%, rgba(16,185,129,0.30), transparent 40%),
-            linear-gradient(135deg, #064e3b, #022c22);
+            radial-gradient(circle at 50% 30%, rgba(16, 185, 129, 0.35), transparent 50%),
+            linear-gradient(135deg, #065f46, #064e3b);
         color: white;
         padding: 90px 20px;
         text-align: center;
