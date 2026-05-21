@@ -94,7 +94,7 @@ header[data-testid="stHeader"] { background: #0F1629 !important; }
 .step-number-small { font-size: 14px; font-weight: 800; color: #10b981; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
 .step-number-small::before { content: 'PASO '; }
 .step-title-v2 { font-size: 1.15rem; font-weight: 700; color: #0f172a; margin-bottom: 12px; }
-.card-text { font-size: 0.9rem; color: #64748b; line-height: 1.6; }
+.card-text { font-size: 0.85rem; color: #64748b; line-height: 1.5; }
 
 @media (min-width: 769px) {
     .step-connector-wrapper { position: relative; }
@@ -111,9 +111,22 @@ header[data-testid="stHeader"] { background: #0F1629 !important; }
 .example-map-mini svg { max-width: 280px; width: 100%; }
 
 /* Feature cards v2 */
-.feature-card-v2 { padding: 28px 24px; }
-.feature-icon-wrapper { width: 48px; height: 48px; border-radius: 12px; background: #ecfdf5; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
-.feature-title { color: #0f172a; font-weight: 700; margin-bottom: 8px; }
+.feature-card-v2 {
+    padding: 22px 20px;
+    position: relative;
+    overflow: hidden;
+}
+.feature-card-v2::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: linear-gradient(90deg, #006AFF, #10b981);
+    opacity: 0.7;
+}
+.feature-icon-wrapper { width: 52px; height: 52px; border-radius: 14px; background: #ecfdf5; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
+.feature-icon-wrapper svg { width: 28px; height: 28px; }
+.feature-title { color: #0f172a; font-weight: 800; margin-bottom: 6px; font-size: 1.02rem; letter-spacing: -0.01em; }
 
 /* Hero with image background */
 .hero-with-image {
@@ -328,13 +341,14 @@ LANDING_CSS = """
     .landing-card { 
         background: white; 
         border-radius: 16px; 
-        padding: 32px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        padding: 24px 22px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.04);
         border: 1px solid var(--border);
-        transition: transform 0.2s ease;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
     .landing-card:hover {
-        transform: translateY(-4px);
+        transform: translateY(-3px);
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.10);
     }
     
     .landing-badge { 
