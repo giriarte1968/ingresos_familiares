@@ -291,110 +291,14 @@ def mostrar_dashboard():
 
     # ─── PÁGINAS ───
     if page == "Portfolio":
-        propiedades = cargar_propiedades()
-        
-        if not propiedades:
-            st.info("No tienes propiedades cargadas aún. Ve a Configuración para agregar una.")
-        else:
-            # ─── VISTA GENERAL DEL PORTFOLIO ───
-                st.title("Mi Portafolio")
-                
-                # Cargar resultados del cache SIN valuar
-                resultados = {}
-                from parsers.valuacion_cache import cargar_cache_valuaciones, CACHE_VERSION
-                cache_vals = cargar_cache_valuaciones()
-                for p in propiedades:
-                    nombre = p.get('nombre', '')
-                    entrada = cache_vals.get(nombre)
-                    if entrada and entrada.get('cache_version') == CACHE_VERSION:
-                        resultados[nombre] = entrada.get('resultado_completo', {})
-                
-                # KPIS DEL PORTFOLIO
-                total_usd = sum(r.get('valor_propiedad_usd', 0) for r in resultados.values())
-                n_props = len(propiedades)
-                cap_prom = sum(r.get('cap_rate', 0) for r in resultados.values()) / n_props if n_props else 0
-                usdt_ars = obtener_usdt_ars_binance()
-                
-                c1, c2, c3, c4 = st.columns(4)
-                with c1: st.markdown(kpi_card("💼", "Portfolio Total", f"${total_usd:,.0f} USD", f"${total_usd*usdt_ars/1e6:.1f}M ARS"), unsafe_allow_html=True)
-                with c2: st.markdown(kpi_card("🏘️", "Propiedades", f"{n_props}", "activas"), unsafe_allow_html=True)
-                with c3: st.markdown(kpi_card("📈", "Cap Rate Prom.", f"{cap_prom*100:.1f}%", "rendimiento neto", border_color="#16A34A"), unsafe_allow_html=True)
-                with c4:
-                    alq_total = sum(r.get('alquiler_estimado_ars', 0) for r in resultados.values())
-                    st.markdown(kpi_card("💰", "Alquiler Total", f"${alq_total:,.0f} ARS", f"${alq_total/usdt_ars:,.0f} USD", border_color="#F59E0B"), unsafe_allow_html=True)
-                
-                # MAPA DE ACTIVOS
-                st.markdown('<div style="margin-top:18px;"></div>', unsafe_allow_html=True)
-                import folium
-                from streamlit.components.v1 import html
-                props_con_coords = [p for p in propiedades if p.get('lat') and p.get('lon')]
-                if props_con_coords:
-                    lats = [p['lat'] for p in props_con_coords]
-                    lons = [p['lon'] for p in props_con_coords]
-                    m = folium.Map(tiles='cartodbpositron')
-                    for p in props_con_coords:
-                        folium.Marker([p['lat'], p['lon']], popup=f"📍 {p.get('nombre', '')}", icon=folium.Icon(color='blue', icon='home')).add_to(m)
-                    # Centrado del mapa: para que las propiedades queden en
-                    # el tercio SUPERIOR del viewport hay que agregar mas
-                    # padding al SUR (min_lat). Eso mueve el centro del mapa
-                    # hacia el sur y las propiedades suben visualmente.
-                    lat_range = max(lats) - min(lats)
-                    lon_range = max(lons) - min(lons)
-                    # Minimo de padding cuando todas las props estan muy juntas
-                    base = max(lat_range, 0.012)  # ~1.3km minimo
-                    pad_s = base * 0.9            # mucho espacio al sur -> props suben
-                    pad_n = base * 0.15           # poco espacio al norte
-                    pad_h = max(lon_range * 0.25, 0.01)
-                    m.fit_bounds(
-                        [[min(lats) - pad_s, min(lons) - pad_h],
-                         [max(lats) + pad_n, max(lons) + pad_h]],
-                        max_zoom=14
-                    )
-                    html(m._repr_html_(), height=300)
-                    st.caption(f"📍 {len(props_con_coords)} propiedades")
-                    st.markdown("<br><br><br>", unsafe_allow_html=True)
-                
-                st.markdown("---")
-                
-                mostrar_dashboard_valu(propiedades, resultados)
-
-    elif st.session_state.page == "Portfolio2":
         from valu_portfolio2 import mostrar_portfolio2
         mostrar_portfolio2(
             cargar_propiedades_fn=cargar_propiedades,
             obtener_usdt_fn=obtener_usdt_ars_binance,
         )
 
-    elif st.session_state.page == "Inventario":
-        st.header("📋 Inventario de Propiedades")
-        props = cargar_propiedades()
-        if not props:
-            st.info("Sin propiedades.")
-        else:
-            df = pd.DataFrame(props)
-            # Columnas a mostrar
-            display_cols = {
-                'nombre': 'Nombre',
-                'zona': 'Zona',
-                'm2_cubiertos': 'm² Cub.',
-                'dormitorios': 'Dorm.',
-                'fecha_publicacion': 'Publicada el',
-                'id': 'ID'
-            }
-            
-            # Asegurar que existan todas las columnas
-            for col in display_cols.keys():
-                if col not in df.columns:
-                    df[col] = "—"
-            
-            df_display = df[list(display_cols.keys())].rename(columns=display_cols)
-            # Convertir todas las columnas a string para evitar errores de tipo en Streamlit
-            df_display = df_display.astype(str)
-            st.dataframe(df_display, width='stretch', hide_index=True)
-            st.caption("💡 Puedes editar la fecha de publicación desde el detalle de cada propiedad o en el menú de Configuración.")
-
-    elif st.session_state.page == "Cargar Mercado":
-        st.header("Operaciones de Mantenimiento")
+    elif st.session_state.page == "Mercado de propiedades":
+        st.header("Mercado de propiedades")
         st.caption("Ejecutar solo cuando sea necesario.")
 
         # ─── Actualizar base de mercado ───
@@ -621,12 +525,12 @@ def main():
         st.button("← Volver al Inicio", width='stretch', on_click=ir_al_inicio)
         st.markdown("---")
         
-        nav_options = ["Portfolio2", "Inventario", "Cargar Mercado", "Configuración"]
+        nav_options = ["Portfolio", "Mercado de propiedades", "Configuración"]
         forced_nav = st.session_state.pop("_force_nav_page", None)
         if forced_nav in nav_options:
             st.session_state["nav_page_radio"] = forced_nav
         if "nav_page_radio" not in st.session_state:
-            st.session_state["nav_page_radio"] = st.session_state.page if st.session_state.page in nav_options else "Portfolio2"
+            st.session_state["nav_page_radio"] = st.session_state.page if st.session_state.page in nav_options else "Portfolio"
         st.radio("NAVEGACIÓN", nav_options, key="nav_page_radio")
         new_page = st.session_state["nav_page_radio"]
         # Si cambió la página desde el sidebar, limpiar prop_sel para que la navegación funcione
