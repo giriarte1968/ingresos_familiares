@@ -71,7 +71,7 @@ def get_hero_html(stats: dict) -> str:
         f'<div class="hero-content">'
         f'<div class="landing-badge">Datos de mercado actualizados · Rosario</div>'
         f'<h1 class="hero-title">Sabé cuánto vale tu propiedad<br>en Rosario</h1>'
-        f'<p class="hero-sub">Valuación automática basada en más de <b>{stats["total_propiedades_scraping"]:,}</b> propiedades reales del mercado. El estándar de datos para el mercado inmobiliario local.</p>'
+        f'<p class="hero-sub">Valuación automática basada en más de <b>9,000</b> propiedades reales del mercado. El estándar de datos para el mercado inmobiliario local.</p>'
         f'<div class="landing-mockup" style="max-width:560px;margin:0 auto;">'
         f'<div class="mockup-card" style="background:rgba(255,255,255,0.96);color:#0f172a;border:1px solid rgba(255,255,255,0.35);border-radius:22px;padding:26px;box-shadow:0 22px 60px rgba(0,0,0,0.28);">'
         f'<div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:18px;">'
