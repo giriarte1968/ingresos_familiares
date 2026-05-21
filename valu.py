@@ -255,47 +255,48 @@ def mostrar_dashboard():
             st.session_state['_cleanup'] = True
     st.session_state.prev_page = page
     
+    # ─── FLUJO DETALLE: funciona desde cualquier página (Portfolio, Portfolio2, etc.) ───
+    if st.session_state.prop_sel:
+        propiedades = cargar_propiedades()
+        from parsers.motor_vpp_core import valuar_con_cache
+        from parsers.valuacion_cache import cargar_cache_valuaciones, CACHE_VERSION
+
+        p_obj = next((p for p in propiedades if p['nombre'] == st.session_state.prop_sel), None)
+        if p_obj:
+            forzar = st.session_state.pop(f'forzar_recalculo_{p_obj["nombre"]}', False)
+
+            cache_existente = cargar_cache_valuaciones()
+            entrada_antigua = cache_existente.get(p_obj['nombre'], {})
+            if entrada_antigua.get('cache_version', '') != CACHE_VERSION and not forzar:
+                st.info(f"🔄 Actualizando valuación de **{p_obj['nombre']}** "
+                        f"a la nueva versión del motor ({CACHE_VERSION})...")
+
+            with st.spinner(f"Abriendo detalle de {p_obj['nombre']}..."):
+                resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar)
+
+            def actualizar_propiedad(nueva_data):
+                props = cargar_propiedades()
+                for i, p in enumerate(props):
+                    if p.get('nombre') == p_obj.get('nombre'):
+                        props[i] = nueva_data
+                        break
+                guardar_propiedades(props)
+
+            if st.button("← Volver al Portafolio"):
+                st.session_state.prop_sel = None
+                st.rerun()
+
+            mostrar_detalle_valu(p_obj, resultado, actualizar_propiedad)
+        return
+
+    # ─── PÁGINAS ───
     if page == "Portfolio":
         propiedades = cargar_propiedades()
         
         if not propiedades:
             st.info("No tienes propiedades cargadas aún. Ve a Configuración para agregar una.")
         else:
-            from parsers.motor_vpp_core import valuar_con_cache
-            
-            # ─── FLUJO B: DETALLE DE UNA PROPIEDAD ───
-            if st.session_state.prop_sel:
-                p_obj = next((p for p in propiedades if p['nombre'] == st.session_state.prop_sel), None)
-                if p_obj:
-                    forzar = st.session_state.pop(f'forzar_recalculo_{p_obj["nombre"]}', False)
-                    
-                    from parsers.valuacion_cache import cargar_cache_valuaciones, CACHE_VERSION
-                    cache_existente = cargar_cache_valuaciones()
-                    entrada_antigua = cache_existente.get(p_obj['nombre'], {})
-                    if entrada_antigua.get('cache_version', '') != CACHE_VERSION and not forzar:
-                        st.info(f"🔄 Actualizando valuación de **{p_obj['nombre']}** "
-                                f"a la nueva versión del motor ({CACHE_VERSION})...")
-                    
-                    with st.spinner(f"Abriendo detalle de {p_obj['nombre']}..."):
-                        resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar)
-                    
-                    def actualizar_propiedad(nueva_data):
-                        props = cargar_propiedades()
-                        for i, p in enumerate(props):
-                            if p.get('nombre') == p_obj.get('nombre'):
-                                props[i] = nueva_data
-                                break
-                        guardar_propiedades(props)
-                    
-                    if st.button("← Volver al Portafolio"):
-                        st.session_state.prop_sel = None
-                        st.session_state['_returning'] = True
-                        st.rerun()
-                    
-                    mostrar_detalle_valu(p_obj, resultado, actualizar_propiedad)
-            
-            # ─── FLUJO A: VISTA GENERAL DEL PORTFOLIO ───
-            else:
+            # ─── VISTA GENERAL DEL PORTFOLIO ───
                 st.title("Mi Portafolio")
                 
                 # Cargar resultados del cache SIN valuar
@@ -357,6 +358,13 @@ def mostrar_dashboard():
                 
                 mostrar_dashboard_valu(propiedades, resultados)
 
+    elif st.session_state.page == "Portfolio2":
+        from valu_portfolio2 import mostrar_portfolio2
+        mostrar_portfolio2(
+            cargar_propiedades_fn=cargar_propiedades,
+            obtener_usdt_fn=obtener_usdt_ars_binance,
+        )
+
     elif st.session_state.page == "Inventario":
         st.header("📋 Inventario de Propiedades")
         props = cargar_propiedades()
@@ -387,20 +395,29 @@ def mostrar_dashboard():
 
     elif st.session_state.page == "Cargar Mercado":
         st.header("Operaciones de Mantenimiento")
-        st.caption("Tareas que pueden demorar varios minutos. Ejecutar solo cuando sea necesario.")
+        st.caption("Ejecutar solo cuando sea necesario.")
 
-        # ─── Sincronizar Valu ───
+        # ─── Actualizar base de mercado ───
         with st.container(border=True):
-            st.subheader("Sincronizar Valu")
-            st.markdown("Recorre los portales inmobiliarios (Propia, ZonaProp, ArgenProp) para actualizar la base de datos de mercado con los ultimos avisos publicados.")
-            st.markdown("**ETA estimado:** ~2-5 minutos dependiendo de la cantidad de portales")
-            if st.button("Sincronizar Valu", type="primary", use_container_width=True):
-                barra = st.progress(0.0, text="Conectando con portales...")
-                import time
-                for i in range(100):
-                    time.sleep(0.05)
-                    barra.progress((i+1)/100, text=f"Sincronizando... {i+1}%")
-                st.success("Base de mercado actualizada correctamente.")
+            st.subheader("Actualizar la base de datos de mercado")
+            if st.button("Actualizar base de mercado", type="primary", use_container_width=True):
+                barra = st.progress(0.0, text="Preparando actualización...")
+                estado = st.empty()
+                inicio = time.time()
+                try:
+                    barra.progress(0.10, text="Iniciando actualización de mercado...")
+                    estado.info("Actualizando datos de mercado. Esta operación puede demorar varios minutos.")
+                    from parsers.motor_vpp_core import actualizar_mercado_vpp_full
+                    ok = actualizar_mercado_vpp_full()
+                    barra.progress(1.0, text="Actualización finalizada")
+                    duracion = time.time() - inicio
+                    if ok:
+                        estado.success(f"Base de mercado actualizada. Tiempo total: {duracion/60:.1f} min.")
+                    else:
+                        estado.error("La actualización terminó con errores. Revisá los logs.")
+                except Exception as e:
+                    barra.progress(1.0, text="Actualización interrumpida")
+                    estado.error(f"No se pudo actualizar la base de mercado: {e}")
 
         st.markdown("---")
 
@@ -408,21 +425,36 @@ def mostrar_dashboard():
         with st.container(border=True):
             props = cargar_propiedades()
             n = len(props)
-            eta_seg = n * 3
-            eta_min = max(1, round(eta_seg / 60))
 
             st.subheader("Recalcular valuaciones")
-            st.markdown(f"Fuerza el recalculo de las **{n} propiedades** ignorando el cache existente. Util si se actualizo el motor o los datos de mercado.")
-            st.markdown(f"**ETA estimado:** ~{eta_min} minuto{'s' if eta_min > 1 else ''} ({n} props × ~3s cada una)")
+            st.markdown(f"Fuerza el recalculo de las **{n} propiedades**.")
 
             if st.button("Recalcular todo", type="primary", use_container_width=True):
-                from parsers.valuacion_cache import CACHE_VERSION
-                barra = st.progress(0.0, text="Recalculando...")
-                for i, p in enumerate(props):
-                    from parsers.motor_vpp_core import valuar_con_cache
-                    valuar_con_cache(p, forzar_recalculo=True)
-                    barra.progress((i+1)/n, text=f"Valuando {p.get('nombre','?')} ({i+1}/{n})")
-                st.success(f"{n} propiedades recalculadas.")
+                if n == 0:
+                    st.info("No hay propiedades para recalcular.")
+                else:
+                    barra = st.progress(0.0, text=f"Preparando recalculo de {n} propiedades...")
+                    estado = st.empty()
+                    inicio = time.time()
+                    for i, p_prop in enumerate(props):
+                        from parsers.motor_vpp_core import valuar_con_cache
+                        nombre = p_prop.get('nombre', '?')
+                        estado.info(f"Valuando **{nombre}** ({i+1}/{n})")
+                        valuar_con_cache(p_prop, forzar_recalculo=True)
+
+                        avance = (i + 1) / n
+                        transcurrido = time.time() - inicio
+                        promedio = transcurrido / (i + 1)
+                        restante = max(0, promedio * (n - i - 1))
+                        barra.progress(
+                            avance,
+                            text=(
+                                f"{i+1}/{n} valuaciones completadas · "
+                                f"restan ~{restante/60:.1f} min"
+                            ),
+                        )
+                    duracion = time.time() - inicio
+                    estado.success(f"{n} propiedades recalculadas. Tiempo total: {duracion/60:.1f} min.")
 
     elif st.session_state.page == "Configuración":
         st.header("⚙️ Configuración")
@@ -589,7 +621,14 @@ def main():
         st.button("← Volver al Inicio", width='stretch', on_click=ir_al_inicio)
         st.markdown("---")
         
-        st.session_state.page = st.radio("NAVEGACIÓN", ["Portfolio", "Inventario", "Cargar Mercado", "Configuración", "Auditoría Técnica"])
+        nav_options = ["Portfolio", "Portfolio2", "Inventario", "Cargar Mercado", "Configuración"]
+        forced_nav = st.session_state.pop("_force_nav_page", None)
+        if forced_nav in nav_options:
+            st.session_state["nav_page_radio"] = forced_nav
+        if "nav_page_radio" not in st.session_state:
+            st.session_state["nav_page_radio"] = st.session_state.page if st.session_state.page in nav_options else "Portfolio"
+        st.radio("NAVEGACIÓN", nav_options, key="nav_page_radio")
+        st.session_state.page = st.session_state["nav_page_radio"]
         
         st.markdown("---")
         datos = cargar_datos()

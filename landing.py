@@ -59,7 +59,15 @@ def mostrar_landing():
     stats = get_landing_stats()
 
     # Renderizar secciones en orden usando funciones
-    st.markdown(get_hero_html(stats), unsafe_allow_html=True)
+    try:
+        st.markdown(get_hero_html(stats), unsafe_allow_html=True)
+    except Exception:
+        st.markdown(f"""
+        <div style="text-align:center;padding:80px 20px;color:white;background:#0f162a;font-family:Inter;">
+            <h1 style="font-size:2.5rem;margin-bottom:16px;">Valu</h1>
+            <p style="font-size:1.1rem;opacity:0.9;">Valuador Automático de Propiedades · Rosario</p>
+        </div>
+        """, unsafe_allow_html=True)
     
     # BOTÓN CTA — ARRIBA, visible sin scroll
     _, col2, _ = st.columns([1, 2, 1])
