@@ -621,14 +621,18 @@ def main():
         st.button("← Volver al Inicio", width='stretch', on_click=ir_al_inicio)
         st.markdown("---")
         
-        nav_options = ["Portfolio", "Portfolio2", "Inventario", "Cargar Mercado", "Configuración"]
+        nav_options = ["Portfolio2", "Inventario", "Cargar Mercado", "Configuración"]
         forced_nav = st.session_state.pop("_force_nav_page", None)
         if forced_nav in nav_options:
             st.session_state["nav_page_radio"] = forced_nav
         if "nav_page_radio" not in st.session_state:
-            st.session_state["nav_page_radio"] = st.session_state.page if st.session_state.page in nav_options else "Portfolio"
+            st.session_state["nav_page_radio"] = st.session_state.page if st.session_state.page in nav_options else "Portfolio2"
         st.radio("NAVEGACIÓN", nav_options, key="nav_page_radio")
-        st.session_state.page = st.session_state["nav_page_radio"]
+        new_page = st.session_state["nav_page_radio"]
+        # Si cambió la página desde el sidebar, limpiar prop_sel para que la navegación funcione
+        if st.session_state.page != new_page:
+            st.session_state.prop_sel = None
+        st.session_state.page = new_page
         
         st.markdown("---")
         datos = cargar_datos()
