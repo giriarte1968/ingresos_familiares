@@ -374,6 +374,23 @@ LANDING_CSS = """
         border-radius: 0 16px 16px 0; 
     }
     
+    .hero-with-image {
+        position: relative;
+        background-image: url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&q=70&fm=webp');
+        background-size: cover;
+        background-position: center 40%;
+        min-height: 600px;
+    }
+    .hero-overlay {
+        background: linear-gradient(180deg, rgba(15, 22, 42, 0.70) 0%, rgba(15, 22, 42, 0.60) 50%, rgba(15, 22, 42, 0.80) 100%);
+        padding: 80px 20px;
+        min-height: 600px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .hero-content { text-align: center; max-width: 900px; margin: 0 auto; color: white; }
+    .hero-title { font-size: 2.5rem; font-weight: 800; margin-bottom: 20px; line-height: 1.2; }
     .hero-sub { font-size: 1.25rem; opacity: 0.9; max-width: 800px; margin: 0 auto 32px; }
     .landing-mockup { max-width: 500px; margin: 0 auto; }
     .mockup-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 24px; text-align: left; }
