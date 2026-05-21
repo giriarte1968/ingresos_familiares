@@ -634,7 +634,7 @@ def generar_reporte_pdf(prop: dict, res: dict) -> bytes:
         n_age = meta.get("n_age_filtered", 0)
         pdf.cell(w, 4, f"Age blend aplicado: alpha={alpha:.2f}, n_edad={n_age}", new_x="LMARGIN", new_y="NEXT")
 
-    return pdf.output()
+    return bytes(pdf.output())
 
 
 # ─── HELPERS PARA ELIMINACION ───
