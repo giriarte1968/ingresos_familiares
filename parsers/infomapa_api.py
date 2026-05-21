@@ -1,12 +1,16 @@
 """
 Infomapa Rosario API - Integración con datos catastrales oficiales.
 
-Flujo:
+Flujo ESTRICTO:
 1. Cargar CSV de PHs (rosario_avm_full.csv)
-2. Buscar candidato por DIRECCIÓN (calle + número más cercano) — SIEMPRE incluido
-3. Buscar top 2 por COORDENADAS como alternativas
-4. Obtener imágenes + nomenclatura de la API para cada candidato
-5. El analista selecciona manualmente el PH correcto en la UI
+2. Buscar candidato por DIRECCIÓN (misma calle + misma centena + diff ≤ 10)
+3. Si NO hay match por dirección → retorna None (no ofrecer planos de otra cuadra)
+4. Si hay match → buscar top 2 por COORDENADAS como alternativas
+5. Obtener imágenes + nomenclatura de la API para cada candidato
+6. El analista selecciona manualmente el PH correcto en la UI
+
+Regla: NUNCA ofrecer candidatos catastrales de una calle o centena diferente
+a la de la propiedad valuada. Si no hay datos exactos, informar ausencia.
 """
 
 import os
@@ -165,25 +169,29 @@ def enriquecer_con_infomapa(prop: Dict) -> Optional[Dict]:
     if not filas:
         return None
 
-    # PASO 1: Top 3 por coordenadas (~220m radio)
-    coord_candidates = _match_coordenadas(filas, float(lat), float(lon), tol=0.002)[:3]
-
-    # PASO 2: Candidato por dirección (sobre TODAS las filas del CSV)
+    # PASO 1: Candidato por dirección (misma calle + misma centena + diff ≤ 10)
     calle, numero = _extraer_calle_numero(prop.get('direccion', ''))
     dir_candidate = None
     if calle and numero:
         dir_candidate = _match_por_direccion(filas, calle, numero)
 
+    # Si no hay match por dirección (misma calle + centena), NO ofrecer candidatos
+    # de otras calles/cuadras — serían planos incorrectos
+    if not dir_candidate:
+        return None
+
+    # PASO 2: Top 3 por coordenadas (~220m radio) como alternativas
+    coord_candidates = _match_coordenadas(filas, float(lat), float(lon), tol=0.002)[:3]
+
     # PASO 3: Combinar (máximo 3, sin duplicados)
     candidatos = []
     phs_vistos = set()
 
-    if dir_candidate:
-        dir_candidate['recomendado'] = True
-        if 'centena_match' not in dir_candidate:
-            dir_candidate['centena_match'] = 'exacta'
-        candidatos.append(dir_candidate)
-        phs_vistos.add(dir_candidate['ph'])
+    dir_candidate['recomendado'] = True
+    if 'centena_match' not in dir_candidate:
+        dir_candidate['centena_match'] = 'exacta'
+    candidatos.append(dir_candidate)
+    phs_vistos.add(dir_candidate['ph'])
 
     for c in coord_candidates:
         if c['ph'] not in phs_vistos and len(candidatos) < 3:
@@ -198,6 +206,7 @@ def enriquecer_con_infomapa(prop: Dict) -> Optional[Dict]:
         for c in pool:
             if c['ph'] not in phs_vistos and len(candidatos) < 3:
                 c['recomendado'] = False
+                c['centena_match'] = 'coordenadas'
                 candidatos.append(c)
                 phs_vistos.add(c['ph'])
 
