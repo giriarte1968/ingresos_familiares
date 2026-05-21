@@ -22,9 +22,6 @@ def get_landing_stats() -> dict:
         'ejemplo_cap_rate': 5.4,
         'ejemplo_comparables': 27,
         'ejemplo_confianza': 'Alta',
-        'ejemplo_m2': 44.5,
-        'ejemplo_dormitorios': 2,
-        'ejemplo_anio': 1998,
         'dolar_actual': 1480.00,
     }
     
@@ -174,44 +171,6 @@ def get_how_html() -> str:
         '<h2 class="section-title">Cómo funciona</h2>'
         '<div class="step-connector-wrapper">'
         f'<div class="landing-grid-3 steps-grid">{cards}</div>'
-        '</div>'
-        '</div>'
-        '</div>'
-    )
-
-def get_example_case_html(stats: dict) -> str:
-    return (
-        '<div class="landing-section example-case-section">'
-        '<div class="section-kicker">Ejemplo real</div>'
-        '<h2 class="section-title">Así se ve una valuación en Valu</h2>'
-        '<p class="section-subtitle">Un resultado claro para entender precio, rango, alquiler y confianza estadística.</p>'
-        '<div class="example-case-card">'
-        '<div class="example-property-panel">'
-        '<div class="example-label">Propiedad</div>'
-        f'<h3>{stats["ejemplo_propiedad"]}</h3>'
-        f'<p>{stats["ejemplo_zona"]} · {stats["ejemplo_tipo"]}</p>'
-        '<div class="example-attrs">'
-        f'<div><strong>{stats["ejemplo_m2"]:.1f}</strong><span>m² equivalentes</span></div>'
-        f'<div><strong>{stats["ejemplo_dormitorios"]}</strong><span>dormitorios</span></div>'
-        f'<div><strong>{stats["ejemplo_anio"]}</strong><span>año</span></div>'
-        '</div>'
-        '</div>'
-        '<div class="example-result-panel">'
-        '<div class="example-label">Resultado estimado</div>'
-        f'<div class="example-price">USD {stats["ejemplo_valor_usd"]:,}</div>'
-        '<div class="example-range">'
-        f'Conservador USD {stats["ejemplo_rango_min"]:,} · Optimista USD {stats["ejemplo_rango_max"]:,}'
-        '</div>'
-        '<div class="example-result-grid">'
-        '<div><span>Alquiler esperado</span>'
-        f'<strong>ARS {stats["ejemplo_alquiler"]:,}</strong></div>'
-        '<div><span>Cap Rate</span>'
-        f'<strong>{stats["ejemplo_cap_rate"]:.1f}%</strong></div>'
-        '<div><span>Comparables</span>'
-        f'<strong>{stats["ejemplo_comparables"]}</strong></div>'
-        '<div><span>Confianza</span>'
-        f'<strong>{stats["ejemplo_confianza"]}</strong></div>'
-        '</div>'
         '</div>'
         '</div>'
         '</div>'

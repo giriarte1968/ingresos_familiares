@@ -410,28 +410,6 @@ LANDING_CSS = """
         margin: 0 auto;
         box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
     }
-
-    /* Ejemplo real section */
-    .example-case-section { text-align: center; }
-    .section-kicker { color: var(--accent); font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; }
-    .section-title { font-size: 2rem; font-weight: 800; color: var(--primary); margin-bottom: 12px; }
-    .section-subtitle { color: var(--text-light); font-size: 1.05rem; max-width: 600px; margin: 0 auto 40px; }
-    .example-case-card { display: flex; gap: 32px; background: white; border-radius: 20px; border: 1px solid var(--border); box-shadow: 0 8px 30px rgba(0,0,0,0.06); overflow: hidden; text-align: left; }
-    .example-property-panel { flex: 1; padding: 32px; background: var(--light-bg); }
-    .example-result-panel { flex: 1.2; padding: 32px; }
-    .example-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-light); margin-bottom: 8px; }
-    .example-property-panel h3 { font-size: 1.5rem; font-weight: 800; color: var(--primary); margin: 0 0 4px; }
-    .example-property-panel > p { color: var(--text-light); margin: 0 0 20px; }
-    .example-attrs { display: flex; gap: 20px; }
-    .example-attrs div { display: flex; flex-direction: column; }
-    .example-attrs strong { font-size: 1.1rem; font-weight: 800; color: var(--primary); }
-    .example-attrs span { font-size: 0.8rem; color: var(--text-light); }
-    .example-price { font-size: 2.2rem; font-weight: 900; color: #006AFF; margin-bottom: 6px; }
-    .example-range { color: var(--text-light); font-size: 0.9rem; margin-bottom: 24px; }
-    .example-result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .example-result-grid div { display: flex; flex-direction: column; }
-    .example-result-grid span { font-size: 0.8rem; color: var(--text-light); }
-    .example-result-grid strong { font-size: 1rem; font-weight: 700; color: var(--primary); }
     
     .landing-footer { 
         background: #0a0f1e; 
@@ -446,7 +424,6 @@ LANDING_CSS = """
         .landing-hero h1 { font-size: 2.2rem; }
         .landing-hero { padding: 60px 20px; }
         .landing-section { padding: 60px 20px; }
-        .example-case-card { flex-direction: column; }
     }
 </style>
 """
