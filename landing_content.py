@@ -202,6 +202,40 @@ def get_deliverables_html() -> str:
         '</div>'
     )
 
+def get_faq_html() -> str:
+    faqs = [
+        (
+            "¿Valu reemplaza una tasación profesional?",
+            "No. Valu es una herramienta estadística de estimación. Sirve para orientar decisiones, pero no reemplaza una tasación profesional matriculada."
+        ),
+        (
+            "¿De dónde salen los datos?",
+            "Valu usa datos de mercado inmobiliario, comparables publicados, cache propio de scraping y fuentes catastrales disponibles."
+        ),
+        (
+            "¿Funciona fuera de Rosario?",
+            "Actualmente el modelo está calibrado para Rosario. Usarlo fuera de esa ciudad puede reducir la precisión."
+        ),
+        (
+            "¿Qué pasa si hay pocos datos en mi zona?",
+            "Valu lo refleja en la confianza y en el rango estimado. Menos comparables implica mayor incertidumbre."
+        ),
+    ]
+    html = ''.join(
+        '<div class="faq-item">'
+        f'<h3>{q}</h3>'
+        f'<p>{a}</p>'
+        '</div>'
+        for q, a in faqs
+    )
+    return (
+        '<div class="landing-section faq-section">'
+        '<div class="section-kicker">Preguntas frecuentes</div>'
+        '<h2 class="section-title">Antes de empezar</h2>'
+        f'<div class="faq-grid">{html}</div>'
+        '</div>'
+    )
+
 def get_features_html() -> str:
     features = [
         ("3 escenarios de precio",

@@ -2,7 +2,7 @@
 import streamlit as st
 from landing_content import (
     get_landing_stats, get_hero_html, get_problem_html, get_how_html,
-    get_deliverables_html, get_features_html, get_target_html,
+    get_deliverables_html, get_faq_html, get_features_html, get_target_html,
     get_trust_html, get_cta_html, get_footer_html, get_divider_edificios_html
 )
 from valu_design import LANDING_CSS
@@ -84,6 +84,7 @@ def mostrar_landing():
     st.markdown(get_divider_edificios_html(), unsafe_allow_html=True)
     
     st.markdown(get_target_html(), unsafe_allow_html=True)
+    st.markdown(get_faq_html(), unsafe_allow_html=True)
     st.markdown(get_trust_html(), unsafe_allow_html=True)
     st.markdown(get_cta_html(), unsafe_allow_html=True)
     

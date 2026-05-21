@@ -401,6 +401,13 @@ LANDING_CSS = """
     .mockup-progress { width: 60%; height: 100%; background: var(--accent); border-radius: 2px; }
     .mockup-labels { display: flex; justify-content: space-between; font-size: 12px; margin-top: 8px; opacity: 0.6; }
 
+    /* FAQ section */
+    .faq-section { max-width: 800px; }
+    .faq-grid { display: flex; flex-direction: column; gap: 24px; }
+    .faq-item { background: white; border-radius: 16px; padding: 28px; border: 1px solid var(--border); text-align: left; }
+    .faq-item h3 { font-size: 1.05rem; font-weight: 700; color: var(--primary); margin: 0 0 8px; }
+    .faq-item p { font-size: 0.9rem; color: var(--text-light); margin: 0; line-height: 1.6; }
+
     /* Section shared styles */
     .section-kicker { color: var(--accent); font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; text-align: center; }
     .section-title { font-size: 2rem; font-weight: 800; color: var(--primary); margin-bottom: 12px; text-align: center; }
