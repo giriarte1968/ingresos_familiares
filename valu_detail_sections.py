@@ -233,6 +233,7 @@ def render_mapa_y_comparables(res):
                     'm2': f"{c.get('m2', 0):.0f}", 'Precio/m2': f"${c.get('precio_m2', 0):,.0f}",
                     'Dorm.': str(c.get('dormitorios', '?')),
                     'Tipo': str((c.get('tipo') or '')[:12]) if c.get('tipo') else '',
+                    'Dirección': (c.get('direccion', '') or '')[:35],
                     'Ano est.': str(anio_est) if anio_est is not None and anio_est != '' else '',
                     'Dist.': f"{c.get('distancia_m', 0):.0f}m" if c.get('distancia_m') else '',
                 })
