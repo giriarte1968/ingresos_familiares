@@ -3,7 +3,6 @@ cache/
 __pycache__/
 *.pyc
 .pytest_cache/
-data/valuaciones_cache.json
 data/valuaciones_historial.jsonl
 data/scraping_history/
 cache_scraping.json

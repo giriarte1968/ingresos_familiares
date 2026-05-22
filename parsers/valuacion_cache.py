@@ -22,8 +22,9 @@ def _calcular_hash_propiedad(prop: dict) -> str:
     prop_str = json.dumps(prop_subset, sort_keys=True, default=str)
     return hashlib.md5(prop_str.encode()).hexdigest()[:12]
 
-def _calcular_hash_scraping() -> str:
-    """Hash del cache_scraping.json para detectar si cambió."""
+def _calcular_hash_scraping() -> str | None:
+    """Hash del cache_scraping.json para detectar si cambió.
+    Retorna None si el archivo no existe (ej: DO sin scraping local)."""
     try:
         if os.path.exists(SCRAPING_CACHE_PATH):
             stat = os.stat(SCRAPING_CACHE_PATH)
@@ -32,7 +33,7 @@ def _calcular_hash_scraping() -> str:
             ).hexdigest()[:12]
     except:
         pass
-    return "unknown"
+    return None
 
 def cargar_cache_valuaciones() -> dict:
     """Carga el cache de valuaciones desde disco."""
@@ -74,7 +75,7 @@ def necesita_recalcular(nombre: str, prop: dict, cache: dict) -> tuple[bool, str
         return True, "propiedad_modificada"
 
     hash_scraping = _calcular_hash_scraping()
-    if hash_scraping != entrada.get('hash_scraping'):
+    if hash_scraping is not None and hash_scraping != entrada.get('hash_scraping'):
         return True, "scraping_actualizado"
 
     return False, "cache_valido"
