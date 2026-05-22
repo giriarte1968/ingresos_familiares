@@ -201,10 +201,9 @@ def enriquecer_con_infomapa(prop: Dict) -> Optional[Dict]:
         centena_csv = (csv_num // 100) * 100
         return centena_csv == centena_sujeto
 
-    # Separar pool por misma calle + centena vs solo misma calle
-    mismos = [c for c in coord_pool if _misma_calle(c) and _misma_centena(c)]
-    otros = [c for c in coord_pool if _misma_calle(c) and not _misma_centena(c)]
-    coord_candidates = (mismos + otros)[:3]
+    # Filtrar pool: misma calle + misma centena (candidatos sin numero pasan),
+    # ordenado por distancia (el pool ya viene ordenado desde _match_coordenadas)
+    coord_candidates = [c for c in coord_pool if _misma_calle(c) and _misma_centena(c)][:3]
 
     # PASO 3: Combinar (máximo 3, sin duplicados)
     candidatos = []
@@ -220,21 +219,9 @@ def enriquecer_con_infomapa(prop: Dict) -> Optional[Dict]:
     for c in coord_candidates:
         if c['ph'] not in phs_vistos and len(candidatos) < 3:
             c['recomendado'] = False
-            c['centena_match'] = 'coordenadas_misma_centena' if _misma_centena(c) else 'coordenadas'
+            c['centena_match'] = 'coordenadas'
             candidatos.append(c)
             phs_vistos.add(c['ph'])
-
-    # Si quedan menos de 3, buscar más en el pool completo con misma prioridad
-    if len(candidatos) < 3:
-        restantes = [c for c in coord_pool if c['ph'] not in phs_vistos and _misma_calle(c)]
-        rest_mismos = [c for c in restantes if _misma_centena(c)]
-        rest_otros = [c for c in restantes if not _misma_centena(c)]
-        for c in (rest_mismos + rest_otros):
-            if c['ph'] not in phs_vistos and len(candidatos) < 3:
-                c['recomendado'] = False
-                c['centena_match'] = 'coordenadas_misma_centena' if _misma_centena(c) else 'coordenadas'
-                candidatos.append(c)
-                phs_vistos.add(c['ph'])
 
     if not candidatos:
         logger.info(f"[INFOMAPA] Sin candidatos para ({lat}, {lon})")

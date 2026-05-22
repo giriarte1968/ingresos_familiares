@@ -851,4 +851,29 @@ Reemplazar el razonamiento numérico/técnico por una narrativa cualitativa que 
 - Cero porcentajes en factores o mercado
 - Solo lenguaje cualitativo: "excepcional", "determinante", "modera el precio", "contribuye positivamente", "desgaste moderado", etc.
 
+## 📅 2026-05-22 — TAREA-003: Orden candidatos catastrales por distancia (no centena)
+
+### Problema
+Los candidatos por coordenadas se ordenaban primero por centena (mismos → otros) y luego por distancia dentro de cada grupo. Esto causaba que entradas de calle sin número (que pasaban centena) desplazaran a entradas con número que estaban más cerca pero en centena distinta. Caso concreto: PH=17916 "3 de Febrero 504" a 21m quedaba fuera del top 3, mientras que PH=19899 "3 de Febrero" (sin número) a 49m entraba.
+
+### Cambio
+- Eliminado split `mismos/otros` (centena-first)
+- Los 3 candidatos por coordenadas se eligen así:
+  1. Filtrar a **misma calle** (vía `_misma_calle()`)
+  2. Filtrar a **misma centena** — candidatos sin número pasan (`csv_num is None`), candidatos con número distinta centena se excluyen
+  3. Ordenar por **distancia** (el pool ya viene ordenado)
+  4. Tomar top 3
+- Eliminado el relleno secundario (ya no es necesario)
+- `centena_match` simplificado: solo `'exacta'` y `'coordenadas'`
+
+### Resultado
+| Propiedad | Antes (centena-first) | Después (distancia-first) |
+|---|---|---|
+| Mabel (3 de Febrero) | PH=14404 "3 de Febrero" 12m, PH=19899 "3 de Febrero" 49m, PH=7389 "3 de Febrero" 59m | PH=14404 "3 de Febrero" 12m, PH=17916 "3 de Febrero 504" 21m, PH=20199 "3 de Febrero 525" 28m |
+| Ayacucho (Ayacucho 1800) | PH=17817 1805 41m, PH=10340 1812 45m, PH=22150 1813 49m (solo centena 1800) | PH=17817 1805 41m, PH=10340 1812 45m, PH=22150 1813 49m (sin cambio: mismos filtros) |
+
+### Archivos
+- `parsers/infomapa_api.py` — nuevo orden distancia-first + exclusión centena distinta
+- `docs/BITACORA_AGENTES.md` — esta entrada
+
 ### Tests: 39/39 regression pasando
