@@ -2939,7 +2939,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
             'macrozona_info': macrozona_info,
             'plusvalia_ciclo_usd': plusvalia_ciclo_usd,
             'plusvalia_ciclo_pct': plusvalia_ciclo_pct,
-            'plusvalia_tipo': plusvalia_tipo,
+            'plusvalia_tipo': tipo_plusvalia,
             'plusvalia_12m_usd': plusvalia_12m_usd,
             'plusvalia_12m_pct': plusvalia_12m_pct,
             'expensas_ars': expensas_ars,
