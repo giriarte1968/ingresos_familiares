@@ -191,10 +191,10 @@ def enriquecer_con_infomapa(prop: Dict) -> Optional[Dict]:
     # Helper: misma CENTENA que la propiedad valuada
     def _misma_centena(row: dict) -> bool:
         if numero is None:
-            return True  # sin numero de referencia, no filtrar por centena
+            return True  # sujeto sin numero de referencia, no filtrar
         _, csv_num = _extraer_calle_numero(row.get('direccion_nominatim', ''))
         if csv_num is None:
-            return False
+            return True  # candidato sin numero en CSV, no descartar (probablemente mismo edificio si esta cerca)
         centena_sujeto = (numero // 100) * 100
         centena_csv = (csv_num // 100) * 100
         return centena_csv == centena_sujeto
