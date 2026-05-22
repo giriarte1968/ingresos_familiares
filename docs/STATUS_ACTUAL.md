@@ -39,7 +39,7 @@ El núcleo del sistema incluye los siguientes componentes:
 ## 3. Nueva Interfaz Valu (UX Premium)
 Se ha completado la transición hacia una arquitectura de frontend desacoplada:
 - **Tecnología**: Streamlit + CSS Custom (Glassmorphism) + Componentes HTML5.
-- **Valuación Explicable**: Nuevo módulo de "Razonamiento de Valuación" que justifica el precio basado en m² base, antigüedad y factores de ajuste.
+- **Valuación Explicable v2.0**: Razonamiento narrativo cualitativo que explica cada driver de valor en lenguaje natural (vista, calidad, estado, ventilación, piso, gas, balcón, funcionales, seguridad, edad, NLP). Sin porcentajes.
 - **Historial Inmutable**: Sistema de registro por eventos (`JSONL`) que preserva cada tasación y snapshot del mercado para análisis temporal.
 - **Landing Page Pública**: Página de presentación profesional inspirada en Zillow/Redfin con disclaimer de responsabilidad y onboarding para nuevos usuarios.
 - **Seguimiento de Inventario**: Gestión de fechas de publicación para análisis de absorción de mercado.

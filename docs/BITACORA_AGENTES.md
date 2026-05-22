@@ -804,3 +804,51 @@ Se reemplazó ±10→±15→±20 por una política más prudente:
 - `docs/BITACORA_AGENTES.md`: esta entrada
 
 ### Tests: 39/39 regression, 152/152 total pasando
+
+---
+
+## 📅 2026-05-21 — FIX: Landing hero mockup no renderizaba (CSS faltante)
+
+### Problema
+La landing page no mostraba el hero con el mockup enriquecido de valuación. El HTML era válido pero aparecía como texto invisible sobre fondo blanco.
+
+### Causa raíz
+`mostrar_landing()` inyecta solo `LANDING_CSS`, pero las clases CSS del hero (`.hero-with-image`, `.hero-overlay`, `.hero-content`, `.hero-title`) estaban definidas únicamente en `VALU_CSS`, que no se inyecta en la landing. Sin estas clases:
+- Sin `.hero-overlay` → no hay fondo oscuro degradado → texto negro sobre blanco
+- Sin `.hero-content { color: white }` → texto del hero invisible
+- Sin `.hero-with-image { min-height }` → la sección colapsaba
+
+### Fix
+- **`valu_design.py`**: Se copiaron las 4 clases CSS faltantes a `LANDING_CSS`
+- **`landing.py`**: Se eliminó `_html.unescape(_html.unescape(...))` innecesario (la función ya retorna HTML real)
+
+### Archivos
+- `valu_design.py` — hero classes agregadas a `LANDING_CSS`
+- `landing.py` — `_html.unescape()` removido
+
+### Tests: sin impacto (solo CSS/HTML)
+
+---
+
+## 📅 2026-05-21 — RAZONAMIENTO NARRATIVO HOLÍSTICO CUALITATIVO
+
+### Objetivo
+Reemplazar el razonamiento numérico/técnico por una narrativa cualitativa que explique los drivers de valor en lenguaje natural, como lo haría un tasador profesional.
+
+### Cambios
+- **`parsers/mercado_inmobiliario.py`**: 
+  - `generar_razonamiento_valuacion()` reescrita completamente
+  - 7 párrafos: identificación → mercado → factores → edad → NLP → valor + rango → alquiler → plusvalía
+  - Cada factor estructural se explica cualitativamente (vista, calidad, estado, ventilación, piso, ubicación, gas, balcón, funcionales, seguridad, ascensores)
+  - NLP: detecta keywords de la descripción y las menciona con su percepción
+  - Rango: explicación cualitativa de la dispersión ("acotado", "moderado", "amplio")
+  - Antigüedad: segmentada en 5 rangos etarios con descripción específica
+  - Alquiler: contextualizado contra promedio de Rosario
+  - Se movió macrozona_info antes de SECCIÓN 5 para disponibilidad en el razonamiento
+  - Se agregaron `f_dict`, `n_comps`, `tiene_barreras` y `meta_venta` al resultado completo
+
+### Principio
+- Cero porcentajes en factores o mercado
+- Solo lenguaje cualitativo: "excepcional", "determinante", "modera el precio", "contribuye positivamente", "desgaste moderado", etc.
+
+### Tests: 39/39 regression pasando
