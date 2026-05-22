@@ -177,17 +177,32 @@ def enriquecer_con_infomapa(prop: Dict) -> Optional[Dict]:
         dir_candidate = _match_por_direccion(filas, calle, numero)
 
     # PASO 2: Top 3 por coordenadas (~220m radio) como alternativas
-    coord_candidates = _match_coordenadas(filas, float(lat), float(lon), tol=0.002)[:3]
+    coord_pool = _match_coordenadas(filas, float(lat), float(lon), tol=0.002)
 
-    # Helper: filtrar candidato por coordenadas a la MISMA CALLE
-    # (no ofrecer planos de calles diferentes, que serían incorrectos)
+    # Helper: filtrar candidato a la MISMA CALLE (para no ofrecer planos de calles diferentes)
     def _misma_calle(row: dict) -> bool:
         if not calle:
-            return True  # sin referencia de calle, no filtrar
+            return True
         csv_calle, _ = _extraer_calle_numero(row.get('direccion_nominatim', ''))
         if not csv_calle:
             return False
         return csv_calle == calle or calle in csv_calle or csv_calle in calle
+
+    # Helper: misma CENTENA que la propiedad valuada
+    def _misma_centena(row: dict) -> bool:
+        if numero is None:
+            return True  # sin numero de referencia, no filtrar por centena
+        _, csv_num = _extraer_calle_numero(row.get('direccion_nominatim', ''))
+        if csv_num is None:
+            return False
+        centena_sujeto = (numero // 100) * 100
+        centena_csv = (csv_num // 100) * 100
+        return centena_csv == centena_sujeto
+
+    # Separar pool por misma calle + centena vs solo misma calle
+    mismos = [c for c in coord_pool if _misma_calle(c) and _misma_centena(c)]
+    otros = [c for c in coord_pool if _misma_calle(c) and not _misma_centena(c)]
+    coord_candidates = (mismos + otros)[:3]
 
     # PASO 3: Combinar (máximo 3, sin duplicados)
     candidatos = []
@@ -202,22 +217,22 @@ def enriquecer_con_infomapa(prop: Dict) -> Optional[Dict]:
 
     for c in coord_candidates:
         if c['ph'] not in phs_vistos and len(candidatos) < 3:
-            if _misma_calle(c):
+            c['recomendado'] = False
+            c['centena_match'] = 'coordenadas_misma_centena' if _misma_centena(c) else 'coordenadas'
+            candidatos.append(c)
+            phs_vistos.add(c['ph'])
+
+    # Si quedan menos de 3, buscar más en el pool completo con misma prioridad
+    if len(candidatos) < 3:
+        restantes = [c for c in coord_pool if c['ph'] not in phs_vistos and _misma_calle(c)]
+        rest_mismos = [c for c in restantes if _misma_centena(c)]
+        rest_otros = [c for c in restantes if not _misma_centena(c)]
+        for c in (rest_mismos + rest_otros):
+            if c['ph'] not in phs_vistos and len(candidatos) < 3:
                 c['recomendado'] = False
-                c['centena_match'] = 'coordenadas'
+                c['centena_match'] = 'coordenadas_misma_centena' if _misma_centena(c) else 'coordenadas'
                 candidatos.append(c)
                 phs_vistos.add(c['ph'])
-
-    # Si quedan menos de 3, buscar más en el pool completo
-    if len(candidatos) < 3:
-        pool = _match_coordenadas(filas, float(lat), float(lon), tol=0.002)
-        for c in pool:
-            if c['ph'] not in phs_vistos and len(candidatos) < 3:
-                if _misma_calle(c):
-                    c['recomendado'] = False
-                    c['centena_match'] = 'coordenadas'
-                    candidatos.append(c)
-                    phs_vistos.add(c['ph'])
 
     if not candidatos:
         logger.info(f"[INFOMAPA] Sin candidatos para ({lat}, {lon})")
