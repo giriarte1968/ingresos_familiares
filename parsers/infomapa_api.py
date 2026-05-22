@@ -179,22 +179,24 @@ def enriquecer_con_infomapa(prop: Dict) -> Optional[Dict]:
     # PASO 2: Top 3 por coordenadas (~220m radio) como alternativas
     coord_pool = _match_coordenadas(filas, float(lat), float(lon), tol=0.002)
 
-    # Helper: filtrar candidato a la MISMA CALLE (para no ofrecer planos de calles diferentes)
+    # Helper: filtrar candidato a la MISMA CALLE
     def _misma_calle(row: dict) -> bool:
         if not calle:
             return True
         csv_calle, _ = _extraer_calle_numero(row.get('direccion_nominatim', ''))
         if not csv_calle:
-            return False
+            # CSV puede tener solo nombre de calle sin numero (ej: "Jujuy")
+            csv_raw = row.get('direccion_nominatim', '').strip().lower()
+            return bool(csv_raw) and (csv_raw == calle or calle in csv_raw or csv_raw in calle)
         return csv_calle == calle or calle in csv_calle or csv_calle in calle
 
     # Helper: misma CENTENA que la propiedad valuada
     def _misma_centena(row: dict) -> bool:
         if numero is None:
-            return True  # sujeto sin numero de referencia, no filtrar
+            return True
         _, csv_num = _extraer_calle_numero(row.get('direccion_nominatim', ''))
         if csv_num is None:
-            return True  # candidato sin numero en CSV, no descartar (probablemente mismo edificio si esta cerca)
+            return True  # candidato sin numero en CSV, no descartar
         centena_sujeto = (numero // 100) * 100
         centena_csv = (csv_num // 100) * 100
         return centena_csv == centena_sujeto
