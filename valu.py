@@ -39,6 +39,8 @@ def guardar_propiedades(propiedades):
     try:
         with open(PROPIEDADES_FILE, 'w', encoding='utf-8') as f:
             json.dump({'propiedades': propiedades}, f, indent=2, ensure_ascii=False)
+        from parsers.git_sync import try_sync
+        try_sync([PROPIEDADES_FILE])
     except Exception as e:
         st.error(f"Error guardando: {e}")
 

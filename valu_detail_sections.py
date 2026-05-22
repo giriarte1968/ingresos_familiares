@@ -656,6 +656,8 @@ def guardar_propiedades(props):
         path = _propiedades_path()
         with open(path, "w", encoding="utf-8") as f:
             json.dump({"propiedades": props}, f, indent=2, ensure_ascii=False)
+        from parsers.git_sync import try_sync
+        try_sync([path])
         return True
     except Exception as e:
         st.error(f"Error guardando: {e}")

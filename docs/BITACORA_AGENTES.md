@@ -880,34 +880,41 @@ Los candidatos por coordenadas se ordenaban primero por centena (mismos → otro
 
 ---
 
-## 📅 2026-05-22 — Opción C: valuaciones_cache.json trackeado en git (persistencia DO)
+## 📅 2026-05-22 — Opción C: valuaciones_cache.json trackeado en git + Opción A: cache_scraping.json + git write-back
 
 ### Problema
-Cada deploy de DigitalOcean crea un contenedor fresco. `valuaciones_cache.json` estaba en `.gitignore`, por lo que no llegaba a DO. Sin cache, cada deploy forzaba recálculo completo de todas las valuaciones. `cache_scraping.json` (~50MB) también perdido, pero mantenerlo en git no es práctico.
+Cada deploy de DO crea un contenedor fresco. `valuaciones_cache.json` estaba en `.gitignore` → perdido → recálculo completo en cada deploy. `cache_scraping.json` estaba en `.gitignore` pero ya era trackeado desde commits anteriores (`.gitignore` no afecta archivos ya trackeados). Además, cambios de propiedades hechos desde la UI de DO se perdían en deploy.
 
 ### Cambios
 
 | Archivo | Acción |
 |---------|--------|
-| `.gitignore` | `data/valuaciones_cache.json` removido |
-| `parsers/valuacion_cache.py` | `_calcular_hash_scraping()` retorna `None` (no `"unknown"`) si archivo no existe. `necesita_recalcular()` salta chequeo de scraping si hash es `None` |
+| `.gitignore` | `data/valuaciones_cache.json` removido. `cache_scraping.json` reemplazado por comentario (ya estaba trackeado) |
+| `parsers/valuacion_cache.py` | `_calcular_hash_scraping()` retorna `None` si archivo no existe; `necesita_recalcular()` skip si `None` |
+| `parsers/git_sync.py` | **Nuevo** — módulo de write-back a git para DO. `try_sync(file_paths)` add+commit+push condicional (`GIT_WRITE_TOKEN`) |
+| `valu.py` | `guardar_propiedades()` ahora llama a `try_sync()` para sincronizar cambios de propiedades a git |
+| `valu_detail_sections.py` | `guardar_propiedades()` ahora llama a `try_sync()` para cambios en detalle (editar/eliminar) |
+| `valu.yaml` | Env var `GIT_WRITE_TOKEN` agregada (requiere GitHub PAT configurado por usuario) |
 
 ### Lógica de persistencia
-- **`valuaciones_cache.json` (~324KB)** → trackeado en git → llega a DO → cache hits funcionan
-- **`cache_scraping.json` (~50MB)** → fuera de git (muy pesado)
-- En DO, `_calcular_hash_scraping()` retorna `None` → `necesita_recalcular` no invalida cache por falta de scraping
-- Nuevas propiedades: must valuate locally first (no hay mercado en DO)
-- Re-cálculo forzado: disponible vía `forzar_recalculo=True` (botón UI)
+- **`cache_scraping.json`** (~5.7MB, 9,766 props) → ya trackeado → DO tiene datos de mercado
+- **`valuaciones_cache.json`** (~324KB) → ahora trackeado → DO sirve cache sin recálculo
+- **`propiedades.json`** → siempre trackeado → DO ahora escribe cambios vía `git push` si hay token
+- **`GIT_WRITE_TOKEN`** → GitHub PAT con scope `repo` necesario para write-back desde DO
+- **⚠️ Deploy loop**: cada push desde DO desencadena `deploy_on_push`. Durante el build el container viejo sigue sirviendo, pero al finalizar las sesiones se interrumpen. Escribir propiedades con moderación.
 
 ### Flujo ideal
-1. Valuar propiedades localmente (con `cache_scraping.json`)
+1. Valuar propiedades localmente (con `cache_scraping.json` local)
 2. `valuaciones_cache.json` se actualiza automáticamente
-3. Commit + push → DO recibe cache actualizado
-4. DO sirve resultados cacheados sin recálculo
+3. Commit + push → DO recibe todo
+4. En DO: ver resultados cacheados, y si es necesario agregar/editar propiedades → se sincronizan a git
 
 ### Archivos
-- `.gitignore` — línea `data/valuaciones_cache.json` removida
-- `parsers/valuacion_cache.py` — `_calcular_hash_scraping` retorna `None`; `necesita_recalcular` skip si `None`
-- `data/valuaciones_cache.json` — ahora en git (commit 3afce9a)
+- `.gitignore` — líneas actualizadas
+- `parsers/valuacion_cache.py` — `_calcular_hash_scraping` retorna `None`; skip si `None`
+- `parsers/git_sync.py` — **nuevo** módulo de sincronización git
+- `valu.py:38-47` — `guardar_propiedades` con `try_sync`
+- `valu_detail_sections.py:654-661` — `guardar_propiedades` con `try_sync`
+- `valu.yaml` — `GIT_WRITE_TOKEN` env var
 
 ### Tests: 39/39 regression pasando

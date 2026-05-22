@@ -5,6 +5,9 @@ envs:
 - key: STREAMLIT_THEME_BASE
   scope: RUN_TIME
   value: dark
+- key: GIT_WRITE_TOKEN
+  scope: RUN_TIME
+  value: "TOKEN_AQUI"
 features:
 - buildpack-stack=ubuntu-22
 ingress:

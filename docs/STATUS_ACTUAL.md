@@ -77,7 +77,9 @@ Se ha completado la transición hacia una arquitectura de frontend desacoplada:
 ## 7. Persistencia entre Deploys DO ✅
 
 - `data/valuaciones_cache.json` ahora trackeado en git → persiste en DO
-- `cache_scraping.json` se mantiene gitignored (~50MB)
+- `cache_scraping.json` trackeado en git (se quitó de .gitignore)
 - `_calcular_hash_scraping()` retorna `None` si el archivo no existe
 - `necesita_recalcular()` omite chequeo de scraping si hash es `None`
-- DO usa cache sin recálculo en cada deploy. Nuevas propiedades deben valuarse localmente.
+- DO usa cache sin recálculo en cada deploy.
+- `parsers/git_sync.py`: write-back de propiedades a git cuando `GIT_WRITE_TOKEN` está configurado
+- ⚠️ Cada push desde DO desencadena un deploy (deploy_on_push). Las sesiones de usuario se interrumpen brevemente.
