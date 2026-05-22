@@ -877,3 +877,37 @@ Los candidatos por coordenadas se ordenaban primero por centena (mismos → otro
 - `docs/BITACORA_AGENTES.md` — esta entrada
 
 ### Tests: 39/39 regression pasando
+
+---
+
+## 📅 2026-05-22 — Opción C: valuaciones_cache.json trackeado en git (persistencia DO)
+
+### Problema
+Cada deploy de DigitalOcean crea un contenedor fresco. `valuaciones_cache.json` estaba en `.gitignore`, por lo que no llegaba a DO. Sin cache, cada deploy forzaba recálculo completo de todas las valuaciones. `cache_scraping.json` (~50MB) también perdido, pero mantenerlo en git no es práctico.
+
+### Cambios
+
+| Archivo | Acción |
+|---------|--------|
+| `.gitignore` | `data/valuaciones_cache.json` removido |
+| `parsers/valuacion_cache.py` | `_calcular_hash_scraping()` retorna `None` (no `"unknown"`) si archivo no existe. `necesita_recalcular()` salta chequeo de scraping si hash es `None` |
+
+### Lógica de persistencia
+- **`valuaciones_cache.json` (~324KB)** → trackeado en git → llega a DO → cache hits funcionan
+- **`cache_scraping.json` (~50MB)** → fuera de git (muy pesado)
+- En DO, `_calcular_hash_scraping()` retorna `None` → `necesita_recalcular` no invalida cache por falta de scraping
+- Nuevas propiedades: must valuate locally first (no hay mercado en DO)
+- Re-cálculo forzado: disponible vía `forzar_recalculo=True` (botón UI)
+
+### Flujo ideal
+1. Valuar propiedades localmente (con `cache_scraping.json`)
+2. `valuaciones_cache.json` se actualiza automáticamente
+3. Commit + push → DO recibe cache actualizado
+4. DO sirve resultados cacheados sin recálculo
+
+### Archivos
+- `.gitignore` — línea `data/valuaciones_cache.json` removida
+- `parsers/valuacion_cache.py` — `_calcular_hash_scraping` retorna `None`; `necesita_recalcular` skip si `None`
+- `data/valuaciones_cache.json` — ahora en git (commit 3afce9a)
+
+### Tests: 39/39 regression pasando

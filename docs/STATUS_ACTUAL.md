@@ -52,7 +52,8 @@ Se ha completado la transición hacia una arquitectura de frontend desacoplada:
 - `parsers/`: Motores de cálculo y scraping.
 - `parsers/valuacion_helpers.py`: funciones puras: `calcular_rango_venta()` (fuente única de rango), `procesar_alquiler()`, `ensamblar_metadata_resolucion()`
 - `parsers/cluster_filters.py`: 7 helpers puros con 34 tests: `calcular_percentil()` (discreto, no numpy), `calcular_blend_p33()`, `seleccionar_percentil_por_edad()`, etc.
-- `cache_scraping.json`: Base de datos de mercado.
+- `cache_scraping.json`: Base de datos de mercado (~50MB, gitignored).
+- `data/valuaciones_cache.json`: Resultados de valuación cacheados trackeados en git para persistencia entre deploys DO.
 
 ## 5. FASE 2 — Rango Unificado ✅
 - `calcular_rango_venta()` en `valuacion_helpers.py` es la única fuente de verdad para el rango de venta
@@ -70,5 +71,13 @@ Se ha completado la transición hacia una arquitectura de frontend desacoplada:
 ---
 
 **Actualizado por**: opencode (Agente IA)
-**Fecha**: 2026-05-19
+**Fecha**: 2026-05-22
 **Ubicación**: `ingresos_familiares_st/valu.py`
+
+## 7. Persistencia entre Deploys DO ✅
+
+- `data/valuaciones_cache.json` ahora trackeado en git → persiste en DO
+- `cache_scraping.json` se mantiene gitignored (~50MB)
+- `_calcular_hash_scraping()` retorna `None` si el archivo no existe
+- `necesita_recalcular()` omite chequeo de scraping si hash es `None`
+- DO usa cache sin recálculo en cada deploy. Nuevas propiedades deben valuarse localmente.
