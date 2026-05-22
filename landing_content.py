@@ -196,7 +196,6 @@ def get_deliverables_html() -> str:
         '<div class="landing-section">'
         '<div class="section-kicker">Informe claro</div>'
         '<h2 class="section-title">Qué recibís con Valu</h2>'
-        '<div style="text-align:center;max-width:720px;margin:0 auto 38px;color:#64748b;font-size:1.05rem;line-height:1.6;">No solo un número: una lectura completa del activo y su contexto de mercado.</div>'
         f'<div class="deliverables-grid">{cards}</div>'
         '</div>'
         '</div>'
