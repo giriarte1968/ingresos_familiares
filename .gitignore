@@ -5,7 +5,7 @@ __pycache__/
 .pytest_cache/
 data/valuaciones_historial.jsonl
 data/scraping_history/
-cache_scraping.json
+# cache_scraping.json ahora trackeado en git (necesario para DO)
 parsers/log_valuacion/
 
 # Archivos archivados (limpieza FASE 1)
