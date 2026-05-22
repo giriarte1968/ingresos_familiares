@@ -10,7 +10,10 @@ REMOTE = "origin"
 BRANCH = "main"
 
 def _get_token():
-    return os.environ.get("GIT_WRITE_TOKEN", "")
+    token = os.environ.get("GIT_WRITE_TOKEN", "")
+    if not token:
+        return ""
+    return token
 
 def _configure_git():
     try:

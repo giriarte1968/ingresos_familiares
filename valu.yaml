@@ -7,7 +7,7 @@ envs:
   value: dark
 - key: GIT_WRITE_TOKEN
   scope: RUN_TIME
-  value: "TOKEN_AQUI"
+  value: ""
 features:
 - buildpack-stack=ubuntu-22
 ingress:
