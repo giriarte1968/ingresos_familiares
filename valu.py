@@ -10,6 +10,7 @@ from valu_design import VALU_CSS, kpi_card, property_card, hero_price, metric_ca
 from valu_forms import ui_formulario_propiedad
 from landing import mostrar_landing
 from parsers.profiler import profile_block, profile_start, profile_end, StepLedger
+from parsers.motor_vpp_core import valuar_con_cache
 
 # --- CONFIGURACIÓN ---
 st.set_page_config(page_title="Valu — Valuador de Propiedades", page_icon="🏠", layout="wide")
@@ -304,8 +305,6 @@ def mostrar_dashboard():
             _cl.mark("start")
             propiedades = cargar_propiedades()
             _cl.mark("after_cargar_propiedades")
-            from parsers.motor_vpp_core import valuar_con_cache
-            _cl.mark("after_import_motor_vpp_core")
             from parsers.valuacion_cache import cargar_cache_valuaciones, CACHE_VERSION
             _cl.mark("after_import_valuacion_cache")
             _cl.close()
