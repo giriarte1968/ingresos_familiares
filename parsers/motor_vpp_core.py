@@ -1333,8 +1333,11 @@ def valuar_con_cache(prop: dict,
         except Exception as e:
             logger.error(f"Error registrando en historial: {e}")
     else:
-        resultado = obtener_resultado_cacheado(nombre, cache)
-        meta_cache = obtener_metadata_cache(nombre, cache)
+        from parsers.profiler import profile_block
+
+        with profile_block("obtener_resultado_cacheado", prop):
+            resultado = obtener_resultado_cacheado(nombre, cache)
+            meta_cache = obtener_metadata_cache(nombre, cache)
 
         resultado['_cache'] = {
             'recalculado': False,

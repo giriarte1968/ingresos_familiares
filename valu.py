@@ -9,6 +9,7 @@ from datetime import datetime
 from valu_design import VALU_CSS, kpi_card, property_card, hero_price, metric_card, range_bar, insights_card
 from valu_forms import ui_formulario_propiedad
 from landing import mostrar_landing
+from parsers.profiler import profile_block
 
 # --- CONFIGURACIÓN ---
 st.set_page_config(page_title="Valu — Valuador de Propiedades", page_icon="🏠", layout="wide")
@@ -225,19 +226,24 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         render_street_view, render_historial, generar_reporte_pdf,
     )
 
-    render_actions(prop, guardar_fn)
-    render_header(prop, res)
+    with profile_block("render_actions", prop):
+        render_actions(prop, guardar_fn)
+    with profile_block("render_header", prop):
+        render_header(prop, res)
 
     st.markdown("<br>", unsafe_allow_html=True)
     render_rango(res, valor_usd)
     st.markdown("<br>", unsafe_allow_html=True)
 
-    render_metricas(prop, res, valor_usd, dolar)
+    with profile_block("render_metricas", prop):
+        render_metricas(prop, res, valor_usd, dolar)
     st.markdown("<br>", unsafe_allow_html=True)
 
-    render_razonamiento(prop, res)
+    with profile_block("render_razonamiento", prop):
+        render_razonamiento(prop, res)
 
-    pdf_bytes = generar_reporte_pdf(prop, res)
+    with profile_block("generar_reporte_pdf", prop):
+        pdf_bytes = generar_reporte_pdf(prop, res)
     st.download_button(
         "Descargar Reporte PDF",
         data=pdf_bytes,
@@ -247,10 +253,14 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         use_container_width=True,
     )
 
-    render_mapa_y_comparables(res)
-    render_catastro(prop, res)
-    render_street_view(prop)
-    render_historial(nombre)
+    with profile_block("render_mapa_y_comparables", prop):
+        render_mapa_y_comparables(res)
+    with profile_block("render_catastro", prop):
+        render_catastro(prop, res)
+    with profile_block("render_street_view", prop):
+        render_street_view(prop)
+    with profile_block("render_historial", prop):
+        render_historial(nombre)
 
 def mostrar_dashboard():
     # CSS para transicion suave entre paginas
@@ -278,7 +288,8 @@ def mostrar_dashboard():
         if p_obj:
             forzar = st.session_state.pop(f'forzar_recalculo_{p_obj["nombre"]}', False)
 
-            cache_existente = cargar_cache_valuaciones()
+            with profile_block("cargar_cache_valuaciones", p_obj):
+                cache_existente = cargar_cache_valuaciones()
             entrada_antigua = cache_existente.get(p_obj['nombre'], {})
             if entrada_antigua.get('cache_version', '') != CACHE_VERSION and not forzar:
                 st.info(f"🔄 Actualizando valuación de **{p_obj['nombre']}** "
@@ -299,7 +310,8 @@ def mostrar_dashboard():
                 st.session_state.prop_sel = None
                 st.rerun()
 
-            mostrar_detalle_valu(p_obj, resultado, actualizar_propiedad)
+            with profile_block("mostrar_detalle_valu_total", p_obj):
+                mostrar_detalle_valu(p_obj, resultado, actualizar_propiedad)
         return
 
     # ─── PÁGINAS ───
@@ -570,7 +582,7 @@ def main():
         st.button("← Volver al Inicio", width='stretch', on_click=ir_al_inicio)
         st.markdown("---")
         
-        nav_options = ["Portfolio", "Mercado de propiedades", "Configuración"]
+        nav_options = ["Portfolio", "Mercado de propiedades", "Configuración", "Auditoría Técnica"]
         forced_nav = st.session_state.pop("_force_nav_page", None)
         if forced_nav in nav_options:
             st.session_state["nav_page_radio"] = forced_nav
