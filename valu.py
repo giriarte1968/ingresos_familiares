@@ -320,26 +320,7 @@ def mostrar_dashboard():
             with profile_block("mostrar_detalle_valu_total", p_obj):
                 mostrar_detalle_valu(p_obj, resultado, actualizar_propiedad)
 
-            # On-demand Infomapa (solo si no se consultó automáticamente)
-            with profile_block("detalle_infomapa_btn", None):
-                nombre = p_obj.get('nombre', '')
-                if resultado.get('catastro_detalle') is None:
-                    key_btn = f"infomapa_btn_{nombre}"
-                    if st.button("🔍 Consultar datos catastrales / plano", key=key_btn, use_container_width=True):
-                        with st.spinner("Consultando Infomapa..."):
-                            from parsers.infomapa_api import enriquecer_con_infomapa
-                            raw = enriquecer_con_infomapa(p_obj)
-                            if raw:
-                                catastro_detalle = {
-                                    'candidatos': raw.get('candidatos', []),
-                                    'imagenes_disponibles': raw.get('imagenes_disponibles', {}),
-                                }
-                                from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
-                                cache = cargar_cache_valuaciones()
-                                if nombre in cache:
-                                    cache[nombre]['resultado']['catastro_detalle'] = catastro_detalle
-                                    guardar_cache_valuaciones(cache)
-                        st.rerun()
+
         profile_end(_routing_ctx)
         return
 

@@ -253,7 +253,30 @@ def render_catastro(prop, res):
 
     if not candidatos:
         with st.container(border=True):
-            st.info("Sin datos catastrales para esta ubicacion")
+            st.markdown("""
+                <div style="display:flex;flex-direction:column;align-items:center;padding:24px 16px;text-align:center;">
+                    <div style="color:#94a3b8;font-size:0.9rem;margin-bottom:16px;line-height:1.6;">
+                        No se consultaron datos catastrales automáticamente.
+                        Hacé clic para obtener la información del catastro.
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
+            key_btn = f"infomapa_catastro_{nombre}"
+            if st.button("🔍 Consultar datos catastrales / plano", key=key_btn, use_container_width=True):
+                with st.spinner("Consultando Infomapa..."):
+                    from parsers.infomapa_api import enriquecer_con_infomapa
+                    raw = enriquecer_con_infomapa(prop)
+                    if raw:
+                        catastro_detalle = {
+                            'candidatos': raw.get('candidatos', []),
+                            'imagenes_disponibles': raw.get('imagenes_disponibles', {}),
+                        }
+                        from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
+                        cache = cargar_cache_valuaciones()
+                        if nombre in cache:
+                            cache[nombre]['resultado']['catastro_detalle'] = catastro_detalle
+                            guardar_cache_valuaciones(cache)
+                st.rerun()
         return
 
     key_ph = f"ph_sel_{nombre}"
