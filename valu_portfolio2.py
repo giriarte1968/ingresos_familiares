@@ -338,10 +338,14 @@ def _force_nav(page: str) -> None:
 
 
 def _ir_a_detalle(nombre: str, forzar: bool = False) -> None:
-    if forzar:
-        st.session_state[f"forzar_recalculo_{nombre}"] = True
-    st.session_state.prop_sel = nombre
-    st.rerun()
+    import logging
+    logging.warning(f"[NAV] Click Ver detalle | prop={nombre} | vista_prev={st.session_state.get('page', '?')} | forzar={forzar}")
+    with profile_block("NAV_click_detalle", None):
+        if forzar:
+            st.session_state[f"forzar_recalculo_{nombre}"] = True
+        st.session_state.prop_sel = nombre
+        logging.warning(f"[NAV] Set prop_sel={nombre} → st.rerun()")
+        st.rerun()
 
 
 # ──────────────────────────────────────────────────────────────────────────────

@@ -1292,9 +1292,11 @@ def valuar_con_cache(prop: dict,
         return valuar_propiedad_v7(prop, fecha_ref=fecha_ref, consultar_infomapa=consultar_infomapa)
     
     nombre = prop.get('nombre', prop.get('direccion', 'sin_nombre'))
-    cache = cargar_cache_valuaciones()
+    with profile_block("vcc_cargar_cache_valuaciones", prop):
+        cache = cargar_cache_valuaciones()
 
-    recalcular, razon = necesita_recalcular(nombre, prop, cache)
+    with profile_block("vcc_necesita_recalcular", prop):
+        recalcular, razon = necesita_recalcular(nombre, prop, cache)
 
     if forzar_recalculo:
         recalcular = True
@@ -1318,21 +1320,24 @@ def valuar_con_cache(prop: dict,
             'timestamp': datetime.now().isoformat()
         }
 
-        guardar_resultado(nombre, prop, resultado, cache)
-        guardar_cache_valuaciones(cache)
+        with profile_block("vcc_guardar_resultado", prop):
+            guardar_resultado(nombre, prop, resultado, cache)
+        with profile_block("vcc_guardar_cache", prop):
+            guardar_cache_valuaciones(cache)
 
         # Registrar en historial inmutable (append-only)
-        try:
-            from parsers.valuacion_historial import registrar_valuacion
-            registrar_valuacion(
-                nombre=nombre,
-                prop=prop,
-                resultado=resultado,
-                razon=razon,
-                fecha_ref=fecha_ref
-            )
-        except Exception as e:
-            logger.error(f"Error registrando en historial: {e}")
+        with profile_block("vcc_registrar_historial", prop):
+            try:
+                from parsers.valuacion_historial import registrar_valuacion
+                registrar_valuacion(
+                    nombre=nombre,
+                    prop=prop,
+                    resultado=resultado,
+                    razon=razon,
+                    fecha_ref=fecha_ref
+                )
+            except Exception as e:
+                logger.error(f"Error registrando en historial: {e}")
     else:
         from parsers.profiler import profile_block
 

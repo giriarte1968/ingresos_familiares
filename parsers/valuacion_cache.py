@@ -37,22 +37,26 @@ def _calcular_hash_scraping() -> str | None:
 
 def cargar_cache_valuaciones() -> dict:
     """Carga el cache de valuaciones desde disco."""
-    try:
-        if os.path.exists(CACHE_PATH):
-            with open(CACHE_PATH, 'r', encoding='utf-8') as f:
-                return json.load(f)
-    except Exception:
-        pass
+    from parsers.profiler import profile_block
+    with profile_block("disk_cargar_cache_valuaciones", None):
+        try:
+            if os.path.exists(CACHE_PATH):
+                with open(CACHE_PATH, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+        except Exception:
+            pass
     return {}
 
 def guardar_cache_valuaciones(cache: dict):
     """Persiste el cache de valuaciones en disco."""
-    try:
-        os.makedirs(CACHE_DIR, exist_ok=True)
-        with open(CACHE_PATH, 'w', encoding='utf-8') as f:
-            json.dump(cache, f, indent=2, ensure_ascii=False, default=str)
-    except Exception as e:
-        print(f"[CACHE] Error guardando: {e}")
+    from parsers.profiler import profile_block
+    with profile_block("disk_guardar_cache_valuaciones", None):
+        try:
+            os.makedirs(CACHE_DIR, exist_ok=True)
+            with open(CACHE_PATH, 'w', encoding='utf-8') as f:
+                json.dump(cache, f, indent=2, ensure_ascii=False, default=str)
+        except Exception as e:
+            print(f"[CACHE] Error guardando: {e}")
 
 def necesita_recalcular(nombre: str, prop: dict, cache: dict) -> tuple[bool, str]:
     """

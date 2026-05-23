@@ -37,25 +37,29 @@ INFOMAPA_CACHE_PATH = os.path.join(DATA_DIR, 'infomapa_cache.json')
 
 def _cargar_cache_infomapa_disco():
     """Carga cache persistente desde disco al arrancar."""
-    global _INFOMAPA_CACHE
-    if not os.path.exists(INFOMAPA_CACHE_PATH):
-        _INFOMAPA_CACHE = {}
-        return
-    try:
-        with open(INFOMAPA_CACHE_PATH, 'r', encoding='utf-8') as f:
-            _INFOMAPA_CACHE = json.load(f)
-    except Exception as e:
-        logger.warning(f"[INFOMAPA_CACHE] Error cargando cache de disco: {e}")
-        _INFOMAPA_CACHE = {}
+    from parsers.profiler import profile_block
+    with profile_block("disk_infomapa_cache_load", None):
+        global _INFOMAPA_CACHE
+        if not os.path.exists(INFOMAPA_CACHE_PATH):
+            _INFOMAPA_CACHE = {}
+            return
+        try:
+            with open(INFOMAPA_CACHE_PATH, 'r', encoding='utf-8') as f:
+                _INFOMAPA_CACHE = json.load(f)
+        except Exception as e:
+            logger.warning(f"[INFOMAPA_CACHE] Error cargando cache de disco: {e}")
+            _INFOMAPA_CACHE = {}
 
 def _guardar_cache_infomapa_disco():
     """Persiste el cache en disco."""
-    try:
-        os.makedirs(DATA_DIR, exist_ok=True)
-        with open(INFOMAPA_CACHE_PATH, 'w', encoding='utf-8') as f:
-            json.dump(_INFOMAPA_CACHE, f, ensure_ascii=False, indent=2)
-    except Exception as e:
-        logger.warning(f"[INFOMAPA_CACHE] Error guardando cache: {e}")
+    from parsers.profiler import profile_block
+    with profile_block("disk_infomapa_cache_save", None):
+        try:
+            os.makedirs(DATA_DIR, exist_ok=True)
+            with open(INFOMAPA_CACHE_PATH, 'w', encoding='utf-8') as f:
+                json.dump(_INFOMAPA_CACHE, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            logger.warning(f"[INFOMAPA_CACHE] Error guardando cache: {e}")
 
 def _clave_infomapa(lat: float, lon: float) -> str:
     """Clave única para cache de infomapa por coordenadas redondeadas."""
