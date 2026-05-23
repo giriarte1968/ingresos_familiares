@@ -10,7 +10,6 @@ from valu_design import VALU_CSS, kpi_card, property_card, hero_price, metric_ca
 from valu_forms import ui_formulario_propiedad
 from landing import mostrar_landing
 from parsers.profiler import profile_block, profile_start, profile_end, StepLedger
-from parsers.motor_vpp_core import valuar_con_cache
 
 # --- CONFIGURACIÓN ---
 st.set_page_config(page_title="Valu — Valuador de Propiedades", page_icon="🏠", layout="wide")
@@ -282,6 +281,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     _dl.close()
 
 def mostrar_dashboard():
+    from parsers.motor_vpp_core import valuar_con_cache
     # CSS para transicion suave entre paginas
     st.markdown("""
     <style>
@@ -406,7 +406,6 @@ def mostrar_dashboard():
                     estado = st.empty()
                     inicio = time.time()
                     for i, p_prop in enumerate(props):
-                        from parsers.motor_vpp_core import valuar_con_cache
                         nombre = p_prop.get('nombre', '?')
                         estado.info(f"Valuando **{nombre}** ({i+1}/{n})")
                         valuar_con_cache(p_prop, forzar_recalculo=True)
