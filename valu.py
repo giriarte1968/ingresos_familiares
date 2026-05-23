@@ -283,23 +283,26 @@ def mostrar_dashboard():
     # ─── FLUJO DETALLE: funciona desde cualquier página (Portfolio, Portfolio2, etc.) ───
     _routing_ctx = profile_start("ROUTING_TOTAL")
     if st.session_state.prop_sel:
-        propiedades = cargar_propiedades()
-        from parsers.motor_vpp_core import valuar_con_cache
-        from parsers.valuacion_cache import cargar_cache_valuaciones, CACHE_VERSION
+        with profile_block("detalle_cargar_propiedades", None):
+            propiedades = cargar_propiedades()
+            from parsers.motor_vpp_core import valuar_con_cache
+            from parsers.valuacion_cache import cargar_cache_valuaciones, CACHE_VERSION
 
-        p_obj = next((p for p in propiedades if p['nombre'] == st.session_state.prop_sel), None)
+        with profile_block("detalle_buscar_prop", None):
+            p_obj = next((p for p in propiedades if p['nombre'] == st.session_state.prop_sel), None)
         if p_obj:
             forzar = st.session_state.pop(f'forzar_recalculo_{p_obj["nombre"]}', False)
 
-            with profile_block("cargar_cache_valuaciones", p_obj):
+            with profile_block("detalle_cache_check", p_obj):
                 cache_existente = cargar_cache_valuaciones()
-            entrada_antigua = cache_existente.get(p_obj['nombre'], {})
-            if entrada_antigua.get('cache_version', '') != CACHE_VERSION and not forzar:
-                st.info(f"🔄 Actualizando valuación de **{p_obj['nombre']}** "
-                        f"a la nueva versión del motor ({CACHE_VERSION})...")
+                entrada_antigua = cache_existente.get(p_obj['nombre'], {})
+                if entrada_antigua.get('cache_version', '') != CACHE_VERSION and not forzar:
+                    st.info(f"🔄 Actualizando valuación de **{p_obj['nombre']}** "
+                            f"a la nueva versión del motor ({CACHE_VERSION})...")
 
-            with st.spinner(f"Abriendo detalle de {p_obj['nombre']}..."):
-                resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False)
+            with profile_block("detalle_spinner_valuar", p_obj):
+                with st.spinner(f"Abriendo detalle de {p_obj['nombre']}..."):
+                    resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False)
 
             def actualizar_propiedad(nueva_data):
                 props = cargar_propiedades()
@@ -309,32 +312,34 @@ def mostrar_dashboard():
                         break
                 guardar_propiedades(props)
 
-            if st.button("← Volver al Portafolio"):
-                st.session_state.prop_sel = None
-                st.rerun()
+            with profile_block("detalle_volver_btn", None):
+                if st.button("← Volver al Portafolio"):
+                    st.session_state.prop_sel = None
+                    st.rerun()
 
             with profile_block("mostrar_detalle_valu_total", p_obj):
                 mostrar_detalle_valu(p_obj, resultado, actualizar_propiedad)
 
             # On-demand Infomapa (solo si no se consultó automáticamente)
-            nombre = p_obj.get('nombre', '')
-            if resultado.get('catastro_detalle') is None:
-                key_btn = f"infomapa_btn_{nombre}"
-                if st.button("🔍 Consultar datos catastrales / plano", key=key_btn, use_container_width=True):
-                    with st.spinner("Consultando Infomapa..."):
-                        from parsers.infomapa_api import enriquecer_con_infomapa
-                        raw = enriquecer_con_infomapa(p_obj)
-                        if raw:
-                            catastro_detalle = {
-                                'candidatos': raw.get('candidatos', []),
-                                'imagenes_disponibles': raw.get('imagenes_disponibles', {}),
-                            }
-                            from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
-                            cache = cargar_cache_valuaciones()
-                            if nombre in cache:
-                                cache[nombre]['resultado']['catastro_detalle'] = catastro_detalle
-                                guardar_cache_valuaciones(cache)
-                    st.rerun()
+            with profile_block("detalle_infomapa_btn", None):
+                nombre = p_obj.get('nombre', '')
+                if resultado.get('catastro_detalle') is None:
+                    key_btn = f"infomapa_btn_{nombre}"
+                    if st.button("🔍 Consultar datos catastrales / plano", key=key_btn, use_container_width=True):
+                        with st.spinner("Consultando Infomapa..."):
+                            from parsers.infomapa_api import enriquecer_con_infomapa
+                            raw = enriquecer_con_infomapa(p_obj)
+                            if raw:
+                                catastro_detalle = {
+                                    'candidatos': raw.get('candidatos', []),
+                                    'imagenes_disponibles': raw.get('imagenes_disponibles', {}),
+                                }
+                                from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
+                                cache = cargar_cache_valuaciones()
+                                if nombre in cache:
+                                    cache[nombre]['resultado']['catastro_detalle'] = catastro_detalle
+                                    guardar_cache_valuaciones(cache)
+                        st.rerun()
         profile_end(_routing_ctx)
         return
 
@@ -667,4 +672,5 @@ def main():
     profile_end(_main_ctx)
 
 if __name__ == "__main__":
-    main()
+    with profile_block("APP_SCRIPT_TOTAL", "global"):
+        main()
