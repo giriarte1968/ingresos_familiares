@@ -63,6 +63,25 @@ def dump_results():
         "blocks": aggregated,
     }
 
+def profile_start(name, prop=None):
+    """Start a manual profile timer. Returns a context dict for profile_end()."""
+    if not PROFILING_ENABLED:
+        return None
+    return {"name": name, "prop": prop, "t0": time.perf_counter()}
+
+def profile_end(ctx):
+    """End a manual profile timer started with profile_start()."""
+    if ctx is None:
+        return
+    dt = (time.perf_counter() - ctx["t0"]) * 1000
+    prop_name = _get_prop_name(ctx.get("prop"))
+    prefix = f"[PROFILE][{prop_name}]" if prop_name else "[PROFILE]"
+    logger.warning(f"{prefix} {ctx['name']}: {dt:.1f} ms")
+    _results[(prop_name or "global", ctx["name"])].append({
+        "t_ms": dt,
+        "timestamp": datetime.now().isoformat(),
+    })
+
 def save_results(path=None):
     data = dump_results()
     if path is None:

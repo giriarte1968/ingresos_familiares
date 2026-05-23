@@ -281,6 +281,7 @@ def mostrar_dashboard():
     st.session_state.prev_page = page
     
     # ─── FLUJO DETALLE: funciona desde cualquier página (Portfolio, Portfolio2, etc.) ───
+    _routing_ctx = profile_start("ROUTING_TOTAL")
     if st.session_state.prop_sel:
         propiedades = cargar_propiedades()
         from parsers.motor_vpp_core import valuar_con_cache
@@ -334,6 +335,7 @@ def mostrar_dashboard():
                                 cache[nombre]['resultado']['catastro_detalle'] = catastro_detalle
                                 guardar_cache_valuaciones(cache)
                     st.rerun()
+        profile_end(_routing_ctx)
         return
 
     # ─── PÁGINAS ───
@@ -581,6 +583,7 @@ def mostrar_dashboard():
                         from parsers.profiler import reset
                         reset()
                         st.rerun()
+    profile_end(_routing_ctx)
 
 # --- MAIN APP ---
 def main():

@@ -14,6 +14,7 @@ from typing import Any, Callable
 
 import pandas as pd
 import streamlit as st
+from parsers.profiler import profile_block
 
 
 PORTFOLIO2_CSS = """
@@ -713,12 +714,16 @@ def mostrar_portfolio2(
         _render_empty_state()
         return
 
-    resultados, estados = _cargar_resultados_cache(propiedades)
-    rows = _build_rows(propiedades, resultados, estados)
+    with profile_block("portfolio_cargar_cache", None):
+        resultados, estados = _cargar_resultados_cache(propiedades)
+    with profile_block("portfolio_build_rows", None):
+        rows = _build_rows(propiedades, resultados, estados)
     usdt_ars = float(obtener_usdt_fn() or 1480.0)
 
-    _render_header(rows, _fecha_cache_scraping())
-    _render_kpis(rows, usdt_ars)
+    with profile_block("portfolio_header", None):
+        _render_header(rows, _fecha_cache_scraping())
+    with profile_block("portfolio_kpis", None):
+        _render_kpis(rows, usdt_ars)
 
     c1, c2, c3 = st.columns(3)
     with c1:
@@ -734,15 +739,18 @@ def mostrar_portfolio2(
             use_container_width=True,
         )
  
-    filtros = _render_filters(rows)
-    rows_filtradas = _apply_filters(rows, filtros)
+    with profile_block("portfolio_filters", None):
+        filtros = _render_filters(rows)
+        rows_filtradas = _apply_filters(rows, filtros)
     st.caption(f"{len(rows_filtradas):,} de {len(rows):,} propiedades visibles")
 
     vista = filtros["vista"]
     if vista == "Cards":
-        _render_cards(rows_filtradas, page_size=filtros["page_size"])
+        with profile_block("portfolio_cards", None):
+            _render_cards(rows_filtradas, page_size=filtros["page_size"])
     elif vista == "Mapa":
-        _render_map(rows_filtradas)
+        with profile_block("portfolio_mapa", None):
+            _render_map(rows_filtradas)
     elif vista == "Tabla":
         _render_table(rows_filtradas)
     elif vista == "Analytics":

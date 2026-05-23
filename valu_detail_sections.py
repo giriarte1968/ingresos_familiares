@@ -252,6 +252,8 @@ def render_catastro(prop, res):
     st.subheader("Datos Catastrales")
 
     if not candidatos:
+        with st.container(border=True):
+            st.info("Sin datos catastrales para esta ubicacion")
         return
 
     key_ph = f"ph_sel_{nombre}"
