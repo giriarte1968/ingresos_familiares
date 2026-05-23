@@ -232,7 +232,8 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         render_header(prop, res)
 
     st.markdown("<br>", unsafe_allow_html=True)
-    render_rango(res, valor_usd)
+    with profile_block("render_rango", prop):
+        render_rango(res, valor_usd)
     st.markdown("<br>", unsafe_allow_html=True)
 
     with profile_block("render_metricas", prop):
@@ -244,14 +245,15 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
 
     with profile_block("generar_reporte_pdf", prop):
         pdf_bytes = generar_reporte_pdf(prop, res)
-    st.download_button(
-        "Descargar Reporte PDF",
-        data=pdf_bytes,
-        file_name=f"valuacion_{prop.get('nombre','propiedad').replace(' ','_')}.pdf",
-        mime="application/pdf",
-        type="primary",
-        use_container_width=True,
-    )
+    with profile_block("download_button", prop):
+        st.download_button(
+            "Descargar Reporte PDF",
+            data=pdf_bytes,
+            file_name=f"valuacion_{prop.get('nombre','propiedad').replace(' ','_')}.pdf",
+            mime="application/pdf",
+            type="primary",
+            use_container_width=True,
+        )
 
     with profile_block("render_mapa_y_comparables", prop):
         render_mapa_y_comparables(res)
