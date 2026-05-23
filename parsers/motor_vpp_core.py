@@ -24,6 +24,8 @@ except ImportError:
     except:
          get_mass_properties = None
 
+from parsers.mercado_inmobiliario import valuar_propiedad_v7
+
 # Rutas y Configuración
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CACHE_FILE = os.path.join(BASE_DIR, "cache_scraping.json")
@@ -1279,18 +1281,12 @@ def valuar_con_cache(prop: dict,
     Wrapper de valuación con caché persistente.
     Solo recalcula si es necesario o se fuerza.
     """
-    try:
-        from parsers.valuacion_cache import (
-            cargar_cache_valuaciones, guardar_cache_valuaciones,
-            necesita_recalcular, guardar_resultado,
-            obtener_resultado_cacheado, obtener_metadata_cache
-        )
-        from parsers.mercado_inmobiliario import valuar_propiedad_v7
-        from datetime import datetime
-    except ImportError as e:
-        logger.error(f"Error importando módulos de caché: {e}")
-        return valuar_propiedad_v7(prop, fecha_ref=fecha_ref, consultar_infomapa=consultar_infomapa)
-    
+    from parsers.valuacion_cache import (
+        cargar_cache_valuaciones, guardar_cache_valuaciones,
+        necesita_recalcular, guardar_resultado,
+        obtener_resultado_cacheado, obtener_metadata_cache
+    )
+    from datetime import datetime
     from parsers.profiler import profile_block, save_results, StepLedger
     
     nombre = prop.get('nombre', prop.get('direccion', 'sin_nombre'))
