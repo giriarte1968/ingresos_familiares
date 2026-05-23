@@ -101,3 +101,30 @@ Se ha completado la transición hacia una arquitectura de frontend desacoplada:
 - `calcular_cap_rate_local()` acepta y propaga el mismo parámetro
 - `valuar_propiedad_v7()` carga el cache UNA VEZ y lo pasa a toda la valuación
 - **Ahorro estimado**: ~319ms (4 lecturas → 1)
+
+## 9. Infomapa Lazy-Load (On-Demand) ✅
+
+### Problema resuelto
+Infomapa era el principal cuello de botella del botón "Ver detalle":
+- `infomapa` frío: ~3.9s por valuación (HTTP POST a rosario.gov.ar)
+- Usuario reportaba ~30s de espera (cold start + Infomapa + Streamlit combinados)
+- La consulta se ejecutaba SIEMPRE al abrir detalle, incluso si el usuario no quería ver el plano
+
+### Solución
+- `valuar_propiedad_v7(consultar_infomapa=False)` salta el bloque Infomapa completamente
+- Desde la UI, el detalle se abre sin consultar Infomapa
+- Botón "🔍 Consultar datos catastrales / plano" en el detalle (solo visible si no hay datos)
+- Al hacer clic, se ejecuta `enriquecer_con_infomapa()`, se persiste en `valuaciones_cache.json`, y se rerunea
+
+### Flujo
+1. **Ver detalle** → apertura rápida (~2-3s), sin llamada a Infomapa
+2. **Consultar catastro** (solo si el usuario hace clic) → llamada a Infomapa + cache + rerun
+3. En adelante, el detalle sirve datos catastrales desde `valuaciones_cache.json`
+
+### Archivos modificados
+| Archivo | Cambio |
+|---------|--------|
+| `parsers/mercado_inmobiliario.py` | `consultar_infomapa` param en `valuar_propiedad_v7()` |
+| `parsers/motor_vpp_core.py` | `consultar_infomapa` param en `valuar_con_cache()` |
+| `valu.py` | `consultar_infomapa=False` + botón on-demand |
+| `valu_detail_sections.py` | `render_catastro()` early return sin datos |

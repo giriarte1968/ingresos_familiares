@@ -2478,7 +2478,7 @@ def obtener_nodos_dinamicos(lat, lon, tipo, operacion, dorms=2, fecha_ref=None):
         return {"error": str(e)}
 
 
-def valuar_propiedad_v7(propiedad, fecha_ref=None):
+def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True):
     """
     🚀 Modelo v7.0 - Evolución Híbrida PROFESIONAL
     Fusiona el Motor VPP (Clusters/Market) con Factores Físicos (Legacy).
@@ -2917,21 +2917,22 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     
     # Enriquecer con datos de Infomapa (candidatos + imágenes)
     catastro_detalle = None
-    try:
-        with profile_block("infomapa", prop):
-            from parsers.infomapa_api import enriquecer_con_infomapa
-            catastro_raw = enriquecer_con_infomapa(prop)
-        if catastro_raw:
-            catastro_detalle = {
-                'candidatos': catastro_raw.get('candidatos', []),
-                'imagenes_disponibles': catastro_raw.get('imagenes_disponibles', {}),
-            }
-            n_cand = len(catastro_raw['candidatos'])
-            n_ph_con_img = sum(1 for ph in catastro_raw['imagenes_disponibles'])
-            logger.info(f"[INFOMAPA] {n_cand} candidatos, {n_ph_con_img} PHs con imágenes")
-    except Exception as e:
-        logger.warning(f"[INFOMAPA] Error: {e}")
-        catastro_detalle = None
+    if consultar_infomapa:
+        try:
+            with profile_block("infomapa", prop):
+                from parsers.infomapa_api import enriquecer_con_infomapa
+                catastro_raw = enriquecer_con_infomapa(prop)
+            if catastro_raw:
+                catastro_detalle = {
+                    'candidatos': catastro_raw.get('candidatos', []),
+                    'imagenes_disponibles': catastro_raw.get('imagenes_disponibles', {}),
+                }
+                n_cand = len(catastro_raw['candidatos'])
+                n_ph_con_img = sum(1 for ph in catastro_raw['imagenes_disponibles'])
+                logger.info(f"[INFOMAPA] {n_cand} candidatos, {n_ph_con_img} PHs con imágenes")
+        except Exception as e:
+            logger.warning(f"[INFOMAPA] Error: {e}")
+            catastro_detalle = None
     
     # Macrozona de depreciacion (FASE 7A - solo metadata, no afecta valores)
     try:

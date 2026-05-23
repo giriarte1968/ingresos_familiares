@@ -1273,7 +1273,8 @@ def actualizar_mercado_vpp_full():
 
 def valuar_con_cache(prop: dict,
                      fecha_ref: str = None,
-                     forzar_recalculo: bool = False) -> dict:
+                     forzar_recalculo: bool = False,
+                     consultar_infomapa: bool = True) -> dict:
     """
     Wrapper de valuación con caché persistente.
     Solo recalcula si es necesario o se fuerza.
@@ -1288,7 +1289,7 @@ def valuar_con_cache(prop: dict,
         from datetime import datetime
     except ImportError as e:
         logger.error(f"Error importando módulos de caché: {e}")
-        return valuar_propiedad_v7(prop, fecha_ref=fecha_ref)
+        return valuar_propiedad_v7(prop, fecha_ref=fecha_ref, consultar_infomapa=consultar_infomapa)
     
     nombre = prop.get('nombre', prop.get('direccion', 'sin_nombre'))
     cache = cargar_cache_valuaciones()
@@ -1305,7 +1306,7 @@ def valuar_con_cache(prop: dict,
         logger.info(f"[CACHE] {nombre}: recalculando ({razon})")
         try:
             with profile_block("valuar_propiedad_v7_total", prop):
-                resultado = valuar_propiedad_v7(prop, fecha_ref=fecha_ref)
+                resultado = valuar_propiedad_v7(prop, fecha_ref=fecha_ref, consultar_infomapa=consultar_infomapa)
             save_results()
         except Exception as e:
             logger.error(f"Error en valuar_propiedad_v7: {e}")

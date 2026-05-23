@@ -954,3 +954,38 @@ Profiling en DO mostró cuellos de botella:
 - `docs/STATUS_ACTUAL.md`
 
 ### Tests: 39/39 regression pasando, auto_validate OK
+
+---
+
+## 📅 2026-05-23 — TAREA: Sacar Infomapa del camino crítico del botón "Ver detalle" (lazy-load on-demand)
+
+### Problema
+El profiling en DO mostró que el principal cuello de botella del detalle no es el rango ni la UI, sino la consulta automática a Infomapa:
+- `infomapa` frío: ~3.9s
+- `infomapa_api_calls`: ~3.6s
+- Usuario reporta que el botón "Ver detalle" tarda ~30s (cold start + Streamlit + Infomapa combinados)
+
+### Cambios
+
+| Archivo | Acción |
+|---------|--------|
+| `parsers/mercado_inmobiliario.py` | `valuar_propiedad_v7()` nuevo parámetro `consultar_infomapa=True`. Cuando `False`, se salta el bloque Infomapa y `catastro_detalle = None` |
+| `parsers/motor_vpp_core.py` | `valuar_con_cache()` nuevo parámetro `consultar_infomapa=True`, lo pasa a `valuar_propiedad_v7()` |
+| `valu.py` | `valuar_con_cache()` llamado con `consultar_infomapa=False` desde el flujo detalle. Después de `mostrar_detalle_valu()`, si no hay datos catastrales, muestra botón "🔍 Consultar datos catastrales / plano". Al hacer clic, ejecuta `enriquecer_con_infomapa()`, guarda en el cache de valuaciones, y rerunea. |
+| `valu_detail_sections.py` | `render_catastro()` ya no muestra "Sin datos catastrales para esta ubicacion" cuando no hay candidatos (return early). |
+
+### Flujo resultante
+1. Usuario hace clic en "Ver detalle" → apertura instantánea (~2-3s en lugar de ~30s)
+2. La sección de catastro se omite (sin demora, sin llamada HTTP)
+3. Si el usuario quiere ver datos catastrales → clic en "🔍 Consultar datos catastrales / plano"
+4. Se ejecuta `enriquecer_con_infomapa()` (con su caché de 24h), se persiste en `valuaciones_cache.json`, se rerunea
+5. En el rerun, `render_catastro()` recibe los datos del cache y los muestra normalmente
+
+### Principios
+- La consulta a Infomapa NO se ejecuta automáticamente al abrir el detalle
+- "Ver detalle" es rápido (sin bloqueo de red)
+- El usuario decide cuándo/cuántas veces consultar Infomapa
+- La información catastral se carga solo cuando el usuario lo solicita
+- Sin cambios en: lógica de valuación, clusters, alquiler, rangos, valores, historial, cálculos del motor, anclas
+
+### Tests: 39/39 regression pasando, auto_validate OK
