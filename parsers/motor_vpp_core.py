@@ -1291,6 +1291,8 @@ def valuar_con_cache(prop: dict,
         logger.error(f"Error importando módulos de caché: {e}")
         return valuar_propiedad_v7(prop, fecha_ref=fecha_ref, consultar_infomapa=consultar_infomapa)
     
+    from parsers.profiler import profile_block, save_results
+    
     nombre = prop.get('nombre', prop.get('direccion', 'sin_nombre'))
     with profile_block("vcc_cargar_cache_valuaciones", prop):
         cache = cargar_cache_valuaciones()
@@ -1303,8 +1305,6 @@ def valuar_con_cache(prop: dict,
         razon = "forzado_por_usuario"
 
     if recalcular:
-        from parsers.profiler import profile_block, save_results
-
         logger.info(f"[CACHE] {nombre}: recalculando ({razon})")
         try:
             with profile_block("valuar_propiedad_v7_total", prop):
@@ -1339,8 +1339,6 @@ def valuar_con_cache(prop: dict,
             except Exception as e:
                 logger.error(f"Error registrando en historial: {e}")
     else:
-        from parsers.profiler import profile_block
-
         with profile_block("obtener_resultado_cacheado", prop):
             resultado = obtener_resultado_cacheado(nombre, cache)
             meta_cache = obtener_metadata_cache(nombre, cache)
