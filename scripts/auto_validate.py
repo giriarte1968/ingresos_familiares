@@ -43,7 +43,7 @@ def main():
 
     # 2. Verificar sintaxis Python
     print("\n[2] Verificando sintaxis Python...")
-    for py_file in ["parsers/mercado_inmobiliario.py", "parsers/location_engine.py", "parsers/motor_vpp_core.py"]:
+    for py_file in ["parsers/mercado_inmobiliario.py", "parsers/location_engine.py", "parsers/motor_vpp_core.py", "parsers/profiler.py", "parsers/infomapa_api.py", "valu.py"]:
         result = subprocess.run([sys.executable, "-m", "py_compile", py_file])
         all_passed &= run_command(result, f"Sintaxis {py_file}")
 

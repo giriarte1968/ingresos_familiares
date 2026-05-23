@@ -532,8 +532,10 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         if not os.path.exists(cache_path):
             return 0, 0, {'percentil_usado': 'P50' if operacion == 'alquiler' else 'P33', 'n_raw': 0, 'n_filtradas': 0}
         
-        with open(cache_path, 'r', encoding='utf-8') as f:
-            cache = json.load(f)
+        from parsers.profiler import profile_block
+        with profile_block("load_cache_scraping"):
+            with open(cache_path, 'r', encoding='utf-8') as f:
+                cache = json.load(f)
         
         # Percentil según operación (ALGORITMOS.md línea 20-23)
         if operacion == 'alquiler':
@@ -2503,8 +2505,11 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         logger.info(f"[FECHA] Usando fecha actual por defecto: {fecha_ref}")
     
     prop = sanitizar_propiedad(propiedad)
-    cache = load_cache_cached()
-    anclas = cargar_anclas_cached()
+    from parsers.profiler import profile_block
+    with profile_block("load_cache_cached"):
+        cache = load_cache_cached()
+    with profile_block("cargar_anclas"):
+        anclas = cargar_anclas_cached()
     
     # Log de entrada
     logger.info(f"=== VALUACION: {prop.get('nombre', prop.get('direccion', 'Unknown'))} ===")
@@ -2585,16 +2590,17 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
             pass
     
     # Usar cluster v2 directamente para m2_base_venta (más preciso)
-    m2_base_venta_raw, n_v, meta_venta = obtener_mediana_cluster_v2(
-        zona=normalizar_zona(zona_txt),
-        dormitorios=dorms,
-        operacion='venta',
-        lat_ref=lat,
-        lon_ref=lon,
-        fecha_ref=fecha_ref,
-        anio_sujeto=anio_const,
-        tipo_inmueble=prop.get('tipo_inmueble', prop.get('tipo', 'departamento'))
-    )
+    with profile_block("cluster_venta", prop):
+        m2_base_venta_raw, n_v, meta_venta = obtener_mediana_cluster_v2(
+            zona=normalizar_zona(zona_txt),
+            dormitorios=dorms,
+            operacion='venta',
+            lat_ref=lat,
+            lon_ref=lon,
+            fecha_ref=fecha_ref,
+            anio_sujeto=anio_const,
+            tipo_inmueble=prop.get('tipo_inmueble', prop.get('tipo', 'departamento'))
+        )
     
     # Si v2 tiene valor, usarlo; si no, fallback a ancla
     if m2_base_venta_raw > 0:
@@ -2638,7 +2644,8 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     # NOTA: El cluster devuelve ARS/m2 directamente (no USD)
     # Usar zona normalizada para mejor match con cache
     zona_alq = normalizar_zona(zona_txt)
-    m2_base_alq_raw, n_a, meta_alq = obtener_mediana_cluster_v2(zona=zona_alq, dormitorios=dorms, operacion='alquiler', lat_ref=lat, lon_ref=lon, tipo_inmueble=prop.get('tipo_inmueble', prop.get('tipo', 'departamento')))
+    with profile_block("cluster_alquiler", prop):
+        m2_base_alq_raw, n_a, meta_alq = obtener_mediana_cluster_v2(zona=zona_alq, dormitorios=dorms, operacion='alquiler', lat_ref=lat, lon_ref=lon, tipo_inmueble=prop.get('tipo_inmueble', prop.get('tipo', 'departamento')))
     
     # Fallback si no hay datos específicos (en ARS/m²)
     # Ajustar para entrar en rango:
@@ -2730,13 +2737,14 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     cap_info = None
     if lat_cr is not None and lon_cr is not None:
         try:
-            cap_info = calcular_cap_rate_local(
-                lat_ref=lat_cr,
-                lon_ref=lon_cr,
-                dormitorios=dorms,
-                tipo_inmueble='departamento',
-                fecha_ref=fecha_ref
-            )
+            with profile_block("cap_rate", prop):
+                cap_info = calcular_cap_rate_local(
+                    lat_ref=lat_cr,
+                    lon_ref=lon_cr,
+                    dormitorios=dorms,
+                    tipo_inmueble='departamento',
+                    fecha_ref=fecha_ref
+                )
         except:
             pass
     
@@ -2890,8 +2898,9 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     # Enriquecer con datos de Infomapa (candidatos + imágenes)
     catastro_detalle = None
     try:
-        from parsers.infomapa_api import enriquecer_con_infomapa
-        catastro_raw = enriquecer_con_infomapa(prop)
+        with profile_block("infomapa", prop):
+            from parsers.infomapa_api import enriquecer_con_infomapa
+            catastro_raw = enriquecer_con_infomapa(prop)
         if catastro_raw:
             catastro_detalle = {
                 'candidatos': catastro_raw.get('candidatos', []),

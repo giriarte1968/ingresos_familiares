@@ -87,8 +87,10 @@ def _cargar_csv() -> list:
         logger.warning(f"CSV no encontrado: {CSV_PATH}")
         return []
     try:
-        with open(CSV_PATH, 'r', encoding='utf-8') as f:
-            return list(csv.DictReader(f))
+        from parsers.profiler import profile_block
+        with profile_block("cargar_csv"):
+            with open(CSV_PATH, 'r', encoding='utf-8') as f:
+                return list(csv.DictReader(f))
     except Exception as e:
         logger.error(f"Error leyendo CSV: {e}")
         return []
@@ -228,17 +230,19 @@ def enriquecer_con_infomapa(prop: Dict) -> Optional[Dict]:
         return None
 
     # PASO 4: Llamar API para imágenes + nomenclatura
+    from parsers.profiler import profile_block
     imagenes = {}
-    for c in candidatos:
-        datos_api = obtener_datos_ph(c['ph'])
-        if datos_api.get('imagenes'):
-            imagenes[c['ph']] = datos_api['imagenes']
-        if not c.get('seccion') and datos_api.get('seccion'):
-            c['seccion'] = datos_api['seccion']
-        if not c.get('manzana') and datos_api.get('manzana'):
-            c['manzana'] = datos_api['manzana']
-        if not c.get('grafico') and datos_api.get('grafico'):
-            c['grafico'] = datos_api['grafico']
+    with profile_block("infomapa_api_calls"):
+        for c in candidatos:
+            datos_api = obtener_datos_ph(c['ph'])
+            if datos_api.get('imagenes'):
+                imagenes[c['ph']] = datos_api['imagenes']
+            if not c.get('seccion') and datos_api.get('seccion'):
+                c['seccion'] = datos_api['seccion']
+            if not c.get('manzana') and datos_api.get('manzana'):
+                c['manzana'] = datos_api['manzana']
+            if not c.get('grafico') and datos_api.get('grafico'):
+                c['grafico'] = datos_api['grafico']
 
     return {
         "candidatos": candidatos,

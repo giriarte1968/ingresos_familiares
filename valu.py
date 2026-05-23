@@ -516,6 +516,38 @@ def mostrar_dashboard():
                         json.dump(audit, _f, ensure_ascii=False, indent=2, default=str)
                     st.success(f"Archivo guardado: `{_fn}`")
 
+        # ─── Profiling de rendimiento ───
+        st.markdown("---")
+        with st.expander("⏱️ Perfilado de Rendimiento", expanded=False):
+            from parsers.profiler import dump_results, save_results, PROFILING_ENABLED
+            if not PROFILING_ENABLED:
+                st.info("Profiling desactivado. Activarlo con `PROFILING_ENABLED=true` (env var en DO Console).")
+            else:
+                data = dump_results()
+                blocks = data.get("blocks", {})
+                if not blocks:
+                    st.info("Aún no hay datos de profiling. Ejecute una valuación primero.")
+                else:
+                    rows = []
+                    for key, info in blocks.items():
+                        rows.append({
+                            "Bloque": key,
+                            "Veces": info["count"],
+                            "Total (ms)": info["total_ms"],
+                            "Promedio (ms)": info["avg_ms"],
+                            "Min (ms)": info["min_ms"],
+                            "Max (ms)": info["max_ms"],
+                        })
+                    rows.sort(key=lambda r: r["Total (ms)"], reverse=True)
+                    st.dataframe(rows, use_container_width=True, hide_index=True)
+                    if st.button("📥 Descargar perfilado JSON", key="dl_profile"):
+                        path = save_results()
+                        st.success(f"Guardado en `{path}`")
+                    if st.button("🔄 Resetear perfilado", key="reset_profile"):
+                        from parsers.profiler import reset
+                        reset()
+                        st.rerun()
+
 # --- MAIN APP ---
 def main():
     if 'vista_actual' not in st.session_state:

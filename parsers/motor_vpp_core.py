@@ -1300,9 +1300,13 @@ def valuar_con_cache(prop: dict,
         razon = "forzado_por_usuario"
 
     if recalcular:
+        from parsers.profiler import profile_block, save_results
+
         logger.info(f"[CACHE] {nombre}: recalculando ({razon})")
         try:
-            resultado = valuar_propiedad_v7(prop, fecha_ref=fecha_ref)
+            with profile_block("valuar_propiedad_v7_total", prop):
+                resultado = valuar_propiedad_v7(prop, fecha_ref=fecha_ref)
+            save_results()
         except Exception as e:
             logger.error(f"Error en valuar_propiedad_v7: {e}")
             resultado = {'error': str(e), 'valor_propiedad_usd': 0}
