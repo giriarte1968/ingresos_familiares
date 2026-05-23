@@ -340,11 +340,14 @@ def mostrar_dashboard():
 
     # ─── PÁGINAS ───
     if page == "Portfolio":
+        import logging
+        logging.warning(f"[ROUTING_MARKER] Entrando a Portfolio (prop_sel={st.session_state.get('prop_sel')})")
         from valu_portfolio2 import mostrar_portfolio2
-        mostrar_portfolio2(
-            cargar_propiedades_fn=cargar_propiedades,
-            obtener_usdt_fn=obtener_usdt_ars_binance,
-        )
+        with profile_block("ROUTING:portfolio", None):
+            mostrar_portfolio2(
+                cargar_propiedades_fn=cargar_propiedades,
+                obtener_usdt_fn=obtener_usdt_ars_binance,
+            )
 
     elif st.session_state.page == "Mercado de propiedades":
         st.header("Mercado de propiedades")
@@ -598,6 +601,8 @@ def main():
     if 'page' not in st.session_state: st.session_state.page = "Portfolio"
     if 'prop_sel' not in st.session_state: st.session_state.prop_sel = None
 
+    _main_ctx = profile_start("MAIN_TOTAL")
+
     with st.sidebar:
         st.markdown('<div style="padding:10px 0;"><h2 style="color:white;margin:0;">🏠 Valu</h2><p style="color:#006AFF;font-size:11px;margin:0;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Valuador de Propiedades</p></div>', unsafe_allow_html=True)
         
@@ -613,7 +618,8 @@ def main():
             st.session_state["nav_page_radio"] = forced_nav
         if "nav_page_radio" not in st.session_state:
             st.session_state["nav_page_radio"] = st.session_state.page if st.session_state.page in nav_options else "Portfolio"
-        st.radio("NAVEGACIÓN", nav_options, key="nav_page_radio")
+        with profile_block("MAIN_sidebar_nav", None):
+            st.radio("NAVEGACIÓN", nav_options, key="nav_page_radio")
         new_page = st.session_state["nav_page_radio"]
         # Si cambió la página desde el sidebar, limpiar prop_sel para que la navegación funcione
         if st.session_state.page != new_page:
@@ -621,41 +627,44 @@ def main():
         st.session_state.page = new_page
         
         st.markdown("---")
-        datos = cargar_datos()
+        with profile_block("MAIN_sidebar_cargar_datos", None):
+            datos = cargar_datos()
         # Derivar fecha automáticamente del último scraping (usar mtime del archivo)
-        import os
-        from datetime import datetime
-        cache_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache_scraping.json")
-        if os.path.exists(cache_file):
-            # Usar el mtime del archivo como fuente de verdad
-            mtime = os.path.getmtime(cache_file)
-            fecha_dt = datetime.fromtimestamp(mtime)
-            fecha_cache = fecha_dt.strftime('%Y-%m-%d')
-            st.caption(f"📅 Datos de mercado: {fecha_cache}")
-        else:
-            fecha_cache = datetime.now().strftime('%Y-%m')
+        with profile_block("MAIN_sidebar_cache_mtime", None):
+            cache_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache_scraping.json")
+            if os.path.exists(cache_file):
+                mtime = os.path.getmtime(cache_file)
+                fecha_dt = datetime.fromtimestamp(mtime)
+                fecha_cache = fecha_dt.strftime('%Y-%m-%d')
+                st.caption(f"📅 Datos de mercado: {fecha_cache}")
+            else:
+                fecha_cache = datetime.now().strftime('%Y-%m')
         
         # Usar la fecha del cache como referencia (ya no es un selectbox)
         mes_sel = fecha_cache
         
         st.markdown("---")
-        with st.expander("🗄️ Historial de Scrapings"):
-            from parsers.valuacion_historial import listar_snapshots_scraping
-            snapshots = listar_snapshots_scraping()
+        with profile_block("MAIN_sidebar_snapshots", None):
+            with st.expander("🗄️ Historial de Scrapings"):
+                from parsers.valuacion_historial import listar_snapshots_scraping
+                snapshots = listar_snapshots_scraping()
 
-            if not snapshots:
-                st.info("Sin snapshots guardados aún.")
-            else:
-                st.caption(f"{len(snapshots)} scrapings archivados")
-                for s in snapshots[:10]:
-                    st.text(f"📦 {s['fecha']} — {s['tamanio_kb']} KB")
-                if len(snapshots) > 10:
-                    st.caption(f"... y {len(snapshots) - 10} más")
+                if not snapshots:
+                    st.info("Sin snapshots guardados aún.")
+                else:
+                    st.caption(f"{len(snapshots)} scrapings archivados")
+                    for s in snapshots[:10]:
+                        st.text(f"📦 {s['fecha']} — {s['tamanio_kb']} KB")
+                    if len(snapshots) > 10:
+                        st.caption(f"... y {len(snapshots) - 10} más")
         
         st.markdown("<br><br><br>", unsafe_allow_html=True)
         st.markdown('<p style="color:rgba(255,255,255,0.3);font-size:10px;text-align:center;">v2.5 · Powered by VPP Engine</p>', unsafe_allow_html=True)
 
-    mostrar_dashboard()
+    _r_prop = "detalle" if st.session_state.get("prop_sel") else st.session_state.get("page", "?")
+    with profile_block(f"MAIN_routing_{_r_prop}", None):
+        mostrar_dashboard()
+    profile_end(_main_ctx)
 
 if __name__ == "__main__":
     main()
