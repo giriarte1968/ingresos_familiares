@@ -2483,6 +2483,9 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True):
     🚀 Modelo v7.0 - Evolución Híbrida PROFESIONAL
     Fusiona el Motor VPP (Clusters/Market) con Factores Físicos (Legacy).
     """
+    from parsers.profiler import StepLedger
+    _ml = StepLedger("entry_motor_v7_ledger", propiedad.get('nombre', '?'))
+    _ml.mark("entered_func")
     # ══════════════════════════════════════════════
     # SECCIÓN 1: Datos de entrada y logging
     # ══════════════════════════════════════════════
@@ -2490,6 +2493,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True):
     import logging
     from datetime import datetime, timedelta
     from parsers.motor_vpp_core import load_cache_cached, cargar_anclas_cached, get_binance_usdt_ars
+    _ml.mark("after_lazy_imports")
     
     # Setup logging to file
     log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'log_valuacion')
@@ -2528,6 +2532,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True):
             cache_scraping_compartido = _json.load(_f)
     else:
         cache_scraping_compartido = None
+    _ml.mark("after_cache_scraping_load")
     
     # Log de entrada
     logger.info(f"=== VALUACION: {prop.get('nombre', prop.get('direccion', 'Unknown'))} ===")
@@ -3084,6 +3089,8 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True):
         guardar_audit_log(audit_log)
     except Exception:
         pass
+    _ml.mark("before_return")
+    _ml.close()
     return resultado
 
 

@@ -95,3 +95,46 @@ def save_results(path=None):
         json.dump(data, f, indent=2, ensure_ascii=False)
     logger.warning(f"[PROFILE] Resultados guardados en {path}")
     return path
+
+
+class StepLedger:
+    """Ledger cronológico secuencial con deltas entre marcas.
+    Uso:
+        ledger = StepLedger("nombre_ledger", "P1200")
+        ledger.mark("paso_1")
+        ... código ...
+        ledger.mark("paso_2")
+        ledger.close()
+    """
+    def __init__(self, name, prop_name=None):
+        self.name = name
+        self.prop_name = prop_name or "global"
+        self.t0 = time.perf_counter()
+        self.last = self.t0
+        self.steps = []
+        self._closed = False
+        logger.warning(
+            f"[LEDGER][{self.prop_name}] {self.name} START"
+        )
+
+    def mark(self, label):
+        now = time.perf_counter()
+        delta_ms = (now - self.last) * 1000
+        elapsed_ms = (now - self.t0) * 1000
+        self.steps.append((label, delta_ms, elapsed_ms))
+        self.last = now
+        logger.warning(
+            f"[LEDGER][{self.prop_name}] {self.name} | "
+            f"{label} | delta={delta_ms:.1f} ms | elapsed={elapsed_ms:.1f} ms"
+        )
+
+    def close(self):
+        if self._closed:
+            return 0.0
+        self._closed = True
+        now = time.perf_counter()
+        total_ms = (now - self.t0) * 1000
+        logger.warning(
+            f"[LEDGER][{self.prop_name}] {self.name} END | total={total_ms:.1f} ms"
+        )
+        return total_ms

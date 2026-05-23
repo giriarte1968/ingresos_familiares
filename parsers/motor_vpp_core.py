@@ -1291,20 +1291,29 @@ def valuar_con_cache(prop: dict,
         logger.error(f"Error importando módulos de caché: {e}")
         return valuar_propiedad_v7(prop, fecha_ref=fecha_ref, consultar_infomapa=consultar_infomapa)
     
-    from parsers.profiler import profile_block, save_results
+    from parsers.profiler import profile_block, save_results, StepLedger
     
     nombre = prop.get('nombre', prop.get('direccion', 'sin_nombre'))
+    _vl = StepLedger("vcc_ledger", nombre)
+    _vl.mark("entered")
+    
     with profile_block("vcc_cargar_cache_valuaciones", prop):
+        _vl.mark("before_cargar_cache")
         cache = cargar_cache_valuaciones()
+        _vl.mark("after_cargar_cache")
 
     with profile_block("vcc_necesita_recalcular", prop):
+        _vl.mark("before_necesita_recalcular")
         recalcular, razon = necesita_recalcular(nombre, prop, cache)
+        _vl.mark("after_necesita_recalcular")
 
     if forzar_recalculo:
         recalcular = True
         razon = "forzado_por_usuario"
+        _vl.mark("forzar_recalculo")
 
     if recalcular:
+        _vl.mark("before_valuar_propiedad_v7")
         logger.info(f"[CACHE] {nombre}: recalculando ({razon})")
         try:
             with profile_block("valuar_propiedad_v7_total", prop):
@@ -1313,6 +1322,7 @@ def valuar_con_cache(prop: dict,
         except Exception as e:
             logger.error(f"Error en valuar_propiedad_v7: {e}")
             resultado = {'error': str(e), 'valor_propiedad_usd': 0}
+        _vl.mark("after_valuar_propiedad_v7")
 
         resultado['_cache'] = {
             'recalculado': True,
@@ -1321,12 +1331,17 @@ def valuar_con_cache(prop: dict,
         }
 
         with profile_block("vcc_guardar_resultado", prop):
+            _vl.mark("before_guardar_resultado")
             guardar_resultado(nombre, prop, resultado, cache)
+            _vl.mark("after_guardar_resultado")
         with profile_block("vcc_guardar_cache", prop):
+            _vl.mark("before_guardar_cache")
             guardar_cache_valuaciones(cache)
+            _vl.mark("after_guardar_cache")
 
         # Registrar en historial inmutable (append-only)
         with profile_block("vcc_registrar_historial", prop):
+            _vl.mark("before_registrar_historial")
             try:
                 from parsers.valuacion_historial import registrar_valuacion
                 registrar_valuacion(
@@ -1338,7 +1353,9 @@ def valuar_con_cache(prop: dict,
                 )
             except Exception as e:
                 logger.error(f"Error registrando en historial: {e}")
+            _vl.mark("after_registrar_historial")
     else:
+        _vl.mark("before_cache_hit")
         with profile_block("obtener_resultado_cacheado", prop):
             resultado = obtener_resultado_cacheado(nombre, cache)
             meta_cache = obtener_metadata_cache(nombre, cache)
@@ -1350,5 +1367,8 @@ def valuar_con_cache(prop: dict,
             'timestamp': meta_cache.get('timestamp', '')
         }
         logger.info(f"[CACHE] {nombre}: usando caché del {meta_cache.get('fecha', '?')}")
+        _vl.mark("after_cache_hit")
 
+    _vl.mark("before_return")
+    _vl.close()
     return resultado

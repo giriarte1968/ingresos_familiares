@@ -9,7 +9,7 @@ from datetime import datetime
 from valu_design import VALU_CSS, kpi_card, property_card, hero_price, metric_card, range_bar, insights_card
 from valu_forms import ui_formulario_propiedad
 from landing import mostrar_landing
-from parsers.profiler import profile_block, profile_start, profile_end
+from parsers.profiler import profile_block, profile_start, profile_end, StepLedger
 
 # --- CONFIGURACIÓN ---
 st.set_page_config(page_title="Valu — Valuador de Propiedades", page_icon="🏠", layout="wide")
@@ -220,28 +220,37 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     dolar = res.get('usdt_ars', 1480)
     valor_usd = res.get('valor_propiedad_usd', 0)
 
+    _dl = StepLedger("mostrar_detalle_valu_ledger", nombre)
+    _dl.mark("start")
+
     from valu_detail_sections import (
         render_actions, render_header, render_rango, render_metricas,
         render_razonamiento, render_mapa_y_comparables, render_catastro,
         render_street_view, render_historial, generar_reporte_pdf,
     )
+    _dl.mark("after_imports")
 
     with profile_block("render_actions", prop):
         render_actions(prop, guardar_fn)
+    _dl.mark("after_render_actions")
     with profile_block("render_header", prop):
         render_header(prop, res)
+    _dl.mark("after_render_header")
 
     st.markdown("<br>", unsafe_allow_html=True)
     with profile_block("render_rango", prop):
         render_rango(res, valor_usd)
+    _dl.mark("after_render_rango")
     st.markdown("<br>", unsafe_allow_html=True)
 
     with profile_block("render_metricas", prop):
         render_metricas(prop, res, valor_usd, dolar)
+    _dl.mark("after_render_metricas")
     st.markdown("<br>", unsafe_allow_html=True)
 
     with profile_block("render_razonamiento", prop):
         render_razonamiento(prop, res)
+    _dl.mark("after_render_razonamiento")
 
     with profile_block("generar_reporte_pdf", prop):
         pdf_bytes = generar_reporte_pdf(prop, res)
@@ -254,15 +263,22 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
             type="primary",
             use_container_width=True,
         )
+    _dl.mark("after_pdf_download")
 
     with profile_block("render_mapa_y_comparables", prop):
         render_mapa_y_comparables(res)
+    _dl.mark("after_render_mapa")
     with profile_block("render_catastro", prop):
         render_catastro(prop, res)
+    _dl.mark("after_render_catastro")
     with profile_block("render_street_view", prop):
         render_street_view(prop)
+    _dl.mark("after_render_street_view")
     with profile_block("render_historial", prop):
         render_historial(nombre)
+    _dl.mark("after_render_historial")
+
+    _dl.close()
 
 def mostrar_dashboard():
     # CSS para transicion suave entre paginas
@@ -284,9 +300,15 @@ def mostrar_dashboard():
     _routing_ctx = profile_start("ROUTING_TOTAL")
     if st.session_state.prop_sel:
         with profile_block("detalle_cargar_propiedades", None):
+            _cl = StepLedger("detalle_cargar_propiedades_ledger", None)
+            _cl.mark("start")
             propiedades = cargar_propiedades()
+            _cl.mark("after_cargar_propiedades")
             from parsers.motor_vpp_core import valuar_con_cache
+            _cl.mark("after_import_motor_vpp_core")
             from parsers.valuacion_cache import cargar_cache_valuaciones, CACHE_VERSION
+            _cl.mark("after_import_valuacion_cache")
+            _cl.close()
 
         with profile_block("detalle_buscar_prop", None):
             p_obj = next((p for p in propiedades if p['nombre'] == st.session_state.prop_sel), None)
@@ -301,8 +323,14 @@ def mostrar_dashboard():
                             f"a la nueva versión del motor ({CACHE_VERSION})...")
 
             with profile_block("detalle_spinner_valuar", p_obj):
+                _sl = StepLedger("detalle_spinner_valuar_ledger", p_obj.get('nombre'))
+                _sl.mark("before_st_spinner")
                 with st.spinner(f"Abriendo detalle de {p_obj['nombre']}..."):
+                    _sl.mark("entered_st_spinner")
                     resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False)
+                    _sl.mark("after_valuar_con_cache")
+                _sl.mark("after_st_spinner")
+                _sl.close()
 
             def actualizar_propiedad(nueva_data):
                 props = cargar_propiedades()
