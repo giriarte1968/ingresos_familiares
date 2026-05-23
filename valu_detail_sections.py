@@ -274,7 +274,7 @@ def render_catastro(prop, res):
                         from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
                         cache = cargar_cache_valuaciones()
                         if nombre in cache:
-                            cache[nombre]['resultado']['catastro_detalle'] = catastro_detalle
+                            cache[nombre]['resultado_completo']['catastro_detalle'] = catastro_detalle
                             guardar_cache_valuaciones(cache)
                 st.rerun()
         return
