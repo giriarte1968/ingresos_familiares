@@ -10,3 +10,6 @@ parsers/log_valuacion/
 
 # Archivos archivados (limpieza FASE 1)
 _archive/
+
+# Cache generado de Infomapa (regenerable)
+data/infomapa_cache.json

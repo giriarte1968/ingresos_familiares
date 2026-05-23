@@ -71,7 +71,7 @@ Se ha completado la transición hacia una arquitectura de frontend desacoplada:
 ---
 
 **Actualizado por**: opencode (Agente IA)
-**Fecha**: 2026-05-22
+**Fecha**: 2026-05-23
 **Ubicación**: `ingresos_familiares_st/valu.py`
 
 ## 7. Persistencia entre Deploys DO ✅
@@ -83,3 +83,21 @@ Se ha completado la transición hacia una arquitectura de frontend desacoplada:
 - DO usa cache sin recálculo en cada deploy.
 - `parsers/git_sync.py`: write-back de propiedades a git cuando `GIT_WRITE_TOKEN` está configurado
 - ⚠️ Cada push desde DO desencadena un deploy (deploy_on_push). Las sesiones de usuario se interrumpen brevemente.
+
+## 8. Optimización de Performance — FASE 1 ✅
+
+### Cache persistente de Infomapa
+- `_INFOMAPA_CACHE` en memoria + `data/infomapa_cache.json` en disco
+- Clave por coordenadas (`{lat:.4f}_{lon:.4f}`), TTL 24h
+- Se carga al importar el módulo, se persiste tras cada llamada exitosa
+- **Ahorro estimado**: ~3.3s por valuación (cache hit → ~1ms)
+
+### Cache de CSV catastral
+- `_cargar_csv()` con TTL 5 min en memoria
+- **Ahorro estimado**: ~110ms por valuación
+
+### Reuso de cache_scraping
+- `obtener_mediana_cluster_v2()` acepta `cache_scraping` opcional (dict precargado)
+- `calcular_cap_rate_local()` acepta y propaga el mismo parámetro
+- `valuar_propiedad_v7()` carga el cache UNA VEZ y lo pasa a toda la valuación
+- **Ahorro estimado**: ~319ms (4 lecturas → 1)

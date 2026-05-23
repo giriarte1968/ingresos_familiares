@@ -505,10 +505,14 @@ def _filtrar_por_ventana_edad(pool, anio_sujeto, min_con_anio=10):
     return pool, False, 0, 0, 0
 
 
-def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=None, lon_ref=None, fecha_ref=None, anio_sujeto=None, tipo_inmueble=None):
+def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=None, lon_ref=None, fecha_ref=None, anio_sujeto=None, tipo_inmueble=None, cache_scraping=None):
     """
     Obtiene la mediana del cluster desde cache_scraping.json.
     Versión v2 con metadata extendida Y radios progresivos.
+    
+    Args:
+        cache_scraping: dict opcional con datos precargados de cache_scraping.json.
+                        Si es None, se carga el archivo desde disco.
     
     RETORNO: 3 valores (valor, n_muestras, meta_dict)
     
@@ -525,17 +529,19 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
     try:
         import numpy as np
         
-        cache_path = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            'cache_scraping.json'
-        )
-        if not os.path.exists(cache_path):
-            return 0, 0, {'percentil_usado': 'P50' if operacion == 'alquiler' else 'P33', 'n_raw': 0, 'n_filtradas': 0}
-        
-        from parsers.profiler import profile_block
-        with profile_block("load_cache_scraping"):
-            with open(cache_path, 'r', encoding='utf-8') as f:
-                cache = json.load(f)
+        if cache_scraping is None:
+            cache_path = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                'cache_scraping.json'
+            )
+            if not os.path.exists(cache_path):
+                return 0, 0, {'percentil_usado': 'P50' if operacion == 'alquiler' else 'P33', 'n_raw': 0, 'n_filtradas': 0}
+            from parsers.profiler import profile_block
+            with profile_block("load_cache_scraping"):
+                with open(cache_path, 'r', encoding='utf-8') as f:
+                    cache = json.load(f)
+        else:
+            cache = cache_scraping
         
         # Percentil según operación (ALGORITMOS.md línea 20-23)
         if operacion == 'alquiler':
@@ -2510,6 +2516,18 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
         cache = load_cache_cached()
     with profile_block("cargar_anclas"):
         anclas = cargar_anclas_cached()
+
+    # Cargar cache_scraping UNA VEZ y pasar a todos los llamados
+    import json as _json
+    _cache_scraping_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        'cache_scraping.json'
+    )
+    if os.path.exists(_cache_scraping_path):
+        with open(_cache_scraping_path, 'r', encoding='utf-8') as _f:
+            cache_scraping_compartido = _json.load(_f)
+    else:
+        cache_scraping_compartido = None
     
     # Log de entrada
     logger.info(f"=== VALUACION: {prop.get('nombre', prop.get('direccion', 'Unknown'))} ===")
@@ -2599,7 +2617,8 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
             lon_ref=lon,
             fecha_ref=fecha_ref,
             anio_sujeto=anio_const,
-            tipo_inmueble=prop.get('tipo_inmueble', prop.get('tipo', 'departamento'))
+            tipo_inmueble=prop.get('tipo_inmueble', prop.get('tipo', 'departamento')),
+            cache_scraping=cache_scraping_compartido
         )
     
     # Si v2 tiene valor, usarlo; si no, fallback a ancla
@@ -2645,7 +2664,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
     # Usar zona normalizada para mejor match con cache
     zona_alq = normalizar_zona(zona_txt)
     with profile_block("cluster_alquiler", prop):
-        m2_base_alq_raw, n_a, meta_alq = obtener_mediana_cluster_v2(zona=zona_alq, dormitorios=dorms, operacion='alquiler', lat_ref=lat, lon_ref=lon, tipo_inmueble=prop.get('tipo_inmueble', prop.get('tipo', 'departamento')))
+        m2_base_alq_raw, n_a, meta_alq = obtener_mediana_cluster_v2(zona=zona_alq, dormitorios=dorms, operacion='alquiler', lat_ref=lat, lon_ref=lon, tipo_inmueble=prop.get('tipo_inmueble', prop.get('tipo', 'departamento')), cache_scraping=cache_scraping_compartido)
     
     # Fallback si no hay datos específicos (en ARS/m²)
     # Ajustar para entrar en rango:
@@ -2743,7 +2762,8 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
                     lon_ref=lon_cr,
                     dormitorios=dorms,
                     tipo_inmueble='departamento',
-                    fecha_ref=fecha_ref
+                    fecha_ref=fecha_ref,
+                    cache_scraping=cache_scraping_compartido
                 )
         except:
             pass
@@ -3067,7 +3087,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None):
 
 
 
-def calcular_cap_rate_local(lat_ref, lon_ref, dormitorios=2, tipo_inmueble='departamento', fecha_ref='2026-04'):
+def calcular_cap_rate_local(lat_ref, lon_ref, dormitorios=2, tipo_inmueble='departamento', fecha_ref='2026-04', cache_scraping=None):
     """
     Deriva Cap Rate del mercado local usando clusters reales de venta y alquiler.
     Retorna dict con cap_rate y metadata de confianza.
@@ -3077,6 +3097,7 @@ def calcular_cap_rate_local(lat_ref, lon_ref, dormitorios=2, tipo_inmueble='depa
         dormitorios: cantidad de dormitorios
         tipo_inmueble: tipo de inmueble
         fecha_ref: fecha de referencia para el cluster
+        cache_scraping: dict opcional con datos precargados para evitar re-lectura
     
     Returns:
         dict con cap_rate, cap_rate_min, cap_rate_max, n_venta, n_alquiler,
@@ -3095,7 +3116,8 @@ def calcular_cap_rate_local(lat_ref, lon_ref, dormitorios=2, tipo_inmueble='depa
             lat_ref=lat_ref,
             lon_ref=lon_ref,
             fecha_ref=fecha_ref,
-            tipo_inmueble=tipo_inmueble
+            tipo_inmueble=tipo_inmueble,
+            cache_scraping=cache_scraping
         )
         
         # Cluster de ALQUILER (P50)
@@ -3106,7 +3128,8 @@ def calcular_cap_rate_local(lat_ref, lon_ref, dormitorios=2, tipo_inmueble='depa
             lat_ref=lat_ref,
             lon_ref=lon_ref,
             fecha_ref=fecha_ref,
-            tipo_inmueble=tipo_inmueble
+            tipo_inmueble=tipo_inmueble,
+            cache_scraping=cache_scraping
         )
         
         # Extraer valores base

@@ -918,3 +918,39 @@ Cada deploy de DO crea un contenedor fresco. `valuaciones_cache.json` estaba en 
 - `valu.yaml` — `GIT_WRITE_TOKEN` env var
 
 ### Tests: 39/39 regression pasando
+
+---
+
+## 📅 2026-05-23 — TAREA: Optimización de performance — FASE 1 (Infomapa + CSV + cache_scraping compartido)
+
+### Problema
+Profiling en DO mostró cuellos de botella:
+- `infomapa_api_calls` (HTTP POST a rosario.gov.ar cada valuación): **3.3s**
+- `load_cache_scraping` re-lectura 4 veces (venta + alquiler + cap_rate_venta + cap_rate_alq): **425ms**
+- `_cargar_csv()` sin caché: **110ms**
+
+### Cambios
+
+#### `parsers/infomapa_api.py` — Cache persistente de Infomapa
+- `_INFOMAPA_CACHE` en memoria + `data/infomapa_cache.json` en disco
+- Clave: `f"{lat:.4f}_{lon:.4f}"`, TTL 24h
+- `_cargar_cache_infomapa_disco()` se ejecuta al importar el módulo
+- `_guardar_cache_infomapa_disco()` persiste tras cada llamada exitosa a la API
+- `_cargar_csv()` ahora con caché en memoria TTL 5 min (`_CSV_CACHE`, `_CSV_CACHE_TS`)
+
+#### `parsers/mercado_inmobiliario.py` — Reuso de cache_scraping compartido
+- `obtener_mediana_cluster_v2()`: nuevo parámetro `cache_scraping=None` (dict opcional)
+- `calcular_cap_rate_local()`: nuevo parámetro `cache_scraping=None`, lo pasa a clusters internos
+- `valuar_propiedad_v7()`: carga `cache_scraping_compartido` UNA VEZ y lo pasa a los 3 llamados (cluster_venta, cluster_alquiler, cap_rate)
+
+#### `.gitignore`
+- `data/infomapa_cache.json` agregado (no se trackea)
+
+### Archivos modificados
+- `parsers/infomapa_api.py`
+- `parsers/mercado_inmobiliario.py`
+- `.gitignore`
+- `docs/BITACORA_AGENTES.md`
+- `docs/STATUS_ACTUAL.md`
+
+### Tests: 39/39 regression pasando, auto_validate OK

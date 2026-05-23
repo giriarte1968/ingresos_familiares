@@ -17,6 +17,8 @@ ausencia de datos catastrales.
 import os
 import csv
 import re
+import json
+import time
 import requests
 import logging
 from typing import Optional, Dict
@@ -27,6 +29,45 @@ BASE = "https://infomapa.rosario.gov.ar"
 API_URL = f"{BASE}/emapa/planos/mensura/buscarPorCarpeta.htm"
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
 CSV_PATH = os.path.join(DATA_DIR, 'rosario_avm_full.csv')
+
+# --- Cache persistente de Infomapa (por coordenadas) ---
+_INFOMAPA_CACHE = {}
+TTL_INFOMAPA = 86400  # 24 horas
+INFOMAPA_CACHE_PATH = os.path.join(DATA_DIR, 'infomapa_cache.json')
+
+def _cargar_cache_infomapa_disco():
+    """Carga cache persistente desde disco al arrancar."""
+    global _INFOMAPA_CACHE
+    if not os.path.exists(INFOMAPA_CACHE_PATH):
+        _INFOMAPA_CACHE = {}
+        return
+    try:
+        with open(INFOMAPA_CACHE_PATH, 'r', encoding='utf-8') as f:
+            _INFOMAPA_CACHE = json.load(f)
+    except Exception as e:
+        logger.warning(f"[INFOMAPA_CACHE] Error cargando cache de disco: {e}")
+        _INFOMAPA_CACHE = {}
+
+def _guardar_cache_infomapa_disco():
+    """Persiste el cache en disco."""
+    try:
+        os.makedirs(DATA_DIR, exist_ok=True)
+        with open(INFOMAPA_CACHE_PATH, 'w', encoding='utf-8') as f:
+            json.dump(_INFOMAPA_CACHE, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        logger.warning(f"[INFOMAPA_CACHE] Error guardando cache: {e}")
+
+def _clave_infomapa(lat: float, lon: float) -> str:
+    """Clave única para cache de infomapa por coordenadas redondeadas."""
+    return f"{lat:.4f}_{lon:.4f}"
+
+# Cargar cache al importar el módulo
+_cargar_cache_infomapa_disco()
+
+# --- Cache del CSV catastral ---
+_CSV_CACHE = []
+_CSV_CACHE_TS = 0.0
+TTL_CSV = 300  # 5 minutos
 
 
 def _extraer_calle_numero(direccion: str):
@@ -82,7 +123,11 @@ def obtener_datos_ph(ph) -> dict:
 
 
 def _cargar_csv() -> list:
-    """Carga el CSV de PHs. Retorna lista vacía si no existe."""
+    """Carga el CSV de PHs con cache de 5 min. Retorna lista vacía si no existe."""
+    global _CSV_CACHE, _CSV_CACHE_TS
+    now = time.time()
+    if _CSV_CACHE and (now - _CSV_CACHE_TS) < TTL_CSV:
+        return _CSV_CACHE
     if not os.path.exists(CSV_PATH):
         logger.warning(f"CSV no encontrado: {CSV_PATH}")
         return []
@@ -90,7 +135,9 @@ def _cargar_csv() -> list:
         from parsers.profiler import profile_block
         with profile_block("cargar_csv"):
             with open(CSV_PATH, 'r', encoding='utf-8') as f:
-                return list(csv.DictReader(f))
+                _CSV_CACHE = list(csv.DictReader(f))
+                _CSV_CACHE_TS = time.time()
+                return _CSV_CACHE
     except Exception as e:
         logger.error(f"Error leyendo CSV: {e}")
         return []
@@ -150,15 +197,11 @@ def enriquecer_con_infomapa(prop: Dict) -> Optional[Dict]:
     """
     Busca candidatos: 1 por dirección (prioritario) + 2 por coordenadas.
     Luego obtiene imágenes + nomenclatura de la API.
+    Resultados cacheados por coordenadas (24h, memoria + disco).
     
     Returns:
         {
-            "candidatos": [
-                {"ph": "17817", "year": "2010", "direccion_nominatim": "Ayacucho 1805",
-                 "seccion": "1", "manzana": "211", "grafico": "22",
-                 "distancia": 0.000369, "recomendado": True},
-                ...
-            ],
+            "candidatos": [...],
             "imagenes_disponibles": {"17817": [{"ruta": "...", "url": "..."}, ...]}
         }
         None si no hay datos.
@@ -167,6 +210,16 @@ def enriquecer_con_infomapa(prop: Dict) -> Optional[Dict]:
     if not lat or not lon:
         logger.info(f"[INFOMAPA] Sin coordenadas para {prop.get('nombre', '?')}")
         return None
+
+    clave = _clave_infomapa(float(lat), float(lon))
+    now = time.time()
+
+    # Cache en memoria con TTL
+    global _INFOMAPA_CACHE
+    entry = _INFOMAPA_CACHE.get(clave)
+    if entry and (now - entry.get('_ts', 0)) < TTL_INFOMAPA:
+        logger.info(f"[INFOMAPA_CACHE] Usando cache para {clave}")
+        return entry.get('resultado')
 
     filas = _cargar_csv()
     if not filas:
@@ -244,7 +297,16 @@ def enriquecer_con_infomapa(prop: Dict) -> Optional[Dict]:
             if not c.get('grafico') and datos_api.get('grafico'):
                 c['grafico'] = datos_api['grafico']
 
-    return {
+    resultado = {
         "candidatos": candidatos,
         "imagenes_disponibles": imagenes,
     }
+
+    # Guardar en cache persistente
+    _INFOMAPA_CACHE[clave] = {
+        '_ts': time.time(),
+        'resultado': resultado,
+    }
+    _guardar_cache_infomapa_disco()
+
+    return resultado
