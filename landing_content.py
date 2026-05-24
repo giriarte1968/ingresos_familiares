@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 from datetime import datetime
@@ -48,6 +49,19 @@ def get_landing_stats() -> dict:
 # PLANTILLAS HTML
 # ==========================================
 
+def _get_logo_html() -> str:
+    """Lee logovalu.jpeg y devuelve <img> base64 inline, o cadena vacia si falla."""
+    try:
+        logo_path = os.path.join(os.path.dirname(__file__), "data", "logovalu1.jpeg.png")
+        if os.path.exists(logo_path):
+            with open(logo_path, "rb") as f:
+                b64 = base64.b64encode(f.read()).decode()
+            return f'<div style="text-align:center;margin-bottom:16px;"><img src="data:image/jpeg;base64,{b64}" style="max-height:80px;width:auto;filter:brightness(0) invert(1);"></div>'
+    except Exception:
+        pass
+    return ""
+
+
 def get_hero_html(stats: dict) -> str:
     """Hero principal con mockup enriquecido.
 
@@ -65,10 +79,13 @@ def get_hero_html(stats: dict) -> str:
     ejemplo_comps = stats.get('ejemplo_comparables', 27)
     ejemplo_confianza = str(stats.get('ejemplo_confianza', 'Alta')).lower()
 
+    logo_html = _get_logo_html()
+
     return (
         f'<div class="hero-with-image">'
         f'<div class="hero-overlay">'
         f'<div class="hero-content">'
+        f'{logo_html}'
         f'<div class="landing-badge">Datos de mercado actualizados · Rosario</div>'
         f'<h1 class="hero-title">Sabé cuánto vale tu propiedad<br>en Rosario</h1>'
         f'<p class="hero-sub">Valuación automática basada en más de <b>9,000</b> propiedades reales del mercado. El estándar de datos para el mercado inmobiliario local.</p>'
