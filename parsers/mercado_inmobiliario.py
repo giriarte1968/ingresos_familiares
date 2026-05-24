@@ -15,6 +15,35 @@ from parsers.cluster_filters import (
 )
 from parsers.valuacion_helpers import calcular_rango_venta, ensamblar_metadata_resolucion
 
+
+def _calcular_mediana(precios):
+    """Pure Python median - equivalente a _calcular_mediana()."""
+    if not precios:
+        return 0.0
+    s = sorted(precios)
+    n = len(s)
+    if n % 2 == 1:
+        return float(s[n // 2])
+    return (s[n // 2 - 1] + s[n // 2]) / 2.0
+
+
+def _calcular_percentil_linear(precios, q):
+    """Pure Python percentile con interpolación lineal - equivalente a _calcular_percentil_linear(..., q)."""
+    if not precios:
+        return 0.0
+    s = sorted(precios)
+    n = len(s)
+    if n == 1:
+        return float(s[0])
+    idx = q / 100.0 * (n - 1)
+    lo = int(idx)
+    hi = lo + 1
+    if hi >= n:
+        return float(s[-1])
+    frac = idx - lo
+    return float(s[lo] * (1 - frac) + s[hi] * frac)
+
+
 logger = logging.getLogger(__name__)
 ANIO_ACTUAL = datetime.now().year
 
@@ -261,10 +290,6 @@ def cargar_datos():
 
 
 def obtener_mediana_cluster(zona, dormitorios, operacion='venta'):
-    # Lazy numpy import for direct calls
-    if 'np' not in globals():
-        import numpy as np
-        globals()['np'] = np
     """
     Obtiene la mediana del cluster desde cache_scraping.json.
     Busca propiedades similares por zona y dormitorios.
@@ -310,11 +335,11 @@ def obtener_mediana_cluster(zona, dormitorios, operacion='venta'):
             return 0.0, 0
         
         if len(precios) < 3:
-            return float(np.median(precios)), len(precios)
+            return _calcular_mediana(precios), len(precios)
         
         # 3) FILTRO PRE-IQR robusto (0.6-1.6x)
-        # Usamos np.median para evitar el bug de indexación en listas pares
-        mediana_raw = np.median(precios)
+        # Usamos _calcular_mediana para evitar el bug de indexación en listas pares
+        mediana_raw = _calcular_mediana(precios)
         
         lower_robust = mediana_raw * 0.6
         upper_robust = mediana_raw * 1.6
@@ -325,17 +350,17 @@ def obtener_mediana_cluster(zona, dormitorios, operacion='venta'):
         if len(precios_filtrados) < 3:
             precios_ordenados = sorted(precios)
             if len(precios_ordenados) < 3:
-                return float(np.median(precios_ordenados)), len(precios_ordenados)
-            q1 = np.percentile(precios_ordenados, 25)
-            q3 = np.percentile(precios_ordenados, 75)
+                return _calcular_mediana(precios_ordenados), len(precios_ordenados)
+            q1 = _calcular_percentil_linear(precios_ordenados, 25)
+            q3 = _calcular_percentil_linear(precios_ordenados, 75)
             iqr = q3 - q1
             lower, upper = q1 - 1.5 * iqr, q3 + 1.5 * iqr
             precios_filtrados = [p for p in precios if lower <= p <= upper]
         
         if not precios_filtrados:
-            return float(np.median(precios)), len(precios)
+            return _calcular_mediana(precios), len(precios)
         
-        return float(np.median(precios_filtrados)), len(precios_filtrados)
+        return _calcular_mediana(precios_filtrados), len(precios_filtrados)
     except Exception:
         return 0, 0
 
@@ -530,7 +555,6 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
     - zona_resolucion: zona que devolvió resultados
     """
     try:
-        import numpy as np
         
         if cache_scraping is None:
             cache_path = os.path.join(
@@ -801,7 +825,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             }
         
         if len(precios) < 3:
-            return float(np.median(precios)), len(precios), {
+            return float(_calcular_mediana(precios)), len(precios), {
                 'percentil_usado': percentil_usado,
                 'n_raw': n_raw,
                 'n_filtradas': len(precios),
@@ -813,7 +837,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             }
         
         # FILTRO PRE-IQR robusto
-        mediana_raw = np.median(precios)
+        mediana_raw = _calcular_mediana(precios)
         lower_robust = mediana_raw * 0.6
         upper_robust = mediana_raw * 1.6
         
@@ -823,7 +847,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         if len(precios_filtrados) < 3:
             precios_ordenados = sorted(precios)
             if len(precios_ordenados) < 3:
-                return float(np.median(precios)), len(precios), {
+                return float(_calcular_mediana(precios)), len(precios), {
                     'percentil_usado': percentil_usado,
                     'n_raw': n_raw,
                     'n_filtradas': len(precios),
@@ -833,14 +857,14 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                     'zona_original': zona_original,
                     'zona_resolucion': zona_resol
                 }
-            q1 = np.percentile(precios_ordenados, 25)
-            q3 = np.percentile(precios_ordenados, 75)
+            q1 = _calcular_percentil_linear(precios_ordenados, 25)
+            q3 = _calcular_percentil_linear(precios_ordenados, 75)
             iqr = q3 - q1
             lower, upper = q1 - 1.5 * iqr, q3 + 1.5 * iqr
             precios_filtrados = [p for p in precios if lower <= p <= upper]
         
         if not precios_filtrados:
-            return float(np.median(precios)), len(precios), {
+            return float(_calcular_mediana(precios)), len(precios), {
                 'percentil_usado': percentil_usado,
                 'n_raw': n_raw,
                 'n_filtradas': len(precios),
@@ -881,10 +905,10 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         # Calcular percentiles del cluster completo (para dispersión estadística)
         precios_todos = precios_same + precios_cross
         if len(precios_todos) >= 4:
-            p25_cluster = float(np.percentile(precios_todos, 25))
-            p33_cluster = float(np.percentile(precios_todos, 33))
-            p50_cluster = float(np.median(precios_todos))
-            p75_cluster = float(np.percentile(precios_todos, 75))
+            p25_cluster = float(_calcular_percentil_linear(precios_todos, 25))
+            p33_cluster = float(_calcular_percentil_linear(precios_todos, 33))
+            p50_cluster = float(_calcular_mediana(precios_todos))
+            p75_cluster = float(_calcular_percentil_linear(precios_todos, 75))
         else:
             p25_cluster = p33_cluster = p50_cluster = p75_cluster = None
         
@@ -1003,7 +1027,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         if operacion == 'venta':
             valor = valor_principal
         else:
-            valor = float(np.median(precios_filtrados))
+            valor = float(_calcular_mediana(precios_filtrados))
             percentil_usado = 'P50_alquiler'
         
         n_filtradas = len(precios_filtrados)
@@ -2486,8 +2510,6 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True):
     🚀 Modelo v7.0 - Evolución Híbrida PROFESIONAL
     Fusiona el Motor VPP (Clusters/Market) con Factores Físicos (Legacy).
     """
-    import numpy as np
-    globals()['np'] = np
     from parsers.profiler import StepLedger
     _ml = StepLedger("entry_motor_v7_ledger", propiedad.get('nombre', '?'))
     _ml.mark("entered_func")

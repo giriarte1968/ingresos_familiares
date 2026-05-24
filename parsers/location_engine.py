@@ -1,8 +1,6 @@
 import math
 import json
 import os
-import numpy as np
-from sklearn.cluster import DBSCAN
 
 def cargar_anclas(path=None):
     if path is None:
