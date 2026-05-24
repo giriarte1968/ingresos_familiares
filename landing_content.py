@@ -145,18 +145,18 @@ def get_problem_html() -> str:
         <div class="landing-grid-3">
             <div class="landing-card">
                 <h3 style="font-size: 1.2rem; margin-bottom: 12px; color: #0f162a;">Las tasaciones tardan días</h3>
-                <p style="color: #64748b; font-size: 0.95rem;">Pedir una tasación profesional lleva tiempo y muchas veces tiene un costo elevado antes de empezar a vender.</p>
+                <p style="color: #64748b; font-size: 1.4rem; font-family: 'Inter', sans-serif;">Pedir una tasación profesional lleva tiempo y muchas veces tiene un costo elevado antes de empezar a vender.</p>
             </div>
             <div class="landing-card">
                 <h3 style="font-size: 1.2rem; margin-bottom: 12px; color: #0f162a;">Precios de lista inflados</h3>
-                <p style="color: #64748b; font-size: 0.95rem;">Los portales muestran lo que los dueños piden, no lo que se vende. Esa brecha te hace perder meses sin consultas.</p>
+                <p style="color: #64748b; font-size: 1.4rem; font-family: 'Inter', sans-serif;">Los portales muestran lo que los dueños piden, no lo que se vende. Esa brecha te hace perder meses sin consultas.</p>
             </div>
             <div class="landing-card">
                 <h3 style="font-size: 1.2rem; margin-bottom: 12px; color: #0f162a;">Negociación a ciegas</h3>
-                <p style="color: #64748b; font-size: 0.95rem;">Sin datos de comparables reales en tu misma zona, es imposible defender el valor de tu propiedad ante una oferta.</p>
+                <p style="color: #64748b; font-size: 1.4rem; font-family: 'Inter', sans-serif;">Sin datos de comparables reales en tu misma zona, es imposible defender el valor de tu propiedad ante una oferta.</p>
             </div>
         </div>
-        <div style="text-align: center; margin-top: 48px; font-weight: 600; color: #1e293b;">
+        <div style="text-align: center; margin-top: 48px; font-weight: 600; color: #1e293b; font-size: 1.4rem; font-family: 'Inter', sans-serif;">
             Valu analiza el mercado real y te da un rango de valor basado en propiedades similares en tu zona.
         </div>
     </div>
@@ -168,36 +168,42 @@ def get_how_html() -> str:
             'numero': '1',
             'titulo': 'Cargá tu propiedad',
             'desc': 'Ingresá dirección, metros, dormitorios, año y estado. Cuantos más datos, más precisa la valuación.',
-            'icon': '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/></svg>'
+            'img': 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=200&q=60&fm=webp'
         },
         {
             'numero': '2',
             'titulo': 'Valu analiza el mercado',
             'desc': 'Nuestro motor busca comparables en un radio cercano, ajusta por antigüedad y calidad, y calcula los escenarios.',
-            'icon': '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/><line x1="11" y1="8" x2="11" y2="14"/></svg>'
+            'img': 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=200&q=60&fm=webp'
         },
         {
             'numero': '3',
             'titulo': 'Recibí tu valuación',
             'desc': 'Obtené el valor de venta esperado, sugerencia de alquiler, Cap Rate y un informe narrativo detallado.',
-            'icon': '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'
+            'img': 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=200&q=60&fm=webp'
         }
     ]
-    cards = ''.join(
-        '<div class="step-card-v2">'
-        f'<div class="step-icon-circle">{p["icon"]}</div>'
-        f'<div class="step-number-small">{p["numero"]}</div>'
-        f'<h3 class="step-title-v2">{p["titulo"]}</h3>'
-        f'<p class="card-text">{p["desc"]}</p>'
-        '</div>'
-        for p in pasos
-    )
+    items_html = ''
+    for i, p in enumerate(pasos):
+        items_html += (
+            '<div class="bola-item">'
+            f'<div class="bola-step-label">PASO {p["numero"]}</div>'
+            '<div class="bola-circle">'
+            f'<img class="bola-img" src="{p["img"]}" alt="Paso {p["numero"]}" />'
+            f'<span class="bola-num">{p["numero"]}</span>'
+            '</div>'
+            f'<h3 class="bola-title" style="font-size:1.4rem;font-family:Inter,sans-serif">{p["titulo"]}</h3>'
+            f'<p class="card-text" style="font-size:1.4rem;font-family:Inter,sans-serif">{p["desc"]}</p>'
+            '</div>'
+        )
+        if i < len(pasos) - 1:
+            items_html += '<div class="bola-arrow"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>'
     return (
         '<div class="landing-section-alt">'
         '<div class="landing-section">'
         '<h2 class="section-title">Cómo funciona</h2>'
-        '<div class="step-connector-wrapper">'
-        f'<div class="landing-grid-3 steps-grid">{cards}</div>'
+        '<div class="bola-row-wrapper">'
+        f'<div class="bola-row">{items_html}</div>'
         '</div>'
         '</div>'
         '</div>'
@@ -282,12 +288,6 @@ def get_features_html() -> str:
         ("Informe profesional",
          "Texto narrativo que explica la valuación en lenguaje humano, listo para compartir.",
          '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>'),
-        ("Historial de valores",
-         "Seguimiento de cómo cambia el valor de tu propiedad mes a mes según el mercado.",
-         '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'),
-        ("USD y ARS siempre",
-         "Conversión automática con dólar Binance actualizado para no perder referencia.",
-         '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="1.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>'),
     ]
     cards = ''.join(
         f'<div class="landing-card feature-card-v2">'
