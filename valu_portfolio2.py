@@ -8,6 +8,7 @@ usuario pide detalle o revaluación.
 
 from __future__ import annotations
 
+import json
 import os
 from datetime import datetime
 from typing import Any, Callable
@@ -324,7 +325,10 @@ def _fecha_cache_scraping() -> str | None:
     if not os.path.exists(cache_path):
         return None
     try:
-        return datetime.fromtimestamp(os.path.getmtime(cache_path)).strftime("%Y-%m-%d")
+        with open(cache_path, 'r', encoding='utf-8') as _f:
+            _meta = json.load(_f)
+        _raw = _meta.get('fecha', '')
+        return _raw[:10] if _raw else None
     except Exception:
         return None
 
@@ -362,7 +366,7 @@ def _render_header(rows: list[dict[str, Any]], fecha_mercado: str | None) -> Non
       <div style="display:flex;justify-content:space-between;gap:22px;align-items:flex-start;flex-wrap:wrap;">
         <div>
           <div class="p2-hero-eyebrow">Valu Portfolio Intelligence</div>
-          <h1>Portfolio2</h1>
+          <h1>Portafolio</h1>
           <p>{n:,} propiedades · {valuadas:,} valuadas · Rosario, Argentina</p>
           <p>Datos de mercado: {fecha_mercado or "sin fecha disponible"}</p>
         </div>
@@ -689,7 +693,7 @@ def _render_empty_state() -> None:
     st.markdown("""
     <div class="p2-hero">
         <div class="p2-hero-eyebrow">Valu Portfolio Intelligence</div>
-        <h1>Portfolio2</h1>
+        <h1>Portafolio</h1>
         <p>Todavía no cargaste propiedades. Agregá tu primera unidad para obtener valor estimado, alquiler esperado y Cap Rate.</p>
     </div>
     """, unsafe_allow_html=True)
