@@ -211,7 +211,8 @@ header[data-testid="stHeader"] { background: #0F1629 !important; }
     background: linear-gradient(90deg, #006AFF, #10b981);
     opacity: 0.7;
 }
-.feature-icon-wrapper { width: 52px; height: 52px; border-radius: 14px; background: #ecfdf5; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+.feature-icon-wrapper { width: 52px; height: 52px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+.feature-icon-img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .feature-icon-wrapper svg { width: 28px; height: 28px; }
 .feature-title { color: #0f172a; font-weight: 800; margin-bottom: 6px; font-size: 1.02rem; letter-spacing: -0.01em; }
 
