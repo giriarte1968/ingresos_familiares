@@ -56,7 +56,7 @@ def _get_logo_html() -> str:
         if os.path.exists(logo_path):
             with open(logo_path, "rb") as f:
                 b64 = base64.b64encode(f.read()).decode()
-            return f'<div style="text-align:center;margin-bottom:16px;"><img src="data:image/jpeg;base64,{b64}" style="max-height:80px;width:auto;filter:brightness(0) invert(1);"></div>'
+            return f'<div style="text-align:center;margin-bottom:16px;"><img src="data:image/png;base64,{b64}" style="max-height:60px;width:auto;"></div>'
     except Exception:
         pass
     return ""
