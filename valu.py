@@ -225,8 +225,8 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
 
     from valu_detail_sections import (
         render_actions, render_header, render_rango, render_metricas,
-        render_razonamiento, render_mapa_y_comparables, render_catastro,
-        render_street_view, render_historial, generar_reporte_pdf,
+        render_razonamiento, render_mapa_propiedad, render_tabla_comparables,
+        render_catastro, render_street_view, render_historial, generar_reporte_pdf,
     )
     _dl.mark("after_imports")
 
@@ -252,28 +252,42 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         render_razonamiento(prop, res)
     _dl.mark("after_render_razonamiento")
 
-    with profile_block("generar_reporte_pdf", prop):
-        pdf_bytes = generar_reporte_pdf(prop, res)
-    with profile_block("download_button", prop):
-        st.download_button(
-            "Descargar Reporte PDF",
-            data=pdf_bytes,
-            file_name=f"valuacion_{prop.get('nombre','propiedad').replace(' ','_')}.pdf",
-            mime="application/pdf",
-            type="primary",
-            use_container_width=True,
-        )
+    with st.expander("Reporte PDF", expanded=False):
+        with profile_block("generar_reporte_pdf", prop):
+            pdf_bytes = generar_reporte_pdf(prop, res)
+        with profile_block("download_button", prop):
+            st.download_button(
+                "Descargar Reporte PDF",
+                data=pdf_bytes,
+                file_name=f"valuacion_{prop.get('nombre','propiedad').replace(' ','_')}.pdf",
+                mime="application/pdf",
+                type="primary",
+                use_container_width=True,
+            )
     _dl.mark("after_pdf_download")
 
-    with profile_block("render_mapa_y_comparables", prop):
-        render_mapa_y_comparables(res)
+    with st.expander("Mapa de Comparables", expanded=False):
+        with profile_block("render_mapa_propiedad", prop):
+            render_mapa_propiedad(res)
     _dl.mark("after_render_mapa")
-    with profile_block("render_catastro", prop):
-        render_catastro(prop, res)
+
+    comparables = res.get('comparables_venta', [])
+    n_comps = len(comparables)
+    with st.expander(f"{n_comps} Propiedades Comparables", expanded=False):
+        with profile_block("render_tabla_comparables", prop):
+            render_tabla_comparables(res)
+    _dl.mark("after_render_tabla_comparables")
+
+    with st.expander("Datos Catastrales", expanded=False):
+        with profile_block("render_catastro", prop):
+            render_catastro(prop, res)
     _dl.mark("after_render_catastro")
-    with profile_block("render_street_view", prop):
-        render_street_view(prop)
+
+    with st.expander("Entorno y Fachada", expanded=False):
+        with profile_block("render_street_view", prop):
+            render_street_view(prop)
     _dl.mark("after_render_street_view")
+
     with profile_block("render_historial", prop):
         render_historial(nombre)
     _dl.mark("after_render_historial")

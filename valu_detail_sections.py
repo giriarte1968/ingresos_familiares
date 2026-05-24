@@ -209,36 +209,36 @@ def render_razonamiento(prop, res):
         st.markdown(insights_card(f"Analisis de Valor para {prop.get('nombre', '')}", args), unsafe_allow_html=True)
 
 
-def render_mapa_y_comparables(res):
-    """Mapa + tabla desplegable de comparables."""
-    st.markdown("---")
+def render_mapa_propiedad(res):
+    """Mapa de comparables."""
     mapa_html = res.get('mapa_html', '')
     if mapa_html:
-        # Usar container con clave fija para evitar recreacion innecesaria
         with st.container(key="mapa_propiedad"):
             html(mapa_html, height=350)
-        n_comps_reales = len(res.get('comparables_venta', []))
-        st.caption(f" {n_comps_reales} comparables de venta")
     else:
-        st.caption(" Mapa no disponible")
+        st.caption("Mapa no disponible")
 
+
+def render_tabla_comparables(res):
+    """Tabla de propiedades comparables utilizadas."""
     comparables = res.get('comparables_venta', [])
-    if comparables:
-        with st.expander(f" {len(comparables)} propiedades comparables utilizadas"):
-            rows = []
-            for i, c in enumerate(comparables):
-                anio_est = c.get('anio_estimado', '')
-                rows.append({
-                    '#': i+1, 'Precio': f"${c.get('precio', 0):,.0f}",
-                    'm2': f"{c.get('m2', 0):.0f}", 'Precio/m2': f"${c.get('precio_m2', 0):,.0f}",
-                    'Dorm.': str(c.get('dormitorios', '?')),
-                    'Tipo': str((c.get('tipo') or '')[:12]) if c.get('tipo') else '',
-                    'Dirección': (c.get('direccion', '') or '')[:35],
-                    'Ano est.': str(anio_est) if anio_est is not None and anio_est != '' else '',
-                    'Dist.': f"{c.get('distancia_m', 0):.0f}m" if c.get('distancia_m') else '',
-                })
-            df = pd.DataFrame(rows).astype(str)
-            st.dataframe(df, width='stretch', hide_index=True)
+    if not comparables:
+        st.caption("Sin comparables disponibles")
+        return
+    rows = []
+    for i, c in enumerate(comparables):
+        anio_est = c.get('anio_estimado', '')
+        rows.append({
+            '#': i+1, 'Precio': f"${c.get('precio', 0):,.0f}",
+            'm2': f"{c.get('m2', 0):.0f}", 'Precio/m2': f"${c.get('precio_m2', 0):,.0f}",
+            'Dorm.': str(c.get('dormitorios', '?')),
+            'Tipo': str((c.get('tipo') or '')[:12]) if c.get('tipo') else '',
+            'Dirección': (c.get('direccion', '') or '')[:35],
+            'Ano est.': str(anio_est) if anio_est is not None and anio_est != '' else '',
+            'Dist.': f"{c.get('distancia_m', 0):.0f}m" if c.get('distancia_m') else '',
+        })
+    df = pd.DataFrame(rows).astype(str)
+    st.dataframe(df, width='stretch', hide_index=True)
 
 
 def render_catastro(prop, res):
@@ -248,35 +248,23 @@ def render_catastro(prop, res):
     candidatos = catastro.get('candidatos', []) if catastro else []
     imagenes_por_ph = catastro.get('imagenes_disponibles', {}) if catastro else {}
 
-    st.markdown("---")
-    st.subheader("Datos Catastrales")
-
     if not candidatos:
-        with st.container(border=True):
-            st.markdown("""
-                <div style="display:flex;flex-direction:column;align-items:center;padding:24px 16px;text-align:center;">
-                    <div style="color:#94a3b8;font-size:0.9rem;margin-bottom:16px;line-height:1.6;">
-                        No se consultaron datos catastrales automáticamente.
-                        Hacé clic para obtener la información del catastro.
-                    </div>
-                </div>
-            """, unsafe_allow_html=True)
-            key_btn = f"infomapa_catastro_{nombre}"
-            if st.button("🔍 Consultar datos catastrales / plano", key=key_btn, use_container_width=True):
-                with st.spinner("Consultando Infomapa..."):
-                    from parsers.infomapa_api import enriquecer_con_infomapa
-                    raw = enriquecer_con_infomapa(prop)
-                    if raw:
-                        catastro_detalle = {
-                            'candidatos': raw.get('candidatos', []),
-                            'imagenes_disponibles': raw.get('imagenes_disponibles', {}),
-                        }
-                        from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
-                        cache = cargar_cache_valuaciones()
-                        if nombre in cache:
-                            cache[nombre]['resultado_completo']['catastro_detalle'] = catastro_detalle
-                            guardar_cache_valuaciones(cache)
-                st.rerun()
+        key_btn = f"infomapa_catastro_{nombre}"
+        if st.button("🔍 Consultar datos catastrales / plano", key=key_btn, use_container_width=True):
+            with st.spinner("Consultando Infomapa..."):
+                from parsers.infomapa_api import enriquecer_con_infomapa
+                raw = enriquecer_con_infomapa(prop)
+                if raw:
+                    catastro_detalle = {
+                        'candidatos': raw.get('candidatos', []),
+                        'imagenes_disponibles': raw.get('imagenes_disponibles', {}),
+                    }
+                    from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
+                    cache = cargar_cache_valuaciones()
+                    if nombre in cache:
+                        cache[nombre]['resultado_completo']['catastro_detalle'] = catastro_detalle
+                        guardar_cache_valuaciones(cache)
+            st.rerun()
         return
 
     key_ph = f"ph_sel_{nombre}"
@@ -357,16 +345,12 @@ def render_street_view(prop):
     lon = prop.get('lon')
     if not lat or not lon:
         return
-    st.markdown("---")
-    st.subheader("Entorno y Fachada")
     url = f"https://www.google.com/maps/@?api=1&map_action=pano&viewpoint={lat},{lon}"
-    
-    with st.container(border=True):
-        c1, c2 = st.columns([3, 1])
-        with c1:
-            st.markdown("<p style='color:#64748b; font-size:0.95rem; margin-top:4px;'>Explorá la calle, el barrio y la fachada de la propiedad interactuando en 360° desde Google Street View.</p>", unsafe_allow_html=True)
-        with c2:
-            st.markdown(f'<a href="{url}" target="_blank" class="detail-btn">Abrir Street View</a>', unsafe_allow_html=True)
+    c1, c2 = st.columns([3, 1])
+    with c1:
+        st.markdown("<p style='color:#64748b; font-size:0.95rem; margin-top:4px;'>Explorá la calle, el barrio y la fachada de la propiedad interactuando en 360° desde Google Street View.</p>", unsafe_allow_html=True)
+    with c2:
+        st.markdown(f'<a href="{url}" target="_blank" class="detail-btn">Abrir Street View</a>', unsafe_allow_html=True)
 
 
 def render_historial(nombre):
