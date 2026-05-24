@@ -653,16 +653,21 @@ def main():
         st.markdown("---")
         with profile_block("MAIN_sidebar_cargar_datos", None):
             datos = cargar_datos()
-        # Derivar fecha automáticamente del último scraping (usar mtime del archivo)
+        # Derivar fecha automáticamente del campo 'fecha' dentro del JSON
         with profile_block("MAIN_sidebar_cache_mtime", None):
             cache_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache_scraping.json")
             if os.path.exists(cache_file):
-                mtime = os.path.getmtime(cache_file)
-                fecha_dt = datetime.fromtimestamp(mtime)
-                fecha_cache = fecha_dt.strftime('%Y-%m-%d')
-                st.caption(f"📅 Datos de mercado: {fecha_cache}")
+                try:
+                    with open(cache_file, 'r', encoding='utf-8') as _f:
+                        _meta = json.load(_f)
+                    _raw = _meta.get('fecha', '')
+                    # Truncar ISO timestamp a YYYY-MM-DD
+                    fecha_cache = _raw[:10] if _raw else datetime.now().strftime('%Y-%m')
+                except Exception:
+                    fecha_cache = datetime.now().strftime('%Y-%m')
             else:
                 fecha_cache = datetime.now().strftime('%Y-%m')
+            st.caption(f"📅 Datos de mercado: {fecha_cache}")
         
         # Usar la fecha del cache como referencia (ya no es un selectbox)
         mes_sel = fecha_cache
