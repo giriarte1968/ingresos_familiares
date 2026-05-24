@@ -333,13 +333,13 @@ def mostrar_dashboard():
             _loader.markdown("""
 <div style="
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: #fff; z-index: 99999;
+    background: #000; z-index: 99999;
     display: flex; align-items: center; justify-content: center;
     font-family: -apple-system, BlinkMacSystemFont, sans-serif;
 ">
     <div style="text-align:center">
         <div style="font-size:32px;margin-bottom:12px">⏳</div>
-        <div style="font-size:18px;color:#555">Preparando detalle...</div>
+        <div style="font-size:18px;color:#ccc">Preparando detalle...</div>
     </div>
 </div>
 """, unsafe_allow_html=True)
