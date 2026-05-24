@@ -277,26 +277,29 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     with st.expander("⚡ Acciones", expanded=False):
         with profile_block("generar_reporte_pdf", prop):
             pdf_bytes = generar_reporte_pdf(prop, res)
-        with profile_block("download_button", prop):
-            st.download_button(
-                "📄 Descargar Reporte PDF",
-                data=pdf_bytes,
-                file_name=f"valuacion_{prop.get('nombre','propiedad').replace(' ','_')}.pdf",
-                mime="application/pdf",
-                type="primary",
-                use_container_width=True,
-            )
+
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            hay_catastro = render_catastro(prop, res, compact=True)
+        with col2:
+            render_street_view(prop, compact=True)
+        with col3:
+            with profile_block("download_button", prop):
+                st.download_button(
+                    "📄 Reporte PDF",
+                    data=pdf_bytes,
+                    file_name=f"valuacion_{prop.get('nombre','propiedad').replace(' ','_')}.pdf",
+                    mime="application/pdf",
+                    type="primary",
+                    use_container_width=True,
+                )
         _dl.mark("after_pdf_download")
 
-        st.markdown("<br>", unsafe_allow_html=True)
-        with profile_block("render_catastro", prop):
-            render_catastro(prop, res)
-        _dl.mark("after_render_catastro")
-
-        st.markdown("<br>", unsafe_allow_html=True)
-        with profile_block("render_street_view", prop):
-            render_street_view(prop)
-        _dl.mark("after_render_street_view")
+        if hay_catastro:
+            st.markdown("<br>", unsafe_allow_html=True)
+            with profile_block("render_catastro_detalle", prop):
+                render_catastro(prop, res, compact=False)
+            _dl.mark("after_render_catastro")
     _dl.mark("after_section_acciones")
 
     _dl.close()

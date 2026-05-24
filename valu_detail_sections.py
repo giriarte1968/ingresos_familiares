@@ -241,30 +241,54 @@ def render_tabla_comparables(res):
     st.dataframe(df, width='stretch', hide_index=True)
 
 
-def render_catastro(prop, res):
-    """Datos catastrales con seleccion de PH y boton de plano."""
+def render_catastro(prop, res, compact=False):
+    """Datos catastrales con seleccion de PH y boton de plano.
+    compact=True: solo boton toggle (🔍/✕), retorna True si hay datos cargados.
+    compact=False: detalle completo (selectbox, columnas, planos).
+    """
     nombre = prop.get('nombre', '')
     catastro = res.get('catastro_detalle', None)
     candidatos = catastro.get('candidatos', []) if catastro else []
     imagenes_por_ph = catastro.get('imagenes_disponibles', {}) if catastro else {}
 
+    def _cargar_catastro():
+        with st.spinner("Consultando Infomapa..."):
+            from parsers.infomapa_api import enriquecer_con_infomapa
+            raw = enriquecer_con_infomapa(prop)
+            if raw:
+                catastro_detalle = {
+                    'candidatos': raw.get('candidatos', []),
+                    'imagenes_disponibles': raw.get('imagenes_disponibles', {}),
+                }
+                from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
+                cache = cargar_cache_valuaciones()
+                if nombre in cache:
+                    cache[nombre]['resultado_completo']['catastro_detalle'] = catastro_detalle
+                    guardar_cache_valuaciones(cache)
+        st.rerun()
+
+    def _limpiar_catastro():
+        from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
+        cache = cargar_cache_valuaciones()
+        if nombre in cache and 'catastro_detalle' in cache[nombre].get('resultado_completo', {}):
+            del cache[nombre]['resultado_completo']['catastro_detalle']
+            guardar_cache_valuaciones(cache)
+        st.rerun()
+
+    if compact:
+        key_btn = f"infomapa_catastro_{nombre}"
+        if candidatos:
+            if st.button("✕ Ocultar", key=key_btn, use_container_width=True):
+                _limpiar_catastro()
+        else:
+            if st.button("🔍 Catastro", key=key_btn, use_container_width=True):
+                _cargar_catastro()
+        return bool(candidatos)
+
     if not candidatos:
         key_btn = f"infomapa_catastro_{nombre}"
         if st.button("🔍 Consultar datos catastrales / plano", key=key_btn, use_container_width=True):
-            with st.spinner("Consultando Infomapa..."):
-                from parsers.infomapa_api import enriquecer_con_infomapa
-                raw = enriquecer_con_infomapa(prop)
-                if raw:
-                    catastro_detalle = {
-                        'candidatos': raw.get('candidatos', []),
-                        'imagenes_disponibles': raw.get('imagenes_disponibles', {}),
-                    }
-                    from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
-                    cache = cargar_cache_valuaciones()
-                    if nombre in cache:
-                        cache[nombre]['resultado_completo']['catastro_detalle'] = catastro_detalle
-                        guardar_cache_valuaciones(cache)
-            st.rerun()
+            _cargar_catastro()
         return
 
     key_ph = f"ph_sel_{nombre}"
@@ -339,13 +363,19 @@ def render_catastro(prop, res):
 
 
 
-def render_street_view(prop):
-    """Boton para abrir Google Street View de la fachada en el navegador."""
+def render_street_view(prop, compact=True):
+    """Boton para abrir Google Street View.
+    compact=True: solo link (para fila de botones).
+    compact=False: con texto descriptivo.
+    """
     lat = prop.get('lat')
     lon = prop.get('lon')
     if not lat or not lon:
         return
     url = f"https://www.google.com/maps/@?api=1&map_action=pano&viewpoint={lat},{lon}"
+    if compact:
+        st.markdown(f'<a href="{url}" target="_blank" class="detail-btn">🏙️ Street View</a>', unsafe_allow_html=True)
+        return
     c1, c2 = st.columns([3, 1])
     with c1:
         st.markdown("<p style='color:#64748b; font-size:0.95rem; margin-top:4px;'>Explorá la calle, el barrio y la fachada de la propiedad interactuando en 360° desde Google Street View.</p>", unsafe_allow_html=True)
