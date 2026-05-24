@@ -1009,3 +1009,42 @@ Reemplazar `st.spinner()` + render directo por un wrapper `st.status(expanded=Fa
 3. Al terminar: `✔ Detalle listo` (expandido) → **todo el detalle aparece de una vez**
 
 ### Tests: 39/39 regression pasando, auto_validate OK
+
+---
+
+## 📅 2026-05-24 — TAREA-006: Reagrupar secciones del detalle en Comparables, Valuaciones, Acciones
+
+### Cambios
+- **📊 Comparables**: nuevo expander que agrupa Mapa de Comparables + sub-expander de Propiedades Comparables
+- **📋 Valuaciones**: nuevo expander que agrupa Informe de Valuación + Historial de Valuaciones (cada uno con su expander interno)
+- **⚡ Acciones**: expander unificado para Reporte PDF, Catastro y Street View
+
+### Archivo
+- `valu.py` — `mostrar_detalle_valu()` reestructurado
+
+### Commit: `55ed6cf`
+
+### Tests: 39/39 regression pasando, auto_validate OK
+
+---
+
+## 📅 2026-05-24 — TAREA-007: Botones homogéneos en fila + toggle catastro
+
+### Cambios
+- **`render_catastro()`**: nuevo parámetro `compact=True`. En modo compacto muestra solo el botón toggle "🔍 Catastro" / "✕ Ocultar". Retorna `True` si hay datos cargados.
+- **`render_street_view()`**: nuevo parámetro `compact=True`. En modo compacto solo el link sin descripción.
+- **"⚡ Acciones"**: los 3 elementos ahora son botones en una fila (`st.columns(3)`) con mismo estilo visual. Si hay datos catastrales, se muestra el detalle debajo de la fila.
+
+### Toggle catastro
+- Sin datos: botón "🔍 Catastro" → carga Infomapa → rerun
+- Con datos: botón "✕ Ocultar" → limpia cache → rerun
+- El detalle catastral completo aparece/desaparece debajo de los botones
+
+### Archivos
+- `valu_detail_sections.py` — `compact` param en render_catastro y render_street_view
+- `valu.py` — fila de 3 botones + detalle condicional
+- `.opencode/plans/TAREA-007.md`
+
+### Commit: `0683d3a`
+
+### Tests: 39/39 regression pasando, auto_validate OK
