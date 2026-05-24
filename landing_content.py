@@ -236,7 +236,7 @@ def get_faq_html() -> str:
         ),
         (
             "¿De dónde salen los datos?",
-            "Valu usa datos de mercado inmobiliario, comparables publicados, cache propio de scraping y fuentes catastrales disponibles."
+            "Valu usa datos de mercado inmobiliario, comparables publicados y fuentes catastrales disponibles."
         ),
         (
             "¿Funciona fuera de Rosario?",
