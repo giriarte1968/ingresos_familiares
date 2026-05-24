@@ -329,7 +329,21 @@ def mostrar_dashboard():
                         break
                 guardar_propiedades(props)
 
-            with st.status(f"Preparando detalle de {p_obj['nombre']}...", expanded=False) as _status:
+            _loader = st.empty()
+            _loader.markdown("""
+<div style="
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #fff; z-index: 99999;
+    display: flex; align-items: center; justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+">
+    <div style="text-align:center">
+        <div style="font-size:32px;margin-bottom:12px">⏳</div>
+        <div style="font-size:18px;color:#555">Preparando detalle...</div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+            try:
                 with profile_block("detalle_spinner_valuar", p_obj):
                     _sl = StepLedger("detalle_spinner_valuar_ledger", p_obj.get('nombre'))
                     _sl.mark("before_valuar")
@@ -346,7 +360,8 @@ def mostrar_dashboard():
 
                 _sl.mark("after_render")
                 _sl.close()
-                _status.update(label="✔ Detalle listo", state="complete", expanded=True)
+            finally:
+                _loader.empty()
 
 
         profile_end(_routing_ctx)
