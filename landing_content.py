@@ -50,13 +50,23 @@ def get_landing_stats() -> dict:
 # ==========================================
 
 def _get_logo_html() -> str:
-    """Lee logovalu.jpeg y devuelve <img> base64 inline, o cadena vacia si falla."""
+    """Logo en glass badge centrado, o vacio si falla."""
     try:
         logo_path = os.path.join(os.path.dirname(__file__), "data", "logovalu1.jpeg.png")
         if os.path.exists(logo_path):
             with open(logo_path, "rb") as f:
                 b64 = base64.b64encode(f.read()).decode()
-            return f'<div style="text-align:center;margin-bottom:16px;"><img src="data:image/png;base64,{b64}" style="max-height:60px;width:auto;"></div>'
+            return (
+                '<div style="text-align:center;">'
+                '<div class="brand-glass-badge">'
+                f'<img src="data:image/png;base64,{b64}" class="brand-logo-img">'
+                '<div>'
+                '<div class="brand-name">Valu</div>'
+                '<div class="brand-subtitle">Valuador inmobiliario</div>'
+                '</div>'
+                '</div>'
+                '</div>'
+            )
     except Exception:
         pass
     return ""

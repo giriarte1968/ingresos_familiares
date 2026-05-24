@@ -406,6 +406,41 @@ LANDING_CSS = """
     .hero-content { text-align: center; max-width: 900px; margin: 0 auto; color: white; }
     .hero-title { font-size: 2.5rem; font-weight: 800; margin-bottom: 20px; line-height: 1.2; }
     .hero-sub { font-size: 1.25rem; opacity: 0.9; max-width: 800px; margin: 0 auto 32px; }
+
+    /* Brand glass badge */
+    .brand-glass-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 18px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.18);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 12px 34px rgba(0,0,0,0.22);
+        margin-bottom: 20px;
+    }
+    .brand-logo-img {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        background: white;
+        padding: 4px;
+        object-fit: contain;
+    }
+    .brand-name {
+        color: white;
+        font-weight: 900;
+        font-size: 1.05rem;
+        line-height: 1;
+        letter-spacing: -0.02em;
+    }
+    .brand-subtitle {
+        color: rgba(255,255,255,0.65);
+        font-size: 0.72rem;
+        margin-top: 3px;
+    }
+
     .landing-mockup { max-width: 500px; margin: 0 auto; }
     .mockup-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 24px; text-align: left; }
     .mockup-header { color: var(--accent); font-weight: 700; margin-bottom: 8px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
