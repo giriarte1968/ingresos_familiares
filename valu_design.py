@@ -916,7 +916,7 @@ LANDING_CSS = """
         margin: 0;
     }
 
-    .faq-section { max-width: 800px; }
+    .faq-section { max-width: 1100px; }
 
     .faq-grid {
         display: grid;

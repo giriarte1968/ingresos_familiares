@@ -392,10 +392,9 @@ def get_trust_html() -> str:
 
 def get_cta_html() -> str:
     return """
-    <div style="background: #0f162a; padding: 80px 20px 40px 20px; text-align: center; color: white;">
+    <div style="background: linear-gradient(135deg, #065f46, #064e3b); padding: 80px 20px 40px 20px; text-align: center; color: white;">
         <div>
             <h2 style="font-size: 2.5rem; margin-bottom: 16px;">Empezá a valuar tus propiedades</h2>
-            <p style="font-size: 1.1rem; opacity: 0.8; margin-bottom: 24px;">Sin registro. Sin costo. Con datos reales del mercado de Rosario.</p>
         </div>
     </div>
     """
