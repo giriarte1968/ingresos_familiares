@@ -355,7 +355,6 @@ def render_street_view(prop):
 
 def render_historial(nombre):
     """Historial de valuaciones con tabla y grafico."""
-    st.markdown("---")
     from parsers.valuacion_historial import cargar_historial, comparar_valuaciones
 
     with st.expander("Historial de Valuaciones"):
