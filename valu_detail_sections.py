@@ -278,10 +278,10 @@ def render_catastro(prop, res, compact=False):
     if compact:
         key_btn = f"infomapa_catastro_{nombre}"
         if candidatos:
-            if st.button("✕ Ocultar", key=key_btn, use_container_width=True):
+            if st.button("Ocultar", key=key_btn, use_container_width=True, type="primary"):
                 _limpiar_catastro()
         else:
-            if st.button("🔍 Catastro", key=key_btn, use_container_width=True):
+            if st.button("Catastro", key=key_btn, use_container_width=True, type="primary"):
                 _cargar_catastro()
         return bool(candidatos)
 
@@ -374,7 +374,7 @@ def render_street_view(prop, compact=True):
         return
     url = f"https://www.google.com/maps/@?api=1&map_action=pano&viewpoint={lat},{lon}"
     if compact:
-        st.markdown(f'<a href="{url}" target="_blank" class="detail-btn">🏙️ Street View</a>', unsafe_allow_html=True)
+        st.link_button("Street View", url, type="primary", use_container_width=True)
         return
     c1, c2 = st.columns([3, 1])
     with c1:

@@ -91,10 +91,10 @@ header[data-testid="stHeader"] { background: #0F1629 !important; }
 .step-card-v2 { text-align: center; padding: 32px 20px; position: relative; background: white; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: box-shadow 0.3s ease; }
 .step-card-v2:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
 .step-icon-circle { width: 72px; height: 72px; border-radius: 50%; background: #ecfdf5; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
-.step-number-small { font-size: 14px; font-weight: 800; color: #10b981; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+.step-number-small { font-size: 28px; font-weight: 800; color: #10b981; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
 .step-number-small::before { content: 'PASO '; }
-.step-title-v2 { font-size: 1.15rem; font-weight: 700; color: #0f172a; margin-bottom: 12px; }
-.card-text { font-size: 0.85rem; color: #64748b; line-height: 1.5; }
+.step-title-v2 { font-size: 2.3rem; font-weight: 700; color: #0f172a; margin-bottom: 12px; }
+.card-text { font-size: 1.7rem; color: #64748b; line-height: 1.5; }
 
 @media (min-width: 769px) {
     .step-connector-wrapper { position: relative; }
@@ -126,7 +126,7 @@ header[data-testid="stHeader"] { background: #0F1629 !important; }
 }
 .feature-icon-wrapper { width: 52px; height: 52px; border-radius: 14px; background: #ecfdf5; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
 .feature-icon-wrapper svg { width: 28px; height: 28px; }
-.feature-title { color: #0f172a; font-weight: 800; margin-bottom: 6px; font-size: 1.02rem; letter-spacing: -0.01em; }
+.feature-title { color: #0f172a; font-weight: 800; margin-bottom: 6px; font-size: 2.04rem; letter-spacing: -0.01em; }
 
 /* Hero with image background */
 .hero-with-image {
@@ -163,8 +163,8 @@ header[data-testid="stHeader"] { background: #0F1629 !important; }
     justify-content: center;
 }
 .divider-stats { display: flex; gap: 80px; color: white; text-align: center; }
-.divider-stat-number { font-size: 2.5rem; font-weight: 800; color: #10b981; }
-.divider-stat-label { font-size: 0.9rem; opacity: 0.8; margin-top: 4px; }
+.divider-stat-number { font-size: 5rem; font-weight: 800; color: #10b981; }
+.divider-stat-label { font-size: 1.8rem; opacity: 0.8; margin-top: 4px; }
 
 /* Target cards with images */
 .target-card-v2 { border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: transform 0.3s ease, box-shadow 0.3s ease; }
@@ -322,7 +322,7 @@ LANDING_CSS = """
         font-family: 'Inter', sans-serif;
     }
     .landing-hero h1 { 
-        font-size: 3.5rem; 
+        font-size: 7rem; 
         font-weight: 800; 
         margin-bottom: 24px;
         line-height: 1.1;
@@ -356,7 +356,7 @@ LANDING_CSS = """
         border: 1px solid var(--accent);
         border-radius: 20px; 
         padding: 6px 16px; 
-        font-size: 0.85rem;
+        font-size: 1.7rem;
         font-weight: 600;
         color: var(--accent); 
         margin-bottom: 24px; 
@@ -404,8 +404,8 @@ LANDING_CSS = """
         justify-content: center;
     }
     .hero-content { text-align: center; max-width: 900px; margin: 0 auto; color: white; }
-    .hero-title { font-size: 2.5rem; font-weight: 800; margin-bottom: 20px; line-height: 1.2; }
-    .hero-sub { font-size: 1.25rem; opacity: 0.9; max-width: 800px; margin: 0 auto 32px; }
+    .hero-title { font-size: 5rem; font-weight: 800; margin-bottom: 20px; line-height: 1.2; }
+    .hero-sub { font-size: 2.5rem; opacity: 0.9; max-width: 800px; margin: 0 auto 32px; }
 
     /* Brand glass badge */
     .brand-glass-badge {
@@ -443,32 +443,32 @@ LANDING_CSS = """
 
     .landing-mockup { max-width: 500px; margin: 0 auto; }
     .mockup-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 24px; text-align: left; }
-    .mockup-header { color: var(--accent); font-weight: 700; margin-bottom: 8px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
-    .mockup-price { font-size: 32px; font-weight: 800; margin-bottom: 4px; }
-    .mockup-range { font-size: 14px; opacity: 0.7; }
+    .mockup-header { color: var(--accent); font-weight: 700; margin-bottom: 8px; font-size: 1.6rem; text-transform: uppercase; letter-spacing: 2px; }
+    .mockup-price { font-size: 64px; font-weight: 800; margin-bottom: 4px; }
+    .mockup-range { font-size: 28px; opacity: 0.7; }
     .mockup-bar { margin-top: 16px; height: 4px; background: #334155; border-radius: 2px; }
     .mockup-progress { width: 60%; height: 100%; background: var(--accent); border-radius: 2px; }
-    .mockup-labels { display: flex; justify-content: space-between; font-size: 12px; margin-top: 8px; opacity: 0.6; }
+    .mockup-labels { display: flex; justify-content: space-between; font-size: 24px; margin-top: 8px; opacity: 0.6; }
 
     /* FAQ section */
     .faq-section { max-width: 800px; }
     .faq-grid { display: flex; flex-direction: column; gap: 24px; }
     .faq-item { background: white; border-radius: 16px; padding: 28px; border: 1px solid var(--border); text-align: left; }
-    .faq-item h3 { font-size: 1.05rem; font-weight: 700; color: var(--primary); margin: 0 0 8px; }
-    .faq-item p { font-size: 0.9rem; color: var(--text-light); margin: 0; line-height: 1.6; }
+    .faq-item h3 { font-size: 2.1rem; font-weight: 700; color: var(--primary); margin: 0 0 8px; }
+    .faq-item p { font-size: 1.8rem; color: var(--text-light); margin: 0; line-height: 1.6; }
 
     /* Section shared styles */
-    .section-kicker { color: var(--accent); font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; text-align: center; }
-    .section-title { font-size: 2rem; font-weight: 800; color: var(--primary); margin-bottom: 12px; text-align: center; }
-    .section-subtitle { color: var(--text-light); font-size: 1.05rem; max-width: 600px; margin: 0 auto 40px; text-align: center; }
+    .section-kicker { color: var(--accent); font-weight: 700; font-size: 1.7rem; text-transform: uppercase; letter-spacing: 4px; margin-bottom: 12px; text-align: center; }
+    .section-title { font-size: 4rem; font-weight: 800; color: var(--primary); margin-bottom: 12px; text-align: center; }
+    .section-subtitle { color: var(--text-light); font-size: 2.1rem; max-width: 600px; margin: 0 auto 40px; text-align: center; }
 
     /* Deliverables section */
     .deliverables-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
     .deliverable-card { background: white; border-radius: 16px; padding: 28px; border: 1px solid var(--border); text-align: center; transition: transform 0.2s ease, box-shadow 0.2s ease; }
     .deliverable-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
-    .deliverable-icon { width: 48px; height: 48px; border-radius: 50%; background: #ecfdf5; color: var(--accent); font-size: 1.2rem; font-weight: 800; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
-    .deliverable-card h3 { font-size: 1.1rem; font-weight: 700; color: var(--primary); margin: 0 0 8px; }
-    .deliverable-card p { font-size: 0.9rem; color: var(--text-light); margin: 0; line-height: 1.5; }
+    .deliverable-icon { width: 48px; height: 48px; border-radius: 50%; background: #ecfdf5; color: var(--accent); font-size: 2.4rem; font-weight: 800; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+    .deliverable-card h3 { font-size: 2.2rem; font-weight: 700; color: var(--primary); margin: 0 0 8px; }
+    .deliverable-card p { font-size: 1.8rem; color: var(--text-light); margin: 0; line-height: 1.5; }
 
     .landing-example { 
         background: white; 
@@ -491,10 +491,10 @@ LANDING_CSS = """
     /* Final CTA */
     .final-cta { background: var(--primary); padding: 80px 20px; text-align: center; color: white; font-family: 'Inter', sans-serif; }
     .final-cta-inner { max-width: 640px; margin: 0 auto; }
-    .final-cta h2 { font-size: 2.2rem; font-weight: 800; margin-bottom: 16px; line-height: 1.2; }
-    .final-cta p { font-size: 1.1rem; opacity: 0.85; margin-bottom: 20px; }
+    .final-cta h2 { font-size: 4.4rem; font-weight: 800; margin-bottom: 16px; line-height: 1.2; }
+    .final-cta p { font-size: 2.2rem; opacity: 0.85; margin-bottom: 20px; }
     .section-kicker-dark { color: var(--accent) !important; }
-    .final-cta-note { font-size: 0.85rem; opacity: 0.5; letter-spacing: 0.5px; }
+    .final-cta-note { font-size: 1.7rem; opacity: 0.5; letter-spacing: 0.5px; }
 
     @media (max-width: 768px) {
         .landing-grid-3, .landing-grid-2 { grid-template-columns: 1fr; }
@@ -535,7 +535,7 @@ LANDING_CSS = """
     }
 
     .hero-sub-premium {
-        font-size: 1.18rem;
+        font-size: 2.36rem;
         line-height: 1.6;
         margin: 0 0 24px 0;
         max-width: 680px;
@@ -554,14 +554,14 @@ LANDING_CSS = """
         color: rgba(255,255,255,0.88);
         padding: 8px 12px;
         border-radius: 999px;
-        font-size: 0.82rem;
+        font-size: 1.64rem;
         font-weight: 700;
     }
 
     .hero-microcopy {
         margin-top: 18px;
         color: rgba(255,255,255,0.65);
-        font-size: 0.9rem;
+        font-size: 1.8rem;
     }
 
     .hero-result-card {
@@ -582,21 +582,21 @@ LANDING_CSS = """
 
     .result-eyebrow {
         color: #10b981;
-        font-size: 0.75rem;
+        font-size: 1.5rem;
         text-transform: uppercase;
         letter-spacing: 0.12em;
         font-weight: 900;
     }
 
     .result-title {
-        font-size: 1.45rem;
+        font-size: 2.9rem;
         font-weight: 900;
         margin-top: 4px;
     }
 
     .result-subtitle {
         color: #64748b;
-        font-size: 0.9rem;
+        font-size: 1.8rem;
     }
 
     .result-badge {
@@ -604,12 +604,12 @@ LANDING_CSS = """
         color: #166534;
         border-radius: 999px;
         padding: 6px 10px;
-        font-size: 0.78rem;
+        font-size: 1.56rem;
         font-weight: 900;
     }
 
     .result-main-price {
-        font-size: 3rem;
+        font-size: 6rem;
         font-weight: 950;
         letter-spacing: -0.055em;
         color: #006AFF;
@@ -618,7 +618,7 @@ LANDING_CSS = """
 
     .result-range {
         color: #64748b;
-        font-size: 0.92rem;
+        font-size: 1.84rem;
     }
 
     .result-bar {
@@ -651,12 +651,12 @@ LANDING_CSS = """
     .result-metrics span {
         display: block;
         color: #64748b;
-        font-size: 0.75rem;
+        font-size: 1.5rem;
         margin-bottom: 5px;
     }
 
     .result-metrics strong {
-        font-size: 0.95rem;
+        font-size: 1.9rem;
     }
 
     .trust-bar {
@@ -678,21 +678,21 @@ LANDING_CSS = """
     .trust-item strong {
         display: block;
         color: #0f172a;
-        font-size: 1.25rem;
+        font-size: 2.5rem;
         font-weight: 900;
     }
 
     .trust-item span {
         display: block;
         color: #64748b;
-        font-size: 0.88rem;
+        font-size: 1.76rem;
         margin-top: 3px;
     }
 
     .section-kicker {
         text-align: center;
         color: #10b981;
-        font-size: 0.78rem;
+        font-size: 1.56rem;
         font-weight: 900;
         text-transform: uppercase;
         letter-spacing: 0.14em;
@@ -744,7 +744,7 @@ LANDING_CSS = """
 
     .example-label {
         color: #10b981;
-        font-size: 0.76rem;
+        font-size: 1.52rem;
         font-weight: 900;
         text-transform: uppercase;
         letter-spacing: 0.12em;
@@ -752,12 +752,13 @@ LANDING_CSS = """
     }
 
     .example-property-panel h3 {
-        font-size: 2rem;
+        font-size: 4rem;
         margin: 0 0 8px 0;
     }
 
     .example-property-panel p {
         color: rgba(255,255,255,0.72);
+        font-size: 1.8rem;
     }
 
     .example-attrs {
@@ -775,23 +776,24 @@ LANDING_CSS = """
 
     .example-attrs strong {
         display: block;
-        font-size: 1.35rem;
+        font-size: 2.7rem;
     }
 
     .example-attrs span {
         color: rgba(255,255,255,0.68);
-        font-size: 0.78rem;
+        font-size: 1.56rem;
     }
 
     .example-price {
         color: #006AFF;
-        font-size: 3rem;
+        font-size: 6rem;
         font-weight: 950;
         letter-spacing: -0.055em;
     }
 
     .example-range {
         color: #64748b;
+        font-size: 1.8rem;
         margin-bottom: 22px;
     }
 
@@ -810,13 +812,13 @@ LANDING_CSS = """
     .example-result-grid span {
         color: #64748b;
         display: block;
-        font-size: 0.82rem;
+        font-size: 1.64rem;
         margin-bottom: 6px;
     }
 
     .example-result-grid strong {
         color: #0f172a;
-        font-size: 1.1rem;
+        font-size: 2.2rem;
     }
 
     .deliverables-grid {
@@ -853,7 +855,7 @@ LANDING_CSS = """
 
     .deliverable-card p {
         color: #64748b;
-        font-size: 0.94rem;
+        font-size: 1.88rem;
         line-height: 1.55;
     }
 
@@ -874,13 +876,13 @@ LANDING_CSS = """
     .faq-item h3 {
         color: #0f172a;
         margin-bottom: 8px;
-        font-size: 1.05rem;
+        font-size: 2.1rem;
     }
 
     .faq-item p {
         color: #64748b;
         line-height: 1.55;
-        font-size: 0.94rem;
+        font-size: 1.88rem;
     }
 
     .final-cta {
@@ -899,7 +901,7 @@ LANDING_CSS = """
     }
 
     .final-cta h2 {
-        font-size: clamp(2rem, 4vw, 3.4rem);
+        font-size: clamp(4rem, 8vw, 6.8rem);
         line-height: 1.05;
         letter-spacing: -0.045em;
         margin: 0 0 18px 0;
@@ -907,14 +909,14 @@ LANDING_CSS = """
 
     .final-cta p {
         color: rgba(255,255,255,0.76);
-        font-size: 1.08rem;
+        font-size: 2.16rem;
         line-height: 1.6;
     }
 
     .final-cta-note {
         margin-top: 20px;
         color: rgba(255,255,255,0.58);
-        font-size: 0.92rem;
+        font-size: 1.84rem;
     }
 
     @media (max-width: 900px) {
@@ -956,7 +958,7 @@ LANDING_CSS = """
 
         .result-main-price,
         .example-price {
-            font-size: 2.25rem;
+            font-size: 4.5rem;
         }
     }
 

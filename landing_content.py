@@ -104,31 +104,18 @@ def get_hero_html(stats: dict) -> str:
         f'<div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:18px;">'
         f'<div>'
         f'<div class="mockup-header" style="color:#10b981;margin-bottom:6px;">EJEMPLO DE RESULTADO</div>'
-        f'<div style="font-size:22px;font-weight:900;color:#0f172a;line-height:1.1;">{ejemplo_propiedad} · {ejemplo_zona}</div>'
-        f'<div style="color:#64748b;font-size:13px;margin-top:4px;">{ejemplo_tipo}</div>'
-        f'</div>'
-        f'<div style="background:#dcfce7;color:#166534;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:900;white-space:nowrap;">Confianza {ejemplo_confianza}</div>'
-        f'</div>'
-        f'<div class="mockup-price" style="color:#006AFF;font-size:38px;letter-spacing:-0.04em;margin-bottom:4px;">USD {ejemplo_valor:,.0f}</div>'
-        f'<div class="mockup-range" style="color:#64748b;font-size:14px;opacity:1;">Rango: USD {ejemplo_min:,.0f} — {ejemplo_max:,.0f}</div>'
-        f'<div class="mockup-bar" style="margin-top:18px;height:9px;background:#e2e8f0;border-radius:999px;overflow:hidden;">'
-        f'<div class="mockup-progress" style="width:64%;height:100%;background:linear-gradient(90deg,#006AFF,#10b981,#f59e0b);border-radius:999px;"></div>'
-        f'</div>'
-        f'<div class="mockup-labels" style="color:#64748b;opacity:1;font-size:12px;margin-top:8px;">'
-        f'<span>Conservador</span><span>Optimista</span>'
-        f'</div>'
-        f'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px;">'
-        f'<div style="background:#f8fafc;border-radius:14px;padding:12px;">'
-        f'<div style="color:#64748b;font-size:11px;margin-bottom:4px;">Alquiler estimado</div>'
-        f'<div style="color:#0f172a;font-weight:900;font-size:14px;">ARS {ejemplo_alquiler:,.0f}</div>'
-        f'</div>'
-        f'<div style="background:#f8fafc;border-radius:14px;padding:12px;">'
-        f'<div style="color:#64748b;font-size:11px;margin-bottom:4px;">Cap Rate</div>'
-        f'<div style="color:#0f172a;font-weight:900;font-size:14px;">{ejemplo_cap:.1f}%</div>'
-        f'</div>'
-        f'<div style="background:#f8fafc;border-radius:14px;padding:12px;">'
-        f'<div style="color:#64748b;font-size:11px;margin-bottom:4px;">Comparables</div>'
-        f'<div style="color:#0f172a;font-weight:900;font-size:14px;">{ejemplo_comps}</div>'
+        f'<div style="font-size:44px;font-weight:900;color:#0f172a;line-height:1.1;">{ejemplo_propiedad} · {ejemplo_zona}</div>'
+        f'<div style="color:#64748b;font-size:26px;margin-top:4px;">{ejemplo_tipo}</div>'
+        f'<div style="background:#dcfce7;color:#166534;border-radius:999px;padding:6px 10px;font-size:24px;font-weight:900;white-space:nowrap;">Confianza {ejemplo_confianza}</div>'
+        f'<div class="mockup-price" style="color:#006AFF;font-size:76px;letter-spacing:-0.04em;margin-bottom:4px;">USD {ejemplo_valor:,.0f}</div>'
+        f'<div class="mockup-range" style="color:#64748b;font-size:28px;opacity:1;">Rango: USD {ejemplo_min:,.0f} — {ejemplo_max:,.0f}</div>'
+        f'<div class="mockup-labels" style="color:#64748b;opacity:1;font-size:24px;margin-top:8px;">'
+        f'<div style="color:#64748b;font-size:22px;margin-bottom:4px;">Alquiler estimado</div>'
+        f'<div style="color:#0f172a;font-weight:900;font-size:28px;">ARS {ejemplo_alquiler:,.0f}</div>'
+        f'<div style="color:#64748b;font-size:22px;margin-bottom:4px;">Cap Rate</div>'
+        f'<div style="color:#0f172a;font-weight:900;font-size:28px;">{ejemplo_cap:.1f}%</div>'
+        f'<div style="color:#64748b;font-size:22px;margin-bottom:4px;">Comparables</div>'
+        f'<div style="color:#0f172a;font-weight:900;font-size:28px;">{ejemplo_comps}</div>'
         f'</div>'
         f'</div>'
         f'</div>'
@@ -144,16 +131,16 @@ def get_problem_html() -> str:
         <h2 style="text-align: center; margin-bottom: 48px;">¿Cuánto vale realmente tu departamento?</h2>
         <div class="landing-grid-3">
             <div class="landing-card">
-                <h3 style="font-size: 1.2rem; margin-bottom: 12px; color: #0f162a;">Las tasaciones tardan días</h3>
-                <p style="color: #64748b; font-size: 0.95rem;">Pedir una tasación profesional lleva tiempo y muchas veces tiene un costo elevado antes de empezar a vender.</p>
+                <h3 style="font-size: 2.4rem; margin-bottom: 12px; color: #0f162a;">Las tasaciones tardan días</h3>
+                <p style="color: #64748b; font-size: 1.9rem;">Pedir una tasación profesional lleva tiempo y muchas veces tiene un costo elevado antes de empezar a vender.</p>
             </div>
             <div class="landing-card">
-                <h3 style="font-size: 1.2rem; margin-bottom: 12px; color: #0f162a;">Precios de lista inflados</h3>
-                <p style="color: #64748b; font-size: 0.95rem;">Los portales muestran lo que los dueños piden, no lo que se vende. Esa brecha te hace perder meses sin consultas.</p>
+                <h3 style="font-size: 2.4rem; margin-bottom: 12px; color: #0f162a;">Precios de lista inflados</h3>
+                <p style="color: #64748b; font-size: 1.9rem;">Los portales muestran lo que los dueños piden, no lo que se vende. Esa brecha te hace perder meses sin consultas.</p>
             </div>
             <div class="landing-card">
-                <h3 style="font-size: 1.2rem; margin-bottom: 12px; color: #0f162a;">Negociación a ciegas</h3>
-                <p style="color: #64748b; font-size: 0.95rem;">Sin datos de comparables reales en tu misma zona, es imposible defender el valor de tu propiedad ante una oferta.</p>
+                <h3 style="font-size: 2.4rem; margin-bottom: 12px; color: #0f162a;">Negociación a ciegas</h3>
+                <p style="color: #64748b; font-size: 1.9rem;">Sin datos de comparables reales en tu misma zona, es imposible defender el valor de tu propiedad ante una oferta.</p>
             </div>
         </div>
         <div style="text-align: center; margin-top: 48px; font-weight: 600; color: #1e293b;">
@@ -332,7 +319,7 @@ def get_target_html() -> str:
         f'<div class="target-image" style="background-image: url(\'{img}\');"></div>'
         '<div class="target-card-content">'
         f'<h3 style="margin-bottom: 12px; color: #0f162a;">{titulo}</h3>'
-        f'<p style="color: #64748b; font-size: 0.95rem;">{desc}</p>'
+        f'<p style="color: #64748b; font-size: 1.9rem;">{desc}</p>'
         '</div>'
         '</div>'
         for titulo, desc, img in targets
@@ -351,7 +338,7 @@ def get_trust_html() -> str:
     return f"""
     <div class="landing-section">
         <div class="landing-disclaimer">
-            <h3 style="margin-bottom: 24px; color: #92400e; font-size: 1.4rem;">Lo que Valu es y lo que no es</h3>
+            <h3 style="margin-bottom: 24px; color: #92400e; font-size: 2.8rem;">Lo que Valu es y lo que no es</h3>
             <div class="landing-grid-2">
                 <div>
                     <ul style="list-style: none; padding: 0; margin: 0;">
@@ -394,8 +381,8 @@ def get_cta_html() -> str:
     return """
     <div style="background: #0f162a; padding: 80px 20px 40px 20px; text-align: center; color: white;">
         <div>
-            <h2 style="font-size: 2.5rem; margin-bottom: 16px;">Empezá a valuar tus propiedades</h2>
-            <p style="font-size: 1.1rem; opacity: 0.8; margin-bottom: 24px;">Sin registro. Sin costo. Con datos reales del mercado de Rosario.</p>
+            <h2 style="font-size: 5rem; margin-bottom: 16px;">Empezá a valuar tus propiedades</h2>
+            <p style="font-size: 2.2rem; opacity: 0.8; margin-bottom: 24px;">Sin registro. Sin costo. Con datos reales del mercado de Rosario.</p>
         </div>
     </div>
     """
@@ -403,14 +390,14 @@ def get_cta_html() -> str:
 def get_footer_html() -> str:
     return """
     <footer class="landing-footer">
-        <div style="font-weight: 800; font-size: 1.5rem; margin-bottom: 8px;">Valu</div>
-        <div style="opacity: 0.6; font-size: 0.9rem; margin-bottom: 24px;">Valuador Automático de Propiedades · Rosario, Argentina</div>
-        <div style="display: flex; justify-content: center; gap: 32px; margin-bottom: 32px; font-size: 0.9rem;">
+        <div style="font-weight: 800; font-size: 3rem; margin-bottom: 8px;">Valu</div>
+        <div style="opacity: 0.6; font-size: 1.8rem; margin-bottom: 24px;">Valuador Automático de Propiedades · Rosario, Argentina</div>
+        <div style="display: flex; justify-content: center; gap: 32px; margin-bottom: 32px; font-size: 1.8rem;">
             <a href="#" style="color: white; opacity: 0.6; text-decoration: none;">Metodología</a>
             <a href="#" style="color: white; opacity: 0.6; text-decoration: none;">Datos</a>
             <a href="#" style="color: white; opacity: 0.6; text-decoration: none;">Contacto</a>
         </div>
-        <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 24px; font-size: 0.8rem; opacity: 0.4;">
+        <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 24px; font-size: 1.6rem; opacity: 0.4;">
             Modelo hedónico híbrido calibrado · Datos: Portales inmobiliarios + Catastro oficial<br>
             © 2026 Valu. Uso informativo y estadístico exclusivamente.
         </div>
