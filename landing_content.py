@@ -272,22 +272,22 @@ def get_features_html() -> str:
     features = [
         ("3 escenarios de precio",
          "No un número mágico, sino un rango: Conservador, Mercado y Optimista.",
-         '<img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=100&q=60&fm=webp" alt="" class="feature-icon-img" />'),
+         '<img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=100&q=60&fm=webp" alt="" class="feature-icon-img" />'),
         ("Cap Rate del mercado",
          "Rendimiento anual neto calculado con datos de alquileres reales de la zona.",
-         '<img src="https://images.unsplash.com/photo-1560520031-68e6f883a6b0?w=100&q=60&fm=webp" alt="" class="feature-icon-img" />'),
+         '<img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=100&q=60&fm=webp" alt="" class="feature-icon-img" />'),
         ("Datos de Infomapa Rosario",
          "Conexión directa con la base de datos municipal: profesionales, planos oficiales y más.",
-         '<img src="https://images.unsplash.com/photo-1569336415-fa1e2b61c0ec?w=100&q=60&fm=webp" alt="" class="feature-icon-img" />'),
+         '<img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=100&q=60&fm=webp" alt="" class="feature-icon-img" />'),
         ("Planos de mensura oficiales",
          "Acceso con un click al PDF del plano de mensura original para verificar superficies.",
          '<img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=60&fm=webp" alt="" class="feature-icon-img" />'),
         ("Transparencia total",
          "Ves exactamente cuántos comparables se usaron para llegar al precio final.",
-         '<img src="https://images.unsplash.com/photo-1507925921-af001f9a0a28?w=100&q=60&fm=webp" alt="" class="feature-icon-img" />'),
+         '<img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=100&q=60&fm=webp" alt="" class="feature-icon-img" />'),
         ("Informe profesional",
          "Texto narrativo que explica la valuación en lenguaje humano, listo para compartir.",
-         '<img src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=100&q=60&fm=webp" alt="" class="feature-icon-img" />'),
+         '<img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=100&q=60&fm=webp" alt="" class="feature-icon-img" />'),
     ]
     cards = ''.join(
         f'<div class="landing-card feature-card-v2">'
