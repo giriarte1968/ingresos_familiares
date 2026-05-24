@@ -3,7 +3,6 @@ import os
 import re
 import math
 import logging
-import numpy as np
 from datetime import datetime
 from parsers.location_engine import cargar_anclas, calcular_precio_m2, estimar_confianza, get_ancla_mas_cercana
 from parsers import cluster_filters
@@ -262,6 +261,10 @@ def cargar_datos():
 
 
 def obtener_mediana_cluster(zona, dormitorios, operacion='venta'):
+    # Lazy numpy import for direct calls
+    if 'np' not in globals():
+        import numpy as np
+        globals()['np'] = np
     """
     Obtiene la mediana del cluster desde cache_scraping.json.
     Busca propiedades similares por zona y dormitorios.
@@ -2483,6 +2486,8 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True):
     🚀 Modelo v7.0 - Evolución Híbrida PROFESIONAL
     Fusiona el Motor VPP (Clusters/Market) con Factores Físicos (Legacy).
     """
+    import numpy as np
+    globals()['np'] = np
     from parsers.profiler import StepLedger
     _ml = StepLedger("entry_motor_v7_ledger", propiedad.get('nombre', '?'))
     _ml.mark("entered_func")
