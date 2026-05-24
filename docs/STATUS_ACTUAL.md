@@ -128,3 +128,16 @@ Infomapa era el principal cuello de botella del botón "Ver detalle":
 | `parsers/motor_vpp_core.py` | `consultar_infomapa` param en `valuar_con_cache()` |
 | `valu.py` | `consultar_infomapa=False` + botón on-demand |
 | `valu_detail_sections.py` | `render_catastro()` early return sin datos |
+
+## 10. Pantallazo numérico eliminado ✅
+
+### Problema
+`mostrar_detalle_valu()` mostraba las secciones secuencialmente (~2.8s), con números apareciendo antes que mapas y catastro.
+
+### Solución
+`st.spinner()` + render directo reemplazado por `st.status(expanded=False)` que oculta todo hasta que el render completo termina, luego expande mostrando todo simultáneamente.
+
+### Archivo modificado
+| Archivo | Cambio |
+|---------|--------|
+| `valu.py` | `st.spinner` → `st.status(expanded=False)` wrapper

@@ -321,16 +321,6 @@ def mostrar_dashboard():
                     st.info(f"🔄 Actualizando valuación de **{p_obj['nombre']}** "
                             f"a la nueva versión del motor ({CACHE_VERSION})...")
 
-            with profile_block("detalle_spinner_valuar", p_obj):
-                _sl = StepLedger("detalle_spinner_valuar_ledger", p_obj.get('nombre'))
-                _sl.mark("before_st_spinner")
-                with st.spinner(f"Abriendo detalle de {p_obj['nombre']}..."):
-                    _sl.mark("entered_st_spinner")
-                    resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False)
-                    _sl.mark("after_valuar_con_cache")
-                _sl.mark("after_st_spinner")
-                _sl.close()
-
             def actualizar_propiedad(nueva_data):
                 props = cargar_propiedades()
                 for i, p in enumerate(props):
@@ -339,13 +329,24 @@ def mostrar_dashboard():
                         break
                 guardar_propiedades(props)
 
-            with profile_block("detalle_volver_btn", None):
-                if st.button("← Volver al Portafolio"):
-                    st.session_state.prop_sel = None
-                    st.rerun()
+            with st.status(f"Preparando detalle de {p_obj['nombre']}...", expanded=False) as _status:
+                with profile_block("detalle_spinner_valuar", p_obj):
+                    _sl = StepLedger("detalle_spinner_valuar_ledger", p_obj.get('nombre'))
+                    _sl.mark("before_valuar")
+                    resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False)
+                    _sl.mark("after_valuar_con_cache")
 
-            with profile_block("mostrar_detalle_valu_total", p_obj):
-                mostrar_detalle_valu(p_obj, resultado, actualizar_propiedad)
+                with profile_block("detalle_volver_btn", None):
+                    if st.button("← Volver al Portafolio"):
+                        st.session_state.prop_sel = None
+                        st.rerun()
+
+                with profile_block("mostrar_detalle_valu_total", p_obj):
+                    mostrar_detalle_valu(p_obj, resultado, actualizar_propiedad)
+
+                _sl.mark("after_render")
+                _sl.close()
+                _status.update(label="✔ Detalle listo", state="complete", expanded=True)
 
 
         profile_end(_routing_ctx)

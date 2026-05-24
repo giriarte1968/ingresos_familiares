@@ -989,3 +989,23 @@ El profiling en DO mostró que el principal cuello de botella del detalle no es 
 - Sin cambios en: lógica de valuación, clusters, alquiler, rangos, valores, historial, cálculos del motor, anclas
 
 ### Tests: 39/39 regression pasando, auto_validate OK
+
+---
+
+## 📅 2026-05-23 — TAREA-005: Eliminar pantallazo numérico con st.status()
+
+### Problema
+Al abrir el detalle de una propiedad, `mostrar_detalle_valu()` envía las secciones al frontend secuencialmente (header → rango → métricas → razonamiento → mapa → catastro → street view → historial). El usuario veía números grandes aparecer antes que el resto del contenido (~2.8s de render secuencial).
+
+### Solución
+Reemplazar `st.spinner()` + render directo por un wrapper `st.status(expanded=False)` que oculta todo el contenido renderizado hasta que el render completo termina, luego hace `expanded=True` para que todo aparezca a la vez.
+
+### Cambios
+- `valu.py` líneas 324-348: `st.spinner` + `mostrar_detalle_valu()` → bloque `st.status()` con expanded=False que engloba valuación + botón volver + render completo
+
+### Flujo visual
+1. Aparece `▶ Preparando detalle de Casa en Palermo...` (colapsado)
+2. En segundo plano: `valuar_con_cache()` + todas las secciones renderizadas invisibles
+3. Al terminar: `✔ Detalle listo` (expandido) → **todo el detalle aparece de una vez**
+
+### Tests: 39/39 regression pasando, auto_validate OK
