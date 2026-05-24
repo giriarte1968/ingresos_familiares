@@ -55,6 +55,19 @@ def main():
     ])
     all_passed &= run_command(result, "Imports principales")
 
+    # 4. Performance check
+    print("\n[4] Verificando performance...")
+    result = subprocess.run([sys.executable, "scripts/check_performance.py"], capture_output=True)
+    perf_ok = result.returncode == 0
+    if perf_ok:
+        print(f"[OK] Performance")
+        print(result.stdout.decode())
+    else:
+        print(f"[FAIL] Performance")
+        print(result.stdout.decode())
+        print(result.stderr.decode()[:300] if result.stderr else '')
+    all_passed &= perf_ok
+
     # Resumen
     print("\n" + "=" * 60)
     if all_passed:
