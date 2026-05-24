@@ -278,7 +278,7 @@ def get_features_html() -> str:
          '<img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=100&q=60&fm=webp" alt="" class="feature-icon-img" />'),
         ("Datos de Infomapa Rosario",
          "Conexión directa con la base de datos municipal: profesionales, planos oficiales y más.",
-         '<img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=100&q=60&fm=webp" alt="" class="feature-icon-img" />'),
+         '<img src="https://images.pexels.com/photos/29342907/pexels-photo-29342907.jpeg?w=100&q=60&fm=webp" alt="" class="feature-icon-img" />'),
         ("Planos de mensura oficiales",
          "Acceso con un click al PDF del plano de mensura original para verificar superficies.",
          '<img src="https://images.pexels.com/photos/271667/pexels-photo-271667.jpeg?w=100&q=60&fm=webp" alt="" class="feature-icon-img" />'),
