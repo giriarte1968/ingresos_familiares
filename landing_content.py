@@ -281,7 +281,7 @@ def get_features_html() -> str:
          '<img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=100&q=60&fm=webp" alt="" class="feature-icon-img" />'),
         ("Planos de mensura oficiales",
          "Acceso con un click al PDF del plano de mensura original para verificar superficies.",
-         '<img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=60&fm=webp" alt="" class="feature-icon-img" />'),
+         '<img src="https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=100&q=60&fm=webp" alt="" class="feature-icon-img" />'),
         ("Transparencia total",
          "Ves exactamente cuántos comparables se usaron para llegar al precio final.",
          '<img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=100&q=60&fm=webp" alt="" class="feature-icon-img" />'),
