@@ -250,8 +250,9 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
 
     # ─── 📊 Comparables ───
     with st.expander("📊 Comparables", expanded=False):
-        with profile_block("render_mapa_propiedad", prop):
-            render_mapa_propiedad(res)
+        with st.expander("🗺️ Mapa", expanded=False):
+            with profile_block("render_mapa_propiedad", prop):
+                render_mapa_propiedad(res)
         _dl.mark("after_render_mapa")
 
         comparables = res.get('comparables_venta', [])
