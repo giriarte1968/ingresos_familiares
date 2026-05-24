@@ -211,9 +211,9 @@ header[data-testid="stHeader"] { background: #0F1629 !important; }
     background: linear-gradient(90deg, #006AFF, #10b981);
     opacity: 0.7;
 }
-.feature-icon-wrapper { width: 42px; height: 42px; border-radius: 12px; background: #ecfdf5; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+.feature-icon-wrapper { width: 52px; height: 52px; border-radius: 14px; background: #ecfdf5; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
 .feature-icon-wrapper svg { width: 28px; height: 28px; }
-.feature-title { color: #0f172a; font-weight: 800; margin-bottom: 4px; font-size: 1.02rem; letter-spacing: -0.01em; }
+.feature-title { color: #0f172a; font-weight: 800; margin-bottom: 6px; font-size: 1.02rem; letter-spacing: -0.01em; }
 
 /* Hero with image background */
 .hero-with-image {
@@ -428,7 +428,7 @@ LANDING_CSS = """
     .landing-card { 
         background: white; 
         border-radius: 16px; 
-        padding: 24px 22px;
+        padding: 14px 18px;
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.04);
         border: 1px solid var(--border);
         transition: transform 0.2s ease, box-shadow 0.2s ease;
