@@ -411,33 +411,33 @@ LANDING_CSS = """
     .brand-glass-badge {
         display: inline-flex;
         align-items: center;
-        gap: 16px;
-        padding: 14px 28px;
+        gap: 24px;
+        padding: 22px 40px;
         border-radius: 999px;
         background: rgba(255,255,255,0.08);
         border: 1px solid rgba(255,255,255,0.18);
         backdrop-filter: blur(10px);
-        box-shadow: 0 12px 34px rgba(0,0,0,0.22);
-        margin-bottom: 24px;
+        box-shadow: 0 16px 40px rgba(0,0,0,0.25);
+        margin-bottom: 32px;
     }
     .brand-logo-img {
-        width: 80px;
-        height: 80px;
-        border-radius: 16px;
+        width: 160px;
+        height: 160px;
+        border-radius: 20px;
         background: white;
-        padding: 6px;
+        padding: 8px;
         object-fit: contain;
     }
     .brand-name {
         color: white;
         font-weight: 900;
-        font-size: 1.6rem;
+        font-size: 3.2rem;
         line-height: 1;
         letter-spacing: -0.02em;
     }
     .brand-subtitle {
         color: rgba(255,255,255,0.65);
-        font-size: 0.9rem;
+        font-size: 1.2rem;
         margin-top: 4px;
     }
 
