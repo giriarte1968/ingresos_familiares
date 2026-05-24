@@ -357,15 +357,15 @@ def get_trust_html() -> str:
                     <ul style="list-style: none; padding: 0; margin: 0;">
                         <li style="margin-bottom: 16px; display: flex; align-items: flex-start; gap: 12px;">
                             <div style="flex-shrink: 0; padding-top: 2px;">{svg_check}</div>
-                            <span style="color: #475569;">Herramienta de estimación basada en datos reales del mercado.</span>
+                            <span style="color: #475569; font-size: 1.4rem; font-family: 'Inter', sans-serif;">Herramienta de estimación basada en datos reales del mercado.</span>
                         </li>
                         <li style="margin-bottom: 16px; display: flex; align-items: flex-start; gap: 12px;">
                             <div style="flex-shrink: 0; padding-top: 2px;">{svg_check}</div>
-                            <span style="color: #475569;">Modelo estadístico calibrado específicamente para Rosario.</span>
+                            <span style="color: #475569; font-size: 1.4rem; font-family: 'Inter', sans-serif;">Modelo estadístico calibrado específicamente para Rosario.</span>
                         </li>
                         <li style="margin-bottom: 16px; display: flex; align-items: flex-start; gap: 12px;">
                             <div style="flex-shrink: 0; padding-top: 2px;">{svg_check}</div>
-                            <span style="color: #475569;">Transparente: muestra cuántos datos usa y de dónde vienen.</span>
+                            <span style="color: #475569; font-size: 1.4rem; font-family: 'Inter', sans-serif;">Transparente: muestra cuántos datos usa y de dónde vienen.</span>
                         </li>
                     </ul>
                 </div>
@@ -373,15 +373,15 @@ def get_trust_html() -> str:
                     <ul style="list-style: none; padding: 0; margin: 0;">
                         <li style="margin-bottom: 16px; display: flex; align-items: flex-start; gap: 12px;">
                             <div style="flex-shrink: 0; padding-top: 2px;">{svg_x}</div>
-                            <span style="color: #475569;">No reemplaza una tasación profesional de un tasador matriculado.</span>
+                            <span style="color: #475569; font-size: 1.4rem; font-family: 'Inter', sans-serif;">No reemplaza una tasación profesional de un tasador matriculado.</span>
                         </li>
                         <li style="margin-bottom: 16px; display: flex; align-items: flex-start; gap: 12px;">
                             <div style="flex-shrink: 0; padding-top: 2px;">{svg_x}</div>
-                            <span style="color: #475569;">No garantiza el precio final de una operación de cierre.</span>
+                            <span style="color: #475569; font-size: 1.4rem; font-family: 'Inter', sans-serif;">No garantiza el precio final de una operación de cierre.</span>
                         </li>
                         <li style="margin-bottom: 16px; display: flex; align-items: flex-start; gap: 12px;">
                             <div style="flex-shrink: 0; padding-top: 2px;">{svg_x}</div>
-                            <span style="color: #475569;">Zonas con pocos datos tienen menor precisión estadística.</span>
+                            <span style="color: #475569; font-size: 1.4rem; font-family: 'Inter', sans-serif;">Zonas con pocos datos tienen menor precisión estadística.</span>
                         </li>
                     </ul>
                 </div>
