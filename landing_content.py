@@ -332,7 +332,7 @@ def get_target_html() -> str:
         f'<div class="target-image" style="background-image: url(\'{img}\');"></div>'
         '<div class="target-card-content">'
         f'<h3 style="margin-bottom: 12px; color: #0f162a;">{titulo}</h3>'
-        f'<p style="color: #64748b; font-size: 1.9rem;">{desc}</p>'
+        f'<p style="color: #64748b; font-size: 1.4rem;">{desc}</p>'
         '</div>'
         '</div>'
         for titulo, desc, img in targets
