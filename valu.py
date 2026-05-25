@@ -463,18 +463,8 @@ def mostrar_dashboard():
 
     elif st.session_state.page == "Configuración":
         st.header("⚙️ Configuración")
-        with st.expander("➕ Agregar Nueva Propiedad", expanded=True):
-            new_prop = ui_formulario_propiedad(key_suffix="new")
-            if st.button("Guardar Propiedad", type="primary"):
-                props = cargar_propiedades()
-                props.append(new_prop)
-                guardar_propiedades(props)
-                st.success(f"Propiedad {new_prop['nombre']} guardada!")
-                st.rerun()
-
 
         # ─── Diagnóstico de geocodificación ───
-        st.markdown("---")
         with st.expander("🧪 Diagnóstico de Geocodificación", expanded=False):
             if st.button("Probar conexión con Nominatim (OpenStreetMap)", key="test_nominatim"):
                 from parsers.geocoder import geocodificar_nominatim, geocoding_manager
@@ -525,6 +515,17 @@ def mostrar_dashboard():
             
             st.caption("Verifica que el servidor pueda alcanzar nominatim.openstreetmap.org")
         
+        st.markdown("---")
+        with st.expander("➕ Agregar Nueva Propiedad", expanded=True):
+            new_prop = ui_formulario_propiedad(key_suffix="new")
+            if st.button("Guardar Propiedad", type="primary"):
+                props = cargar_propiedades()
+                props.append(new_prop)
+                guardar_propiedades(props)
+                st.success(f"Propiedad {new_prop['nombre']} guardada!")
+                st.rerun()
+
+
         # ─── Profiling de rendimiento ───
         st.markdown("---")
         with st.expander("⏱️ Perfilado de Rendimiento", expanded=False):
