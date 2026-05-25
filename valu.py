@@ -473,6 +473,58 @@ def mostrar_dashboard():
                 st.rerun()
 
 
+        # ─── Diagnóstico de geocodificación ───
+        st.markdown("---")
+        with st.expander("🧪 Diagnóstico de Geocodificación", expanded=False):
+            if st.button("Probar conexión con Nominatim (OpenStreetMap)", key="test_nominatim"):
+                from parsers.geocoder import geocodificar_nominatim, geocoding_manager
+                import time
+                results = []
+                
+                # Test 1: direccion conocida
+                with st.spinner("Test 1: 'Entre Rios 400'..."):
+                    time.sleep(0.5)
+                    try:
+                        geo = geocodificar_nominatim("Entre Rios 400")
+                        if geo and geo.get("lat"):
+                            results.append(f"✅ Test 1 OK: lat={geo['lat']:.6f}, lon={geo['lon']:.6f}")
+                        else:
+                            results.append(f"❌ Test 1 Falló: geo={geo}")
+                    except Exception as e:
+                        results.append(f"❌ Test 1 Error: {e}")
+                
+                # Test 2: direccion inexistente
+                with st.spinner("Test 2: 'Calle Falsa 123' (debe fallar)..."):
+                    time.sleep(0.5)
+                    try:
+                        geo2 = geocodificar_nominatim("Calle Falsa 123")
+                        if geo2 is None:
+                            results.append("✅ Test 2 OK: devolvió None (correcto, no existe)")
+                        else:
+                            results.append(f"⚠️ Test 2: inesperado {geo2}")
+                    except Exception as e:
+                        results.append(f"❌ Test 2 Error: {e}")
+                
+                # Test 3: geocoding_manager completo (con cache, anclas, validacion)
+                with st.spinner("Test 3: geocoding_manager('Ayacucho 1518')..."):
+                    try:
+                        geo3 = geocoding_manager("Ayacucho 1518")
+                        if geo3 and geo3.get("lat"):
+                            results.append(f"✅ Test 3 OK: lat={geo3['lat']:.6f}, status={geo3.get('status')}")
+                        else:
+                            results.append(f"❌ Test 3 Falló: {geo3}")
+                    except Exception as e:
+                        results.append(f"❌ Test 3 Error: {e}")
+                
+                for r in results:
+                    st.write(r)
+                if all("✅" in r for r in results):
+                    st.success("Nominatim funciona correctamente.")
+                else:
+                    st.error("Hay problemas con Nominatim en este servidor.")
+            
+            st.caption("Verifica que el servidor pueda alcanzar nominatim.openstreetmap.org")
+        
         # ─── Profiling de rendimiento ───
         st.markdown("---")
         with st.expander("⏱️ Perfilado de Rendimiento", expanded=False):
