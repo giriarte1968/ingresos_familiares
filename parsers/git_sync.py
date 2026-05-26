@@ -24,7 +24,15 @@ def _configure_git():
     except Exception as e:
         logger.warning(f"[GIT_SYNC] Error configurando git: {e}")
 
-def _needs_push() -> bool:
+def _check_unpushed() -> bool:
+    """True si hay commits locales que no estan en origin/main."""
+    result = subprocess.run(
+        ["git", "rev-list", "--count", "origin/main..HEAD"],
+        cwd=REPO_DIR, capture_output=True, text=True
+    )
+    return result.returncode == 0 and result.stdout.strip() != "0"
+
+def _has_staged_changes() -> bool:
     result = subprocess.run(
         ["git", "diff", "--cached", "--quiet"],
         cwd=REPO_DIR
@@ -48,17 +56,19 @@ def try_sync(file_paths, commit_message="DO: actualizacion automatica de propied
             logger.error(f"[GIT_SYNC] git add fallo: {add_result.stderr[:200]}")
             return False
 
-        if not _needs_push():
+        if not _has_staged_changes() and not _check_unpushed():
             return True
 
-        commit_result = subprocess.run(
-            ["git", "commit", "-m", commit_message],
-            cwd=REPO_DIR, capture_output=True, text=True,
-            timeout=30
-        )
-        if commit_result.returncode != 0:
-            logger.error(f"[GIT_SYNC] git commit fallo: {commit_result.stderr[:200]}")
-            return False
+        if not _check_unpushed():
+            r = subprocess.run(
+                ["git", "commit", "-m", commit_message],
+                cwd=REPO_DIR, capture_output=True, text=True,
+                timeout=30
+            )
+            if r.returncode != 0:
+                logger.error(f"[GIT_SYNC] git commit fallo: {r.stderr[:200]}")
+                return False
+            logger.info(f"[GIT_SYNC] Commit: {r.stdout[:100]}")
 
         auth_url = f"https://giriarte1968:{token}@github.com/giriarte1968/ingresos_familiares.git"
         push_result = subprocess.run(
