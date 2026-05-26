@@ -37,7 +37,7 @@ Archivos JSON que actúan como base de datos y parámetros de configuración.
 | Archivo | Contenido |
 |---------|-----------|
 | `cache_scraping.json` | ~10.000 propiedades scrapeadas. La fuente de verdad del mercado actual. |
-| `barreras_rosario.json` | 745 LineStrings que definen límites urbanos (vías, avenidas, barrios). |
+| `barreras_rosario.json` | 751 LineStrings que definen límites urbanos (vías, avenidas, barrios). Incluye Av. Del Valle como barrera blanda desde 2026-05-24. |
 | `anclas_rosario.json` | Puntos de referencia de precios manuales (usados como validación o fallback). |
 | `comercios_conocidos.json` | Base de datos de POIs para análisis de entorno. |
 | `constructoras_rosario.json` | Listado de constructoras para ajustar factor de calidad. |

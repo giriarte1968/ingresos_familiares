@@ -240,8 +240,7 @@ Swing total reducido de 20% a 10%.
 | Tipo | Ejemplos | Comportamiento | Peso en IDW |
 | :--- | :--- | :--- | :--- |
 | **DURA** | Ferrocarril FC Mitre, Circunvalación | Exclusión total | weight *= 0.20 (80% penalty) |
-| **BLANDA** | Av. Pellegrini, Av. 27 de Febrero, Av. Oroño, Av. Francia | Fricción (no exclusión) | weight *= 0.90 (10% penalty) |
-
+| **BLANDA** | Av. Pellegrini, Av. 27 de Febrero, Av. Oroño, Av. Francia, Av. Del Valle | Fricción (no exclusión) | weight *= 0.90 (10% penalty) |
 
 ### Ancla Algorítmica de Alquiler
 Si la muestra de alquileres es insuficiente, se proyecta:
@@ -375,7 +374,7 @@ Swing total reducido de 20% a 10%.
 | Tipo | Ejemplos | Comportamiento | Peso en IDW |
 | :--- | :--- | :--- | :--- |
 | **DURA** | Ferrocarril FC Mitre, Circunvalación | Exclusión total | weight *= 0.20 (80% penalty) |
-| **BLANDA** | Av. Pellegrini, Av. 27 de Febrero, Av. Oroño, Av. Francia | Fricción (no exclusión) | weight *= 0.90 (10% penalty) |
+| **BLANDA** | Av. Pellegrini, Av. 27 de Febrero, Av. Oroño, Av. Francia, Av. Del Valle | Fricción (no exclusión) | weight *= 0.90 (10% penalty) |
 
 ### Lógica de Implementación
 - `check_barrier_crossing()` retorna: `'hard'`, `'soft'` o `False`

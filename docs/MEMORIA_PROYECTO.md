@@ -170,7 +170,7 @@ weight = min(exp(-lambda_val × d_metros), MAX_PESO_NODO)
 ## 6. BARRERAS GEOGRÁFICAS
 
 **Archivo:** `barreras_rosario.json`  
-**Formato:** GeoJSON FeatureCollection, 745 features (263 hard + 482 soft)
+**Formato:** GeoJSON FeatureCollection, 751 features (263 hard + 488 soft)
 
 ### Tipos de barreras (implementación 2026-05)
 
@@ -182,7 +182,7 @@ weight = min(exp(-lambda_val × d_metros), MAX_PESO_NODO)
 ### Barreras implementadas
 
 - **Duras**: Ferrocarril FC Mitre (peso = 0.20 → exclusión efectiva)
-- **Blandas**: Av. Pellegrini, Av. 27 de Febrero, Av. Oroño, Av. Francia (peso = 0.90)
+- **Blandas**: Av. Pellegrini, Av. 27 de Febrero, Av. Oroño, Av. Francia, Av. Del Valle (peso = 0.90)
 - Bv. 27 de Febrero (tramos específicos)
 
 ### Barreras blandas (peso × β)

@@ -17,7 +17,7 @@ def extraer_barreras_rosario():
         print(f'Error extrayendo vías: {e}')
         rails = gpd.GeoDataFrame()
 
-    nombres_clave = ['Oroño', '27 de Febrero', 'Pellegrini', 'Francia', 'Circunvalación', 'Lagos']
+    nombres_clave = ['Oroño', '27 de Febrero', 'Pellegrini', 'Francia', 'Circunvalación', 'Lagos', 'Del Valle']
     try:
         roads = ox.features_from_bbox(bbox, tags={'highway': ['primary', 'secondary', 'tertiary']})
         def es_barrera(row):

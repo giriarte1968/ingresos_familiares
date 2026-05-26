@@ -4,6 +4,22 @@ Este documento es el "diario de trabajo". Cada agente de IA que trabaje en este 
 
 ---
 
+## 📅 2026-05-24 — MONUMENTO A LA BANDERA EN 3RA FEATURE CARD
+
+### Objetivo:
+Reemplazar la foto de la tercera card de features (Infomapa Rosario) por el Monumento a la Bandera.
+
+### Acciones realizadas:
+1. Cambio de icono en `landing_content.py` línea 281: Unsplash `photo-1524661135-423995f22d0b` → Pexels `29342907` (Monumento a la Bandera)
+2. `python scripts/auto_validate.py` OK
+3. `pytest tests/test_regression.py` 39/39 passed
+4. Commit `2238cfa` + push a `origin main`
+
+### Verificado:
+- Nested Mapa expander dentro de Comparables en valu.py:253 intacto
+
+---
+
 ## 📅 2026-05-11 — REFACTORIZACIÓN LANDING PAGE A PLANTILLAS DINÁMICAS
 
 ### Objetivo:
@@ -1046,5 +1062,38 @@ Reemplazar `st.spinner()` + render directo por un wrapper `st.status(expanded=Fa
 - `.opencode/plans/TAREA-007.md`
 
 ### Commit: `0683d3a`
+
+### Tests: 39/39 regression pasando, auto_validate OK
+
+---
+
+## 📅 2026-05-24 — TAREA-008: Agregar Av. Del Valle como barrera blanda
+
+### Contexto
+Brown 2700 Pichincha arrojaba valuación ~21% sobre listing ($236k → ~$300k). Causa: 26 comparables incluyendo propiedades de Av. del Valle (~$3,000/m²) mezcladas 100% con Brown St (~$2,360/m²) por ausencia de barrera entre ambas calles.
+
+### Diagnóstico (OLD barriers, 745 segments)
+- Ventas within 1km: 716
+- Av. del Valle properties: 26 (23 same_side, 3 soft-por-Oroño)
+- Av. del Valle same_side avg: **$3,191/m²** vs Brown St only: **$1,956/m²**
+- Inflación directa: las del Valle diluyen el percentil al alza
+
+### Cambios
+1. **`scripts/extract_barriers.py`**: agregado `'Del Valle'` a `nombres_clave`
+2. **`barreras_rosario.json`**: regenerado → 751 features (263 hard + 488 soft) — 6 nuevos segmentos para Av. Del Valle
+
+### Resultado (NEW barriers, 751 segments)
+| Métrica | Antes | Después |
+|---------|-------|---------|
+| Av. del Valle same_side | 23 | 3 |
+| Av. del Valle cross_soft | 3 | 23 |
+| Total same_side (1km) | 244 | 229 |
+| Total cross_soft (1km) | 427 | 442 |
+
+### Archivos
+- `scripts/extract_barriers.py` — `'Del Valle'` en `nombres_clave`
+- `barreras_rosario.json` — regenerado con 6 nuevos segmentos soft
+
+### Commit: _(en proceso)_
 
 ### Tests: 39/39 regression pasando, auto_validate OK

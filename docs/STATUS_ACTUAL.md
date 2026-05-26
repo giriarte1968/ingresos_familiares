@@ -30,6 +30,7 @@ El núcleo del sistema incluye los siguientes componentes:
 - **check_barrier_crossing**: diferenciación hard/soft.
   - **hard** (Ferrocarril): weight = 0.20 (80% penalty).
   - **soft** (Avenidas): weight = 0.90 (10% penalty).
+- **Cobertura**: 751 features (263 hard + 488 soft). Av. Del Valle agregada como soft barrier el 2026-05-24 para corregir valuación de Brown 2700 (23 propiedades re-clasificadas de same_side a cross_soft).
 
 ### Valuación Híbrida
 - Fórmula: `m2_equiv * m2_base * factores * (1 + NLP)`.
