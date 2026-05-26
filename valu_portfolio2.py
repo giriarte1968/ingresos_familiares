@@ -298,6 +298,7 @@ def _build_rows(propiedades: list[dict[str, Any]], resultados: dict[str, dict], 
             conf_label, conf_badge = "Sin datos", "amber"
 
         rows.append({
+            "id": prop.get("id", f"_no_id_{nombre}"),
             "nombre": nombre,
             "zona": prop.get("zona") or "Sin zona",
             "tipo": prop.get("tipo_inmueble") or "",
@@ -527,10 +528,10 @@ def _render_cards(rows: list[dict[str, Any]], page_size: int) -> None:
                 """, unsafe_allow_html=True)
                 b1, b2 = st.columns(2)
                 with b1:
-                    if st.button("Ver detalle", key=f"p2_det_{start+idx}_{row['nombre']}", use_container_width=True):
+                    if st.button("Ver detalle", key=f"p2_det_{row['id']}", use_container_width=True):
                         _ir_a_detalle(row["nombre"])
                 with b2:
-                    if st.button("Revaluar", key=f"p2_rev_{start+idx}_{row['nombre']}", use_container_width=True):
+                    if st.button("Revaluar", key=f"p2_rev_{row['id']}", use_container_width=True):
                         _ir_a_detalle(row["nombre"], forzar=True)
 
 
