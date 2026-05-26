@@ -7,20 +7,15 @@ import math
 import json
 import os
 import time
-
-try:
-    from geopy.geocoders import Nominatim
-    GEOPY_AVAILABLE = True
-except ImportError:
-    GEOPY_AVAILABLE = False
+import requests
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ANCLAS_FILE = os.path.join(BASE_DIR, "anclas_rosario_v3_grid.json")  # V3
 PROPIEDADES_FILE = os.path.join(BASE_DIR, "propiedades.json")
 CACHE_FILE = os.path.join(BASE_DIR, "geocoding_cache.json")
 
-# Geocodificador Nominatim
-geolocator = Nominatim(user_agent="rosario_avm_geocoder") if GEOPY_AVAILABLE else None
+NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
+NOMINATIM_HEADERS = {"User-Agent": "rosario_avm_geocoder"}
 
 
 def normalizar_direccion(direccion):
@@ -43,60 +38,58 @@ def guardar_cache(cache):
 VIEWBOX = "-60.75,-33.00,-60.50,-32.87"
 
 
+def _parse_nominatim_response(data):
+    """Parsea el primer resultado de Nominatim JSON. Retorna dict o None."""
+    if not data or not isinstance(data, list) or len(data) == 0:
+        return None
+    r = data[0]
+    osm_type = r.get("type") or r.get("addresstype") or "unknown"
+    return {
+        "lat": float(r["lat"]),
+        "lon": float(r["lon"]),
+        "address": r.get("display_name", ""),
+        "score": r.get("importance", 0.5),
+        "type": osm_type,
+    }
+
+
 def geocodificar_nominatim(direccion):
     """
-    Geocodifica usando Nominatim (OpenStreetMap) con query estructurada.
-    direccion debe ser solo la calle y numero (ej: "Entre Rios 400").
+    Geocodifica usando Nominatim (OpenStreetMap) con query estructurada HTTP directo.
+    direccion debe ser solo la calle y numero (ej: 'Entre Rios 400').
     """
-    if not geolocator:
-        return None
-    
     try:
-        # Limpiar direccion: quitar ciudad/provincia si viene incluida
-        calle = direccion.split(',')[0].strip()
-        # Query estructurada para evitar ambigüedad "Entre Rios" = provincia
-        query = {
+        calle = direccion.split(",")[0].strip()
+        params = {
             "street": calle,
             "city": "Rosario",
             "state": "Santa Fe",
             "country": "Argentina",
+            "format": "jsonv2",
+            "limit": 1,
         }
-        location = geolocator.geocode(query)
-        
-        if location:
-            raw = location.raw if hasattr(location, 'raw') and location.raw else {}
-            osm_type = raw.get('type', 'unknown') if isinstance(raw, dict) else 'unknown'
-            return {
-                "lat": location.latitude,
-                "lon": location.longitude,
-                "address": location.address or '',
-                "score": raw.get('importance', 0.5) if isinstance(raw, dict) else 0.5,
-                "type": osm_type,
-            }
+        r = requests.get(NOMINATIM_URL, params=params, headers=NOMINATIM_HEADERS, timeout=10)
+        r.raise_for_status()
+        return _parse_nominatim_response(r.json())
     except Exception as e:
         print(f"Error geocodificación Nominatim: {e}")
-    
     return None
 
 
 def geocodificar_nominatim_freeform(direccion_full):
     """
-    Fallback: geocodifica con free-form query (ej: "Entre Rios 400, Rosario, Santa Fe, Argentina").
+    Fallback: geocodifica con free-form query HTTP directo
+    (ej: 'Entre Rios 400, Rosario, Santa Fe, Argentina').
     """
-    if not geolocator:
-        return None
     try:
-        location = geolocator.geocode(direccion_full)
-        if location:
-            raw = location.raw if hasattr(location, 'raw') and location.raw else {}
-            osm_type = raw.get('type', 'unknown') if isinstance(raw, dict) else 'unknown'
-            return {
-                "lat": location.latitude,
-                "lon": location.longitude,
-                "address": location.address or '',
-                "score": raw.get('importance', 0.5) if isinstance(raw, dict) else 0.5,
-                "type": osm_type,
-            }
+        params = {
+            "q": direccion_full,
+            "format": "jsonv2",
+            "limit": 1,
+        }
+        r = requests.get(NOMINATIM_URL, params=params, headers=NOMINATIM_HEADERS, timeout=10)
+        r.raise_for_status()
+        return _parse_nominatim_response(r.json())
     except Exception as e:
         print(f"Error geocodificación Nominatim freeform: {e}")
     return None
