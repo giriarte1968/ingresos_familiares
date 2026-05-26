@@ -515,6 +515,25 @@ def mostrar_dashboard():
             
             st.caption("Verifica que el servidor pueda alcanzar nominatim.openstreetmap.org")
         
+        # ─── Sincronización con GitHub ───
+        st.markdown("---")
+        with st.expander("🔄 Sincronización con GitHub", expanded=False):
+            from parsers.git_sync import try_sync
+            token = os.environ.get("GIT_WRITE_TOKEN", "")
+            if token:
+                st.success("✅ `GIT_WRITE_TOKEN` configurado")
+            else:
+                st.error("❌ `GIT_WRITE_TOKEN` no configurado. Agregalo en DO Console > Settings > Environment Variables")
+            
+            if st.button("Forzar sync a GitHub ahora", key="force_sync"):
+                with st.spinner("Haciendo git add, commit y push..."):
+                    ok = try_sync([PROPIEDADES_FILE])
+                if ok:
+                    st.success("✅ Sync exitoso! Hacé `git pull` en tu PC local para ver los cambios.")
+                else:
+                    st.error("❌ Sync falló. Revisá que el token tenga permisos `repo` en GitHub y que DO tenga acceso.")
+            st.caption("Después de sync, corré `git pull` en tu PC local para bajar los cambios.")
+
         st.markdown("---")
         with st.expander("➕ Agregar Nueva Propiedad", expanded=True):
             new_prop = ui_formulario_propiedad(key_suffix="new")
