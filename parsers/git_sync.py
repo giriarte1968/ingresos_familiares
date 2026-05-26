@@ -24,20 +24,27 @@ def _configure_git():
     except Exception as e:
         logger.warning(f"[GIT_SYNC] Error configurando git: {e}")
 
+def _ensure_branch():
+    """Si estamos en detached HEAD, crear y switchear a branch main."""
+    r = subprocess.run(["git", "symbolic-ref", "-q", "HEAD"],
+                       cwd=REPO_DIR, capture_output=True)
+    if r.returncode != 0:
+        logger.info("[GIT_SYNC] Detached HEAD detectado, creando branch main")
+        subprocess.run(["git", "checkout", "-b", "main"],
+                       cwd=REPO_DIR, capture_output=True)
+
 def _check_unpushed() -> bool:
-    """True si hay commits locales que no estan en origin/main."""
-    result = subprocess.run(
-        ["git", "rev-list", "--count", "origin/main..HEAD"],
+    """True si hay commits locales sin pushear."""
+    r = subprocess.run(
+        ["git", "rev-list", "--count", "HEAD", "--not", "--remotes=origin"],
         cwd=REPO_DIR, capture_output=True, text=True
     )
-    return result.returncode == 0 and result.stdout.strip() != "0"
+    return r.returncode == 0 and r.stdout.strip() not in ("", "0")
 
 def _has_staged_changes() -> bool:
-    result = subprocess.run(
-        ["git", "diff", "--cached", "--quiet"],
-        cwd=REPO_DIR
-    )
-    return result.returncode != 0
+    r = subprocess.run(["git", "diff", "--cached", "--quiet"],
+                       cwd=REPO_DIR)
+    return r.returncode != 0
 
 def try_sync(file_paths, commit_message="DO: actualizacion automatica de propiedades"):
     token = _get_token()
@@ -45,6 +52,7 @@ def try_sync(file_paths, commit_message="DO: actualizacion automatica de propied
         return False
 
     _configure_git()
+    _ensure_branch()
 
     try:
         add_result = subprocess.run(
@@ -72,7 +80,7 @@ def try_sync(file_paths, commit_message="DO: actualizacion automatica de propied
 
         auth_url = f"https://giriarte1968:{token}@github.com/giriarte1968/ingresos_familiares.git"
         push_result = subprocess.run(
-            ["git", "push", auth_url, BRANCH],
+            ["git", "push", auth_url, f"HEAD:{BRANCH}"],
             cwd=REPO_DIR, capture_output=True, text=True,
             timeout=60
         )
