@@ -307,7 +307,9 @@
       "despensa": true,
       "ascensores_edificio": 2,
       "detalles_categoria": [
-        "pileta"
+        "pileta",
+        "parrilla_compartida",
+        "terraza_compartida"
       ],
       "descripcion_libre": "",
       "valor_compra_usd": 0.0,
