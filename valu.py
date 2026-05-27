@@ -353,6 +353,14 @@ def mostrar_dashboard():
                         props[i] = nueva_data
                         break
                 guardar_propiedades(props)
+                # Invalidar cache de valuación para que refleje los cambios
+                try:
+                    from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
+                    cache_v = cargar_cache_valuaciones()
+                    cache_v.pop(p_obj['nombre'], None)
+                    guardar_cache_valuaciones(cache_v)
+                except Exception:
+                    pass
 
             _loader = st.empty()
             _loader.markdown("""

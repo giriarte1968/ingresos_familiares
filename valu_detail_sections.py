@@ -39,6 +39,14 @@ def render_actions(prop, guardar_fn):
                 props = cargar_propiedades()
                 props = [p for p in props if p.get('id') != prop['id']]
                 guardar_propiedades(props)
+                # Invalidar cache de valuación
+                try:
+                    from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
+                    cache_v = cargar_cache_valuaciones()
+                    cache_v.pop(nombre, None)
+                    guardar_cache_valuaciones(cache_v)
+                except Exception:
+                    pass
                 st.session_state.pop(f"delete_confirm_{prop['id']}", None)
                 st.session_state.prop_sel = None
                 st.rerun()
