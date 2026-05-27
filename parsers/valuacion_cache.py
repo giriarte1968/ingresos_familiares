@@ -84,8 +84,14 @@ def necesita_recalcular(nombre: str, prop: dict, cache: dict) -> tuple[bool, str
 
     return False, "cache_valido"
 
+PROPIEDADES_PATH = os.path.join(os.path.dirname(CACHE_DIR), 'propiedades.json')
+
+
 def guardar_resultado(nombre: str, prop: dict, resultado: dict, cache: dict):
-    """Guarda el resultado de una valuación en el cache."""
+    """Guarda el resultado de una valuación en el cache.
+    También persiste un resumen liviano en propiedades.json para que
+    el Portfolio pueda leerlo sin depender del cache separado.
+    """
     cache[nombre] = {
         "timestamp": datetime.now().isoformat(),
         "hash_prop": _calcular_hash_propiedad(prop),
@@ -94,6 +100,26 @@ def guardar_resultado(nombre: str, prop: dict, resultado: dict, cache: dict):
         "resultado_completo": resultado,
         "fecha_legible": datetime.now().strftime("%d/%m/%Y %H:%M")
     }
+    # Persistir resumen en propiedades.json
+    try:
+        if os.path.exists(PROPIEDADES_PATH):
+            with open(PROPIEDADES_PATH, 'r', encoding='utf-8') as f:
+                props_data = json.load(f)
+            for p in props_data.get('propiedades', []):
+                if p.get('nombre') == nombre:
+                    p['_ultima_valuacion'] = {
+                        'valor_usd': resultado.get('valor_propiedad_usd'),
+                        'alquiler_ars': resultado.get('alquiler_estimado_ars'),
+                        'cap_rate': resultado.get('cap_rate'),
+                        'm2_equivalentes': resultado.get('m2_equivalentes'),
+                        'comps': resultado.get('resolution_metadata', {}).get('n_propiedades', 0),
+                        'fecha': datetime.now().strftime("%d/%m/%Y %H:%M"),
+                    }
+                    break
+            with open(PROPIEDADES_PATH, 'w', encoding='utf-8') as f:
+                json.dump(props_data, f, indent=2, ensure_ascii=False)
+    except Exception:
+        pass
 
 def obtener_resultado_cacheado(nombre: str, cache: dict) -> dict:
     """Retorna el resultado cacheado para una propiedad."""

@@ -224,7 +224,10 @@ def _badge(label: str, color: str) -> str:
 # ──────────────────────────────────────────────────────────────────────────────
 
 def _cargar_resultados_cache(propiedades: list[dict[str, Any]]) -> tuple[dict[str, dict], dict[str, dict]]:
-    """Lee valuaciones cacheadas. No llama al motor ni recalcula."""
+    """Lee valuaciones cacheadas. No llama al motor ni recalcula.
+    Si una propiedad no tiene entrada en el cache pero tiene
+    _ultima_valuacion en el propio json, la usa como fallback.
+    """
     from parsers.valuacion_cache import CACHE_VERSION, cargar_cache_valuaciones
 
     cache = cargar_cache_valuaciones()
@@ -234,41 +237,56 @@ def _cargar_resultados_cache(propiedades: list[dict[str, Any]]) -> tuple[dict[st
     for prop in propiedades:
         nombre = prop.get("nombre", "")
         entrada = cache.get(nombre)
+        ultima = prop.get("_ultima_valuacion")
 
-        if not entrada:
+        if entrada:
+            if entrada.get("cache_version") != CACHE_VERSION:
+                estados[nombre] = {
+                    "estado": "version",
+                    "label": "Actualizar",
+                    "badge": "blue",
+                    "detalle": f"Cache {entrada.get('cache_version', '?')} → {CACHE_VERSION}",
+                }
+                continue
+
+            resultado = entrada.get("resultado_completo", {}) or {}
+            resultados[nombre] = resultado
+
+            if resultado.get("error"):
+                estados[nombre] = {
+                    "estado": "error",
+                    "label": "Error",
+                    "badge": "red",
+                    "detalle": str(resultado.get("error"))[:120],
+                }
+            else:
+                estados[nombre] = {
+                    "estado": "ok",
+                    "label": "Actualizada",
+                    "badge": "green",
+                    "detalle": entrada.get("fecha_legible", ""),
+                }
+        elif ultima:
+            # Fallback: usar resumen guardado en propiedades.json
+            resultados[nombre] = {
+                "valor_propiedad_usd": ultima.get("valor_usd"),
+                "alquiler_estimado_ars": ultima.get("alquiler_ars"),
+                "cap_rate": ultima.get("cap_rate"),
+                "m2_equivalentes": ultima.get("m2_equivalentes"),
+                "resolution_metadata": {"n_propiedades": ultima.get("comps", 0)},
+            }
+            estados[nombre] = {
+                "estado": "ok",
+                "label": "Actualizada",
+                "badge": "green",
+                "detalle": ultima.get("fecha", ""),
+            }
+        else:
             estados[nombre] = {
                 "estado": "pendiente",
                 "label": "Pendiente",
                 "badge": "amber",
                 "detalle": "Sin valuación cacheada",
-            }
-            continue
-
-        if entrada.get("cache_version") != CACHE_VERSION:
-            estados[nombre] = {
-                "estado": "version",
-                "label": "Actualizar",
-                "badge": "blue",
-                "detalle": f"Cache {entrada.get('cache_version', '?')} → {CACHE_VERSION}",
-            }
-            continue
-
-        resultado = entrada.get("resultado_completo", {}) or {}
-        resultados[nombre] = resultado
-
-        if resultado.get("error"):
-            estados[nombre] = {
-                "estado": "error",
-                "label": "Error",
-                "badge": "red",
-                "detalle": str(resultado.get("error"))[:120],
-            }
-        else:
-            estados[nombre] = {
-                "estado": "ok",
-                "label": "Actualizada",
-                "badge": "green",
-                "detalle": entrada.get("fecha_legible", ""),
             }
 
     return resultados, estados
