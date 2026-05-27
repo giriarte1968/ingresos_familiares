@@ -157,7 +157,21 @@ Infomapa era el principal cuello de botella del botón "Ver detalle":
 | `valu.py` | `consultar_infomapa=False` + botón on-demand |
 | `valu_detail_sections.py` | `render_catastro()` early return sin datos |
 
-## 11. Pantallazo numérico eliminado ✅
+## 11. Validación de coordenadas post-scrape ✅
+
+### Estado
+`scripts/validar_coordenadas.py` disponible para correr bajo demanda. Valida cada propiedad del cache comparando coordenadas del pin scraping contra geocoding textual vía Nominatim. Discrepancias >500m se corrigen automáticamente.
+
+### Archivos
+| Archivo | Descripción |
+|---------|-------------|
+| `parsers/geocoder.py` | `validar_coordenadas_contra_direccion()` |
+| `scripts/validar_coordenadas.py` | Script batch post-scrape |
+| `tests/test_validar_coordenadas.py` | 5 tests |
+
+Colón al 1200 corregido: -32.9337,-60.6563 → -32.9463,-60.6323
+
+## 12. Pantallazo numérico eliminado ✅
 
 ### Problema
 `mostrar_detalle_valu()` mostraba las secciones secuencialmente (~2.8s), con números apareciendo antes que mapas y catastro.

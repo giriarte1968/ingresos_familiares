@@ -114,6 +114,37 @@ def snap_a_anclas(lat, lon, anclas, max_dist_km=3.0):
     return lat, lon, 'no_snap'
 
 
+MAX_DISCREPANCIA_M = 500  # máx diferencia entre pin scraping y geocoding textual
+
+
+def validar_coordenadas_contra_direccion(direccion, lat_pin, lon_pin, max_diff_m=MAX_DISCREPANCIA_M):
+    """
+    Compara coordenadas del pin scraping contra geocoding de la dirección textual.
+    Si difieren > max_diff_m, retorna coordenadas de geocoding más confiables.
+    Retorna: (lat, lon, diff_m, accion) donde accion es 'ok', 'corregido', o 'error'.
+    """
+    if not direccion or not direccion.strip():
+        return lat_pin, lon_pin, 0, "error"
+
+    try:
+        geo = geocodificar_nominatim(direccion)
+        if not geo:
+            geo = geocodificar_nominatim_freeform(f"{direccion}, Rosario, Santa Fe, Argentina")
+        if not geo or geo.get("lat") is None:
+            return lat_pin, lon_pin, 0, "error"
+
+        lat_geo = geo["lat"]
+        lon_geo = geo["lon"]
+        diff_m = haversine_distance(lat_pin, lon_pin, lat_geo, lon_geo) * 1000
+
+        if diff_m > max_diff_m:
+            return lat_geo, lon_geo, round(diff_m, 1), "corregido"
+
+        return lat_pin, lon_pin, round(diff_m, 1), "ok"
+    except Exception:
+        return lat_pin, lon_pin, 0, "error"
+
+
 # Bounding box para Rosario centro (~radio 5km desde punto central)
 CENTRO_LAT, CENTRO_LON = -32.945, -60.632
 RADIO_MAX_KM = 8.0

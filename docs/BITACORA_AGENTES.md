@@ -1129,3 +1129,37 @@ Brown 2700 Pichincha arrojaba valuación ~21% sobre listing ($236k → ~$300k). 
 - `tests/test_age_blend_filter.py` — nuevo, 5 tests
 
 ### Tests: 96/96 pasan, auto_validate OK
+
+---
+
+## TAREA-010 — 2026-05-27 — Validación de coordenadas scraping
+
+### Problema
+Colón al 1200 tenía coordenadas del pin de Propia (Pichincha, -32.9337, -60.6563) que no coincidían con la dirección textual (Barrio Martin, -32.9463, -60.6323). Esto sesgaba la valuación porque el comparable quedaba geolocalizado en el barrio incorrecto.
+
+### Solución
+
+1. **`cache_scraping.json`**: Corregidas coordenadas de "Colón al 1200" ($55k, 56.68m²) → -32.9463, -60.6323 (Barrio Martin).
+
+2. **`parsers/geocoder.py`**: Nueva función `validar_coordenadas_contra_direccion(direccion, lat_pin, lon_pin, max_diff_m=500)` que:
+   - Geocodifica la dirección textual vía Nominatim
+   - Calcula distancia Haversine entre pin scraping y geocoding textual
+   - Si >500m, retorna coordenadas del geocoding como más confiables
+   - Retorna (lat, lon, diff_m, accion) donde accion = 'ok'|'corregido'|'error'
+
+3. **`scripts/validar_coordenadas.py`**: Script batch post-scrape que recorre todo el cache, valida cada propiedad y corrige automáticamente.
+
+### Impacto
+- Scraping: sin overhead (script batch, no inline)
+- Cache corregido: 1 propiedad (Colón al 1200)
+- Validación batch futura: ~2.7h para 9766 props (1s rate limit Nominatim)
+
+### Tests
+- `tests/test_validar_coordenadas.py` — 5 tests nuevos
+- Total: **101/101 tests pasan** (39 regression + 5 age_blend + 35 cluster + 17 helpers + 5 coordenadas)
+
+### Archivos
+- `parsers/geocoder.py` — `validar_coordenadas_contra_direccion()`
+- `scripts/validar_coordenadas.py` — nuevo script batch
+- `cache_scraping.json` — coordenadas corregidas
+- `tests/test_validar_coordenadas.py` — nuevo, 5 tests

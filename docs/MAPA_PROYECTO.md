@@ -49,6 +49,7 @@ Scripts para validación y documentación automática.
 - `scripts/auto_validate.py`: Valida tests + syntax + imports (ejecutar después de cada cambio).
 - `scripts/update_docs.py`: Actualiza documentación .MD (--auto para aplicar cambios).
 - `scripts/init_reminder.py`: Recordatorio de flujo de trabajo.
+- `scripts/validar_coordenadas.py`: Valida coordenadas de cache contra geocoding textual. Corre bajo demanda.
 
 ## 4. MÓDULOS DE EXTRACCIÓN (SCRAPERS)
 
