@@ -40,11 +40,23 @@ def _auth_url():
     return f"https://giriarte1968:{token}@github.com/giriarte1968/ingresos_familiares.git"
 
 
+def _working_tree_clean() -> bool:
+    """True si no hay cambios sin commit en el working tree."""
+    r = subprocess.run(["git", "diff", "--quiet"],
+                       cwd=REPO_DIR, capture_output=True)
+    if r.returncode != 0:
+        return False
+    r2 = subprocess.run(["git", "diff", "--cached", "--quiet"],
+                        cwd=REPO_DIR, capture_output=True)
+    return r2.returncode == 0
+
+
 def try_pull():
     """
-    Sincroniza el filesystem local con el estado remoto de GitHub.
-    Usa fetch + reset --hard para forzar consistencia (ideal para DO
-    donde el filesystem local puede quedar desactualizado).
+    Sincroniza SOLO propiedades.json con el estado remoto de GitHub.
+    Usa fetch + checkout selectivo para NO tocar valuaciones_cache.json
+    (que es generado localmente y se perdería con un reset --hard).
+    Solo actúa si el working tree está limpio (no descarta cambios locales).
     Retorna True si OK. Requiere token para repos privados.
     """
     _configure_git()
@@ -52,6 +64,9 @@ def try_pull():
     url = _auth_url()
     if not url:
         logger.warning("[GIT_SYNC] try_pull: sin token, salteando")
+        return False
+    if not _working_tree_clean():
+        logger.warning("[GIT_SYNC] try_pull: working tree sucio, salteando")
         return False
     try:
         fetch = subprocess.run(
@@ -63,16 +78,16 @@ def try_pull():
             logger.warning(f"[GIT_SYNC] git fetch fallo: {fetch.stderr[:200]}")
             return False
 
-        reset = subprocess.run(
-            ["git", "reset", "--hard", "FETCH_HEAD"],
+        checkout = subprocess.run(
+            ["git", "checkout", "FETCH_HEAD", "--", "propiedades.json"],
             cwd=REPO_DIR, capture_output=True, text=True,
             timeout=30
         )
-        if reset.returncode != 0:
-            logger.warning(f"[GIT_SYNC] git reset fallo: {reset.stderr[:200]}")
+        if checkout.returncode != 0:
+            logger.warning(f"[GIT_SYNC] git checkout propiedades.json fallo: {checkout.stderr[:200]}")
             return False
 
-        logger.info("[GIT_SYNC] Pull exitoso (reset a FETCH_HEAD)")
+        logger.info("[GIT_SYNC] propiedades.json sincronizado con FETCH_HEAD")
         return True
     except Exception as e:
         logger.warning(f"[GIT_SYNC] Error en pull: {e}")

@@ -580,6 +580,16 @@ def mostrar_dashboard():
 
 # --- MAIN APP ---
 def main():
+    # Sincronizar propiedades.json con GitHub una sola vez por sesión.
+    # Corre en la primera interacción de cada sesión (no en cada rerun).
+    if "git_synced" not in st.session_state:
+        try:
+            from parsers.git_sync import try_pull
+            try_pull()
+        except Exception:
+            pass
+        st.session_state.git_synced = True
+
     if 'vista_actual' not in st.session_state:
         st.session_state.vista_actual = 'landing'
     
@@ -680,12 +690,5 @@ def main():
     profile_end(_main_ctx)
 
 if __name__ == "__main__":
-    # Sincronizar con GitHub al arrancar para que cambios de otra sesión
-    # (o restart de DO) se reflejen en el filesystem local
-    try:
-        from parsers.git_sync import try_pull
-        try_pull()
-    except Exception:
-        pass
     with profile_block("APP_SCRIPT_TOTAL", "global"):
         main()

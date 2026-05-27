@@ -125,5 +125,35 @@
     "status": "error",
     "ancla_id": null,
     "ancla_usd": null
+  },
+  "ayacucho 1805": {
+    "lat": -32.9606229,
+    "lon": -60.62989,
+    "status": "low_confidence",
+    "score": 9.99999999995449e-06,
+    "type": "house",
+    "ancla_id": "martin_rio_urquiza",
+    "ancla_usd": 1850,
+    "distancia_km": 0.47
+  },
+  "entre rios 400": {
+    "lat": -32.9412249,
+    "lon": -60.6397994,
+    "status": "low_confidence",
+    "score": 6.83916990920427e-05,
+    "type": "house",
+    "ancla_id": "macrocentro_salta_lagos",
+    "ancla_usd": 1620,
+    "distancia_km": 0.14
+  },
+  "san martin 1500": {
+    "lat": -32.9551912,
+    "lon": -60.6388916,
+    "status": "low_confidence",
+    "score": 6.83916990920427e-05,
+    "type": "house",
+    "ancla_id": "ayacucho_pellegrini",
+    "ancla_usd": 1400,
+    "distancia_km": 0.15
   }
 }
