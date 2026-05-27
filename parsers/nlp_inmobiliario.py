@@ -38,6 +38,8 @@ FEATURES = {
     # --- AMENITIES ---
     "pileta": 0.08,
     "piscina": 0.08,
+    "parrilla": 0.06,
+    "terraza compartida": 0.08,
     "sum": 0.05,
     "gimnasio": 0.05,
     "seguridad 24 horas": 0.07,

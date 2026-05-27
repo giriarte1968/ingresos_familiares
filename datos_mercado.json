@@ -110,6 +110,8 @@
       "aberturas_premium": 0.03,
       "balcon_terraza": 0.01,
       "terraza_comun": 0.01,
+      "terraza_compartida": 0.01,
+      "parrilla": 0.02,
       "pileta": 0.02,
       "sum": 0.01,
       "gym": 0.01

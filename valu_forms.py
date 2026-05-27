@@ -221,7 +221,7 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
             despensa = st.checkbox("Despensa", value=prop_inicial.get('despensa', False), key=f"despensa_{key_suffix}")
             ascensores = st.number_input("Ascensores", min_value=1, max_value=4, value=int(prop_inicial.get('ascensores_edificio', 2) or 2), key=f"ascensores_{key_suffix}")
             
-            amenities_opts = ["caldera_central", "radiadores", "seguridad_24hs", "seguridad_tag", "seguridad_camaras", "seguridad_totem", "aberturas_premium", "pileta", "sum", "gym"]
+            amenities_opts = ["caldera_central", "radiadores", "seguridad_24hs", "seguridad_tag", "seguridad_camaras", "seguridad_totem", "aberturas_premium", "parrilla", "terraza_compartida", "pileta", "sum", "gym"]
             detalles_default = [v for v in prop_inicial.get('detalles_categoria', []) if v in amenities_opts]
             detalles_cat = st.multiselect("Amenities", amenities_opts, default=detalles_default, key=f"detalles_{key_suffix}")
             
