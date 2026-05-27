@@ -680,5 +680,12 @@ def main():
     profile_end(_main_ctx)
 
 if __name__ == "__main__":
+    # Sincronizar con GitHub al arrancar para que cambios de otra sesión
+    # (o restart de DO) se reflejen en el filesystem local
+    try:
+        from parsers.git_sync import try_pull
+        try_pull()
+    except Exception:
+        pass
     with profile_block("APP_SCRIPT_TOTAL", "global"):
         main()

@@ -33,6 +33,52 @@ def _ensure_branch():
         subprocess.run(["git", "checkout", "-b", "main"],
                        cwd=REPO_DIR, capture_output=True)
 
+def _auth_url():
+    token = _get_token()
+    if not token:
+        return None
+    return f"https://giriarte1968:{token}@github.com/giriarte1968/ingresos_familiares.git"
+
+
+def try_pull():
+    """
+    Sincroniza el filesystem local con el estado remoto de GitHub.
+    Usa fetch + reset --hard para forzar consistencia (ideal para DO
+    donde el filesystem local puede quedar desactualizado).
+    Retorna True si OK. Requiere token para repos privados.
+    """
+    _configure_git()
+    _ensure_branch()
+    url = _auth_url()
+    if not url:
+        logger.warning("[GIT_SYNC] try_pull: sin token, salteando")
+        return False
+    try:
+        fetch = subprocess.run(
+            ["git", "fetch", url, BRANCH],
+            cwd=REPO_DIR, capture_output=True, text=True,
+            timeout=30
+        )
+        if fetch.returncode != 0:
+            logger.warning(f"[GIT_SYNC] git fetch fallo: {fetch.stderr[:200]}")
+            return False
+
+        reset = subprocess.run(
+            ["git", "reset", "--hard", "FETCH_HEAD"],
+            cwd=REPO_DIR, capture_output=True, text=True,
+            timeout=30
+        )
+        if reset.returncode != 0:
+            logger.warning(f"[GIT_SYNC] git reset fallo: {reset.stderr[:200]}")
+            return False
+
+        logger.info("[GIT_SYNC] Pull exitoso (reset a FETCH_HEAD)")
+        return True
+    except Exception as e:
+        logger.warning(f"[GIT_SYNC] Error en pull: {e}")
+        return False
+
+
 def _check_unpushed() -> bool:
     """True si hay commits locales sin pushear."""
     r = subprocess.run(
@@ -53,6 +99,9 @@ def try_sync(file_paths, commit_message="DO: actualizacion automatica de propied
 
     _configure_git()
     _ensure_branch()
+    url = _auth_url()
+    if not url:
+        return False
 
     try:
         add_result = subprocess.run(
@@ -78,9 +127,8 @@ def try_sync(file_paths, commit_message="DO: actualizacion automatica de propied
                 return False
             logger.info(f"[GIT_SYNC] Commit: {r.stdout[:100]}")
 
-        auth_url = f"https://giriarte1968:{token}@github.com/giriarte1968/ingresos_familiares.git"
         push_result = subprocess.run(
-            ["git", "push", auth_url, f"HEAD:{BRANCH}"],
+            ["git", "push", url, f"HEAD:{BRANCH}"],
             cwd=REPO_DIR, capture_output=True, text=True,
             timeout=60
         )
