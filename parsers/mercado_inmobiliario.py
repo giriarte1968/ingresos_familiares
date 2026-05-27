@@ -1379,6 +1379,52 @@ def calcular_size_discount_alquiler(m2_equiv):
         return 0.75
 
 
+# === AMENITY WEIGHTS (centralizados) ===
+# Criterio conservador: amenities comunes tienen impacto bajo,
+# cubierto en gran parte por el cluster.
+AMENITY_WEIGHTS = {
+    "caldera_central": 0.010,
+    "radiadores": 0.010,
+    "seguridad_24hs": 0.030,
+    "seguridad_tag": 0.008,
+    "seguridad_camaras": 0.006,
+    "seguridad_totem": 0.006,
+    "aberturas_premium": 0.020,
+    "balcon_terraza": 0.010,
+    "terraza_comun": 0.005,
+    "terraza_compartida": 0.005,
+    "parrilla": 0.005,       # legacy → tratada como compartida
+    "parrilla_propia": 0.020,
+    "parrilla_compartida": 0.005,
+    "pileta": 0.015,
+    "sum": 0.010,
+    "gym": 0.005,
+}
+AMENITY_TOTAL_CAP = 0.06
+
+
+def calcular_delta_amenities(detalles):
+    """
+    Calcula delta aditivo de todos los amenities estructurados.
+    Normaliza keys legacy y aplica cap total.
+    Retorna: (delta_capped, dict_detalle)
+    """
+    if not isinstance(detalles, list):
+        return 0.0, {}
+    suma = 0.0
+    detalle = {}
+    for item in detalles:
+        key = item.lower().replace(" ", "_")
+        if key == "parrilla":
+            key = "parrilla_compartida"
+        w = AMENITY_WEIGHTS.get(key, 0)
+        if w > 0:
+            suma += w
+            detalle[key] = w
+    capped = min(suma, AMENITY_TOTAL_CAP)
+    return capped, detalle
+
+
 def calcular_factores(prop, ventana_usada=None):
     """
     Calcula factores de propiedad.
@@ -1570,21 +1616,11 @@ def calcular_factores(prop, ventana_usada=None):
     if vent_bano == 'natural':
         f_funcional *= 1.02
     
-    # Seguridad Aditiva (v9.6)
-    f_seguridad = 1.0
+    # Amenities centralizados (v10.0 — reemplaza seguridad aditiva v9.6)
+    f_seguridad = 1.0  # ya no se usa directamente, se suma vía delta_amenities
     detalles = prop.get('detalles_categoria', [])
     if not isinstance(detalles, list): detalles = []
-    
-    seg_weights = {
-        'seguridad_24hs': 1.06,
-        'seguridad_tag': 1.02,
-        'seguridad_camaras': 1.01,
-        'seguridad_totem': 1.01
-    }
-    
-    for item in detalles:
-        if item in seg_weights:
-            f_seguridad *= seg_weights[item]
+    delta_amenities, detalle_amenities = calcular_delta_amenities(detalles)
     
     # Factores estructurales (Sin antigüedad)
     f_estructural = (factor_estado * factor_calidad * factor_piso * factor_vent * 
@@ -1621,12 +1657,12 @@ def calcular_factores(prop, ventana_usada=None):
     delta_gas = factor_gas - 1.0
     delta_balcon = factor_balcon - 1.0
     delta_funcional = f_funcional - 1.0
-    delta_seguridad = f_seguridad - 1.0
+    # delta_seguridad reemplazado por delta_amenities (v10.0)
     
     # Sumar todos los deltas
     suma_cruda = (delta_estado + delta_calidad + delta_vent + delta_vista + 
                  delta_piso + delta_ubica + delta_gas + delta_balcon + 
-                 delta_funcional + delta_seguridad)
+                 delta_funcional + delta_amenities)
     
     # Clamp suma_cruda
     suma_cruda_clamped = max(-0.40, min(0.40, suma_cruda))
@@ -1659,6 +1695,8 @@ def calcular_factores(prop, ventana_usada=None):
         },
         'anti': factor_anti,  # Direct access for compatibility
         'ventana': ventana_usada,
+        'delta_amenities': delta_amenities,
+        'detalle_amenities': detalle_amenities,
         # FASE 7B: tasa zonificada de depreciacion (siempre mostrar la real)
         'tasa_zonal': _tasa_zonal,
         'meta_mz': _meta_mz,
@@ -2140,6 +2178,8 @@ def calcular_valor_m2(prop_data, fecha):
     suma_detalles = 0
     for d in detalles:
         d_key = d.lower().replace(" ", "_")
+        if d_key == "parrilla":
+            d_key = "parrilla_compartida"
         suma_detalles += f_p["detalles_categoria"].get(d_key, 0)
     factor_detalles = 1.0 + suma_detalles
 
@@ -2759,7 +2799,12 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True):
     usdt_ars = get_binance_usdt_ars()
     from parsers.nlp_inmobiliario import calcular_ajuste_nlp_detallado
     desc = prop.get('descripcion_libre', '')
-    ajuste_nlp, detecciones_nlp = calcular_ajuste_nlp_detallado(desc)
+    amenities_present = prop.get('detalles_categoria', [])
+    if not isinstance(amenities_present, list):
+        amenities_present = []
+    ajuste_nlp, detecciones_nlp = calcular_ajuste_nlp_detallado(
+        desc, amenities_present=amenities_present
+    )
     
     # AJUSTE 3: Cap NLP diferenciado por dormitorios
     dorms = prop.get('dormitorios', 2)

@@ -101,20 +101,21 @@
       "oeste": 1.0
     },
     "detalles_categoria": {
-      "caldera_central": 0.02,
-      "radiadores": 0.02,
-      "seguridad_24hs": 0.06,
-      "seguridad_tag": 0.02,
-      "seguridad_camaras": 0.01,
-      "seguridad_totem": 0.01,
-      "aberturas_premium": 0.03,
-      "balcon_terraza": 0.01,
-      "terraza_comun": 0.01,
-      "terraza_compartida": 0.01,
-      "parrilla": 0.02,
-      "pileta": 0.02,
-      "sum": 0.01,
-      "gym": 0.01
+      "caldera_central": 0.010,
+      "radiadores": 0.010,
+      "seguridad_24hs": 0.030,
+      "seguridad_tag": 0.008,
+      "seguridad_camaras": 0.006,
+      "seguridad_totem": 0.006,
+      "aberturas_premium": 0.020,
+      "balcon_terraza": 0.010,
+      "terraza_comun": 0.005,
+      "terraza_compartida": 0.005,
+      "parrilla_propia": 0.020,
+      "parrilla_compartida": 0.005,
+      "pileta": 0.015,
+      "sum": 0.010,
+      "gym": 0.005
     }
   }
 }

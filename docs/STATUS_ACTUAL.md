@@ -171,7 +171,27 @@ Infomapa era el principal cuello de botella del botón "Ver detalle":
 
 Colón al 1200 corregido: -32.9337,-60.6563 → -32.9463,-60.6323
 
-## 12. Pantallazo numérico eliminado ✅
+## 12. Amenities centralizados + anti doble conteo NLP ✅
+
+### Estado
+Amenities refactorizados a `calcular_delta_amenities()` con cap 6%. NLP excluye keywords equivalentes a amenities estructurados. `parrilla` reemplazada por `parrilla_propia`/`parrilla_compartida`.
+
+### Archivos modificados
+| Archivo | Cambio |
+|---------|--------|
+| `parsers/mercado_inmobiliario.py` | `calcular_delta_amenities()` nueva, reemplaza bloque seguridad-aditivo |
+| `parsers/nlp_inmobiliario.py` | `amenities_present` param, exclusión map, pesos reducidos |
+| `datos_mercado.json` | Nuevos pesos conservadores |
+| `valu_forms.py` | `parrilla` → `parrilla_propia`/`parrilla_compartida` + legacy |
+| `app.py` | Ídem |
+| `tests/test_amenities.py` | 11 tests nuevos |
+
+### Impacto en ancla
+- Mabel: USD 78,776 (sin cambios, rango 75k-85k)
+- Ayacucho: USD 46,430 (sin cambios, rango 44k-50k)
+- 39/39 regression tests pasan
+
+## 13. Pantallazo numérico eliminado ✅
 
 ### Problema
 `mostrar_detalle_valu()` mostraba las secciones secuencialmente (~2.8s), con números apareciendo antes que mapas y catastro.

@@ -4,7 +4,56 @@ import re
 MAX_AJUSTE = 0.35   # +35% máximo
 MIN_AJUSTE = -0.30  # -30% mínimo
 
-# DICCIONARIO OPTIMIZADO (ROSARIO)
+# Mapa de exclusión NLP: si un amenity está presente en detalles_categoria,
+# las keywords equivalentes en NLP no deben sumar.
+AMENITY_NLP_EXCLUSION_MAP = {
+    "parrilla_propia": [
+        "parrilla", "parrillero", "parrillero propio", "asador"
+    ],
+    "parrilla_compartida": [
+        "parrilla", "parrillero", "parrillero comun", "parrillero común",
+        "quincho con parrilla"
+    ],
+    "terraza_compartida": [
+        "terraza compartida", "terraza comun", "terraza común"
+    ],
+    "pileta": ["pileta", "piscina"],
+    "sum": ["sum", "salon de usos multiples", "salón de usos múltiples"],
+    "gym": ["gym", "gimnasio"],
+    "seguridad_24hs": [
+        "seguridad 24 horas", "seguridad 24hs", "vigilancia"
+    ],
+    "seguridad_tag": ["tag de seguridad", "tag seguridad"],
+    "seguridad_camaras": ["camaras de seguridad", "cámaras de seguridad"],
+    "seguridad_totem": ["totem de seguridad", "tótem de seguridad"],
+    "aberturas_premium": [
+        "aberturas premium", "dvh", "doble vidrio", "doble vitreo"
+    ],
+    "caldera_central": ["caldera central"],
+    "radiadores": [
+        "radiadores", "calefaccion por radiadores",
+        "calefacción por radiadores"
+    ],
+    "balcon_terraza": ["balcon terraza", "balcón terraza"],
+    "terraza_comun": ["terraza comun", "terraza común"],
+}
+
+
+def _keywords_a_excluir(amenities_present):
+    """Retorna set de keywords NLP a excluir según amenities presentes."""
+    excluir = set()
+    if not amenities_present:
+        return excluir
+    for amenity in amenities_present:
+        key = amenity.lower().replace(" ", "_")
+        if key == "parrilla":
+            key = "parrilla_compartida"
+        if key in AMENITY_NLP_EXCLUSION_MAP:
+            excluir.update(AMENITY_NLP_EXCLUSION_MAP[key])
+    return excluir
+
+
+# DICCIONARIO OPTIMIZADO (ROSARIO) v2 — pesos reducidos para amenities comunes
 FEATURES = {
     # --- PREMIUM ---
     "vista al río": 0.15,
@@ -35,15 +84,19 @@ FEATURES = {
     "quincho": 0.08,
     "parrillero": 0.06,
 
-    # --- AMENITIES ---
-    "pileta": 0.08,
-    "piscina": 0.08,
-    "parrilla": 0.06,
-    "terraza compartida": 0.08,
-    "sum": 0.05,
-    "gimnasio": 0.05,
-    "seguridad 24 horas": 0.07,
-    "vigilancia": 0.05,
+    # --- AMENITIES (pesos reducidos vs v1) ---
+    "pileta": 0.02,
+    "piscina": 0.02,
+    "parrilla": 0.01,
+    "parrillero": 0.01,
+    "terraza compartida": 0.01,
+    "terraza comun": 0.01,
+    "terraza común": 0.01,
+    "sum": 0.01,
+    "gimnasio": 0.01,
+    "gym": 0.01,
+    "seguridad 24 horas": 0.02,
+    "vigilancia": 0.02,
 
     # --- UBICACIÓN (micro señales) ---
     "cerca del río": 0.07,
@@ -66,39 +119,45 @@ FEATURES = {
     "ruidoso": -0.06
 }
 
+
 def normalizar_texto(texto):
     if not texto: return ""
     texto = texto.lower()
-    # Eliminar acentos
     texto = texto.replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u")
     texto = re.sub(r"[^\w\s]", "", texto)
     return texto
 
-def calcular_ajuste_nlp_detallado(descripcion):
+
+def calcular_ajuste_nlp_detallado(descripcion, amenities_present=None):
     """
     Calcula el ajuste total y devuelve la lista de coincidencias para la UI.
-    Aplica lógica de frases largas primero para evitar doble conteo.
+    Si amenities_present contiene keys estructurados, las keywords NLP
+    equivalentes se excluyen para evitar doble conteo.
+    Backward compatible: amenities_present=None funciona como antes.
     """
     if not descripcion:
         return 0, []
 
     texto = normalizar_texto(descripcion)
+    palabras_excluir = _keywords_a_excluir(amenities_present)
+
     ajuste = 0
     detecciones = []
-    
-    # Normalizar también las keys para el match
-    # Ordenar por longitud de keyword (frases largas primero)
+
     features_ordenadas = sorted(FEATURES.items(), key=lambda x: len(x[0]), reverse=True)
 
     for keyword, valor in features_ordenadas:
         keyword_norm = normalizar_texto(keyword)
+
+        # Excluir si el amenity estructurado ya cubre esta señal
+        if keyword_norm in palabras_excluir:
+            continue
+
         if keyword_norm in texto:
             ajuste += valor
             detecciones.append((keyword, valor))
-            # Remover para evitar que sub-frases hagan match
             texto = texto.replace(keyword_norm, " ")
 
-    # Cap de seguridad
     ajuste_final = max(min(ajuste, MAX_AJUSTE), MIN_AJUSTE)
-    
+
     return ajuste_final, detecciones

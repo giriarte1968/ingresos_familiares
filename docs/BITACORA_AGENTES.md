@@ -1163,3 +1163,64 @@ Colón al 1200 tenía coordenadas del pin de Propia (Pichincha, -32.9337, -60.65
 - `scripts/validar_coordenadas.py` — nuevo script batch
 - `cache_scraping.json` — coordenadas corregidas
 - `tests/test_validar_coordenadas.py` — nuevo, 5 tests
+
+---
+
+## Normalización amenities + anti doble conteo NLP
+
+### Problema
+1. Amenities no-seguridad (pileta, sum, gym, etc.) eran UI decoration — no impactaban valuación.
+2. Seguridad tenía doble conteo: `f_seguridad` (estructurado) + NLP ("seguridad 24 horas").
+3. `parrilla` era ambigua (propia vs compartida).
+4. Pesos NLP de amenities comunes excesivos (0.06-0.08) podían saturar el cap NLP del 5%.
+5. No había cap total de amenities.
+
+### Solución
+
+1. **`calcular_delta_amenities()`**: Nueva función centralizada que reemplaza el bloque seguridad-aditivo. Procesa TODOS los amenities con pesos conservadores y cap de 6%.
+
+2. **`AMENITY_WEIGHTS`**: Pesos prudentes. `seguridad_24hs` baja de 0.06 a 0.030.
+
+3. **Anti doble conteo NLP**: `amenities_present` param + `AMENITY_NLP_EXCLUSION_MAP`. Si el amenity está estructurado, NLP no suma keywords equivalentes.
+
+4. **Taxonomía**: `parrilla` → `parrilla_propia` (+0.020) / `parrilla_compartida` (+0.005). Legacy `parrilla` → `parrilla_compartida`.
+
+5. **Pesos NLP reducidos**: `parrilla` de 0.06 a 0.01, `terraza compartida` de 0.08 a 0.01, `pileta` de 0.08 a 0.02, etc.
+
+### Pesos finales (datos_mercado.json/AMENITY_WEIGHTS)
+
+| Amenity | Delta |
+|---|---:|
+| caldera_central | 0.010 |
+| radiadores | 0.010 |
+| seguridad_24hs | 0.030 |
+| seguridad_tag | 0.008 |
+| seguridad_camaras | 0.006 |
+| seguridad_totem | 0.006 |
+| aberturas_premium | 0.020 |
+| balcon_terraza | 0.010 |
+| terraza_comun | 0.005 |
+| terraza_compartida | 0.005 |
+| parrilla_propia | 0.020 |
+| parrilla_compartida | 0.005 |
+| pileta | 0.015 |
+| sum | 0.010 |
+| gym | 0.005 |
+
+Cap amenities: **0.06** (6%)
+
+### Impacto en ancla
+- Mabel (con `seguridad_camaras`): USD 78,776 (sin cambio significativo)
+- Ayacucho (sin amenities): USD 46,430 (sin cambio)
+- 39/39 regression tests pasan sin modificaciones
+
+### Tests
+- `tests/test_amenities.py` — 11 tests nuevos (cap, legacy, NLP dedup, backward compat)
+
+### Archivos
+- `parsers/mercado_inmobiliario.py` — `calcular_delta_amenities()` + `AMENITY_WEIGHTS` + `AMENITY_TOTAL_CAP`
+- `parsers/nlp_inmobiliario.py` — `amenities_present` param + exclusión map + pesos reducidos
+- `datos_mercado.json` — pesos conservadores
+- `valu_forms.py` — `parrilla` → `parrilla_propia`/`parrilla_compartida`
+- `app.py` — ídem
+- `tests/test_amenities.py` — 11 tests nuevos

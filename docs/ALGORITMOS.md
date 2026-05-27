@@ -597,6 +597,64 @@ valuar_propiedad_v7() → función principal (~400 líneas, 6 secciones)
   ├── SECCIÓN 5: Razonamiento narrativo
   └── SECCIÓN 6: Return con resultado completo
 
+## 15. Amenities y Anti Doble Conteo NLP (v10.0)
+
+Los amenities estructurados cargados por formulario (`detalles_categoria`) tienen **prioridad** sobre el NLP.
+Si un amenity está presente en `detalles_categoria`, las keywords equivalentes en `descripcion_libre` no suman nuevamente.
+
+### Centralización
+
+Todos los amenities se procesan en `calcular_delta_amenities()` en `mercado_inmobiliario.py`.
+Retorna un delta aditivo que se suma a `suma_cruda` en `calcular_factores()`.
+
+### Pesos (datos_mercado.json → AMENITY_WEIGHTS)
+
+| Amenity | Delta |
+|---|---:|
+| caldera_central | 0.010 |
+| radiadores | 0.010 |
+| seguridad_24hs | 0.030 |
+| seguridad_tag | 0.008 |
+| seguridad_camaras | 0.006 |
+| seguridad_totem | 0.006 |
+| aberturas_premium | 0.020 |
+| balcon_terraza | 0.010 |
+| terraza_comun | 0.005 |
+| terraza_compartida | 0.005 |
+| parrilla_propia | 0.020 |
+| parrilla_compartida | 0.005 |
+| pileta | 0.015 |
+| sum | 0.010 |
+| gym | 0.005 |
+
+**Cap total:** `AMENITY_TOTAL_CAP = 0.06` (6%).
+
+### Legacy
+
+`parrilla` en datos existentes se trata automáticamente como `parrilla_compartida`.
+
+### Anti doble conteo NLP
+
+`AMENITY_NLP_EXCLUSION_MAP` en `nlp_inmobiliario.py` mapea cada amenity estructurado a sus keywords NLP equivalentes.
+Si el amenity está en `detalles_categoria`, esas keywords se excluyen del análisis NLP.
+
+**Ejemplo:**
+- `parrilla_compartida` en amenities → bloquea NLP de "parrilla", "parrillero"
+- `terraza_compartida` → bloquea NLP de "terraza compartida", "terraza común"
+
+### Pesos NLP reducidos (amenities comunes)
+
+Los pesos NLP de amenities comunes se redujeron para no saturar el cap NLP (3% monoambientes, 5% 2+ dorm):
+
+| Keyword NLP | Peso |
+|---|---:|
+| pileta, piscina | 0.02 |
+| parrilla, parrillero | 0.01 |
+| terraza compartida/común | 0.01 |
+| sum | 0.01 |
+| gimnasio, gym | 0.01 |
+| seguridad 24 horas | 0.02 |
+
 ## 7. Rango de Valuación (3 Escenarios) — FASE 2
 
 El rango de valuación se calcula como un margen simétrico alrededor del valor principal (`valor_venta`), usando la dispersión estadística del cluster.
