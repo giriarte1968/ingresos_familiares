@@ -445,14 +445,15 @@ Para garantizar la auditabilidad y el seguimiento de activos en el tiempo, se im
 
 ## 11b. Ventanas Progresivas de Edad
 
-La función `_filtrar_por_ventana_edad()` usa dos ventanas progresivas prudentes en lugar del salto binario ±15→±30 anterior:
+La función `_filtrar_por_ventana_edad()` usa dos ventanas progresivas:
 
 ```
-±15 años → si n ≥ 8, acepta pool
-±20 años → si n ≥ 8, acepta pool
-           si 5 ≤ n < 8, acepta pool (activa P33_age_blend)
-           si n < 5, fallback total al pool completo (P33)
+±15 años → si n ≥ 5, acepta pool
+±30 años → si n ≥ 5, acepta pool (si ±15 no alcanzó)
+           si n < 5 en ambas, fallback al pool completo (P33)
 ```
+
+El umbral es ≥5 porque el selector `seleccionar_percentil_por_edad()` ya discrimina entre 5-7 (P33_age_blend) y 8+ (P40/P45/P50). Antes se exigía ≥8, lo que impedía activar `P33_age_blend` para 5-7 comparables.
 
 Esto evita que propiedades modernas en zonas con edificios viejos (ej. Centro) se vean contaminadas por comparables 25+ años más antiguos, manteniendo estabilidad en propiedades donde ±15 ya captura suficientes comparables de edad similar.
 

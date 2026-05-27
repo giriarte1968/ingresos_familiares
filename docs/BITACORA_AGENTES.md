@@ -1094,6 +1094,38 @@ Brown 2700 Pichincha arrojaba valuación ~21% sobre listing ($236k → ~$300k). 
 - `scripts/extract_barriers.py` — `'Del Valle'` en `nombres_clave`
 - `barreras_rosario.json` — regenerado con 6 nuevos segmentos soft
 
-### Commit: _(en proceso)_
+### Commit: `544c598`
 
 ### Tests: 39/39 regression pasando, auto_validate OK
+
+---
+
+## 📅 2026-05-26 — TAREA-009: Conectar P33_age_blend para 5-7 comparables
+
+### Problema
+`seleccionar_percentil_por_edad()` ya contemplaba `P33_age_blend` para 5-7, pero `_filtrar_por_ventana_edad()` tenía `min_con_anio=10` y segunda ventana ±20 (vs ±30). Para Brown 2700 (2010), ±20 daba 4 comparables, insuficiente para activar blend.
+
+### Diagnóstico Brown 2700 (año 2010, radio 300m)
+- n_con_anio: 12 de 23
+- n_ventana_15 (1995-2025): 3
+- n_ventana_30 (1980-2040): 6
+- Excluidos: 1968, 1975
+
+### Cambio
+- `min_con_anio=10` → `min_con_anio=5`
+- Segunda ventana 20 → 30
+- Control flow simplificado
+
+### Resultado
+| Métrica | Antes | Después |
+|---------|-------|---------|
+| age_filter_applied | False | True |
+| n_age_filtered | 0 | 6 |
+| percentil_usado | P33 | P33_age_blend |
+| base_principal ($/m²) | 2057.84 | 1763.50 |
+
+### Archivos
+- `parsers/mercado_inmobiliario.py` — `_filtrar_por_ventana_edad()` reescrita
+- `tests/test_age_blend_filter.py` — nuevo, 5 tests
+
+### Tests: 96/96 pasan, auto_validate OK

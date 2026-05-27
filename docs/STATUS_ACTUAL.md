@@ -72,10 +72,37 @@ Se ha completado la transición hacia una arquitectura de frontend desacoplada:
 ---
 
 **Actualizado por**: opencode (Agente IA)
-**Fecha**: 2026-05-23
+**Fecha**: 2026-05-26
 **Ubicación**: `ingresos_familiares_st/valu.py`
 
-## 7. Persistencia entre Deploys DO ✅
+## 7. Fix Age Blend 5-7 ✅ (2026-05-26)
+
+### Problema
+`seleccionar_percentil_por_edad()` ya contemplaba `P33_age_blend` para 5–7 comparables, pero `_filtrar_por_ventana_edad()` exigía `min_con_anio=10` y segunda ventana ±20 (en vez de ±30). Con ±20 solo obtenía 4 comparables para Brown 2700 (año 2010), insuficientes para activar el blend.
+
+### Cambios
+- `min_con_anio=10` → `min_con_anio=5`
+- Segunda ventana: 20 → 30
+- Control flow simplificado (return on first success)
+- Fallback retorna `len(pool_con_anio)` en vez de 0
+
+### Caso Brown 2700 (2010)
+| Métrica | Antes | Después |
+|---------|-------|---------|
+| age_filter_applied | False | True |
+| n_age_filtered | 0 | 6 |
+| rango_anio | — | 1980-2040 |
+| percentil_usado | P33 | P33_age_blend |
+| age_blend_applied | False | True |
+| alpha_age_blend | — | 0.60 |
+| base_principal | 2057.84 | 1763.50 |
+| Comparables 1968/1975 en pool | Sí | No |
+
+### Archivos modificados
+- `parsers/mercado_inmobiliario.py` — `_filtrar_por_ventana_edad()`
+- `tests/test_age_blend_filter.py` — 5 tests nuevos
+
+## 8. Persistencia entre Deploys DO ✅
 
 - `data/valuaciones_cache.json` ahora trackeado en git → persiste en DO
 - `cache_scraping.json` trackeado en git (se quitó de .gitignore)
@@ -85,7 +112,7 @@ Se ha completado la transición hacia una arquitectura de frontend desacoplada:
 - `parsers/git_sync.py`: write-back de propiedades a git cuando `GIT_WRITE_TOKEN` está configurado
 - ⚠️ Cada push desde DO desencadena un deploy (deploy_on_push). Las sesiones de usuario se interrumpen brevemente.
 
-## 8. Optimización de Performance — FASE 1 ✅
+## 9. Optimización de Performance — FASE 1 ✅
 
 ### Cache persistente de Infomapa
 - `_INFOMAPA_CACHE` en memoria + `data/infomapa_cache.json` en disco
@@ -103,7 +130,7 @@ Se ha completado la transición hacia una arquitectura de frontend desacoplada:
 - `valuar_propiedad_v7()` carga el cache UNA VEZ y lo pasa a toda la valuación
 - **Ahorro estimado**: ~319ms (4 lecturas → 1)
 
-## 9. Infomapa Lazy-Load (On-Demand) ✅
+## 10. Infomapa Lazy-Load (On-Demand) ✅
 
 ### Problema resuelto
 Infomapa era el principal cuello de botella del botón "Ver detalle":
@@ -130,7 +157,7 @@ Infomapa era el principal cuello de botella del botón "Ver detalle":
 | `valu.py` | `consultar_infomapa=False` + botón on-demand |
 | `valu_detail_sections.py` | `render_catastro()` early return sin datos |
 
-## 10. Pantallazo numérico eliminado ✅
+## 11. Pantallazo numérico eliminado ✅
 
 ### Problema
 `mostrar_detalle_valu()` mostraba las secciones secuencialmente (~2.8s), con números apareciendo antes que mapas y catastro.
