@@ -50,7 +50,15 @@
       "fecha_compra": "2003-01-01",
       "fecha_publicacion": "2026-05-19",
       "expensas_ars": 90000,
-      "id": 9
+      "id": 9,
+      "_ultima_valuacion": {
+        "valor_usd": 70340.0,
+        "alquiler_ars": 482406.0,
+        "cap_rate": 0.0552,
+        "m2_equivalentes": 42.3035,
+        "comps": 26,
+        "fecha": "28/05/2026 01:25"
+      }
     },
     {
       "nombre": "Ayacucho",
@@ -100,7 +108,15 @@
       "fecha_compra": "2002-01-15",
       "fecha_publicacion": "2026-05-13",
       "expensas_ars": 59000,
-      "id": 10
+      "id": 10,
+      "_ultima_valuacion": {
+        "valor_usd": 50791.0,
+        "alquiler_ars": 343918.0,
+        "cap_rate": 0.0545,
+        "m2_equivalentes": 28.9265,
+        "comps": 16,
+        "fecha": "28/05/2026 01:26"
+      }
     },
     {
       "nombre": "Vera Mujica",
@@ -151,7 +167,15 @@
       "expensas_ars": 48000,
       "id": "prop_e559e7cc",
       "tasaciones": [],
-      "ultima_valuacion": null
+      "ultima_valuacion": null,
+      "_ultima_valuacion": {
+        "valor_usd": 53031.0,
+        "alquiler_ars": 395982.0,
+        "cap_rate": 0.0601,
+        "m2_equivalentes": 40.62,
+        "comps": 7,
+        "fecha": "28/05/2026 01:25"
+      }
     },
     {
       "nombre": "P1200",
@@ -212,7 +236,15 @@
       "ancla_mas_cercana": "pellegrini_libertad",
       "ancla_usd_m2": 1580,
       "distancia_ancla_km": 0.39,
-      "geocode_status": "no_snap"
+      "geocode_status": "no_snap",
+      "_ultima_valuacion": {
+        "valor_usd": 125763.0,
+        "alquiler_ars": 752046.0,
+        "cap_rate": 0.061,
+        "m2_equivalentes": 88.85,
+        "comps": 9,
+        "fecha": "28/05/2026 01:26"
+      }
     },
     {
       "nombre": "Entre Rios ",
@@ -262,7 +294,69 @@
       "fecha_compra": "2016-01-01",
       "fecha_publicacion": "2026-05-19",
       "expensas_ars": 28000,
-      "id": "prop_baecb40d"
+      "id": "prop_baecb40d",
+      "_ultima_valuacion": {
+        "valor_usd": 71687.0,
+        "alquiler_ars": 489864.0,
+        "cap_rate": 0.055,
+        "m2_equivalentes": 34.0,
+        "comps": 6,
+        "fecha": "28/05/2026 01:26"
+      }
+    },
+    {
+      "nombre": "Brown 2750",
+      "tipo_inmueble": "departamento",
+      "zona": "Otro",
+      "direccion": "Brown 2700",
+      "lat": -32.9331753,
+      "lon": -60.6575732,
+      "ubicacion_tipo": "calle",
+      "m2_cubiertos": 96.0,
+      "dormitorios": 2,
+      "baños": 2,
+      "toilet": false,
+      "baño_servicio": false,
+      "anio_construccion": 2025,
+      "constructora": "",
+      "piso": 6,
+      "total_pisos": 8,
+      "vista": "frente",
+      "gas_ok": "si",
+      "m2_semicubiertos": 6.0,
+      "m2_descubiertos_propios": 0.0,
+      "m2_descubiertos_comun_exclusivo": 0.0,
+      "balcon": false,
+      "tipo_balcon": "ninguno",
+      "orientacion": "norte",
+      "ventilacion": "cruzada",
+      "estado_detalle": "a estrenar",
+      "calidad_edificio": "premium",
+      "seguridad": "ninguna",
+      "terminaciones_suelo": "porcelanato",
+      "carpinteria": "estandar",
+      "cochera": true,
+      "doble_ingreso": false,
+      "lavadero_independiente": false,
+      "reciclado": false,
+      "reciclado_tipo": "ninguno",
+      "anio_reciclado": null,
+      "ventilacion_bano": "natural",
+      "layout_flexible": false,
+      "placares_completos": true,
+      "despensa": true,
+      "ascensores_edificio": 2,
+      "detalles_categoria": [
+        "pileta",
+        "terraza_compartida",
+        "parrilla_compartida"
+      ],
+      "descripcion_libre": "",
+      "valor_compra_usd": 0.0,
+      "fecha_compra": "2020-01-01",
+      "fecha_publicacion": "2026-05-28",
+      "expensas_ars": 0,
+      "id": "prop_e60aea05"
     }
   ]
 }
