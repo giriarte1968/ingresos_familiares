@@ -356,7 +356,15 @@
       "fecha_compra": "2020-01-01",
       "fecha_publicacion": "2026-05-28",
       "expensas_ars": 0,
-      "id": "prop_e60aea05"
+      "id": "prop_e60aea05",
+      "_ultima_valuacion": {
+        "valor_usd": 306681.0,
+        "alquiler_ars": 1063772.0,
+        "cap_rate": 0.037,
+        "m2_equivalentes": 98.7,
+        "comps": 23,
+        "fecha": "27/05/2026 22:30"
+      }
     }
   ]
 }

@@ -151,55 +151,50 @@ Infomapa era el principal cuello de botella del botón "Ver detalle":
 
 ### Archivos modificados
 | Archivo | Cambio |
-|---------|--------|
-| `parsers/mercado_inmobiliario.py` | `consultar_infomapa` param en `valuar_propiedad_v7()` |
-| `parsers/motor_vpp_core.py` | `consultar_infomapa` param en `valuar_con_cache()` |
-| `valu.py` | `consultar_infomapa=False` + botón on-demand |
-| `valu_detail_sections.py` | `render_catastro()` early return sin datos |
+|--------|--------|
+| `valu.py` | `st.spinner` → `st.status(expanded=False)` wrapper
 
-## 11. Validación de coordenadas post-scrape ✅
+
+## 15. TAREA-012 — Regla estricta de fuente de año para comparables ✅
 
 ### Estado
-`scripts/validar_coordenadas.py` disponible para correr bajo demanda. Valida cada propiedad del cache comparando coordenadas del pin scraping contra geocoding textual vía Nominatim. Discrepancias >500m se corrigen automáticamente.
+Años scraping → ALTA confianza; años AVM → MEDIA confianza solo con matching estricto (misma calle+número exacto o misma calle+≤20m). `max_dist_m` reducido de 50 a 20.
+
+### Helpers nuevos en `parsers/mercado_inmobiliario.py`
+- `normalizar_calle_nombre()`: lowercase, sin tildes, Av/Bv removido, honoríficos eliminados, espacios colapsados
+- `extraer_calle_numero()`: extrae (calle_normalizada, numero_int) de direcciones libres
+- `obtener_anio_scraping()`: busca año en campos del scraping; retorna ALTA si válido
+
+### `enriquecer_anio_comparable()` reescrita
+1. `obtener_anio_scraping()` → ALTA (sin validación AVM)
+2. Sin lat/lon → None
+3. Regla A: misma calle normalizada + mismo número exacto → MEDIA (`calle_numero_exactos`)
+4. Regla B: misma calle normalizada + distancia ≤20m → MEDIA (`calle_distancia_20m`)
+5. Todo lo demás → None
+
+### Metadata nueva por comparable
+- `anio_source`: 'scraping', 'avm', o None
+- `anio_confianza`: 'ALTA', 'MEDIA', o None
+- `anio_match_tipo`: 'campo_scraping', 'calle_numero_exactos', 'calle_distancia_20m', o None
+- `anio_distancia_match`: distancia en metros al AVM matched
+- `anio_ph_match`: PH matched en el CSV catastral
+- `anio_direccion_catastro`: dirección del CSV catastral matched
+
+### Contadores en `meta`
+- `n_con_anio_scraping`: comps con año scraping
+- `n_con_anio_avm`: comps con año AVM
+- `n_con_anio_none`: comps sin año
+
+### Fix preexistente
+- `radio_usado: None` crash en `generar_razonamiento_valuacion()`: `if radio is None: radio = 300`
+
+### Tests
+- `tests/test_age_enrichment.py` — 26 tests nuevos
+- Regression: 5/39 esperados FAIL por cambio de comportamiento
+
+### Impacto en pct_con_anio
+- Mabel: ~50% → ~3.8% (3/79 comps con AVM años) — intencional, prioriza confianza sobre cobertura
 
 ### Archivos
-| Archivo | Descripción |
-|---------|-------------|
-| `parsers/geocoder.py` | `validar_coordenadas_contra_direccion()` |
-| `scripts/validar_coordenadas.py` | Script batch post-scrape |
-| `tests/test_validar_coordenadas.py` | 5 tests |
-
-Colón al 1200 corregido: -32.9337,-60.6563 → -32.9463,-60.6323
-
-## 12. Amenities centralizados + anti doble conteo NLP ✅
-
-### Estado
-Amenities refactorizados a `calcular_delta_amenities()` con cap 6%. NLP excluye keywords equivalentes a amenities estructurados. `parrilla` reemplazada por `parrilla_propia`/`parrilla_compartida`.
-
-### Archivos modificados
-| Archivo | Cambio |
-|---------|--------|
-| `parsers/mercado_inmobiliario.py` | `calcular_delta_amenities()` nueva, reemplaza bloque seguridad-aditivo |
-| `parsers/nlp_inmobiliario.py` | `amenities_present` param, exclusión map, pesos reducidos |
-| `datos_mercado.json` | Nuevos pesos conservadores |
-| `valu_forms.py` | `parrilla` → `parrilla_propia`/`parrilla_compartida` + legacy |
-| `app.py` | Ídem |
-| `tests/test_amenities.py` | 11 tests nuevos |
-
-### Impacto en ancla
-- Mabel: USD 78,776 (sin cambios, rango 75k-85k)
-- Ayacucho: USD 46,430 (sin cambios, rango 44k-50k)
-- 39/39 regression tests pasan
-
-## 13. Pantallazo numérico eliminado ✅
-
-### Problema
-`mostrar_detalle_valu()` mostraba las secciones secuencialmente (~2.8s), con números apareciendo antes que mapas y catastro.
-
-### Solución
-`st.spinner()` + render directo reemplazado por `st.status(expanded=False)` que oculta todo hasta que el render completo termina, luego expande mostrando todo simultáneamente.
-
-### Archivo modificado
-| Archivo | Cambio |
-|---------|--------|
-| `valu.py` | `st.spinner` → `st.status(expanded=False)` wrapper
+- `parsers/mercado_inmobiliario.py` — helpers + reescritura + fix
+- `tests/test_age_enrichment.py` — nuevo, 26 tests
