@@ -50,6 +50,8 @@ Scripts para validación y documentación automática.
 - `scripts/update_docs.py`: Actualiza documentación .MD (--auto para aplicar cambios).
 - `scripts/init_reminder.py`: Recordatorio de flujo de trabajo.
 - `scripts/validar_coordenadas.py`: Valida coordenadas de cache contra geocoding textual. Corre bajo demanda.
+- `scripts/completar_catastral.py`: Completa seccion/manzana/grafico en rosario_avm_full.csv via point-in-polygon contra geometría oficial (274k parcelas).
+- `scripts/geocode_rebuild_and_geocode.py`: Script original de rebuild del CSV desde JSONs de secciones + geometría (documentación).
 
 ## 4. MÓDULOS DE EXTRACCIÓN (SCRAPERS)
 

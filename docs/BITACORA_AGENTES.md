@@ -1224,3 +1224,27 @@ Cap amenities: **0.06** (6%)
 - `valu_forms.py` — `parrilla` → `parrilla_propia`/`parrilla_compartida`
 - `app.py` — ídem
 - `tests/test_amenities.py` — 11 tests nuevos
+
+---
+
+## 📅 2026-05-27 — COMPLETAR CATASTRAL (seccion/manzana/grafico)
+
+### Objetivo
+Completar seccion/manzana/grafico en `rosario_avm_full.csv` (78.5% nulos → 100%) usando point-in-polygon contra la geometría catastral oficial.
+
+### Diagnóstico
+- Backup CSV (`broken_backup`) tenía 16,489 registros con (s,m,g) pero el CSV actual solo usaba 4,527 de section JSONs
+- 130 registros tenían grafico incorrecto (desfasado por +1/-1)
+- 21,017 PHs con coordenadas válidas; geometría oficial con 274,090 polígonos
+
+### Solución
+- `scripts/completar_catastral.py` — carga geometry CSVs, arma GeoDataFrame, hace spatial join (point-in-polygon)
+- Usa `geopandas.sjoin` con `predicate='within'` para máxima precisión
+- Resultado: 21,016/21,017 PHs con (s,m,g) correctos (99.995%); 1 PH sin match (coordenadas fuera del catastro)
+
+### Archivos
+- `scripts/completar_catastral.py` — script de completitud catastral
+- `scripts/geocode_rebuild_and_geocode.py` — script original de rebuild (copiado del scratch)
+- `data/rosario_avm_full.csv` — regenerado con 100% datos catastrales
+- `data/geometry/` — geometría oficial (274k parcelas, no trackeado en git)
+- `.gitignore` — añadido `data/geometry/`

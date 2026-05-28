@@ -260,5 +260,30 @@ Agregado a valuación vía `enriquecer_con_infomapa()`.
 
 ---
 
+---
+
+## 8. `rosario_avm_full.csv`
+
+Catastro de PHs con años de construcción del Infomapa. Generado por `scripts/completar_catastral.py` desde JSONs de secciones + geometría oficial.
+
+### Estructura
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `ph` | int | Número de carpeta PH (identificador único catastral) |
+| `year` | float | Año de construcción |
+| `seccion` | str | Sección catastral (completado vía point-in-polygon contra geometría oficial) |
+| `manzana` | str | Manzana catastral |
+| `grafico` | str | Gráfico catastral (parcela) |
+| `division` | str | División catastral (mayormente vacío) |
+| `latitud` | float | Coordenada geográfica (obtenida del Infomapa) |
+| `longitud` | float | Coordenada geográfica |
+| `direccion_nominatim` | str | Dirección textual (obtenida vía Nominatim reverse geocoding) |
+
+### Notas
+- ~21,017 PHs. 21,016/21,017 tienen seccion/manzana/grafico completos.
+- Fuente de verdad: `data/geometry/parcelas_seccion*_json.csv` (274k polígonos oficiales del catastro).
+- Usado por `parsers/mercado_inmobiliario.py` → `cargar_catastro()` y `parsers/infomapa_api.py`.
+
 **Generado por**: Antigravity (IA de Desarrollo)
-**Fecha**: 2026-05-12
+**Fecha**: 2026-05-27

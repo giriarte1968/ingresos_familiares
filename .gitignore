@@ -16,3 +16,6 @@ data/infomapa_cache.json
 
 # Cache de valuaciones (generado en runtime, no trackear)
 data/valuaciones_cache.json
+
+# Geometría catastral (shapefiles grandes, regenerable desde Infomapa)
+data/geometry/
