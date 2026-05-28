@@ -93,137 +93,6 @@ def normalize_year(x):
     except (ValueError, TypeError):
         return None
 
-# --- NORMALIZADORES DE DIRECCIÓN ---
-_RE_AV = re.compile(r'\b(av|avenida)\b', re.IGNORECASE)
-_RE_BV = re.compile(r'\b(bv|bulevar|boulevard|bulevard)\b', re.IGNORECASE)
-_RE_PUNTUACION = re.compile(r'[^\w\s]')
-_RE_ESPACIOS = re.compile(r'\s+')
-_RE_PALABRAS_IRRELEVANTES = re.compile(r'\b(calle|pasaje|pasillo|ruta|camino)\b', re.IGNORECASE)
-_RE_PREFIJOS_HONORIFICOS = re.compile(
-    r'\b(almirante|general|doctor|dr|presidente|teniente|coronel|mayor|capitan|san|santa|fray|monseñor|don)\b',
-    re.IGNORECASE
-)
-_RE_PRIMER_NUMERO = re.compile(r'(?:al\s+)?(\d{2,})')
-# Eliminar pisos/unidades: tanto "4°", "2do" (número+sufijo) como "Piso 6", "Depto 3" (prefijo+número)
-_RE_PISO = re.compile(
-    r'\b\d{1,3}\s*(?:°|º|do|da|piso|p|depto|dpto|departamento)'
-    r'(\s*\d+\s*°|\s*\d+\s*º)?'
-    r'|\b(?:piso|depto|dpto|departamento)\s*\d+\b',
-    re.IGNORECASE
-)
-
-_TILDES = str.maketrans({
-    'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u',
-    'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U',
-    'ñ': 'n', 'Ñ': 'N',
-})
-
-
-def normalizar_calle_nombre(calle: str) -> str:
-    """Normaliza nombre de calle para matching:
-    - lowercase, sin tildes, sin puntuación
-    - normaliza Av/Avenida → avenida, Bv/Boulevard/Bulevar → bulevar
-    - elimina palabras irrelevantes (calle, pasaje, etc.)
-    - elimina prefijos honoríficos (Almirante, General, Doctor, etc.)
-    - colapsa espacios múltiples
-    """
-    if not calle or not isinstance(calle, str):
-        return ''
-    s = calle.lower().strip()
-    s = s.translate(_TILDES)
-    s = _RE_PUNTUACION.sub(' ', s)
-    s = _RE_AV.sub('', s)
-    s = _RE_BV.sub('', s)
-    s = _RE_PALABRAS_IRRELEVANTES.sub('', s)
-    s = _RE_PREFIJOS_HONORIFICOS.sub('', s)
-    s = _RE_ESPACIOS.sub(' ', s).strip()
-    return s
-
-
-def extraer_calle_numero(direccion: str) -> tuple:
-    """Extrae (calle_normalizada, numero_int) de una dirección libre.
-
-    Ejemplos:
-        'Brown 2734' -> ('brown', 2734)
-        'Brown 2734 4º 03' -> ('brown', 2734)
-        'Av. del Valle al 2700' -> ('del valle', 2700)
-        'Balcarce' -> ('balcarce', None)
-        'Avenida Aristóbulo del Valle 2700' -> ('aristobulo del valle', 2700)
-        '' -> ('', None)
-    """
-    if not direccion or not isinstance(direccion, str):
-        return '', None
-
-    # Limpiar: eliminar pisos/unidades primero
-    s = _RE_PISO.sub('', direccion)
-
-    # Extraer caller y número con regex
-    # Buscar "calle número" o "calle al número"
-    match_num = _RE_PRIMER_NUMERO.search(s)
-    numero = None
-    if match_num:
-        numero = int(match_num.group(1))
-        # Remover el número del string para obtener la calle
-        calle_raw = s[:match_num.start()] + s[match_num.end():]
-    else:
-        calle_raw = s
-
-    calle = normalizar_calle_nombre(calle_raw)
-
-    # Limpiar residuos numéricos que quedaron en la calle (ej. "brown 03")
-    # después de extraer el número
-    if calle:
-        partes = [p for p in calle.split() if not p.isdigit() or len(p) >= 5]
-        calle = ' '.join(partes).strip()
-
-    return calle, numero
-
-
-def obtener_anio_scraping(comp: dict) -> dict | None:
-    """Busca año de construcción en campos del scraping/listing.
-
-    Campos chequeados en orden: anio_construccion, anio_estimado,
-    year, antiguedad.
-
-    Returns:
-        dict con anio_estimado, source='scraping', confianza='ALTA',
-        match_tipo='campo_scraping' o None si no encuentra año válido.
-    """
-    anio = None
-    fuente = None
-
-    for campo in ('anio_construccion', 'anio_estimado', 'year'):
-        val = comp.get(campo)
-        if val is not None:
-            anio = normalize_year(val)
-            if anio is not None:
-                fuente = campo
-                break
-
-    if anio is None:
-        antiguedad = comp.get('antiguedad')
-        if antiguedad is not None:
-            try:
-                ant = int(antiguedad)
-                if 0 <= ant <= 150:
-                    anio = ANIO_ACTUAL - ant
-                    anio = normalize_year(anio)
-                    if anio is not None:
-                        fuente = 'antiguedad'
-            except (ValueError, TypeError):
-                pass
-
-    if anio is None:
-        return None
-
-    return {
-        'anio_estimado': anio,
-        'anio_source': 'scraping',
-        'anio_confianza': 'ALTA',
-        'anio_match_tipo': f'campo_{fuente}',
-    }
-
-
 # --- FUNCIONES AUXILIARES DE DISTANCIA ---
 def calcular_distancia_km(lat1, lon1, lat2, lon2):
     """Calcula distancia en km usando fórmula de Haversine."""
@@ -533,53 +402,34 @@ def cargar_catastro():
         return None
 
 
-def enriquecer_anio_comparable(comp, max_dist_m=20):
+def enriquecer_anio_comparable(comp, max_dist_m=50):
     """
-    Asigna año de construcción a un comparable con reglas estrictas.
-
-    Prioridad:
-    1. Si scraping trae año válido → confianza ALTA (delegado a obtener_anio_scraping)
-    2. Si no hay lat/lon → None
-    3. Match AVM solo si:
-       a) misma calle normalizada + mismo número exacto → MEDIA, calle_numero_exactos
-       b) misma calle normalizada + distancia <= 20m (sin número o número distinto) → MEDIA, calle_distancia_20m
-    4. Todo lo demás → None
-
+    Asigna año de construcción a un comparable usando catastro.
+    
     Args:
         comp: dict de comparable (del scraping)
-        max_dist_m: distancia máxima en metros (default 20)
-
+        max_dist_m: distancia máxima en metros para considerar match
+    
     Returns:
-        dict con anio_estimado, anio_source, anio_confianza, anio_match_tipo, etc.
-        o None si no hay match.
+        dict con anio_estimado, distancia_match, confianza, o None
     """
-    # 1. Año scraping tiene prioridad absoluta
-    scraping_anio = obtener_anio_scraping(comp)
-    if scraping_anio:
-        return scraping_anio
-
-    # 2. Necesitamos lat/lon para AVM
-    lat = comp.get('lat') or comp.get('latitud')
-    lon = comp.get('lon') or comp.get('longitud')
-    if not lat or not lon:
-        return None
-    try:
-        lat, lon = float(lat), float(lon)
-    except (ValueError, TypeError):
-        return None
-
-    # 3. Extraer calle/número del comparable
-    dir_comp = comp.get('direccion', comp.get('address', ''))
-    calle_comp, num_comp = extraer_calle_numero(dir_comp)
-    if not calle_comp:
-        # Sin calle no podemos hacer match AVM
-        return None
-
-    # 4. Buscar candidatos AVM en bbox
     catastro = cargar_catastro()
     if catastro is None:
         return None
 
+    lat = comp.get('lat') or comp.get('latitud')
+    lon = comp.get('lon') or comp.get('longitud')
+    dir_comp = comp.get('direccion', comp.get('address', ''))
+
+    if not lat or not lon:
+        return None
+
+    try:
+        lat, lon = float(lat), float(lon)
+    except:
+        return None
+
+    # Búsqueda espacial aproximada (bounding box ~111m)
     bbox = 0.001
     cercanos = catastro[
         (catastro['latitud'].between(lat - bbox, lat + bbox)) &
@@ -590,43 +440,42 @@ def enriquecer_anio_comparable(comp, max_dist_m=20):
 
     mejor_dist = float('inf')
     mejor_row = None
-    match_tipo = None
 
     for _, row in cercanos.iterrows():
         d = calcular_distancia_km(lat, lon, row['latitud'], row['longitud']) * 1000
+        if d < mejor_dist:
+            mejor_dist = d
+            mejor_row = row
 
-        # Extraer calle/número del registro AVM
-        dir_avm = str(row.get('direccion_nominatim', ''))
-        calle_avm, num_avm = extraer_calle_numero(dir_avm)
-
-        if d > max_dist_m:
-            continue
-
-        # Regla A — calle + número exactos
-        if calle_avm and calle_avm == calle_comp:
-            if num_comp is not None and num_avm is not None and num_comp == num_avm:
-                if d < mejor_dist:
-                    mejor_dist = d
-                    mejor_row = row
-                    match_tipo = 'calle_numero_exactos'
-
-            # Regla B — misma calle + distancia <= 20m (sin número o número distinto)
-            elif d <= max_dist_m and d < mejor_dist:
-                mejor_dist = d
-                mejor_row = row
-                match_tipo = 'calle_distancia_20m'
-
-    if mejor_row is None:
+    if mejor_dist > max_dist_m:
         return None
+
+    # Determinar confianza
+    if mejor_dist < 30:
+        confianza = 'ALTA'
+    elif mejor_dist < 50:
+        confianza = 'MEDIA'
+    else:
+        return None
+
+    # Validación por dirección
+    dir_catastro = str(mejor_row.get('direccion_nominatim', '')).lower()
+    match_calle = False
+    if dir_comp and dir_catastro:
+        calle_comp = dir_comp.lower().split()[0] if dir_comp.split() else ''
+        calle_cat = dir_catastro.split()[0] if dir_catastro.split() else ''
+        match_calle = bool(calle_comp and calle_cat and calle_comp == calle_cat)
+
+    if confianza == 'MEDIA' and not match_calle:
+        return None  # Baja confianza → descartar
 
     return {
         'anio_estimado': int(mejor_row['year']),
-        'anio_source': 'avm',
-        'anio_confianza': 'MEDIA',
-        'anio_match_tipo': match_tipo,
-        'anio_distancia_match': round(mejor_dist, 1),
-        'anio_ph_match': str(mejor_row.get('ph', '?')),
-        'anio_direccion_catastro': str(mejor_row.get('direccion_nominatim', '')),
+        'ph_match': str(mejor_row.get('ph', '?')),
+        'distancia_m': round(mejor_dist, 1),
+        'confianza': confianza,
+        'match_calle': match_calle,
+        'direccion_catastro': str(mejor_row.get('direccion_nominatim', ''))
     }
 
 
@@ -916,34 +765,27 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 seen.add(key)
                 unicos.append(p)
         
-        # FASE 1: Enriquecer pool con año (scraping → ALTA, AVM → MEDIA)
-        n_anio_source_scraping = 0
-        n_anio_source_avm = 0
-        n_anio_source_none = 0
+        # FASE 1: Enriquecer pool con año del catastro (solo informativo)
+        n_enriquecidos_alta = 0
+        n_enriquecidos_media = 0
 
         for comp in unicos:
+            if comp.get('anio_construccion') or comp.get('anio_estimado'):
+                continue
             enriq = enriquecer_anio_comparable(comp)
             if enriq:
                 comp['anio_estimado'] = enriq['anio_estimado']
-                comp['anio_source'] = enriq.get('anio_source')
-                comp['anio_confianza'] = enriq.get('anio_confianza')
-                comp['anio_match_tipo'] = enriq.get('anio_match_tipo')
-                comp['anio_distancia_match'] = enriq.get('anio_distancia_match')
-                comp['anio_ph_match'] = enriq.get('anio_ph_match')
-                comp['anio_direccion_catastro'] = enriq.get('anio_direccion_catastro')
+                comp['anio_confianza'] = enriq['confianza']
+                comp['anio_ph_match'] = enriq['ph_match']
+                comp['anio_distancia_match'] = enriq['distancia_m']
 
-                source = enriq.get('anio_source')
-                if source == 'scraping':
-                    n_anio_source_scraping += 1
-                elif source == 'avm':
-                    n_anio_source_avm += 1
-                else:
-                    n_anio_source_none += 1
-            else:
-                n_anio_source_none += 1
+                if enriq['confianza'] == 'ALTA':
+                    n_enriquecidos_alta += 1
+                elif enriq['confianza'] == 'MEDIA':
+                    n_enriquecidos_media += 1
 
         total_pool = len(unicos)
-        n_enriq_total = n_anio_source_scraping + n_anio_source_avm
+        n_enriq_total = n_enriquecidos_alta + n_enriquecidos_media
         pct_enriq = (n_enriq_total / total_pool * 100) if total_pool else 0
 
         # FASE 2: Filtrar por ventana de edad (±15 → ±20)
@@ -1211,13 +1053,10 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             'p75_cluster': round(p75_cluster, 2),
             # Fuente del rango
             'fuente_rango': fuente_rango,
-            # Enriquecimiento Fase 1 (años)
+            # Enriquecimiento Fase 1 (catastro)
             'n_comparables_total': total_pool,
-            'n_con_anio_alta': n_anio_source_scraping,
-            'n_con_anio_media': n_anio_source_avm,
-            'n_con_anio_scraping': n_anio_source_scraping,
-            'n_con_anio_avm': n_anio_source_avm,
-            'n_con_anio_none': n_anio_source_none,
+            'n_con_anio_alta': n_enriquecidos_alta,
+            'n_con_anio_media': n_enriquecidos_media,
             'pct_con_anio': round(pct_enriq, 1),
             # Fase 2: Filtro de edad
             'age_filter_applied': age_filter_applied,
@@ -1242,10 +1081,6 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                     'zona': p.get('zona'),
                     'tipo': p.get('tipo'),
                     'anio_estimado': p.get('anio_estimado'),
-                    'anio_source': p.get('anio_source'),
-                    'anio_confianza': p.get('anio_confianza'),
-                    'anio_match_tipo': p.get('anio_match_tipo'),
-                    'anio_distancia_match': p.get('anio_distancia_match'),
                     'distancia_m': round(calcular_distancia_km(lat_ref, lon_ref, float(p['lat']), float(p['lon'])) * 1000, 0) if lat_ref and lon_ref and p.get('lat') and p.get('lon') else None,
                 }
                 for p in pool_final[:30]
@@ -3603,9 +3438,7 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
 
     # ─── PÁRRAFO 2: Contexto de mercado ───
     n_comps = resultado.get('n_comps', meta.get('n_propiedades', 0))
-    radio = meta.get('radio_usado')
-    if radio is None:
-        radio = 300
+    radio = meta.get('radio_usado', 300)
 
     if n_comps >= 25:
         texto_mercado = (

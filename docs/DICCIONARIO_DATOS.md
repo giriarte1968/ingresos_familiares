@@ -285,28 +285,5 @@ Catastro de PHs con años de construcción del Infomapa. Generado por `scripts/c
 - Fuente de verdad: `data/geometry/parcelas_seccion*_json.csv` (274k polígonos oficiales del catastro).
 - Usado por `parsers/mercado_inmobiliario.py` → `cargar_catastro()` y `parsers/infomapa_api.py`.
 
-## 9. `comparables_reales[]` — Año enrichment metadata (TAREA-012)
-
-Cada comparable en la lista `resultado['comparables_reales']` ahora incluye campos de trazabilidad del año de construcción:
-
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| `anio_source` | `str\|None` | Fuente del año: `'scraping'`, `'avm'`, o `None` |
-| `anio_confianza` | `str\|None` | Confianza: `'ALTA'` (scraping), `'MEDIA'` (AVM match), o `None` |
-| `anio_match_tipo` | `str\|None` | Método de matching: `'campo_scraping'`, `'calle_numero_exactos'`, `'calle_distancia_20m'`, o `None` |
-| `anio_distancia_match` | `float\|None` | Distancia en metros al AVM matched (solo para fuente AVM) |
-| `anio_ph_match` | `int\|None` | PH del CSV catastral matched (solo para fuente AVM) |
-| `anio_direccion_catastro` | `str\|None` | Dirección textual del registro catastral matched (solo para fuente AVM) |
-
-### Contadores en `resultado['meta']`
-
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| `n_con_anio_scraping` | int | Comparables con año obtenido del scraping (ALTA confianza) |
-| `n_con_anio_avm` | int | Comparables con año obtenido del AVM catastral (MEDIA confianza) |
-| `n_con_anio_none` | int | Comparables sin año de construcción |
-
----
-
 **Generado por**: Antigravity (IA de Desarrollo)
 **Fecha**: 2026-05-27
