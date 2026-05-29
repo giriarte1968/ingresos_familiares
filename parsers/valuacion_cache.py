@@ -121,6 +121,13 @@ def guardar_resultado(nombre: str, prop: dict, resultado: dict, cache: dict):
     except Exception:
         pass
 
+    # Pushear propiedades.json a GitHub para que try_pull() no borre _ultima_valuacion
+    try:
+        from parsers.git_sync import try_sync
+        try_sync([PROPIEDADES_PATH])
+    except Exception:
+        pass
+
 def obtener_resultado_cacheado(nombre: str, cache: dict) -> dict:
     """Retorna el resultado cacheado para una propiedad."""
     if nombre in cache:

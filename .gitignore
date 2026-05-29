@@ -14,8 +14,8 @@ _archive/
 # Cache generado de Infomapa (regenerable)
 data/infomapa_cache.json
 
-# Cache de valuaciones (generado en runtime, no trackear)
-data/valuaciones_cache.json
+# Cache de valuaciones — ahora trackeado en git para persistencia entre sesiones en DO
+# NOTA: try_pull() usa checkout selectivo (no toca este archivo)
 
 # Geometría catastral (shapefiles grandes, regenerable desde Infomapa)
 data/geometry/
