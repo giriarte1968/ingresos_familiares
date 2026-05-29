@@ -204,26 +204,24 @@ Amenities refactorizados a `calcular_delta_amenities()` con cap 6%. NLP excluye 
 |---------|--------|
 | `valu.py` | `st.spinner` → `st.status(expanded=False)` wrapper
 
-## 14. Enriquecimiento de año por 3-Step Lookup ✅ (2026-05-29)
+## 14. Enriquecimiento de año por 2-Step Lookup (TAREA-014) ✅ (2026-05-29)
 
-### Problema
-`enriquecer_anio_comparable()` original usaba first-word match (`split()[0]`), logrando solo ~44% de cobertura anual para comparables. Fallaba en "Av. del Valle" (token "av" vs "avenida"), intersecciones y esquinas sin match textual.
+### Problema (TAREA-014)
+El 3-step original (≤50m + esquina ≤30m) inflaba valuaciones: P1200 saltó de $137,888 a $190,957 (+38%) porque intersecciones a 20-50m y la esquina fallback asignaban años a comparables con $/m² de micro-ubicaciones distintas.
 
-### Solución
-3 pasos progresivos:
-1. **Token containment** (`_token_contenido`): todos los tokens del comparable en dirección catastral
-2. **Intersecciones** (`_extraer_interseccion`): parsea " y ", " - ", " esq "
-3. **Esquina fallback**: cualquier PH ≤30m sin match textual
+### Solución (TAREA-014)
+Se redujo a 2 pasos con distancia máxima 20m, eliminando la esquina fallback:
+1. **Token containment** (≤20m → ALTA)
+2. **Intersecciones con token validation** (≤20m → MEDIA)
 
-### Resultados Brown 2700
-| Métrica | Antes | Después |
-|---------|-------|---------|
-| Enriquecidos | ~11/25 (44%) | 27/33 (82%) |
-| ALTA | ~6 | 15 |
-| MEDIA | ~5 | 12 |
-| NONE | ~14 | 6 |
+### Resultados P1200
+| Escenario | Valor |
+|-----------|-------|
+| Histórico (baseline) | $137,888 |
+| 3-step (≤50m + esquina) | $190,957 (+38%) |
+| **2-step restrictivo (≤20m)** | **$150,482 (+9%)** |
 
-### Fix adicional
+### Fix adicional (TAREA-012)
 - `unicodedata` movido de función interna a imports globales para evitar crash en pytest
 
 ### Tests: 37/39 pasan (2 fallas pre-existentes)

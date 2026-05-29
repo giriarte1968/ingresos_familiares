@@ -588,7 +588,7 @@ def _extraer_interseccion(direccion):
     return []
 
 
-def enriquecer_anio_comparable(comp, max_dist_m=50):
+def enriquecer_anio_comparable(comp, max_dist_m=20):
     """
     Asigna año de construcción a un comparable usando catastro.
     
@@ -640,7 +640,7 @@ def enriquecer_anio_comparable(comp, max_dist_m=50):
             'tokens': cn_filt.split() if cn_filt else []
         })
 
-    # ─── PASO 1: Token containment + ≤50m ───
+    # ─── PASO 1: Token containment + ≤20m → ALTA ───
     for cn, num in calles:
         if not cn:
             continue
@@ -657,17 +657,16 @@ def enriquecer_anio_comparable(comp, max_dist_m=50):
                     best_d = d
                     best_row = r
         if best_row is not None and best_d <= max_dist_m:
-            conf = 'ALTA' if best_d < 30 else 'MEDIA'
             return {
                 'anio_estimado': int(best_row['year']),
                 'ph_match': str(best_row.get('ph', '?')),
                 'distancia_m': round(best_d, 1),
-                'confianza': conf,
+                'confianza': 'ALTA',
                 'match_calle': True,
                 'direccion_catastro': str(best_row.get('direccion_nominatim', ''))
             }
 
-    # ─── PASO 2: Fallback nearest PH + token validation ───
+    # ─── PASO 2: Fallback nearest PH + token validation ≤20m → MEDIA ───
     mejor_dist = float('inf')
     mejor_row = None
     for entry in cercanos_norm:
@@ -677,42 +676,25 @@ def enriquecer_anio_comparable(comp, max_dist_m=50):
             mejor_dist = d
             mejor_row = r
 
-    conf = None
     if mejor_row is not None and mejor_dist <= max_dist_m:
-        if mejor_dist < 30:
-            conf = 'ALTA'
-        else:
-            csv_tokens = []
-            for entry in cercanos_norm:
-                if entry['row']['ph'] == mejor_row['ph']:
-                    csv_tokens = entry['tokens']
-                    break
-            match = any(
-                _token_contenido(cn.split(), csv_tokens)
-                for cn, _ in calles if cn
-            ) if csv_tokens else False
-            if match:
-                conf = 'MEDIA'
-        if conf:
+        csv_tokens = []
+        for entry in cercanos_norm:
+            if entry['row']['ph'] == mejor_row['ph']:
+                csv_tokens = entry['tokens']
+                break
+        match = any(
+            _token_contenido(cn.split(), csv_tokens)
+            for cn, _ in calles if cn
+        ) if csv_tokens else False
+        if match:
             return {
                 'anio_estimado': int(mejor_row['year']),
                 'ph_match': str(mejor_row.get('ph', '?')),
                 'distancia_m': round(mejor_dist, 1),
-                'confianza': conf,
+                'confianza': 'MEDIA',
                 'match_calle': True,
                 'direccion_catastro': str(mejor_row.get('direccion_nominatim', ''))
             }
-
-    # ─── PASO 3: Esquina fallback — nearest ≤30m → MEDIA ───
-    if mejor_dist <= 30:
-        return {
-            'anio_estimado': int(mejor_row['year']),
-            'ph_match': str(mejor_row.get('ph', '?')),
-            'distancia_m': round(mejor_dist, 1),
-            'confianza': 'MEDIA',
-            'match_calle': False,
-            'direccion_catastro': str(mejor_row.get('direccion_nominatim', ''))
-        }
 
     return None
 

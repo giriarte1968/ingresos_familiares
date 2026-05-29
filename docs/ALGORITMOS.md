@@ -597,35 +597,31 @@ valuar_propiedad_v7() → función principal (~400 líneas, 6 secciones)
   ├── SECCIÓN 5: Razonamiento narrativo
   └── SECCIÓN 6: Return con resultado completo
 
-## 15. Enriquecimiento de Año de Construcción para Comparables (3-Step Lookup)
+## 15. Enriquecimiento de Año de Construcción para Comparables (2-Step Lookup)
 
-`enriquecer_anio_comparable(comp, max_dist_m=50)` asigna `anio_construccion` a cada comparable usando `rosario_avm_full.csv` como única fuente (el scraping no tiene año).
+`enriquecer_anio_comparable(comp, max_dist_m=20)` asigna `anio_construccion` a cada comparable usando `rosario_avm_full.csv` como única fuente (el scraping no tiene año).
 
-### Los 3 pasos:
+**ADVERTENCIA (TAREA-014):** La versión original del 3-step (≤50m + esquina ≤30m) inflaba valuaciones (P1200: $137,888 → $190,957) porque intersecciones a >20m y la esquina fallback asignaban años a comps con $/m² de micro-ubicaciones distintas. Se redujo a 2 pasos con ≤20m y se eliminó la esquina fallback.
 
-**Paso 1 — Token containment (≤50m, ALTA <30m / MEDIA 30-50m)**
-- Busca en catastro PHs a ≤50m del comparable
+### Los 2 pasos:
+
+**Paso 1 — Token containment (≤20m, siempre ALTA)**
+- Busca en catastro PHs a ≤20m del comparable
 - Aplica `_token_contenido()`: todos los tokens de la dirección del comparable deben estar contenidos en el string de dirección catastral
 - Filtra además con `_filtrar_calle_diccionario()` sobre el resultado del bbox (solo 15-20 filas) usando `calles_rosario.json`
-- Si hay match y distancia <30m → ALTA; si 30-50m → MEDIA
+- Siempre confianza ALTA (distancia ≤20m garantiza alta precisión)
 
-**Paso 2 — Intersecciones (≤50m, siempre MEDIA)**
+**Paso 2 — Intersecciones (≤20m, siempre MEDIA)**
 - Si Paso 1 falló, parsea la dirección con `_extraer_interseccion()` buscando patrones: " y ", " - ", " esq ", " e "
-- Si ambas calles de la intersección pasan `_filtrar_calle_diccionario()`, busca PHs catastrales a ≤50m
-- Siempre asigna confianza MEDIA (no puede saberse de qué calle viene el año)
-
-**Paso 3 — Esquina fallback (≤30m, siempre MEDIA)**
-- Si ambos pasos anteriores fallaron, busca cualquier PH catastral a ≤30m del comparable
-- Asigna confianza MEDIA
-- Captura esquinas y PHs sin coincidencia textual pero muy cercanos
+- Si ambas calles de la intersección pasan `_filtrar_calle_diccionario()`, busca PHs catastrales a ≤20m
+- Aplica token validation contra el PH más cercano dentro del radio
+- Siempre asigna confianza MEDIA
 
 ### Confianza
 | Paso | Distancia | Confianza |
 |------|-----------|-----------|
-| 1    | <30m      | ALTA      |
-| 1    | 30-50m    | MEDIA     |
-| 2    | ≤50m      | MEDIA     |
-| 3    | ≤30m      | MEDIA     |
+| 1    | ≤20m      | ALTA      |
+| 2    | ≤20m      | MEDIA     |
 | Ninguno | —      | NONE      |
 
 ### Helpers internos

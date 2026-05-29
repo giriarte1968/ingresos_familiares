@@ -14,3 +14,5 @@
 | TAREA-010 | Validación de coordenadas post-scrape + fix Colón 1200 | `fc44149` | 2026-05-27 |
 | TAREA-011 | Normalización amenities + anti doble conteo NLP | _(pendiente)_ | 2026-05-27 |
 | TAREA-012 | 3-Step comparable year enrichment (token containment + intersecciones + esquina) | _(pending)_ | 2026-05-29 |
+| TAREA-013 | DO valuaciones_cache persistence + guardar_resultado + try_sync fix | _(multiple)_ | 2026-05-29 |
+| TAREA-014 | Restrictive comparable year enrichment (≤20m, sin esquina fallback) | `TBD` | 2026-05-29 |

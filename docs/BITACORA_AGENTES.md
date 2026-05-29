@@ -1298,6 +1298,37 @@ Reemplazada `enriquecer_anio_comparable()` con 3-step lookup:
 
 ---
 
+## TAREA-014 — 2026-05-29 — Restrictive comparable year enrichment (≤20m, sin esquina)
+
+### Problema
+El 3-step original (TAREA-012) con distancia ≤50m + esquina ≤30m infló P1200 de $137,888 a $190,957 (+38%) porque:
+- Intersecciones a 20-50m asignaban años de PHs cercanos a comparables con $/m² de micro-ubicaciones distintas
+- Esquina fallback asignaba años sin validación de calle, contaminando el pool etario
+
+### Solución
+`enriquecer_anio_comparable()` modificado:
+1. Distancia máxima reducida de 50m a **20m** (default param)
+2. Paso 1 (token containment): siempre ALTA (sin bifurcación ALTA/MEDIA por distancia)
+3. Paso 2 (intersecciones): token validation contra el PH más cercano, siempre MEDIA
+4. **Eliminado** Paso 3 (esquina fallback) completamente
+
+### Resultados P1200
+| Escenario | Valor | Diferencia |
+|-----------|-------|-----------|
+| Baseline histórico | $137,888 | — |
+| 3-step (≤50m + esquina) | $190,957 | +38% |
+| **2-step restrictivo (≤20m)** | **$150,482** | +9% |
+
+### Archivos modificados
+- `parsers/mercado_inmobiliario.py` — `enriquecer_anio_comparable()` restrictivo
+- `docs/ALGORITMOS.md` — §15 actualizado (2-step, ≤20m)
+- `docs/BITACORA_AGENTES.md` — esta entrada
+- `docs/STATUS_ACTUAL.md` — §14 actualizado
+- `.opencode/plans/TAREA-014.md` — plan archivado
+- `.opencode/plans/TAREAS_INDEX.md` — TAREA-014 agregada
+
+---
+
 ## TAREA-013 — 2026-05-29 — FIX: Valuaciones no persisten entre sesiones en DO
 
 ### Problema
