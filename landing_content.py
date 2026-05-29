@@ -92,7 +92,7 @@ def get_hero_html(stats: dict) -> str:
     logo_html = _get_logo_html()
 
     return (
-        f'<div class="hero-with-image">'
+        f'<div class="hero-with-image" data-section="hero">'
         f'<div class="hero-overlay">'
         f'<div class="hero-content">'
         f'{logo_html}'
@@ -140,7 +140,7 @@ def get_hero_html(stats: dict) -> str:
 
 def get_problem_html() -> str:
     return """
-    <div class="landing-section">
+    <div class="landing-section" data-section="problem">
         <h2 style="text-align: center; margin-bottom: 48px;">¿Cuánto vale realmente tu departamento?</h2>
         <div class="landing-grid-3">
             <div class="landing-card">
@@ -199,7 +199,7 @@ def get_how_html() -> str:
         if i < len(pasos) - 1:
             items_html += '<div class="bola-arrow"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>'
     return (
-        '<div class="landing-section-alt">'
+        '<div class="landing-section-alt" data-section="how">'
         '<div class="landing-section">'
         '<h2 class="section-title">Cómo funciona</h2>'
         '<div class="bola-row-wrapper">'
@@ -225,7 +225,7 @@ def get_deliverables_html() -> str:
         for i, (title, desc) in enumerate(items, 1)
     )
     return (
-        '<div class="landing-section-alt">'
+        '<div class="landing-section-alt" data-section="deliverables">'
         '<div class="landing-section">'
         '<div class="section-kicker">Informe claro</div>'
         '<h2 class="section-title">Qué recibís con Valu</h2>'
@@ -261,7 +261,7 @@ def get_faq_html() -> str:
         for q, a in faqs
     )
     return (
-        '<div class="landing-section faq-section">'
+        '<div class="landing-section faq-section" data-section="faq">'
         '<div class="section-kicker">Preguntas frecuentes</div>'
         '<h2 class="section-title">Antes de empezar</h2>'
         f'<div class="faq-grid">{html}</div>'
@@ -297,7 +297,7 @@ def get_features_html() -> str:
         for titulo, desc, icon in features
     )
     return (
-        '<div class="landing-section">'
+        '<div class="landing-section" data-section="features">'
         '<h2 style="text-align: center; margin-bottom: 48px;">Qué te da Valu</h2>'
         f'<div class="landing-grid-3">{cards}</div>'
         '</div>'
@@ -305,7 +305,7 @@ def get_features_html() -> str:
 
 def get_divider_edificios_html() -> str:
     return """
-    <div class="landing-divider-image">
+    <div class="landing-divider-image" data-section="divider">
         <div class="divider-overlay">
                 <div class="divider-stats">
                     <div class="divider-stat">
@@ -338,7 +338,7 @@ def get_target_html() -> str:
         for titulo, desc, img in targets
     )
     return (
-        '<div class="landing-section">'
+        '<div class="landing-section" data-section="target">'
         '<h2 style="text-align: center; margin-bottom: 48px;">¿Para quién es Valu?</h2>'
         f'<div class="landing-grid-3">{cards}</div>'
         '</div>'
@@ -349,7 +349,7 @@ def get_trust_html() -> str:
     svg_x = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>'
     
     return f"""
-    <div class="landing-section">
+    <div class="landing-section" data-section="trust">
         <div class="landing-disclaimer">
             <h3 style="margin-bottom: 24px; color: #92400e; font-size: 1.4rem;">Lo que Valu es y lo que no es</h3>
             <div class="landing-grid-2">
@@ -392,7 +392,7 @@ def get_trust_html() -> str:
 
 def get_cta_html() -> str:
     return """
-    <div style="background: linear-gradient(135deg, #065f46, #064e3b); padding: 80px 20px 40px 20px; text-align: center; color: white;">
+    <div style="background: linear-gradient(135deg, #065f46, #064e3b); padding: 80px 20px 40px 20px; text-align: center; color: white;" data-section="cta">
         <div>
             <h2 style="font-size: 2.5rem; margin-bottom: 16px;">Empezá a valuar tus propiedades</h2>
         </div>
@@ -401,7 +401,7 @@ def get_cta_html() -> str:
 
 def get_footer_html() -> str:
     return """
-    <footer class="landing-footer">
+    <footer class="landing-footer" data-section="footer">
         <div style="font-weight: 800; font-size: 1.5rem; margin-bottom: 8px;">Valu</div>
         <div style="opacity: 0.6; font-size: 0.9rem; margin-bottom: 24px;">Valuador Automático de Propiedades · Rosario, Argentina</div>
         <div style="display: flex; justify-content: center; gap: 32px; margin-bottom: 32px; font-size: 0.9rem;">

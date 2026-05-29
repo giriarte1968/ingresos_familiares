@@ -49,6 +49,8 @@ def mostrar_landing():
         font-size: 18px !important;
         color: white !important;
     }
+
+    [data-section] { scroll-margin-top: 10px; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -89,4 +91,44 @@ def mostrar_landing():
     st.markdown(get_cta_html(), unsafe_allow_html=True)
     
     st.markdown(get_footer_html(), unsafe_allow_html=True)
+
+    st.markdown("""
+<script>
+(function() {
+  if (window.__keyNavInit) return;
+  window.__keyNavInit = true;
+
+  function getTopSection(sections) {
+    var best = 0, bestDist = Infinity;
+    for (var i = 0; i < sections.length; i++) {
+      var r = sections[i].getBoundingClientRect();
+      var dist = Math.abs(r.top);
+      if (dist < bestDist) { bestDist = dist; best = i; }
+    }
+    return best;
+  }
+
+  var handler = function(e) {
+    var key = e.key;
+    if (key !== 'PageDown' && key !== 'PageUp' && key !== 'Home' && key !== 'End') return;
+    var t = (e.target || e.srcElement).tagName;
+    if (t === 'INPUT' || t === 'TEXTAREA' || t === 'SELECT') return;
+    var sections = Array.from(document.querySelectorAll('[data-section]'));
+    if (!sections.length) return;
+    e.preventDefault();
+    if (key === 'Home') { sections[0].scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+    if (key === 'End') { sections[sections.length - 1].scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+    var cur = getTopSection(sections);
+    var tgt = (key === 'PageDown') ? Math.min(cur + 1, sections.length - 1) : Math.max(cur - 1, 0);
+    if (tgt !== cur) sections[tgt].scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() { window.addEventListener('keydown', handler); });
+  } else {
+    window.addEventListener('keydown', handler);
+  }
+})();
+</script>
+""", unsafe_allow_html=True)
 
