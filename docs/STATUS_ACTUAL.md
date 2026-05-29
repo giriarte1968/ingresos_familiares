@@ -203,3 +203,27 @@ Amenities refactorizados a `calcular_delta_amenities()` con cap 6%. NLP excluye 
 | Archivo | Cambio |
 |---------|--------|
 | `valu.py` | `st.spinner` → `st.status(expanded=False)` wrapper
+
+## 14. Enriquecimiento de año por 3-Step Lookup ✅ (2026-05-29)
+
+### Problema
+`enriquecer_anio_comparable()` original usaba first-word match (`split()[0]`), logrando solo ~44% de cobertura anual para comparables. Fallaba en "Av. del Valle" (token "av" vs "avenida"), intersecciones y esquinas sin match textual.
+
+### Solución
+3 pasos progresivos:
+1. **Token containment** (`_token_contenido`): todos los tokens del comparable en dirección catastral
+2. **Intersecciones** (`_extraer_interseccion`): parsea " y ", " - ", " esq "
+3. **Esquina fallback**: cualquier PH ≤30m sin match textual
+
+### Resultados Brown 2700
+| Métrica | Antes | Después |
+|---------|-------|---------|
+| Enriquecidos | ~11/25 (44%) | 27/33 (82%) |
+| ALTA | ~6 | 15 |
+| MEDIA | ~5 | 12 |
+| NONE | ~14 | 6 |
+
+### Fix adicional
+- `unicodedata` movido de función interna a imports globales para evitar crash en pytest
+
+### Tests: 37/39 pasan (2 fallas pre-existentes)

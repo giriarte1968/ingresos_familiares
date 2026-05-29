@@ -1248,3 +1248,50 @@ Completar seccion/manzana/grafico en `rosario_avm_full.csv` (78.5% nulos → 100
 - `data/rosario_avm_full.csv` — regenerado con 100% datos catastrales
 - `data/geometry/` — geometría oficial (274k parcelas, no trackeado en git)
 - `.gitignore` — añadido `data/geometry/`
+
+---
+
+## TAREA-012 — 2026-05-29 — 3-Step comparable year enrichment
+
+### Problema
+La función original `enriquecer_anio_comparable()` usaba `dir_comp.split()[0] == dir_catastro.split()[0]` (first-word match), logrando solo ~44% de cobertura anual para comparables. Fallaba en casos como "Av. del Valle" (token "av" vs "avenida"), intersecciones y esquinas.
+
+### Solución
+Reemplazada `enriquecer_anio_comparable()` con 3-step lookup:
+
+1. **Token containment** (`_token_contenido`): todos los tokens del comparable contenidos en dirección catastral, filtrado adicional con `_filtrar_calle_diccionario()` + `calles_rosario.json`
+2. **Intersecciones** (`_extraer_interseccion`): parsea " y ", " - ", " esq " para buscar PHs en ambas calles
+3. **Esquina fallback**: cualquier PH catastral ≤30m sin match textual
+
+### Helpers agregados
+- `_token_contenido(tokens_comp, tokens_catastro)` — containment check
+- `_filtrar_calle_diccionario(calle_raw, calles_dict)` — street name normalization vía `calles_rosario.json`
+- `_extraer_interseccion(dir_str)` — intersection parsing on raw string
+
+### Módulo global
+- `_CALLES_ROSARIO` — cargado lazy (no al import)
+- `_CALLES_DICT_FILTER_CACHE` — cache memoization de `_filtrar_calle_diccionario`
+
+### Fix adicional
+- `unicodedata` movido de `_normalizar_zona()` (line 232) a imports globales (line 5) para que `cargar_catastro()` no falle en entornos test/pytest
+
+### Resultados Brown 2700
+| Métrica | Antes | Después |
+|---------|-------|---------|
+| Enriquecidos | ~11/25 (44%) | 27/33 (82%) |
+| ALTA | ~6 | 15 |
+| MEDIA | ~5 | 12 |
+| NONE | ~14 | 6 |
+| Valor venta | $306,681 | $306,681 (sin cambios por age filter) |
+
+### Tests: 37/39 pasan
+- 2 fallas pre-existentes (Vera Mujica y P1200 alquiler benchmarks desactualizados)
+- Auto-validate: syntax OK, imports OK, performance OK
+- Regression [FAIL] en auto_validate por las mismas 2 fallas pre-existentes
+
+### Archivos modificados
+- `parsers/mercado_inmobiliario.py` — 3-step enrichment + 3 helpers + unicodedata global
+- `docs/ALGORITMOS.md` — §15 nuevo (3-step lookup)
+- `docs/BITACORA_AGENTES.md` — esta entrada
+- `docs/STATUS_ACTUAL.md` — §13 nuevo
+- `.opencode/plans/TAREAS_INDEX.md` — TAREA-012 agregada

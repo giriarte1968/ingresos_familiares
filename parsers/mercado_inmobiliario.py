@@ -2,6 +2,7 @@ import json
 import os
 import re
 import math
+import unicodedata
 import logging
 from datetime import datetime
 from parsers.location_engine import cargar_anclas, calcular_precio_m2, estimar_confianza, get_ancla_mas_cercana
@@ -46,6 +47,75 @@ def _calcular_percentil_linear(precios, q):
 
 logger = logging.getLogger(__name__)
 ANIO_ACTUAL = datetime.now().year
+
+# --- Helpers de normalización de direcciones ---
+_RE_CITY_NORM = re.compile(
+    r'\b(rosario|santa\s*fe|santa fe|argentina|arg\.?|capital)\b', re.IGNORECASE)
+_RE_DESC_NORM = re.compile(
+    r'\b(piso|depto|dpto|departamento|departameto|oficina|local'
+    r'|pb|dormitorio|dorm|balcon|balcon|cochera|living|comedor'
+    r'|monoambiente|ph|casa|habitacion|amb|mt2?|mts)\s*\d*', re.IGNORECASE)
+_RE_PIPE_NORM = re.compile(r'\s*\|.*$')
+_RE_NRO_NORM = re.compile(r'\b(nro|n|num|numero|numero)\b', re.IGNORECASE)
+_RE_ORD_NORM = re.compile(r'[\xb0\xba]')  # ordinal chars
+_RE_HON_NORM = re.compile(
+    r'\b(almirante|general|san|santo|santa|doctor|dra|don|dona'
+    r'|padre|profesor|prof|teniente|coronel|comandante'
+    r'|capitan|presidente|fray|monsenor|monseñor)\b', re.IGNORECASE)
+
+def normalizar_calle_nombre(nombre):
+    """Normaliza nombre de calle: minusculas, sin tildes, sin Av/Bv, sin honorificos."""
+    if not isinstance(nombre, str):
+        return ''
+    s = nombre.lower().strip()
+    s = ''.join(c for c in unicodedata.normalize('NFKD', s)
+                if not unicodedata.combining(c))
+    s = _RE_ORD_NORM.sub(' ', s)
+    s = _RE_PIPE_NORM.sub('', s)
+    s = re.sub(r'[^\w\s]', ' ', s)
+    s = _RE_CITY_NORM.sub('', s)
+    s = _RE_DESC_NORM.sub('', s)
+    s = _RE_NRO_NORM.sub('', s)
+    s = re.sub(r'\b(av|avenida|bv|bulevar|boulevard)\b', '', s)
+    s = _RE_HON_NORM.sub('', s)
+    s = re.sub(r'\s+', ' ', s).strip()
+    return s
+
+
+def extraer_calle_numero(direccion):
+    """Extrae (calle_normalizada, numero_entero) de una dirección libre."""
+    if not isinstance(direccion, str):
+        return None, None
+    s = direccion.lower().strip()
+    s = _RE_ORD_NORM.sub(' ', s)
+    s = _RE_PIPE_NORM.sub('', s)
+    s = s.replace('|', ' ').replace('/', ' ')
+    s = re.sub(r'[^\w\s]', ' ', s)
+    s = _RE_CITY_NORM.sub('', s)
+    s = _RE_DESC_NORM.sub('', s)
+    s = _RE_NRO_NORM.sub('', s)
+
+    # "al 2100"
+    m = re.search(r'\bal\s+(\d{1,5})', s)
+    if m:
+        num = int(m.group(1))
+        calle_raw = s[:m.start()] + s[m.end():]
+        return normalizar_calle_nombre(calle_raw), num
+
+    # primer numero encontrado
+    m = re.search(r'\b(\d{1,5})\b', s)
+    if m:
+        num = int(m.group(1))
+        calle_raw = s[:m.start()] + s[m.end():]
+        calle_norm = normalizar_calle_nombre(calle_raw)
+        if calle_norm:
+            partes = [p for p in calle_norm.split()
+                      if not (p.isdigit() and len(p) < 5)
+                      and not (len(p) == 1 and p.isalpha())]
+            calle_norm = ' '.join(partes).strip()
+        return calle_norm, num
+
+    return normalizar_calle_nombre(s), None
 
 DATOS_MERCADO_FILE = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
@@ -160,7 +230,6 @@ def normalizar_zona(zona_raw):
     if not zona_raw:
         return "Centro"
     
-    import unicodedata
     zona_clean = ''.join(c for c in unicodedata.normalize('NFD', zona_raw) if unicodedata.category(c) != 'Mn')
     zona_lower = zona_clean.lower().strip()
     
@@ -368,13 +437,19 @@ def obtener_mediana_cluster(zona, dormitorios, operacion='venta'):
 # ─── FASE 1: ENRIQUECIMIENTO DE AÑO DESDE CATASTRO ───
 
 _CATASTRO_CACHE = None
+_CATASTRO_INDEX = None  # dict {(calle_norm, num): row} para busqueda exacta
+_MAX_DIST_ADDR_MATCH = 200  # distancia maxima para match por direccion exacta
+
+# Street dictionary para enriquecimiento de 3 pasos
+_CALLES_ROSARIO = None
+_CALLES_DICT_FILTER_CACHE = {}
 
 def cargar_catastro():
     """
     Carga el CSV de Infomapa (rosario_avm_full.csv) con años de construcción.
     Cachea globalmente para no leer disco múltiples veces.
     """
-    global _CATASTRO_CACHE
+    global _CATASTRO_CACHE, _CATASTRO_INDEX
     if _CATASTRO_CACHE is not None:
         return _CATASTRO_CACHE
     try:
@@ -394,12 +469,123 @@ def cargar_catastro():
         df = df.dropna(subset=['year', 'latitud', 'longitud'])
         df['year'] = df['year'].astype(int)
         df = df[(df['year'] >= 1900) & (df['year'] <= ANIO_ACTUAL)]
+
+        # Indice de direcciones normalizadas
+        idx = {}
+        for _, row in df.iterrows():
+            cn, num = extraer_calle_numero(str(row.get('direccion_nominatim', '')))
+            if cn and num is not None:
+                key = (cn, num)
+                if key not in idx:
+                    idx[key] = row
+        _CATASTRO_INDEX = idx
+
         _CATASTRO_CACHE = df
-        logger.info(f"[CATASTRO] Cargado: {len(df)} registros")
+        logger.info(f"[CATASTRO] Cargado: {len(df)} registros, {len(idx)} direcciones indexadas")
         return df
     except Exception as e:
         logger.error(f"[CATASTRO] Error: {e}")
         return None
+
+
+# ─── Helpers para enriquecimiento de 3 pasos ───
+
+def _token_contenido(comp_tokens, csv_tokens):
+    """True si todos los tokens de comp_tokens aparecen en orden en csv_tokens (prefix OK si >=2 chars)."""
+    if not comp_tokens or not csv_tokens:
+        return False
+    it = iter(csv_tokens)
+    for ct in comp_tokens:
+        if not ct:
+            continue
+        found = False
+        for csv_t in it:
+            if ct == csv_t or (len(ct) >= 2 and len(csv_t) > len(ct) and csv_t.startswith(ct)):
+                found = True
+                break
+        if not found:
+            return False
+    return True
+
+
+def _filtrar_calle_diccionario(cn):
+    """Filtra tokens de una calle contra el diccionario de calles de Rosario.
+    Retorna la mejor subsecuencia que existe en el diccionario, o '' si no hay match."""
+    global _CALLES_ROSARIO, _CALLES_DICT_FILTER_CACHE
+    if _CALLES_ROSARIO is None:
+        _calles_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'calles_rosario.json')
+        if os.path.exists(_calles_path):
+            with open(_calles_path, encoding='utf-8') as f:
+                _CALLES_ROSARIO = json.load(f)
+    if not cn or not _CALLES_ROSARIO:
+        return ''
+    if cn in _CALLES_DICT_FILTER_CACHE:
+        return _CALLES_DICT_FILTER_CACHE[cn]
+    tokens = cn.split()
+    best = None
+    best_score = -1
+    for longitud in range(len(tokens), 0, -1):
+        for inicio in range(len(tokens) - longitud + 1):
+            sub = tokens[inicio:inicio + longitud]
+            for calle in _CALLES_ROSARIO:
+                calle_tokens = calle.split()
+                it2 = iter(calle_tokens)
+                exact = 0
+                prefix = 0
+                ok = True
+                for st in sub:
+                    found = False
+                    for ct2 in it2:
+                        if st == ct2:
+                            exact += 1
+                            found = True
+                            break
+                        elif len(st) >= 2 and len(ct2) > len(st) and ct2.startswith(st):
+                            prefix += 1
+                            found = True
+                            break
+                    if not found:
+                        ok = False
+                        break
+                if ok:
+                    score = longitud * 1000 + exact * 10 + prefix
+                    if score > best_score:
+                        best_score = score
+                        best = ' '.join(sub)
+    if best is None:
+        validos = [t for t in tokens if len(t) >= 3 and any(
+            t == ct for calle in _CALLES_ROSARIO for ct in calle.split())]
+        best = ' '.join(validos)
+    _CALLES_DICT_FILTER_CACHE[cn] = best if best else ''
+    return _CALLES_DICT_FILTER_CACHE[cn]
+
+
+def _extraer_interseccion(direccion):
+    """Detecta intersecciones (' y ', ' - ', ' esq ', ' esquina ') en RAW.
+    Retorna lista de (calle_normalizada, numero) para cada calle de la interseccion.
+    Si no hay separador, retorna [(calle, num)] aplicando el diccionario."""
+    if not isinstance(direccion, str) or not direccion.strip():
+        return []
+    s = direccion.lower().strip()
+    for sep in [' y ', ' - ', ' e ', ' esq ', ' esq. ', ' esq, ', ' esquina ']:
+        if sep in s:
+            partes = s.split(sep, 1)
+            res = []
+            for p in partes:
+                p = p.strip()
+                if p:
+                    cn, num = extraer_calle_numero(p)
+                    if cn:
+                        cn2 = _filtrar_calle_diccionario(cn)
+                        if cn2:
+                            res.append((cn2, num))
+            return res
+    cn, num = extraer_calle_numero(direccion)
+    if cn:
+        cn2 = _filtrar_calle_diccionario(cn)
+        if cn2:
+            return [(cn2, num)]
+    return []
 
 
 def enriquecer_anio_comparable(comp, max_dist_m=50):
@@ -426,10 +612,15 @@ def enriquecer_anio_comparable(comp, max_dist_m=50):
 
     try:
         lat, lon = float(lat), float(lon)
-    except:
+    except (ValueError, TypeError):
         return None
 
-    # Búsqueda espacial aproximada (bounding box ~111m)
+    # Parsear direccion del comparable (detecta intersecciones en RAW)
+    calles = _extraer_interseccion(dir_comp)
+    if not calles:
+        return None
+
+    # Bounding box ±0.001° (~111m) para filtrar catastro
     bbox = 0.001
     cercanos = catastro[
         (catastro['latitud'].between(lat - bbox, lat + bbox)) &
@@ -438,45 +629,92 @@ def enriquecer_anio_comparable(comp, max_dist_m=50):
     if cercanos.empty:
         return None
 
+    # Pre-normalizar direcciones del bbox (solo ~15-20 filas)
+    cercanos_norm = []
+    for _, row in cercanos.iterrows():
+        cn, num = extraer_calle_numero(str(row.get('direccion_nominatim', '')))
+        cn_filt = _filtrar_calle_diccionario(cn) if cn else ''
+        cercanos_norm.append({
+            'row': row,
+            'cn': cn_filt,
+            'tokens': cn_filt.split() if cn_filt else []
+        })
+
+    # ─── PASO 1: Token containment + ≤50m ───
+    for cn, num in calles:
+        if not cn:
+            continue
+        comp_tokens = cn.split()
+        best_d = float('inf')
+        best_row = None
+        for entry in cercanos_norm:
+            if not entry['tokens']:
+                continue
+            if _token_contenido(comp_tokens, entry['tokens']):
+                r = entry['row']
+                d = calcular_distancia_km(lat, lon, r['latitud'], r['longitud']) * 1000
+                if d < best_d:
+                    best_d = d
+                    best_row = r
+        if best_row is not None and best_d <= max_dist_m:
+            conf = 'ALTA' if best_d < 30 else 'MEDIA'
+            return {
+                'anio_estimado': int(best_row['year']),
+                'ph_match': str(best_row.get('ph', '?')),
+                'distancia_m': round(best_d, 1),
+                'confianza': conf,
+                'match_calle': True,
+                'direccion_catastro': str(best_row.get('direccion_nominatim', ''))
+            }
+
+    # ─── PASO 2: Fallback nearest PH + token validation ───
     mejor_dist = float('inf')
     mejor_row = None
-
-    for _, row in cercanos.iterrows():
-        d = calcular_distancia_km(lat, lon, row['latitud'], row['longitud']) * 1000
+    for entry in cercanos_norm:
+        r = entry['row']
+        d = calcular_distancia_km(lat, lon, r['latitud'], r['longitud']) * 1000
         if d < mejor_dist:
             mejor_dist = d
-            mejor_row = row
+            mejor_row = r
 
-    if mejor_dist > max_dist_m:
-        return None
+    conf = None
+    if mejor_row is not None and mejor_dist <= max_dist_m:
+        if mejor_dist < 30:
+            conf = 'ALTA'
+        else:
+            csv_tokens = []
+            for entry in cercanos_norm:
+                if entry['row']['ph'] == mejor_row['ph']:
+                    csv_tokens = entry['tokens']
+                    break
+            match = any(
+                _token_contenido(cn.split(), csv_tokens)
+                for cn, _ in calles if cn
+            ) if csv_tokens else False
+            if match:
+                conf = 'MEDIA'
+        if conf:
+            return {
+                'anio_estimado': int(mejor_row['year']),
+                'ph_match': str(mejor_row.get('ph', '?')),
+                'distancia_m': round(mejor_dist, 1),
+                'confianza': conf,
+                'match_calle': True,
+                'direccion_catastro': str(mejor_row.get('direccion_nominatim', ''))
+            }
 
-    # Determinar confianza
-    if mejor_dist < 30:
-        confianza = 'ALTA'
-    elif mejor_dist < 50:
-        confianza = 'MEDIA'
-    else:
-        return None
+    # ─── PASO 3: Esquina fallback — nearest ≤30m → MEDIA ───
+    if mejor_dist <= 30:
+        return {
+            'anio_estimado': int(mejor_row['year']),
+            'ph_match': str(mejor_row.get('ph', '?')),
+            'distancia_m': round(mejor_dist, 1),
+            'confianza': 'MEDIA',
+            'match_calle': False,
+            'direccion_catastro': str(mejor_row.get('direccion_nominatim', ''))
+        }
 
-    # Validación por dirección
-    dir_catastro = str(mejor_row.get('direccion_nominatim', '')).lower()
-    match_calle = False
-    if dir_comp and dir_catastro:
-        calle_comp = dir_comp.lower().split()[0] if dir_comp.split() else ''
-        calle_cat = dir_catastro.split()[0] if dir_catastro.split() else ''
-        match_calle = bool(calle_comp and calle_cat and calle_comp == calle_cat)
-
-    if confianza == 'MEDIA' and not match_calle:
-        return None  # Baja confianza → descartar
-
-    return {
-        'anio_estimado': int(mejor_row['year']),
-        'ph_match': str(mejor_row.get('ph', '?')),
-        'distancia_m': round(mejor_dist, 1),
-        'confianza': confianza,
-        'match_calle': match_calle,
-        'direccion_catastro': str(mejor_row.get('direccion_nominatim', ''))
-    }
+    return None
 
 
 def _filtrar_por_ventana_edad(pool, anio_sujeto, ventana=15, min_con_anio=5):

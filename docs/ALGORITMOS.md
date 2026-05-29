@@ -597,7 +597,57 @@ valuar_propiedad_v7() → función principal (~400 líneas, 6 secciones)
   ├── SECCIÓN 5: Razonamiento narrativo
   └── SECCIÓN 6: Return con resultado completo
 
-## 15. Amenities y Anti Doble Conteo NLP (v10.0)
+## 15. Enriquecimiento de Año de Construcción para Comparables (3-Step Lookup)
+
+`enriquecer_anio_comparable(comp, max_dist_m=50)` asigna `anio_construccion` a cada comparable usando `rosario_avm_full.csv` como única fuente (el scraping no tiene año).
+
+### Los 3 pasos:
+
+**Paso 1 — Token containment (≤50m, ALTA <30m / MEDIA 30-50m)**
+- Busca en catastro PHs a ≤50m del comparable
+- Aplica `_token_contenido()`: todos los tokens de la dirección del comparable deben estar contenidos en el string de dirección catastral
+- Filtra además con `_filtrar_calle_diccionario()` sobre el resultado del bbox (solo 15-20 filas) usando `calles_rosario.json`
+- Si hay match y distancia <30m → ALTA; si 30-50m → MEDIA
+
+**Paso 2 — Intersecciones (≤50m, siempre MEDIA)**
+- Si Paso 1 falló, parsea la dirección con `_extraer_interseccion()` buscando patrones: " y ", " - ", " esq ", " e "
+- Si ambas calles de la intersección pasan `_filtrar_calle_diccionario()`, busca PHs catastrales a ≤50m
+- Siempre asigna confianza MEDIA (no puede saberse de qué calle viene el año)
+
+**Paso 3 — Esquina fallback (≤30m, siempre MEDIA)**
+- Si ambos pasos anteriores fallaron, busca cualquier PH catastral a ≤30m del comparable
+- Asigna confianza MEDIA
+- Captura esquinas y PHs sin coincidencia textual pero muy cercanos
+
+### Confianza
+| Paso | Distancia | Confianza |
+|------|-----------|-----------|
+| 1    | <30m      | ALTA      |
+| 1    | 30-50m    | MEDIA     |
+| 2    | ≤50m      | MEDIA     |
+| 3    | ≤30m      | MEDIA     |
+| Ninguno | —      | NONE      |
+
+### Helpers internos
+- `_token_contenido(tokens_comp, tokens_catastro)`: retorna True si todos los tokens del comparable están contenidos en la lista de tokens catastrales
+- `_filtrar_calle_diccionario(calle_raw, calles_dict)`: normaliza la calle usando `calles_rosario.json` con prefijo matching (mínimo 2 caracteres): "ov" → "ovidio", "av" → "avenida"
+- `_extraer_interseccion(dir_str)`: detecta intersecciones en texto RAW (antes de reemplazos): "Av. del Valle y Ovidio Lagos" → ("Av. del Valle", "Ovidio Lagos")
+
+### Resultados (Brown 2700)
+| Métrica | Antes (1-word match) | Después (3-step) |
+|---------|---------------------|------------------|
+| Enriquecidos | ~11/25 (44%) | 27/33 (82%) |
+| ALTA | ~6 | 15 |
+| MEDIA | ~5 | 12 |
+| NONE | ~14 | 6 |
+
+### Carga lazy de calles_rosario.json
+- `_CALLES_ROSARIO` se carga en el primer llamado a `_filtrar_calle_diccionario()`, no al importar el módulo
+- `_CALLES_DICT_FILTER_CACHE` cachea resultados de `_filtrar_calle_diccionario()` en memoria
+
+---
+
+## 16. Amenities y Anti Doble Conteo NLP (v10.0)
 
 Los amenities estructurados cargados por formulario (`detalles_categoria`) tienen **prioridad** sobre el NLP.
 Si un amenity está presente en `detalles_categoria`, las keywords equivalentes en `descripcion_libre` no suman nuevamente.
