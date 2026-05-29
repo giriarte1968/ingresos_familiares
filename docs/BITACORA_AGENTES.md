@@ -1329,7 +1329,36 @@ El 3-step original (TAREA-012) con distancia ≤50m + esquina ≤30m infló P120
 
 ---
 
-## TAREA-013 — 2026-05-29 — FIX: Valuaciones no persisten entre sesiones en DO
+## TAREA-015 — 2026-05-29 — Enriquecimiento 3-pasos: match exacto + token ≤30m
+
+### Problema
+TAREA-014 (≤20m restrictivo) resultó demasiado restrictivo: Brown 2750 pasó de 15 ALTA a solo 3, dejando la UI sin años. La causa fue la imprecisión de coordenadas del scraping (centro de cuadra vs dirección exacta), no la lógica de matching.
+
+### Solución
+Se reactivó `_CATASTRO_INDEX` (dead code: construido en `cargar_catastro()` pero nunca consultado) para match exacto por `(calle_norm, num)`:
+
+1. **Paso 0**: Match exacto via `_CATASTRO_INDEX` → ALTA (hasta 200m, sabemos que es el mismo edificio)
+2. **Paso 1**: Token containment ≤30m → ALTA (sube de 20m para capturar coordenadas imprecisas)
+3. **Paso 2**: Nearest + token ≤30m → MEDIA
+4. Sin esquina
+
+### Resultados
+| Propiedad | Valor | ALTA | vs TAREA-014 |
+|-----------|-------|------|-------------|
+| P1200 | $125,412 | 14 | +7 (vs 7 en 20m) |
+| Brown 2750 | $306,681 | 6 | +3 (vs 3 en 20m) |
+| Mabel | $67,863 | 43 | — |
+| Ayacucho | $51,154 | 31 | — |
+
+### Archivos modificados
+- `parsers/mercado_inmobiliario.py` — `enriquecer_anio_comparable()` +Paso 0 exacto + 30m
+- `docs/ALGORITMOS.md` — §15 actualizado (3-pasos con match exacto)
+- `docs/BITACORA_AGENTES.md` — esta entrada
+- `docs/STATUS_ACTUAL.md` — §14 actualizado
+- `.opencode/plans/TAREA-015.md` — plan archivado
+- `.opencode/plans/TAREAS_INDEX.md` — TAREA-015 agregada
+
+---
 
 ### Problema
 En DO, el portfolio muestra "Pendiente" al recargar la página. Al entrar al detalle, la propiedad se valúa y se mantiene valuada durante la sesión. Al cerrar y volver a entrar, vuelve a "Pendiente".

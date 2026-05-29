@@ -204,27 +204,29 @@ Amenities refactorizados a `calcular_delta_amenities()` con cap 6%. NLP excluye 
 |---------|--------|
 | `valu.py` | `st.spinner` → `st.status(expanded=False)` wrapper
 
-## 14. Enriquecimiento de año por 2-Step Lookup (TAREA-014) ✅ (2026-05-29)
+## 14. Enriquecimiento de año por 3-Step Lookup con match exacto (TAREA-015) ✅ (2026-05-29)
 
-### Problema (TAREA-014)
-El 3-step original (≤50m + esquina ≤30m) inflaba valuaciones: P1200 saltó de $137,888 a $190,957 (+38%) porque intersecciones a 20-50m y la esquina fallback asignaban años a comparables con $/m² de micro-ubicaciones distintas.
+### Problema
+TAREA-014 (≤20m restrictivo) dejó Brown 2750 con solo 3 ALTA — la UI mostraba casi cero años. La causa: coordenadas imprecisas del scraping (centro de cuadra vs dirección exacta). Además, `_CATASTRO_INDEX` era dead code: índex de ~14.500 direcciones construido en `cargar_catastro()` pero nunca consultado.
 
-### Solución (TAREA-014)
-Se redujo a 2 pasos con distancia máxima 20m, eliminando la esquina fallback:
-1. **Token containment** (≤20m → ALTA)
-2. **Intersecciones con token validation** (≤20m → MEDIA)
+### Solución (TAREA-015)
+Se reactivó `_CATASTRO_INDEX` para match exacto y se subió token containment a 30m:
+1. **Paso 0**: Match exacto `(calle, num)` via `_CATASTRO_INDEX` → ALTA (≤200m)
+2. **Paso 1**: Token containment ≤30m → ALTA
+3. **Paso 2**: Nearest + token ≤30m → MEDIA
+4. Sin esquina
 
-### Resultados P1200
-| Escenario | Valor |
-|-----------|-------|
-| Histórico (baseline) | $137,888 |
-| 3-step (≤50m + esquina) | $190,957 (+38%) |
-| **2-step restrictivo (≤20m)** | **$150,482 (+9%)** |
+### Resultados simulados
+| Propiedad | Valor USD | ALTA | MEDIA |
+|-----------|-----------|------|-------|
+| Mabel | $67,863 | 43 | 0 |
+| Ayacucho | $51,154 | 31 | 0 |
+| Vera Mujica | $48,873 | 24 | 0 |
+| **P1200** | **$125,412** | 14 | 0 |
+| Entre Rios | $77,446 | 18 | 0 |
+| Brown 2750 | $306,681 | 6 | 0 |
 
-### Fix adicional (TAREA-012)
-- `unicodedata` movido de función interna a imports globales para evitar crash en pytest
-
-### Tests: 37/39 pasan (2 fallas pre-existentes)
+### Tests: 38/39 pasan (1 falla pre-existente Vera Mujica benchmark)
 
 ## 15. Persistencia de valuaciones entre sesiones DO ✅ (2026-05-29)
 

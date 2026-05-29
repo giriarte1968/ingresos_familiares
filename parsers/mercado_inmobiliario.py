@@ -588,13 +588,16 @@ def _extraer_interseccion(direccion):
     return []
 
 
-def enriquecer_anio_comparable(comp, max_dist_m=20):
+def enriquecer_anio_comparable(comp, max_dist_m=30, max_dist_exacta=200):
     """
     Asigna año de construcción a un comparable usando catastro.
+    3 pasos: match exacto (calle+número) → token containment ≤30m → nearest+token ≤30m.
+    Sin esquina fallback.
     
     Args:
         comp: dict de comparable (del scraping)
-        max_dist_m: distancia máxima en metros para considerar match
+        max_dist_m: distancia máxima en metros para token containment
+        max_dist_exacta: distancia máxima para match exacto por dirección
     
     Returns:
         dict con anio_estimado, distancia_match, confianza, o None
@@ -620,6 +623,24 @@ def enriquecer_anio_comparable(comp, max_dist_m=20):
     if not calles:
         return None
 
+    # ─── PASO 0: Match exacto por dirección (calle + número) vía _CATASTRO_INDEX ───
+    for cn, num in calles:
+        if not cn or num is None:
+            continue
+        key = (cn, num)
+        if _CATASTRO_INDEX and key in _CATASTRO_INDEX:
+            row = _CATASTRO_INDEX[key]
+            d = calcular_distancia_km(lat, lon, row['latitud'], row['longitud']) * 1000
+            if d <= max_dist_exacta:
+                return {
+                    'anio_estimado': int(row['year']),
+                    'ph_match': str(row.get('ph', '?')),
+                    'distancia_m': round(d, 1),
+                    'confianza': 'ALTA',
+                    'match_calle': True,
+                    'direccion_catastro': str(row.get('direccion_nominatim', ''))
+                }
+
     # Bounding box ±0.001° (~111m) para filtrar catastro
     bbox = 0.001
     cercanos = catastro[
@@ -640,7 +661,7 @@ def enriquecer_anio_comparable(comp, max_dist_m=20):
             'tokens': cn_filt.split() if cn_filt else []
         })
 
-    # ─── PASO 1: Token containment + ≤20m → ALTA ───
+    # ─── PASO 1: Token containment ≤30m → ALTA ───
     for cn, num in calles:
         if not cn:
             continue
@@ -666,7 +687,7 @@ def enriquecer_anio_comparable(comp, max_dist_m=20):
                 'direccion_catastro': str(best_row.get('direccion_nominatim', ''))
             }
 
-    # ─── PASO 2: Fallback nearest PH + token validation ≤20m → MEDIA ───
+    # ─── PASO 2: Nearest PH + token validation ≤30m → MEDIA ───
     mejor_dist = float('inf')
     mejor_row = None
     for entry in cercanos_norm:
