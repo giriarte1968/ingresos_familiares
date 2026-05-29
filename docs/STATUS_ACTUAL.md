@@ -227,3 +227,18 @@ Amenities refactorizados a `calcular_delta_amenities()` con cap 6%. NLP excluye 
 - `unicodedata` movido de función interna a imports globales para evitar crash en pytest
 
 ### Tests: 37/39 pasan (2 fallas pre-existentes)
+
+## 15. Persistencia de valuaciones entre sesiones DO ✅ (2026-05-29)
+
+### Problema
+En DO, cada nuevo deploy o reinicio perdía `valuaciones_cache.json` (gitignored). Además, `guardar_resultado()` escribía `_ultima_valuacion` en `propiedades.json` sin pushearlo a GitHub, y `try_pull()` sobrescribía el archivo local con la versión remota (sin `_ultima_valuacion`). Portfolio mostraba "Pendiente" en cada nueva sesión.
+
+### Solución
+- `valuaciones_cache.json` removido de `.gitignore` y trackeado en git → persiste entre deploys
+- `guardar_resultado()` ahora llama `try_sync()` → `_ultima_valuacion` se persiste en GitHub
+- `try_pull()` no afecta `valuaciones_cache.json` (usa checkout selectivo de solo `propiedades.json`)
+
+### Archivos modificados
+- `.gitignore` — línea removida
+- `data/valuaciones_cache.json` — ahora trackeado
+- `parsers/valuacion_cache.py` — `guardar_resultado()` + `try_sync()`

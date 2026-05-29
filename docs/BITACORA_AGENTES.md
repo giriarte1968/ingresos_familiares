@@ -1295,3 +1295,30 @@ Reemplazada `enriquecer_anio_comparable()` con 3-step lookup:
 - `docs/BITACORA_AGENTES.md` — esta entrada
 - `docs/STATUS_ACTUAL.md` — §13 nuevo
 - `.opencode/plans/TAREAS_INDEX.md` — TAREA-012 agregada
+
+---
+
+## TAREA-013 — 2026-05-29 — FIX: Valuaciones no persisten entre sesiones en DO
+
+### Problema
+En DO, el portfolio muestra "Pendiente" al recargar la página. Al entrar al detalle, la propiedad se valúa y se mantiene valuada durante la sesión. Al cerrar y volver a entrar, vuelve a "Pendiente".
+
+### Causa raíz (doble)
+1. **`data/valuaciones_cache.json` en `.gitignore`**: cada nuevo deploy en DO arranca sin el archivo. La valuación se pierde al reiniciar el contenedor.
+2. **`guardar_resultado()` no hace git push**: escribe `_ultima_valuacion` en `propiedades.json` pero no lo sube a GitHub. `try_pull()` al inicio de cada sesión sobrescribe `propiedades.json` con la versión remota (sin `_ultima_valuacion`), y el portfolio cae a "Pendiente".
+
+### Solución
+1. **`.gitignore`**: removido `data/valuaciones_cache.json`
+2. **`git add -f data/valuaciones_cache.json`**: trackeado en git para persistir entre deploys
+3. **`parsers/valuacion_cache.py` → `guardar_resultado()`**: ahora llama `try_sync([PROPIEDADES_PATH])` para pushear `_ultima_valuacion` a GitHub
+
+### Seguridad
+- `try_pull()` usa checkout selectivo (`git checkout FETCH_HEAD -- propiedades.json`), no toca `valuaciones_cache.json`
+- El cache trackeado es seguro: solo se actualiza vía `guardar_cache_valuaciones()` en runtime, nunca vía git pull
+- `try_sync()` es condicional a `GIT_WRITE_TOKEN` (si no hay token, no hace nada)
+
+### Archivos modificados
+- `.gitignore` — línea `data/valuaciones_cache.json` eliminada
+- `data/valuaciones_cache.json` — ahora trackeado en git
+- `parsers/valuacion_cache.py` — `guardar_resultado()` llama `try_sync()`
+- `docs/BITACORA_AGENTES.md` — esta entrada
