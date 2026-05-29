@@ -238,12 +238,12 @@
       "distancia_ancla_km": 0.39,
       "geocode_status": "no_snap",
       "_ultima_valuacion": {
-        "valor_usd": 125763.0,
-        "alquiler_ars": 752046.0,
-        "cap_rate": 0.061,
+        "valor_usd": 190957.0,
+        "alquiler_ars": 1142212.0,
+        "cap_rate": 0.0614,
         "m2_equivalentes": 88.85,
-        "comps": 9,
-        "fecha": "28/05/2026 01:26"
+        "comps": 17,
+        "fecha": "29/05/2026 18:14"
       }
     },
     {
