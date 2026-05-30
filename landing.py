@@ -92,11 +92,13 @@ def mostrar_landing():
     
     st.markdown(get_footer_html(), unsafe_allow_html=True)
 
-    st.markdown("""
+    # Inject keyboard navigation via hidden iframe (Scripts no se ejecutan en st.markdown)
+    st.components.v1.html("""
 <script>
 (function() {
-  if (window.__keyNavInit) return;
-  window.__keyNavInit = true;
+  var w = window.parent;
+  if (w.__keyNavInit) return;
+  w.__keyNavInit = true;
 
   function getTopSection(sections) {
     var best = 0, bestDist = Infinity;
@@ -113,7 +115,7 @@ def mostrar_landing():
     if (key !== 'PageDown' && key !== 'PageUp' && key !== 'Home' && key !== 'End') return;
     var t = (e.target || e.srcElement).tagName;
     if (t === 'INPUT' || t === 'TEXTAREA' || t === 'SELECT') return;
-    var sections = Array.from(document.querySelectorAll('[data-section]'));
+    var sections = Array.from(w.document.querySelectorAll('[data-section]'));
     if (!sections.length) return;
     e.preventDefault();
     if (key === 'Home') { sections[0].scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
@@ -123,12 +125,9 @@ def mostrar_landing():
     if (tgt !== cur) sections[tgt].scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() { window.addEventListener('keydown', handler); });
-  } else {
-    window.addEventListener('keydown', handler);
-  }
+  w.document.addEventListener('DOMContentLoaded', function() { w.addEventListener('keydown', handler); });
+  if (w.document.readyState !== 'loading') w.addEventListener('keydown', handler);
 })();
 </script>
-""", unsafe_allow_html=True)
+""", height=0, width=0)
 
