@@ -1529,3 +1529,33 @@ Estables — solo Mabel varió $113 (1.7%). El motor usa coordenadas de cache_sc
 ### Documentos actualizados
 - `docs/STATUS_ACTUAL.md` — tablas de valuaciones + tests + sección batch centroide
 - `docs/BITACORA_AGENTES.md` — esta entrada
+
+---
+
+## 📅 2026-05-30 — CORRECCIÓN DE 210 ESQUINAS NO DETECTADAS (BLIND SPOT)
+
+### Detección del blind spot
+El cross-check de 25 PHs pre-esquinas reveló 2 discrepancias (PH 17264 "9 de Julio 2326" vs centroide "Alvear 1370"; PH 2178 "Balcarce 1197" vs centroide "Mendoza 2100"). El filtro original TAREA-017 usaba distancia >30m del centroide, pero estos PHs estaban DENTRO de 30m — el centroide caía sobre la otra calle de la intersección.
+
+### Scan completo
+Escaneados 447 grupos de coordenadas compartidas (998 PHs en esquinas) comparando dirección actual vs centroide catastral.
+
+### Resultados
+| Métrica | Valor |
+|---------|-------|
+| Esquinas escaneadas | 998 PHs (447 grupos) |
+| Discrepancias encontradas | 236 |
+| Corregidas (interpolación exitosa) | **210** |
+| No corregibles (sin referencias suficientes) | 26 |
+| Llamadas Nominatim | 302 (1 cache por centroide redondeado) |
+
+### Método
+1. Centroide catastral → reverse-geocode (cache por round(lat,3))
+2. Si calle del centroide ≠ calle actual → interpolar número (nearest-3 IDW)
+3. Aplicar cambio directo (sin forward-verify, método validado en batch centroide)
+
+### Archivos modificados
+- `data/rosario_avm_full.csv` — 210 PHs con dirección corregida en esquinas
+
+### Commit
+`41f735d` — push a origin/main
