@@ -1,6 +1,6 @@
 # 🏠 STATUS ACTUAL DEL PROYECTO — AVM Rosario
 
-*Actualizado: 29/05/2026*
+*Actualizado: 30/05/2026*
 
 ---
 
@@ -120,3 +120,19 @@ git checkout origin/do-state -- propiedades.json data/valuaciones_cache.json
 1. ⚠️ Vera Mujica benchmark desactualizado (test_regression)
 2. `data/history/` directorio untracked (generado por scraping)
 3. Validación manual en DO del flujo do-state
+
+## 8. ESQUINAS — CORRECCIÓN DE DIRECCIONES VIA CENTROIDE CATASTRAL
+
+### Problema detectado
+PHs en intersecciones tienen `direccion_nominatim` incorrecta. Ej: PH 10286 tiene "Entre Ríos 411" pero su parcela catastral (SD=3) está sobre Tucumán → "Tucumán 1291".
+
+### Métricas de detección
+| Métrica | Valor |
+|---------|-------|
+| PHs que comparten coordenadas (esquinas) | 487 grupos, 1.182 PHs |
+| PHs con coordenadas >30m del centroide catastral | 251 |
+| % de esos con dirección incorrecta (muestra n=25) | 84% (21/25) |
+| PHs estimados con dirección incorrecta | ~210 (~1% del total) |
+
+### Plan de corrección
+Aplicar centroide catastral → reverse-geocode Nominatim → actualizar `direccion_nominatim` y coordenadas. ~5 min de procesamiento.

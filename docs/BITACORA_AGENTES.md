@@ -1382,3 +1382,63 @@ En DO, el portfolio muestra "Pendiente" al recargar la página. Al entrar al det
 - `data/valuaciones_cache.json` — ahora trackeado en git
 - `parsers/valuacion_cache.py` — `guardar_resultado()` llama `try_sync()`
 - `docs/BITACORA_AGENTES.md` — esta entrada
+
+---
+
+### TAREA-017 — 2026-05-30 — Investigación esquinas (Opción A: centroide catastral para corrección de direcciones)
+
+### Problema
+PHs en intersecciones/esquinas tienen `direccion_nominatim` incorrecta en `rosario_avm_full.csv`. El reverse-geocode de Nominatim en la intersección de dos+ calles asigna la calle incorrecta (ej: PH 10286 → "Entre Ríos 411" cuando debería ser "Tucumán 1291").
+
+El sistema tiene dos fuentes históricas de `direccion_nominatim`:
+
+| Fuente | Método | Problema |
+|--------|--------|---------|
+| **Nominatim** (`geocode_rebuild_and_geocode.py`) | Reverse-geocode de coordenadas (lat, lon) | Falla en intersecciones → asigna calle incorrecta |
+| **OCR** (`pipeline_gpu.py` en `C:\Users\Gustavo\.gemini\antigravity\scratch\tests\`) | Lectura directa del PDF oficial de Infomapa via EasyOCR + GPU | 100% correcto cuando funciona, pero lento (~6s/PDF con GPU) y ~40% falla en PDFs pre-1980 escaneados |
+
+### Investigación: Método de detección de esquinas
+Se implementó un análisis de 3 métodos sobre 25 PHs con coordenadas sospechosas (>30m del centroide de su parcela catastral):
+
+#### Método A: Coordenadas compartidas
+- Si 2+ PHs tienen exactamente el mismo `(lat, lon)` → están en una esquina
+- Resultado: 487 grupos, 1182 PHs comparten coordenadas
+- **No da la dirección correcta**, solo detecta la anomalía
+
+#### Método B: Distancia coordenada vs centroide catastral
+- Para cada PH con `(seccion, manzana, grafico)` válido:
+  1. Buscar parcela en geometría (274k parcelas)
+  2. Calcular centroide del polígono
+  3. Medir distancia entre la coordenada actual del PH y el centroide
+  4. Si distancia > 30m → las coordenadas están sobre la calle, no dentro del lote
+- Resultado: 251 PHs con distancia >30m del centroide
+- **No da la dirección correcta**, solo detecta candidatos
+
+#### Método C: Reverse-geocode del centroide (el corrector real)
+- Reverse-geocodificar el centroide con Nominatim
+- Comparar con `direccion_nominatim` actual
+- Si difieren → la dirección actual está MAL
+- Resultado en muestra de 25 PHs: **21/25 (84%) tienen dirección incorrecta**
+- Ejemplos concretos:
+  - PH 734: "Manuel Dorrego" → "Catamarca 1902" (calle completamente diferente)
+  - PH 7341: "9 de Julio 961" → "Maipú 1422"
+  - PH 21575: "Entre Ríos" → "Bartolomé Mitre 264"
+  - PH 1720: "San Luis 537" → "Primero de Mayo 1028"
+  - PH 3201: "Necochea 1213" → "Cajaraville 64"
+
+### Conclusión
+- **Métodos A y B**: solo sirven para *detectar* qué PHs están en esquinas
+- **Método C**: es el único que *corrige* la dirección (centroide → reverse-geocode → dirección verdadera)
+- Plan: para los ~251 PHs detectados (~210 con direcciones incorrectas estimadas), aplicar centroide catastral → reverse-geocode → actualizar `direccion_nominatim` y coordenadas en CSV
+- La corrección requiere ~251 llamadas a Nominatim (~5 min con rate-limit 1.1s), no 21.000
+
+### Archivos involucrados (investigación)
+- `data/rosario_avm_full.csv` — 21.017 PHs, 251 con coordenadas >30m del centroide
+- `data/geometry/parcelas_seccion*_json.csv` — 274.090 parcelas poligonales
+- `parsers/infomapa_api.py` — API endpoint `buscarPorCarpeta.htm` para datos catastrales
+- `C:\Users\Gustavo\.gemini\antigravity\scratch\tests\pipeline_gpu.py` — OCR pipeline histórico
+- `C:\Users\Gustavo\.gemini\antigravity\scratch\tests\memoria_infomapa.md` — documentación del pipeline histórico
+
+### Documentos actualizados
+- `docs/MEMORIA_PROYECTO.md` — §13 (Fuentes de direccion_nominatim) + DEC-08
+- `docs/BITACORA_AGENTES.md` — esta entrada

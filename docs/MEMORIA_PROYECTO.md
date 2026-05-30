@@ -528,3 +528,53 @@ Leer esto antes de cada sesión de código
 - ❌ Aplicar `delta_anti` cuando `ventana_usada == 3`
 - ❌ Poner NLP fuera del sqrt
 - ❌ Subir `lambda_val` por encima de 0.012 sin aprobación
+
+---
+
+## 13. FUENTES DE `direccion_nominatim`
+
+El campo `direccion_nominatim` en `rosario_avm_full.csv` tiene **dos fuentes históricas** con diferentes niveles de confianza:
+
+| Fuente | Método | Cobertura | Confianza | Problema |
+|--------|--------|-----------|-----------|----------|
+| **Nominatim** (`geocode_rebuild_and_geocode.py`) | Reverse-geocode de coordenadas (lat, lon) via API de OpenStreetMap | 100% (21.017 PHs) | Media | Falla en **intersecciones/esquinas**: devuelve la calle más cercana a las coordenadas, que caen en el cruce de dos+ calles → asigna calle incorrecta |
+| **OCR** (`pipeline_gpu.py` en `C:\Users\Gustavo\.gemini\antigravity\scratch\tests\`) | Descarga PDF oficial de Infomapa → render → EasyOCR con GPU → extrae dirección del plano de mensura | ~60% (~12.600 PHs) | Alta (cuando funciona) | Lento (~6s/PDF con GPU), ~40% falla en PDFs pre-1980 (escaneos de baja calidad) |
+
+### Pipeline de construcción de la fuente de verdad
+
+```
+1. geocode_rebuild_and_geocode.py
+   └→ Consulta Nominatim para cada PH con (lat, lon) del CSV
+   └→ Escribe direccion_nominatim             ← cobertura 100%, falla en esquinas
+
+2. pipeline_gpu.py
+   └→ Consulta API Infomapa para cada PH sin número en direccion_nominatim
+   └→ Descarga PDF oficial → OCR → extrae dirección del plano de mensura
+   └→ Actualiza direccion_nominatim            ← cobertura ~60%, 100% correcto
+
+3. (Propuesto) Corrección via centroide catastral
+   └→ Para PHs con (seccion, manzana, grafico) válido:
+   └→ Busca parcela en geometría (274k parcelas) → calcula centroide
+   └→ Reverse-geocode del centroide → calle correcta (dentro del lote, no en intersección)
+   └→ Actualiza direccion_nominatim y coordenadas ← cubre 100% de PHs con geometría
+```
+
+### DEC-08: Corrección de direcciones en esquinas via centroide catastral
+
+- **Fecha:** Mayo 2026
+- **Problema:** PHs en intersecciones tienen `direccion_nominatim` incorrecta porque Nominatim asigna la calle del cruce, no la del lote. Detectado durante enriquecimiento de P1200 (Entre Ríos 411 → debería ser Tucumán 1291).
+- **Solución:** Usar geometría catastral (274k parcelas poligonales) para calcular el centroide del lote, que cae DENTRO de la parcela (no en la calle). Reverse-geocodificar ese centroide → calle correcta.
+- **Detección de esquinas (3 métodos):**
+  1. **Coordenadas compartidas:** 487 grupos de PHs comparten el mismo (lat, lon) — están en la misma intersección
+  2. **Distancia centroide:** 251 PHs tienen sus coordenadas a >30m del centroide de su parcela
+  3. **Reverse-geocode comparativo:** 84% (21/25) de los PHs con distancia >30m tienen direccion_nominatim diferente a la del centroide
+- **Impacto:** ~210 de 21.017 PHs (~1%) tienen direcciones incorrectas por estar en esquinas. La corrección requiere ~5 min (251 calls Nominatim con rate-limit).
+- **Archivos afectados:** `data/rosario_avm_full.csv` (actualizar direccion_nominatim + coordenadas)
+
+### DT-06: Corrección masiva de direcciones en esquinas
+
+| # | Task | Estado | Notas |
+|---|------|--------|-------|
+| DT-06 | Aplicar centroide catastral → reverse-geocode → corregir direccion_nominatim para ~210 PHs en esquinas | ⏳ PENDIENTE | ~5 min de Nominatim calls; requiere coordenadas correctas (centroide) y verificación manual de una muestra |
+
+---

@@ -16,4 +16,6 @@
 | TAREA-012 | 3-Step comparable year enrichment (token containment + intersecciones + esquina) | _(pending)_ | 2026-05-29 |
 | TAREA-013 | DO valuaciones_cache persistence + guardar_resultado + try_sync fix | _(multiple)_ | 2026-05-29 |
 | TAREA-014 | Restrictive comparable year enrichment (≤20m, sin esquina fallback) | `64b5b98` | 2026-05-29 |
-| TAREA-015 | Enriquecimiento 3-pasos: match exacto calle+número + token ≤30m + nearest | `TBD` | 2026-05-29 |
+| TAREA-015 | Enriquecimiento 3-pasos: match exacto calle+número + token ≤30m + nearest | `4999294` | 2026-05-29 |
+| TAREA-016 | Persistencia DO: atomic_write_json + persistir_valuacion + branch do-state | `caa7d1f` | 2026-05-29 |
+| TAREA-017 | Investigación esquinas: detección via centroide catastral + 3 métodos (shared coords, distancia, reverse-geocode) | _(documentación)_ | 2026-05-30 |
