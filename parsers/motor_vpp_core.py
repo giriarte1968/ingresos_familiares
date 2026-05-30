@@ -1282,9 +1282,10 @@ def valuar_con_cache(prop: dict,
     Solo recalcula si es necesario o se fuerza.
     """
     from parsers.valuacion_cache import (
-        cargar_cache_valuaciones, guardar_cache_valuaciones,
-        necesita_recalcular, guardar_resultado,
-        obtener_resultado_cacheado, obtener_metadata_cache
+        cargar_cache_valuaciones,
+        necesita_recalcular, persistir_valuacion,
+        obtener_resultado_cacheado, obtener_metadata_cache,
+        CACHE_PATH, PROPIEDADES_PATH
     )
     from datetime import datetime
     from parsers.profiler import profile_block, save_results, StepLedger
@@ -1326,14 +1327,26 @@ def valuar_con_cache(prop: dict,
             'timestamp': datetime.now().isoformat()
         }
 
-        with profile_block("vcc_guardar_resultado", prop):
-            _vl.mark("before_guardar_resultado")
-            guardar_resultado(nombre, prop, resultado, cache)
-            _vl.mark("after_guardar_resultado")
-        with profile_block("vcc_guardar_cache", prop):
-            _vl.mark("before_guardar_cache")
-            guardar_cache_valuaciones(cache)
-            _vl.mark("after_guardar_cache")
+        with profile_block("vcc_persistir_valuacion", prop):
+            _vl.mark("before_persistir_valuacion")
+            ok_persist = persistir_valuacion(nombre, prop, resultado, cache)
+            _vl.mark("after_persistir_valuacion")
+
+            if not ok_persist:
+                logger.error(f"[CACHE] No se pudo persistir valuacion local de {nombre}")
+
+        # Sync GitHub opcional post-persistencia local
+        if ok_persist:
+            try:
+                from parsers.git_sync import try_sync_state
+                ok_sync = try_sync_state(
+                    [CACHE_PATH, PROPIEDADES_PATH],
+                    commit_message=f"DO-STATE: persistir valuacion {nombre}"
+                )
+                if not ok_sync:
+                    pass  # No fatal, la persistencia local ya ocurrió
+            except Exception as e:
+                logger.warning(f"[CACHE] Error sync state para {nombre}: {e}")
 
         # Registrar en historial inmutable (append-only)
         with profile_block("vcc_registrar_historial", prop):

@@ -1,244 +1,122 @@
-# Estado Actual del Sistema VPP (Valuación de Propiedades Personalizada)
+# 🏠 STATUS ACTUAL DEL PROYECTO — AVM Rosario
 
-Este documento resume el estado actual del motor de scraping y valuación de propiedades en Rosario, integrando las últimas mejoras en analítica de precios, clustering y ROI.
-
-## 1. Módulos de Scraping (V2)
-
-- **Portales Soportados**:
-    - **Propia.com.ar**: Extracción completa de datos (precio, m2, operación, coordenadas).
-    - **ArgenProp, Zonaprop, La Capital**: Integrados vía cache persistente.
-- **Descubrimiento de Agencias**: `buscar_inmobiliarias.py` automatiza la búsqueda de sitios web de inmobiliarias locales para bypass de agregadores.
-- **Cache de Datos**: Almacenado en `cache_scraping.json`, centralizando miles de muestras del mercado de Rosario.
-
-## 2. Motor de Valuación (VPP v7.0)
-
-El núcleo del sistema incluye los siguientes componentes:
-
-### Clustering y Base de Precios
-- **obtener_mediana_cluster_v2**: Clustering geográfico con radios progresivos (300m → 1500m).
-- **Filtrado IQR**: outliers removidos automáticamente (percentiles 15-85 o 25-75).
-- **Fecha dinámica**: usa `datetime.now()` por defecto con soporte para `fecha_ref` explícita.
-- **Ventana móvil**: 180 días (configurable a 365 si <5 muestras).
-
-### Factores de Ajuste
-- **delta_anti**: depreciación por antigüedad (0.6%/año, max -30%).
-- **factor_estado**: ajuste por condición (0.85 - 1.15).
-- **factor_edificio**: calidad del edificio.
-- **Factor Anti-Atenuación**: para propiedades >30 años (P1200 rescue).
-
-### Barreras Geográficas
-- **check_barrier_crossing**: diferenciación hard/soft.
-  - **hard** (Ferrocarril): weight = 0.20 (80% penalty).
-  - **soft** (Avenidas): weight = 0.90 (10% penalty).
-- **Cobertura**: 751 features (263 hard + 488 soft). Av. Del Valle agregada como soft barrier el 2026-05-24 para corregir valuación de Brown 2700 (23 propiedades re-clasificadas de same_side a cross_soft).
-
-### Valuación Híbrida
-- Fórmula: `m2_equiv * m2_base * factores * (1 + NLP)`.
-- Soporte para NLP con cap 3-5%.
-- Cap Rate neto: 3-5% para alquiler.
-
-## 3. Nueva Interfaz Valu (UX Premium)
-Se ha completado la transición hacia una arquitectura de frontend desacoplada:
-- **Tecnología**: Streamlit + CSS Custom (Glassmorphism) + Componentes HTML5.
-- **Valuación Explicable v2.0**: Razonamiento narrativo cualitativo que explica cada driver de valor en lenguaje natural (vista, calidad, estado, ventilación, piso, gas, balcón, funcionales, seguridad, edad, NLP). Sin porcentajes.
-- **Historial Inmutable**: Sistema de registro por eventos (`JSONL`) que preserva cada tasación y snapshot del mercado para análisis temporal.
-- **Landing Page Pública**: Página de presentación profesional inspirada en Zillow/Redfin con disclaimer de responsabilidad y onboarding para nuevos usuarios.
-- **Seguimiento de Inventario**: Gestión de fechas de publicación para análisis de absorción de mercado.
-
-## 4. Estructura de Archivos
-- `valu.py`: App principal enfocada en Real Estate.
-- `valu_design.py`: Design Tokens y componentes visuales.
-- `valu_forms.py`: Captura de datos (45+ variables).
-- `app.py`: Versión legacy / Gestión financiera.
-- `parsers/`: Motores de cálculo y scraping.
-- `parsers/valuacion_helpers.py`: funciones puras: `calcular_rango_venta()` (fuente única de rango), `procesar_alquiler()`, `ensamblar_metadata_resolucion()`
-- `parsers/cluster_filters.py`: 7 helpers puros con 34 tests: `calcular_percentil()` (discreto, no numpy), `calcular_blend_p33()`, `seleccionar_percentil_por_edad()`, etc.
-- `cache_scraping.json`: Base de datos de mercado (~50MB, gitignored).
-- `data/valuaciones_cache.json`: Resultados de valuación cacheados trackeados en git para persistencia entre deploys DO.
-
-## 5. FASE 2 — Rango Unificado ✅
-- `calcular_rango_venta()` en `valuacion_helpers.py` es la única fuente de verdad para el rango de venta
-- El motor `valuar_propiedad_v7()` ya no tiene lógica inline de rango; llama al helper
-- El rango UI (`rango_m2`) usa el rango real del cluster, no ±10% hardcodeado
-- Hardcode `rango_min = valor_venta * 0.90` y `rango_max = valor_venta * 1.10` eliminados
-
-## 6. FASE 3 — Consolidación de Helpers ✅
-- `seleccionar_percentil_por_edad()` ahora sí se llama desde producción (reemplaza inline de 15 líneas)
-- `calcular_blend_p33()` ahora se usa en los 3 escenarios (conservador, mercado, optimista), no solo en blend_cons
-- Los 4 helpers de cluster (`calcular_percentil`, `calcular_blend_p33`, `seleccionar_percentil_por_edad`, `calcular_rango_venta`) están 100% activos
-- Sin helpers muertos — todos llamados desde producción
-- **82/82 tests pasan** — baseline anclas sin cambios: Mabel $72,241 / Ayacucho $52,047 / Vera $52,062 / P1200 $137,888
+*Actualizado: 29/05/2026*
 
 ---
 
-**Actualizado por**: opencode (Agente IA)
-**Fecha**: 2026-05-26
-**Ubicación**: `ingresos_familiares_st/valu.py`
+## 1. RESUMEN EJECUTIVO
 
-## 7. Fix Age Blend 5-7 ✅ (2026-05-26)
+| Dimensión | Estado |
+|-----------|--------|
+| Motor valuación v7 | ✅ Operativo |
+| Enriquecimiento años | ✅ 3-pasos (exacta ≤200m / token ≤30m / nearest+token ≤30m) |
+| Persistencia DO | ✅ Atómica + branch `do-state` |
+| Landing page | ✅ Navegación por teclado (PageDown/PageUp/Home/End) |
+| Tests regresión | ⚠️ 38/39 (1 preexistente: Vera Mujica benchmark desactualizado) |
+| Tests persistencia | ✅ 16/16 |
+| Despliegue DO | ✅ Sin redeploy loop |
 
-### Problema
-`seleccionar_percentil_por_edad()` ya contemplaba `P33_age_blend` para 5–7 comparables, pero `_filtrar_por_ventana_edad()` exigía `min_con_anio=10` y segunda ventana ±20 (en vez de ±30). Con ±20 solo obtenía 4 comparables para Brown 2700 (año 2010), insuficientes para activar el blend.
+---
 
-### Cambios
-- `min_con_anio=10` → `min_con_anio=5`
-- Segunda ventana: 20 → 30
-- Control flow simplificado (return on first success)
-- Fallback retorna `len(pool_con_anio)` en vez de 0
+## 2. ARQUITECTURA ACTUAL
 
-### Caso Brown 2700 (2010)
-| Métrica | Antes | Después |
-|---------|-------|---------|
-| age_filter_applied | False | True |
-| n_age_filtered | 0 | 6 |
-| rango_anio | — | 1980-2040 |
-| percentil_usado | P33 | P33_age_blend |
-| age_blend_applied | False | True |
-| alpha_age_blend | — | 0.60 |
-| base_principal | 2057.84 | 1763.50 |
-| Comparables 1968/1975 en pool | Sí | No |
+### Flujo de valuación
 
-### Archivos modificados
-- `parsers/mercado_inmobiliario.py` — `_filtrar_por_ventana_edad()`
-- `tests/test_age_blend_filter.py` — 5 tests nuevos
+```
+propiedades.json → motor_vpp_core.valuar_con_cache()
+    → necesita_recalcular() → valuar_propiedad_v7()
+    → persistir_valuacion() [local]
+        → atomic_write_json → data/valuaciones_cache.json
+        → atomic_write_json → propiedades.json (_ultima_valuacion)
+    → try_sync_state() [opcional, push a do-state]
+```
 
-## 8. Persistencia entre Deploys DO ✅
+### Enriquecimiento de años (3 pasos)
 
-- `data/valuaciones_cache.json` ahora trackeado en git → persiste en DO
-- `cache_scraping.json` trackeado en git (se quitó de .gitignore)
-- `_calcular_hash_scraping()` retorna `None` si el archivo no existe
-- `necesita_recalcular()` omite chequeo de scraping si hash es `None`
-- DO usa cache sin recálculo en cada deploy.
-- `parsers/git_sync.py`: write-back de propiedades a git cuando `GIT_WRITE_TOKEN` está configurado
-- ⚠️ Cada push desde DO desencadena un deploy (deploy_on_push). Las sesiones de usuario se interrumpen brevemente.
+```
+Paso 0: EXACTA — (calle_norm, numero) en _CATASTRO_INDEX ≤200m → ALTA
+Paso 1: TOKEN — token containment ≤30m → ALTA
+Paso 2: NEAREST — nearest PH + token containment ≤30m → MEDIA
+No esquina fallback.
+```
 
-## 9. Optimización de Performance — FASE 1 ✅
+### Filtro etario
 
-### Cache persistente de Infomapa
-- `_INFOMAPA_CACHE` en memoria + `data/infomapa_cache.json` en disco
-- Clave por coordenadas (`{lat:.4f}_{lon:.4f}`), TTL 24h
-- Se carga al importar el módulo, se persiste tras cada llamada exitosa
-- **Ahorro estimado**: ~3.3s por valuación (cache hit → ~1ms)
+```
+±15 años → si ≥5 comps aplica
+±30 años → si ≥5 comps aplica
+Fallback → pool completo (P33)
+Percentiles: 5-7→P33_age_blend / 8-9→P40 / 10-19→P45 / 20+→P50
+```
 
-### Cache de CSV catastral
-- `_cargar_csv()` con TTL 5 min en memoria
-- **Ahorro estimado**: ~110ms por valuación
+---
 
-### Reuso de cache_scraping
-- `obtener_mediana_cluster_v2()` acepta `cache_scraping` opcional (dict precargado)
-- `calcular_cap_rate_local()` acepta y propaga el mismo parámetro
-- `valuar_propiedad_v7()` carga el cache UNA VEZ y lo pasa a toda la valuación
-- **Ahorro estimado**: ~319ms (4 lecturas → 1)
+## 3. COMPONENTES
 
-## 10. Infomapa Lazy-Load (On-Demand) ✅
+| Archivo | Propósito |
+|---------|-----------|
+| `valu.py` | UI principal (Streamlit), landing, portfolio |
+| `landing.py` | Landing page render + keyboard nav JS |
+| `landing_content.py` | HTML sections con `data-section` |
+| `parsers/mercado_inmobiliario.py` | Motor valuación v7, enriquecimiento 3-pasos |
+| `parsers/valuacion_cache.py` | Cache persistente, escritura atómica |
+| `parsers/git_sync.py` | Sync GitHub a `main` (try_sync) y `do-state` (try_sync_state) |
+| `parsers/motor_vpp_core.py` | Wrapper valuación con caché + sync opcional |
+| `parsers/valuacion_historial.py` | Historial append-only de valuaciones |
+| `tests/test_persistencia_valuaciones.py` | 16 tests de persistencia |
 
-### Problema resuelto
-Infomapa era el principal cuello de botella del botón "Ver detalle":
-- `infomapa` frío: ~3.9s por valuación (HTTP POST a rosario.gov.ar)
-- Usuario reportaba ~30s de espera (cold start + Infomapa + Streamlit combinados)
-- La consulta se ejecutaba SIEMPRE al abrir detalle, incluso si el usuario no quería ver el plano
+---
 
-### Solución
-- `valuar_propiedad_v7(consultar_infomapa=False)` salta el bloque Infomapa completamente
-- Desde la UI, el detalle se abre sin consultar Infomapa
-- Botón "🔍 Consultar datos catastrales / plano" en el detalle (solo visible si no hay datos)
-- Al hacer clic, se ejecuta `enriquecer_con_infomapa()`, se persiste en `valuaciones_cache.json`, y se rerunea
+## 4. PERSISTENCIA DO — BRANCH DE ESTADO
 
 ### Flujo
-1. **Ver detalle** → apertura rápida (~2-3s), sin llamada a Infomapa
-2. **Consultar catastro** (solo si el usuario hace clic) → llamada a Infomapa + cache + rerun
-3. En adelante, el detalle sirve datos catastrales desde `valuaciones_cache.json`
+1. **Persistencia local atómica** (siempre):
+   - `atomic_write_json()` → `data/valuaciones_cache.json`
+   - `atomic_write_json()` → `propiedades.json`
+2. **Sync opcional** (si hay token):
+   - `try_sync_state()` → push a `do-state`
 
-### Archivos modificados
-| Archivo | Cambio |
+### Características
+- `do-state` no dispara redeploy (DO deploya desde `main`)
+- `GIT_STATE_BRANCH` configurable via env var
+- `GIT_WRITE_TOKEN` requerido para push
+- Fallo de sync no rompe valuación (persistencia local ya ocurrió)
+
+### Recuperar en PC local
+```bash
+git fetch origin do-state
+git checkout origin/do-state -- propiedades.json data/valuaciones_cache.json
+```
+
+---
+
+## 5. TESTS
+
+| Archivo | Estado |
 |---------|--------|
-| `parsers/mercado_inmobiliario.py` | `consultar_infomapa` param en `valuar_propiedad_v7()` |
-| `parsers/motor_vpp_core.py` | `consultar_infomapa` param en `valuar_con_cache()` |
-| `valu.py` | `consultar_infomapa=False` + botón on-demand |
-| `valu_detail_sections.py` | `render_catastro()` early return sin datos |
+| `tests/test_regression.py` | 38/39 ✅ (1 preexistente) |
+| `tests/test_persistencia_valuaciones.py` | 16/16 ✅ |
+| `tests/test_age_blend_filter.py` | ✅ |
+| `tests/test_cluster_filters.py` | ✅ |
+| `tests/test_cache.py` | ✅ |
 
-## 11. Validación de coordenadas post-scrape ✅
+---
 
-### Estado
-`scripts/validar_coordenadas.py` disponible para correr bajo demanda. Valida cada propiedad del cache comparando coordenadas del pin scraping contra geocoding textual vía Nominatim. Discrepancias >500m se corrigen automáticamente.
+## 6. VALUACIONES DE REFERENCIA
 
-### Archivos
-| Archivo | Descripción |
-|---------|-------------|
-| `parsers/geocoder.py` | `validar_coordenadas_contra_direccion()` |
-| `scripts/validar_coordenadas.py` | Script batch post-scrape |
-| `tests/test_validar_coordenadas.py` | 5 tests |
+| Propiedad | Valor USD | m² | $/m² (m2_base) | ALTA | Pool |
+|-----------|-----------|-----|-------|------|------|
+| P1200 | $125.412 | 60.0 | $2.090 | 14 | 31 |
+| Brown 2750 | $306.681 | 78.0 | $3.414 | 6 | 25 |
+| Mabel | $67.863 | 41.0 | $1.655 | - | - |
+| Ayacucho | $51.154 | 31.5 | $1.624 | - | - |
+| Vera Mujica | $48.873 | 28.0 | $1.745 | - | - |
+| Entre Ríos | $77.446 | 34.0 | $1.814 | 18 | 27 |
 
-Colón al 1200 corregido: -32.9337,-60.6563 → -32.9463,-60.6323
+---
 
-## 12. Amenities centralizados + anti doble conteo NLP ✅
+## 7. PRÓXIMOS PASOS / ISSUES CONOCIDOS
 
-### Estado
-Amenities refactorizados a `calcular_delta_amenities()` con cap 6%. NLP excluye keywords equivalentes a amenities estructurados. `parrilla` reemplazada por `parrilla_propia`/`parrilla_compartida`.
-
-### Archivos modificados
-| Archivo | Cambio |
-|---------|--------|
-| `parsers/mercado_inmobiliario.py` | `calcular_delta_amenities()` nueva, reemplaza bloque seguridad-aditivo |
-| `parsers/nlp_inmobiliario.py` | `amenities_present` param, exclusión map, pesos reducidos |
-| `datos_mercado.json` | Nuevos pesos conservadores |
-| `valu_forms.py` | `parrilla` → `parrilla_propia`/`parrilla_compartida` + legacy |
-| `app.py` | Ídem |
-| `tests/test_amenities.py` | 11 tests nuevos |
-
-### Impacto en ancla
-- Mabel: USD 78,776 (sin cambios, rango 75k-85k)
-- Ayacucho: USD 46,430 (sin cambios, rango 44k-50k)
-- 39/39 regression tests pasan
-
-## 13. Pantallazo numérico eliminado ✅
-
-### Problema
-`mostrar_detalle_valu()` mostraba las secciones secuencialmente (~2.8s), con números apareciendo antes que mapas y catastro.
-
-### Solución
-`st.spinner()` + render directo reemplazado por `st.status(expanded=False)` que oculta todo hasta que el render completo termina, luego expande mostrando todo simultáneamente.
-
-### Archivo modificado
-| Archivo | Cambio |
-|---------|--------|
-| `valu.py` | `st.spinner` → `st.status(expanded=False)` wrapper
-
-## 14. Enriquecimiento de año por 3-Step Lookup con match exacto (TAREA-015) ✅ (2026-05-29)
-
-### Problema
-TAREA-014 (≤20m restrictivo) dejó Brown 2750 con solo 3 ALTA — la UI mostraba casi cero años. La causa: coordenadas imprecisas del scraping (centro de cuadra vs dirección exacta). Además, `_CATASTRO_INDEX` era dead code: índex de ~14.500 direcciones construido en `cargar_catastro()` pero nunca consultado.
-
-### Solución (TAREA-015)
-Se reactivó `_CATASTRO_INDEX` para match exacto y se subió token containment a 30m:
-1. **Paso 0**: Match exacto `(calle, num)` via `_CATASTRO_INDEX` → ALTA (≤200m)
-2. **Paso 1**: Token containment ≤30m → ALTA
-3. **Paso 2**: Nearest + token ≤30m → MEDIA
-4. Sin esquina
-
-### Resultados simulados
-| Propiedad | Valor USD | ALTA | MEDIA |
-|-----------|-----------|------|-------|
-| Mabel | $67,863 | 43 | 0 |
-| Ayacucho | $51,154 | 31 | 0 |
-| Vera Mujica | $48,873 | 24 | 0 |
-| **P1200** | **$125,412** | 14 | 0 |
-| Entre Rios | $77,446 | 18 | 0 |
-| Brown 2750 | $306,681 | 6 | 0 |
-
-### Tests: 38/39 pasan (1 falla pre-existente Vera Mujica benchmark)
-
-## 15. Persistencia de valuaciones entre sesiones DO ✅ (2026-05-29)
-
-### Problema
-En DO, cada nuevo deploy o reinicio perdía `valuaciones_cache.json` (gitignored). Además, `guardar_resultado()` escribía `_ultima_valuacion` en `propiedades.json` sin pushearlo a GitHub, y `try_pull()` sobrescribía el archivo local con la versión remota (sin `_ultima_valuacion`). Portfolio mostraba "Pendiente" en cada nueva sesión.
-
-### Solución
-- `valuaciones_cache.json` removido de `.gitignore` y trackeado en git → persiste entre deploys
-- `guardar_resultado()` ahora llama `try_sync()` → `_ultima_valuacion` se persiste en GitHub
-- `try_pull()` no afecta `valuaciones_cache.json` (usa checkout selectivo de solo `propiedades.json`)
-
-### Archivos modificados
-- `.gitignore` — línea removida
-- `data/valuaciones_cache.json` — ahora trackeado
-- `parsers/valuacion_cache.py` — `guardar_resultado()` + `try_sync()`
+1. ⚠️ Vera Mujica benchmark desactualizado (test_regression)
+2. `data/history/` directorio untracked (generado por scraping)
+3. Validación manual en DO del flujo do-state

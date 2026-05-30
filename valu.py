@@ -526,21 +526,22 @@ def mostrar_dashboard():
         # ─── Sincronización con GitHub ───
         st.markdown("---")
         with st.expander("🔄 Sincronización con GitHub", expanded=False):
-            from parsers.git_sync import try_sync
+            from parsers.git_sync import try_sync_state
+            from parsers.valuacion_cache import CACHE_PATH
             token = os.environ.get("GIT_WRITE_TOKEN", "")
             if token:
                 st.success("✅ `GIT_WRITE_TOKEN` configurado")
             else:
                 st.error("❌ `GIT_WRITE_TOKEN` no configurado. Agregalo en DO Console > Settings > Environment Variables")
             
-            if st.button("Forzar sync a GitHub ahora", key="force_sync"):
-                with st.spinner("Haciendo git add, commit y push..."):
-                    ok = try_sync([PROPIEDADES_FILE])
+            if st.button("Forzar sync de estado a GitHub", key="force_sync"):
+                with st.spinner("Haciendo git add, commit y push a do-state..."):
+                    ok = try_sync_state([PROPIEDADES_FILE, CACHE_PATH])
                 if ok:
-                    st.success("✅ Sync exitoso! Hacé `git pull` en tu PC local para ver los cambios.")
+                    st.success("✅ Sync exitoso a `do-state`! En PC local: `git fetch origin do-state && git checkout origin/do-state -- propiedades.json data/valuaciones_cache.json`")
                 else:
-                    st.error("❌ Sync falló. Revisá que el token tenga permisos `repo` en GitHub y que DO tenga acceso.")
-            st.caption("Después de sync, corré `git pull` en tu PC local para bajar los cambios.")
+                    st.error("❌ Sync falló. Revisá que el token tenga permisos `repo` en GitHub.")
+            st.caption("Sync a `do-state` (no a main) — no dispara redeploy.")
 
         st.markdown("---")
         with st.expander("➕ Agregar Nueva Propiedad", expanded=True):
@@ -587,16 +588,17 @@ def mostrar_dashboard():
     profile_end(_routing_ctx)
 
 # --- MAIN APP ---
+@st.cache_resource
+def git_pull_once_per_process():
+    try:
+        from parsers.git_sync import try_pull
+        return try_pull()
+    except Exception as e:
+        return False
+
 def main():
-    # Sincronizar propiedades.json con GitHub una sola vez por sesión.
-    # Corre en la primera interacción de cada sesión (no en cada rerun).
-    if "git_synced" not in st.session_state:
-        try:
-            from parsers.git_sync import try_pull
-            try_pull()
-        except Exception:
-            pass
-        st.session_state.git_synced = True
+    # Sincronizar propiedades.json una vez por proceso (no una vez por sesión/pestaña)
+    git_pull_once_per_process()
 
     if 'vista_actual' not in st.session_state:
         st.session_state.vista_actual = 'landing'

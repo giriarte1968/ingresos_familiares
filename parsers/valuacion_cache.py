@@ -6,7 +6,23 @@ from datetime import datetime
 CACHE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
 CACHE_PATH = os.path.join(CACHE_DIR, 'valuaciones_cache.json')
 SCRAPING_CACHE_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'cache_scraping.json')
-CACHE_VERSION = "v5_zonificada"  # FASE 7B: depreciacion zonificada por macrozona
+CACHE_VERSION = "v5_zonificada"
+PROPIEDADES_PATH = os.path.join(os.path.dirname(CACHE_DIR), 'propiedades.json')
+
+
+# ───────── Escritura atómica ─────────
+
+def atomic_write_json(path, data):
+    """Escribe JSON atómicamente: tmp -> os.replace.
+    Garantiza que el archivo destino nunca quede truncado."""
+    tmp = path + ".tmp"
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False, default=str)
+    os.replace(tmp, path)
+
+
+# ───────── Hashing ─────────
 
 def _calcular_hash_propiedad(prop: dict) -> str:
     """Hash de los campos que afectan la valuación."""
@@ -23,8 +39,7 @@ def _calcular_hash_propiedad(prop: dict) -> str:
     return hashlib.md5(prop_str.encode()).hexdigest()[:12]
 
 def _calcular_hash_scraping() -> str | None:
-    """Hash del cache_scraping.json para detectar si cambió.
-    Retorna None si el archivo no existe (ej: DO sin scraping local)."""
+    """Hash del cache_scraping.json para detectar si cambió."""
     try:
         if os.path.exists(SCRAPING_CACHE_PATH):
             stat = os.stat(SCRAPING_CACHE_PATH)
@@ -34,6 +49,9 @@ def _calcular_hash_scraping() -> str | None:
     except:
         pass
     return None
+
+
+# ───────── Cache I/O ─────────
 
 def cargar_cache_valuaciones() -> dict:
     """Carga el cache de valuaciones desde disco."""
@@ -47,16 +65,16 @@ def cargar_cache_valuaciones() -> dict:
             pass
     return {}
 
-def guardar_cache_valuaciones(cache: dict):
-    """Persiste el cache de valuaciones en disco."""
+def guardar_cache_valuaciones(cache: dict) -> bool:
+    """Persiste el cache de valuaciones en disco. Versión atómica."""
     from parsers.profiler import profile_block
     with profile_block("disk_guardar_cache_valuaciones", None):
         try:
-            os.makedirs(CACHE_DIR, exist_ok=True)
-            with open(CACHE_PATH, 'w', encoding='utf-8') as f:
-                json.dump(cache, f, indent=2, ensure_ascii=False, default=str)
+            atomic_write_json(CACHE_PATH, cache)
+            return True
         except Exception as e:
             print(f"[CACHE] Error guardando: {e}")
+            return False
 
 def necesita_recalcular(nombre: str, prop: dict, cache: dict) -> tuple[bool, str]:
     """
@@ -84,46 +102,70 @@ def necesita_recalcular(nombre: str, prop: dict, cache: dict) -> tuple[bool, str
 
     return False, "cache_valido"
 
-PROPIEDADES_PATH = os.path.join(os.path.dirname(CACHE_DIR), 'propiedades.json')
 
+# ───────── Persistencia ─────────
 
 def guardar_resultado(nombre: str, prop: dict, resultado: dict, cache: dict):
-    """Guarda el resultado de una valuación en el cache.
-    También persiste un resumen liviano en propiedades.json para que
-    el Portfolio pueda leerlo sin depender del cache separado.
-    """
-    cache[nombre] = {
-        "timestamp": datetime.now().isoformat(),
-        "hash_prop": _calcular_hash_propiedad(prop),
-        "hash_scraping": _calcular_hash_scraping(),
-        "cache_version": CACHE_VERSION,
-        "resultado_completo": resultado,
-        "fecha_legible": datetime.now().strftime("%d/%m/%Y %H:%M")
-    }
-    # Persistir resumen en propiedades.json
-    try:
-        if os.path.exists(PROPIEDADES_PATH):
-            with open(PROPIEDADES_PATH, 'r', encoding='utf-8') as f:
-                props_data = json.load(f)
-            for p in props_data.get('propiedades', []):
-                if p.get('nombre') == nombre:
-                    p['_ultima_valuacion'] = {
-                        'valor_usd': resultado.get('valor_propiedad_usd'),
-                        'alquiler_ars': resultado.get('alquiler_estimado_ars'),
-                        'cap_rate': resultado.get('cap_rate'),
-                        'm2_equivalentes': resultado.get('m2_equivalentes'),
-                        'comps': resultado.get('resolution_metadata', {}).get('n_propiedades', 0),
-                        'fecha': datetime.now().strftime("%d/%m/%Y %H:%M"),
-                    }
-                    break
-            with open(PROPIEDADES_PATH, 'w', encoding='utf-8') as f:
-                json.dump(props_data, f, indent=2, ensure_ascii=False)
-    except Exception:
-        pass
+    """Wrapper de compatibilidad. Delega en persistir_valuacion().
+    No hace git sync."""
+    persistir_valuacion(nombre, prop, resultado, cache)
 
-    # NOTA: NO hacer try_sync() aquí — cada valuación dispararía un push a GitHub,
-    # lo que activa el webhook deploy_on_push en DO y causa un loop de redeploys.
-    # La persistencia entre sesiones se logra vía valuaciones_cache.json (trackeado en git).
+
+def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict) -> bool:
+    """
+    Persiste una valuación completa.
+
+    Orden obligatorio:
+    1. Actualizar cache en memoria.
+    2. Escribir data/valuaciones_cache.json a disco.
+    3. Actualizar propiedades.json con _ultima_valuacion.
+    4. Escribir propiedades.json a disco.
+    5. Retornar True/False.
+
+    NO hace git sync.
+    """
+    from parsers.profiler import profile_block
+    with profile_block("persistir_valuacion", None):
+        try:
+            # 1. Actualizar cache en memoria
+            cache[nombre] = {
+                "timestamp": datetime.now().isoformat(),
+                "hash_prop": _calcular_hash_propiedad(prop),
+                "hash_scraping": _calcular_hash_scraping(),
+                "cache_version": CACHE_VERSION,
+                "resultado_completo": resultado,
+                "fecha_legible": datetime.now().strftime("%d/%m/%Y %H:%M"),
+            }
+
+            # 2. Escribir valuaciones_cache.json a disco
+            atomic_write_json(CACHE_PATH, cache)
+
+            # 3. Actualizar propiedades.json con _ultima_valuacion
+            if os.path.exists(PROPIEDADES_PATH):
+                with open(PROPIEDADES_PATH, 'r', encoding='utf-8') as f:
+                    props_data = json.load(f)
+                for p in props_data.get('propiedades', []):
+                    if p.get('nombre') == nombre:
+                        p['_ultima_valuacion'] = {
+                            'valor_usd': resultado.get('valor_propiedad_usd'),
+                            'alquiler_ars': resultado.get('alquiler_estimado_ars'),
+                            'cap_rate': resultado.get('cap_rate'),
+                            'm2_equivalentes': resultado.get('m2_equivalentes'),
+                            'comps': resultado.get('resolution_metadata', {}).get('n_propiedades', 0),
+                            'fecha': datetime.now().strftime("%d/%m/%Y %H:%M"),
+                            'cache_version': CACHE_VERSION,
+                            'timestamp': datetime.now().isoformat(),
+                        }
+                        break
+
+                # 4. Escribir propiedades.json a disco
+                atomic_write_json(PROPIEDADES_PATH, props_data)
+
+            return True
+
+        except Exception as e:
+            print(f"[CACHE] Error persistiendo valuacion {nombre}: {e}")
+            return False
 
 def obtener_resultado_cacheado(nombre: str, cache: dict) -> dict:
     """Retorna el resultado cacheado para una propiedad."""

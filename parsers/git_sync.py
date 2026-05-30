@@ -8,6 +8,7 @@ logger = logging.getLogger(__name__)
 REPO_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REMOTE = "origin"
 BRANCH = "main"
+STATE_BRANCH = os.environ.get("GIT_STATE_BRANCH", "do-state")
 
 def _get_token():
     token = os.environ.get("GIT_WRITE_TOKEN", "")
@@ -158,4 +159,70 @@ def try_sync(file_paths, commit_message="DO: actualizacion automatica de propied
         return False
     except Exception as e:
         logger.error(f"[GIT_SYNC] Error inesperado: {e}")
+        return False
+
+
+def try_sync_state(file_paths, commit_message="DO-STATE: sync runtime state"):
+    """
+    Sincroniza archivos de estado runtime a branch do-state.
+    Nunca pushea a main. No dispara deploy si DO solo observa main.
+    Retorna True si OK, False si falla o no hay token.
+    """
+    token = _get_token()
+    if not token:
+        logger.warning("[GIT_SYNC_STATE] sin token, salteando")
+        return False
+
+    _configure_git()
+    _ensure_branch()
+    url = _auth_url()
+    if not url:
+        return False
+
+    branch = STATE_BRANCH
+
+    try:
+        add_result = subprocess.run(
+            ["git", "add"] + file_paths,
+            cwd=REPO_DIR, capture_output=True, text=True,
+            timeout=30
+        )
+        if add_result.returncode != 0:
+            logger.warning(f"[GIT_SYNC_STATE] git add fallo: {add_result.stderr[:200]}")
+            return False
+
+        # Si no hay cambios staged, no hay nada que pushear
+        r_diff = subprocess.run(["git", "diff", "--cached", "--quiet"],
+                                cwd=REPO_DIR, capture_output=True)
+        if r_diff.returncode == 0:
+            return True
+
+        # Commit
+        r_commit = subprocess.run(
+            ["git", "commit", "-m", commit_message],
+            cwd=REPO_DIR, capture_output=True, text=True,
+            timeout=30
+        )
+        if r_commit.returncode != 0:
+            logger.warning(f"[GIT_SYNC_STATE] commit fallo: {r_commit.stderr[:200]}")
+            return False
+
+        # Push a do-state (NUNCA a main)
+        push_result = subprocess.run(
+            ["git", "push", url, f"HEAD:{branch}"],
+            cwd=REPO_DIR, capture_output=True, text=True,
+            timeout=60
+        )
+        if push_result.returncode != 0:
+            logger.warning(f"[GIT_SYNC_STATE] push a {branch} fallo: {push_result.stderr[:200]}")
+            return False
+
+        logger.info(f"[GIT_SYNC_STATE] Push exitoso a origin/{branch}")
+        return True
+
+    except subprocess.TimeoutExpired:
+        logger.warning("[GIT_SYNC_STATE] Timeout")
+        return False
+    except Exception as e:
+        logger.warning(f"[GIT_SYNC_STATE] Error: {e}")
         return False
