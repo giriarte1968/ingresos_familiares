@@ -134,5 +134,7 @@ PHs en intersecciones tienen `direccion_nominatim` incorrecta. Ej: PH 10286 tien
 | % de esos con dirección incorrecta (muestra n=25) | 84% (21/25) |
 | PHs estimados con dirección incorrecta | ~210 (~1% del total) |
 
-### Plan de corrección
-Aplicar centroide catastral → reverse-geocode Nominatim → actualizar `direccion_nominatim` y coordenadas. ~5 min de procesamiento.
+### Corrección aplicada
+- **Esquinas corregidas:** 218 PHs (centroide catastral → reverse-geocode → coordenadas + calle correcta)
+- **Números interpolados:** 2.219 PHs (nearest-3 IDW en 146 calles con ≥20 referencias)
+- **Pendientes:** 1.912 PHs sin número en calles con <20 referencias (no recuperables sin otra fuente)

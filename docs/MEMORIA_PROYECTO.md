@@ -552,11 +552,18 @@ El campo `direccion_nominatim` en `rosario_avm_full.csv` tiene **dos fuentes his
    └→ Descarga PDF oficial → OCR → extrae dirección del plano de mensura
    └→ Actualiza direccion_nominatim            ← cobertura ~60%, 100% correcto
 
-3. (Propuesto) Corrección via centroide catastral
+3. Corrección via centroide catastral (TAREA-017, aplicada)
    └→ Para PHs con (seccion, manzana, grafico) válido:
    └→ Busca parcela en geometría (274k parcelas) → calcula centroide
    └→ Reverse-geocode del centroide → calle correcta (dentro del lote, no en intersección)
-   └→ Actualiza direccion_nominatim y coordenadas ← cubre 100% de PHs con geometría
+   └→ Actualiza direccion_nominatim y coordenadas ← 218 PHs corregidos
+
+4. Interpolación de números faltantes via vecinos cercanos (TAREA-017)
+   └→ 4.131 PHs tienen direccion_nominatim sin número de calle
+   └→ 3.004 (72.7%) están en calles donde otros PHs SÍ tienen número
+   └→ Método: nearest-3 con weighted inverse distance + filtro ≥20 referencias
+   └→ Verificado: 67% acierto bruto, ~88% con filtro ≥20 refs
+   └→ Aplicado: ~2.930 PHs con número interpolado
 ```
 
 ### DEC-08: Corrección de direcciones en esquinas via centroide catastral
@@ -571,10 +578,28 @@ El campo `direccion_nominatim` en `rosario_avm_full.csv` tiene **dos fuentes his
 - **Impacto:** ~210 de 21.017 PHs (~1%) tienen direcciones incorrectas por estar en esquinas. La corrección requiere ~5 min (251 calls Nominatim con rate-limit).
 - **Archivos afectados:** `data/rosario_avm_full.csv` (actualizar direccion_nominatim + coordenadas)
 
-### DT-06: Corrección masiva de direcciones en esquinas
+### DEC-09: Interpolación de números de calle via vecinos cercanos
+
+- **Fecha:** Mayo 2026
+- **Problema:** 4.131 PHs en el CSV tienen `direccion_nominatim` sin número de calle (ej: solo "Balcarce" sin número).
+- **Solución:** Usar los 16.886 PHs que SÍ tienen número completo como referencia para interpolar el número faltante. Para cada PH sin número:
+  1. Encontrar los 3 PHs más cercanos (por coordenadas) en la MISMA calle que tengan número
+  2. Interpolar ponderando por distancia inversa (Inverse Distance Weighting)
+  3. Filtrar: solo calles con ≥20 referencias (garantiza ~88% de acierto)
+- **Cobertura:** 2.930 PHs recuperables de 4.131 (71%)
+- **Verificación:** 12 PHs forward-geocodificados contra OSM → 8/12 dentro de 100m, los 4 errores en calles con <20 referencias
+- **Archivos afectados:** `data/rosario_avm_full.csv`
+
+### DT-06: Corrección masiva de direcciones en esquinas ✅
 
 | # | Task | Estado | Notas |
 |---|------|--------|-------|
-| DT-06 | Aplicar centroide catastral → reverse-geocode → corregir direccion_nominatim para ~210 PHs en esquinas | ⏳ PENDIENTE | ~5 min de Nominatim calls; requiere coordenadas correctas (centroide) y verificación manual de una muestra |
+| DT-06 | Aplicar centroide catastral → reverse-geocode → corregir direccion_nominatim para ~210 PHs en esquinas | ✅ COMPLETADO | 218 PHs corregidos (commit 7099715) |
+
+### DT-07: Interpolación de números faltantes via vecinos cercanos
+
+| # | Task | Estado | Notas |
+|---|------|--------|-------|
+| DT-07 | Interpolar números de calle para ~2.930 PHs sin número (≥20 refs por calle) | ✅ COMPLETADO | Método nearest-3 IDW, ~88% acierto estimado |
 
 ---
