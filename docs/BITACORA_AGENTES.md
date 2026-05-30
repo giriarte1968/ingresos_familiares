@@ -1491,3 +1491,41 @@ Se forward-geocodificó la dirección estimada contra OSM/Nominatim y se midió 
 ### Documentos actualizados
 - `docs/MEMORIA_PROYECTO.md` — §13 (fuente #4 interpolación) + DEC-09 + DT-06/07
 - `docs/BITACORA_AGENTES.md` — esta entrada
+
+---
+
+## 📅 2026-05-30 — BATCH CENTROIDE MASIVO (TAREA-018)
+
+### Objetivo:
+Recuperar PHs sin número en calles con <20 referencias via centroide catastral + reverse-geocode Nominatim + verificación forward.
+
+### Pipeline
+1. Cargar CSV. Para cada PH sin número con (sección, manzana, gráfico) válidos:
+   a. Buscar parcela catastral → centroide del polígono
+   b. Reverse-geocode centroide (Nominatim, zoom=18, cache por round(lat,3), reduce ~50% llamadas)
+   c. Si Nominatim devuelve `house_number` → aceptar directo como REVERSE
+   d. Si solo calle → interpolar número (nearest-3 IDW) desde referencias en esa calle → forward-geocode verificar
+   e. Si forward dist <500m → aceptar como INTERP_OK; caso contrario rechazar
+
+### Resultados (validación 150 PHs → batch completo)
+| Método | PHs | % | Verificación |
+|--------|-----|---|-------------|
+| REVERSE (directo Nominatim) | 635 | 25% | Siempre aceptado |
+| INTERP_OK (interp+fwd<500m) | 236 | 9% | Forward <500m |
+| INTERP_FAIL (rechazado) | 122 | 5% | Forward >=500m |
+| STREET (solo calle corr.) | 233 | 9% | Sin número |
+| SAME (misma calle, sin refs) | 637 | 25% | Sin cambio |
+| Cache hits | 773 | — | Redujo calls de ~2.500 a 1.326 |
+
+**Ganancia neta:** +611 PHs con número (18.259 → 18.870, 89% completas)
+**Llamadas Nominatim:** 1.326 (50 min reales gracias a cache de coordenadas)
+
+### Valuaciones de referencia
+Estables — solo Mabel varió $113 (1.7%). El motor usa coordenadas de cache_scraping, no del CSV.
+
+### Archivos modificados
+- `data/rosario_avm_full.csv` — +611 PHs recuperados
+
+### Documentos actualizados
+- `docs/STATUS_ACTUAL.md` — tablas de valuaciones + tests + sección batch centroide
+- `docs/BITACORA_AGENTES.md` — esta entrada

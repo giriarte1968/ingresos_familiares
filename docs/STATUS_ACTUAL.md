@@ -94,7 +94,7 @@ git checkout origin/do-state -- propiedades.json data/valuaciones_cache.json
 
 | Archivo | Estado |
 |---------|--------|
-| `tests/test_regression.py` | 38/39 ✅ (1 preexistente) |
+| `tests/test_regression.py` | 100/101 ✅ (1 preexistente: Vera Mujica benchmark) |
 | `tests/test_persistencia_valuaciones.py` | 16/16 ✅ |
 | `tests/test_age_blend_filter.py` | ✅ |
 | `tests/test_cluster_filters.py` | ✅ |
@@ -106,12 +106,12 @@ git checkout origin/do-state -- propiedades.json data/valuaciones_cache.json
 
 | Propiedad | Valor USD | m² | $/m² (m2_base) | ALTA | Pool |
 |-----------|-----------|-----|-------|------|------|
-| P1200 | $125.412 | 60.0 | $2.090 | 14 | 31 |
-| Brown 2750 | $306.681 | 78.0 | $3.414 | 6 | 25 |
-| Mabel | $67.863 | 41.0 | $1.655 | - | - |
-| Ayacucho | $51.154 | 31.5 | $1.624 | - | - |
-| Vera Mujica | $48.873 | 28.0 | $1.745 | - | - |
-| Entre Ríos | $77.446 | 34.0 | $1.814 | 18 | 27 |
+| P1200 | $125.412 | 60.0 | $2.090 | 7 | 31 |
+| Brown 2750 | $306.681 | 78.0 | $3.414 | 23 | 25 |
+| Mabel | $66.694 | 41.0 | $1.627 | 13 | 79 |
+| Ayacucho | $51.154 | 31.5 | $1.624 | 13 | 41 |
+| Vera Mujica | $48.873 | 28.0 | $1.745 | 8 | 27 |
+| Entre Ríos | $73.354 | 34.0 | $2.158 | 4 | 27 |
 
 ---
 
@@ -137,4 +137,6 @@ PHs en intersecciones tienen `direccion_nominatim` incorrecta. Ej: PH 10286 tien
 ### Corrección aplicada
 - **Esquinas corregidas:** 218 PHs (centroide catastral → reverse-geocode → coordenadas + calle correcta)
 - **Números interpolados:** 2.219 PHs (nearest-3 IDW en 146 calles con ≥20 referencias)
-- **Pendientes:** 1.912 PHs sin número en calles con <20 referencias (no recuperables sin otra fuente)
+- **Batch centroide masivo:** +611 PHs recuperados (centroide → reverse → si número directo se acepta; si solo calle se interpola y verifica con forward-geocode <500m)
+- **Total completas actual:** 18.870/21.017 (89%)
+- **Pendientes:** ~1.301 PHs sin número en calles sin referencias suficientes

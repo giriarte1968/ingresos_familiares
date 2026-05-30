@@ -564,6 +564,16 @@ El campo `direccion_nominatim` en `rosario_avm_full.csv` tiene **dos fuentes his
    └→ Método: nearest-3 con weighted inverse distance + filtro ≥20 referencias
    └→ Verificado: 67% acierto bruto, ~88% con filtro ≥20 refs
    └→ Aplicado: ~2.930 PHs con número interpolado
+
+5. Batch centroide masivo para PHs sin número en calles con <20 refs (TAREA-018)
+   └→ ~2.758 PHs restantes sin número, todos con (seccion, manzana, grafico) válidos
+   └→ Para cada uno: parcela catastral → centroide → reverse-geocode Nominatim
+   └→ Si Nominatim da house_number → aceptar directo (REVERSE, 25%)
+   └→ Si solo calle → interpolar (nearest-3 IDW) y verificar con forward-geocode
+   └→ Solo aceptar si forward dist <500m (INTERP_OK, 9%)
+   └→ Cache de reverse por round(lat,3) redujo llamadas 50%
+   └→ Aplicado: +611 PHs (635 REVERSE + 236 INTERP_OK - 260 ya recuperados por v1)
+   └→ Total completas: 18.870/21.017 (89%)
 ```
 
 ### DEC-08: Corrección de direcciones en esquinas via centroide catastral
@@ -590,16 +600,30 @@ El campo `direccion_nominatim` en `rosario_avm_full.csv` tiene **dos fuentes his
 - **Verificación:** 12 PHs forward-geocodificados contra OSM → 8/12 dentro de 100m, los 4 errores en calles con <20 referencias
 - **Archivos afectados:** `data/rosario_avm_full.csv`
 
-### DT-06: Corrección masiva de direcciones en esquinas ✅
+### DT-06: Corrección masiva de direcciones en esquinas + batch centroide ✅
 
 | # | Task | Estado | Notas |
 |---|------|--------|-------|
 | DT-06 | Aplicar centroide catastral → reverse-geocode → corregir direccion_nominatim para ~210 PHs en esquinas | ✅ COMPLETADO | 218 PHs corregidos (commit 7099715) |
+| DT-06b | Batch centroide masivo para ~2.758 PHs sin número en calles con <20 refs | ✅ COMPLETADO | +611 PHs recuperados (635 REVERSE + 236 INTERP_OK), 1.326 calls Nominatim con cache |
 
 ### DT-07: Interpolación de números faltantes via vecinos cercanos
 
 | # | Task | Estado | Notas |
 |---|------|--------|-------|
 | DT-07 | Interpolar números de calle para ~2.930 PHs sin número (≥20 refs por calle) | ✅ COMPLETADO | Método nearest-3 IDW, ~88% acierto estimado |
+
+### DEC-10: Batch centroide masivo para PHs sin número en calles con <20 referencias
+
+- **Fecha:** Mayo 2026
+- **Problema:** 2.758 PHs sin número en calles con <20 referencias — la interpolación simple no es viable (acierto <50%)
+- **Solución:** Combinar tres técnicas en pipeline secuencial:
+  1. **Centroide catastral** → parcela (274k polígonos) → centroide del lote (no de la calle)
+  2. **Reverse-geocode** del centroide → si Nominatim devuelve `house_number` → aceptar directo (confianza alta, ~33% de casos)
+  3. **Interpolación condicional** si solo hay calle → nearest-3 IDW → forward-geocode verificar → solo aceptar si <500m del centroide
+- **Cache de reverse:** Agrupar por `round(lat, 3), round(lon, 3)` — dos PHs en la misma cuadra comparten reverse geocode → redujo llamadas ~50% (773 cache hits de 1.326)
+- **Filtro de calidad:** Rechazar interpolaciones con forward dist ≥500m (122 de 358 intentos, 34%)
+- **Impacto:** +611 PHs recuperados (neto), 18.870 completas (89%), valuaciones de referencia estables
+- **Archivos afectados:** `data/rosario_avm_full.csv`
 
 ---
