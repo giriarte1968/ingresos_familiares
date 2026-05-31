@@ -50,7 +50,7 @@ ANIO_ACTUAL = datetime.now().year
 
 # --- Helpers de normalización de direcciones ---
 _RE_CITY_NORM = re.compile(
-    r'\b(rosario|santa\s*fe|provincia|argentina|arg\.?|capital)\b', re.IGNORECASE)
+    r'\brosario\s+santa\s+fe\b|\b(rosario|provincia|argentina|arg\.?|capital)\b', re.IGNORECASE)
 _RE_DESC_NORM = re.compile(
     r'\b(piso|depto|dpto|departamento|departameto|oficina|local'
     r'|pb|dormitorios?|dorm|balcones?|cochera|living|comedor'
@@ -83,7 +83,10 @@ def normalizar_calle_nombre(nombre):
     s = _RE_DESC_NORM.sub('', s)
     s = _RE_NRO_NORM.sub('', s)
     s = re.sub(r'\b(av|avenida|bv|bulevar|boulevard)\b', '', s)
+    # Protect "santa fe" from honorific stripping (compound street name)
+    s = re.sub(r'\bsanta\s+fe\b', '__santa_fe__', s)
     s = _RE_HON_NORM.sub('', s)
+    s = s.replace('__santa_fe__', 'santa fe')
     s = re.sub(r'\s+', ' ', s).strip()
     return s
 
@@ -118,6 +121,16 @@ def _limpiar_calle_post(calle_norm):
             calle_norm = calle_norm[:m.start()].strip()
             changed = True
     return calle_norm.strip()
+
+
+def _formatear_direccion_limpia(p):
+    """Retorna direccion legible: 'calle numero' a partir de calle_limpia/numero_limpio."""
+    cl = p.get('calle_limpia', '') or ''
+    nl = p.get('numero_limpio', '') or ''
+    if cl:
+        cl_capitalizada = ' '.join(w.capitalize() if w not in ('de', 'del', 'la', 'los', 'las', 'y', 'al') else w for w in cl.split())
+        return f'{cl_capitalizada} {nl}'.strip()
+    return (p.get('direccion', '') or '')[:60]
 
 
 def extraer_calle_numero(direccion):
@@ -1394,6 +1407,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                     'precio_m2': p.get('valor_m2'),
                     'dormitorios': p.get('dormitorios'),
                     'direccion': p.get('direccion', '')[:60],
+                    'direccion_limpia': _formatear_direccion_limpia(p),
                     'lat': p.get('lat'),
                     'lon': p.get('lon'),
                     'zona': p.get('zona'),

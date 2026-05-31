@@ -152,11 +152,13 @@
       "valor_m2": 2100.0,
       "fuente": "propia_api_browser",
       "id_propia": 369605,
-      "lat": -32.94245,
-      "lon": -60.659874,
+      "lat": -32.941473,
+      "lon": -60.657174999999995,
       "zona": "Otro",
       "date_created": "2025-04-28T20:30:15.799Z",
-      "date_updated": "2026-04-25T14:08:15.262Z"
+      "date_updated": "2026-04-25T14:08:15.262Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2500
     },
     {
       "precio": 450000.0,
@@ -547,7 +549,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T15:56:40.821Z",
       "date_updated": "2026-04-25T18:38:29.689Z",
-      "calle_limpia": "rufino ortega",
+      "calle_limpia": "rufino ortega santa fe",
       "numero_limpio": 273
     },
     {
@@ -627,7 +629,7 @@
       "zona": "Otro",
       "date_created": "2026-01-30T16:46:07.359Z",
       "date_updated": "2026-04-25T23:16:30.419Z",
-      "calle_limpia": "paraguay",
+      "calle_limpia": "paraguay santa fe",
       "numero_limpio": 1141
     },
     {
@@ -1099,7 +1101,7 @@
       "zona": "Otro",
       "date_created": "2026-03-26T23:40:51.302Z",
       "date_updated": "2026-04-21T21:47:02.089Z",
-      "calle_limpia": "zeballos",
+      "calle_limpia": "zeballos santa fe",
       "numero_limpio": 300
     },
     {
@@ -1119,7 +1121,7 @@
       "zona": "Otro",
       "date_created": "2026-04-17T02:20:22.761Z",
       "date_updated": "2026-04-25T05:38:39.175Z",
-      "calle_limpia": "cochabamba",
+      "calle_limpia": "cochabamba santa fe",
       "numero_limpio": 838
     },
     {
@@ -1179,7 +1181,7 @@
       "zona": "Otro",
       "date_created": "2025-12-15T16:24:48.618Z",
       "date_updated": "2026-04-20T01:58:11.649Z",
-      "calle_limpia": "lavalle",
+      "calle_limpia": "lavalle santa fe",
       "numero_limpio": 700
     },
     {
@@ -1299,7 +1301,7 @@
       "zona": "Otro",
       "date_created": "2025-12-10T17:14:26.509Z",
       "date_updated": "2026-04-12T21:01:52.324Z",
-      "calle_limpia": "corvalan",
+      "calle_limpia": "corvalan santa fe",
       "numero_limpio": 500
     },
     {
@@ -1579,7 +1581,7 @@
       "zona": "Otro",
       "date_created": "2025-06-23T07:37:08.776Z",
       "date_updated": "2025-09-29T00:42:03.811Z",
-      "calle_limpia": "pago largo",
+      "calle_limpia": "pago largo de santa fe",
       "numero_limpio": 687
     },
     {
@@ -1797,7 +1799,7 @@
       "zona": "Otro",
       "date_created": "2025-12-24T12:44:51.052Z",
       "date_updated": "2026-04-24T00:40:49.069Z",
-      "calle_limpia": "santiago",
+      "calle_limpia": "santiago santa fe",
       "numero_limpio": 565
     },
     {
@@ -2033,7 +2035,7 @@
       "zona": "Otro",
       "date_created": "2026-02-04T12:59:24.073Z",
       "date_updated": "2026-04-22T14:44:12.711Z",
-      "calle_limpia": "candido carballo",
+      "calle_limpia": "candido carballo santa fe",
       "numero_limpio": 500
     },
     {
@@ -2371,7 +2373,7 @@
       "zona": "Otro",
       "date_created": "2025-10-01T11:43:20.394Z",
       "date_updated": "2026-04-24T17:48:55.718Z",
-      "calle_limpia": "montevideo",
+      "calle_limpia": "montevideo santa fe",
       "numero_limpio": 961
     },
     {
@@ -2589,7 +2591,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T15:18:20.619Z",
       "date_updated": "2026-04-23T12:49:56.833Z",
-      "calle_limpia": "ricardone",
+      "calle_limpia": "ricardone santa fe",
       "numero_limpio": 42
     },
     {
@@ -3099,7 +3101,7 @@
       "zona": "Otro",
       "date_created": "2026-03-11T14:17:01.205Z",
       "date_updated": "2026-04-19T17:15:04.038Z",
-      "calle_limpia": "francia",
+      "calle_limpia": "francia santa fe",
       "numero_limpio": 1100
     },
     {
@@ -3470,7 +3472,9 @@
       "lon": -60.668274,
       "zona": "Otro",
       "date_created": "2024-06-02T02:00:03.000Z",
-      "date_updated": "2026-03-03T21:43:34.120Z"
+      "date_updated": "2026-03-03T21:43:34.120Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 3300
     },
     {
       "precio": 390500.0,
@@ -4181,7 +4185,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T18:45:43.251Z",
       "date_updated": "2026-02-21T22:09:14.994Z",
-      "calle_limpia": "thedy",
+      "calle_limpia": "thedy santa fe",
       "numero_limpio": 158
     },
     {
@@ -5267,7 +5271,7 @@
       "zona": "Pellegrini",
       "date_created": "2026-02-18T19:22:45.858Z",
       "date_updated": "2026-03-16T22:44:56.582Z",
-      "calle_limpia": "pellegrini",
+      "calle_limpia": "pellegrini santa fe",
       "numero_limpio": 1700
     },
     {
@@ -5325,7 +5329,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T14:23:48.362Z",
       "date_updated": "2026-03-25T18:42:51.803Z",
-      "calle_limpia": "entre rios",
+      "calle_limpia": "entre rios santa fe",
       "numero_limpio": 400
     },
     {
@@ -5719,7 +5723,7 @@
       "zona": "Otro",
       "date_created": "2025-10-24T15:50:28.118Z",
       "date_updated": "2026-04-24T16:23:30.686Z",
-      "calle_limpia": "de febrero",
+      "calle_limpia": "de febrero santa fe",
       "numero_limpio": 27
     },
     {
@@ -5934,7 +5938,9 @@
       "lon": -60.654083,
       "zona": "Otro",
       "date_created": "2024-11-22T18:16:51.000Z",
-      "date_updated": "2026-03-10T16:46:25.770Z"
+      "date_updated": "2026-03-10T16:46:25.770Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2285
     },
     {
       "precio": 120000.0,
@@ -5971,7 +5977,7 @@
       "zona": "Otro",
       "date_created": "2025-10-03T16:10:59.311Z",
       "date_updated": "2026-04-25T21:41:16.738Z",
-      "calle_limpia": "alem",
+      "calle_limpia": "alem santa fe",
       "numero_limpio": 1000
     },
     {
@@ -6051,7 +6057,7 @@
       "zona": "Otro",
       "date_created": "2026-04-22T17:48:29.487Z",
       "date_updated": "2026-04-23T05:04:47.667Z",
-      "calle_limpia": "balcarce",
+      "calle_limpia": "balcarce santa fe",
       "numero_limpio": 100
     },
     {
@@ -6675,7 +6681,7 @@
       "zona": "Otro",
       "date_created": "2025-10-01T12:01:34.114Z",
       "date_updated": "2026-04-13T22:03:28.781Z",
-      "calle_limpia": "mendoza",
+      "calle_limpia": "mendoza santa fe",
       "numero_limpio": 850
     },
     {
@@ -7356,11 +7362,13 @@
       "valor_m2": 807.34,
       "fuente": "propia_api_browser",
       "id_propia": 238178,
-      "lat": -32.943386,
-      "lon": -60.64656,
+      "lat": -32.9440324,
+      "lon": -60.646558600000006,
       "zona": "Otro",
       "date_created": "2023-10-10T17:04:43.000Z",
-      "date_updated": "2026-04-22T21:55:33.980Z"
+      "date_updated": "2026-04-22T21:55:33.980Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 1700
     },
     {
       "precio": 340000.0,
@@ -7419,7 +7427,7 @@
       "zona": "Martin",
       "date_created": "2026-03-09T16:04:23.927Z",
       "date_updated": "2026-04-20T18:27:43.705Z",
-      "calle_limpia": "martin",
+      "calle_limpia": "martin santa fe",
       "numero_limpio": 1332
     },
     {
@@ -7439,7 +7447,7 @@
       "zona": "Otro",
       "date_created": "2026-02-19T15:31:07.367Z",
       "date_updated": "2026-04-16T12:58:20.338Z",
-      "calle_limpia": "fisherton garcia del cossiobis",
+      "calle_limpia": "fisherton garcia del cossiobis santa fe",
       "numero_limpio": 2100
     },
     {
@@ -7732,7 +7740,9 @@
       "lon": -60.645393,
       "zona": "Otro",
       "date_created": "2026-02-04T22:13:12.528Z",
-      "date_updated": "2026-04-23T19:46:11.348Z"
+      "date_updated": "2026-04-23T19:46:11.348Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 1600
     },
     {
       "precio": 60000.0,
@@ -8957,7 +8967,7 @@
       "zona": "Otro",
       "date_created": "2025-10-06T19:06:33.050Z",
       "date_updated": "2026-02-05T21:15:23.577Z",
-      "calle_limpia": "montevideo",
+      "calle_limpia": "montevideo santa fe",
       "numero_limpio": 900
     },
     {
@@ -9073,7 +9083,7 @@
       "zona": "Otro",
       "date_created": "2025-12-12T15:29:43.961Z",
       "date_updated": "2026-04-20T14:50:28.653Z",
-      "calle_limpia": "cordoba",
+      "calle_limpia": "cordoba santa fe",
       "numero_limpio": 767
     },
     {
@@ -9171,7 +9181,7 @@
       "zona": "Otro",
       "date_created": "2026-03-19T17:33:37.067Z",
       "date_updated": "2026-04-22T21:51:45.283Z",
-      "calle_limpia": "dorrego",
+      "calle_limpia": "dorrego santa fe",
       "numero_limpio": 817
     },
     {
@@ -10081,7 +10091,7 @@
       "zona": "Otro",
       "date_created": "2026-03-03T16:13:14.168Z",
       "date_updated": "2026-04-09T16:26:21.890Z",
-      "calle_limpia": "juan manuel de rosas",
+      "calle_limpia": "juan manuel de rosas santa fe",
       "numero_limpio": 1939
     },
     {
@@ -10159,7 +10169,7 @@
       "zona": "Otro",
       "date_created": "2026-04-22T18:17:44.151Z",
       "date_updated": "2026-04-25T00:19:15.381Z",
-      "calle_limpia": "brown",
+      "calle_limpia": "brown santa fe",
       "numero_limpio": 2100
     },
     {
@@ -10199,7 +10209,7 @@
       "zona": "Otro",
       "date_created": "2026-03-31T19:10:44.274Z",
       "date_updated": "2026-04-20T00:57:39.710Z",
-      "calle_limpia": "orione",
+      "calle_limpia": "orione santa fe",
       "numero_limpio": 500
     },
     {
@@ -10219,7 +10229,7 @@
       "zona": "Otro",
       "date_created": "2025-10-02T14:53:08.353Z",
       "date_updated": "2026-02-28T21:40:04.441Z",
-      "calle_limpia": "brown",
+      "calle_limpia": "brown santa fe",
       "numero_limpio": 2700
     },
     {
@@ -10356,7 +10366,9 @@
       "lon": -60.660652,
       "zona": "Otro",
       "date_created": "2023-01-27T21:11:20.000Z",
-      "date_updated": "2026-04-08T01:44:42.082Z"
+      "date_updated": "2026-04-08T01:44:42.082Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2772
     },
     {
       "precio": 200000.0,
@@ -10375,7 +10387,7 @@
       "zona": "Otro",
       "date_created": "2025-10-01T11:48:54.926Z",
       "date_updated": "2026-04-24T17:47:03.318Z",
-      "calle_limpia": "montevideo",
+      "calle_limpia": "montevideo santa fe",
       "numero_limpio": 961
     },
     {
@@ -10793,7 +10805,7 @@
       "zona": "Otro",
       "date_created": "2025-11-13T17:23:11.172Z",
       "date_updated": "2026-04-22T21:56:43.144Z",
-      "calle_limpia": "montevideo",
+      "calle_limpia": "montevideo santa fe",
       "numero_limpio": 600
     },
     {
@@ -10813,7 +10825,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T18:35:00.957Z",
       "date_updated": "2026-03-30T15:18:04.831Z",
-      "calle_limpia": "alem",
+      "calle_limpia": "alem santa fe",
       "numero_limpio": 1500
     },
     {
@@ -10893,7 +10905,7 @@
       "zona": "Otro",
       "date_created": "2025-10-02T14:53:03.974Z",
       "date_updated": "2026-01-20T17:57:40.006Z",
-      "calle_limpia": "brown",
+      "calle_limpia": "brown santa fe",
       "numero_limpio": 2734
     },
     {
@@ -11044,12 +11056,12 @@
       "valor_m2": 960.63,
       "fuente": "propia_api_browser",
       "id_propia": 414629,
-      "lat": -32.948147,
-      "lon": -60.664516,
+      "lat": -32.94446814285714,
+      "lon": -60.63995757142857,
       "zona": "Otro",
       "date_created": "2025-10-27T19:58:43.601Z",
       "date_updated": "2026-04-21T17:29:40.996Z",
-      "calle_limpia": "riccheri",
+      "calle_limpia": "riccheri santa fe",
       "numero_limpio": 1290
     },
     {
@@ -11365,7 +11377,7 @@
       "zona": "Otro",
       "date_created": "2025-10-27T19:59:02.040Z",
       "date_updated": "2026-01-20T17:55:41.480Z",
-      "calle_limpia": "moreno",
+      "calle_limpia": "moreno santa fe",
       "numero_limpio": 1100
     },
     {
@@ -11693,7 +11705,7 @@
       "zona": "Otro",
       "date_created": "2024-07-31T05:58:12.000Z",
       "date_updated": "2025-11-21T05:12:59.888Z",
-      "calle_limpia": "montevideo",
+      "calle_limpia": "santa fe montevideo",
       "numero_limpio": 900
     },
     {
@@ -12163,7 +12175,7 @@
       "zona": "Otro",
       "date_created": "2025-10-03T16:14:37.314Z",
       "date_updated": "2026-04-21T18:03:25.212Z",
-      "calle_limpia": "necochea",
+      "calle_limpia": "necochea santa fe",
       "numero_limpio": 1700
     },
     {
@@ -12417,7 +12429,7 @@
       "zona": "Otro",
       "date_created": "2026-04-22T19:46:32.968Z",
       "date_updated": "2026-04-24T21:57:13.143Z",
-      "calle_limpia": "santiago",
+      "calle_limpia": "santiago santa fe",
       "numero_limpio": 600
     },
     {
@@ -12477,7 +12489,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T14:44:04.720Z",
       "date_updated": "2026-04-23T19:23:29.941Z",
-      "calle_limpia": "urquiza",
+      "calle_limpia": "urquiza santa fe",
       "numero_limpio": 1859
     },
     {
@@ -12909,7 +12921,7 @@
       "zona": "Otro",
       "date_created": "2025-10-01T13:40:20.181Z",
       "date_updated": "2026-04-09T17:52:29.955Z",
-      "calle_limpia": "paraguay",
+      "calle_limpia": "paraguay santa fe",
       "numero_limpio": 2170
     },
     {
@@ -12987,7 +12999,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T18:39:45.959Z",
       "date_updated": "2026-04-24T02:03:48.063Z",
-      "calle_limpia": "nicolas",
+      "calle_limpia": "nicolas santa fe",
       "numero_limpio": 1628
     },
     {
@@ -13717,7 +13729,7 @@
       "zona": "Otro",
       "date_created": "2025-12-02T18:12:50.815Z",
       "date_updated": "2026-03-13T20:35:28.945Z",
-      "calle_limpia": "riccheri",
+      "calle_limpia": "riccheri santa fe",
       "numero_limpio": 300
     },
     {
@@ -14659,7 +14671,7 @@
       "zona": "Otro",
       "date_created": "2026-03-20T17:10:16.531Z",
       "date_updated": "2026-04-11T16:55:29.731Z",
-      "calle_limpia": "espana",
+      "calle_limpia": "espana santa fe",
       "numero_limpio": 2900
     },
     {
@@ -14757,7 +14769,7 @@
       "zona": "Otro",
       "date_created": "2025-12-23T13:08:18.420Z",
       "date_updated": "2026-04-03T19:59:40.649Z",
-      "calle_limpia": "carballo",
+      "calle_limpia": "carballo santa fe",
       "numero_limpio": 435
     },
     {
@@ -15091,7 +15103,7 @@
       "zona": "Otro",
       "date_created": "2024-07-31T05:57:47.000Z",
       "date_updated": "2025-11-21T05:11:35.285Z",
-      "calle_limpia": "montevideo",
+      "calle_limpia": "santa fe montevideo",
       "numero_limpio": 900
     },
     {
@@ -15385,7 +15397,7 @@
       "zona": "Pellegrini",
       "date_created": "2025-11-18T18:47:10.527Z",
       "date_updated": "2026-02-25T13:31:14.173Z",
-      "calle_limpia": "dto pellegrini ed alma categoria",
+      "calle_limpia": "dto pellegrini ed alma categoria santa fe",
       "numero_limpio": 3700
     },
     {
@@ -15444,7 +15456,9 @@
       "lon": -60.645485,
       "zona": "Otro",
       "date_created": "2025-10-24T13:02:21.967Z",
-      "date_updated": "2026-04-16T16:35:58.767Z"
+      "date_updated": "2026-04-16T16:35:58.767Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 1600
     },
     {
       "precio": 75000.0,
@@ -15503,7 +15517,7 @@
       "zona": "Otro",
       "date_created": "2025-09-23T16:45:12.219Z",
       "date_updated": "2026-04-10T05:03:52.086Z",
-      "calle_limpia": "00",
+      "calle_limpia": "santa fe",
       "numero_limpio": 1100
     },
     {
@@ -15935,7 +15949,7 @@
       "zona": "Otro",
       "date_created": "2026-03-31T11:50:03.682Z",
       "date_updated": "2026-04-21T04:34:00.927Z",
-      "calle_limpia": "moreno",
+      "calle_limpia": "moreno santa fe",
       "numero_limpio": 300
     },
     {
@@ -16511,7 +16525,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T14:49:58.936Z",
       "date_updated": "2026-04-16T23:10:46.044Z",
-      "calle_limpia": "pres roca",
+      "calle_limpia": "pres roca santa fe",
       "numero_limpio": 1965
     },
     {
@@ -16669,7 +16683,7 @@
       "zona": "Otro",
       "date_created": "2025-10-01T13:02:01.645Z",
       "date_updated": "2026-04-20T03:01:14.954Z",
-      "calle_limpia": "pte roca",
+      "calle_limpia": "pte roca santa fe",
       "numero_limpio": 1453
     },
     {
@@ -16749,7 +16763,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T16:35:42.458Z",
       "date_updated": "2026-04-11T00:37:52.184Z",
-      "calle_limpia": "avellaneda",
+      "calle_limpia": "avellaneda santa fe",
       "numero_limpio": 1800
     },
     {
@@ -17049,7 +17063,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T18:35:18.227Z",
       "date_updated": "2026-04-17T17:33:45.992Z",
-      "calle_limpia": "brown",
+      "calle_limpia": "brown santa fe",
       "numero_limpio": 1725
     },
     {
@@ -17653,7 +17667,7 @@
       "zona": "Otro",
       "date_created": "2026-04-04T21:22:12.095Z",
       "date_updated": "2026-04-05T14:33:58.327Z",
-      "calle_limpia": "eva peron",
+      "calle_limpia": "eva peron santa fe",
       "numero_limpio": 5445
     },
     {
@@ -17829,7 +17843,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T14:39:13.124Z",
       "date_updated": "2026-04-24T04:03:16.849Z",
-      "calle_limpia": "balcarce",
+      "calle_limpia": "balcarce santa fe",
       "numero_limpio": 500
     },
     {
@@ -18027,7 +18041,7 @@
       "zona": "Otro",
       "date_created": "2026-03-23T20:46:50.502Z",
       "date_updated": "2026-04-13T14:19:00.262Z",
-      "calle_limpia": "moreno",
+      "calle_limpia": "moreno santa fe",
       "numero_limpio": 1100
     },
     {
@@ -18223,7 +18237,7 @@
       "zona": "Otro",
       "date_created": "2025-10-23T13:47:48.739Z",
       "date_updated": "2026-04-14T16:24:04.496Z",
-      "calle_limpia": "olive",
+      "calle_limpia": "olive santa fe",
       "numero_limpio": 950
     },
     {
@@ -18423,7 +18437,7 @@
       "zona": "Otro",
       "date_created": "2026-03-27T17:09:34.820Z",
       "date_updated": "2026-04-17T15:58:24.808Z",
-      "calle_limpia": "pavon",
+      "calle_limpia": "pavon santa fe",
       "numero_limpio": 5400
     },
     {
@@ -18483,7 +18497,7 @@
       "zona": "Otro",
       "date_created": "2025-10-03T16:11:29.689Z",
       "date_updated": "2026-04-04T17:38:01.733Z",
-      "calle_limpia": "alvear",
+      "calle_limpia": "alvear santa fe",
       "numero_limpio": 300
     },
     {
@@ -18755,7 +18769,7 @@
       "zona": "Otro",
       "date_created": "2025-10-02T15:06:35.517Z",
       "date_updated": "2026-01-20T17:57:06.505Z",
-      "calle_limpia": "dorrego",
+      "calle_limpia": "dorrego santa fe",
       "numero_limpio": 1400
     },
     {
@@ -19885,7 +19899,7 @@
       "zona": "Otro",
       "date_created": "2022-03-22T21:12:19.000Z",
       "date_updated": "2026-04-22T04:36:13.629Z",
-      "calle_limpia": "de mayo de",
+      "calle_limpia": "de mayo de santa fe",
       "numero_limpio": 1
     },
     {
@@ -20005,7 +20019,7 @@
       "zona": "Otro",
       "date_created": "2026-03-06T15:11:38.573Z",
       "date_updated": "2026-04-15T18:47:52.122Z",
-      "calle_limpia": "maipu",
+      "calle_limpia": "maipu santa fe",
       "numero_limpio": 2200
     },
     {
@@ -20063,7 +20077,7 @@
       "zona": "Otro",
       "date_created": "2026-02-23T15:16:24.250Z",
       "date_updated": "2026-04-09T04:29:55.964Z",
-      "calle_limpia": "sarmiento",
+      "calle_limpia": "sarmiento santa fe",
       "numero_limpio": 5200
     },
     {
@@ -20479,7 +20493,7 @@
       "zona": "Otro",
       "date_created": "2025-10-01T11:48:03.446Z",
       "date_updated": "2026-02-05T23:02:32.048Z",
-      "calle_limpia": "balcarce",
+      "calle_limpia": "balcarce santa fe",
       "numero_limpio": 1100
     },
     {
@@ -20494,11 +20508,13 @@
       "valor_m2": 1754.39,
       "fuente": "propia_api_browser",
       "id_propia": 204214,
-      "lat": -32.94448,
-      "lon": -60.69461,
+      "lat": -32.94113090476191,
+      "lon": -60.65787419047619,
       "zona": "Otro",
       "date_created": "2023-05-02T18:27:58.000Z",
-      "date_updated": "2026-04-25T00:15:39.558Z"
+      "date_updated": "2026-04-25T00:15:39.558Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2568
     },
     {
       "precio": 362958.0,
@@ -20851,7 +20867,7 @@
       "zona": "Otro",
       "date_created": "2025-10-02T18:46:37.103Z",
       "date_updated": "2026-04-25T00:54:11.933Z",
-      "calle_limpia": "pasco",
+      "calle_limpia": "pasco santa fe",
       "numero_limpio": 1280
     },
     {
@@ -21599,7 +21615,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T16:45:59.896Z",
       "date_updated": "2026-04-21T15:05:22.637Z",
-      "calle_limpia": "mendoza",
+      "calle_limpia": "mendoza santa fe",
       "numero_limpio": 3000
     },
     {
@@ -21699,7 +21715,7 @@
       "zona": "Otro",
       "date_created": "2025-10-03T16:15:38.337Z",
       "date_updated": "2026-03-27T00:34:19.503Z",
-      "calle_limpia": "corrientes",
+      "calle_limpia": "corrientes santa fe",
       "numero_limpio": 2392
     },
     {
@@ -22655,7 +22671,7 @@
       "zona": "Otro",
       "date_created": "2026-02-20T13:47:42.879Z",
       "date_updated": "2026-04-25T10:52:01.092Z",
-      "calle_limpia": "mitre",
+      "calle_limpia": "mitre santa fe",
       "numero_limpio": 3200
     },
     {
@@ -23163,7 +23179,7 @@
       "zona": "Otro",
       "date_created": "2026-03-20T18:33:50.396Z",
       "date_updated": "2026-04-25T03:06:41.828Z",
-      "calle_limpia": "de julio",
+      "calle_limpia": "de julio santa fe",
       "numero_limpio": 9
     },
     {
@@ -23443,7 +23459,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T19:12:03.111Z",
       "date_updated": "2026-04-24T15:55:57.735Z",
-      "calle_limpia": "pje cabrera",
+      "calle_limpia": "pje cabrera santa fe",
       "numero_limpio": 5091
     },
     {
@@ -23499,7 +23515,7 @@
       "zona": "Otro",
       "date_created": "2025-09-23T20:42:09.329Z",
       "date_updated": "2026-04-23T04:42:41.377Z",
-      "calle_limpia": "rioja",
+      "calle_limpia": "rioja santa fe",
       "numero_limpio": 747
     },
     {
@@ -23579,7 +23595,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T15:51:46.453Z",
       "date_updated": "2026-04-23T17:44:54.737Z",
-      "calle_limpia": "paraguay",
+      "calle_limpia": "paraguay santa fe",
       "numero_limpio": 2300
     },
     {
@@ -24231,7 +24247,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T14:39:01.060Z",
       "date_updated": "2026-04-20T12:09:14.756Z",
-      "calle_limpia": "salta",
+      "calle_limpia": "salta santa fe",
       "numero_limpio": 1456
     },
     {
@@ -24742,11 +24758,13 @@
       "valor_m2": 1805.56,
       "fuente": "propia_api_browser",
       "id_propia": 397206,
-      "lat": -32.94099,
-      "lon": -60.659363,
+      "lat": -32.940582000000006,
+      "lon": -60.661384777777776,
       "zona": "Otro",
       "date_created": "2025-08-20T16:40:03.030Z",
-      "date_updated": "2026-04-23T13:54:28.082Z"
+      "date_updated": "2026-04-23T13:54:28.082Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2600
     },
     {
       "precio": 43000.0,
@@ -24785,7 +24803,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T14:39:09.511Z",
       "date_updated": "2026-03-12T20:53:30.274Z",
-      "calle_limpia": "balcarce",
+      "calle_limpia": "balcarce santa fe",
       "numero_limpio": 576
     },
     {
@@ -25002,7 +25020,9 @@
       "lon": -60.639893,
       "zona": "Otro",
       "date_created": "2026-03-18T13:30:19.786Z",
-      "date_updated": "2026-04-12T20:38:41.930Z"
+      "date_updated": "2026-04-12T20:38:41.930Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 1200
     },
     {
       "precio": 34900.0,
@@ -25021,7 +25041,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T16:44:09.914Z",
       "date_updated": "2026-03-16T15:03:54.618Z",
-      "calle_limpia": "machain",
+      "calle_limpia": "machain santa fe",
       "numero_limpio": 2371
     },
     {
@@ -25179,7 +25199,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T13:59:52.881Z",
       "date_updated": "2026-01-23T17:24:35.358Z",
-      "calle_limpia": "mitre",
+      "calle_limpia": "mitre santa fe",
       "numero_limpio": 220
     },
     {
@@ -25631,7 +25651,7 @@
       "zona": "Otro",
       "date_created": "2026-04-16T13:00:38.947Z",
       "date_updated": "2026-04-21T02:11:15.093Z",
-      "calle_limpia": "juan",
+      "calle_limpia": "juan santa fe",
       "numero_limpio": 394
     },
     {
@@ -25947,7 +25967,7 @@
       "zona": "Otro",
       "date_created": "2025-10-03T16:10:53.699Z",
       "date_updated": "2026-03-17T14:29:23.804Z",
-      "calle_limpia": "alvear",
+      "calle_limpia": "alvear santa fe",
       "numero_limpio": 300
     },
     {
@@ -26205,7 +26225,7 @@
       "zona": "Otro",
       "date_created": "2026-01-30T16:23:02.714Z",
       "date_updated": "2026-04-13T14:13:52.337Z",
-      "calle_limpia": "entre rios",
+      "calle_limpia": "entre rios santa fe",
       "numero_limpio": 430
     },
     {
@@ -26452,11 +26472,13 @@
       "valor_m2": 1431.37,
       "fuente": "propia_api_browser",
       "id_propia": 272666,
-      "lat": -32.983633625,
-      "lon": -60.645482625,
+      "lat": -32.938041000000005,
+      "lon": -60.6763994,
       "zona": "Otro",
       "date_created": "2024-04-12T20:08:36.000Z",
-      "date_updated": "2026-04-25T05:03:58.170Z"
+      "date_updated": "2026-04-25T05:03:58.170Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 3900
     },
     {
       "precio": 295000.0,
@@ -26553,7 +26575,7 @@
       "zona": "Otro",
       "date_created": "2024-08-15T21:01:11.000Z",
       "date_updated": "2026-03-12T19:51:32.902Z",
-      "calle_limpia": "juan jose paso",
+      "calle_limpia": "juan jose paso de santa fe",
       "numero_limpio": 7770
     },
     {
@@ -26711,7 +26733,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T14:35:10.612Z",
       "date_updated": "2026-04-20T19:48:25.659Z",
-      "calle_limpia": "montevideo",
+      "calle_limpia": "montevideo santa fe",
       "numero_limpio": 961
     },
     {
@@ -26771,7 +26793,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T14:16:54.245Z",
       "date_updated": "2026-04-22T00:06:26.118Z",
-      "calle_limpia": "mitre",
+      "calle_limpia": "mitre santa fe",
       "numero_limpio": 1110
     },
     {
@@ -26851,7 +26873,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T18:34:05.649Z",
       "date_updated": "2026-03-30T17:52:35.475Z",
-      "calle_limpia": "italia",
+      "calle_limpia": "italia santa fe",
       "numero_limpio": 173
     },
     {
@@ -27007,7 +27029,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T18:34:22.514Z",
       "date_updated": "2026-01-29T13:19:18.606Z",
-      "calle_limpia": "ayacucho",
+      "calle_limpia": "ayacucho santa fe",
       "numero_limpio": 1132
     },
     {
@@ -27243,7 +27265,7 @@
       "zona": "Otro",
       "date_created": "2026-01-26T19:40:23.873Z",
       "date_updated": "2026-03-29T00:05:44.358Z",
-      "calle_limpia": "silva",
+      "calle_limpia": "silva santa fe",
       "numero_limpio": 1100
     },
     {
@@ -28091,7 +28113,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T14:38:46.131Z",
       "date_updated": "2026-01-23T17:38:28.460Z",
-      "calle_limpia": "santiago",
+      "calle_limpia": "santiago santa fe",
       "numero_limpio": 1400
     },
     {
@@ -28267,7 +28289,7 @@
       "zona": "Otro",
       "date_created": "2025-10-01T14:59:55.794Z",
       "date_updated": "2026-04-13T10:15:35.858Z",
-      "calle_limpia": "juan",
+      "calle_limpia": "juan santa fe",
       "numero_limpio": 828
     },
     {
@@ -28322,11 +28344,13 @@
       "valor_m2": 2000.0,
       "fuente": "propia_api_browser",
       "id_propia": 415502,
-      "lat": -32.942497,
-      "lon": -60.65266,
+      "lat": -32.9421174375,
+      "lon": -60.6520045625,
       "zona": "Otro",
       "date_created": "2025-10-30T15:45:23.127Z",
-      "date_updated": "2026-03-05T05:57:00.557Z"
+      "date_updated": "2026-03-05T05:57:00.557Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2100
     },
     {
       "precio": 29000.0,
@@ -28539,7 +28563,7 @@
       "zona": "Otro",
       "date_created": "2026-03-31T22:03:14.775Z",
       "date_updated": "2026-04-04T15:45:20.936Z",
-      "calle_limpia": "urquiza",
+      "calle_limpia": "urquiza santa fe",
       "numero_limpio": 1000
     },
     {
@@ -28931,7 +28955,7 @@
       "zona": "Otro",
       "date_created": "2026-01-26T13:19:04.143Z",
       "date_updated": "2026-04-24T18:03:40.677Z",
-      "calle_limpia": "pasaje las rosas bis",
+      "calle_limpia": "pasaje las rosas bis santa fe",
       "numero_limpio": 600
     },
     {
@@ -29207,7 +29231,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T18:47:35.487Z",
       "date_updated": "2026-04-22T21:58:38.561Z",
-      "calle_limpia": "cochabamba",
+      "calle_limpia": "cochabamba santa fe",
       "numero_limpio": 500
     },
     {
@@ -29340,11 +29364,13 @@
       "valor_m2": 2180.0,
       "fuente": "propia_api_browser",
       "id_propia": 287620,
-      "lat": -32.958702,
-      "lon": -60.693043,
+      "lat": -32.942028125,
+      "lon": -60.65597424999999,
       "zona": "Otro",
       "date_created": "2024-06-25T23:26:59.000Z",
-      "date_updated": "2026-04-21T05:05:24.356Z"
+      "date_updated": "2026-04-21T05:05:24.356Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2400
     },
     {
       "precio": 240000.0,
@@ -29423,7 +29449,7 @@
       "zona": "Pellegrini",
       "date_created": "2025-09-26T14:28:41.653Z",
       "date_updated": "2026-01-23T17:19:45.478Z",
-      "calle_limpia": "pellegrini",
+      "calle_limpia": "pellegrini santa fe",
       "numero_limpio": 4041
     },
     {
@@ -29583,7 +29609,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T14:37:36.899Z",
       "date_updated": "2026-01-26T16:10:59.552Z",
-      "calle_limpia": "crespo",
+      "calle_limpia": "crespo santa fe",
       "numero_limpio": 390
     },
     {
@@ -29603,7 +29629,7 @@
       "zona": "Otro",
       "date_created": "2025-11-25T13:55:31.769Z",
       "date_updated": "2026-04-25T22:52:42.776Z",
-      "calle_limpia": "saavedra",
+      "calle_limpia": "saavedra santa fe",
       "numero_limpio": 1100
     },
     {
@@ -29702,7 +29728,9 @@
       "lon": -60.666916,
       "zona": "Otro",
       "date_created": "2024-03-20T07:44:14.000Z",
-      "date_updated": "2026-04-13T19:33:54.673Z"
+      "date_updated": "2026-04-13T19:33:54.673Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 3220
     },
     {
       "precio": 195841.0,
@@ -29897,7 +29925,7 @@
       "zona": "Otro",
       "date_created": "2025-11-10T13:59:17.789Z",
       "date_updated": "2026-04-16T22:15:10.181Z",
-      "calle_limpia": "de julio",
+      "calle_limpia": "de julio santa fe",
       "numero_limpio": 9
     },
     {
@@ -29917,7 +29945,7 @@
       "zona": "Otro",
       "date_created": "2025-09-30T14:15:44.985Z",
       "date_updated": "2026-04-22T23:03:05.598Z",
-      "calle_limpia": "juan manuel de rosas",
+      "calle_limpia": "juan manuel de rosas santa fe",
       "numero_limpio": 1837
     },
     {
@@ -30097,7 +30125,7 @@
       "zona": "Otro",
       "date_created": "2026-02-05T14:58:46.678Z",
       "date_updated": "2026-04-19T14:14:47.622Z",
-      "calle_limpia": "french",
+      "calle_limpia": "french santa fe",
       "numero_limpio": 627
     },
     {
@@ -30137,7 +30165,7 @@
       "zona": "Pellegrini",
       "date_created": "2025-10-23T13:32:49.568Z",
       "date_updated": "2026-04-14T01:35:29.360Z",
-      "calle_limpia": "pellegrini",
+      "calle_limpia": "pellegrini santa fe",
       "numero_limpio": 10
     },
     {
@@ -30157,7 +30185,7 @@
       "zona": "Otro",
       "date_created": "2025-11-10T18:20:13.598Z",
       "date_updated": "2026-03-06T16:22:02.598Z",
-      "calle_limpia": "balcarce",
+      "calle_limpia": "balcarce santa fe",
       "numero_limpio": 500
     },
     {
@@ -30217,7 +30245,7 @@
       "zona": "Otro",
       "date_created": "2026-02-11T16:33:55.950Z",
       "date_updated": "2026-04-21T15:12:08.198Z",
-      "calle_limpia": "constitucion",
+      "calle_limpia": "constitucion santa fe",
       "numero_limpio": 522
     },
     {
@@ -30875,7 +30903,7 @@
       "zona": "Otro",
       "date_created": "2026-04-03T20:33:47.878Z",
       "date_updated": "2026-04-23T12:49:58.284Z",
-      "calle_limpia": "garay",
+      "calle_limpia": "garay santa fe",
       "numero_limpio": 300
     },
     {
@@ -30955,7 +30983,7 @@
       "zona": "Otro",
       "date_created": "2025-10-01T15:59:24.101Z",
       "date_updated": "2026-04-21T16:59:53.726Z",
-      "calle_limpia": "sargento cabral",
+      "calle_limpia": "sargento cabral santa fe",
       "numero_limpio": 500
     },
     {
@@ -31353,7 +31381,7 @@
       "zona": "Otro",
       "date_created": "2025-10-01T12:28:58.699Z",
       "date_updated": "2026-04-23T17:28:57.389Z",
-      "calle_limpia": "ituzaingo",
+      "calle_limpia": "ituzaingo santa fe",
       "numero_limpio": 1600
     },
     {
@@ -31513,7 +31541,7 @@
       "zona": "Otro",
       "date_created": "2025-10-02T14:34:22.310Z",
       "date_updated": "2026-01-20T18:01:17.934Z",
-      "calle_limpia": "salta",
+      "calle_limpia": "salta santa fe",
       "numero_limpio": 2020
     },
     {
@@ -31749,7 +31777,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T18:34:13.068Z",
       "date_updated": "2026-03-26T23:47:37.873Z",
-      "calle_limpia": "catamarca",
+      "calle_limpia": "catamarca santa fe",
       "numero_limpio": 1725
     },
     {
@@ -31847,7 +31875,7 @@
       "zona": "Otro",
       "date_created": "2025-11-26T14:54:32.172Z",
       "date_updated": "2026-04-25T16:05:59.547Z",
-      "calle_limpia": "sarmiento",
+      "calle_limpia": "sarmiento santa fe",
       "numero_limpio": 1900
     },
     {
@@ -32321,7 +32349,7 @@
       "zona": "Otro",
       "date_created": "2026-03-20T19:24:17.524Z",
       "date_updated": "2026-04-16T13:48:24.407Z",
-      "calle_limpia": "corrientes",
+      "calle_limpia": "corrientes santa fe",
       "numero_limpio": 2200
     },
     {
@@ -32459,7 +32487,7 @@
       "zona": "Otro",
       "date_created": "2025-06-12T07:49:57.612Z",
       "date_updated": "2026-04-23T01:20:21.178Z",
-      "calle_limpia": "alvear bis",
+      "calle_limpia": "alvear bis de santa fe",
       "numero_limpio": 199
     },
     {
@@ -32595,7 +32623,7 @@
       "zona": "Otro",
       "date_created": "2023-05-18T16:36:40.000Z",
       "date_updated": "2026-03-17T01:30:51.953Z",
-      "calle_limpia": "paraguay",
+      "calle_limpia": "paraguay de santa fe",
       "numero_limpio": 2170
     },
     {
@@ -32833,7 +32861,7 @@
       "zona": "Otro",
       "date_created": "2025-10-21T14:39:47.757Z",
       "date_updated": "2026-02-11T19:45:37.299Z",
-      "calle_limpia": "sarmiento",
+      "calle_limpia": "sarmiento santa fe",
       "numero_limpio": 1575
     },
     {
@@ -33031,7 +33059,7 @@
       "zona": "Otro",
       "date_created": "2025-10-03T16:16:07.840Z",
       "date_updated": "2026-03-17T13:45:51.202Z",
-      "calle_limpia": "juan manuel de rosas",
+      "calle_limpia": "juan manuel de rosas santa fe",
       "numero_limpio": 1939
     },
     {
@@ -33309,7 +33337,7 @@
       "zona": "Otro",
       "date_created": "2025-12-16T16:17:35.644Z",
       "date_updated": "2026-02-25T03:29:22.313Z",
-      "calle_limpia": "paraguay",
+      "calle_limpia": "paraguay santa fe",
       "numero_limpio": 2170
     },
     {
@@ -33349,7 +33377,7 @@
       "zona": "Otro",
       "date_created": "2026-01-27T21:28:14.380Z",
       "date_updated": "2026-04-13T16:48:36.152Z",
-      "calle_limpia": "cerrito",
+      "calle_limpia": "cerrito santa fe",
       "numero_limpio": 1265
     },
     {
@@ -33783,7 +33811,7 @@
       "zona": "Otro",
       "date_created": "2026-01-27T21:28:45.599Z",
       "date_updated": "2026-03-15T00:15:16.008Z",
-      "calle_limpia": "corrientes",
+      "calle_limpia": "corrientes santa fe",
       "numero_limpio": 1925
     },
     {
@@ -33901,7 +33929,7 @@
       "zona": "Otro",
       "date_created": "2025-12-18T16:48:00.255Z",
       "date_updated": "2026-04-23T14:19:09.953Z",
-      "calle_limpia": "maipu",
+      "calle_limpia": "maipu santa fe",
       "numero_limpio": 1400
     },
     {
@@ -33941,7 +33969,7 @@
       "zona": "Otro",
       "date_created": "2025-10-06T19:04:43.182Z",
       "date_updated": "2026-04-13T14:19:34.133Z",
-      "calle_limpia": "moreno",
+      "calle_limpia": "moreno santa fe",
       "numero_limpio": 1100
     },
     {
@@ -34041,7 +34069,7 @@
       "zona": "Otro",
       "date_created": "2025-11-14T18:01:13.238Z",
       "date_updated": "2026-03-21T21:56:33.353Z",
-      "calle_limpia": "ktm",
+      "calle_limpia": "ktm santa fe",
       "numero_limpio": 2800
     },
     {
@@ -34181,7 +34209,7 @@
       "zona": "Otro",
       "date_created": "2026-04-09T17:07:16.102Z",
       "date_updated": "2026-04-20T21:44:30.527Z",
-      "calle_limpia": "urquiza",
+      "calle_limpia": "urquiza santa fe",
       "numero_limpio": 3396
     },
     {
@@ -34201,7 +34229,7 @@
       "zona": "Otro",
       "date_created": "2025-10-03T16:11:35.590Z",
       "date_updated": "2026-03-17T15:29:51.927Z",
-      "calle_limpia": "guemes",
+      "calle_limpia": "guemes santa fe",
       "numero_limpio": 1938
     },
     {
@@ -34417,7 +34445,7 @@
       "zona": "Otro",
       "date_created": "2026-03-09T18:18:15.645Z",
       "date_updated": "2026-04-25T16:44:20.403Z",
-      "calle_limpia": "rioja",
+      "calle_limpia": "rioja santa fe",
       "numero_limpio": 700
     },
     {
@@ -34855,7 +34883,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T14:38:53.827Z",
       "date_updated": "2026-04-21T16:06:34.144Z",
-      "calle_limpia": "moreno",
+      "calle_limpia": "moreno santa fe",
       "numero_limpio": 1157
     },
     {
@@ -34875,7 +34903,7 @@
       "zona": "Otro",
       "date_created": "2025-10-02T14:36:25.297Z",
       "date_updated": "2026-03-13T14:38:04.791Z",
-      "calle_limpia": "salta",
+      "calle_limpia": "salta santa fe",
       "numero_limpio": 2020
     },
     {
@@ -34973,7 +35001,7 @@
       "zona": "Pellegrini",
       "date_created": "2025-11-06T15:29:57.695Z",
       "date_updated": "2026-04-22T15:50:16.645Z",
-      "calle_limpia": "pellegrini",
+      "calle_limpia": "pellegrini santa fe",
       "numero_limpio": 600
     },
     {
@@ -35603,7 +35631,7 @@
       "zona": "Otro",
       "date_created": "2025-10-02T15:02:09.404Z",
       "date_updated": "2026-03-17T17:38:57.059Z",
-      "calle_limpia": "dorrego",
+      "calle_limpia": "dorrego santa fe",
       "numero_limpio": 1400
     },
     {
@@ -36255,7 +36283,7 @@
       "zona": "Otro",
       "date_created": "2025-10-01T11:59:38.197Z",
       "date_updated": "2026-04-13T22:04:07.727Z",
-      "calle_limpia": "mendoza",
+      "calle_limpia": "mendoza santa fe",
       "numero_limpio": 850
     },
     {
@@ -36433,7 +36461,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T18:31:32.405Z",
       "date_updated": "2026-02-12T13:39:59.587Z",
-      "calle_limpia": "dorrego",
+      "calle_limpia": "dorrego santa fe",
       "numero_limpio": 325
     },
     {
@@ -36531,7 +36559,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T18:32:48.006Z",
       "date_updated": "2026-02-26T01:54:05.522Z",
-      "calle_limpia": "pje cajaraville",
+      "calle_limpia": "pje cajaraville santa fe",
       "numero_limpio": 180
     },
     {
@@ -36887,7 +36915,7 @@
       "zona": "Otro",
       "date_created": "2025-10-23T13:32:52.140Z",
       "date_updated": "2026-01-20T17:52:52.252Z",
-      "calle_limpia": "esmeralda",
+      "calle_limpia": "esmeralda santa fe",
       "numero_limpio": 2300
     },
     {
@@ -36963,7 +36991,7 @@
       "zona": "Otro",
       "date_created": "2025-10-23T13:39:41.731Z",
       "date_updated": "2026-03-25T18:10:56.390Z",
-      "calle_limpia": "de febrero",
+      "calle_limpia": "de febrero santa fe",
       "numero_limpio": 3
     },
     {
@@ -37276,7 +37304,9 @@
       "lon": -60.660652,
       "zona": "Otro",
       "date_created": "2022-11-18T20:59:10.000Z",
-      "date_updated": "2026-04-16T00:59:21.243Z"
+      "date_updated": "2026-04-16T00:59:21.243Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2772
     },
     {
       "precio": 179000.0,
@@ -37807,7 +37837,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T16:45:57.203Z",
       "date_updated": "2026-01-23T19:59:45.214Z",
-      "calle_limpia": "tucuman",
+      "calle_limpia": "tucuman santa fe",
       "numero_limpio": 925
     },
     {
@@ -38245,7 +38275,7 @@
       "zona": "Otro",
       "date_created": "2026-01-21T19:50:35.165Z",
       "date_updated": "2026-04-13T13:28:09.508Z",
-      "calle_limpia": "guemes",
+      "calle_limpia": "guemes santa fe",
       "numero_limpio": 2200
     },
     {
@@ -39169,7 +39199,7 @@
       "zona": "Otro",
       "date_created": "2026-04-22T18:54:08.545Z",
       "date_updated": "2026-04-25T23:08:29.367Z",
-      "calle_limpia": "balcarce",
+      "calle_limpia": "balcarce santa fe",
       "numero_limpio": 800
     },
     {
@@ -39209,7 +39239,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T18:35:05.615Z",
       "date_updated": "2026-01-23T17:44:30.502Z",
-      "calle_limpia": "dorrego",
+      "calle_limpia": "dorrego santa fe",
       "numero_limpio": 1950
     },
     {
@@ -39867,7 +39897,7 @@
       "zona": "Otro",
       "date_created": "2026-03-10T12:49:22.914Z",
       "date_updated": "2026-03-20T21:53:06.793Z",
-      "calle_limpia": "cochabamba",
+      "calle_limpia": "cochabamba santa fe",
       "numero_limpio": 838
     },
     {
@@ -40539,7 +40569,7 @@
       "zona": "Otro",
       "date_created": "2025-10-03T16:13:29.652Z",
       "date_updated": "2026-04-16T18:31:04.542Z",
-      "calle_limpia": "de julio",
+      "calle_limpia": "de julio santa fe",
       "numero_limpio": 9
     },
     {
@@ -40677,7 +40707,7 @@
       "zona": "Otro",
       "date_created": "2026-03-03T15:53:43.508Z",
       "date_updated": "2026-03-26T19:46:15.858Z",
-      "calle_limpia": "juan manuel de rosas",
+      "calle_limpia": "juan manuel de rosas santa fe",
       "numero_limpio": 1939
     },
     {
@@ -40892,7 +40922,9 @@
       "lon": -60.645485,
       "zona": "Otro",
       "date_created": "2024-08-29T02:07:17.000Z",
-      "date_updated": "2026-04-20T23:34:06.403Z"
+      "date_updated": "2026-04-20T23:34:06.403Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 1600
     },
     {
       "precio": 97200.0,
@@ -41287,7 +41319,7 @@
       "zona": "Otro",
       "date_created": "2025-10-23T13:22:39.330Z",
       "date_updated": "2026-02-19T11:44:08.788Z",
-      "calle_limpia": "juan manuel de rosas",
+      "calle_limpia": "juan manuel de rosas santa fe",
       "numero_limpio": 1100
     },
     {
@@ -41463,7 +41495,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T16:06:48.169Z",
       "date_updated": "2026-03-23T22:08:24.759Z",
-      "calle_limpia": "veramujica",
+      "calle_limpia": "veramujica santa fe",
       "numero_limpio": 300
     },
     {
@@ -41739,7 +41771,7 @@
       "zona": "Otro",
       "date_created": "2025-12-24T20:41:58.648Z",
       "date_updated": "2026-04-25T21:35:40.312Z",
-      "calle_limpia": "dorrego",
+      "calle_limpia": "dorrego santa fe",
       "numero_limpio": 80
     },
     {
@@ -42033,7 +42065,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T18:33:03.871Z",
       "date_updated": "2026-02-19T16:34:47.193Z",
-      "calle_limpia": "jujuy",
+      "calle_limpia": "jujuy santa fe",
       "numero_limpio": 1600
     },
     {
@@ -42465,7 +42497,7 @@
       "zona": "Otro",
       "date_created": "2026-03-11T18:43:40.217Z",
       "date_updated": "2026-04-25T18:21:02.552Z",
-      "calle_limpia": "espana",
+      "calle_limpia": "espana santa fe",
       "numero_limpio": 1671
     },
     {
@@ -43353,7 +43385,7 @@
       "zona": "Otro",
       "date_created": "2025-10-02T14:47:00.303Z",
       "date_updated": "2026-01-20T17:55:27.981Z",
-      "calle_limpia": "brown",
+      "calle_limpia": "brown santa fe",
       "numero_limpio": 2734
     },
     {
@@ -43547,7 +43579,7 @@
       "zona": "Otro",
       "date_created": "2026-02-03T19:15:11.925Z",
       "date_updated": "2026-04-24T18:02:44.032Z",
-      "calle_limpia": "reconquista",
+      "calle_limpia": "reconquista santa fe",
       "numero_limpio": 700
     },
     {
@@ -43783,7 +43815,7 @@
       "zona": "Otro",
       "date_created": "2025-12-01T12:52:53.049Z",
       "date_updated": "2026-04-22T22:02:23.395Z",
-      "calle_limpia": "paraguay",
+      "calle_limpia": "paraguay santa fe",
       "numero_limpio": 1400
     },
     {
@@ -44019,7 +44051,7 @@
       "zona": "Otro",
       "date_created": "2026-03-12T18:14:59.152Z",
       "date_updated": "2026-03-30T12:55:55.590Z",
-      "calle_limpia": "salta",
+      "calle_limpia": "salta santa fe",
       "numero_limpio": 1400
     },
     {
@@ -44252,12 +44284,12 @@
       "valor_m2": 2760.0,
       "fuente": "propia_api_browser",
       "id_propia": 417914,
-      "lat": -32.92644,
-      "lon": -60.658897,
+      "lat": -32.94074022222222,
+      "lon": -60.660291,
       "zona": "Otro",
       "date_created": "2025-11-10T13:46:47.004Z",
       "date_updated": "2026-03-18T02:13:08.314Z",
-      "calle_limpia": "lopez",
+      "calle_limpia": "lopez santa fe",
       "numero_limpio": 2750
     },
     {
@@ -44831,7 +44863,7 @@
       "zona": "Otro",
       "date_created": "2026-01-27T21:25:36.840Z",
       "date_updated": "2026-03-18T08:39:06.511Z",
-      "calle_limpia": "mendoza",
+      "calle_limpia": "mendoza santa fe",
       "numero_limpio": 2600
     },
     {
@@ -45364,11 +45396,13 @@
       "valor_m2": 1918.6,
       "fuente": "propia_api_browser",
       "id_propia": 375908,
-      "lat": -32.94134,
-      "lon": -60.658,
+      "lat": -32.941473,
+      "lon": -60.657174999999995,
       "zona": "Otro",
       "date_created": "2025-05-22T16:41:51.263Z",
-      "date_updated": "2026-04-13T11:31:38.709Z"
+      "date_updated": "2026-04-13T11:31:38.709Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2500
     },
     {
       "precio": 189668.0,
@@ -45427,7 +45461,7 @@
       "zona": "Otro",
       "date_created": "2025-12-30T13:11:20.496Z",
       "date_updated": "2026-04-10T12:30:07.595Z",
-      "calle_limpia": "avellaneda bis",
+      "calle_limpia": "avellaneda bis santa fe",
       "numero_limpio": 1000
     },
     {
@@ -45447,7 +45481,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T18:50:27.303Z",
       "date_updated": "2026-03-31T00:57:30.518Z",
-      "calle_limpia": "juan jose paso",
+      "calle_limpia": "juan jose paso santa fe",
       "numero_limpio": 7700
     },
     {
@@ -46016,11 +46050,13 @@
       "valor_m2": 2057.94,
       "fuente": "propia_api_browser",
       "id_propia": 352467,
-      "lat": -32.940983,
-      "lon": -60.659798,
+      "lat": -32.942028125,
+      "lon": -60.65597424999999,
       "zona": "Otro",
       "date_created": "2025-02-13T02:02:20.000Z",
-      "date_updated": "2026-03-30T15:32:24.835Z"
+      "date_updated": "2026-03-30T15:32:24.835Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2400
     },
     {
       "precio": 75000.0,
@@ -46633,7 +46669,7 @@
       "zona": "Otro",
       "date_created": "2025-12-23T15:52:56.469Z",
       "date_updated": "2026-04-23T18:20:24.862Z",
-      "calle_limpia": "montevideo",
+      "calle_limpia": "montevideo santa fe",
       "numero_limpio": 1223
     },
     {
@@ -47209,7 +47245,7 @@
       "zona": "Martin",
       "date_created": "2025-09-26T15:07:24.781Z",
       "date_updated": "2026-03-03T17:37:29.730Z",
-      "calle_limpia": "martin",
+      "calle_limpia": "martin santa fe",
       "numero_limpio": 300
     },
     {
@@ -48159,7 +48195,7 @@
       "zona": "Otro",
       "date_created": "2025-11-12T17:57:29.269Z",
       "date_updated": "2026-04-13T19:43:54.310Z",
-      "calle_limpia": "entre rios",
+      "calle_limpia": "entre rios santa fe",
       "numero_limpio": 1930
     },
     {
@@ -48357,7 +48393,7 @@
       "zona": "Otro",
       "date_created": "2025-11-25T14:27:21.469Z",
       "date_updated": "2026-04-09T15:53:34.428Z",
-      "calle_limpia": "buenos aires",
+      "calle_limpia": "buenos aires santa fe",
       "numero_limpio": 2000
     },
     {
@@ -48907,7 +48943,7 @@
       "zona": "Otro",
       "date_created": "2024-09-02T21:01:35.000Z",
       "date_updated": "2026-04-15T19:09:22.607Z",
-      "calle_limpia": "garcia del cossio de",
+      "calle_limpia": "garcia del cossio de santa fe",
       "numero_limpio": 2050
     },
     {
@@ -49079,7 +49115,7 @@
       "zona": "Pellegrini",
       "date_created": "2025-10-23T13:22:04.382Z",
       "date_updated": "2026-04-13T14:16:59.190Z",
-      "calle_limpia": "pellegrini",
+      "calle_limpia": "pellegrini santa fe",
       "numero_limpio": 932
     },
     {
@@ -49248,11 +49284,13 @@
       "valor_m2": 1851.85,
       "fuente": "propia_api_browser",
       "id_propia": 87768,
-      "lat": -32.95269,
-      "lon": -60.66764,
+      "lat": -32.940872363636366,
+      "lon": -60.663484636363634,
       "zona": "Otro",
       "date_created": "2021-10-06T17:01:12.000Z",
-      "date_updated": "2026-04-15T05:05:23.599Z"
+      "date_updated": "2026-04-15T05:05:23.599Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 3000
     },
     {
       "precio": 63000.0,
@@ -49583,7 +49621,7 @@
       "zona": "Otro",
       "date_created": "2025-10-23T13:49:39.081Z",
       "date_updated": "2026-01-20T17:50:48.903Z",
-      "calle_limpia": "carballo",
+      "calle_limpia": "carballo santa fe",
       "numero_limpio": 589
     },
     {
@@ -49719,7 +49757,7 @@
       "zona": "Pellegrini",
       "date_created": "2025-10-06T19:04:30.656Z",
       "date_updated": "2026-04-22T15:51:02.707Z",
-      "calle_limpia": "pellegrini",
+      "calle_limpia": "pellegrini santa fe",
       "numero_limpio": 932
     },
     {
@@ -49839,7 +49877,7 @@
       "zona": "Otro",
       "date_created": "2025-10-23T13:25:23.295Z",
       "date_updated": "2026-04-08T13:51:03.337Z",
-      "calle_limpia": "juan manuel de rosas",
+      "calle_limpia": "juan manuel de rosas santa fe",
       "numero_limpio": 1100
     },
     {
@@ -49939,7 +49977,7 @@
       "zona": "Otro",
       "date_created": "2024-11-15T06:20:24.000Z",
       "date_updated": "2026-04-22T20:25:48.549Z",
-      "calle_limpia": "nicolas",
+      "calle_limpia": "santa fe nicolas",
       "numero_limpio": 873
     },
     {
@@ -50077,7 +50115,7 @@
       "zona": "Pellegrini",
       "date_created": "2026-01-14T19:39:44.120Z",
       "date_updated": "2026-04-21T17:46:38.542Z",
-      "calle_limpia": "pellegrini",
+      "calle_limpia": "pellegrini santa fe",
       "numero_limpio": 800
     },
     {
@@ -50413,7 +50451,7 @@
       "zona": "Otro",
       "date_created": "2026-04-13T21:56:30.404Z",
       "date_updated": "2026-04-14T13:25:29.982Z",
-      "calle_limpia": "de febrero",
+      "calle_limpia": "de febrero santa fe",
       "numero_limpio": 3
     },
     {
@@ -50528,11 +50566,13 @@
       "valor_m2": 1761.9,
       "fuente": "propia_api_browser",
       "id_propia": 99987,
-      "lat": -32.95028,
-      "lon": -60.64423,
+      "lat": -32.9448924,
+      "lon": -60.63805779999999,
       "zona": "Otro",
       "date_created": "2021-12-07T16:30:27.000Z",
-      "date_updated": "2026-04-15T05:05:24.555Z"
+      "date_updated": "2026-04-15T05:05:24.555Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 1100
     },
     {
       "precio": 160000.0,
@@ -50727,7 +50767,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T16:18:20.133Z",
       "date_updated": "2026-01-23T19:54:45.439Z",
-      "calle_limpia": "francia",
+      "calle_limpia": "francia santa fe",
       "numero_limpio": 1400
     },
     {
@@ -51297,7 +51337,7 @@
       "zona": "Otro",
       "date_created": "2026-01-09T22:38:49.275Z",
       "date_updated": "2026-04-10T20:23:52.389Z",
-      "calle_limpia": "echeverria",
+      "calle_limpia": "echeverria santa fe",
       "numero_limpio": 500
     },
     {
@@ -51397,7 +51437,7 @@
       "zona": "Otro",
       "date_created": "2025-10-01T14:58:19.746Z",
       "date_updated": "2026-04-25T00:53:33.680Z",
-      "calle_limpia": "de febrero",
+      "calle_limpia": "de febrero santa fe",
       "numero_limpio": 3
     },
     {
@@ -51862,12 +51902,12 @@
       "valor_m2": 2080.0,
       "fuente": "propia_api_browser",
       "id_propia": 420879,
-      "lat": -32.94057,
-      "lon": -60.662834,
+      "lat": -32.940518999999995,
+      "lon": -60.66205028571428,
       "zona": "Otro",
       "date_created": "2025-11-26T14:46:23.384Z",
       "date_updated": "2026-04-20T15:54:52.627Z",
-      "calle_limpia": "apto credito",
+      "calle_limpia": "santa fe apto credito",
       "numero_limpio": 2872
     },
     {
@@ -52357,7 +52397,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T14:34:42.118Z",
       "date_updated": "2026-04-21T01:44:56.086Z",
-      "calle_limpia": "alem",
+      "calle_limpia": "alem santa fe",
       "numero_limpio": 1900
     },
     {
@@ -52635,7 +52675,7 @@
       "zona": "Otro",
       "date_created": "2025-10-02T14:53:27.879Z",
       "date_updated": "2026-01-20T17:52:07.515Z",
-      "calle_limpia": "brown",
+      "calle_limpia": "brown santa fe",
       "numero_limpio": 2734
     },
     {
@@ -53211,7 +53251,7 @@
       "zona": "Otro",
       "date_created": "2026-01-26T19:23:52.303Z",
       "date_updated": "2026-04-22T23:10:53.279Z",
-      "calle_limpia": "entre rios",
+      "calle_limpia": "entre rios santa fe",
       "numero_limpio": 1500
     },
     {
@@ -53251,7 +53291,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T18:33:09.446Z",
       "date_updated": "2026-02-03T15:55:39.962Z",
-      "calle_limpia": "salta",
+      "calle_limpia": "salta santa fe",
       "numero_limpio": 1770
     },
     {
@@ -53271,7 +53311,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T15:54:53.362Z",
       "date_updated": "2026-03-19T16:16:17.571Z",
-      "calle_limpia": "cochabamba",
+      "calle_limpia": "cochabamba santa fe",
       "numero_limpio": 136
     },
     {
@@ -53291,7 +53331,7 @@
       "zona": "Otro",
       "date_created": "2025-12-22T12:00:32.132Z",
       "date_updated": "2026-01-23T17:49:35.548Z",
-      "calle_limpia": "salta",
+      "calle_limpia": "salta santa fe",
       "numero_limpio": 2020
     },
     {
@@ -53740,7 +53780,9 @@
       "lon": -60.656277,
       "zona": "Otro",
       "date_created": "2024-10-04T16:51:53.000Z",
-      "date_updated": "2026-01-26T14:25:49.988Z"
+      "date_updated": "2026-01-26T14:25:49.988Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2450
     },
     {
       "precio": 49900.0,
@@ -54017,7 +54059,7 @@
       "zona": "Otro",
       "date_created": "2025-10-02T15:19:49.518Z",
       "date_updated": "2026-02-04T15:03:37.332Z",
-      "calle_limpia": "vera mujica",
+      "calle_limpia": "vera mujica santa fe",
       "numero_limpio": 300
     },
     {
@@ -54611,7 +54653,7 @@
       "zona": "Otro",
       "date_created": "2025-10-23T12:50:40.100Z",
       "date_updated": "2026-01-23T17:36:48.161Z",
-      "calle_limpia": "brown",
+      "calle_limpia": "brown santa fe",
       "numero_limpio": 2700
     },
     {
@@ -54630,7 +54672,9 @@
       "lon": -60.641273,
       "zona": "Otro",
       "date_created": "2026-02-09T14:45:55.328Z",
-      "date_updated": "2026-04-08T12:26:00.296Z"
+      "date_updated": "2026-04-08T12:26:00.296Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 1300
     },
     {
       "precio": 42000.0,
@@ -54982,11 +55026,13 @@
       "valor_m2": 1976.74,
       "fuente": "propia_api_browser",
       "id_propia": 375148,
-      "lat": -32.94134,
-      "lon": -60.658,
+      "lat": -32.941473,
+      "lon": -60.657174999999995,
       "zona": "Otro",
       "date_created": "2025-05-20T14:31:48.597Z",
-      "date_updated": "2026-03-09T22:38:53.396Z"
+      "date_updated": "2026-03-09T22:38:53.396Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2500
     },
     {
       "precio": 43000.0,
@@ -55236,11 +55282,13 @@
       "valor_m2": 2035.4,
       "fuente": "propia_api_browser",
       "id_propia": 426240,
-      "lat": -32.94117,
-      "lon": -60.658806,
+      "lat": -32.940582000000006,
+      "lon": -60.661384777777776,
       "zona": "Otro",
       "date_created": "2025-12-18T17:25:30.638Z",
-      "date_updated": "2026-04-23T16:18:53.550Z"
+      "date_updated": "2026-04-23T16:18:53.550Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2600
     },
     {
       "precio": 70000.0,
@@ -55835,7 +55883,7 @@
       "zona": "Otro",
       "date_created": "2025-11-05T21:10:14.564Z",
       "date_updated": "2026-03-17T12:57:05.143Z",
-      "calle_limpia": "santiago",
+      "calle_limpia": "santiago santa fe",
       "numero_limpio": 1423
     },
     {
@@ -56187,7 +56235,7 @@
       "zona": "Otro",
       "date_created": "2026-04-23T17:56:54.527Z",
       "date_updated": "2026-04-24T05:06:07.728Z",
-      "calle_limpia": "juan",
+      "calle_limpia": "juan santa fe",
       "numero_limpio": 500
     },
     {
@@ -56265,7 +56313,7 @@
       "zona": "Otro",
       "date_created": "2025-10-02T14:57:29.765Z",
       "date_updated": "2026-04-16T14:21:59.006Z",
-      "calle_limpia": "mitre",
+      "calle_limpia": "mitre santa fe",
       "numero_limpio": 1430
     },
     {
@@ -56285,7 +56333,7 @@
       "zona": "Otro",
       "date_created": "2026-03-19T13:54:46.729Z",
       "date_updated": "2026-04-10T13:49:58.036Z",
-      "calle_limpia": "primero de mayo",
+      "calle_limpia": "primero de mayo santa fe",
       "numero_limpio": 900
     },
     {
@@ -56305,7 +56353,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T13:55:51.005Z",
       "date_updated": "2026-04-13T13:54:17.582Z",
-      "calle_limpia": "cordoba",
+      "calle_limpia": "cordoba santa fe",
       "numero_limpio": 700
     },
     {
@@ -56405,7 +56453,7 @@
       "zona": "Otro",
       "date_created": "2025-11-28T12:33:22.651Z",
       "date_updated": "2026-04-24T02:43:45.121Z",
-      "calle_limpia": "juan",
+      "calle_limpia": "juan santa fe",
       "numero_limpio": 2900
     },
     {
@@ -56561,7 +56609,7 @@
       "zona": "Otro",
       "date_created": "2025-10-22T14:09:25.551Z",
       "date_updated": "2026-04-25T17:53:33.050Z",
-      "calle_limpia": "cerrito",
+      "calle_limpia": "cerrito santa fe",
       "numero_limpio": 1500
     },
     {
@@ -56721,7 +56769,7 @@
       "zona": "Otro",
       "date_created": "2025-10-23T13:38:11.823Z",
       "date_updated": "2026-01-30T18:07:08.522Z",
-      "calle_limpia": "entre rios",
+      "calle_limpia": "entre rios santa fe",
       "numero_limpio": 430
     },
     {
@@ -56839,7 +56887,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T14:15:35.891Z",
       "date_updated": "2026-04-21T15:50:33.089Z",
-      "calle_limpia": "urquiza",
+      "calle_limpia": "urquiza santa fe",
       "numero_limpio": 3396
     },
     {
@@ -56939,7 +56987,7 @@
       "zona": "Otro",
       "date_created": "2026-01-28T16:59:44.343Z",
       "date_updated": "2026-04-24T16:11:36.775Z",
-      "calle_limpia": "corrientes",
+      "calle_limpia": "corrientes santa fe",
       "numero_limpio": 1500
     },
     {
@@ -57632,11 +57680,13 @@
       "valor_m2": 1575.22,
       "fuente": "propia_api_browser",
       "id_propia": 386002,
-      "lat": -32.946632,
-      "lon": -60.633335,
+      "lat": -32.94596812499999,
+      "lon": -60.634598,
       "zona": "Otro",
       "date_created": "2025-06-30T19:28:58.041Z",
-      "date_updated": "2026-04-14T23:23:52.042Z"
+      "date_updated": "2026-04-14T23:23:52.042Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 778
     },
     {
       "precio": 75000.0,
@@ -57715,7 +57765,7 @@
       "zona": "Otro",
       "date_created": "2026-04-02T20:41:00.681Z",
       "date_updated": "2026-04-20T04:04:52.999Z",
-      "calle_limpia": "guemes",
+      "calle_limpia": "guemes santa fe",
       "numero_limpio": 2200
     },
     {
@@ -57848,11 +57898,13 @@
       "valor_m2": 1250.0,
       "fuente": "propia_api_browser",
       "id_propia": 311636,
-      "lat": -32.942642,
-      "lon": -60.660725,
+      "lat": -32.94074022222222,
+      "lon": -60.660291,
       "zona": "Otro",
       "date_created": "2024-09-13T23:59:17.000Z",
-      "date_updated": "2026-04-25T18:04:20.986Z"
+      "date_updated": "2026-04-25T18:04:20.986Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2741
     },
     {
       "precio": 86000.0,
@@ -58341,7 +58393,7 @@
       "zona": "Otro",
       "date_created": "2025-10-06T18:44:55.787Z",
       "date_updated": "2026-01-20T17:57:27.500Z",
-      "calle_limpia": "dorrego",
+      "calle_limpia": "dorrego santa fe",
       "numero_limpio": 1400
     },
     {
@@ -58639,7 +58691,7 @@
       "zona": "Otro",
       "date_created": "2025-10-03T16:11:24.694Z",
       "date_updated": "2026-04-14T12:10:36.408Z",
-      "calle_limpia": "callao",
+      "calle_limpia": "callao santa fe",
       "numero_limpio": 400
     },
     {
@@ -59017,7 +59069,7 @@
       "zona": "Otro",
       "date_created": "2025-10-14T18:43:32.755Z",
       "date_updated": "2026-03-25T18:14:55.302Z",
-      "calle_limpia": "rioja",
+      "calle_limpia": "rioja santa fe",
       "numero_limpio": 500
     },
     {
@@ -59252,11 +59304,13 @@
       "valor_m2": 789.47,
       "fuente": "propia_api_browser",
       "id_propia": 406002,
-      "lat": -32.94272,
-      "lon": -60.65217,
+      "lat": -32.9421174375,
+      "lon": -60.6520045625,
       "zona": "Otro",
       "date_created": "2025-09-23T20:42:52.267Z",
-      "date_updated": "2026-04-18T11:52:01.301Z"
+      "date_updated": "2026-04-18T11:52:01.301Z",
+      "calle_limpia": "santa fe santa fe",
+      "numero_limpio": 2100
     },
     {
       "precio": 167000.0,
@@ -59683,7 +59737,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T18:33:52.603Z",
       "date_updated": "2026-01-29T13:03:51.039Z",
-      "calle_limpia": "catamarca",
+      "calle_limpia": "catamarca santa fe",
       "numero_limpio": 2036
     },
     {
@@ -60295,7 +60349,7 @@
       "zona": "Otro",
       "date_created": "2025-10-23T13:48:32.306Z",
       "date_updated": "2026-01-20T17:54:40.790Z",
-      "calle_limpia": "pueyrredon",
+      "calle_limpia": "pueyrredon santa fe",
       "numero_limpio": 1101
     },
     {
@@ -60473,7 +60527,7 @@
       "zona": "Otro",
       "date_created": "2026-04-10T19:16:09.819Z",
       "date_updated": "2026-04-22T21:54:16.976Z",
-      "calle_limpia": "zeballos",
+      "calle_limpia": "zeballos santa fe",
       "numero_limpio": 566
     },
     {
@@ -60593,7 +60647,7 @@
       "zona": "Otro",
       "date_created": "2025-11-05T21:15:55.827Z",
       "date_updated": "2026-04-14T12:02:25.807Z",
-      "calle_limpia": "alvear",
+      "calle_limpia": "alvear santa fe",
       "numero_limpio": 341
     },
     {
@@ -61148,7 +61202,9 @@
       "lon": -60.66237,
       "zona": "Otro",
       "date_created": "2025-12-16T14:29:45.129Z",
-      "date_updated": "2026-04-01T14:07:26.394Z"
+      "date_updated": "2026-04-01T14:07:26.394Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2899
     },
     {
       "precio": 69870.0,
@@ -61483,7 +61539,7 @@
       "zona": "Otro",
       "date_created": "2021-10-24T00:27:59.000Z",
       "date_updated": "2026-04-24T14:28:48.243Z",
-      "calle_limpia": "alippi",
+      "calle_limpia": "alippi de santa fe",
       "numero_limpio": 9000
     },
     {
@@ -61578,11 +61634,13 @@
       "valor_m2": 1145.83,
       "fuente": "propia_api_browser",
       "id_propia": 286890,
-      "lat": -32.93939,
-      "lon": -60.6689,
+      "lat": -32.9395696,
+      "lon": -60.667725,
       "zona": "Otro",
       "date_created": "2024-06-25T18:29:25.000Z",
-      "date_updated": "2026-03-26T12:25:32.218Z"
+      "date_updated": "2026-03-26T12:25:32.218Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 3300
     },
     {
       "precio": 222943.0,
@@ -62349,7 +62407,7 @@
       "zona": "Otro",
       "date_created": "2025-06-02T19:31:33.553Z",
       "date_updated": "2026-04-25T19:55:33.082Z",
-      "calle_limpia": "con en",
+      "calle_limpia": "con en santa fe",
       "numero_limpio": 3100
     },
     {
@@ -62805,7 +62863,7 @@
       "zona": "Otro",
       "date_created": "2025-12-16T16:32:17.965Z",
       "date_updated": "2026-04-21T15:36:47.613Z",
-      "calle_limpia": "corrientes",
+      "calle_limpia": "corrientes santa fe",
       "numero_limpio": 2778
     },
     {
@@ -63143,7 +63201,7 @@
       "zona": "Otro",
       "date_created": "2025-10-23T13:30:18.651Z",
       "date_updated": "2026-01-20T17:51:57.677Z",
-      "calle_limpia": "montevideo",
+      "calle_limpia": "montevideo santa fe",
       "numero_limpio": 900
     },
     {
@@ -63183,7 +63241,7 @@
       "zona": "Otro",
       "date_created": "2025-10-28T18:07:35.075Z",
       "date_updated": "2026-04-25T15:47:33.190Z",
-      "calle_limpia": "corrientes",
+      "calle_limpia": "corrientes santa fe",
       "numero_limpio": 483
     },
     {
@@ -63535,7 +63593,7 @@
       "zona": "Otro",
       "date_created": "2026-03-26T23:38:00.660Z",
       "date_updated": "2026-04-22T21:15:49.224Z",
-      "calle_limpia": "salta",
+      "calle_limpia": "salta santa fe",
       "numero_limpio": 1300
     },
     {
@@ -63555,7 +63613,7 @@
       "zona": "Otro",
       "date_created": "2026-03-05T17:19:52.694Z",
       "date_updated": "2026-04-15T17:00:19.499Z",
-      "calle_limpia": "zeballos",
+      "calle_limpia": "zeballos santa fe",
       "numero_limpio": 300
     },
     {
@@ -63595,7 +63653,7 @@
       "zona": "Otro",
       "date_created": "2026-04-16T15:38:32.977Z",
       "date_updated": "2026-04-23T19:07:36.617Z",
-      "calle_limpia": "zeballos",
+      "calle_limpia": "zeballos santa fe",
       "numero_limpio": 2500
     },
     {
@@ -63887,7 +63945,7 @@
       "zona": "Otro",
       "date_created": "2026-04-20T14:53:26.940Z",
       "date_updated": "2026-04-25T01:07:02.050Z",
-      "calle_limpia": "rodriguez",
+      "calle_limpia": "rodriguez santa fe",
       "numero_limpio": 700
     },
     {
@@ -64083,7 +64141,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T18:36:17.090Z",
       "date_updated": "2026-03-10T13:58:44.656Z",
-      "calle_limpia": "alvear",
+      "calle_limpia": "alvear santa fe",
       "numero_limpio": 1420
     },
     {
@@ -64203,7 +64261,7 @@
       "zona": "Otro",
       "date_created": "2026-02-19T19:32:25.246Z",
       "date_updated": "2026-02-20T05:50:17.473Z",
-      "calle_limpia": "ituzaingo",
+      "calle_limpia": "ituzaingo santa fe",
       "numero_limpio": 1852
     },
     {
@@ -64739,7 +64797,7 @@
       "zona": "Otro",
       "date_created": "2023-05-18T16:48:00.000Z",
       "date_updated": "2026-03-10T15:44:19.989Z",
-      "calle_limpia": "paraguay",
+      "calle_limpia": "paraguay de santa fe",
       "numero_limpio": 2170
     },
     {
@@ -65154,7 +65212,9 @@
       "lon": -60.639893,
       "zona": "Otro",
       "date_created": "2026-01-16T17:31:53.401Z",
-      "date_updated": "2026-04-21T21:58:47.943Z"
+      "date_updated": "2026-04-21T21:58:47.943Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 1200
     },
     {
       "precio": 370000.0,
@@ -65923,7 +65983,7 @@
       "zona": "Otro",
       "date_created": "2025-12-16T16:18:02.168Z",
       "date_updated": "2026-04-25T09:04:59.043Z",
-      "calle_limpia": "mendoza",
+      "calle_limpia": "mendoza santa fe",
       "numero_limpio": 850
     },
     {
@@ -68481,7 +68541,7 @@
       "zona": "Otro",
       "date_created": "2024-09-14T01:28:58.000Z",
       "date_updated": "2026-04-23T16:59:41.334Z",
-      "calle_limpia": "bordabehere",
+      "calle_limpia": "santa fe bordabehere",
       "numero_limpio": 3723
     },
     {
@@ -69075,7 +69135,7 @@
       "zona": "Otro",
       "date_created": "2026-04-11T21:28:10.029Z",
       "date_updated": "2026-04-14T15:18:16.469Z",
-      "calle_limpia": "juan s2000 bdl",
+      "calle_limpia": "juan s2000 bdl santa fe",
       "numero_limpio": 836
     },
     {
@@ -69743,7 +69803,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T18:31:37.742Z",
       "date_updated": "2026-02-23T12:00:20.677Z",
-      "calle_limpia": "italia",
+      "calle_limpia": "italia santa fe",
       "numero_limpio": 264
     },
     {
@@ -69861,7 +69921,7 @@
       "zona": "Otro",
       "date_created": "2025-10-15T19:19:00.409Z",
       "date_updated": "2026-04-23T00:30:54.984Z",
-      "calle_limpia": "cochabamba",
+      "calle_limpia": "cochabamba santa fe",
       "numero_limpio": 1700
     },
     {
@@ -69899,7 +69959,7 @@
       "zona": "Otro",
       "date_created": "2025-09-30T17:42:48.584Z",
       "date_updated": "2026-01-20T17:56:21.362Z",
-      "calle_limpia": "de julio",
+      "calle_limpia": "de julio santa fe",
       "numero_limpio": 9
     },
     {
@@ -70527,7 +70587,7 @@
       "zona": "Otro",
       "date_created": "2025-10-02T15:08:54.685Z",
       "date_updated": "2026-03-25T18:10:32.767Z",
-      "calle_limpia": "de febrero",
+      "calle_limpia": "de febrero santa fe",
       "numero_limpio": 3
     },
     {
@@ -70943,7 +71003,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T18:33:35.065Z",
       "date_updated": "2026-01-29T12:52:29.990Z",
-      "calle_limpia": "moreno",
+      "calle_limpia": "moreno santa fe",
       "numero_limpio": 281
     },
     {
@@ -71082,7 +71142,9 @@
       "lon": -60.657642,
       "zona": "Otro",
       "date_created": "2025-07-11T17:46:20.322Z",
-      "date_updated": "2026-03-25T04:14:50.232Z"
+      "date_updated": "2026-03-25T04:14:50.232Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2500
     },
     {
       "precio": 30000.0,
@@ -71431,7 +71493,7 @@
       "zona": "Otro",
       "date_created": "2025-02-10T17:39:06.000Z",
       "date_updated": "2025-11-26T18:21:53.291Z",
-      "calle_limpia": "thedy",
+      "calle_limpia": "thedy de santa fe",
       "numero_limpio": 343
     },
     {
@@ -71631,7 +71693,7 @@
       "zona": "Otro",
       "date_created": "2025-10-02T14:32:43.817Z",
       "date_updated": "2026-04-14T14:35:38.328Z",
-      "calle_limpia": "balcarce",
+      "calle_limpia": "balcarce santa fe",
       "numero_limpio": 1300
     },
     {
@@ -71651,7 +71713,7 @@
       "zona": "Otro",
       "date_created": "2025-10-08T18:59:21.856Z",
       "date_updated": "2026-04-19T17:11:01.446Z",
-      "calle_limpia": "de febrero",
+      "calle_limpia": "de febrero santa fe",
       "numero_limpio": 3
     },
     {
@@ -71949,7 +72011,7 @@
       "zona": "Otro",
       "date_created": "2026-03-31T11:46:19.770Z",
       "date_updated": "2026-04-21T15:50:39.769Z",
-      "calle_limpia": "moreno",
+      "calle_limpia": "moreno santa fe",
       "numero_limpio": 300
     },
     {
@@ -71989,7 +72051,7 @@
       "zona": "Otro",
       "date_created": "2025-09-23T20:43:46.177Z",
       "date_updated": "2026-03-20T13:47:20.005Z",
-      "calle_limpia": "newbery",
+      "calle_limpia": "newbery santa fe",
       "numero_limpio": 8850
     },
     {
@@ -72605,7 +72667,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T14:59:38.599Z",
       "date_updated": "2026-04-23T12:47:41.630Z",
-      "calle_limpia": "rioja",
+      "calle_limpia": "rioja santa fe",
       "numero_limpio": 3759
     },
     {
@@ -72703,7 +72765,7 @@
       "zona": "Otro",
       "date_created": "2026-03-31T11:53:33.190Z",
       "date_updated": "2026-04-14T19:14:50.635Z",
-      "calle_limpia": "moreno",
+      "calle_limpia": "moreno santa fe",
       "numero_limpio": 300
     },
     {
@@ -73723,7 +73785,7 @@
       "zona": "Otro",
       "date_created": "2026-01-23T15:14:53.424Z",
       "date_updated": "2026-04-03T20:08:34.745Z",
-      "calle_limpia": "salta",
+      "calle_limpia": "salta santa fe",
       "numero_limpio": 1800
     },
     {
@@ -74217,7 +74279,7 @@
       "zona": "Otro",
       "date_created": "2025-10-01T12:24:34.476Z",
       "date_updated": "2026-03-12T20:53:18.783Z",
-      "calle_limpia": "paraguay",
+      "calle_limpia": "paraguay santa fe",
       "numero_limpio": 1861
     },
     {
@@ -74489,7 +74551,7 @@
       "zona": "Otro",
       "date_created": "2025-09-30T17:42:29.155Z",
       "date_updated": "2026-04-22T21:47:18.914Z",
-      "calle_limpia": "alvear",
+      "calle_limpia": "alvear santa fe",
       "numero_limpio": 1400
     },
     {
@@ -74509,7 +74571,7 @@
       "zona": "Otro",
       "date_created": "2026-03-18T22:35:41.208Z",
       "date_updated": "2026-04-23T18:01:46.680Z",
-      "calle_limpia": "cajaraville",
+      "calle_limpia": "cajaraville santa fe",
       "numero_limpio": 129
     },
     {
@@ -75097,7 +75159,7 @@
       "zona": "Otro",
       "date_created": "2025-10-02T12:10:30.676Z",
       "date_updated": "2026-03-31T23:57:13.225Z",
-      "calle_limpia": "corrientes",
+      "calle_limpia": "corrientes santa fe",
       "numero_limpio": 2355
     },
     {
@@ -75116,7 +75178,9 @@
       "lon": -60.659145,
       "zona": "Otro",
       "date_created": "2023-09-09T16:14:44.000Z",
-      "date_updated": "2025-10-30T17:29:46.851Z"
+      "date_updated": "2025-10-30T17:29:46.851Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2651
     },
     {
       "precio": 95000.0,
@@ -75645,7 +75709,7 @@
       "zona": "Otro",
       "date_created": "2026-01-05T17:54:47.834Z",
       "date_updated": "2026-03-29T14:41:30.082Z",
-      "calle_limpia": "pueyrredon",
+      "calle_limpia": "pueyrredon santa fe",
       "numero_limpio": 1600
     },
     {
@@ -75843,7 +75907,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T18:46:18.674Z",
       "date_updated": "2026-01-23T17:29:11.398Z",
-      "calle_limpia": "laprida",
+      "calle_limpia": "laprida santa fe",
       "numero_limpio": 675
     },
     {
@@ -75883,7 +75947,7 @@
       "zona": "Otro",
       "date_created": "2025-10-01T12:08:28.247Z",
       "date_updated": "2026-01-22T13:51:04.566Z",
-      "calle_limpia": "mendoza",
+      "calle_limpia": "mendoza santa fe",
       "numero_limpio": 850
     },
     {
@@ -76121,7 +76185,7 @@
       "zona": "Otro",
       "date_created": "2025-11-11T18:56:33.149Z",
       "date_updated": "2026-04-23T04:38:17.156Z",
-      "calle_limpia": "entre rios",
+      "calle_limpia": "entre rios santa fe",
       "numero_limpio": 300
     },
     {
@@ -76321,7 +76385,7 @@
       "zona": "Otro",
       "date_created": "2025-10-21T19:16:14.862Z",
       "date_updated": "2026-01-22T14:23:58.853Z",
-      "calle_limpia": "wilde",
+      "calle_limpia": "wilde santa fe",
       "numero_limpio": 455
     },
     {
@@ -76684,11 +76748,13 @@
       "valor_m2": 2280.0,
       "fuente": "propia_api_browser",
       "id_propia": 287614,
-      "lat": -32.958702,
-      "lon": -60.693043,
+      "lat": -32.942028125,
+      "lon": -60.65597424999999,
       "zona": "Otro",
       "date_created": "2024-06-25T23:24:22.000Z",
-      "date_updated": "2026-04-25T23:03:51.537Z"
+      "date_updated": "2026-04-25T23:03:51.537Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2400
     },
     {
       "precio": 130000.0,
@@ -76707,7 +76773,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T18:31:30.323Z",
       "date_updated": "2026-04-08T21:51:25.519Z",
-      "calle_limpia": "chacabuco",
+      "calle_limpia": "chacabuco santa fe",
       "numero_limpio": 1502
     },
     {
@@ -76767,7 +76833,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T15:08:27.193Z",
       "date_updated": "2026-02-04T16:02:43.797Z",
-      "calle_limpia": "de julio",
+      "calle_limpia": "de julio santa fe",
       "numero_limpio": 9
     },
     {
@@ -76887,7 +76953,7 @@
       "zona": "Otro",
       "date_created": "2025-10-25T16:19:12.122Z",
       "date_updated": "2026-04-24T20:30:25.030Z",
-      "calle_limpia": "mendoza",
+      "calle_limpia": "mendoza santa fe",
       "numero_limpio": 668
     },
     {
@@ -77265,7 +77331,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T14:20:52.090Z",
       "date_updated": "2026-02-04T19:04:59.918Z",
-      "calle_limpia": "crespo",
+      "calle_limpia": "crespo santa fe",
       "numero_limpio": 300
     },
     {
@@ -77405,7 +77471,7 @@
       "zona": "Otro",
       "date_created": "2025-10-03T16:14:56.009Z",
       "date_updated": "2026-04-20T14:44:14.356Z",
-      "calle_limpia": "rioja",
+      "calle_limpia": "rioja santa fe",
       "numero_limpio": 3911
     },
     {
@@ -77913,7 +77979,7 @@
       "zona": "Pellegrini",
       "date_created": "2025-10-01T11:43:42.470Z",
       "date_updated": "2026-01-22T13:51:55.886Z",
-      "calle_limpia": "pellegrini",
+      "calle_limpia": "pellegrini santa fe",
       "numero_limpio": 932
     },
     {
@@ -77973,7 +78039,7 @@
       "zona": "Otro",
       "date_created": "2025-09-23T20:40:55.845Z",
       "date_updated": "2026-04-13T19:59:03.144Z",
-      "calle_limpia": "dorrego",
+      "calle_limpia": "dorrego santa fe",
       "numero_limpio": 71
     },
     {
@@ -78997,7 +79063,7 @@
       "zona": "Otro",
       "date_created": "2026-03-05T18:27:49.962Z",
       "date_updated": "2026-04-24T23:06:41.927Z",
-      "calle_limpia": "brown",
+      "calle_limpia": "brown santa fe",
       "numero_limpio": 2100
     },
     {
@@ -80014,11 +80080,13 @@
       "valor_m2": 2100.0,
       "fuente": "propia_api_browser",
       "id_propia": 369603,
-      "lat": -32.94245,
-      "lon": -60.659874,
+      "lat": -32.941473,
+      "lon": -60.657174999999995,
       "zona": "Otro",
       "date_created": "2025-04-28T20:30:13.947Z",
-      "date_updated": "2026-04-21T14:38:44.881Z"
+      "date_updated": "2026-04-21T14:38:44.881Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2500
     },
     {
       "precio": 63000.0,
@@ -80215,7 +80283,7 @@
       "zona": "Martin",
       "date_created": "2025-09-25T18:45:27.762Z",
       "date_updated": "2026-04-25T19:46:35.513Z",
-      "calle_limpia": "martin",
+      "calle_limpia": "martin santa fe",
       "numero_limpio": 700
     },
     {
@@ -80767,7 +80835,7 @@
       "zona": "Otro",
       "date_created": "2025-10-03T16:16:06.456Z",
       "date_updated": "2026-02-20T18:43:06.557Z",
-      "calle_limpia": "sarmiento",
+      "calle_limpia": "sarmiento santa fe",
       "numero_limpio": 1417
     },
     {
@@ -81749,7 +81817,7 @@
       "zona": "Otro",
       "date_created": "2025-11-20T18:48:51.073Z",
       "date_updated": "2026-04-16T01:48:59.426Z",
-      "calle_limpia": "brown",
+      "calle_limpia": "brown santa fe",
       "numero_limpio": 2000
     },
     {
@@ -81849,7 +81917,7 @@
       "zona": "Otro",
       "date_created": "2025-10-01T11:23:10.904Z",
       "date_updated": "2026-03-17T01:13:28.204Z",
-      "calle_limpia": "balcarce",
+      "calle_limpia": "balcarce santa fe",
       "numero_limpio": 1100
     },
     {
@@ -82289,7 +82357,7 @@
       "zona": "Otro",
       "date_created": "2026-01-12T12:39:33.949Z",
       "date_updated": "2026-04-14T11:25:52.667Z",
-      "calle_limpia": "alvear",
+      "calle_limpia": "alvear santa fe",
       "numero_limpio": 300
     },
     {
@@ -82525,7 +82593,7 @@
       "zona": "Otro",
       "date_created": "2025-11-27T15:15:45.944Z",
       "date_updated": "2026-04-14T09:33:40.043Z",
-      "calle_limpia": "pasaje villalobos",
+      "calle_limpia": "pasaje villalobos santa fe",
       "numero_limpio": 1457
     },
     {
@@ -82785,7 +82853,7 @@
       "zona": "Otro",
       "date_created": "2026-01-21T03:00:10.949Z",
       "date_updated": "2026-02-08T05:18:18.456Z",
-      "calle_limpia": "riccheri s2002",
+      "calle_limpia": "santa fe riccheri s2002",
       "numero_limpio": 300
     },
     {
@@ -82983,7 +83051,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T14:27:55.433Z",
       "date_updated": "2026-04-21T19:24:29.011Z",
-      "calle_limpia": "moreno",
+      "calle_limpia": "moreno santa fe",
       "numero_limpio": 1151
     },
     {
@@ -83201,7 +83269,7 @@
       "zona": "Otro",
       "date_created": "2024-10-25T06:20:05.000Z",
       "date_updated": "2026-04-11T00:07:11.757Z",
-      "calle_limpia": "cochabamba ro",
+      "calle_limpia": "santa fe cochabamba ro",
       "numero_limpio": 45
     },
     {
@@ -83473,7 +83541,7 @@
       "zona": "Otro",
       "date_created": "2026-03-06T13:24:23.345Z",
       "date_updated": "2026-04-23T12:49:12.162Z",
-      "calle_limpia": "salta",
+      "calle_limpia": "salta santa fe",
       "numero_limpio": 2253
     },
     {
@@ -83747,7 +83815,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T14:28:32.705Z",
       "date_updated": "2026-03-29T21:29:12.268Z",
-      "calle_limpia": "francia",
+      "calle_limpia": "francia santa fe",
       "numero_limpio": 800
     },
     {
@@ -83807,7 +83875,7 @@
       "zona": "Otro",
       "date_created": "2026-03-20T21:05:51.261Z",
       "date_updated": "2026-03-31T00:41:24.232Z",
-      "calle_limpia": "urquiza",
+      "calle_limpia": "urquiza santa fe",
       "numero_limpio": 1344
     },
     {
@@ -83947,7 +84015,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T14:35:49.782Z",
       "date_updated": "2026-03-11T00:20:54.574Z",
-      "calle_limpia": "mitre",
+      "calle_limpia": "mitre santa fe",
       "numero_limpio": 200
     },
     {
@@ -84082,7 +84150,9 @@
       "lon": -60.67687,
       "zona": "Otro",
       "date_created": "2023-10-11T16:16:55.000Z",
-      "date_updated": "2026-03-16T23:28:08.323Z"
+      "date_updated": "2026-03-16T23:28:08.323Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 3900
     },
     {
       "precio": 106566.0,
@@ -84119,7 +84189,7 @@
       "zona": "Otro",
       "date_created": "2026-04-07T18:26:04.378Z",
       "date_updated": "2026-04-21T16:38:06.329Z",
-      "calle_limpia": "maipu",
+      "calle_limpia": "maipu santa fe",
       "numero_limpio": 1000
     },
     {
@@ -84413,7 +84483,7 @@
       "zona": "Otro",
       "date_created": "2026-04-21T18:33:22.324Z",
       "date_updated": "2026-04-25T17:28:38.261Z",
-      "calle_limpia": "cochabamba",
+      "calle_limpia": "cochabamba santa fe",
       "numero_limpio": 500
     },
     {
@@ -84493,7 +84563,7 @@
       "zona": "Otro",
       "date_created": "2025-10-27T11:39:08.507Z",
       "date_updated": "2026-03-16T19:26:33.196Z",
-      "calle_limpia": "avellaneda",
+      "calle_limpia": "avellaneda santa fe",
       "numero_limpio": 685
     },
     {
@@ -84593,7 +84663,7 @@
       "zona": "Otro",
       "date_created": "2025-10-23T13:33:23.786Z",
       "date_updated": "2026-01-20T17:50:34.666Z",
-      "calle_limpia": "esmeralda",
+      "calle_limpia": "esmeralda santa fe",
       "numero_limpio": 2300
     },
     {
@@ -85159,7 +85229,7 @@
       "zona": "Otro",
       "date_created": "2025-10-23T13:28:50.528Z",
       "date_updated": "2026-02-16T15:16:00.451Z",
-      "calle_limpia": "montevideo",
+      "calle_limpia": "montevideo santa fe",
       "numero_limpio": 900
     },
     {
@@ -85554,7 +85624,9 @@
       "lon": -60.64695,
       "zona": "Otro",
       "date_created": "2021-04-05T18:00:54.000Z",
-      "date_updated": "2026-04-26T00:58:58.834Z"
+      "date_updated": "2026-04-26T00:58:58.834Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 1758
     },
     {
       "precio": 49900.0,
@@ -86103,7 +86175,7 @@
       "zona": "Otro",
       "date_created": "2025-09-30T16:33:26.875Z",
       "date_updated": "2026-02-05T23:17:57.196Z",
-      "calle_limpia": "balcarce",
+      "calle_limpia": "balcarce santa fe",
       "numero_limpio": 1100
     },
     {
@@ -86363,7 +86435,7 @@
       "zona": "Otro",
       "date_created": "2026-03-06T14:15:54.692Z",
       "date_updated": "2026-04-19T23:58:11.274Z",
-      "calle_limpia": "lorenzo",
+      "calle_limpia": "lorenzo santa fe",
       "numero_limpio": 1558
     },
     {
@@ -86383,7 +86455,7 @@
       "zona": "Otro",
       "date_created": "2025-10-03T16:10:48.910Z",
       "date_updated": "2026-04-14T12:02:00.786Z",
-      "calle_limpia": "alvear",
+      "calle_limpia": "alvear santa fe",
       "numero_limpio": 300
     },
     {
@@ -86403,7 +86475,7 @@
       "zona": "Otro",
       "date_created": "2025-10-27T11:37:52.350Z",
       "date_updated": "2026-02-18T16:21:38.195Z",
-      "calle_limpia": "ascasubi",
+      "calle_limpia": "ascasubi santa fe",
       "numero_limpio": 743
     },
     {
@@ -86523,7 +86595,7 @@
       "zona": "Otro",
       "date_created": "2025-12-03T16:18:02.344Z",
       "date_updated": "2026-01-23T19:52:44.683Z",
-      "calle_limpia": "salta",
+      "calle_limpia": "salta santa fe",
       "numero_limpio": 3500
     },
     {
@@ -86603,7 +86675,7 @@
       "zona": "Otro",
       "date_created": "2026-02-04T18:41:41.349Z",
       "date_updated": "2026-04-20T16:38:48.440Z",
-      "calle_limpia": "de febrero",
+      "calle_limpia": "de febrero santa fe",
       "numero_limpio": 3
     },
     {
@@ -86623,7 +86695,7 @@
       "zona": "Otro",
       "date_created": "2026-03-18T15:35:11.354Z",
       "date_updated": "2026-04-23T12:37:24.925Z",
-      "calle_limpia": "rioja",
+      "calle_limpia": "rioja santa fe",
       "numero_limpio": 1100
     },
     {
@@ -86961,7 +87033,7 @@
       "zona": "Otro",
       "date_created": "2026-04-09T01:06:16.622Z",
       "date_updated": "2026-04-20T02:47:24.657Z",
-      "calle_limpia": "rioja",
+      "calle_limpia": "rioja santa fe",
       "numero_limpio": 3200
     },
     {
@@ -87597,7 +87669,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T18:50:15.058Z",
       "date_updated": "2026-03-28T20:03:05.874Z",
-      "calle_limpia": "corrientes",
+      "calle_limpia": "corrientes santa fe",
       "numero_limpio": 2234
     },
     {
@@ -88049,7 +88121,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T18:32:50.274Z",
       "date_updated": "2026-02-04T19:13:37.404Z",
-      "calle_limpia": "paraguay",
+      "calle_limpia": "paraguay santa fe",
       "numero_limpio": 1639
     },
     {
@@ -88425,7 +88497,7 @@
       "zona": "Otro",
       "date_created": "2026-04-23T22:26:09.080Z",
       "date_updated": "2026-04-23T22:56:18.726Z",
-      "calle_limpia": "mariano moreno s2000 dld",
+      "calle_limpia": "mariano moreno s2000 dld santa fe",
       "numero_limpio": 1474
     },
     {
@@ -88585,7 +88657,7 @@
       "zona": "Pellegrini",
       "date_created": "2025-10-01T11:43:53.332Z",
       "date_updated": "2026-03-12T18:52:49.316Z",
-      "calle_limpia": "pellegrini",
+      "calle_limpia": "pellegrini santa fe",
       "numero_limpio": 932
     },
     {
@@ -88703,7 +88775,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T16:44:00.328Z",
       "date_updated": "2026-02-24T16:31:51.454Z",
-      "calle_limpia": "mitre",
+      "calle_limpia": "mitre santa fe",
       "numero_limpio": 1500
     },
     {
@@ -89175,7 +89247,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T13:59:11.867Z",
       "date_updated": "2026-03-07T17:43:02.240Z",
-      "calle_limpia": "salta",
+      "calle_limpia": "salta santa fe",
       "numero_limpio": 3500
     },
     {
@@ -89373,7 +89445,7 @@
       "zona": "Otro",
       "date_created": "2026-03-13T15:30:09.489Z",
       "date_updated": "2026-04-23T13:58:04.079Z",
-      "calle_limpia": "laprida",
+      "calle_limpia": "laprida santa fe",
       "numero_limpio": 1100
     },
     {
@@ -89388,11 +89460,13 @@
       "valor_m2": 1960.0,
       "fuente": "propia_api_browser",
       "id_propia": 287611,
-      "lat": -32.958702,
-      "lon": -60.693043,
+      "lat": -32.942028125,
+      "lon": -60.65597424999999,
       "zona": "Otro",
       "date_created": "2024-06-25T23:23:20.000Z",
-      "date_updated": "2026-04-21T05:05:49.211Z"
+      "date_updated": "2026-04-21T05:05:49.211Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2400
     },
     {
       "precio": 25000.0,
@@ -89431,7 +89505,7 @@
       "zona": "Otro",
       "date_created": "2025-10-01T12:56:57.696Z",
       "date_updated": "2026-03-28T14:33:15.795Z",
-      "calle_limpia": "de mayo",
+      "calle_limpia": "de mayo santa fe",
       "numero_limpio": 1
     },
     {
@@ -89711,7 +89785,7 @@
       "zona": "Otro",
       "date_created": "2025-10-23T13:42:24.656Z",
       "date_updated": "2026-03-12T16:00:38.295Z",
-      "calle_limpia": "rivadavia",
+      "calle_limpia": "rivadavia santa fe",
       "numero_limpio": 2100
     },
     {
@@ -89850,7 +89924,9 @@
       "lon": -60.634396,
       "zona": "Otro",
       "date_created": "2026-03-11T16:03:16.812Z",
-      "date_updated": "2026-04-25T21:13:35.441Z"
+      "date_updated": "2026-04-25T21:13:35.441Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 853
     },
     {
       "precio": 190000.0,
@@ -89929,7 +90005,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T18:40:42.658Z",
       "date_updated": "2026-04-11T15:07:14.934Z",
-      "calle_limpia": "pje vilazar",
+      "calle_limpia": "pje vilazar santa fe",
       "numero_limpio": 3005
     },
     {
@@ -89969,7 +90045,7 @@
       "zona": "Otro",
       "date_created": "2026-04-22T18:13:04.252Z",
       "date_updated": "2026-04-23T05:04:47.846Z",
-      "calle_limpia": "brown",
+      "calle_limpia": "brown santa fe",
       "numero_limpio": 2100
     },
     {
@@ -90047,7 +90123,7 @@
       "zona": "Pellegrini",
       "date_created": "2025-09-25T15:56:02.807Z",
       "date_updated": "2026-03-29T14:59:40.343Z",
-      "calle_limpia": "pellegrini",
+      "calle_limpia": "pellegrini santa fe",
       "numero_limpio": 58
     },
     {
@@ -90127,7 +90203,7 @@
       "zona": "Otro",
       "date_created": "2025-06-06T18:45:50.900Z",
       "date_updated": "2026-04-19T13:10:41.307Z",
-      "calle_limpia": "juan s2000 bej",
+      "calle_limpia": "juan s2000 bej santa fe",
       "numero_limpio": 2050
     },
     {
@@ -90817,7 +90893,7 @@
       "zona": "Otro",
       "date_created": "2025-11-11T14:45:26.500Z",
       "date_updated": "2026-04-24T14:07:46.741Z",
-      "calle_limpia": "callao",
+      "calle_limpia": "callao santa fe",
       "numero_limpio": 600
     },
     {
@@ -90977,7 +91053,7 @@
       "zona": "Otro",
       "date_created": "2025-12-16T16:15:31.061Z",
       "date_updated": "2026-04-16T20:56:03.908Z",
-      "calle_limpia": "maipu",
+      "calle_limpia": "maipu santa fe",
       "numero_limpio": 2039
     },
     {
@@ -90997,7 +91073,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T18:42:36.849Z",
       "date_updated": "2026-04-25T09:08:58.222Z",
-      "calle_limpia": "dorrego",
+      "calle_limpia": "dorrego santa fe",
       "numero_limpio": 1400
     },
     {
@@ -91137,7 +91213,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T18:50:08.312Z",
       "date_updated": "2026-01-30T15:29:24.426Z",
-      "calle_limpia": "crespo",
+      "calle_limpia": "crespo santa fe",
       "numero_limpio": 300
     },
     {
@@ -91217,7 +91293,7 @@
       "zona": "Otro",
       "date_created": "2025-10-03T16:14:57.927Z",
       "date_updated": "2026-04-14T12:06:30.642Z",
-      "calle_limpia": "pasaje cruz",
+      "calle_limpia": "pasaje cruz santa fe",
       "numero_limpio": 397
     },
     {
@@ -91257,7 +91333,7 @@
       "zona": "Otro",
       "date_created": "2025-12-16T16:50:45.273Z",
       "date_updated": "2026-04-21T22:01:47.111Z",
-      "calle_limpia": "dorrego",
+      "calle_limpia": "dorrego santa fe",
       "numero_limpio": 3100
     },
     {
@@ -91337,7 +91413,7 @@
       "zona": "Otro",
       "date_created": "2025-12-15T13:53:32.579Z",
       "date_updated": "2026-02-09T22:53:53.007Z",
-      "calle_limpia": "homero manzi",
+      "calle_limpia": "homero manzi santa fe",
       "numero_limpio": 2592
     },
     {
@@ -91377,7 +91453,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T18:47:51.984Z",
       "date_updated": "2026-04-23T23:54:52.508Z",
-      "calle_limpia": "de mayo",
+      "calle_limpia": "de mayo santa fe",
       "numero_limpio": 1
     },
     {
@@ -91417,7 +91493,7 @@
       "zona": "Otro",
       "date_created": "2025-09-23T20:42:06.780Z",
       "date_updated": "2026-04-24T22:12:08.781Z",
-      "calle_limpia": "laprida",
+      "calle_limpia": "laprida santa fe",
       "numero_limpio": 1873
     },
     {
@@ -91577,7 +91653,7 @@
       "zona": "Otro",
       "date_created": "2025-10-23T18:09:49.946Z",
       "date_updated": "2026-04-17T19:04:01.721Z",
-      "calle_limpia": "cordoba",
+      "calle_limpia": "cordoba santa fe",
       "numero_limpio": 2900
     },
     {
@@ -92011,7 +92087,7 @@
       "zona": "Otro",
       "date_created": "2025-10-03T16:11:03.518Z",
       "date_updated": "2026-04-14T12:10:09.827Z",
-      "calle_limpia": "callao",
+      "calle_limpia": "callao santa fe",
       "numero_limpio": 400
     },
     {
@@ -92329,7 +92405,7 @@
       "zona": "Otro",
       "date_created": "2025-10-03T16:11:39.041Z",
       "date_updated": "2026-04-24T22:09:18.581Z",
-      "calle_limpia": "espana",
+      "calle_limpia": "espana santa fe",
       "numero_limpio": 616
     },
     {
@@ -92819,7 +92895,7 @@
       "zona": "Otro",
       "date_created": "2025-10-03T16:14:39.874Z",
       "date_updated": "2026-04-07T16:42:40.502Z",
-      "calle_limpia": "necochea",
+      "calle_limpia": "necochea santa fe",
       "numero_limpio": 1775
     },
     {
@@ -92919,7 +92995,7 @@
       "zona": "Otro",
       "date_created": "2025-10-02T14:31:01.530Z",
       "date_updated": "2026-03-25T18:14:19.755Z",
-      "calle_limpia": "rioja",
+      "calle_limpia": "rioja santa fe",
       "numero_limpio": 500
     },
     {
@@ -92959,7 +93035,7 @@
       "zona": "Pellegrini",
       "date_created": "2025-10-01T11:43:28.584Z",
       "date_updated": "2026-02-04T20:51:02.475Z",
-      "calle_limpia": "pellegrini",
+      "calle_limpia": "pellegrini santa fe",
       "numero_limpio": 932
     },
     {
@@ -93709,7 +93785,7 @@
       "zona": "Otro",
       "date_created": "2026-02-26T17:40:48.261Z",
       "date_updated": "2026-04-24T01:27:50.737Z",
-      "calle_limpia": "sadi carnot",
+      "calle_limpia": "sadi carnot santa fe",
       "numero_limpio": 6071
     },
     {
@@ -93827,7 +93903,7 @@
       "zona": "Otro",
       "date_created": "2025-10-20T19:56:04.152Z",
       "date_updated": "2026-04-03T17:56:25.788Z",
-      "calle_limpia": "alvarez thomas",
+      "calle_limpia": "alvarez thomas santa fe",
       "numero_limpio": 1130
     },
     {
@@ -94423,7 +94499,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T13:57:25.855Z",
       "date_updated": "2026-04-26T12:29:44.172Z",
-      "calle_limpia": "ing maquinista gallini",
+      "calle_limpia": "ing maquinista gallini santa fe",
       "numero_limpio": 1100
     },
     {
@@ -94839,7 +94915,7 @@
       "zona": "Otro",
       "date_created": "2024-06-23T03:39:58.000Z",
       "date_updated": "2026-04-25T16:40:48.323Z",
-      "calle_limpia": "jujuy",
+      "calle_limpia": "jujuy de santa fe",
       "numero_limpio": 3353
     },
     {
@@ -95495,7 +95571,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T14:39:01.807Z",
       "date_updated": "2026-04-25T04:16:15.880Z",
-      "calle_limpia": "cochabamba",
+      "calle_limpia": "cochabamba santa fe",
       "numero_limpio": 9
     },
     {
@@ -95615,7 +95691,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T16:22:41.528Z",
       "date_updated": "2026-04-07T17:59:11.409Z",
-      "calle_limpia": "dublin",
+      "calle_limpia": "dublin santa fe",
       "numero_limpio": 2800
     },
     {
@@ -95755,7 +95831,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T16:22:21.036Z",
       "date_updated": "2026-03-03T01:47:39.872Z",
-      "calle_limpia": "sanchez bustamante",
+      "calle_limpia": "sanchez bustamante santa fe",
       "numero_limpio": 1300
     },
     {
@@ -96026,11 +96102,13 @@
       "valor_m2": 410.26,
       "fuente": "propia_api_browser",
       "id_propia": 419565,
-      "lat": -32.940258,
-      "lon": -60.712654,
+      "lat": -32.93607300000001,
+      "lon": -60.71935628571429,
       "zona": "Otro",
       "date_created": "2025-11-17T20:00:14.266Z",
-      "date_updated": "2026-02-21T02:56:54.379Z"
+      "date_updated": "2026-02-21T02:56:54.379Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 7200
     },
     {
       "precio": 246750.0,
@@ -96069,7 +96147,7 @@
       "zona": "Otro",
       "date_created": "2025-10-02T12:15:37.692Z",
       "date_updated": "2026-04-24T23:18:25.222Z",
-      "calle_limpia": "pasaje ceres",
+      "calle_limpia": "pasaje ceres santa fe",
       "numero_limpio": 3100
     },
     {
@@ -96209,7 +96287,7 @@
       "zona": "Otro",
       "date_created": "2025-12-30T13:11:27.911Z",
       "date_updated": "2026-04-10T12:35:26.049Z",
-      "calle_limpia": "carrasco",
+      "calle_limpia": "carrasco santa fe",
       "numero_limpio": 3400
     },
     {
@@ -96429,7 +96507,7 @@
       "zona": "Otro",
       "date_created": "2026-03-17T01:07:35.415Z",
       "date_updated": "2026-04-23T16:27:41.681Z",
-      "calle_limpia": "gonzalez del solar",
+      "calle_limpia": "gonzalez del solar santa fe",
       "numero_limpio": 700
     },
     {
@@ -96923,7 +97001,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T16:21:17.857Z",
       "date_updated": "2026-04-25T14:34:28.237Z",
-      "calle_limpia": "espana",
+      "calle_limpia": "espana santa fe",
       "numero_limpio": 1700
     },
     {
@@ -97183,7 +97261,7 @@
       "zona": "Otro",
       "date_created": "2026-03-30T17:44:53.536Z",
       "date_updated": "2026-04-24T01:46:48.066Z",
-      "calle_limpia": "luis",
+      "calle_limpia": "luis santa fe",
       "numero_limpio": 4273
     },
     {
@@ -97203,7 +97281,7 @@
       "zona": "Otro",
       "date_created": "2026-03-02T17:57:03.153Z",
       "date_updated": "2026-04-19T18:21:00.330Z",
-      "calle_limpia": "humberto primo",
+      "calle_limpia": "humberto primo santa fe",
       "numero_limpio": 1300
     },
     {
@@ -97303,7 +97381,7 @@
       "zona": "Otro",
       "date_created": "2025-10-02T12:11:07.158Z",
       "date_updated": "2026-04-07T16:08:41.412Z",
-      "calle_limpia": "ayacucho",
+      "calle_limpia": "ayacucho santa fe",
       "numero_limpio": 2800
     },
     {
@@ -97541,7 +97619,7 @@
       "zona": "Otro",
       "date_created": "2025-10-02T12:11:30.876Z",
       "date_updated": "2026-04-20T17:09:18.215Z",
-      "calle_limpia": "antelo",
+      "calle_limpia": "antelo santa fe",
       "numero_limpio": 1000
     },
     {
@@ -97599,7 +97677,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T19:11:57.253Z",
       "date_updated": "2026-04-09T02:53:44.764Z",
-      "calle_limpia": "rodriguez",
+      "calle_limpia": "rodriguez santa fe",
       "numero_limpio": 1100
     },
     {
@@ -97797,7 +97875,7 @@
       "zona": "Otro",
       "date_created": "2026-02-19T15:49:16.272Z",
       "date_updated": "2026-04-25T01:21:10.302Z",
-      "calle_limpia": "constitucion",
+      "calle_limpia": "constitucion santa fe",
       "numero_limpio": 560
     },
     {
@@ -97932,11 +98010,13 @@
       "valor_m2": 1000.0,
       "fuente": "propia_api_browser",
       "id_propia": 41973,
-      "lat": -32.93688,
-      "lon": -60.68358,
+      "lat": -32.936333499999996,
+      "lon": -60.684392833333334,
       "zona": "Otro",
       "date_created": "2021-04-27T00:58:28.000Z",
-      "date_updated": "2026-04-22T01:21:43.327Z"
+      "date_updated": "2026-04-22T01:21:43.327Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 4500
     },
     {
       "precio": 110000.0,
@@ -98286,12 +98366,12 @@
       "valor_m2": 494.51,
       "fuente": "propia_api_browser",
       "id_propia": 406822,
-      "lat": -32.950657,
-      "lon": -60.717293,
+      "lat": -32.9356278,
+      "lon": -60.7181506,
       "zona": "Otro",
       "date_created": "2025-09-25T18:38:54.546Z",
       "date_updated": "2026-04-23T18:01:23.009Z",
-      "calle_limpia": "desmochados",
+      "calle_limpia": "desmochados santa fe",
       "numero_limpio": 7100
     },
     {
@@ -98671,7 +98751,7 @@
       "zona": "Otro",
       "date_created": "2025-11-14T17:23:55.004Z",
       "date_updated": "2026-04-07T18:49:29.014Z",
-      "calle_limpia": "superi",
+      "calle_limpia": "superi santa fe",
       "numero_limpio": 400
     },
     {
@@ -98691,7 +98771,7 @@
       "zona": "Otro",
       "date_created": "2025-10-02T15:04:06.051Z",
       "date_updated": "2026-03-10T01:49:37.274Z",
-      "calle_limpia": "sarmiento",
+      "calle_limpia": "sarmiento santa fe",
       "numero_limpio": 2324
     },
     {
@@ -98731,7 +98811,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T14:42:58.815Z",
       "date_updated": "2026-04-13T15:49:47.573Z",
-      "calle_limpia": "urquiza",
+      "calle_limpia": "urquiza santa fe",
       "numero_limpio": 5300
     },
     {
@@ -99129,7 +99209,7 @@
       "zona": "Otro",
       "date_created": "2025-12-15T15:57:51.736Z",
       "date_updated": "2026-04-25T00:22:08.126Z",
-      "calle_limpia": "orione",
+      "calle_limpia": "orione santa fe",
       "numero_limpio": 519
     },
     {
@@ -99567,7 +99647,7 @@
       "zona": "Otro",
       "date_created": "2025-09-30T16:36:42.704Z",
       "date_updated": "2026-04-22T12:56:33.878Z",
-      "calle_limpia": "french",
+      "calle_limpia": "french santa fe",
       "numero_limpio": 7946
     },
     {
@@ -99703,7 +99783,7 @@
       "zona": "Otro",
       "date_created": "2025-12-30T17:54:23.241Z",
       "date_updated": "2026-04-22T15:27:02.353Z",
-      "calle_limpia": "mendoza",
+      "calle_limpia": "mendoza santa fe",
       "numero_limpio": 600
     },
     {
@@ -100159,7 +100239,7 @@
       "zona": "Otro",
       "date_created": "2022-11-23T16:56:10.000Z",
       "date_updated": "2026-03-23T03:06:36.556Z",
-      "calle_limpia": "oal jose hernandez",
+      "calle_limpia": "oal jose hernandez de santa fe",
       "numero_limpio": 1344
     },
     {
@@ -100179,7 +100259,7 @@
       "zona": "Otro",
       "date_created": "2025-10-08T13:47:23.900Z",
       "date_updated": "2026-04-16T01:08:40.057Z",
-      "calle_limpia": "garay",
+      "calle_limpia": "garay santa fe",
       "numero_limpio": 1700
     },
     {
@@ -100239,7 +100319,7 @@
       "zona": "Otro",
       "date_created": "2025-10-23T17:32:56.554Z",
       "date_updated": "2026-04-13T02:34:09.772Z",
-      "calle_limpia": "buenos aires",
+      "calle_limpia": "buenos aires santa fe",
       "numero_limpio": 3000
     },
     {
@@ -100399,7 +100479,7 @@
       "zona": "Otro",
       "date_created": "2025-10-02T12:13:57.970Z",
       "date_updated": "2026-04-16T02:30:32.707Z",
-      "calle_limpia": "montevideo",
+      "calle_limpia": "montevideo santa fe",
       "numero_limpio": 6000
     },
     {
@@ -100519,7 +100599,7 @@
       "zona": "Otro",
       "date_created": "2026-04-16T13:08:05.907Z",
       "date_updated": "2026-04-17T05:05:18.967Z",
-      "calle_limpia": "fisherton coloma",
+      "calle_limpia": "fisherton coloma santa fe",
       "numero_limpio": 8928
     },
     {
@@ -100639,7 +100719,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T15:52:27.611Z",
       "date_updated": "2026-03-17T14:10:49.602Z",
-      "calle_limpia": "lorenzo",
+      "calle_limpia": "lorenzo santa fe",
       "numero_limpio": 845
     },
     {
@@ -101011,7 +101091,7 @@
       "zona": "Otro",
       "date_created": "2025-10-02T18:49:40.546Z",
       "date_updated": "2026-03-01T15:55:29.531Z",
-      "calle_limpia": "mendoza",
+      "calle_limpia": "mendoza santa fe",
       "numero_limpio": 2305
     },
     {
@@ -101347,7 +101427,7 @@
       "zona": "Otro",
       "date_created": "2024-06-06T15:57:49.000Z",
       "date_updated": "2025-12-02T20:13:17.346Z",
-      "calle_limpia": "french",
+      "calle_limpia": "french de santa fe",
       "numero_limpio": 1774
     },
     {
@@ -101447,7 +101527,7 @@
       "zona": "Otro",
       "date_created": "2025-12-30T15:29:21.632Z",
       "date_updated": "2026-04-13T17:06:55.682Z",
-      "calle_limpia": "castagnino",
+      "calle_limpia": "castagnino santa fe",
       "numero_limpio": 1600
     },
     {
@@ -101467,7 +101547,7 @@
       "zona": "Otro",
       "date_created": "2025-10-02T15:07:12.105Z",
       "date_updated": "2026-04-02T02:31:57.849Z",
-      "calle_limpia": "rodriguez",
+      "calle_limpia": "rodriguez santa fe",
       "numero_limpio": 1139
     },
     {
@@ -101527,7 +101607,7 @@
       "zona": "Otro",
       "date_created": "2025-10-23T20:35:38.483Z",
       "date_updated": "2026-04-04T09:26:57.356Z",
-      "calle_limpia": "mendoza",
+      "calle_limpia": "mendoza santa fe",
       "numero_limpio": 1166
     },
     {
@@ -102043,7 +102123,7 @@
       "zona": "Otro",
       "date_created": "2026-03-11T20:05:48.674Z",
       "date_updated": "2026-03-24T06:45:58.161Z",
-      "calle_limpia": "pje monroe",
+      "calle_limpia": "pje monroe santa fe",
       "numero_limpio": 2900
     },
     {
@@ -102063,7 +102143,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T17:37:28.536Z",
       "date_updated": "2026-01-23T19:59:54.136Z",
-      "calle_limpia": "iriondo",
+      "calle_limpia": "iriondo santa fe",
       "numero_limpio": 3800
     },
     {
@@ -102123,7 +102203,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T16:43:52.229Z",
       "date_updated": "2026-01-23T19:51:27.805Z",
-      "calle_limpia": "arijon",
+      "calle_limpia": "arijon santa fe",
       "numero_limpio": 1570
     },
     {
@@ -102263,7 +102343,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T19:12:47.759Z",
       "date_updated": "2026-04-06T03:57:27.928Z",
-      "calle_limpia": "pasaje monroe",
+      "calle_limpia": "pasaje monroe santa fe",
       "numero_limpio": 2900
     },
     {
@@ -102283,7 +102363,7 @@
       "zona": "Otro",
       "date_created": "2026-01-22T13:18:59.550Z",
       "date_updated": "2026-04-20T01:32:36.630Z",
-      "calle_limpia": "tucuman",
+      "calle_limpia": "tucuman santa fe",
       "numero_limpio": 8300
     },
     {
@@ -102901,7 +102981,7 @@
       "zona": "Otro",
       "date_created": "2026-03-19T16:48:45.231Z",
       "date_updated": "2026-04-15T20:42:05.218Z",
-      "calle_limpia": "greens de fisherton prox colegio arroyos golf",
+      "calle_limpia": "greens de fisherton prox colegio arroyos golf santa fe",
       "numero_limpio": 9400
     },
     {
@@ -103001,7 +103081,7 @@
       "zona": "Otro",
       "date_created": "2026-04-16T12:57:14.707Z",
       "date_updated": "2026-04-22T22:18:55.638Z",
-      "calle_limpia": "moreno",
+      "calle_limpia": "moreno santa fe",
       "numero_limpio": 664
     },
     {
@@ -103061,7 +103141,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T15:52:33.353Z",
       "date_updated": "2026-01-23T19:59:14.232Z",
-      "calle_limpia": "lorenzo",
+      "calle_limpia": "lorenzo santa fe",
       "numero_limpio": 845
     },
     {
@@ -103181,7 +103261,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T16:20:08.550Z",
       "date_updated": "2026-04-23T17:36:08.979Z",
-      "calle_limpia": "amenabar",
+      "calle_limpia": "amenabar santa fe",
       "numero_limpio": 3200
     },
     {
@@ -103439,7 +103519,7 @@
       "zona": "Otro",
       "date_created": "2026-02-11T12:45:07.265Z",
       "date_updated": "2026-03-25T04:40:15.950Z",
-      "calle_limpia": "alvear",
+      "calle_limpia": "alvear santa fe",
       "numero_limpio": 1532
     },
     {
@@ -103579,7 +103659,7 @@
       "zona": "Otro",
       "date_created": "2025-10-03T16:16:15.771Z",
       "date_updated": "2026-01-26T20:28:10.496Z",
-      "calle_limpia": "pavon",
+      "calle_limpia": "pavon santa fe",
       "numero_limpio": 5001
     },
     {
@@ -103697,7 +103777,7 @@
       "zona": "Otro",
       "date_created": "2025-10-02T15:01:20.493Z",
       "date_updated": "2026-01-20T17:51:22.245Z",
-      "calle_limpia": "riccheri",
+      "calle_limpia": "riccheri santa fe",
       "numero_limpio": 487
     },
     {
@@ -103717,7 +103797,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T18:51:57.969Z",
       "date_updated": "2026-04-24T19:16:54.738Z",
-      "calle_limpia": "ituzaingo",
+      "calle_limpia": "ituzaingo santa fe",
       "numero_limpio": 3378
     },
     {
@@ -103817,7 +103897,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T13:57:10.761Z",
       "date_updated": "2026-04-16T20:06:10.166Z",
-      "calle_limpia": "ovidio lagos",
+      "calle_limpia": "ovidio lagos santa fe",
       "numero_limpio": 2548
     },
     {
@@ -104017,7 +104097,7 @@
       "zona": "Otro",
       "date_created": "2024-02-26T21:58:34.000Z",
       "date_updated": "2026-04-17T16:37:27.141Z",
-      "calle_limpia": "comodoro rivadavia",
+      "calle_limpia": "comodoro rivadavia de santa fe",
       "numero_limpio": 3055
     },
     {
@@ -104175,7 +104255,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T15:00:33.558Z",
       "date_updated": "2026-03-07T22:34:12.434Z",
-      "calle_limpia": "mendoza",
+      "calle_limpia": "mendoza santa fe",
       "numero_limpio": 8044
     },
     {
@@ -104333,7 +104413,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T16:17:12.092Z",
       "date_updated": "2026-04-25T01:42:00.207Z",
-      "calle_limpia": "laprida",
+      "calle_limpia": "laprida santa fe",
       "numero_limpio": 3700
     },
     {
@@ -104533,7 +104613,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T19:13:24.001Z",
       "date_updated": "2026-03-27T22:32:47.938Z",
-      "calle_limpia": "richieri",
+      "calle_limpia": "richieri santa fe",
       "numero_limpio": 400
     },
     {
@@ -104809,7 +104889,7 @@
       "zona": "Otro",
       "date_created": "2026-04-23T13:12:58.952Z",
       "date_updated": "2026-04-23T15:25:24.307Z",
-      "calle_limpia": "boulevar segui",
+      "calle_limpia": "boulevar segui santa fe",
       "numero_limpio": 1361
     },
     {
@@ -105029,7 +105109,7 @@
       "zona": "Otro",
       "date_created": "2025-09-23T20:44:04.460Z",
       "date_updated": "2026-04-07T16:11:06.034Z",
-      "calle_limpia": "tucuman",
+      "calle_limpia": "tucuman santa fe",
       "numero_limpio": 1083
     },
     {
@@ -105209,7 +105289,7 @@
       "zona": "Otro",
       "date_created": "2025-10-22T13:44:50.113Z",
       "date_updated": "2026-04-22T16:07:43.560Z",
-      "calle_limpia": "buchanan",
+      "calle_limpia": "buchanan santa fe",
       "numero_limpio": 576
     },
     {
@@ -105409,7 +105489,7 @@
       "zona": "Otro",
       "date_created": "2025-10-23T19:06:56.632Z",
       "date_updated": "2026-01-23T19:54:31.683Z",
-      "calle_limpia": "vera mujica",
+      "calle_limpia": "vera mujica santa fe",
       "numero_limpio": 900
     },
     {
@@ -105449,7 +105529,7 @@
       "zona": "Otro",
       "date_created": "2026-01-09T19:13:18.238Z",
       "date_updated": "2026-04-04T16:55:05.174Z",
-      "calle_limpia": "buenos aires",
+      "calle_limpia": "buenos aires santa fe",
       "numero_limpio": 2300
     },
     {
@@ -105549,7 +105629,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T16:22:04.746Z",
       "date_updated": "2026-04-14T12:48:32.257Z",
-      "calle_limpia": "navarro",
+      "calle_limpia": "navarro santa fe",
       "numero_limpio": 6900
     },
     {
@@ -105569,7 +105649,7 @@
       "zona": "Otro",
       "date_created": "2025-11-17T12:24:57.025Z",
       "date_updated": "2026-04-21T21:27:06.864Z",
-      "calle_limpia": "washington",
+      "calle_limpia": "washington santa fe",
       "numero_limpio": 600
     },
     {
@@ -106189,7 +106269,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T13:47:46.028Z",
       "date_updated": "2026-04-23T21:10:45.844Z",
-      "calle_limpia": "italia",
+      "calle_limpia": "italia santa fe",
       "numero_limpio": 3500
     },
     {
@@ -106347,7 +106427,7 @@
       "zona": "Otro",
       "date_created": "2025-10-02T15:08:51.695Z",
       "date_updated": "2026-01-20T17:57:23.426Z",
-      "calle_limpia": "pasaje monroe",
+      "calle_limpia": "pasaje monroe santa fe",
       "numero_limpio": 2958
     },
     {
@@ -106700,11 +106780,13 @@
       "valor_m2": 698.92,
       "fuente": "propia_api_browser",
       "id_propia": 225077,
-      "lat": -32.93584,
-      "lon": -60.716347,
+      "lat": -32.936019571428574,
+      "lon": -60.71712842857142,
       "zona": "Otro",
       "date_created": "2023-08-08T18:32:40.000Z",
-      "date_updated": "2026-04-16T00:30:11.563Z"
+      "date_updated": "2026-04-16T00:30:11.563Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 7000
     },
     {
       "precio": 49000.0,
@@ -106841,7 +106923,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T13:59:06.976Z",
       "date_updated": "2026-02-08T13:28:55.002Z",
-      "calle_limpia": "dr francisco riva",
+      "calle_limpia": "dr francisco riva santa fe",
       "numero_limpio": 592
     },
     {
@@ -107059,7 +107141,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T13:55:18.055Z",
       "date_updated": "2026-04-22T17:04:23.516Z",
-      "calle_limpia": "valentin gomez",
+      "calle_limpia": "valentin gomez santa fe",
       "numero_limpio": 1400
     },
     {
@@ -107475,7 +107557,7 @@
       "zona": "Otro",
       "date_created": "2026-03-13T15:44:39.547Z",
       "date_updated": "2026-04-20T02:10:14.996Z",
-      "calle_limpia": "mason",
+      "calle_limpia": "mason santa fe",
       "numero_limpio": 3200
     },
     {
@@ -107695,7 +107777,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T16:04:04.765Z",
       "date_updated": "2026-04-11T20:39:48.535Z",
-      "calle_limpia": "nicaragua",
+      "calle_limpia": "nicaragua santa fe",
       "numero_limpio": 500
     },
     {
@@ -107755,7 +107837,7 @@
       "zona": "Otro",
       "date_created": "2026-01-29T17:31:11.548Z",
       "date_updated": "2026-03-07T00:01:05.077Z",
-      "calle_limpia": "vendo con jardin pje sivori",
+      "calle_limpia": "vendo con jardin pje sivori santa fe",
       "numero_limpio": 5400
     },
     {
@@ -108015,7 +108097,7 @@
       "zona": "Otro",
       "date_created": "2026-04-01T13:41:44.719Z",
       "date_updated": "2026-04-02T05:03:37.884Z",
-      "calle_limpia": "marcos paz",
+      "calle_limpia": "marcos paz santa fe",
       "numero_limpio": 4900
     },
     {
@@ -108055,7 +108137,7 @@
       "zona": "Otro",
       "date_created": "2026-04-23T15:23:49.906Z",
       "date_updated": "2026-04-24T15:44:25.667Z",
-      "calle_limpia": "uriburu",
+      "calle_limpia": "uriburu santa fe",
       "numero_limpio": 1167
     },
     {
@@ -108115,7 +108197,7 @@
       "zona": "Otro",
       "date_created": "2026-01-15T13:41:05.197Z",
       "date_updated": "2026-02-12T16:12:34.214Z",
-      "calle_limpia": "casilda",
+      "calle_limpia": "casilda santa fe",
       "numero_limpio": 7600
     },
     {
@@ -108515,7 +108597,7 @@
       "zona": "Otro",
       "date_created": "2025-06-26T10:17:23.609Z",
       "date_updated": "2025-12-06T20:56:59.993Z",
-      "calle_limpia": "juan justo",
+      "calle_limpia": "juan justo santa fe",
       "numero_limpio": 9500
     },
     {
@@ -108595,7 +108677,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T14:20:44.720Z",
       "date_updated": "2026-04-24T21:18:59.437Z",
-      "calle_limpia": "gaboto",
+      "calle_limpia": "gaboto santa fe",
       "numero_limpio": 1300
     },
     {
@@ -108615,7 +108697,7 @@
       "zona": "Pellegrini",
       "date_created": "2025-10-03T16:15:58.086Z",
       "date_updated": "2026-04-20T21:05:55.578Z",
-      "calle_limpia": "pellegrini",
+      "calle_limpia": "pellegrini santa fe",
       "numero_limpio": 55
     },
     {
@@ -109011,7 +109093,7 @@
       "zona": "Otro",
       "date_created": "2025-12-15T20:20:44.148Z",
       "date_updated": "2026-04-22T14:28:38.546Z",
-      "calle_limpia": "saavedra",
+      "calle_limpia": "saavedra santa fe",
       "numero_limpio": 2349
     },
     {
@@ -109051,7 +109133,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T18:46:08.595Z",
       "date_updated": "2026-01-23T17:42:41.279Z",
-      "calle_limpia": "vieytes",
+      "calle_limpia": "vieytes santa fe",
       "numero_limpio": 2809
     },
     {
@@ -109511,7 +109593,7 @@
       "zona": "Otro",
       "date_created": "2026-01-23T22:46:42.432Z",
       "date_updated": "2026-04-24T03:22:55.192Z",
-      "calle_limpia": "velez sarfield",
+      "calle_limpia": "velez sarfield santa fe",
       "numero_limpio": 1400
     },
     {
@@ -109591,7 +109673,7 @@
       "zona": "Otro",
       "date_created": "2026-01-09T22:38:38.166Z",
       "date_updated": "2026-04-04T14:44:08.061Z",
-      "calle_limpia": "ovidio lagos",
+      "calle_limpia": "ovidio lagos santa fe",
       "numero_limpio": 81
     },
     {
@@ -109731,7 +109813,7 @@
       "zona": "Otro",
       "date_created": "2026-01-13T19:21:21.498Z",
       "date_updated": "2026-04-05T22:07:28.896Z",
-      "calle_limpia": "zeballos",
+      "calle_limpia": "zeballos santa fe",
       "numero_limpio": 2500
     },
     {
@@ -110005,7 +110087,7 @@
       "zona": "Otro",
       "date_created": "2023-01-18T15:29:42.000Z",
       "date_updated": "2026-03-24T16:46:12.751Z",
-      "calle_limpia": "ayacucho",
+      "calle_limpia": "ayacucho de santa fe",
       "numero_limpio": 3000
     },
     {
@@ -110279,7 +110361,7 @@
       "zona": "Otro",
       "date_created": "2025-10-06T15:18:23.750Z",
       "date_updated": "2026-04-23T15:37:27.893Z",
-      "calle_limpia": "juan carlos",
+      "calle_limpia": "juan carlos santa fe",
       "numero_limpio": 986
     },
     {
@@ -110437,7 +110519,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T16:21:26.342Z",
       "date_updated": "2026-03-04T02:52:50.490Z",
-      "calle_limpia": "dean funes",
+      "calle_limpia": "dean funes santa fe",
       "numero_limpio": 7000
     },
     {
@@ -110717,7 +110799,7 @@
       "zona": "Otro",
       "date_created": "2025-11-13T19:18:17.378Z",
       "date_updated": "2026-04-23T15:21:22.861Z",
-      "calle_limpia": "reconquista",
+      "calle_limpia": "reconquista santa fe",
       "numero_limpio": 900
     },
     {
@@ -111017,7 +111099,7 @@
       "zona": "Otro",
       "date_created": "2025-10-23T13:21:10.888Z",
       "date_updated": "2026-03-29T17:04:13.602Z",
-      "calle_limpia": "constitucion",
+      "calle_limpia": "constitucion santa fe",
       "numero_limpio": 1498
     },
     {
@@ -111117,7 +111199,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T19:13:56.694Z",
       "date_updated": "2026-03-27T13:37:59.879Z",
-      "calle_limpia": "cerrito",
+      "calle_limpia": "cerrito santa fe",
       "numero_limpio": 300
     },
     {
@@ -111229,7 +111311,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T16:38:50.094Z",
       "date_updated": "2026-04-19T21:52:36.310Z",
-      "calle_limpia": "huerta grande",
+      "calle_limpia": "huerta grande santa fe",
       "numero_limpio": 1500
     },
     {
@@ -111264,11 +111346,13 @@
       "valor_m2": 527.68,
       "fuente": "propia_api_browser",
       "id_propia": 412309,
-      "lat": -32.936287,
-      "lon": -60.68577,
+      "lat": -32.93618385714286,
+      "lon": -60.68652342857143,
       "zona": "Otro",
       "date_created": "2025-10-16T14:07:17.453Z",
-      "date_updated": "2026-01-12T16:01:31.785Z"
+      "date_updated": "2026-01-12T16:01:31.785Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 4600
     },
     {
       "precio": 90000.0,
@@ -111445,7 +111529,7 @@
       "zona": "Otro",
       "date_created": "2025-12-16T16:13:24.015Z",
       "date_updated": "2026-03-23T17:06:54.203Z",
-      "calle_limpia": "ovidio lagos",
+      "calle_limpia": "ovidio lagos santa fe",
       "numero_limpio": 5800
     },
     {
@@ -111705,7 +111789,7 @@
       "zona": "Otro",
       "date_created": "2025-12-16T16:19:06.690Z",
       "date_updated": "2026-04-22T18:32:33.336Z",
-      "calle_limpia": "mont cenis",
+      "calle_limpia": "mont cenis santa fe",
       "numero_limpio": 4100
     },
     {
@@ -112197,7 +112281,7 @@
       "zona": "Otro",
       "date_created": "2025-10-22T23:25:30.513Z",
       "date_updated": "2026-04-14T23:03:14.611Z",
-      "calle_limpia": "zeballos",
+      "calle_limpia": "zeballos santa fe",
       "numero_limpio": 3200
     },
     {
@@ -112217,7 +112301,7 @@
       "zona": "Otro",
       "date_created": "2025-10-29T14:43:08.766Z",
       "date_updated": "2026-04-20T23:17:45.459Z",
-      "calle_limpia": "salva",
+      "calle_limpia": "salva santa fe",
       "numero_limpio": 5588
     },
     {
@@ -112849,7 +112933,7 @@
       "zona": "Otro",
       "date_created": "2025-10-31T01:07:03.066Z",
       "date_updated": "2026-04-18T03:14:53.565Z",
-      "calle_limpia": "centeno",
+      "calle_limpia": "centeno santa fe",
       "numero_limpio": 720
     },
     {
@@ -112869,7 +112953,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T18:49:10.376Z",
       "date_updated": "2026-04-13T15:39:30.871Z",
-      "calle_limpia": "vera mujica",
+      "calle_limpia": "vera mujica santa fe",
       "numero_limpio": 900
     },
     {
@@ -113180,11 +113264,13 @@
       "valor_m2": 433.33,
       "fuente": "propia_api_browser",
       "id_propia": 455410,
-      "lat": -32.87925,
-      "lon": -60.73774,
+      "lat": -32.94469839999999,
+      "lon": -60.641552000000004,
       "zona": "Otro",
       "date_created": "2026-03-25T13:29:19.190Z",
-      "date_updated": "2026-04-23T22:29:59.485Z"
+      "date_updated": "2026-04-23T22:29:59.485Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 1323
     },
     {
       "precio": 75000.0,
@@ -113495,7 +113581,7 @@
       "zona": "Otro",
       "date_created": "2025-09-30T17:06:11.952Z",
       "date_updated": "2026-03-15T17:18:39.103Z",
-      "calle_limpia": "anchoris",
+      "calle_limpia": "anchoris santa fe",
       "numero_limpio": 2495
     },
     {
@@ -113535,7 +113621,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T16:07:44.042Z",
       "date_updated": "2026-04-02T21:31:47.522Z",
-      "calle_limpia": "benito juarez",
+      "calle_limpia": "benito juarez santa fe",
       "numero_limpio": 1300
     },
     {
@@ -113634,7 +113720,9 @@
       "lon": -60.72088,
       "zona": "Otro",
       "date_created": "2023-11-01T12:51:52.000Z",
-      "date_updated": "2026-04-15T19:52:24.240Z"
+      "date_updated": "2026-04-15T19:52:24.240Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 7396
     },
     {
       "precio": 149000.0,
@@ -114429,7 +114517,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T14:26:43.331Z",
       "date_updated": "2026-04-24T15:25:49.264Z",
-      "calle_limpia": "montevideo",
+      "calle_limpia": "montevideo santa fe",
       "numero_limpio": 400
     },
     {
@@ -114489,7 +114577,7 @@
       "zona": "Otro",
       "date_created": "2025-10-01T15:02:27.776Z",
       "date_updated": "2026-02-02T22:12:49.986Z",
-      "calle_limpia": "agrelo",
+      "calle_limpia": "agrelo santa fe",
       "numero_limpio": 2100
     },
     {
@@ -114549,7 +114637,7 @@
       "zona": "Otro",
       "date_created": "2025-10-02T14:56:37.055Z",
       "date_updated": "2026-04-22T15:48:47.416Z",
-      "calle_limpia": "tucuman",
+      "calle_limpia": "tucuman santa fe",
       "numero_limpio": 3500
     },
     {
@@ -114647,7 +114735,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T16:21:37.298Z",
       "date_updated": "2026-03-26T21:09:01.480Z",
-      "calle_limpia": "navarro",
+      "calle_limpia": "navarro santa fe",
       "numero_limpio": 6200
     },
     {
@@ -114725,7 +114813,7 @@
       "zona": "Otro",
       "date_created": "2026-02-20T16:28:01.763Z",
       "date_updated": "2026-04-25T04:34:45.974Z",
-      "calle_limpia": "fernandez",
+      "calle_limpia": "fernandez santa fe",
       "numero_limpio": 1500
     },
     {
@@ -114825,7 +114913,7 @@
       "zona": "Otro",
       "date_created": "2026-01-20T15:33:51.822Z",
       "date_updated": "2026-04-14T17:03:55.246Z",
-      "calle_limpia": "de setiembre",
+      "calle_limpia": "de setiembre santa fe",
       "numero_limpio": 24
     },
     {
@@ -115000,11 +115088,13 @@
       "valor_m2": 750.0,
       "fuente": "propia_api_browser",
       "id_propia": 354149,
-      "lat": -32.947437,
-      "lon": -60.69266,
+      "lat": -32.93493683333333,
+      "lon": -60.69444416666667,
       "zona": "Otro",
       "date_created": "2025-02-20T21:07:03.000Z",
-      "date_updated": "2026-03-18T16:28:20.618Z"
+      "date_updated": "2026-03-18T16:28:20.618Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 5110
     },
     {
       "precio": 140000.0,
@@ -115023,7 +115113,7 @@
       "zona": "Otro",
       "date_created": "2025-10-15T15:58:43.095Z",
       "date_updated": "2026-03-08T17:50:08.773Z",
-      "calle_limpia": "pres quintana",
+      "calle_limpia": "pres quintana santa fe",
       "numero_limpio": 3600
     },
     {
@@ -115339,7 +115429,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T14:29:49.876Z",
       "date_updated": "2026-04-24T14:10:44.402Z",
-      "calle_limpia": "centenario",
+      "calle_limpia": "centenario santa fe",
       "numero_limpio": 700
     },
     {
@@ -115497,7 +115587,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T16:13:34.628Z",
       "date_updated": "2026-04-15T19:42:21.478Z",
-      "calle_limpia": "sarmiento",
+      "calle_limpia": "sarmiento santa fe",
       "numero_limpio": 4100
     },
     {
@@ -115695,7 +115785,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T19:13:47.724Z",
       "date_updated": "2026-04-20T21:38:36.830Z",
-      "calle_limpia": "garibaldi",
+      "calle_limpia": "garibaldi santa fe",
       "numero_limpio": 554
     },
     {
@@ -115993,7 +116083,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T16:11:06.380Z",
       "date_updated": "2026-03-28T21:33:05.267Z",
-      "calle_limpia": "jose ingenieros",
+      "calle_limpia": "jose ingenieros santa fe",
       "numero_limpio": 800
     },
     {
@@ -116591,7 +116681,7 @@
       "zona": "Otro",
       "date_created": "2026-01-09T19:22:51.098Z",
       "date_updated": "2026-01-20T17:50:03.908Z",
-      "calle_limpia": "nuestra senora",
+      "calle_limpia": "nuestra senora del santa fe",
       "numero_limpio": 200
     },
     {
@@ -116711,7 +116801,7 @@
       "zona": "Otro",
       "date_created": "2023-08-22T14:55:17.000Z",
       "date_updated": "2026-04-24T13:57:19.431Z",
-      "calle_limpia": "leiva",
+      "calle_limpia": "leiva de santa fe",
       "numero_limpio": 5650
     },
     {
@@ -116771,7 +116861,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T19:18:56.272Z",
       "date_updated": "2026-03-05T19:12:11.540Z",
-      "calle_limpia": "gaboto",
+      "calle_limpia": "gaboto santa fe",
       "numero_limpio": 300
     },
     {
@@ -117250,7 +117340,9 @@
       "lon": -60.68382,
       "zona": "Otro",
       "date_created": "2026-02-24T13:32:37.139Z",
-      "date_updated": "2026-04-10T04:42:04.985Z"
+      "date_updated": "2026-04-10T04:42:04.985Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 4473
     },
     {
       "precio": 78000.0,
@@ -117527,7 +117619,7 @@
       "zona": "Otro",
       "date_created": "2025-12-16T16:15:58.221Z",
       "date_updated": "2026-04-18T10:19:50.489Z",
-      "calle_limpia": "alvarez thomas",
+      "calle_limpia": "alvarez thomas santa fe",
       "numero_limpio": 3328
     },
     {
@@ -117803,7 +117895,7 @@
       "zona": "Otro",
       "date_created": "2026-04-01T19:20:42.891Z",
       "date_updated": "2026-04-25T16:24:15.293Z",
-      "calle_limpia": "la paz",
+      "calle_limpia": "la paz santa fe",
       "numero_limpio": 600
     },
     {
@@ -118179,7 +118271,7 @@
       "zona": "Otro",
       "date_created": "2025-07-01T12:30:33.338Z",
       "date_updated": "2026-04-24T02:13:06.125Z",
-      "calle_limpia": "lorenz",
+      "calle_limpia": "lorenz santa fe",
       "numero_limpio": 3400
     },
     {
@@ -118239,7 +118331,7 @@
       "zona": "Otro",
       "date_created": "2026-03-26T19:23:52.684Z",
       "date_updated": "2026-04-24T15:56:53.385Z",
-      "calle_limpia": "agrelo",
+      "calle_limpia": "agrelo santa fe",
       "numero_limpio": 700
     },
     {
@@ -118619,7 +118711,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T13:52:46.234Z",
       "date_updated": "2026-01-23T17:48:38.159Z",
-      "calle_limpia": "mitre",
+      "calle_limpia": "mitre santa fe",
       "numero_limpio": 2320
     },
     {
@@ -118779,7 +118871,7 @@
       "zona": "Otro",
       "date_created": "2025-10-01T15:02:10.199Z",
       "date_updated": "2026-02-25T13:55:59.493Z",
-      "calle_limpia": "laprida",
+      "calle_limpia": "laprida santa fe",
       "numero_limpio": 3200
     },
     {
@@ -118819,7 +118911,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T16:21:47.838Z",
       "date_updated": "2026-03-04T19:42:08.916Z",
-      "calle_limpia": "balcarce",
+      "calle_limpia": "balcarce santa fe",
       "numero_limpio": 1400
     },
     {
@@ -119417,7 +119509,7 @@
       "zona": "Otro",
       "date_created": "2026-03-31T20:28:05.861Z",
       "date_updated": "2026-04-14T00:43:54.593Z",
-      "calle_limpia": "arijon",
+      "calle_limpia": "arijon santa fe",
       "numero_limpio": 3900
     },
     {
@@ -119635,7 +119727,7 @@
       "zona": "Otro",
       "date_created": "2025-12-23T13:04:21.107Z",
       "date_updated": "2026-01-23T17:36:30.706Z",
-      "calle_limpia": "sarmiento",
+      "calle_limpia": "sarmiento santa fe",
       "numero_limpio": 2300
     },
     {
@@ -119853,7 +119945,7 @@
       "zona": "Otro",
       "date_created": "2025-10-02T16:02:24.299Z",
       "date_updated": "2026-04-20T15:24:24.275Z",
-      "calle_limpia": "genova",
+      "calle_limpia": "genova santa fe",
       "numero_limpio": 915
     },
     {
@@ -119933,7 +120025,7 @@
       "zona": "Otro",
       "date_created": "2024-11-27T19:47:21.000Z",
       "date_updated": "2026-04-17T17:54:18.716Z",
-      "calle_limpia": "campbell",
+      "calle_limpia": "campbell de santa fe",
       "numero_limpio": 600
     },
     {
@@ -120151,7 +120243,7 @@
       "zona": "Otro",
       "date_created": "2026-02-05T15:04:20.286Z",
       "date_updated": "2026-04-25T04:35:41.374Z",
-      "calle_limpia": "almafuerte",
+      "calle_limpia": "almafuerte santa fe",
       "numero_limpio": 1500
     },
     {
@@ -120211,7 +120303,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T16:20:32.181Z",
       "date_updated": "2026-04-13T17:46:33.528Z",
-      "calle_limpia": "espana",
+      "calle_limpia": "espana santa fe",
       "numero_limpio": 1700
     },
     {
@@ -120331,7 +120423,7 @@
       "zona": "Otro",
       "date_created": "2026-02-05T15:24:34.517Z",
       "date_updated": "2026-04-21T20:30:48.036Z",
-      "calle_limpia": "genova",
+      "calle_limpia": "genova santa fe",
       "numero_limpio": 1265
     },
     {
@@ -120431,7 +120523,7 @@
       "zona": "Otro",
       "date_created": "2025-10-02T15:07:16.012Z",
       "date_updated": "2026-02-25T23:22:04.991Z",
-      "calle_limpia": "bartolome mitre",
+      "calle_limpia": "bartolome mitre santa fe",
       "numero_limpio": 2320
     },
     {
@@ -120731,7 +120823,7 @@
       "zona": "Otro",
       "date_created": "2026-02-11T13:19:27.379Z",
       "date_updated": "2026-04-08T20:37:11.891Z",
-      "calle_limpia": "virasoro",
+      "calle_limpia": "virasoro santa fe",
       "numero_limpio": 1900
     },
     {
@@ -120789,7 +120881,7 @@
       "zona": "Otro",
       "date_created": "2026-01-16T23:15:40.725Z",
       "date_updated": "2026-02-19T17:19:06.698Z",
-      "calle_limpia": "brown",
+      "calle_limpia": "brown santa fe",
       "numero_limpio": 2700
     },
     {
@@ -120849,7 +120941,7 @@
       "zona": "Otro",
       "date_created": "2025-12-04T20:53:42.441Z",
       "date_updated": "2026-04-15T14:18:08.644Z",
-      "calle_limpia": "lorenzo",
+      "calle_limpia": "lorenzo santa fe",
       "numero_limpio": 6800
     },
     {
@@ -121107,7 +121199,7 @@
       "zona": "Otro",
       "date_created": "2025-09-23T20:42:48.151Z",
       "date_updated": "2026-04-25T23:49:45.588Z",
-      "calle_limpia": "valentin gomez",
+      "calle_limpia": "valentin gomez santa fe",
       "numero_limpio": 2079
     },
     {
@@ -121345,7 +121437,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T16:11:02.089Z",
       "date_updated": "2026-03-17T21:06:43.083Z",
-      "calle_limpia": "espana",
+      "calle_limpia": "espana santa fe",
       "numero_limpio": 1700
     },
     {
@@ -121641,7 +121733,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T15:51:38.153Z",
       "date_updated": "2026-03-14T18:49:22.848Z",
-      "calle_limpia": "espana",
+      "calle_limpia": "espana santa fe",
       "numero_limpio": 3812
     },
     {
@@ -121879,7 +121971,7 @@
       "zona": "Otro",
       "date_created": "2026-02-06T15:53:40.063Z",
       "date_updated": "2026-04-03T16:17:36.293Z",
-      "calle_limpia": "moreno",
+      "calle_limpia": "moreno santa fe",
       "numero_limpio": 1100
     },
     {
@@ -122119,7 +122211,7 @@
       "zona": "Otro",
       "date_created": "2026-02-05T21:00:37.472Z",
       "date_updated": "2026-02-20T19:49:40.725Z",
-      "calle_limpia": "brown",
+      "calle_limpia": "brown santa fe",
       "numero_limpio": 2700
     },
     {
@@ -123326,11 +123418,13 @@
       "valor_m2": 1445.78,
       "fuente": "propia_api_browser",
       "id_propia": 349209,
-      "lat": -33.02089,
-      "lon": -60.680172,
+      "lat": -32.9431804,
+      "lon": -60.64763860000001,
       "zona": "Otro",
       "date_created": "2025-01-29T01:03:47.000Z",
-      "date_updated": "2026-04-12T23:13:06.441Z"
+      "date_updated": "2026-04-12T23:13:06.441Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 1800
     },
     {
       "precio": 65000.0,
@@ -123995,7 +124089,7 @@
       "zona": "Pellegrini",
       "date_created": "2025-10-27T20:13:30.305Z",
       "date_updated": "2026-03-24T19:39:05.316Z",
-      "calle_limpia": "pellegrini",
+      "calle_limpia": "pellegrini santa fe",
       "numero_limpio": 400
     },
     {
@@ -125309,7 +125403,7 @@
       "zona": "Otro",
       "date_created": "2025-10-01T14:59:43.302Z",
       "date_updated": "2026-04-07T18:15:53.789Z",
-      "calle_limpia": "alvear",
+      "calle_limpia": "alvear santa fe",
       "numero_limpio": 116
     },
     {
@@ -126093,7 +126187,7 @@
       "zona": "Otro",
       "date_created": "2025-05-27T20:00:58.457Z",
       "date_updated": "2026-03-28T05:09:03.172Z",
-      "calle_limpia": "9 de julio alvear",
+      "calle_limpia": "9 de julio alvear santa fe",
       "numero_limpio": 1900
     },
     {
@@ -126189,7 +126283,7 @@
       "zona": "Otro",
       "date_created": "2026-01-29T18:15:13.261Z",
       "date_updated": "2026-03-03T22:16:10.127Z",
-      "calle_limpia": "maza",
+      "calle_limpia": "maza santa fe",
       "numero_limpio": 845
     },
     {
@@ -126460,11 +126554,13 @@
       "valor_m2": 1452.21,
       "fuente": "propia_api_browser",
       "id_propia": 424842,
-      "lat": -32.942677,
-      "lon": -60.65195,
+      "lat": -32.9421174375,
+      "lon": -60.6520045625,
       "zona": "Otro",
       "date_created": "2025-12-12T18:31:43.291Z",
-      "date_updated": "2026-04-21T05:01:30.666Z"
+      "date_updated": "2026-04-21T05:01:30.666Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2100
     },
     {
       "precio": 270000.0,
@@ -128013,7 +128109,7 @@
       "zona": "Otro",
       "date_created": "2026-02-10T14:45:31.998Z",
       "date_updated": "2026-03-30T18:31:51.139Z",
-      "calle_limpia": "en",
+      "calle_limpia": "en santa fe",
       "numero_limpio": 1700
     },
     {
@@ -128466,7 +128562,9 @@
       "lon": -60.73642,
       "zona": "Otro",
       "date_created": "2025-10-03T17:35:47.986Z",
-      "date_updated": "2026-04-24T12:52:31.152Z"
+      "date_updated": "2026-04-24T12:52:31.152Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 8115
     },
     {
       "precio": 700000.0,
@@ -128783,7 +128881,7 @@
       "zona": "Otro",
       "date_created": "2025-10-09T15:51:32.020Z",
       "date_updated": "2026-04-10T19:35:36.424Z",
-      "calle_limpia": "superi",
+      "calle_limpia": "superi santa fe",
       "numero_limpio": 1349
     },
     {
@@ -130073,7 +130171,7 @@
       "zona": "Otro",
       "date_created": "2025-10-09T15:51:36.971Z",
       "date_updated": "2026-04-10T19:33:56.971Z",
-      "calle_limpia": "suiza",
+      "calle_limpia": "suiza santa fe",
       "numero_limpio": 219
     },
     {
@@ -132358,11 +132456,13 @@
       "valor_m2": 786.36,
       "fuente": "propia_api_browser",
       "id_propia": 435896,
-      "lat": -32.936363,
-      "lon": -60.733593,
+      "lat": -32.936492875000006,
+      "lon": -60.73231537499999,
       "zona": "Otro",
       "date_created": "2026-02-04T23:30:08.511Z",
-      "date_updated": "2026-04-24T12:50:10.503Z"
+      "date_updated": "2026-04-24T12:50:10.503Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 8000
     },
     {
       "precio": 95000.0,
@@ -133749,7 +133849,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T11:52:49.038Z",
       "date_updated": "2026-04-08T12:31:21.516Z",
-      "calle_limpia": "paz",
+      "calle_limpia": "paz santa fe",
       "numero_limpio": 767
     },
     {
@@ -134147,7 +134247,7 @@
       "zona": "Otro",
       "date_created": "2026-01-27T19:09:40.608Z",
       "date_updated": "2026-01-28T05:03:35.250Z",
-      "calle_limpia": "centeno",
+      "calle_limpia": "centeno santa fe",
       "numero_limpio": 720
     },
     {
@@ -134765,7 +134865,7 @@
       "zona": "Otro",
       "date_created": "2025-11-19T16:29:11.165Z",
       "date_updated": "2026-04-16T17:50:25.458Z",
-      "calle_limpia": "nestor fernandez",
+      "calle_limpia": "nestor fernandez santa fe",
       "numero_limpio": 1000
     },
     {
@@ -134943,7 +135043,7 @@
       "zona": "Otro",
       "date_created": "2026-01-24T15:00:54.918Z",
       "date_updated": "2026-04-15T17:16:24.897Z",
-      "calle_limpia": "luis",
+      "calle_limpia": "luis santa fe",
       "numero_limpio": 4321
     },
     {
@@ -136593,7 +136693,7 @@
       "zona": "Otro",
       "date_created": "2025-10-01T14:59:12.875Z",
       "date_updated": "2026-04-17T13:08:09.022Z",
-      "calle_limpia": "rioja",
+      "calle_limpia": "rioja santa fe",
       "numero_limpio": 800
     },
     {
@@ -136768,11 +136868,13 @@
       "valor_m2": 445.45,
       "fuente": "propia_api_browser",
       "id_propia": 420199,
-      "lat": -32.936043,
-      "lon": -60.689198,
+      "lat": -32.936284,
+      "lon": -60.68805014285714,
       "zona": "Otro",
       "date_created": "2025-11-20T14:45:42.501Z",
-      "date_updated": "2026-03-30T18:04:37.038Z"
+      "date_updated": "2026-03-30T18:04:37.038Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 4800
     },
     {
       "precio": 52000.0,
@@ -136831,7 +136933,7 @@
       "zona": "Otro",
       "date_created": "2025-10-27T11:42:53.296Z",
       "date_updated": "2026-04-20T11:42:03.306Z",
-      "calle_limpia": "argentino",
+      "calle_limpia": "argentino santa fe",
       "numero_limpio": 8368
     },
     {
@@ -136851,7 +136953,7 @@
       "zona": "Otro",
       "date_created": "2025-09-26T14:25:48.367Z",
       "date_updated": "2026-02-14T19:33:57.056Z",
-      "calle_limpia": "virasoro",
+      "calle_limpia": "virasoro santa fe",
       "numero_limpio": 2112
     },
     {
@@ -137407,7 +137509,7 @@
       "zona": "Otro",
       "date_created": "2026-02-02T19:01:57.455Z",
       "date_updated": "2026-04-22T13:15:17.954Z",
-      "calle_limpia": "higgins",
+      "calle_limpia": "higgins santa fe",
       "numero_limpio": 8800
     },
     {
@@ -138079,7 +138181,7 @@
       "zona": "Otro",
       "date_created": "2026-04-16T13:03:41.024Z",
       "date_updated": "2026-04-17T05:00:30.000Z",
-      "calle_limpia": "coloma",
+      "calle_limpia": "coloma santa fe",
       "numero_limpio": 9200
     },
     {
@@ -138154,11 +138256,13 @@
       "valor_m2": 1452.21,
       "fuente": "propia_api_browser",
       "id_propia": 454094,
-      "lat": -32.942677,
-      "lon": -60.65195,
+      "lat": -32.9421174375,
+      "lon": -60.6520045625,
       "zona": "Otro",
       "date_created": "2026-03-18T14:45:56.068Z",
-      "date_updated": "2026-04-21T05:03:44.990Z"
+      "date_updated": "2026-04-21T05:03:44.990Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2100
     },
     {
       "precio": 410000.0,
@@ -139898,11 +140002,13 @@
       "valor_m2": 403.23,
       "fuente": "propia_api_browser",
       "id_propia": 369765,
-      "lat": -32.93548,
-      "lon": -60.691914,
+      "lat": -32.93493683333333,
+      "lon": -60.69444416666667,
       "zona": "Otro",
       "date_created": "2025-04-29T14:46:10.948Z",
-      "date_updated": "2026-04-09T05:03:04.341Z"
+      "date_updated": "2026-04-09T05:03:04.341Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 5067
     },
     {
       "precio": 630000.0,
@@ -139941,7 +140047,7 @@
       "zona": "Otro",
       "date_created": "2026-03-09T17:18:24.407Z",
       "date_updated": "2026-04-23T00:16:21.275Z",
-      "calle_limpia": "orono",
+      "calle_limpia": "orono santa fe",
       "numero_limpio": 3241
     },
     {
@@ -141435,7 +141541,7 @@
       "zona": "Otro",
       "date_created": "2026-02-10T16:12:37.504Z",
       "date_updated": "2026-04-25T23:54:35.911Z",
-      "calle_limpia": "palestina",
+      "calle_limpia": "palestina santa fe",
       "numero_limpio": 1004
     },
     {
@@ -141851,7 +141957,7 @@
       "zona": "Otro",
       "date_created": "2025-10-27T11:39:31.768Z",
       "date_updated": "2026-04-23T19:54:37.194Z",
-      "calle_limpia": "callao",
+      "calle_limpia": "callao santa fe",
       "numero_limpio": 58
     },
     {
@@ -142347,7 +142453,7 @@
       "zona": "Otro",
       "date_created": "2026-01-22T13:16:52.937Z",
       "date_updated": "2026-02-06T22:47:03.491Z",
-      "calle_limpia": "arijon bis",
+      "calle_limpia": "arijon bis santa fe",
       "numero_limpio": 127
     },
     {
@@ -146152,11 +146258,13 @@
       "valor_m2": 786.36,
       "fuente": "propia_api_browser",
       "id_propia": 438015,
-      "lat": -32.936363,
-      "lon": -60.733593,
+      "lat": -32.936492875000006,
+      "lon": -60.73231537499999,
       "zona": "Otro",
       "date_created": "2026-02-12T02:15:42.265Z",
-      "date_updated": "2026-04-24T12:17:12.202Z"
+      "date_updated": "2026-04-24T12:17:12.202Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 8000
     },
     {
       "precio": 75000.0,
@@ -149291,7 +149399,7 @@
       "zona": "Otro",
       "date_created": "2025-10-21T16:25:46.219Z",
       "date_updated": "2026-04-08T15:43:57.902Z",
-      "calle_limpia": "funes pedro lino",
+      "calle_limpia": "funes pedro lino santa fe",
       "numero_limpio": 1300
     },
     {
@@ -149965,7 +150073,7 @@
       "zona": "Otro",
       "date_created": "2026-04-18T00:50:13.927Z",
       "date_updated": "2026-04-18T00:53:54.576Z",
-      "calle_limpia": "sarmiento",
+      "calle_limpia": "sarmiento santa fe",
       "numero_limpio": 2300
     },
     {
@@ -150005,7 +150113,7 @@
       "zona": "Otro",
       "date_created": "2025-10-01T15:01:59.797Z",
       "date_updated": "2026-01-22T14:09:39.179Z",
-      "calle_limpia": "agrelo",
+      "calle_limpia": "agrelo santa fe",
       "numero_limpio": 2087
     },
     {
@@ -150503,7 +150611,7 @@
       "zona": "Martin",
       "date_created": "2025-11-25T17:37:36.647Z",
       "date_updated": "2026-03-06T16:47:21.618Z",
-      "calle_limpia": "martin",
+      "calle_limpia": "martin santa fe",
       "numero_limpio": 300
     },
     {
@@ -151076,11 +151184,13 @@
       "valor_m2": 1752.59,
       "fuente": "propia_api_browser",
       "id_propia": 366289,
-      "lat": -32.941536,
-      "lon": -60.65654,
+      "lat": -32.942028125,
+      "lon": -60.65597424999999,
       "zona": "Otro",
       "date_created": "2025-04-15T13:31:35.145Z",
-      "date_updated": "2026-02-26T05:18:18.924Z"
+      "date_updated": "2026-02-26T05:18:18.924Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2400
     },
     {
       "precio": 210000.0,
@@ -151995,7 +152105,7 @@
       "zona": "Otro",
       "date_created": "2025-10-31T19:00:48.029Z",
       "date_updated": "2026-04-25T21:35:34.881Z",
-      "calle_limpia": "moreno",
+      "calle_limpia": "moreno santa fe",
       "numero_limpio": 1469
     },
     {
@@ -152608,7 +152718,9 @@
       "lon": -60.655663,
       "zona": "Otro",
       "date_created": "2024-04-30T01:00:03.000Z",
-      "date_updated": "2026-04-23T05:01:32.612Z"
+      "date_updated": "2026-04-23T05:01:32.612Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2400
     },
     {
       "precio": 89000.0,
@@ -153637,7 +153749,7 @@
       "zona": "Otro",
       "date_created": "2026-03-16T14:24:40.718Z",
       "date_updated": "2026-04-15T14:41:33.224Z",
-      "calle_limpia": "buenos aires",
+      "calle_limpia": "buenos aires santa fe",
       "numero_limpio": 3242
     },
     {
@@ -154071,7 +154183,7 @@
       "zona": "Otro",
       "date_created": "2026-01-22T13:44:33.015Z",
       "date_updated": "2026-01-26T19:42:47.520Z",
-      "calle_limpia": "hilarion de la quintana",
+      "calle_limpia": "hilarion de la quintana santa fe",
       "numero_limpio": 160
     },
     {
@@ -154588,7 +154700,9 @@
       "lon": -60.65355,
       "zona": "Otro",
       "date_created": "2026-03-10T21:45:12.023Z",
-      "date_updated": "2026-04-22T05:03:47.889Z"
+      "date_updated": "2026-04-22T05:03:47.889Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2200
     },
     {
       "precio": 150000.0,
@@ -154667,7 +154781,7 @@
       "zona": "Otro",
       "date_created": "2025-10-08T18:50:39.972Z",
       "date_updated": "2026-04-19T20:07:10.291Z",
-      "calle_limpia": "brasil",
+      "calle_limpia": "brasil santa fe",
       "numero_limpio": 1153
     },
     {
@@ -155218,7 +155332,9 @@
       "lon": -60.71681,
       "zona": "Otro",
       "date_created": "2026-01-27T19:30:13.007Z",
-      "date_updated": "2026-04-09T20:17:22.792Z"
+      "date_updated": "2026-04-09T20:17:22.792Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 7000
     },
     {
       "precio": 95000.0,
@@ -155417,7 +155533,7 @@
       "zona": "Otro",
       "date_created": "2025-11-05T20:57:58.170Z",
       "date_updated": "2026-02-19T19:45:57.104Z",
-      "calle_limpia": "estado de israel",
+      "calle_limpia": "estado de israel santa fe",
       "numero_limpio": 2300
     },
     {
@@ -156869,7 +156985,7 @@
       "zona": "Otro",
       "date_created": "2026-04-13T12:36:14.384Z",
       "date_updated": "2026-04-23T00:40:34.361Z",
-      "calle_limpia": "gonzalez del solar bis",
+      "calle_limpia": "gonzalez del solar bis santa fe",
       "numero_limpio": 400
     },
     {
@@ -159149,7 +159265,7 @@
       "zona": "Otro",
       "date_created": "2025-09-25T17:44:29.771Z",
       "date_updated": "2026-04-04T02:15:03.634Z",
-      "calle_limpia": "alem",
+      "calle_limpia": "alem santa fe",
       "numero_limpio": 3081
     },
     {
@@ -159289,7 +159405,7 @@
       "zona": "Otro",
       "date_created": "2026-04-07T17:58:54.392Z",
       "date_updated": "2026-04-19T15:46:41.888Z",
-      "calle_limpia": "gutenberg",
+      "calle_limpia": "gutenberg santa fe",
       "numero_limpio": 1200
     },
     {
@@ -159765,7 +159881,7 @@
       "zona": "Pellegrini",
       "date_created": "2026-04-26T13:21:46.112Z",
       "date_updated": "2026-04-26T13:24:17.901Z",
-      "calle_limpia": "pellegrini",
+      "calle_limpia": "pellegrini santa fe",
       "numero_limpio": 2700
     },
     {
@@ -160098,11 +160214,13 @@
       "valor_m2": 1452.21,
       "fuente": "propia_api_browser",
       "id_propia": 424853,
-      "lat": -32.942677,
-      "lon": -60.65195,
+      "lat": -32.9421174375,
+      "lon": -60.6520045625,
       "zona": "Otro",
       "date_created": "2025-12-12T19:45:50.906Z",
-      "date_updated": "2026-04-25T21:11:49.804Z"
+      "date_updated": "2026-04-25T21:11:49.804Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2100
     },
     {
       "precio": 150000.0,
@@ -160931,7 +161049,7 @@
       "zona": "Otro",
       "date_created": "2025-10-09T15:47:36.338Z",
       "date_updated": "2026-04-09T15:47:12.574Z",
-      "calle_limpia": "colombia",
+      "calle_limpia": "colombia santa fe",
       "numero_limpio": 299
     },
     {
@@ -162372,12 +162490,12 @@
       "valor_m2": 689.66,
       "fuente": "propia_api_browser",
       "id_propia": 439583,
-      "lat": -32.958702,
-      "lon": -60.693043,
+      "lat": -32.93526883333333,
+      "lon": -60.70914783333333,
       "zona": "Otro",
       "date_created": "2026-02-19T17:50:15.707Z",
       "date_updated": "2026-04-09T05:01:11.327Z",
-      "calle_limpia": "interna",
+      "calle_limpia": "santa fe interna",
       "numero_limpio": 6466
     },
     {
@@ -163537,7 +163655,7 @@
       "zona": "Otro",
       "date_created": "2025-09-29T15:11:36.274Z",
       "date_updated": "2026-04-20T21:40:50.916Z",
-      "calle_limpia": "buenos aires",
+      "calle_limpia": "buenos aires santa fe",
       "numero_limpio": 4375
     },
     {
@@ -163995,7 +164113,7 @@
       "zona": "Otro",
       "date_created": "2024-10-24T16:22:44.000Z",
       "date_updated": "2026-04-15T23:56:22.703Z",
-      "calle_limpia": "zelaya",
+      "calle_limpia": "zelaya de santa fe",
       "numero_limpio": 2640
     },
     {
@@ -165129,7 +165247,7 @@
       "zona": "Otro",
       "date_created": "2026-01-19T15:40:30.529Z",
       "date_updated": "2026-04-01T01:28:32.913Z",
-      "calle_limpia": "cochabamba dvb",
+      "calle_limpia": "cochabamba dvb santa fe",
       "numero_limpio": 64
     },
     {
@@ -165168,7 +165286,9 @@
       "lon": -60.676937,
       "zona": "Otro",
       "date_created": "2025-12-29T19:53:17.249Z",
-      "date_updated": "2026-04-25T05:03:25.674Z"
+      "date_updated": "2026-04-25T05:03:25.674Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 3900
     },
     {
       "precio": 110000.0,
@@ -165725,7 +165845,7 @@
       "zona": "Pellegrini",
       "date_created": "2025-11-17T16:15:16.846Z",
       "date_updated": "2026-04-26T02:17:31.733Z",
-      "calle_limpia": "pellegrini",
+      "calle_limpia": "pellegrini santa fe",
       "numero_limpio": 800
     },
     {
@@ -165765,7 +165885,7 @@
       "zona": "Otro",
       "date_created": "2026-04-06T18:24:27.942Z",
       "date_updated": "2026-04-26T13:04:45.576Z",
-      "calle_limpia": "juan",
+      "calle_limpia": "juan santa fe",
       "numero_limpio": 1173
     },
     {
@@ -165863,7 +165983,7 @@
       "zona": "Otro",
       "date_created": "2026-02-13T14:41:27.329Z",
       "date_updated": "2026-04-25T02:04:39.836Z",
-      "calle_limpia": "lorenzo",
+      "calle_limpia": "lorenzo santa fe",
       "numero_limpio": 1150
     },
     {
@@ -165883,7 +166003,7 @@
       "zona": "Otro",
       "date_created": "2025-10-03T16:11:58.131Z",
       "date_updated": "2026-04-25T17:02:50.170Z",
-      "calle_limpia": "primero de mayo",
+      "calle_limpia": "primero de mayo santa fe",
       "numero_limpio": 1534
     },
     {
@@ -165903,7 +166023,7 @@
       "zona": "Pellegrini",
       "date_created": "2026-04-08T16:24:56.040Z",
       "date_updated": "2026-04-26T02:22:55.545Z",
-      "calle_limpia": "pellegrini",
+      "calle_limpia": "pellegrini santa fe",
       "numero_limpio": 700
     },
     {
@@ -165941,7 +166061,7 @@
       "zona": "Otro",
       "date_created": "2026-04-20T20:12:53.019Z",
       "date_updated": "2026-04-22T00:37:42.926Z",
-      "calle_limpia": "moussy",
+      "calle_limpia": "moussy santa fe",
       "numero_limpio": 800
     },
     {
@@ -166041,7 +166161,7 @@
       "zona": "Otro",
       "date_created": "2026-03-27T18:26:22.025Z",
       "date_updated": "2026-04-25T11:45:37.059Z",
-      "calle_limpia": "chacabuco",
+      "calle_limpia": "chacabuco santa fe",
       "numero_limpio": 1328
     },
     {
@@ -166121,7 +166241,7 @@
       "zona": "Otro",
       "date_created": "2025-10-06T15:11:12.421Z",
       "date_updated": "2026-04-26T13:40:07.581Z",
-      "calle_limpia": "ovidio lagos",
+      "calle_limpia": "ovidio lagos santa fe",
       "numero_limpio": 835
     },
     {
@@ -166261,7 +166381,7 @@
       "zona": "Otro",
       "date_created": "2026-04-01T19:01:15.964Z",
       "date_updated": "2026-04-24T20:35:33.834Z",
-      "calle_limpia": "iriondo",
+      "calle_limpia": "iriondo santa fe",
       "numero_limpio": 507
     },
     {
@@ -166281,7 +166401,7 @@
       "zona": "Otro",
       "date_created": "2026-03-19T16:40:39.649Z",
       "date_updated": "2026-04-25T21:20:02.675Z",
-      "calle_limpia": "vera mujica",
+      "calle_limpia": "vera mujica santa fe",
       "numero_limpio": 900
     },
     {
@@ -166321,7 +166441,7 @@
       "zona": "Otro",
       "date_created": "2026-03-26T23:34:52.987Z",
       "date_updated": "2026-04-26T02:26:04.290Z",
-      "calle_limpia": "alem",
+      "calle_limpia": "alem santa fe",
       "numero_limpio": 1400
     },
     {
@@ -166401,7 +166521,7 @@
       "zona": "Otro",
       "date_created": "2026-01-20T12:57:39.764Z",
       "date_updated": "2026-04-23T14:04:28.703Z",
-      "calle_limpia": "avda de la costa estanislao lopez",
+      "calle_limpia": "avda de la costa estanislao lopez santa fe",
       "numero_limpio": 2600
     },
     {
@@ -166618,7 +166738,9 @@
       "lon": -60.65492,
       "zona": "Otro",
       "date_created": "2026-04-18T01:26:20.688Z",
-      "date_updated": "2026-04-24T18:52:04.792Z"
+      "date_updated": "2026-04-24T18:52:04.792Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2300
     },
     {
       "precio": 460000.0,
@@ -166637,7 +166759,7 @@
       "zona": "Otro",
       "date_created": "2026-01-16T15:30:43.663Z",
       "date_updated": "2026-04-24T12:48:13.759Z",
-      "calle_limpia": "pasaje cruz",
+      "calle_limpia": "pasaje cruz santa fe",
       "numero_limpio": 300
     },
     {
@@ -166656,7 +166778,9 @@
       "lon": -60.659462,
       "zona": "Otro",
       "date_created": "2026-01-05T17:22:33.000Z",
-      "date_updated": "2026-04-24T21:31:20.528Z"
+      "date_updated": "2026-04-24T21:31:20.528Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2679
     },
     {
       "precio": 1000000.0,
@@ -166675,7 +166799,7 @@
       "zona": "Otro",
       "date_created": "2025-12-22T12:06:16.288Z",
       "date_updated": "2026-04-23T15:08:37.037Z",
-      "calle_limpia": "de julio",
+      "calle_limpia": "de julio santa fe",
       "numero_limpio": 9
     },
     {
@@ -166755,7 +166879,7 @@
       "zona": "Otro",
       "date_created": "2026-04-09T19:47:01.138Z",
       "date_updated": "2026-04-25T01:13:14.234Z",
-      "calle_limpia": "espana",
+      "calle_limpia": "espana santa fe",
       "numero_limpio": 300
     },
     {
@@ -166775,7 +166899,7 @@
       "zona": "Otro",
       "date_created": "2026-03-27T19:28:36.920Z",
       "date_updated": "2026-04-25T01:26:21.404Z",
-      "calle_limpia": "mitre",
+      "calle_limpia": "mitre santa fe",
       "numero_limpio": 1778
     },
     {
@@ -166895,7 +167019,7 @@
       "zona": "Martin",
       "date_created": "2026-04-22T16:01:38.373Z",
       "date_updated": "2026-04-23T19:27:23.748Z",
-      "calle_limpia": "martin",
+      "calle_limpia": "martin santa fe",
       "numero_limpio": 1500
     },
     {
@@ -166975,7 +167099,7 @@
       "zona": "Otro",
       "date_created": "2026-04-20T16:38:20.073Z",
       "date_updated": "2026-04-25T19:47:27.862Z",
-      "calle_limpia": "del valle iberlucea",
+      "calle_limpia": "del valle iberlucea santa fe",
       "numero_limpio": 1000
     },
     {
@@ -166995,7 +167119,7 @@
       "zona": "Otro",
       "date_created": "2026-01-16T12:55:02.354Z",
       "date_updated": "2026-04-23T02:17:49.468Z",
-      "calle_limpia": "laprida",
+      "calle_limpia": "laprida santa fe",
       "numero_limpio": 1900
     },
     {
@@ -167050,12 +167174,12 @@
       "valor_m2": 17333.33,
       "fuente": "propia_api_browser",
       "id_propia": 451191,
-      "lat": -32.925636,
-      "lon": -60.67292,
+      "lat": -32.94704050000001,
+      "lon": -60.6313615,
       "zona": "Otro",
       "date_created": "2026-03-10T17:15:33.150Z",
       "date_updated": "2026-04-22T18:27:00.275Z",
-      "calle_limpia": "cilveti",
+      "calle_limpia": "cilveti santa fe",
       "numero_limpio": 600
     },
     {
@@ -167275,7 +167399,7 @@
       "zona": "Otro",
       "date_created": "2026-04-15T19:08:48.851Z",
       "date_updated": "2026-04-23T01:56:35.365Z",
-      "calle_limpia": "colon",
+      "calle_limpia": "colon santa fe",
       "numero_limpio": 1400
     },
     {
@@ -167315,7 +167439,7 @@
       "zona": "Otro",
       "date_created": "2025-11-11T14:41:18.690Z",
       "date_updated": "2026-04-22T01:31:01.162Z",
-      "calle_limpia": "martin",
+      "calle_limpia": "martin santa fe",
       "numero_limpio": 700
     },
     {
@@ -167455,7 +167579,7 @@
       "zona": "Otro",
       "date_created": "2026-04-14T18:43:06.235Z",
       "date_updated": "2026-04-25T22:05:35.459Z",
-      "calle_limpia": "de julio",
+      "calle_limpia": "de julio santa fe",
       "numero_limpio": 9
     },
     {
@@ -167555,7 +167679,7 @@
       "zona": "Otro",
       "date_created": "2025-12-17T00:10:52.436Z",
       "date_updated": "2026-04-24T15:53:13.264Z",
-      "calle_limpia": "de febrero",
+      "calle_limpia": "de febrero santa fe",
       "numero_limpio": 3
     },
     {
@@ -167595,7 +167719,7 @@
       "zona": "Martin",
       "date_created": "2026-04-22T15:43:59.468Z",
       "date_updated": "2026-04-24T20:05:59.530Z",
-      "calle_limpia": "martin",
+      "calle_limpia": "martin santa fe",
       "numero_limpio": 1500
     },
     {
@@ -167655,7 +167779,7 @@
       "zona": "Otro",
       "date_created": "2026-04-09T15:53:22.165Z",
       "date_updated": "2026-04-26T00:07:34.282Z",
-      "calle_limpia": "del valle iberlucea",
+      "calle_limpia": "del valle iberlucea santa fe",
       "numero_limpio": 1000
     },
     {
@@ -167675,7 +167799,7 @@
       "zona": "Otro",
       "date_created": "2026-04-16T06:46:49.893Z",
       "date_updated": "2026-04-26T13:37:24.645Z",
-      "calle_limpia": "rioja",
+      "calle_limpia": "rioja santa fe",
       "numero_limpio": 700
     },
     {
@@ -167815,7 +167939,7 @@
       "zona": "Otro",
       "date_created": "2026-03-17T16:01:23.315Z",
       "date_updated": "2026-04-25T23:56:18.874Z",
-      "calle_limpia": "paraguay",
+      "calle_limpia": "paraguay santa fe",
       "numero_limpio": 1024
     },
     {
@@ -167912,7 +168036,9 @@
       "lon": -60.65217,
       "zona": "Otro",
       "date_created": "2026-01-21T17:34:53.681Z",
-      "date_updated": "2026-04-26T00:17:53.895Z"
+      "date_updated": "2026-04-26T00:17:53.895Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2100
     },
     {
       "precio": 580000.0,
@@ -167950,7 +168076,9 @@
       "lon": -60.65888,
       "zona": "Otro",
       "date_created": "2026-02-27T15:59:44.067Z",
-      "date_updated": "2026-04-24T21:29:28.305Z"
+      "date_updated": "2026-04-24T21:29:28.305Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2638
     },
     {
       "precio": 350000.0,
@@ -167969,7 +168097,7 @@
       "zona": "Otro",
       "date_created": "2026-04-01T19:49:04.905Z",
       "date_updated": "2026-04-20T03:47:28.221Z",
-      "calle_limpia": "ituzaingo",
+      "calle_limpia": "ituzaingo santa fe",
       "numero_limpio": 500
     },
     {
@@ -168089,7 +168217,7 @@
       "zona": "Otro",
       "date_created": "2026-04-20T18:08:10.526Z",
       "date_updated": "2026-04-22T14:03:12.219Z",
-      "calle_limpia": "dorrego",
+      "calle_limpia": "dorrego santa fe",
       "numero_limpio": 1424
     },
     {
@@ -168109,7 +168237,7 @@
       "zona": "Otro",
       "date_created": "2026-01-19T20:16:12.251Z",
       "date_updated": "2026-04-25T02:05:53.025Z",
-      "calle_limpia": "salta",
+      "calle_limpia": "salta santa fe",
       "numero_limpio": 1368
     },
     {
@@ -168169,7 +168297,7 @@
       "zona": "Pellegrini",
       "date_created": "2026-03-26T19:24:01.393Z",
       "date_updated": "2026-04-25T17:02:38.554Z",
-      "calle_limpia": "pellegrini",
+      "calle_limpia": "pellegrini santa fe",
       "numero_limpio": 800
     },
     {
@@ -168289,7 +168417,7 @@
       "zona": "Otro",
       "date_created": "2026-04-13T17:22:17.355Z",
       "date_updated": "2026-04-24T18:31:19.643Z",
-      "calle_limpia": "lorenzo",
+      "calle_limpia": "lorenzo santa fe",
       "numero_limpio": 1880
     },
     {
@@ -168369,7 +168497,7 @@
       "zona": "Otro",
       "date_created": "2026-03-30T16:05:18.362Z",
       "date_updated": "2026-04-25T19:30:52.202Z",
-      "calle_limpia": "juan",
+      "calle_limpia": "juan santa fe",
       "numero_limpio": 2933
     },
     {
@@ -168429,7 +168557,7 @@
       "zona": "Otro",
       "date_created": "2026-03-04T17:17:33.206Z",
       "date_updated": "2026-04-24T15:54:16.618Z",
-      "calle_limpia": "apostoles",
+      "calle_limpia": "apostoles santa fe",
       "numero_limpio": 1200
     },
     {
@@ -168489,7 +168617,7 @@
       "zona": "Otro",
       "date_created": "2026-04-24T16:05:02.526Z",
       "date_updated": "2026-04-26T13:47:39.239Z",
-      "calle_limpia": "colon",
+      "calle_limpia": "colon santa fe",
       "numero_limpio": 1200
     },
     {
@@ -168547,7 +168675,7 @@
       "zona": "Otro",
       "date_created": "2026-03-03T17:10:54.505Z",
       "date_updated": "2026-04-22T15:20:48.675Z",
-      "calle_limpia": "olive",
+      "calle_limpia": "olive santa fe",
       "numero_limpio": 1691
     },
     {
@@ -168607,7 +168735,7 @@
       "zona": "Otro",
       "date_created": "2026-04-10T15:52:54.329Z",
       "date_updated": "2026-04-22T01:43:49.684Z",
-      "calle_limpia": "brown",
+      "calle_limpia": "brown santa fe",
       "numero_limpio": 1600
     },
     {
@@ -168626,7 +168754,9 @@
       "lon": -60.665947,
       "zona": "Otro",
       "date_created": "2024-07-05T14:01:04.000Z",
-      "date_updated": "2026-04-26T13:45:47.377Z"
+      "date_updated": "2026-04-26T13:45:47.377Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 3155
     },
     {
       "precio": 300000.0,
@@ -168743,7 +168873,7 @@
       "zona": "Otro",
       "date_created": "2026-03-24T12:26:05.032Z",
       "date_updated": "2026-04-25T16:37:12.966Z",
-      "calle_limpia": "luis",
+      "calle_limpia": "luis santa fe",
       "numero_limpio": 3735
     },
     {
@@ -168783,7 +168913,7 @@
       "zona": "Otro",
       "date_created": "2026-02-28T15:50:31.619Z",
       "date_updated": "2026-04-26T13:46:07.972Z",
-      "calle_limpia": "vera mujica",
+      "calle_limpia": "vera mujica santa fe",
       "numero_limpio": 900
     },
     {
@@ -168843,7 +168973,7 @@
       "zona": "Martin",
       "date_created": "2026-03-13T13:48:29.661Z",
       "date_updated": "2026-04-23T11:40:20.002Z",
-      "calle_limpia": "martin",
+      "calle_limpia": "martin santa fe",
       "numero_limpio": 1416
     },
     {
@@ -168863,7 +168993,7 @@
       "zona": "Otro",
       "date_created": "2025-10-01T14:55:35.343Z",
       "date_updated": "2026-04-24T17:08:31.729Z",
-      "calle_limpia": "rondeau",
+      "calle_limpia": "rondeau santa fe",
       "numero_limpio": 196
     },
     {
@@ -168961,7 +169091,7 @@
       "zona": "Otro",
       "date_created": "2026-03-18T15:08:18.915Z",
       "date_updated": "2026-04-26T02:24:26.677Z",
-      "calle_limpia": "alem",
+      "calle_limpia": "alem santa fe",
       "numero_limpio": 1600
     },
     {
@@ -169001,7 +169131,7 @@
       "zona": "Otro",
       "date_created": "2025-10-01T14:57:45.367Z",
       "date_updated": "2026-04-24T13:50:24.231Z",
-      "calle_limpia": "tucuman",
+      "calle_limpia": "tucuman santa fe",
       "numero_limpio": 3200
     },
     {
@@ -169021,7 +169151,7 @@
       "zona": "Otro",
       "date_created": "2026-01-21T19:00:41.714Z",
       "date_updated": "2026-04-21T00:19:05.280Z",
-      "calle_limpia": "lorenzo",
+      "calle_limpia": "lorenzo santa fe",
       "numero_limpio": 3700
     },
     {
@@ -169101,7 +169231,7 @@
       "zona": "Otro",
       "date_created": "2026-02-07T14:59:24.018Z",
       "date_updated": "2026-04-25T01:59:34.273Z",
-      "calle_limpia": "juan justo",
+      "calle_limpia": "juan justo santa fe",
       "numero_limpio": 1400
     },
     {
@@ -169121,7 +169251,7 @@
       "zona": "Otro",
       "date_created": "2025-12-16T16:14:06.809Z",
       "date_updated": "2026-04-09T16:42:49.492Z",
-      "calle_limpia": "ayacucho",
+      "calle_limpia": "ayacucho santa fe",
       "numero_limpio": 2400
     },
     {
@@ -169201,7 +169331,7 @@
       "zona": "Otro",
       "date_created": "2026-04-07T15:53:54.666Z",
       "date_updated": "2026-04-21T22:04:02.232Z",
-      "calle_limpia": "ituzaingo",
+      "calle_limpia": "ituzaingo santa fe",
       "numero_limpio": 585
     },
     {
@@ -169241,7 +169371,7 @@
       "zona": "Otro",
       "date_created": "2026-03-10T16:37:00.977Z",
       "date_updated": "2026-04-25T01:16:37.860Z",
-      "calle_limpia": "espana",
+      "calle_limpia": "espana santa fe",
       "numero_limpio": 1654
     },
     {
@@ -169301,7 +169431,7 @@
       "zona": "Otro",
       "date_created": "2026-03-26T19:23:49.786Z",
       "date_updated": "2026-04-24T05:12:16.603Z",
-      "calle_limpia": "gorriti",
+      "calle_limpia": "gorriti santa fe",
       "numero_limpio": 900
     },
     {
@@ -169656,11 +169786,13 @@
       "valor_m2": 10975.61,
       "fuente": "propia_api_browser",
       "id_propia": 462219,
-      "lat": -32.9405,
-      "lon": -60.66419,
+      "lat": -32.940872363636366,
+      "lon": -60.663484636363634,
       "zona": "Otro",
       "date_created": "2026-04-22T18:16:56.851Z",
-      "date_updated": "2026-04-23T05:03:41.718Z"
+      "date_updated": "2026-04-23T05:03:41.718Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 3000
     },
     {
       "precio": 500000.0,
@@ -170812,7 +170944,9 @@
       "lon": -60.66026,
       "zona": "Otro",
       "date_created": "2026-04-20T15:30:06.877Z",
-      "date_updated": "2026-04-21T05:01:52.342Z"
+      "date_updated": "2026-04-21T05:01:52.342Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2700
     },
     {
       "precio": 450000.0,
@@ -171999,7 +172133,7 @@
       "zona": "Otro",
       "date_created": "2026-03-05T13:14:55.335Z",
       "date_updated": "2026-04-21T14:56:38.033Z",
-      "calle_limpia": "urquiza",
+      "calle_limpia": "urquiza santa fe",
       "numero_limpio": 2011
     },
     {
@@ -172599,7 +172733,7 @@
       "zona": "Otro",
       "date_created": "2026-04-22T17:46:57.022Z",
       "date_updated": "2026-04-24T15:32:17.231Z",
-      "calle_limpia": "de mayo",
+      "calle_limpia": "de mayo santa fe",
       "numero_limpio": 1
     },
     {
@@ -173249,7 +173383,7 @@
       "zona": "Otro",
       "date_created": "2025-12-15T18:44:34.057Z",
       "date_updated": "2026-04-21T17:01:17.261Z",
-      "calle_limpia": "espana",
+      "calle_limpia": "espana santa fe",
       "numero_limpio": 394
     },
     {
@@ -174099,7 +174233,7 @@
       "zona": "Otro",
       "date_created": "2026-04-23T15:30:30.806Z",
       "date_updated": "2026-04-25T13:24:57.867Z",
-      "calle_limpia": "mendoza",
+      "calle_limpia": "mendoza santa fe",
       "numero_limpio": 2699
     },
     {
@@ -174239,7 +174373,7 @@
       "zona": "Otro",
       "date_created": "2026-04-03T16:36:14.883Z",
       "date_updated": "2026-04-15T02:57:46.943Z",
-      "calle_limpia": "sarmiento",
+      "calle_limpia": "sarmiento santa fe",
       "numero_limpio": 5200
     },
     {
@@ -174674,7 +174808,9 @@
       "lon": -60.666016,
       "zona": "Otro",
       "date_created": "2026-03-27T14:45:51.070Z",
-      "date_updated": "2026-04-25T19:20:57.517Z"
+      "date_updated": "2026-04-25T19:20:57.517Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 3100
     },
     {
       "precio": 900000.0,
@@ -174890,7 +175026,9 @@
       "lon": -60.645393,
       "zona": "Otro",
       "date_created": "2026-04-20T19:00:48.284Z",
-      "date_updated": "2026-04-21T05:00:22.237Z"
+      "date_updated": "2026-04-21T05:00:22.237Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 1644
     },
     {
       "precio": 600000.0,
@@ -175042,11 +175180,13 @@
       "valor_m2": 11463.41,
       "fuente": "propia_api_browser",
       "id_propia": 458651,
-      "lat": -32.94427,
-      "lon": -60.680428,
+      "lat": -32.937696800000005,
+      "lon": -60.6778758,
       "zona": "Otro",
       "date_created": "2026-04-08T18:39:18.962Z",
-      "date_updated": "2026-04-16T23:34:06.794Z"
+      "date_updated": "2026-04-16T23:34:06.794Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 4038
     },
     {
       "precio": 475000.0,
@@ -175263,7 +175403,7 @@
       "zona": "Otro",
       "date_created": "2025-11-26T13:24:12.605Z",
       "date_updated": "2026-04-25T02:11:53.683Z",
-      "calle_limpia": "urquiza",
+      "calle_limpia": "urquiza santa fe",
       "numero_limpio": 1600
     },
     {
@@ -175621,7 +175761,7 @@
       "zona": "Otro",
       "date_created": "2026-01-21T12:16:53.681Z",
       "date_updated": "2026-04-21T18:36:33.508Z",
-      "calle_limpia": "montevideo",
+      "calle_limpia": "montevideo santa fe",
       "numero_limpio": 300
     },
     {
@@ -176134,7 +176274,9 @@
       "lon": -60.645393,
       "zona": "Otro",
       "date_created": "2025-10-21T15:52:30.674Z",
-      "date_updated": "2026-04-22T00:02:50.375Z"
+      "date_updated": "2026-04-22T00:02:50.375Z",
+      "calle_limpia": "santa fe santa fe",
+      "numero_limpio": 1644
     },
     {
       "precio": 570000.0,
@@ -176393,7 +176535,7 @@
       "zona": "Otro",
       "date_created": "2026-04-01T14:29:24.147Z",
       "date_updated": "2026-04-24T11:10:07.578Z",
-      "calle_limpia": "primero de mayo",
+      "calle_limpia": "primero de mayo santa fe",
       "numero_limpio": 1159
     },
     {
@@ -176468,11 +176610,13 @@
       "valor_m2": 11666.67,
       "fuente": "propia_api_browser",
       "id_propia": 434631,
-      "lat": -32.940502,
-      "lon": -60.663105,
+      "lat": -32.9408124,
+      "lon": -60.66235240000001,
       "zona": "Otro",
       "date_created": "2026-01-29T19:41:54.411Z",
-      "date_updated": "2026-03-29T04:35:33.430Z"
+      "date_updated": "2026-03-29T04:35:33.430Z",
+      "calle_limpia": "santa fe santa fe",
+      "numero_limpio": 2935
     },
     {
       "precio": 300000.0,
@@ -176551,7 +176695,7 @@
       "zona": "Otro",
       "date_created": "2026-01-15T15:58:46.586Z",
       "date_updated": "2026-04-24T19:03:12.846Z",
-      "calle_limpia": "santiago",
+      "calle_limpia": "santiago santa fe",
       "numero_limpio": 188
     },
     {
@@ -176824,11 +176968,13 @@
       "valor_m2": 11581.73,
       "fuente": "propia_api_browser",
       "id_propia": 423100,
-      "lat": -32.940434,
-      "lon": -60.664642,
+      "lat": -32.940872363636366,
+      "lon": -60.663484636363634,
       "zona": "Otro",
       "date_created": "2025-12-04T14:31:40.819Z",
-      "date_updated": "2026-04-20T16:46:20.391Z"
+      "date_updated": "2026-04-20T16:46:20.391Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 3000
     },
     {
       "precio": 800000.0,
@@ -177123,7 +177269,7 @@
       "zona": "Otro",
       "date_created": "2025-10-17T15:14:31.603Z",
       "date_updated": "2026-04-19T04:44:31.493Z",
-      "calle_limpia": "callao",
+      "calle_limpia": "callao santa fe",
       "numero_limpio": 274
     },
     {
@@ -178673,7 +178819,7 @@
       "zona": "Otro",
       "date_created": "2026-03-10T16:00:17.003Z",
       "date_updated": "2026-04-21T15:49:33.685Z",
-      "calle_limpia": "de julio",
+      "calle_limpia": "de julio santa fe",
       "numero_limpio": 9
     },
     {
@@ -179247,7 +179393,7 @@
       "zona": "Otro",
       "date_created": "2025-10-21T16:39:09.665Z",
       "date_updated": "2026-04-26T07:23:29.807Z",
-      "calle_limpia": "cordoba",
+      "calle_limpia": "cordoba santa fe",
       "numero_limpio": 2150
     },
     {
@@ -179502,11 +179648,13 @@
       "valor_m2": 9666.67,
       "fuente": "propia_api_browser",
       "id_propia": 451997,
-      "lat": -32.933853,
-      "lon": -60.660793,
+      "lat": -32.940582000000006,
+      "lon": -60.661384777777776,
       "zona": "Otro",
       "date_created": "2026-03-11T15:45:38.808Z",
-      "date_updated": "2026-04-24T21:33:59.475Z"
+      "date_updated": "2026-04-24T21:33:59.475Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2600
     },
     {
       "precio": 420000.0,
@@ -179704,7 +179852,9 @@
       "lon": -60.678032,
       "zona": "Otro",
       "date_created": "2026-01-07T20:31:43.327Z",
-      "date_updated": "2026-04-18T05:02:58.977Z"
+      "date_updated": "2026-04-18T05:02:58.977Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 4047
     },
     {
       "precio": 550000.0,
@@ -179881,7 +180031,7 @@
       "zona": "Otro",
       "date_created": "2026-04-06T13:58:35.734Z",
       "date_updated": "2026-04-19T19:42:53.900Z",
-      "calle_limpia": "cuberta",
+      "calle_limpia": "cuberta santa fe",
       "numero_limpio": 9100
     },
     {
@@ -180557,7 +180707,7 @@
       "zona": "Otro",
       "date_created": "2026-04-10T19:12:26.676Z",
       "date_updated": "2026-04-25T13:41:28.544Z",
-      "calle_limpia": "corrientes",
+      "calle_limpia": "corrientes santa fe",
       "numero_limpio": 1339
     },
     {
@@ -181115,7 +181265,7 @@
       "zona": "Otro",
       "date_created": "2022-09-13T00:26:43.000Z",
       "date_updated": "2026-04-26T11:17:04.683Z",
-      "calle_limpia": "de julio prov",
+      "calle_limpia": "de julio prov santa fe",
       "numero_limpio": 9
     },
     {
@@ -182045,7 +182195,7 @@
       "zona": "Otro",
       "date_created": "2026-03-16T17:10:43.251Z",
       "date_updated": "2026-04-25T22:05:23.720Z",
-      "calle_limpia": "cochabamba",
+      "calle_limpia": "cochabamba santa fe",
       "numero_limpio": 1776
     },
     {
@@ -182963,7 +183113,7 @@
       "zona": "Otro",
       "date_created": "2026-04-10T14:20:57.608Z",
       "date_updated": "2026-04-19T21:05:24.045Z",
-      "calle_limpia": "cochabamba",
+      "calle_limpia": "cochabamba santa fe",
       "numero_limpio": 1469
     },
     {
@@ -183022,7 +183172,9 @@
       "lon": -60.64282,
       "zona": "Otro",
       "date_created": "2026-04-07T16:17:00.844Z",
-      "date_updated": "2026-04-21T04:28:07.869Z"
+      "date_updated": "2026-04-21T04:28:07.869Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 1400
     },
     {
       "precio": 400000.0,
@@ -183300,7 +183452,9 @@
       "lon": -60.641273,
       "zona": "Otro",
       "date_created": "2026-02-09T14:45:56.384Z",
-      "date_updated": "2026-04-21T04:33:01.252Z"
+      "date_updated": "2026-04-21T04:33:01.252Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 1300
     },
     {
       "precio": 500000.0,
@@ -183496,7 +183650,9 @@
       "lon": -60.660423,
       "zona": "Otro",
       "date_created": "2026-04-22T20:16:14.188Z",
-      "date_updated": "2026-04-24T05:03:02.796Z"
+      "date_updated": "2026-04-24T05:03:02.796Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2700
     },
     {
       "precio": 450000.0,
@@ -184011,7 +184167,7 @@
       "zona": "Otro",
       "date_created": "2026-03-11T20:07:04.604Z",
       "date_updated": "2026-04-24T18:28:24.046Z",
-      "calle_limpia": "paraguay",
+      "calle_limpia": "paraguay santa fe",
       "numero_limpio": 327
     },
     {
@@ -184429,7 +184585,7 @@
       "zona": "Otro",
       "date_created": "2026-04-15T14:50:53.420Z",
       "date_updated": "2026-04-22T21:12:22.095Z",
-      "calle_limpia": "fisherton alvarez condarco",
+      "calle_limpia": "fisherton alvarez condarco santa fe",
       "numero_limpio": 650
     },
     {
@@ -184749,7 +184905,7 @@
       "zona": "Otro",
       "date_created": "2026-03-10T16:18:26.332Z",
       "date_updated": "2026-04-21T15:49:17.875Z",
-      "calle_limpia": "de julio",
+      "calle_limpia": "de julio santa fe",
       "numero_limpio": 9
     },
     {
@@ -184789,7 +184945,7 @@
       "zona": "Otro",
       "date_created": "2026-04-21T23:53:01.182Z",
       "date_updated": "2026-04-23T01:34:20.330Z",
-      "calle_limpia": "buenos aires",
+      "calle_limpia": "buenos aires santa fe",
       "numero_limpio": 1368
     },
     {
@@ -187257,7 +187413,7 @@
       "zona": "Otro",
       "date_created": "2026-04-22T14:45:10.686Z",
       "date_updated": "2026-04-23T19:27:49.072Z",
-      "calle_limpia": "montevideo",
+      "calle_limpia": "montevideo santa fe",
       "numero_limpio": 1849
     },
     {
@@ -189040,7 +189196,9 @@
       "lon": -60.665947,
       "zona": "Otro",
       "date_created": "2025-12-29T14:45:31.800Z",
-      "date_updated": "2026-04-26T12:45:22.386Z"
+      "date_updated": "2026-04-26T12:45:22.386Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 3100
     },
     {
       "precio": 1000000.0,
@@ -189290,11 +189448,13 @@
       "valor_m2": 10607.17,
       "fuente": "propia_api_browser",
       "id_propia": 460132,
-      "lat": -32.941547,
-      "lon": -60.656868,
+      "lat": -32.942028125,
+      "lon": -60.65597424999999,
       "zona": "Otro",
       "date_created": "2026-04-15T12:15:26.213Z",
-      "date_updated": "2026-04-17T15:57:14.452Z"
+      "date_updated": "2026-04-17T15:57:14.452Z",
+      "calle_limpia": "santa fe",
+      "numero_limpio": 2400
     },
     {
       "precio": 450000.0,
@@ -189533,7 +189693,7 @@
       "zona": "Otro",
       "date_created": "2026-04-24T15:50:39.964Z",
       "date_updated": "2026-04-25T20:21:47.967Z",
-      "calle_limpia": "paz",
+      "calle_limpia": "paz santa fe",
       "numero_limpio": 5200
     },
     {
@@ -189553,7 +189713,7 @@
       "zona": "Otro",
       "date_created": "2026-01-30T16:37:55.749Z",
       "date_updated": "2026-04-24T18:32:44.732Z",
-      "calle_limpia": "pavon",
+      "calle_limpia": "pavon santa fe",
       "numero_limpio": 4782
     },
     {
@@ -189593,7 +189753,7 @@
       "zona": "Otro",
       "date_created": "2026-04-09T13:04:52.555Z",
       "date_updated": "2026-04-24T20:38:58.528Z",
-      "calle_limpia": "larrechea",
+      "calle_limpia": "larrechea santa fe",
       "numero_limpio": 890
     },
     {
@@ -189653,7 +189813,7 @@
       "zona": "Otro",
       "date_created": "2025-11-17T12:54:01.697Z",
       "date_updated": "2026-04-24T23:23:03.905Z",
-      "calle_limpia": "pje larguia",
+      "calle_limpia": "pje larguia santa fe",
       "numero_limpio": 3400
     },
     {
@@ -189713,7 +189873,7 @@
       "zona": "Otro",
       "date_created": "2025-12-15T20:43:36.576Z",
       "date_updated": "2026-04-22T14:22:58.103Z",
-      "calle_limpia": "casilda",
+      "calle_limpia": "casilda santa fe",
       "numero_limpio": 7600
     },
     {
@@ -189773,7 +189933,7 @@
       "zona": "Otro",
       "date_created": "2025-11-06T14:53:34.658Z",
       "date_updated": "2026-04-24T22:33:30.478Z",
-      "calle_limpia": "orono",
+      "calle_limpia": "orono santa fe",
       "numero_limpio": 400
     },
     {
@@ -189793,7 +189953,7 @@
       "zona": "Otro",
       "date_created": "2026-04-07T17:06:56.367Z",
       "date_updated": "2026-04-24T14:11:26.872Z",
-      "calle_limpia": "almafuerte",
+      "calle_limpia": "almafuerte santa fe",
       "numero_limpio": 600
     },
     {
@@ -189813,7 +189973,7 @@
       "zona": "Otro",
       "date_created": "2025-10-06T15:16:39.070Z",
       "date_updated": "2026-04-24T06:32:35.629Z",
-      "calle_limpia": "puccio",
+      "calle_limpia": "puccio santa fe",
       "numero_limpio": 345
     },
     {
@@ -189873,7 +190033,7 @@
       "zona": "Otro",
       "date_created": "2026-04-22T19:47:25.919Z",
       "date_updated": "2026-04-25T23:16:01.063Z",
-      "calle_limpia": "alvarez thomas",
+      "calle_limpia": "alvarez thomas santa fe",
       "numero_limpio": 1110
     },
     {
@@ -190491,7 +190651,7 @@
       "zona": "Otro",
       "date_created": "2026-03-18T20:17:11.540Z",
       "date_updated": "2026-04-21T21:12:20.897Z",
-      "calle_limpia": "tres de febrero",
+      "calle_limpia": "tres de febrero santa fe",
       "numero_limpio": 300
     },
     {
@@ -190947,7 +191107,7 @@
       "zona": "Otro",
       "date_created": "2026-04-20T22:57:29.255Z",
       "date_updated": "2026-04-26T01:17:10.200Z",
-      "calle_limpia": "pasaje coussirat",
+      "calle_limpia": "pasaje coussirat santa fe",
       "numero_limpio": 2806
     },
     {
@@ -191565,7 +191725,7 @@
       "zona": "Otro",
       "date_created": "2026-03-22T14:00:12.222Z",
       "date_updated": "2026-04-20T00:38:55.685Z",
-      "calle_limpia": "gonzalez del solar bis",
+      "calle_limpia": "gonzalez del solar bis santa fe",
       "numero_limpio": 400
     },
     {
@@ -191981,7 +192141,7 @@
       "zona": "Otro",
       "date_created": "2026-01-21T13:07:40.732Z",
       "date_updated": "2026-04-22T12:40:37.502Z",
-      "calle_limpia": "dorrego",
+      "calle_limpia": "dorrego santa fe",
       "numero_limpio": 1100
     },
     {
@@ -192517,7 +192677,7 @@
       "zona": "Otro",
       "date_created": "2026-04-22T19:22:44.122Z",
       "date_updated": "2026-04-24T19:09:27.180Z",
-      "calle_limpia": "maspoli",
+      "calle_limpia": "maspoli santa fe",
       "numero_limpio": 1200
     },
     {
@@ -192597,7 +192757,7 @@
       "zona": "Otro",
       "date_created": "2026-01-20T15:28:58.919Z",
       "date_updated": "2026-04-06T17:29:44.544Z",
-      "calle_limpia": "martin",
+      "calle_limpia": "martin santa fe",
       "numero_limpio": 3600
     },
     {
@@ -192815,7 +192975,7 @@
       "zona": "Otro",
       "date_created": "2026-04-15T15:08:39.033Z",
       "date_updated": "2026-04-26T12:57:28.429Z",
-      "calle_limpia": "balcarce",
+      "calle_limpia": "balcarce santa fe",
       "numero_limpio": 4590
     },
     {
@@ -192908,12 +193068,12 @@
       "valor_m2": 5212.77,
       "fuente": "propia_api_browser",
       "id_propia": 456591,
-      "lat": -32.941,
-      "lon": -60.6969,
+      "lat": -32.946889500000005,
+      "lon": -60.63436441666667,
       "zona": "Otro",
       "date_created": "2026-03-30T15:34:21.051Z",
       "date_updated": "2026-04-26T01:11:36.562Z",
-      "calle_limpia": "pje bremen",
+      "calle_limpia": "pje bremen santa fe",
       "numero_limpio": 900
     },
     {
@@ -192928,12 +193088,12 @@
       "valor_m2": 5700.0,
       "fuente": "propia_api_browser",
       "id_propia": 410490,
-      "lat": -32.939796,
-      "lon": -60.687946,
+      "lat": -32.94680266666667,
+      "lon": -60.63566483333333,
       "zona": "Otro",
       "date_created": "2025-10-08T18:42:42.751Z",
       "date_updated": "2026-04-25T17:15:57.474Z",
-      "calle_limpia": "gutemberg",
+      "calle_limpia": "gutemberg santa fe",
       "numero_limpio": 976
     },
     {
