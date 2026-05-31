@@ -113,13 +113,13 @@
       "id": 10,
       "_ultima_valuacion": {
         "valor_usd": 51602.0,
-        "alquiler_ars": 349603.0,
+        "alquiler_ars": 349627.0,
         "cap_rate": 0.0546,
         "m2_equivalentes": 28.9265,
         "comps": 16,
-        "fecha": "30/05/2026 22:31",
+        "fecha": "30/05/2026 22:49",
         "cache_version": "v5_zonificada",
-        "timestamp": "2026-05-30T22:31:52.305748"
+        "timestamp": "2026-05-30T22:49:44.065182"
       }
     },
     {

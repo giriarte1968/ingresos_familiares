@@ -1562,6 +1562,64 @@ Escaneados 447 grupos de coordenadas compartidas (998 PHs en esquinas) comparand
 
 ---
 
+## TAREA-020 — 2026-05-30 — Corrección de coordenadas cache scraping vía centroide catastral
+
+### Problema
+
+Las coordenadas de `cache_scraping.json` (9.766 propiedades) provienen del geocoder de los portales, que asigna coordenadas al centro de cuadra. Esto causaba:
+
+1. **Error promedio de 414m** vs la ubicación real del PH en catastro
+2. **Comparables no fidedignos**: distancia UI incorrecta al sujeto valuado
+3. **Enriquecimiento de año fallido**: PASO 2 (60m máximo) no capturaba matches válidos
+
+### Solución
+
+Se creó `scripts/corregir_coords_cache.py` que para cada propiedad con `(calle, num)` válido:
+
+1. Busca el PH más cercano en catastro (exacto o por bloque+token containment)
+2. Obtiene el centroide de la parcela catastral (geometría oficial, 184.982 parcelas)
+3. Si la distancia cache vs centroide >60m → reemplaza con el centroide
+
+### Matching de calles
+
+Se implementó matching progresivo para resolver diferencias de normalización:
+- **Token containment**: "del valle" → "aristobulo del valle" (misma calle, normalización distinta)
+- **Filtro de bloque**: evita emparejar PH de bloque 2600 para dirección de bloque 2700
+- **`_filtrar_calle_diccionario`**: limpia basura descriptiva ("un semisubsuelo patio")
+
+### Resultados
+
+| Métrica | Valor |
+|---------|-------|
+| Propiedades evaluadas | 9.766 |
+| Con (calle, num) válido | 8.774 |
+| PH encontrado + centroide | 7.430 (85%) |
+| **Coordenadas corregidas (>60m)** | **3.289 (37%)** |
+| Sin cambio (≤60m) | 4.131 (47%) |
+| Sin PH en catastro | 1.344 (15%) |
+| Error promedio antes | 411m |
+| Error máximo antes | 14.816m |
+
+### Ejemplos concretos
+
+| Dirección | Error antes | Corregido a |
+|-----------|:----------:|-------------|
+| Francia 167 | 349m del PH 21095 | PH 21095 (Francia 166) |
+| Av. del Valle 2700 | 246m del PH 12549 | PH 12549 (Av. del Valle 2799) |
+| San Martin al 400 | 2.063m | PH 10413 (San Martin 380) |
+| Pasaje Apóstoles 1264 | 12.443m | PH 10599 |
+
+### Archivos modificados
+- `scripts/corregir_coords_cache.py` — nuevo: corrige coordenadas vía centroide
+- `cache_scraping.json` — 3.289 coordenadas corregidas
+- `tests/test_regression.py` — rangos actualizados (Vera $60.665, P1200 $922.832)
+- `docs/BITACORA_AGENTES.md` — esta entrada
+- `docs/STATUS_ACTUAL.md` — actualizado
+- `.opencode/plans/TAREA-020.md` — plan archivado
+- `.opencode/plans/TAREAS_INDEX.md` — TAREA-020 agregada
+
+---
+
 ## TAREA-019 — 2026-05-30 — Enriquecimiento: filtro de bloque + PASO 2 a 60m
 
 ### Problema

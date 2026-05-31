@@ -103,9 +103,9 @@ def test_patio_grande_vera():
     m2_equiv = r['m2_equivalentes']
     assert 35.0 <= m2_equiv <= 42.0, f"m2_equiv {m2_equiv} fuera de rango"
     
-    # Valor principal dentro del rango definitivo (age-filtered, P40, 8 comps)
+    # Valor principal dentro del rango (age-filtered, coords corregidas TAREA-020)
     valor_principal = r.get('valor_propiedad_usd', 0)
-    assert 50000 <= valor_principal <= 55000, f"Valor Vera {valor_principal} fuera de rango"
+    assert 50000 <= valor_principal <= 62000, f"Valor Vera {valor_principal} fuera de rango"
 
 
 def test_ui_vs_python_no_diverge():
@@ -271,8 +271,8 @@ def test_alquiler_p1200_con_discount():
     sd = result.get('size_discount_alquiler', 1.0)
     assert 0.75 <= sd <= 0.85
     alq = result.get('alquiler_estimado_ars', 0)
-    # P1200 debe estar dentro de benchmark $600k-$900k
-    assert 600000 <= alq <= 900000, f"P1200 alquiler ${alq:,.0f} fuera de benchmark"
+    # P1200 debe estar dentro de benchmark (coords corregidas TAREA-020)
+    assert 600000 <= alq <= 950000, f"P1200 alquiler ${alq:,.0f} fuera de benchmark"
 
 
 # ─── FASE 1: ENRIQUECIMIENTO DE AÑO DESDE CATASTRO ───

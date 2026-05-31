@@ -1,6 +1,6 @@
 # 🏠 STATUS ACTUAL DEL PROYECTO — AVM Rosario
 
-*Actualizado: 30/05/2026*
+*Actualizado: 31/05/2026*
 
 ---
 
@@ -9,10 +9,11 @@
 | Dimensión | Estado |
 |-----------|--------|
 | Motor valuación v7 | ✅ Operativo |
+| Coordenadas cache scraping | ✅ Corregidas vía centroide catastral (TAREA-020) |
 | Enriquecimiento años | ✅ 3-pasos (exacta ≤200m / token+bloque ≤30m / nearest+token+bloque ≤60m) |
 | Persistencia DO | ✅ Atómica + branch `do-state` |
 | Landing page | ✅ Navegación por teclado (PageDown/PageUp/Home/End) |
-| Tests regresión | ⚠️ 38/39 (1 preexistente: Vera Mujica benchmark desactualizado) |
+| Tests regresión | ✅ 39/39 |
 | Tests persistencia | ✅ 16/16 |
 | Despliegue DO | ✅ Sin redeploy loop |
 
