@@ -1558,7 +1558,37 @@ Escaneados 447 grupos de coordenadas compartidas (998 PHs en esquinas) comparand
 - `data/rosario_avm_full.csv` — 210 PHs con dirección corregida en esquinas
 
 ### Commit
-`3c26724` — push a origin/main
+`09766f5` — push a origin/main
+
+---
+
+## TAREA-022 — 2026-05-31 — Cap dinámico de factor_total según cluster quality
+
+### Problema
+El soft cap `MAX_BONUS_ATRIBUTOS` (1.30) en `valuar_propiedad_v7()` era código muerto: modificaba la variable local `factores_base` pero `valor_venta` usaba `f_dict['total']` directamente. Propiedades como Brown 2750 con factor 1.346 no tenían cap real.
+
+### Solución
+Dos nuevas funciones + reemplazo del cap muerto:
+
+1. `obtener_caps_factor_por_cluster(meta_venta, n_v)`: retorna (min, max) según cluster:
+   - ALTA (radio≤300 y n≥15) → [0.85, 1.15]
+   - MEDIA (n≥8) → [0.78, 1.25]
+   - BAJA → [0.70, 1.35]
+
+2. `aplicar_cap_dinamico_factor(f_dict, meta_venta, n_v)`: aplica cap y guarda metadata en `f_dict['cap_dinamico']`
+
+3. En `valuar_propiedad_v7()`, reemplazadas líneas 3042-3047 (código muerto) por llamado a `aplicar_cap_dinamico_factor()`.
+
+### Impacto
+| Propiedad | Factor original | Cluster | Factor final | Δ valor |
+|-----------|:---------------:|:-------:|:------------:|:-------:|
+| Brown 2750 | 1.3463 | ALTA | **1.15** | −14.6% |
+| P1200 | ~1.30 | MEDIA | **1.25** | −~4% |
+| Mabel/Ayacucho/Vera | ~1.0-1.1 | ALTA/MEDIA | sin cambio | ~0% |
+
+### Archivos modificados
+- `parsers/mercado_inmobiliario.py` — 2 nuevas funciones + cap muerto reemplazado
+- `docs/BITACORA_AGENTES.md`, `docs/STATUS_ACTUAL.md`, `docs/ALGORITMOS.md`, `.opencode/plans/TAREAS_INDEX.md`
 
 ---
 

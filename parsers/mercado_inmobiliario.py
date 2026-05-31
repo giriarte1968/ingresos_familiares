@@ -357,6 +357,30 @@ def valuar_entrada(propiedad, fecha_ref=None):
 UMBRAL_CONFIANZA_SCRAPING = 8   # Muestras mínimas para confiar en el scraping
 MAX_BONUS_ATRIBUTOS = 1.30   # Cap +30% para evitar valores locos
 
+def obtener_caps_factor_por_cluster(meta_venta, n_v):
+    radio = meta_venta.get('radio_usado', 999)
+    if radio is not None and radio <= 300 and n_v >= 15:
+        return 0.85, 1.15
+    elif n_v >= 8:
+        return 0.78, 1.25
+    return 0.70, 1.35
+
+def aplicar_cap_dinamico_factor(f_dict, meta_venta, n_v):
+    cap_min, cap_max = obtener_caps_factor_por_cluster(meta_venta, n_v)
+    factor_original = f_dict['total']
+    factor_final = max(cap_min, min(cap_max, factor_original))
+    f_dict['total'] = factor_final
+    cluster_conf = 'ALTA' if cap_max == 1.15 else 'MEDIA' if cap_max == 1.25 else 'BAJA'
+    f_dict['cap_dinamico'] = {
+        'aplicado': factor_original != factor_final,
+        'min': cap_min,
+        'max': cap_max,
+        'cluster_conf': cluster_conf,
+        'factor_original': round(factor_original, 4),
+        'factor_final': round(factor_final, 4)
+    }
+    return f_dict
+
 # --- CONFIGURACIÓN DE BÚSQUEDA GEOESPACIAL ---
 RADIOS_PROGRESIVOS = [300, 500, 800, 1000, 1500]  # metros
 MIN_COMPARABLES = 10  # mínimo para considerar cluster válido
@@ -3039,12 +3063,9 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True):
     logger.info(f"f_estructural: {f_dict.get('estructural_puro')}")
     logger.info(f"factores_base (total): {factores_base}")
     
-    # CAP de atributos para evitar snowball effect
-    if factores_base > MAX_BONUS_ATRIBUTOS:
-        excedente = factores_base - MAX_BONUS_ATRIBUTOS
-        factores_base = MAX_BONUS_ATRIBUTOS + (excedente * 0.4)
-    
-    factores_finales = factores_base
+    # CAP dinámico según calidad del cluster (TAREA-022)
+    f_dict = aplicar_cap_dinamico_factor(f_dict, meta_venta, n_v)
+    factores_finales = f_dict['total']
     
     # 3. Metros Específicos para Alquiler (Prioriza Cubiertos)
     m2_cub = prop.get('m2_cubiertos', m2_equiv)

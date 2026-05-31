@@ -8,7 +8,7 @@
 
 | Dimensión | Estado |
 |-----------|--------|
-| Motor valuación v7 | ✅ Operativo |
+| Motor valuación v7 | ✅ Operativo (cap dinámico por cluster TAREA-022) |
 | Coordenadas cache scraping | ✅ Corregidas vía centroide catastral (TAREA-020+021) |
 | Enriquecimiento años | ✅ 3-pasos (exacta ≤200m / token+bloque ≤30m / nearest+token+bloque ≤60m) |
 | Extracción calle+num | ✅ Mejorada: limpia basura descriptiva, trailing garbage, provincia (TAREA-021) |

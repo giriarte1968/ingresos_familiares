@@ -46,6 +46,18 @@ Se eliminó la raíz cuadrada (`sqrt`) que anteriormente comprimía el factor, s
 - **SumaCruda Clamped**: Evita que la acumulación de muchos factores positivos o negativos distorsione la base.
 - **Factor Total Clamped**: Garantiza que el multiplicador final esté estrictamente entre $0.70$ (-30%) y $1.35$ (+35%).
 
+### Cap Dinámico por Cluster (TAREA-022)
+
+Después de calcular `f_dict['total']` en `calcular_factores()`, se aplica un cap dinámico según la calidad del cluster en `valuar_propiedad_v7()`:
+
+| Cluster | Condición | Cap [min, max] |
+|---------|-----------|:--------------:|
+| ALTA | radio≤300m y n≥15 | [0.85, 1.15] |
+| MEDIA | n≥8 | [0.78, 1.25] |
+| BAJA | fallback | [0.70, 1.35] |
+
+Esto reemplaza el soft cap `MAX_BONUS_ATRIBUTOS` que era código muerto. La metadata se guarda en `f_dict['cap_dinamico']` para trazabilidad.
+
 
 
 ## 3.x. Atenuación Dinámica de Antigüedad (Venta P33)
