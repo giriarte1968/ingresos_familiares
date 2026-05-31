@@ -50,11 +50,17 @@ ANIO_ACTUAL = datetime.now().year
 
 # --- Helpers de normalización de direcciones ---
 _RE_CITY_NORM = re.compile(
-    r'\b(rosario|santa\s*fe|santa fe|argentina|arg\.?|capital)\b', re.IGNORECASE)
+    r'\b(rosario|santa\s*fe|provincia|argentina|arg\.?|capital)\b', re.IGNORECASE)
 _RE_DESC_NORM = re.compile(
     r'\b(piso|depto|dpto|departamento|departameto|oficina|local'
-    r'|pb|dormitorio|dorm|balcon|balcon|cochera|living|comedor'
-    r'|monoambiente|ph|casa|habitacion|amb|mt2?|mts)\s*\d*', re.IGNORECASE)
+    r'|pb|dormitorios?|dorm|balcones?|cochera|living|comedor'
+    r'|monoambiente|ph|casa|habitacion|amb|m2|mts|mt2?'
+    r'|unidad|patio|terraza|pileta|parrillero|baulera|amenities'
+    r'|venta|estrenar|exclusiv[oa]s?|semi|semisubsuelo'
+    r'|subsuelo|pasillo|galeria|hall|ingreso'
+    r'|frente|fondo|interno|exterior|lateral|trasero'
+    r'|condominio|condos|country|barrio|club|torre|edificio'
+    r'|dias|meses|ano)\s*\d*', re.IGNORECASE)
 _RE_PIPE_NORM = re.compile(r'\s*\|.*$')
 _RE_NRO_NORM = re.compile(r'\b(nro|n|num|numero|numero)\b', re.IGNORECASE)
 _RE_ORD_NORM = re.compile(r'[\xb0\xba]')  # ordinal chars
@@ -82,6 +88,38 @@ def normalizar_calle_nombre(nombre):
     return s
 
 
+_RE_GARBAGE_WORDS = re.compile(
+    r'\b(un|una|al|con|para|sobre|por|entre|hasta|de|del|la|las|los|'
+    r'subsuelo|pasillo|galeria|hall|ingreso|'
+    r'patio|terraza|pileta|parrillero|baulera|amenities|'
+    r'venta|estrenar|exclusiv[oa]s?|'
+    r'frente|fondo|interno|exterior|lateral|trasero|'
+    r'dias|meses|ano|semi|semisubsuelo|'
+    r'condominio|condos|country|barrio|club|torre|edificio|'
+    r'fisherton|paddock)\b', re.IGNORECASE)
+
+_RE_TRAILING_DIGITS = re.compile(r'\s+\d+$')
+_RE_TRAILING_NUM_UNIT = re.compile(r'\s+(0\d|[12]?\d)\s*$')
+
+def _limpiar_calle_post(calle_norm):
+    """Limpia tokens basura del FINAL del street name."""
+    if not calle_norm:
+        return calle_norm
+    # Remove trailing unit numbers like "01", "02", "1", "2"
+    calle_norm = _RE_TRAILING_NUM_UNIT.sub('', calle_norm)
+    # Remove trailing pure digits
+    calle_norm = _RE_TRAILING_DIGITS.sub('', calle_norm)
+    # Keep removing known garbage words from the end
+    changed = True
+    while changed:
+        changed = False
+        m = _RE_GARBAGE_WORDS.search(calle_norm)
+        if m and m.end() == len(calle_norm):
+            calle_norm = calle_norm[:m.start()].strip()
+            changed = True
+    return calle_norm.strip()
+
+
 def extraer_calle_numero(direccion):
     """Extrae (calle_normalizada, numero_entero) de una dirección libre."""
     if not isinstance(direccion, str):
@@ -100,7 +138,7 @@ def extraer_calle_numero(direccion):
     if m:
         num = int(m.group(1))
         calle_raw = s[:m.start()] + s[m.end():]
-        return normalizar_calle_nombre(calle_raw), num
+        return _limpiar_calle_post(normalizar_calle_nombre(calle_raw)), num
 
     # primer numero encontrado
     m = re.search(r'\b(\d{1,5})\b', s)
@@ -113,9 +151,10 @@ def extraer_calle_numero(direccion):
                       if not (p.isdigit() and len(p) < 5)
                       and not (len(p) == 1 and p.isalpha())]
             calle_norm = ' '.join(partes).strip()
+            calle_norm = _limpiar_calle_post(calle_norm)
         return calle_norm, num
 
-    return normalizar_calle_nombre(s), None
+    return _limpiar_calle_post(normalizar_calle_nombre(s)), None
 
 DATOS_MERCADO_FILE = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),

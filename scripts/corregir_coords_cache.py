@@ -230,6 +230,9 @@ def main():
         cn, num = extraer_calle_numero(addr)
         if not cn or num is None:
             continue
+        # Guardar calle+num limpios en el entry
+        p['calle_limpia'] = cn
+        p['numero_limpio'] = num
         stats['con_calle_num'] += 1
         
         ph_info = buscar_ph(cn, num, exact_idx, block_idx, calle_tokens)

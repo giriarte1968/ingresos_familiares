@@ -31,6 +31,8 @@ Es el archivo más grande y crítico. Contiene el "universo" de propiedades comp
 | `tipo` | string | "Departamento", "Casa", "Cochera", etc. |
 | `operacion` | string | "venta" o "alquiler". |
 | `lat` / `lon` | float | Coordenadas geográficas (CRÍTICO para clustering). |
+| `calle_limpia` | string | Calle normalizada y limpia de basura descriptiva (TAREA-021). |
+| `numero_limpio` | int | Número de calle normalizado. |
 | `valor_m2` | float | Calculado como `precio / m2`. |
 | `fuente` | string | Portal de origen (ej. "propia", "argenprop"). |
 | `url` | string | Link a la publicación original. |

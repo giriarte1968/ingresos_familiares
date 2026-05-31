@@ -52,14 +52,14 @@
       "expensas_ars": 90000,
       "id": 9,
       "_ultima_valuacion": {
-        "valor_usd": 68102.0,
-        "alquiler_ars": 466465.0,
-        "cap_rate": 0.0552,
+        "valor_usd": 71632.0,
+        "alquiler_ars": 496813.0,
+        "cap_rate": 0.056,
         "m2_equivalentes": 42.3035,
-        "comps": 10,
-        "fecha": "30/05/2026 22:31",
+        "comps": 38,
+        "fecha": "31/05/2026 16:14",
         "cache_version": "v5_zonificada",
-        "timestamp": "2026-05-30T22:31:51.893360"
+        "timestamp": "2026-05-31T16:14:38.398448"
       }
     },
     {
@@ -112,14 +112,14 @@
       "expensas_ars": 59000,
       "id": 10,
       "_ultima_valuacion": {
-        "valor_usd": 51602.0,
-        "alquiler_ars": 349627.0,
-        "cap_rate": 0.0546,
+        "valor_usd": 48797.0,
+        "alquiler_ars": 348715.0,
+        "cap_rate": 0.0577,
         "m2_equivalentes": 28.9265,
         "comps": 16,
-        "fecha": "30/05/2026 22:49",
+        "fecha": "31/05/2026 16:14",
         "cache_version": "v5_zonificada",
-        "timestamp": "2026-05-30T22:49:44.065182"
+        "timestamp": "2026-05-31T16:14:22.185848"
       }
     },
     {
@@ -173,14 +173,14 @@
       "tasaciones": [],
       "ultima_valuacion": null,
       "_ultima_valuacion": {
-        "valor_usd": 53031.0,
-        "alquiler_ars": 396135.0,
-        "cap_rate": 0.0602,
+        "valor_usd": 60665.0,
+        "alquiler_ars": 482364.0,
+        "cap_rate": 0.0642,
         "m2_equivalentes": 40.62,
-        "comps": 8,
-        "fecha": "30/05/2026 22:31",
+        "comps": 10,
+        "fecha": "31/05/2026 16:14",
         "cache_version": "v5_zonificada",
-        "timestamp": "2026-05-30T22:31:52.633524"
+        "timestamp": "2026-05-31T16:14:29.438669"
       }
     },
     {
@@ -244,14 +244,14 @@
       "distancia_ancla_km": 0.39,
       "geocode_status": "no_snap",
       "_ultima_valuacion": {
-        "valor_usd": 141545.0,
-        "alquiler_ars": 846732.0,
-        "cap_rate": 0.0611,
+        "valor_usd": 165642.0,
+        "alquiler_ars": 922646.0,
+        "cap_rate": 0.057,
         "m2_equivalentes": 88.85,
-        "comps": 9,
-        "fecha": "30/05/2026 22:31",
+        "comps": 12,
+        "fecha": "31/05/2026 16:14",
         "cache_version": "v5_zonificada",
-        "timestamp": "2026-05-30T22:31:53.007733"
+        "timestamp": "2026-05-31T16:14:07.265665"
       }
     },
     {
@@ -304,14 +304,14 @@
       "expensas_ars": 28000,
       "id": "prop_baecb40d",
       "_ultima_valuacion": {
-        "valor_usd": 72325.0,
-        "alquiler_ars": 494492.0,
-        "cap_rate": 0.0551,
+        "valor_usd": 76037.0,
+        "alquiler_ars": 551855.0,
+        "cap_rate": 0.0586,
         "m2_equivalentes": 34.0,
         "comps": 5,
-        "fecha": "30/05/2026 22:31",
+        "fecha": "31/05/2026 16:14",
         "cache_version": "v5_zonificada",
-        "timestamp": "2026-05-30T22:31:53.363207"
+        "timestamp": "2026-05-31T16:14:14.900413"
       }
     },
     {
@@ -368,14 +368,14 @@
       "expensas_ars": 0,
       "id": "prop_e60aea05",
       "_ultima_valuacion": {
-        "valor_usd": 306681.0,
-        "alquiler_ars": 1062415.0,
-        "cap_rate": 0.037,
+        "valor_usd": 325063.0,
+        "alquiler_ars": 1069296.0,
+        "cap_rate": 0.0352,
         "m2_equivalentes": 98.7,
-        "comps": 23,
-        "fecha": "30/05/2026 22:31",
+        "comps": 27,
+        "fecha": "31/05/2026 16:13",
         "cache_version": "v5_zonificada",
-        "timestamp": "2026-05-30T22:31:53.743496"
+        "timestamp": "2026-05-31T16:13:52.913545"
       }
     }
   ]

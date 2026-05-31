@@ -1558,7 +1558,44 @@ Escaneados 447 grupos de coordenadas compartidas (998 PHs en esquinas) comparand
 - `data/rosario_avm_full.csv` — 210 PHs con dirección corregida en esquinas
 
 ### Commit
-`41f735d` — push a origin/main
+`3c26724` — push a origin/main
+
+---
+
+## TAREA-021 — 2026-05-31 — Mejora `extraer_calle_numero` + re-corrección cache
+
+### Problema
+`extraer_calle_numero` producía street names corruptos con basura descriptiva ("provincia de", "unidad", "un dormitorio", "al frente") que impedía el matching PH en `buscar_ph` para ~1.344 propiedades del cache.
+
+### Solución
+**PASO 1**: Mejorar `extraer_calle_numero` con:
+- Ampliación de `_RE_DESC_NORM`: unidad, patio, terraza, pileta, parrillero, baulera, amenities, venta, estrenar, exclusivo/a, semi, subsuelo, torre, condominio, frente, fondo, etc.
+- Nueva función `_limpiar_calle_post(calle_norm)`: remueve tokens basura del FINAL del street name vía `_RE_GARBAGE_WORDS` (un, una, al, con, de, del, la, las, los, patio, terraza, etc.)
+- Eliminación de `santa fe` duplicado en `_RE_CITY_NORM`
+- Limpieza de dígitos sueltos y números de unidad (01, 02, etc.) del final
+
+**PASO 2**: Modificación de `corregir_coords_cache.py` para guardar `(calle_limpia, numero_limpio)` en cada entry.
+
+**PASO 3**: Re-ejecución de la corrección de coordenadas.
+
+### Resultados post re-ejecución
+
+| Métrica | TAREA-020 (antes) | TAREA-021 (después) |
+|---------|:-----------------:|:-------------------:|
+| Con (calle, num) válido | 8.774 | 8.702 |
+| PH encontrado | 7.430 | 7.416 |
+| Sin PH en catastro | 1.344 | 1.286 |
+| Corregidos (>60m) | 3.289 | 1 adicional (Ugarte 1100) |
+| Calle_limpia guardado | — | 8.702 entries |
+
+**58 entradas adicionales** obtuvieron PH match gracias al mejor parseo.
+
+### Archivos modificados
+- `parsers/mercado_inmobiliario.py` — `extraer_calle_numero`, `_RE_DESC_NORM`, `_RE_CITY_NORM`, nueva función `_limpiar_calle_post`, nuevo patrón `_RE_GARBAGE_WORDS`
+- `scripts/corregir_coords_cache.py` — guarda `calle_limpia` y `numero_limpio`
+- `cache_scraping.json` — re-corregido con 1 corrección extra; 8.702 entries con `calle_limpia`
+- `cache_scraping.json.bak2` — backup pre-TAREA-021
+- `docs/BITACORA_AGENTES.md`, `docs/STATUS_ACTUAL.md`, `docs/DICCIONARIO_DATOS.md`, `.opencode/plans/TAREAS_INDEX.md`
 
 ---
 
