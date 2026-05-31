@@ -1559,3 +1559,42 @@ Escaneados 447 grupos de coordenadas compartidas (998 PHs en esquinas) comparand
 
 ### Commit
 `41f735d` — push a origin/main
+
+---
+
+## TAREA-019 — 2026-05-30 — Enriquecimiento: filtro de bloque + PASO 2 a 60m
+
+### Problema
+
+El enriquecimiento 3-pasos (TAREA-015) usaba token containment + nearest-PH con un threshold único de 30m sin filtrar por bloque. Dos problemas:
+
+1. **Falsos positivos**: "Av. del Valle 2700" mapeaba a PH 6683 (2647, bloque 2600) a 22.8m — misma calle pero cuadra equivocada.
+2. **Falsos negativos**: "Av. del Valle 2700" correcto para PH 12549 (2799, bloque 2700) quedaba a 52.1m — fuera de 30m por error de geocoding del scraping (~20-30m).
+
+### Solución conservadora
+
+| Paso | Threshold | Filtros | Confianza |
+|---|---|---|---|
+| PASO 0 | ≤200m | (calle_norm, num) en `_CATASTRO_INDEX` | ALTA |
+| PASO 1 | ≤30m + **bloque** | Token containment + bloque | ALTA |
+| PASO 2 | ≤60m + **bloque** | Token + bloque + nearest | MEDIA |
+
+El filtro de bloque: extrae número de altura del comparable y del PH, compara `(num // 100) * 100`, descarta si difieren. Para esquinas (sin número) se salta.
+
+### Resultados simulación (6 propiedades)
+
+| Propiedad | ANTES | DESPUÉS | Diff | Enriquecidos |
+|---|---|---|---|---|
+| Mabel | $66,465 | $68,102 | +2.46% | 14→11 |
+| Ayacucho | $51,154 | $51,602 | +0.88% | 13→17 |
+| Vera Mujica | $48,873 | $53,031 | +8.51% | 8→9 |
+| P1200 | $125,412 | $141,545 | +12.86% | 8→10 |
+| Entre Ríos | $77,446 | $72,325 | -6.61% | 6→5 |
+| Brown 2750 | $306,681 | $306,681 | 0.00% | 6→11 |
+
+### Archivos modificados
+- `parsers/mercado_inmobiliario.py` — `enriquecer_anio_comparable()`: +bloque en PASO 1, reemplazo PASO 2 con token+bloque+nearest a 60m
+- `docs/STATUS_ACTUAL.md` — tabla enriquecimiento actualizada
+- `docs/BITACORA_AGENTES.md` — esta entrada
+- `.opencode/plans/TAREA-019.md` — plan archivado
+- `.opencode/plans/TAREAS_INDEX.md` — TAREA-019 agregada

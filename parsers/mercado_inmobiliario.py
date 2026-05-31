@@ -591,7 +591,9 @@ def _extraer_interseccion(direccion):
 def enriquecer_anio_comparable(comp, max_dist_m=30, max_dist_exacta=200):
     """
     Asigna año de construcción a un comparable usando catastro.
-    3 pasos: match exacto (calle+número) → token containment ≤30m → nearest+token ≤30m.
+    PASO 0: match exacto (calle+número) ≤200m → ALTA
+    PASO 1: token containment + bloque ≤30m → ALTA
+    PASO 2: nearest PH + token + bloque ≤60m → MEDIA
     Sin esquina fallback.
     
     Args:
@@ -661,7 +663,7 @@ def enriquecer_anio_comparable(comp, max_dist_m=30, max_dist_exacta=200):
             'tokens': cn_filt.split() if cn_filt else []
         })
 
-    # ─── PASO 1: Token containment ≤30m → ALTA ───
+    # ─── PASO 1: Token containment + bloque ≤30m → ALTA ───
     for cn, num in calles:
         if not cn:
             continue
@@ -673,6 +675,12 @@ def enriquecer_anio_comparable(comp, max_dist_m=30, max_dist_exacta=200):
                 continue
             if _token_contenido(comp_tokens, entry['tokens']):
                 r = entry['row']
+                # Block validation: skip if PH is on a different block
+                if num is not None:
+                    _, ph_num = extraer_calle_numero(str(r.get('direccion_nominatim', '')))
+                    if ph_num is not None:
+                        if (num // 100) * 100 != (ph_num // 100) * 100:
+                            continue
                 d = calcular_distancia_km(lat, lon, r['latitud'], r['longitud']) * 1000
                 if d < best_d:
                     best_d = d
@@ -687,35 +695,41 @@ def enriquecer_anio_comparable(comp, max_dist_m=30, max_dist_exacta=200):
                 'direccion_catastro': str(best_row.get('direccion_nominatim', ''))
             }
 
-    # ─── PASO 2: Nearest PH + token validation ≤30m → MEDIA ───
+    # ─── PASO 2: Nearest PH + token + bloque ≤60m → MEDIA ───
+    comp_num = calles[0][1] if calles else None
+    PASO2_MAX_DIST = 60
     mejor_dist = float('inf')
     mejor_row = None
     for entry in cercanos_norm:
         r = entry['row']
+        if not entry['tokens']:
+            continue
+        # Token validation: comparable calle must be contained in PH tokens
+        if not any(
+            _token_contenido(cn.split(), entry['tokens'])
+            for cn, _ in calles if cn
+        ):
+            continue
+        # Block validation: skip if PH is on a different block
+        if comp_num is not None:
+            _, ph_num = extraer_calle_numero(str(r.get('direccion_nominatim', '')))
+            if ph_num is not None:
+                if (comp_num // 100) * 100 != (ph_num // 100) * 100:
+                    continue
         d = calcular_distancia_km(lat, lon, r['latitud'], r['longitud']) * 1000
         if d < mejor_dist:
             mejor_dist = d
             mejor_row = r
 
-    if mejor_row is not None and mejor_dist <= max_dist_m:
-        csv_tokens = []
-        for entry in cercanos_norm:
-            if entry['row']['ph'] == mejor_row['ph']:
-                csv_tokens = entry['tokens']
-                break
-        match = any(
-            _token_contenido(cn.split(), csv_tokens)
-            for cn, _ in calles if cn
-        ) if csv_tokens else False
-        if match:
-            return {
-                'anio_estimado': int(mejor_row['year']),
-                'ph_match': str(mejor_row.get('ph', '?')),
-                'distancia_m': round(mejor_dist, 1),
-                'confianza': 'MEDIA',
-                'match_calle': True,
-                'direccion_catastro': str(mejor_row.get('direccion_nominatim', ''))
-            }
+    if mejor_row is not None and mejor_dist <= PASO2_MAX_DIST:
+        return {
+            'anio_estimado': int(mejor_row['year']),
+            'ph_match': str(mejor_row.get('ph', '?')),
+            'distancia_m': round(mejor_dist, 1),
+            'confianza': 'MEDIA',
+            'match_calle': True,
+            'direccion_catastro': str(mejor_row.get('direccion_nominatim', ''))
+        }
 
     return None
 

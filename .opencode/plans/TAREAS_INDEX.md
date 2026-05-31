@@ -19,3 +19,5 @@
 | TAREA-015 | Enriquecimiento 3-pasos: match exacto calle+número + token ≤30m + nearest | `4999294` | 2026-05-29 |
 | TAREA-016 | Persistencia DO: atomic_write_json + persistir_valuacion + branch do-state | `caa7d1f` | 2026-05-29 |
 | TAREA-017 | Corrección esquinas (218 PHs) + Interpolación números faltantes (2.219 PHs) via nearest-3 IDW | `7099715` + `(pendiente)` | 2026-05-30 |
+| TAREA-018 | Batch centroide masivo: centroide+reverse+interpolación+forward-verify a ~2,758 PHs | `f18c0ba` | 2026-05-30 |
+| TAREA-019 | Enriquecimiento años: filtro de bloque en PASO 1+2, PASO 2 extendido a 60m | _(pending)_ | 2026-05-30 |

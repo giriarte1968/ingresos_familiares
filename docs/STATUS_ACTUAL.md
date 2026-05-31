@@ -9,7 +9,7 @@
 | Dimensión | Estado |
 |-----------|--------|
 | Motor valuación v7 | ✅ Operativo |
-| Enriquecimiento años | ✅ 3-pasos (exacta ≤200m / token ≤30m / nearest+token ≤30m) |
+| Enriquecimiento años | ✅ 3-pasos (exacta ≤200m / token+bloque ≤30m / nearest+token+bloque ≤60m) |
 | Persistencia DO | ✅ Atómica + branch `do-state` |
 | Landing page | ✅ Navegación por teclado (PageDown/PageUp/Home/End) |
 | Tests regresión | ⚠️ 38/39 (1 preexistente: Vera Mujica benchmark desactualizado) |
@@ -35,8 +35,8 @@ propiedades.json → motor_vpp_core.valuar_con_cache()
 
 ```
 Paso 0: EXACTA — (calle_norm, numero) en _CATASTRO_INDEX ≤200m → ALTA
-Paso 1: TOKEN — token containment ≤30m → ALTA
-Paso 2: NEAREST — nearest PH + token containment ≤30m → MEDIA
+Paso 1: TOKEN — token containment + bloque ≤30m → ALTA
+Paso 2: NEAREST — nearest PH + token + bloque ≤60m → MEDIA
 No esquina fallback.
 ```
 
