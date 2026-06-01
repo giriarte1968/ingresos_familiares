@@ -155,5 +155,15 @@
     "ancla_id": "ayacucho_pellegrini",
     "ancla_usd": 1400,
     "distancia_km": 0.15
+  },
+  "brown 2700": {
+    "lat": -32.9331753,
+    "lon": -60.6575732,
+    "status": "low_confidence",
+    "score": 6.83916990920427e-05,
+    "type": "house",
+    "ancla_id": "macrocentro_3febrero_francia",
+    "ancla_usd": 1400,
+    "distancia_km": 0.87
   }
 }

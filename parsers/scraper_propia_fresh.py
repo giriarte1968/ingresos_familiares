@@ -7,9 +7,12 @@ import os
 
 API_BASE = "https://admin.propia.com.ar/items/properties"
 
-# Absolute filter for Rosario market
-VALOR_MINIMO_ABSOLUTO = 400   # USD/m² - no property worth less
-VALOR_MAXIMO_ABSOLUTO = 5000  # USD/m² - no property worth more under normal conditions
+# Minimum prices to filter out placeholder/junk listings
+PRECIO_MINIMO_VENTA_USD = 5000      # venta listings under $5k USD are placeholders
+PRECIO_MINIMO_ALQUILER_USD = 200    # alquiler under $200/mes USD are placeholders
+PRECIO_MINIMO_ALQUILER_ARS = 30000  # alquiler under $30k ARS/mes are placeholders
+VALOR_M2_MINIMO_VENTA = 300         # venta under $300/m² is suspicious
+VALOR_M2_MINIMO_ALQUILER = 2        # alquiler under $2/m²
 
 def obtener_propiedades_propia(max_pages=20, limit_per_page=50):
     print("[PROPIA] Obteniendo propiedades via API exhaustivamente...")
@@ -22,7 +25,7 @@ def obtener_propiedades_propia(max_pages=20, limit_per_page=50):
         params = {
             "limit": limit_per_page,
             "page": page,
-            "fields": "id,title,slug,price,area,bedrooms,bathrooms,address,latitude,longitude,operation_id,antiquity,property_construction_status_id,delivery_year,date_created",
+            "fields": "id,title,slug,price,area,bedrooms,bathrooms,address,latitude,longitude,operation_id,antiquity,property_construction_status_id,delivery_year,date_created,currency_id,hide_price,published_on_portal",
         }
         
         # Agregar filtros uno por uno para debuguear
@@ -49,10 +52,49 @@ def obtener_propiedades_propia(max_pages=20, limit_per_page=50):
             print(f"[PROPIA] Página {page}: {len(items)} propiedades")
             
             for item in items:
-                price = item.get('price', 0)
-                area = item.get('area', 0)
-                if not price or not area or float(area) <= 0: continue
-                if float(area) < 15 or float(area) > 500: continue
+                # Skip "a consultar" (price upon request) — placeholder prices
+                if item.get('hide_price', False):
+                    continue
+                # Only published on portal
+                if not item.get('published_on_portal', False):
+                    continue
+                
+                price_raw = item.get('price', 0)
+                if isinstance(price_raw, str):
+                    try:
+                        price = float(price_raw.replace(',', ''))
+                    except:
+                        continue
+                else:
+                    price = float(price_raw or 0)
+                
+                area = float(item.get('area', 0))
+                if not price or not area or area <= 0: continue
+                if area < 15 or area > 500: continue
+                
+                currency_id = item.get('currency_id', 1)
+                op_id = item.get('operation_id', {})
+                es_venta = (op_id == 1)
+                
+                # Filtro inteligente: eliminar placeholders y datos corruptos
+                if es_venta:
+                    if currency_id == 1:  # USD venta
+                        if price < PRECIO_MINIMO_VENTA_USD: continue
+                        precio_usd = price
+                    elif currency_id == 2:  # ARS venta (rare, but convert)
+                        precio_usd = round(price / 1200, 2)
+                        if precio_usd < PRECIO_MINIMO_VENTA_USD: continue
+                    else:
+                        continue
+                else:  # alquiler
+                    if currency_id == 1:  # USD alquiler
+                        if price < PRECIO_MINIMO_ALQUILER_USD: continue
+                        precio_usd = price
+                    elif currency_id == 2:  # ARS alquiler
+                        if price < PRECIO_MINIMO_ALQUILER_ARS: continue
+                        precio_usd = round(price / 1200, 2)
+                    else:
+                        continue
                 
                 slug = item.get('slug', '')
                 url = f"https://propia.com.ar/propiedad/{slug}" if slug else ""
@@ -67,12 +109,16 @@ def obtener_propiedades_propia(max_pages=20, limit_per_page=50):
                 if antiguedad and isinstance(antiguedad, (int, float)):
                     anio = 2026 - int(antiguedad)
                 
+                valor_m2 = round(precio_usd / area, 2)
+                if es_venta and valor_m2 < VALOR_M2_MINIMO_VENTA: continue
+                if not es_venta and valor_m2 < VALOR_M2_MINIMO_ALQUILER: continue
+                
                 props.append({
-                    "precio": float(price),
-                    "m2": float(area),
+                    "precio": precio_usd,
+                    "m2": area,
                     "dormitorios": item.get('bedrooms') or 1,
-                    "valor_m2": round(float(price) / float(area), 2),
-                    "direccion": item.get('address') or item.get('title') or "",
+                    "valor_m2": valor_m2,
+                    "direccion": item.get('address_to_show') or item.get('address') or item.get('title') or "",
                     "fuente": "propia",
                     "operacion": operacion,
                     "zona": "Rosario",
@@ -90,11 +136,7 @@ def obtener_propiedades_propia(max_pages=20, limit_per_page=50):
             break
     
     print(f"[PROPIA] Total propiedades obtenidas: {len(props)}")
-    
-    # Absolute filter: remove properties with valor_m2 outside [400, 5000]
-    props_filtradas = [p for p in props if VALOR_MINIMO_ABSOLUTO <= p.get('valor_m2', 0) <= VALOR_MAXIMO_ABSOLUTO]
-    print(f"[PROPIA] Filtro absoluto: {len(props)} -> {len(props_filtradas)} propiedades (eliminadas {len(props) - len(props_filtradas)} outliers)")
-    return props_filtradas
+    return props
 
 def save_to_cache(props):
     import os
@@ -106,12 +148,6 @@ def save_to_cache(props):
                 all_props = data.get("propiedades", [])
         except:
             pass
-    
-    # Absolute filter: remove properties with valor_m2 outside [400, 5000]
-    all_props_filtradas = [p for p in all_props if VALOR_MINIMO_ABSOLUTO <= p.get('valor_m2', 0) <= VALOR_MAXIMO_ABSOLUTO]
-    if len(all_props_filtradas) < len(all_props):
-        print(f"[CACHE] Filtro absoluto: {len(all_props)} -> {len(all_props_filtradas)} propiedades (eliminadas {len(all_props) - len(all_props_filtradas)} outliers)")
-    all_props = all_props_filtradas
     
     props_by_url = {p.get('url'): p for p in all_props if p.get('url')}
     for prop in props:

@@ -813,6 +813,31 @@ def enriquecer_anio_comparable(comp, max_dist_m=30, max_dist_exacta=200):
             'direccion_catastro': str(mejor_row.get('direccion_nominatim', ''))
         }
 
+    # ─── PASO 3: Nearest PH misma calle_norm por coordenadas ≤60m → MEDIA ───
+    PASO3_MAX_DIST = 60
+    mejor_dist = float('inf')
+    mejor_row = None
+    for entry in cercanos_norm:
+        r = entry['row']
+        if not entry['cn']:
+            continue
+        if not any(entry['cn'] == cn for cn, _ in calles if cn):
+            continue
+        d = calcular_distancia_km(lat, lon, r['latitud'], r['longitud']) * 1000
+        if d < mejor_dist:
+            mejor_dist = d
+            mejor_row = r
+
+    if mejor_row is not None and mejor_dist <= PASO3_MAX_DIST:
+        return {
+            'anio_estimado': int(mejor_row['year']),
+            'ph_match': str(mejor_row.get('ph', '?')),
+            'distancia_m': round(mejor_dist, 1),
+            'confianza': 'MEDIA',
+            'match_calle': True,
+            'direccion_catastro': str(mejor_row.get('direccion_nominatim', ''))
+        }
+
     return None
 
 

@@ -1829,3 +1829,22 @@ Aplicar corrección de coordenadas vía centroide catastral + `calle_limpia`/`nu
 - `.opencode/plans/TAREA-024.md` — plan archivado
 - `.opencode/plans/TAREAS_INDEX.md` — índice actualizado
 - `docs/BITACORA_AGENTES.md` — esta entrada
+
+---
+
+## 📅 2026-06-01 — TAREA-025: PASO 3 en enriquecimiento (nearest PH misma calle ≤60m)
+
+### Objetivo
+Agregar PASO 3 en `enriquecer_anio_comparable()`: cuando PASO 0-2 fallan, buscar el PH más cercano con la **misma calle normalizada** por coordenadas (≤60m), sin exigir bloque ni número exacto.
+
+### Resultados
+- **414 PHs nuevos** rescatados (de ~1.747 que fallaban todo)
+- **Mediana: 14m** de distancia al nearest PH
+- Valuaciones de test: **0 cambios** (P1200, Brown, Mabel, Ayacucho, Vera sin variación)
+- Tests: 39/39
+
+### Archivos
+- `parsers/mercado_inmobiliario.py` — PASO 3 agregado en `enriquecer_anio_comparable()`
+- `docs/POST_SCRAPING.md` — nota actualizada
+- `.opencode/plans/TAREA-025.md` — plan archivado
+- `.opencode/plans/TAREAS_INDEX.md` — índice actualizado

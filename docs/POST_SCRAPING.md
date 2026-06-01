@@ -70,7 +70,7 @@ git push origin main
 
 | Tarea | Por qué |
 |-------|---------|
-| Enriquecimiento de año (PH→comparable) | Corre automático en cada valuación (Fase 1 del motor) |
+| Enriquecimiento de año (PH→comparable) | Corre automático en cada valuación (Fase 1 del motor). PASO 3 (nearest PH misma calle por coordenadas ≤60m) también es automático. |
 | Cap dinámico de factor_total | Es lógica del motor, no depende del scraping |
 | Age blend / percentiles / filtros | Todo es lógica de valuación, no del cache |
 
