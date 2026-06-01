@@ -408,7 +408,7 @@ def mostrar_dashboard():
             )
 
     elif st.session_state.page == "Mercado de propiedades":
-        if not st.session_state.get("_unlocked", False):
+        if not st.session_state.get("_mercado_unlocked", False):
             st.markdown("""
             <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:1rem;">
                 <div style="font-size:64px;">🔒</div>
@@ -642,27 +642,29 @@ def main():
         def ir_al_inicio():
             st.session_state.vista_actual = 'landing'
 
-        # ─── Password gate ───
-        pwd = st.text_input("🔑 Acceso", type="password", placeholder="••••••", key="_nav_pwd")
-        unlocked = (pwd == "001122")
-        st.session_state._unlocked = unlocked
-
-        if not unlocked:
-            st.caption("Ingresá la contraseña para acceder")
+        # ─── Password gate (solo para Mercado) ───
+        pwd = st.text_input("🔑 Acceso a Mercado", type="password", placeholder="••••••", key="_nav_pwd")
+        mercado_unlocked = (pwd == "001122")
+        st.session_state._mercado_unlocked = mercado_unlocked
+        if mercado_unlocked:
+            st.success("✅ Mercado desbloqueado")
         else:
-            st.success("✅ Acceso concedido")
+            st.caption("Ingresá la contraseña para acceder al Mercado")
 
-        # ─── Solo Mercado, protegido por password ───
-        nav_options = ["Mercado de propiedades"]
+        st.button("← Volver al Inicio", width='stretch', on_click=ir_al_inicio)
+        st.markdown("---")
+
+        nav_options = ["Portfolio", "Mercado de propiedades", "Configuración"]
         forced_nav = st.session_state.pop("_force_nav_page", None)
         if forced_nav in nav_options:
             st.session_state["nav_page_radio"] = forced_nav
         if "nav_page_radio" not in st.session_state:
-            st.session_state["nav_page_radio"] = "Mercado de propiedades"
+            st.session_state["nav_page_radio"] = st.session_state.page if st.session_state.page in nav_options else "Portfolio"
         with profile_block("MAIN_sidebar_nav", None):
-            st.button("← Volver al Inicio", width='stretch', on_click=ir_al_inicio)
             st.radio("NAVEGACIÓN", nav_options, key="nav_page_radio")
         new_page = st.session_state["nav_page_radio"]
+        if st.session_state.page != new_page:
+            st.session_state.prop_sel = None
         st.session_state.page = new_page
         
         st.markdown("---")
