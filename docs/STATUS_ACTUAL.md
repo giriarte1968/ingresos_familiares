@@ -1,6 +1,6 @@
 # 🏠 STATUS ACTUAL DEL PROYECTO — AVM Rosario
 
-*Actualizado: 31/05/2026*
+*Actualizado: 31/05/2026 (TAREA-024)*
 
 ---
 
@@ -9,14 +9,32 @@
 | Dimensión | Estado |
 |-----------|--------|
 | Motor valuación v7 | ✅ Operativo (cap dinámico por cluster TAREA-022) |
-| Coordenadas cache scraping | ✅ Corregidas vía centroide catastral (TAREA-020+021) |
+| Coordenadas cache scraping | ✅ Corregidas vía centroide catastral (TAREA-020+021+024) |
 | Enriquecimiento años | ✅ 3-pasos (exacta ≤200m / token+bloque ≤30m / nearest+token+bloque ≤60m) |
-| Extracción calle+num | ✅ Mejorada: limpia basura descriptiva, trailing garbage, provincia (TAREA-021) |
+| Extracción calle+num | ✅ Mejorada: limpia basura descriptiva, trailing garbage, provincia, "bis" (TAREA-021+024) |
+| Matching catastral (acentos/ñ) | ✅ Normalización NFKD en `_token_contenido` (TAREA-024) |
 | Persistencia DO | ✅ Atómica + branch `do-state` |
 | Landing page | ✅ Navegación por teclado (PageDown/PageUp/Home/End) |
 | Tests regresión | ✅ 39/39 |
 | Tests persistencia | ✅ 16/16 |
 | Despliegue DO | ✅ Sin redeploy loop |
+
+---
+
+## 2. ESTADO DEL CACHE SCRAPING
+
+| Métrica | Cantidad |
+|---------|----------|
+| Propiedades totales | 9,766 |
+| Con lat/lon | **9,754** (99.9%) |
+| Sin lat/lon | 12 (nunca las tuvo Propia) |
+| Con `calle_limpia`/`numero_limpio` | **8,782** (89.9%) |
+| Sin calle (no se pudo extraer) | 984 |
+| PH encontrado en catastro | **7,502** (TAREA-024) |
+| Sin PH en catastro | 1,280 |
+| Coords corregidas acumuladas | **~3,408** (3,289 TAREA-020 + 119 TAREA-024) |
+| Coords originales conservadas (≤60m) | ~4,084 |
+| Error promedio actual | 31m |
 
 ---
 
