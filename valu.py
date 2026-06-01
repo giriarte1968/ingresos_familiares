@@ -544,7 +544,7 @@ def mostrar_dashboard():
             st.caption("Sync a `do-state` (no a main) — no dispara redeploy.")
 
         st.markdown("---")
-        with st.expander("➕ Agregar Nueva Propiedad", expanded=True):
+        with st.expander("➕ Agregar Nueva Propiedad", expanded=False):
             new_prop = ui_formulario_propiedad(key_suffix="new")
             if st.button("Guardar Propiedad", type="primary"):
                 props = cargar_propiedades()
@@ -635,13 +635,26 @@ def main():
             
         st.button("← Volver al Inicio", width='stretch', on_click=ir_al_inicio)
         st.markdown("---")
-        
-        nav_options = ["Portfolio", "Mercado de propiedades", "Configuración"]
+
+        # ─── Password gate ───
+        pwd = st.text_input("Acceso completo", type="password", placeholder="••••••", key="_nav_pwd")
+        unlocked = (pwd == "001122")
+        if unlocked:
+            st.success("✅ Acceso completo")
+        st.markdown("---")
+
+        FULL_NAV = ["Portfolio", "Mercado de propiedades", "Configuración"]
+        RESTRICTED_NAV = ["Mercado de propiedades"]
+        nav_options = FULL_NAV if unlocked else RESTRICTED_NAV
         forced_nav = st.session_state.pop("_force_nav_page", None)
-        if forced_nav in nav_options:
+        if forced_nav and forced_nav in nav_options:
             st.session_state["nav_page_radio"] = forced_nav
+        elif forced_nav and forced_nav not in nav_options:
+            # Si la página forzada no está disponible, ir a Mercado
+            st.session_state["nav_page_radio"] = "Mercado de propiedades"
         if "nav_page_radio" not in st.session_state:
-            st.session_state["nav_page_radio"] = st.session_state.page if st.session_state.page in nav_options else "Portfolio"
+            default = st.session_state.page if st.session_state.page in nav_options else nav_options[0]
+            st.session_state["nav_page_radio"] = default
         with profile_block("MAIN_sidebar_nav", None):
             st.radio("NAVEGACIÓN", nav_options, key="nav_page_radio")
         new_page = st.session_state["nav_page_radio"]

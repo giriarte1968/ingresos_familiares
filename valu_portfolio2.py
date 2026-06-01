@@ -752,19 +752,9 @@ def mostrar_portfolio2(
     with profile_block("portfolio_kpis", None):
         _render_kpis(rows, usdt_ars)
 
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        if st.button("Agregar propiedad", type="primary", use_container_width=True):
-            _force_nav("Configuración")
-            st.rerun()
-    with c2:
-        st.download_button(
-            "Export rápido",
-            data=pd.DataFrame(rows).to_csv(index=False).encode("utf-8"),
-            file_name=f"portfolio2_raw_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
-            mime="text/csv",
-            use_container_width=True,
-        )
+    if st.button("Agregar propiedad", type="primary", use_container_width=True):
+        _force_nav("Configuración")
+        st.rerun()
  
     with profile_block("portfolio_filters", None):
         filtros = _render_filters(rows)
