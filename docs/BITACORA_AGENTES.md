@@ -1774,3 +1774,31 @@ Ejecutar `scripts/scraper_propia_api.py` guardando en archivo independiente (no 
 - `docs/BITACORA_AGENTES.md` — esta entrada
 
 ### Tests: 39/39 regression pasando
+
+---
+
+## 📅 2026-05-31 — Corrección de coordenadas en cache_scraping_may_2026
+
+### Objetivo
+Aplicar corrección de coordenadas vía centroide catastral + `calle_limpia`/`numero_limpio` al nuevo archivo `cache_scraping_may_2026`.
+
+### Cambios
+- `scripts/corregir_coords_cache.py`: agregado soporte CLI para `--input` (primer arg, default `cache_scraping.json`). Normaliza `latitude`/`longitude` → `lat`/`lon` automáticamente.
+
+### Resultados `cache_scraping_may_2026`
+| Métrica | Valor |
+|---------|-------|
+| Total propiedades | 9,367 |
+| Con (calle, num) válido | 8,376 |
+| PH encontrado | 7,134 |
+| Centroides encontrados | 7,134 |
+| **Corregidos (>60m)** | **3,169** |
+| Sin cambio (≤60m) | 3,955 |
+| Sin PH | 1,242 |
+| Error promedio antes | 428m |
+| Max error antes | 14,816m |
+
+### Archivos
+- `scripts/corregir_coords_cache.py` — CLI arg + normalización latitude/longitude
+- `cache_scraping_may_2026` — corregido (backup en `.bak`)
+- `docs/BITACORA_AGENTES.md` — esta entrada

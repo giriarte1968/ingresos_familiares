@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from parsers.mercado_inmobiliario import extraer_calle_numero, _filtrar_calle_diccionario, _token_contenido
 
 PROJECT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CACHE_PATH = os.path.join(PROJECT, 'cache_scraping.json')
+CACHE_PATH = os.path.join(PROJECT, sys.argv[1] if len(sys.argv) > 1 else 'cache_scraping.json')
 GEOMETRY_DIR = os.path.join(PROJECT, 'data', 'geometry')
 CATASTRO_PATH = os.path.join(PROJECT, 'data', 'rosario_avm_full.csv')
 
@@ -204,6 +204,17 @@ def main():
         cache = json.load(f)
     props = cache['propiedades']
     print('  Propiedades: %d' % len(props))
+    
+    # Paso 4b: Normalizar campos de lat/lon (latitude/longitude -> lat/lon)
+    norm_keys = 0
+    for p in props:
+        if 'lat' not in p and 'latitude' in p:
+            p['lat'] = p['latitude']
+            norm_keys += 1
+        if 'lon' not in p and 'longitude' in p:
+            p['lon'] = p['longitude']
+    if norm_keys:
+        print('  Campos lat/lon normalizados: %d' % norm_keys)
     
     # Paso 5: Corregir coordenadas
     print()
