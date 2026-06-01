@@ -408,66 +408,75 @@ def mostrar_dashboard():
             )
 
     elif st.session_state.page == "Mercado de propiedades":
-        st.header("Mercado de propiedades")
-        st.caption("Ejecutar solo cuando sea necesario.")
+        if not st.session_state.get("_unlocked", False):
+            st.markdown("""
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:1rem;">
+                <div style="font-size:64px;">🔒</div>
+                <h2 style="margin:0;">Acceso restringido</h2>
+                <p style="color:rgba(255,255,255,0.6);">Ingresá la contraseña en la barra lateral para acceder al mercado de propiedades.</p>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.header("Mercado de propiedades")
+            st.caption("Ejecutar solo cuando sea necesario.")
 
-        # ─── Actualizar base de mercado ───
-        with st.container(border=True):
-            st.subheader("Actualizar la base de datos de mercado")
-            if st.button("Actualizar base de mercado", type="primary", use_container_width=True):
-                barra = st.progress(0.0, text="Preparando actualización...")
-                estado = st.empty()
-                inicio = time.time()
-                try:
-                    barra.progress(0.10, text="Iniciando actualización de mercado...")
-                    estado.info("Actualizando datos de mercado. Esta operación puede demorar varios minutos.")
-                    from parsers.motor_vpp_core import actualizar_mercado_vpp_full
-                    ok = actualizar_mercado_vpp_full()
-                    barra.progress(1.0, text="Actualización finalizada")
-                    duracion = time.time() - inicio
-                    if ok:
-                        estado.success(f"Base de mercado actualizada. Tiempo total: {duracion/60:.1f} min.")
-                    else:
-                        estado.error("La actualización terminó con errores. Revisá los logs.")
-                except Exception as e:
-                    barra.progress(1.0, text="Actualización interrumpida")
-                    estado.error(f"No se pudo actualizar la base de mercado: {e}")
-
-        st.markdown("---")
-
-        # ─── Recalcular todo ───
-        with st.container(border=True):
-            props = cargar_propiedades()
-            n = len(props)
-
-            st.subheader("Recalcular valuaciones")
-            st.markdown(f"Fuerza el recalculo de las **{n} propiedades**.")
-
-            if st.button("Recalcular todo", type="primary", use_container_width=True):
-                if n == 0:
-                    st.info("No hay propiedades para recalcular.")
-                else:
-                    barra = st.progress(0.0, text=f"Preparando recalculo de {n} propiedades...")
+            # ─── Actualizar base de mercado ───
+            with st.container(border=True):
+                st.subheader("Actualizar la base de datos de mercado")
+                if st.button("Actualizar base de mercado", type="primary", use_container_width=True):
+                    barra = st.progress(0.0, text="Preparando actualización...")
                     estado = st.empty()
                     inicio = time.time()
-                    for i, p_prop in enumerate(props):
-                        nombre = p_prop.get('nombre', '?')
-                        estado.info(f"Valuando **{nombre}** ({i+1}/{n})")
-                        valuar_con_cache(p_prop, forzar_recalculo=True)
+                    try:
+                        barra.progress(0.10, text="Iniciando actualización de mercado...")
+                        estado.info("Actualizando datos de mercado. Esta operación puede demorar varios minutos.")
+                        from parsers.motor_vpp_core import actualizar_mercado_vpp_full
+                        ok = actualizar_mercado_vpp_full()
+                        barra.progress(1.0, text="Actualización finalizada")
+                        duracion = time.time() - inicio
+                        if ok:
+                            estado.success(f"Base de mercado actualizada. Tiempo total: {duracion/60:.1f} min.")
+                        else:
+                            estado.error("La actualización terminó con errores. Revisá los logs.")
+                    except Exception as e:
+                        barra.progress(1.0, text="Actualización interrumpida")
+                        estado.error(f"No se pudo actualizar la base de mercado: {e}")
 
-                        avance = (i + 1) / n
-                        transcurrido = time.time() - inicio
-                        promedio = transcurrido / (i + 1)
-                        restante = max(0, promedio * (n - i - 1))
-                        barra.progress(
-                            avance,
-                            text=(
-                                f"{i+1}/{n} valuaciones completadas · "
-                                f"restan ~{restante/60:.1f} min"
-                            ),
-                        )
-                    duracion = time.time() - inicio
-                    estado.success(f"{n} propiedades recalculadas. Tiempo total: {duracion/60:.1f} min.")
+            st.markdown("---")
+
+            # ─── Recalcular todo ───
+            with st.container(border=True):
+                props = cargar_propiedades()
+                n = len(props)
+
+                st.subheader("Recalcular valuaciones")
+                st.markdown(f"Fuerza el recalculo de las **{n} propiedades**.")
+
+                if st.button("Recalcular todo", type="primary", use_container_width=True):
+                    if n == 0:
+                        st.info("No hay propiedades para recalcular.")
+                    else:
+                        barra = st.progress(0.0, text=f"Preparando recalculo de {n} propiedades...")
+                        estado = st.empty()
+                        inicio = time.time()
+                        for i, p_prop in enumerate(props):
+                            nombre = p_prop.get('nombre', '?')
+                            estado.info(f"Valuando **{nombre}** ({i+1}/{n})")
+                            valuar_con_cache(p_prop, forzar_recalculo=True)
+
+                            avance = (i + 1) / n
+                            transcurrido = time.time() - inicio
+                            promedio = transcurrido / (i + 1)
+                            restante = max(0, promedio * (n - i - 1))
+                            barra.progress(
+                                avance,
+                                text=(
+                                    f"{i+1}/{n} valuaciones completadas · "
+                                    f"restan ~{restante/60:.1f} min"
+                                ),
+                            )
+                        duracion = time.time() - inicio
+                        estado.success(f"{n} propiedades recalculadas. Tiempo total: {duracion/60:.1f} min.")
 
     elif st.session_state.page == "Configuración":
         st.header("⚙️ Configuración")
@@ -632,35 +641,28 @@ def main():
         
         def ir_al_inicio():
             st.session_state.vista_actual = 'landing'
-            
-        st.button("← Volver al Inicio", width='stretch', on_click=ir_al_inicio)
-        st.markdown("---")
 
         # ─── Password gate ───
-        pwd = st.text_input("Acceso completo", type="password", placeholder="••••••", key="_nav_pwd")
+        pwd = st.text_input("🔑 Acceso", type="password", placeholder="••••••", key="_nav_pwd")
         unlocked = (pwd == "001122")
-        if unlocked:
-            st.success("✅ Acceso completo")
-        st.markdown("---")
+        st.session_state._unlocked = unlocked
 
-        FULL_NAV = ["Portfolio", "Mercado de propiedades", "Configuración"]
-        RESTRICTED_NAV = ["Mercado de propiedades"]
-        nav_options = FULL_NAV if unlocked else RESTRICTED_NAV
+        if not unlocked:
+            st.caption("Ingresá la contraseña para acceder")
+        else:
+            st.success("✅ Acceso concedido")
+
+        # ─── Solo Mercado, protegido por password ───
+        nav_options = ["Mercado de propiedades"]
         forced_nav = st.session_state.pop("_force_nav_page", None)
-        if forced_nav and forced_nav in nav_options:
+        if forced_nav in nav_options:
             st.session_state["nav_page_radio"] = forced_nav
-        elif forced_nav and forced_nav not in nav_options:
-            # Si la página forzada no está disponible, ir a Mercado
-            st.session_state["nav_page_radio"] = "Mercado de propiedades"
         if "nav_page_radio" not in st.session_state:
-            default = st.session_state.page if st.session_state.page in nav_options else nav_options[0]
-            st.session_state["nav_page_radio"] = default
+            st.session_state["nav_page_radio"] = "Mercado de propiedades"
         with profile_block("MAIN_sidebar_nav", None):
+            st.button("← Volver al Inicio", width='stretch', on_click=ir_al_inicio)
             st.radio("NAVEGACIÓN", nav_options, key="nav_page_radio")
         new_page = st.session_state["nav_page_radio"]
-        # Si cambió la página desde el sidebar, limpiar prop_sel para que la navegación funcione
-        if st.session_state.page != new_page:
-            st.session_state.prop_sel = None
         st.session_state.page = new_page
         
         st.markdown("---")
