@@ -1802,3 +1802,30 @@ Aplicar corrección de coordenadas vía centroide catastral + `calle_limpia`/`nu
 - `scripts/corregir_coords_cache.py` — CLI arg + normalización latitude/longitude
 - `cache_scraping_may_2026` — corregido (backup en `.bak`)
 - `docs/BITACORA_AGENTES.md` — esta entrada
+
+---
+
+## 📅 2026-05-31 — TAREA-024: Mejora matching catastral (acentos/ñ + "bis")
+
+### Problema
+1,278 propiedades sin PH en catastro. Diagnóstico: "bis" contaminaba la calle y `_token_contenido` no normalizaba acentos/ñ.
+
+### Cambios
+- **`_token_contenido()`**: agrega normalización NFKD (lowercase + sin acentos) antes de comparar tokens
+- **`_RE_GARBAGE_WORDS`**: agrega `bis` para que `_limpiar_calle_post` lo quite de la calle
+
+### Resultados post re-corrección
+| Métrica | Antes (TAREA-020) | Después (TAREA-024) |
+|---------|:------------------:|:-------------------:|
+| PH encontrados | 7,134 | **7,502 (+368)** |
+| Sin PH | 1,242 | 1,280 |
+| Nuevas correcciones (>60m) | — | 119 |
+| Error promedio antes | 31m | 31m |
+| Tests | 39/39 | **39/39** |
+
+### Archivos
+- `parsers/mercado_inmobiliario.py` — `_token_contenido()` + `_RE_GARBAGE_WORDS`
+- `cache_scraping.json` — re-corregido (backup en `.bak`)
+- `.opencode/plans/TAREA-024.md` — plan archivado
+- `.opencode/plans/TAREAS_INDEX.md` — índice actualizado
+- `docs/BITACORA_AGENTES.md` — esta entrada

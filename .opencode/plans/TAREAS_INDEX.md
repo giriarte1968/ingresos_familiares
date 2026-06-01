@@ -24,4 +24,5 @@
 | TAREA-020 | Corrección coordenadas cache vía centroide catastral | `3c26724` | 2026-05-31 |
 | TAREA-021 | Mejora `extraer_calle_numero` + re-corrección cache | `09766f5` | 2026-05-31 |
 | TAREA-022 | Cap dinámico de factor_total según cluster quality | `b23dc45` | 2026-05-31 |
-| TAREA-023 | Eliminar doble compensación de patio en PB | _(pending)_ | 2026-05-31 |
+| TAREA-023 | Eliminar doble compensación de patio en PB | `d5b41d5` | 2026-05-31 |
+| TAREA-024 | Mejora matching catastral: normalización acentos/ñ en token + fix "bis" | _(pending)_ | 2026-05-31 |

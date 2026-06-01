@@ -99,7 +99,7 @@ _RE_GARBAGE_WORDS = re.compile(
     r'frente|fondo|interno|exterior|lateral|trasero|'
     r'dias|meses|ano|semi|semisubsuelo|'
     r'condominio|condos|country|barrio|club|torre|edificio|'
-    r'fisherton|paddock)\b', re.IGNORECASE)
+    r'fisherton|paddock|bis)\b', re.IGNORECASE)
 
 _RE_TRAILING_DIGITS = re.compile(r'\s+\d+$')
 _RE_TRAILING_NUM_UNIT = re.compile(r'\s+(0\d|[12]?\d)\s*$')
@@ -570,10 +570,16 @@ def _token_contenido(comp_tokens, csv_tokens):
     """True si todos los tokens de comp_tokens aparecen en orden en csv_tokens (prefix OK si >=2 chars)."""
     if not comp_tokens or not csv_tokens:
         return False
-    it = iter(csv_tokens)
-    for ct in comp_tokens:
-        if not ct:
-            continue
+    def norm(t):
+        """Normaliza token: minuscula + sin acentos."""
+        s = t.lower()
+        return ''.join(c for c in unicodedata.normalize('NFKD', s) if not unicodedata.combining(c))
+    comp_norm = [norm(ct) for ct in comp_tokens if ct]
+    csv_norm = [norm(ct) for ct in csv_tokens if ct]
+    if not comp_norm or not csv_norm:
+        return False
+    it = iter(csv_norm)
+    for ct in comp_norm:
         found = False
         for csv_t in it:
             if ct == csv_t or (len(ct) >= 2 and len(csv_t) > len(ct) and csv_t.startswith(ct)):

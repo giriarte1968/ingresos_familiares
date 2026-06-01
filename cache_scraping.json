@@ -1221,7 +1221,7 @@
       "zona": "Otro",
       "date_created": "2025-09-22T19:45:20.260Z",
       "date_updated": "2026-04-15T05:04:48.176Z",
-      "calle_limpia": "sarratea bis",
+      "calle_limpia": "sarratea",
       "numero_limpio": 625
     },
     {
@@ -1676,12 +1676,12 @@
       "valor_m2": 2840.91,
       "fuente": "propia_api_browser",
       "id_propia": 416875,
-      "lat": -32.916005000000006,
-      "lon": -60.67293055555555,
+      "lat": -32.9425074,
+      "lon": -60.6802472,
       "zona": "Otro",
       "date_created": "2025-11-04T20:28:56.861Z",
       "date_updated": "2026-03-30T16:09:04.679Z",
-      "calle_limpia": "avellaneda bis",
+      "calle_limpia": "avellaneda",
       "numero_limpio": 1080
     },
     {
@@ -3061,7 +3061,7 @@
       "zona": "Otro",
       "date_created": "2025-03-31T22:19:48.101Z",
       "date_updated": "2025-11-01T05:26:17.780Z",
-      "calle_limpia": "santiago bis",
+      "calle_limpia": "santiago",
       "numero_limpio": 60
     },
     {
@@ -3239,7 +3239,7 @@
       "zona": "Otro",
       "date_created": "2021-11-11T15:45:06.000Z",
       "date_updated": "2026-04-21T22:08:40.325Z",
-      "calle_limpia": "suipacha bis",
+      "calle_limpia": "suipacha",
       "numero_limpio": 27
     },
     {
@@ -3628,12 +3628,12 @@
       "valor_m2": 623.19,
       "fuente": "propia_api_browser",
       "id_propia": 428120,
-      "lat": -32.96118,
-      "lon": -60.62507,
+      "lat": -32.9609348,
+      "lon": -60.6263804,
       "zona": "Otro",
       "date_created": "2026-01-02T14:27:02.775Z",
       "date_updated": "2026-04-25T03:45:05.496Z",
-      "calle_limpia": "cochabamba bis",
+      "calle_limpia": "cochabamba",
       "numero_limpio": 46
     },
     {
@@ -4578,8 +4578,8 @@
       "valor_m2": 990.1,
       "fuente": "propia_api_browser",
       "id_propia": 438606,
-      "lat": -32.942112,
-      "lon": -60.680115,
+      "lat": -32.916005000000006,
+      "lon": -60.67293055555555,
       "zona": "Otro",
       "date_created": "2026-02-13T16:42:02.754Z",
       "date_updated": "2026-04-19T19:40:28.903Z",
@@ -4919,7 +4919,7 @@
       "zona": "Otro",
       "date_created": "2022-12-21T15:00:10.000Z",
       "date_updated": "2026-04-22T05:06:48.534Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -6052,8 +6052,8 @@
       "valor_m2": 2142.86,
       "fuente": "propia_api_browser",
       "id_propia": 462194,
-      "lat": -32.93619,
-      "lon": -60.64982,
+      "lat": -32.93387514285715,
+      "lon": -60.649801428571436,
       "zona": "Otro",
       "date_created": "2026-04-22T17:48:29.487Z",
       "date_updated": "2026-04-23T05:04:47.667Z",
@@ -8393,7 +8393,7 @@
       "zona": "Otro",
       "date_created": "2026-03-06T20:30:05.806Z",
       "date_updated": "2026-04-26T13:52:01.218Z",
-      "calle_limpia": "avellaneda bis",
+      "calle_limpia": "avellaneda",
       "numero_limpio": 776
     },
     {
@@ -8468,8 +8468,8 @@
       "valor_m2": 1650.0,
       "fuente": "propia_api_browser",
       "id_propia": 399100,
-      "lat": -32.9367128,
-      "lon": -60.6470982,
+      "lat": -32.933836428571425,
+      "lon": -60.64687157142857,
       "zona": "Otro",
       "date_created": "2025-08-28T21:16:34.127Z",
       "date_updated": "2026-04-11T05:03:46.993Z",
@@ -8606,12 +8606,12 @@
       "valor_m2": 2500.0,
       "fuente": "propia_api_browser",
       "id_propia": 426127,
-      "lat": -32.933384,
-      "lon": -60.64794,
+      "lat": -32.93662139999999,
+      "lon": -60.648483799999994,
       "zona": "Otro",
       "date_created": "2025-12-18T14:12:33.367Z",
       "date_updated": "2026-04-14T15:50:59.991Z",
-      "calle_limpia": "mariano moreno bis",
+      "calle_limpia": "mariano moreno",
       "numero_limpio": 130
     },
     {
@@ -8909,7 +8909,7 @@
       "zona": "Otro",
       "date_created": "2024-08-08T04:00:03.000Z",
       "date_updated": "2026-01-03T12:21:29.559Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -10965,7 +10965,7 @@
       "zona": "Otro",
       "date_created": "2024-06-19T16:19:53.000Z",
       "date_updated": "2026-04-25T01:46:16.937Z",
-      "calle_limpia": "francia bis",
+      "calle_limpia": "francia",
       "numero_limpio": 269
     },
     {
@@ -11493,7 +11493,7 @@
       "zona": "Otro",
       "date_created": "2025-08-28T15:00:21.461Z",
       "date_updated": "2026-04-12T18:08:27.343Z",
-      "calle_limpia": "avellaneda bis",
+      "calle_limpia": "avellaneda",
       "numero_limpio": 1000
     },
     {
@@ -11919,7 +11919,7 @@
       "zona": "Otro",
       "date_created": "2025-10-03T14:46:06.468Z",
       "date_updated": "2026-04-13T00:17:50.102Z",
-      "calle_limpia": "juarez celman bis",
+      "calle_limpia": "juarez celman",
       "numero_limpio": 600
     },
     {
@@ -13644,12 +13644,12 @@
       "valor_m2": 1258.82,
       "fuente": "propia_api_browser",
       "id_propia": 398695,
-      "lat": -32.915886,
-      "lon": -60.673084,
+      "lat": -32.94138999999999,
+      "lon": -60.68004383333334,
       "zona": "Otro",
       "date_created": "2025-08-27T20:18:11.070Z",
       "date_updated": "2026-04-20T06:53:30.520Z",
-      "calle_limpia": "avellaneda bis",
+      "calle_limpia": "avellaneda",
       "numero_limpio": 990
     },
     {
@@ -14314,12 +14314,12 @@
       "valor_m2": 1829.27,
       "fuente": "propia_api_browser",
       "id_propia": 398275,
-      "lat": -32.93216785714286,
-      "lon": -60.65162828571429,
+      "lat": -32.93558228571428,
+      "lon": -60.65234385714285,
       "zona": "Otro",
       "date_created": "2025-08-26T15:53:58.481Z",
       "date_updated": "2026-04-25T00:21:30.601Z",
-      "calle_limpia": "alvear bis",
+      "calle_limpia": "alvear",
       "numero_limpio": 126
     },
     {
@@ -15377,7 +15377,7 @@
       "zona": "Otro",
       "date_created": "2024-02-27T20:49:58.000Z",
       "date_updated": "2026-03-15T16:21:42.321Z",
-      "calle_limpia": "avellaneda bis",
+      "calle_limpia": "avellaneda",
       "numero_limpio": 1000
     },
     {
@@ -16440,12 +16440,12 @@
       "valor_m2": 1020.83,
       "fuente": "propia_api_browser",
       "id_propia": 315032,
-      "lat": -32.961163,
-      "lon": -60.62535,
+      "lat": -32.960971,
+      "lon": -60.626099999999994,
       "zona": "Otro",
       "date_created": "2024-09-27T20:09:39.000Z",
       "date_updated": "2026-04-14T05:04:58.840Z",
-      "calle_limpia": "cochabamba bis",
+      "calle_limpia": "cochabamba",
       "numero_limpio": 30
     },
     {
@@ -17098,8 +17098,8 @@
       "valor_m2": 1966.29,
       "fuente": "propia_api_browser",
       "id_propia": 402583,
-      "lat": -32.93686,
-      "lon": -60.647396,
+      "lat": -32.933836428571425,
+      "lon": -60.64687157142857,
       "zona": "Otro",
       "date_created": "2025-09-12T16:31:46.213Z",
       "date_updated": "2026-03-31T13:32:36.694Z",
@@ -17747,7 +17747,7 @@
       "zona": "Otro",
       "date_created": "2022-10-21T21:50:49.000Z",
       "date_updated": "2026-04-26T12:55:36.530Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -18397,7 +18397,7 @@
       "zona": "Otro",
       "date_created": "2022-07-08T17:02:43.000Z",
       "date_updated": "2026-02-19T05:55:22.422Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 400
     },
     {
@@ -21590,8 +21590,8 @@
       "valor_m2": 2142.86,
       "fuente": "propia_api_browser",
       "id_propia": 241352,
-      "lat": -32.935863,
-      "lon": -60.64998,
+      "lat": -32.93387514285715,
+      "lon": -60.649801428571436,
       "zona": "Otro",
       "date_created": "2023-11-01T11:35:33.000Z",
       "date_updated": "2026-01-22T05:31:24.384Z",
@@ -22711,7 +22711,7 @@
       "zona": "Otro",
       "date_created": "2022-12-13T18:43:58.000Z",
       "date_updated": "2026-02-13T18:24:54.239Z",
-      "calle_limpia": "moreno bis",
+      "calle_limpia": "moreno",
       "numero_limpio": 100
     },
     {
@@ -23036,12 +23036,12 @@
       "valor_m2": 2345.13,
       "fuente": "propia_api_browser",
       "id_propia": 370509,
-      "lat": -32.93376859999999,
-      "lon": -60.6511514,
+      "lat": -32.93519033333334,
+      "lon": -60.650771999999996,
       "zona": "Otro",
       "date_created": "2025-05-01T15:15:42.484Z",
       "date_updated": "2026-04-24T21:20:38.592Z",
-      "calle_limpia": "orono bis",
+      "calle_limpia": "orono",
       "numero_limpio": 77
     },
     {
@@ -23690,8 +23690,8 @@
       "valor_m2": 1698.25,
       "fuente": "propia_api_browser",
       "id_propia": 367163,
-      "lat": -32.93693,
-      "lon": -60.647465,
+      "lat": -32.933836428571425,
+      "lon": -60.64687157142857,
       "zona": "Otro",
       "date_created": "2025-04-18T22:15:27.412Z",
       "date_updated": "2026-04-23T01:54:41.113Z",
@@ -24498,12 +24498,12 @@
       "valor_m2": 1815.0,
       "fuente": "propia_api_browser",
       "id_propia": 296205,
-      "lat": -32.91968385714286,
-      "lon": -60.674561571428576,
+      "lat": -32.937449,
+      "lon": -60.67907614285715,
       "zona": "Otro",
       "date_created": "2024-07-23T00:11:41.000Z",
       "date_updated": "2026-04-23T13:54:48.354Z",
-      "calle_limpia": "avellaneda bis",
+      "calle_limpia": "avellaneda",
       "numero_limpio": 600
     },
     {
@@ -25626,8 +25626,8 @@
       "valor_m2": 1826.09,
       "fuente": "propia_api_browser",
       "id_propia": 322247,
-      "lat": -32.93341188888889,
-      "lon": -60.658903555555554,
+      "lat": -32.93253357142857,
+      "lon": -60.65929214285715,
       "zona": "Pichincha",
       "date_created": "2024-10-26T18:00:04.000Z",
       "date_updated": "2026-04-17T01:49:08.085Z",
@@ -26022,12 +26022,12 @@
       "valor_m2": 2745.61,
       "fuente": "propia_api_browser",
       "id_propia": 356746,
-      "lat": -32.9347296,
-      "lon": -60.6456572,
+      "lat": -32.93673966666667,
+      "lon": -60.64607316666667,
       "zona": "Otro",
       "date_created": "2025-03-07T19:10:18.000Z",
       "date_updated": "2026-04-22T03:29:08.282Z",
-      "calle_limpia": "italia bis",
+      "calle_limpia": "italia",
       "numero_limpio": 100
     },
     {
@@ -26933,7 +26933,7 @@
       "zona": "Otro",
       "date_created": "2026-02-04T19:46:18.824Z",
       "date_updated": "2026-04-22T00:54:01.473Z",
-      "calle_limpia": "avellaneda bis",
+      "calle_limpia": "avellaneda",
       "numero_limpio": 1000
     },
     {
@@ -28249,7 +28249,7 @@
       "zona": "Otro",
       "date_created": "2022-11-01T20:45:09.000Z",
       "date_updated": "2026-03-10T19:44:31.759Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 400
     },
     {
@@ -30380,8 +30380,8 @@
       "valor_m2": 1962.48,
       "fuente": "propia_api_browser",
       "id_propia": 324271,
-      "lat": -32.9351188,
-      "lon": -60.64812499999999,
+      "lat": -32.93443499999999,
+      "lon": -60.648421,
       "zona": "Otro",
       "date_created": "2024-11-05T10:00:21.000Z",
       "date_updated": "2026-04-25T23:05:45.278Z",
@@ -30843,7 +30843,7 @@
       "zona": "Otro",
       "date_created": "2025-11-28T13:56:21.196Z",
       "date_updated": "2026-04-08T15:25:22.499Z",
-      "calle_limpia": "avellaneda bis",
+      "calle_limpia": "avellaneda",
       "numero_limpio": 685
     },
     {
@@ -31236,8 +31236,8 @@
       "valor_m2": 2037.04,
       "fuente": "propia_api_browser",
       "id_propia": 373921,
-      "lat": -32.9367128,
-      "lon": -60.6470982,
+      "lat": -32.933836428571425,
+      "lon": -60.64687157142857,
       "zona": "Otro",
       "date_created": "2025-05-14T21:45:08.577Z",
       "date_updated": "2026-01-07T17:53:36.382Z",
@@ -32364,8 +32364,8 @@
       "valor_m2": 2843.14,
       "fuente": "propia_api_browser",
       "id_propia": 247515,
-      "lat": -32.93583219999999,
-      "lon": -60.651090800000006,
+      "lat": -32.933154200000004,
+      "lon": -60.650391400000004,
       "zona": "Otro",
       "date_created": "2023-11-30T19:02:40.000Z",
       "date_updated": "2026-04-25T05:04:01.659Z",
@@ -33134,8 +33134,8 @@
       "valor_m2": 2031.8,
       "fuente": "propia_api_browser",
       "id_propia": 300176,
-      "lat": -32.9367128,
-      "lon": -60.6470982,
+      "lat": -32.933836428571425,
+      "lon": -60.64687157142857,
       "zona": "Otro",
       "date_created": "2024-08-06T23:36:43.000Z",
       "date_updated": "2026-04-21T15:54:55.917Z",
@@ -33252,12 +33252,12 @@
       "valor_m2": 575.0,
       "fuente": "propia_api_browser",
       "id_propia": 396329,
-      "lat": -32.919658,
-      "lon": -60.68161533333333,
+      "lat": -32.918955857142855,
+      "lon": -60.68315471428571,
       "zona": "Otro",
       "date_created": "2025-08-18T15:47:17.019Z",
       "date_updated": "2026-04-23T02:18:17.038Z",
-      "calle_limpia": "alberdi bis",
+      "calle_limpia": "alberdi",
       "numero_limpio": 700
     },
     {
@@ -33292,8 +33292,8 @@
       "valor_m2": 1883.12,
       "fuente": "propia_api_browser",
       "id_propia": 235976,
-      "lat": -32.9367128,
-      "lon": -60.6470982,
+      "lat": -32.933836428571425,
+      "lon": -60.64687157142857,
       "zona": "Otro",
       "date_created": "2023-09-28T16:05:38.000Z",
       "date_updated": "2026-04-08T05:03:44.236Z",
@@ -33904,8 +33904,8 @@
       "valor_m2": 2098.77,
       "fuente": "propia_api_browser",
       "id_propia": 402589,
-      "lat": -32.93686,
-      "lon": -60.647396,
+      "lat": -32.933836428571425,
+      "lon": -60.64687157142857,
       "zona": "Otro",
       "date_created": "2025-09-12T16:45:02.236Z",
       "date_updated": "2026-04-20T18:08:00.888Z",
@@ -34818,8 +34818,8 @@
       "valor_m2": 1795.92,
       "fuente": "propia_api_browser",
       "id_propia": 454535,
-      "lat": -32.93624,
-      "lon": -60.64715,
+      "lat": -32.933836428571425,
+      "lon": -60.64687157142857,
       "zona": "Otro",
       "date_created": "2026-03-19T15:27:48.188Z",
       "date_updated": "2026-04-25T01:07:28.828Z",
@@ -36514,12 +36514,12 @@
       "valor_m2": 2250.0,
       "fuente": "propia_api_browser",
       "id_propia": 408725,
-      "lat": -32.93376859999999,
-      "lon": -60.6511514,
+      "lat": -32.934951874999996,
+      "lon": -60.650621125,
       "zona": "Otro",
       "date_created": "2025-10-02T12:16:20.755Z",
       "date_updated": "2026-04-20T20:17:33.615Z",
-      "calle_limpia": "orono bis",
+      "calle_limpia": "orono",
       "numero_limpio": 41
     },
     {
@@ -36539,7 +36539,7 @@
       "zona": "Otro",
       "date_created": "2024-09-19T23:05:00.000Z",
       "date_updated": "2026-02-23T19:58:40.412Z",
-      "calle_limpia": "francia bis",
+      "calle_limpia": "francia",
       "numero_limpio": 200
     },
     {
@@ -37694,12 +37694,12 @@
       "valor_m2": 775.86,
       "fuente": "propia_api_browser",
       "id_propia": 401235,
-      "lat": -32.96118,
-      "lon": -60.62507,
+      "lat": -32.9609348,
+      "lon": -60.6263804,
       "zona": "Otro",
       "date_created": "2025-09-05T16:31:30.609Z",
       "date_updated": "2026-04-23T13:21:00.264Z",
-      "calle_limpia": "cochabamba bis",
+      "calle_limpia": "cochabamba",
       "numero_limpio": 46
     },
     {
@@ -38660,8 +38660,8 @@
       "valor_m2": 1363.64,
       "fuente": "propia_api_browser",
       "id_propia": 374159,
-      "lat": -32.931287166666664,
-      "lon": -60.761956,
+      "lat": -32.9300518,
+      "lon": -60.7619326,
       "zona": "Otro",
       "date_created": "2025-05-15T22:45:41.343Z",
       "date_updated": "2026-04-07T11:27:04.570Z",
@@ -38856,8 +38856,8 @@
       "valor_m2": 789.47,
       "fuente": "propia_api_browser",
       "id_propia": 201752,
-      "lat": -32.93772,
-      "lon": -60.67884,
+      "lat": -32.9185638,
+      "lon": -60.6737026,
       "zona": "Otro",
       "date_created": "2023-04-19T23:34:41.000Z",
       "date_updated": "2026-04-06T22:02:03.993Z",
@@ -38876,12 +38876,12 @@
       "valor_m2": 981.48,
       "fuente": "propia_api_browser",
       "id_propia": 291198,
-      "lat": -32.9198956,
-      "lon": -60.681534,
+      "lat": -32.9198254,
+      "lon": -60.6824698,
       "zona": "Otro",
       "date_created": "2024-07-11T21:06:37.000Z",
       "date_updated": "2026-04-21T22:35:21.255Z",
-      "calle_limpia": "alberdi bis",
+      "calle_limpia": "alberdi",
       "numero_limpio": 675
     },
     {
@@ -39036,12 +39036,12 @@
       "valor_m2": 1889.53,
       "fuente": "propia_api_browser",
       "id_propia": 424511,
-      "lat": -32.931416,
-      "lon": -60.65595,
+      "lat": -32.9349065,
+      "lon": -60.65704333333333,
       "zona": "Otro",
       "date_created": "2025-12-11T19:00:52.408Z",
       "date_updated": "2026-01-15T05:35:04.927Z",
-      "calle_limpia": "rodriguez bis",
+      "calle_limpia": "rodriguez",
       "numero_limpio": 138
     },
     {
@@ -39932,8 +39932,8 @@
       "valor_m2": 1984.73,
       "fuente": "propia_api_browser",
       "id_propia": 261891,
-      "lat": -32.960896500000004,
-      "lon": -60.628973125,
+      "lat": -32.961189777777776,
+      "lon": -60.62362666666666,
       "zona": "Otro",
       "date_created": "2024-02-23T21:04:09.000Z",
       "date_updated": "2026-02-21T06:15:15.396Z",
@@ -40333,7 +40333,7 @@
       "zona": "Otro",
       "date_created": "2022-07-19T17:45:59.000Z",
       "date_updated": "2026-03-10T19:43:54.587Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 400
     },
     {
@@ -41410,8 +41410,8 @@
       "valor_m2": 1494.13,
       "fuente": "propia_api_browser",
       "id_propia": 352459,
-      "lat": -32.93772,
-      "lon": -60.67884,
+      "lat": -32.9185638,
+      "lon": -60.6737026,
       "zona": "Otro",
       "date_created": "2025-02-13T01:28:33.000Z",
       "date_updated": "2026-03-09T19:04:12.673Z",
@@ -41666,12 +41666,12 @@
       "valor_m2": 1941.89,
       "fuente": "propia_api_browser",
       "id_propia": 363016,
-      "lat": -32.9347296,
-      "lon": -60.6456572,
+      "lat": -32.93673966666667,
+      "lon": -60.64607316666667,
       "zona": "Otro",
       "date_created": "2025-04-12T07:25:31.040Z",
       "date_updated": "2026-04-18T22:28:18.712Z",
-      "calle_limpia": "italia bis",
+      "calle_limpia": "italia",
       "numero_limpio": 100
     },
     {
@@ -41766,8 +41766,8 @@
       "valor_m2": 1777.78,
       "fuente": "propia_api_browser",
       "id_propia": 427356,
-      "lat": -32.935993,
-      "lon": -60.64724,
+      "lat": -32.9343005,
+      "lon": -60.64683083333333,
       "zona": "Otro",
       "date_created": "2025-12-24T20:41:58.648Z",
       "date_updated": "2026-04-25T21:35:40.312Z",
@@ -42697,7 +42697,7 @@
       "zona": "Otro",
       "date_created": "2025-09-02T19:45:57.291Z",
       "date_updated": "2026-04-23T05:05:26.225Z",
-      "calle_limpia": "en viamonte bis",
+      "calle_limpia": "en viamonte",
       "numero_limpio": 4
     },
     {
@@ -45774,12 +45774,12 @@
       "valor_m2": 2676.27,
       "fuente": "propia_api_browser",
       "id_propia": 363969,
-      "lat": -32.934967,
-      "lon": -60.645298,
+      "lat": -32.93673966666667,
+      "lon": -60.64607316666667,
       "zona": "Otro",
       "date_created": "2025-04-12T08:45:37.899Z",
       "date_updated": "2026-04-11T05:03:52.191Z",
-      "calle_limpia": "italia bis",
+      "calle_limpia": "italia",
       "numero_limpio": 100
     },
     {
@@ -45977,7 +45977,7 @@
       "zona": "Otro",
       "date_created": "2023-06-21T23:17:11.000Z",
       "date_updated": "2026-03-04T01:35:43.864Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 400
     },
     {
@@ -46844,8 +46844,8 @@
       "valor_m2": 2596.15,
       "fuente": "propia_api_browser",
       "id_propia": 460271,
-      "lat": -32.92504087499999,
-      "lon": -60.671665625,
+      "lat": -32.91990514285714,
+      "lon": -60.68472871428572,
       "zona": "Otro",
       "date_created": "2026-04-15T16:17:49.053Z",
       "date_updated": "2026-04-23T05:05:16.564Z",
@@ -47694,12 +47694,12 @@
       "valor_m2": 1545.45,
       "fuente": "propia_api_browser",
       "id_propia": 343462,
-      "lat": -32.91968385714286,
-      "lon": -60.674561571428576,
+      "lat": -32.936158400000004,
+      "lon": -60.6788182,
       "zona": "Otro",
       "date_created": "2025-01-02T23:40:51.000Z",
       "date_updated": "2026-04-23T13:54:14.061Z",
-      "calle_limpia": "avellaneda bis",
+      "calle_limpia": "avellaneda",
       "numero_limpio": 564
     },
     {
@@ -47777,7 +47777,7 @@
       "zona": "Otro",
       "date_created": "2022-10-19T18:17:45.000Z",
       "date_updated": "2025-12-18T12:47:47.429Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -47892,12 +47892,12 @@
       "valor_m2": 2362.76,
       "fuente": "propia_api_browser",
       "id_propia": 285112,
-      "lat": -32.915886,
-      "lon": -60.673084,
+      "lat": -32.94138999999999,
+      "lon": -60.68004383333334,
       "zona": "Otro",
       "date_created": "2024-06-13T23:18:46.000Z",
       "date_updated": "2026-04-21T18:21:50.254Z",
-      "calle_limpia": "avellaneda bis",
+      "calle_limpia": "avellaneda",
       "numero_limpio": 990
     },
     {
@@ -48433,7 +48433,7 @@
       "zona": "Otro",
       "date_created": "2024-11-26T08:07:27.000Z",
       "date_updated": "2026-02-04T17:17:31.863Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde bis con",
       "numero_limpio": 455
     },
     {
@@ -49014,12 +49014,12 @@
       "valor_m2": 1437.5,
       "fuente": "propia_api_browser",
       "id_propia": 429559,
-      "lat": -32.93305,
-      "lon": -60.649063,
+      "lat": -32.936099,
+      "lon": -60.650188750000005,
       "zona": "Otro",
       "date_created": "2026-01-08T21:41:58.031Z",
       "date_updated": "2026-04-15T16:59:44.586Z",
-      "calle_limpia": "balcarce bis",
+      "calle_limpia": "balcarce",
       "numero_limpio": 137
     },
     {
@@ -49832,8 +49832,8 @@
       "valor_m2": 1585.37,
       "fuente": "propia_api_browser",
       "id_propia": 315553,
-      "lat": -32.960617,
-      "lon": -60.62878,
+      "lat": -32.961189777777776,
+      "lon": -60.62362666666666,
       "zona": "Otro",
       "date_created": "2024-10-01T22:05:49.000Z",
       "date_updated": "2026-04-07T15:05:28.768Z",
@@ -52412,8 +52412,8 @@
       "valor_m2": 2142.86,
       "fuente": "propia_api_browser",
       "id_propia": 235986,
-      "lat": -32.9367128,
-      "lon": -60.6470982,
+      "lat": -32.933836428571425,
+      "lon": -60.64687157142857,
       "zona": "Otro",
       "date_created": "2023-09-28T17:00:33.000Z",
       "date_updated": "2026-04-08T05:03:54.093Z",
@@ -54808,12 +54808,12 @@
       "valor_m2": 2403.85,
       "fuente": "propia_api_browser",
       "id_propia": 173989,
-      "lat": -32.9324,
-      "lon": -60.65065,
+      "lat": -32.93640736363637,
+      "lon": -60.65093581818182,
       "zona": "Otro",
       "date_created": "2022-12-02T21:04:33.000Z",
       "date_updated": "2026-04-21T03:17:38.933Z",
-      "calle_limpia": "orono bis",
+      "calle_limpia": "orono",
       "numero_limpio": 174
     },
     {
@@ -55823,7 +55823,7 @@
       "zona": "Otro",
       "date_created": "2022-08-25T22:15:37.000Z",
       "date_updated": "2026-02-25T23:59:05.186Z",
-      "calle_limpia": "avellaneda bis",
+      "calle_limpia": "avellaneda",
       "numero_limpio": 1000
     },
     {
@@ -56408,8 +56408,8 @@
       "valor_m2": 1770.83,
       "fuente": "propia_api_browser",
       "id_propia": 235989,
-      "lat": -32.9367128,
-      "lon": -60.6470982,
+      "lat": -32.933836428571425,
+      "lon": -60.64687157142857,
       "zona": "Otro",
       "date_created": "2023-09-28T17:02:58.000Z",
       "date_updated": "2026-04-16T01:17:42.446Z",
@@ -56511,7 +56511,7 @@
       "zona": "Otro",
       "date_created": "2024-11-13T20:04:35.000Z",
       "date_updated": "2026-02-17T05:34:13.717Z",
-      "calle_limpia": "santiago bis",
+      "calle_limpia": "santiago",
       "numero_limpio": 95
     },
     {
@@ -57740,8 +57740,8 @@
       "valor_m2": 2121.68,
       "fuente": "propia_api_browser",
       "id_propia": 347049,
-      "lat": -32.935958285714285,
-      "lon": -60.649796428571435,
+      "lat": -32.93387514285715,
+      "lon": -60.649801428571436,
       "zona": "Otro",
       "date_created": "2025-01-20T21:08:55.000Z",
       "date_updated": "2026-01-06T05:28:43.488Z",
@@ -58099,7 +58099,7 @@
       "zona": "Otro",
       "date_created": "2024-12-17T21:18:12.000Z",
       "date_updated": "2026-03-12T17:42:08.507Z",
-      "calle_limpia": "thedy bis",
+      "calle_limpia": "thedy",
       "numero_limpio": 300
     },
     {
@@ -58159,7 +58159,7 @@
       "zona": "Otro",
       "date_created": "2026-03-13T14:23:55.068Z",
       "date_updated": "2026-03-27T15:02:17.621Z",
-      "calle_limpia": "francia bis",
+      "calle_limpia": "francia",
       "numero_limpio": 200
     },
     {
@@ -58751,7 +58751,7 @@
       "zona": "Otro",
       "date_created": "2025-10-03T14:45:50.970Z",
       "date_updated": "2026-03-28T05:11:49.715Z",
-      "calle_limpia": "wilde 455 bis",
+      "calle_limpia": "wilde 455",
       "numero_limpio": 400
     },
     {
@@ -59612,12 +59612,12 @@
       "valor_m2": 1511.78,
       "fuente": "propia_api_browser",
       "id_propia": 170921,
-      "lat": -32.916005000000006,
-      "lon": -60.67293055555555,
+      "lat": -32.94138999999999,
+      "lon": -60.68004383333334,
       "zona": "Otro",
       "date_created": "2022-11-18T21:26:34.000Z",
       "date_updated": "2026-04-22T02:15:32.194Z",
-      "calle_limpia": "avellaneda bis",
+      "calle_limpia": "avellaneda",
       "numero_limpio": 915
     },
     {
@@ -60108,12 +60108,12 @@
       "valor_m2": 2528.09,
       "fuente": "propia_api_browser",
       "id_propia": 320234,
-      "lat": -32.933530375000004,
-      "lon": -60.648075125000005,
+      "lat": -32.93662139999999,
+      "lon": -60.648483799999994,
       "zona": "Otro",
       "date_created": "2024-10-19T03:00:31.000Z",
       "date_updated": "2026-03-19T01:52:15.026Z",
-      "calle_limpia": "moreno bis",
+      "calle_limpia": "moreno",
       "numero_limpio": 156
     },
     {
@@ -60153,7 +60153,7 @@
       "zona": "Otro",
       "date_created": "2025-10-03T22:48:29.618Z",
       "date_updated": "2025-12-21T08:12:23.383Z",
-      "calle_limpia": "francia bis",
+      "calle_limpia": "francia",
       "numero_limpio": 260
     },
     {
@@ -61241,7 +61241,7 @@
       "zona": "Otro",
       "date_created": "2022-07-19T17:46:07.000Z",
       "date_updated": "2026-03-06T05:49:14.874Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 400
     },
     {
@@ -64752,8 +64752,8 @@
       "valor_m2": 1966.29,
       "fuente": "propia_api_browser",
       "id_propia": 393129,
-      "lat": -32.9367128,
-      "lon": -60.6470982,
+      "lat": -32.933836428571425,
+      "lon": -60.64687157142857,
       "zona": "Otro",
       "date_created": "2025-07-30T19:37:09.042Z",
       "date_updated": "2026-02-20T05:04:29.664Z",
@@ -66559,7 +66559,7 @@
       "zona": "Otro",
       "date_created": "2025-10-03T23:08:41.963Z",
       "date_updated": "2025-10-27T21:30:18.400Z",
-      "calle_limpia": "francia bis",
+      "calle_limpia": "francia",
       "numero_limpio": 260
     },
     {
@@ -66990,12 +66990,12 @@
       "valor_m2": 1617.53,
       "fuente": "propia_api_browser",
       "id_propia": 424512,
-      "lat": -32.931526,
-      "lon": -60.65597,
+      "lat": -32.9349902,
+      "lon": -60.656526400000004,
       "zona": "Otro",
       "date_created": "2025-12-11T19:00:54.900Z",
       "date_updated": "2026-03-26T12:03:51.671Z",
-      "calle_limpia": "rodriguez bis",
+      "calle_limpia": "rodriguez",
       "numero_limpio": 100
     },
     {
@@ -68263,7 +68263,7 @@
       "zona": "Otro",
       "date_created": "2026-02-05T19:45:47.621Z",
       "date_updated": "2026-04-24T16:43:22.201Z",
-      "calle_limpia": "avellaneda bis",
+      "calle_limpia": "avellaneda",
       "numero_limpio": 1000
     },
     {
@@ -68930,8 +68930,8 @@
       "valor_m2": 2407.41,
       "fuente": "propia_api_browser",
       "id_propia": 399107,
-      "lat": -32.9367128,
-      "lon": -60.6470982,
+      "lat": -32.933836428571425,
+      "lon": -60.64687157142857,
       "zona": "Otro",
       "date_created": "2025-08-28T21:16:42.785Z",
       "date_updated": "2026-04-11T05:03:58.099Z",
@@ -70106,12 +70106,12 @@
       "valor_m2": 2528.46,
       "fuente": "propia_api_browser",
       "id_propia": 356743,
-      "lat": -32.9347296,
-      "lon": -60.6456572,
+      "lat": -32.93673966666667,
+      "lon": -60.64607316666667,
       "zona": "Otro",
       "date_created": "2025-03-07T19:09:06.000Z",
       "date_updated": "2026-04-11T05:03:50.315Z",
-      "calle_limpia": "italia bis",
+      "calle_limpia": "italia",
       "numero_limpio": 100
     },
     {
@@ -70287,7 +70287,7 @@
       "zona": "Pellegrini",
       "date_created": "2026-03-03T12:12:42.291Z",
       "date_updated": "2026-04-21T22:34:53.380Z",
-      "calle_limpia": "pellegrini bis",
+      "calle_limpia": "pellegrini",
       "numero_limpio": 25
     },
     {
@@ -71528,8 +71528,8 @@
       "valor_m2": 2098.77,
       "fuente": "propia_api_browser",
       "id_propia": 399281,
-      "lat": -32.9367128,
-      "lon": -60.6470982,
+      "lat": -32.933836428571425,
+      "lon": -60.64687157142857,
       "zona": "Otro",
       "date_created": "2025-08-29T14:45:59.842Z",
       "date_updated": "2026-04-11T05:03:57.942Z",
@@ -72111,7 +72111,7 @@
       "zona": "Otro",
       "date_created": "2025-09-22T16:17:18.144Z",
       "date_updated": "2025-10-31T15:05:46.772Z",
-      "calle_limpia": "juarez celman bis",
+      "calle_limpia": "juarez celman",
       "numero_limpio": 654
     },
     {
@@ -72504,8 +72504,8 @@
       "valor_m2": 1578.95,
       "fuente": "propia_api_browser",
       "id_propia": 315626,
-      "lat": -32.960564,
-      "lon": -60.629124,
+      "lat": -32.961189777777776,
+      "lon": -60.62362666666666,
       "zona": "Otro",
       "date_created": "2024-10-02T01:32:06.000Z",
       "date_updated": "2026-04-09T15:31:40.701Z",
@@ -74646,8 +74646,8 @@
       "valor_m2": 3592.59,
       "fuente": "propia_api_browser",
       "id_propia": 368746,
-      "lat": -32.9362952,
-      "lon": -60.6484428,
+      "lat": -32.933881,
+      "lon": -60.64813014285714,
       "zona": "Otro",
       "date_created": "2025-04-24T23:14:11.145Z",
       "date_updated": "2026-03-28T16:18:15.918Z",
@@ -75417,7 +75417,7 @@
       "zona": "Otro",
       "date_created": "2021-09-03T18:15:05.000Z",
       "date_updated": "2026-04-18T01:07:55.445Z",
-      "calle_limpia": "caseros bis",
+      "calle_limpia": "caseros",
       "numero_limpio": 145
     },
     {
@@ -76635,7 +76635,7 @@
       "zona": "Otro",
       "date_created": "2025-10-10T14:15:24.572Z",
       "date_updated": "2026-03-30T17:33:17.868Z",
-      "calle_limpia": "avellaneda bis",
+      "calle_limpia": "avellaneda",
       "numero_limpio": 1000
     },
     {
@@ -76650,8 +76650,8 @@
       "valor_m2": 3368.42,
       "fuente": "propia_api_browser",
       "id_propia": 307213,
-      "lat": -32.92504087499999,
-      "lon": -60.671665625,
+      "lat": -32.91990514285714,
+      "lon": -60.68472871428572,
       "zona": "Otro",
       "date_created": "2024-08-30T01:00:04.000Z",
       "date_updated": "2026-04-21T21:13:55.932Z",
@@ -77491,7 +77491,7 @@
       "zona": "Otro",
       "date_created": "2026-02-06T14:57:21.869Z",
       "date_updated": "2026-03-24T17:20:26.684Z",
-      "calle_limpia": "agustin jose donado bis",
+      "calle_limpia": "agustin jose donado",
       "numero_limpio": 938
     },
     {
@@ -77747,7 +77747,7 @@
       "zona": "Otro",
       "date_created": "2025-09-17T20:32:08.681Z",
       "date_updated": "2026-04-14T16:17:16.441Z",
-      "calle_limpia": "dorrego bis",
+      "calle_limpia": "dorrego",
       "numero_limpio": 100
     },
     {
@@ -78074,12 +78074,12 @@
       "valor_m2": 3571.43,
       "fuente": "propia_api_browser",
       "id_propia": 365291,
-      "lat": -32.93314,
-      "lon": -60.647923,
+      "lat": -32.93662139999999,
+      "lon": -60.648483799999994,
       "zona": "Otro",
       "date_created": "2025-04-12T10:51:01.883Z",
       "date_updated": "2025-11-07T15:32:52.099Z",
-      "calle_limpia": "moreno bis",
+      "calle_limpia": "moreno",
       "numero_limpio": 156
     },
     {
@@ -80732,8 +80732,8 @@
       "valor_m2": 1405.41,
       "fuente": "propia_api_browser",
       "id_propia": 315627,
-      "lat": -32.960617,
-      "lon": -60.62874,
+      "lat": -32.961189777777776,
+      "lon": -60.62362666666666,
       "zona": "Otro",
       "date_created": "2024-10-02T01:32:20.000Z",
       "date_updated": "2026-03-31T23:58:17.543Z",
@@ -80990,8 +80990,8 @@
       "valor_m2": 2519.69,
       "fuente": "propia_api_browser",
       "id_propia": 347045,
-      "lat": -32.935958285714285,
-      "lon": -60.649796428571435,
+      "lat": -32.93387514285715,
+      "lon": -60.649801428571436,
       "zona": "Otro",
       "date_created": "2025-01-20T21:02:24.000Z",
       "date_updated": "2026-01-06T05:31:11.269Z",
@@ -81389,7 +81389,7 @@
       "zona": "Otro",
       "date_created": "2025-09-22T15:48:29.627Z",
       "date_updated": "2026-03-24T13:39:43.943Z",
-      "calle_limpia": "neptuno bis",
+      "calle_limpia": "neptuno",
       "numero_limpio": 817
     },
     {
@@ -82212,8 +82212,8 @@
       "valor_m2": 1584.62,
       "fuente": "propia_api_browser",
       "id_propia": 322248,
-      "lat": -32.93341188888889,
-      "lon": -60.658903555555554,
+      "lat": -32.93253357142857,
+      "lon": -60.65929214285715,
       "zona": "Pichincha",
       "date_created": "2024-10-26T18:00:21.000Z",
       "date_updated": "2026-04-13T14:08:03.031Z",
@@ -82668,12 +82668,12 @@
       "valor_m2": 1257.14,
       "fuente": "propia_api_browser",
       "id_propia": 420174,
-      "lat": -32.968519,
-      "lon": -60.6271685,
+      "lat": -32.9678254,
+      "lon": -60.62795,
       "zona": "Otro",
       "date_created": "2025-11-20T14:01:50.118Z",
       "date_updated": "2026-02-26T12:43:22.622Z",
-      "calle_limpia": "viamonte bis",
+      "calle_limpia": "viamonte",
       "numero_limpio": 32
     },
     {
@@ -83289,7 +83289,7 @@
       "zona": "Otro",
       "date_created": "2025-02-05T20:02:18.000Z",
       "date_updated": "2026-04-25T00:07:56.806Z",
-      "calle_limpia": "balcarce bis",
+      "calle_limpia": "balcarce",
       "numero_limpio": 16
     },
     {
@@ -84088,12 +84088,12 @@
       "valor_m2": 2049.18,
       "fuente": "propia_api_browser",
       "id_propia": 458117,
-      "lat": -32.916005000000006,
-      "lon": -60.67293055555555,
+      "lat": -32.94138999999999,
+      "lon": -60.68004383333334,
       "zona": "Otro",
       "date_created": "2026-04-07T14:17:11.735Z",
       "date_updated": "2026-04-07T14:33:08.831Z",
-      "calle_limpia": "avellaneda bis",
+      "calle_limpia": "avellaneda",
       "numero_limpio": 900
     },
     {
@@ -84538,12 +84538,12 @@
       "valor_m2": 673.08,
       "fuente": "propia_api_browser",
       "id_propia": 58306,
-      "lat": -32.96162184615385,
-      "lon": -60.62542138461538,
+      "lat": -32.9609348,
+      "lon": -60.6263804,
       "zona": "Otro",
       "date_created": "2021-07-10T22:22:18.000Z",
       "date_updated": "2026-04-25T05:03:44.832Z",
-      "calle_limpia": "cochabamba bis",
+      "calle_limpia": "cochabamba",
       "numero_limpio": 46
     },
     {
@@ -84558,8 +84558,8 @@
       "valor_m2": 1789.07,
       "fuente": "propia_api_browser",
       "id_propia": 414425,
-      "lat": -32.937449,
-      "lon": -60.67907614285715,
+      "lat": -32.91968385714286,
+      "lon": -60.674561571428576,
       "zona": "Otro",
       "date_created": "2025-10-27T11:39:08.507Z",
       "date_updated": "2026-03-16T19:26:33.196Z",
@@ -86350,12 +86350,12 @@
       "valor_m2": 1335.82,
       "fuente": "propia_api_browser",
       "id_propia": 456727,
-      "lat": -32.93314,
-      "lon": -60.655186,
+      "lat": -32.934019428571425,
+      "lon": -60.655472571428575,
       "zona": "Otro",
       "date_created": "2026-03-30T19:29:53.051Z",
       "date_updated": "2026-04-13T18:43:40.256Z",
-      "calle_limpia": "pueyrredon bis",
+      "calle_limpia": "pueyrredon",
       "numero_limpio": 6
     },
     {
@@ -87764,12 +87764,12 @@
       "valor_m2": 1170.21,
       "fuente": "propia_api_browser",
       "id_propia": 124886,
-      "lat": -32.92539677777778,
-      "lon": -60.67612677777778,
+      "lat": -32.916337999999996,
+      "lon": -60.67383125,
       "zona": "Otro",
       "date_created": "2022-05-06T22:21:31.000Z",
       "date_updated": "2026-04-25T18:44:10.579Z",
-      "calle_limpia": "avellaneda bis",
+      "calle_limpia": "avellaneda",
       "numero_limpio": 179
     },
     {
@@ -88377,7 +88377,7 @@
       "zona": "Otro",
       "date_created": "2024-07-18T20:05:19.000Z",
       "date_updated": "2026-02-20T05:53:11.977Z",
-      "calle_limpia": "avellaneda bis",
+      "calle_limpia": "avellaneda",
       "numero_limpio": 1000
     },
     {
@@ -89387,7 +89387,7 @@
       "zona": "Otro",
       "date_created": "2025-02-05T05:01:26.000Z",
       "date_updated": "2026-04-11T13:34:54.801Z",
-      "calle_limpia": "santiago bis",
+      "calle_limpia": "santiago",
       "numero_limpio": 60
     },
     {
@@ -91193,7 +91193,7 @@
       "zona": "Otro",
       "date_created": "2025-04-16T18:32:45.355Z",
       "date_updated": "2026-01-21T13:41:17.203Z",
-      "calle_limpia": "en wilde bis",
+      "calle_limpia": "en wilde bis fisherton",
       "numero_limpio": 455
     },
     {
@@ -91313,7 +91313,7 @@
       "zona": "Otro",
       "date_created": "2023-07-13T21:36:21.000Z",
       "date_updated": "2026-03-04T15:17:44.405Z",
-      "calle_limpia": "balcarce bis",
+      "calle_limpia": "balcarce",
       "numero_limpio": 100
     },
     {
@@ -92022,8 +92022,8 @@
       "valor_m2": 2301.79,
       "fuente": "propia_api_browser",
       "id_propia": 366345,
-      "lat": -32.93619,
-      "lon": -60.64982,
+      "lat": -32.93387514285715,
+      "lon": -60.649801428571436,
       "zona": "Otro",
       "date_created": "2025-04-15T15:49:40.664Z",
       "date_updated": "2025-11-27T17:32:08.639Z",
@@ -92340,8 +92340,8 @@
       "valor_m2": 2777.23,
       "fuente": "propia_api_browser",
       "id_propia": 165428,
-      "lat": -32.9362952,
-      "lon": -60.6484428,
+      "lat": -32.933881,
+      "lon": -60.64813014285714,
       "zona": "Otro",
       "date_created": "2022-10-27T20:31:29.000Z",
       "date_updated": "2025-12-27T05:16:18.239Z",
@@ -92438,8 +92438,8 @@
       "valor_m2": 1263.16,
       "fuente": "propia_api_browser",
       "id_propia": 267141,
-      "lat": -32.937449,
-      "lon": -60.67907614285715,
+      "lat": -32.9185638,
+      "lon": -60.6737026,
       "zona": "Otro",
       "date_created": "2024-03-19T05:00:03.000Z",
       "date_updated": "2026-02-26T14:02:28.675Z",
@@ -92538,8 +92538,8 @@
       "valor_m2": 2098.77,
       "fuente": "propia_api_browser",
       "id_propia": 393081,
-      "lat": -32.9367128,
-      "lon": -60.6470982,
+      "lat": -32.933836428571425,
+      "lon": -60.64687157142857,
       "zona": "Otro",
       "date_created": "2025-07-30T17:33:15.448Z",
       "date_updated": "2026-02-20T05:04:27.779Z",
@@ -93135,7 +93135,7 @@
       "zona": "Otro",
       "date_created": "2024-07-30T22:10:04.000Z",
       "date_updated": "2026-04-25T05:04:03.361Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 400
     },
     {
@@ -93705,7 +93705,7 @@
       "zona": "Otro",
       "date_created": "2024-07-13T01:20:55.000Z",
       "date_updated": "2026-04-24T05:06:47.291Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -93865,7 +93865,7 @@
       "zona": "Otro",
       "date_created": "2024-11-14T01:19:14.000Z",
       "date_updated": "2025-10-17T03:46:55.370Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -94023,7 +94023,7 @@
       "zona": "Otro",
       "date_created": "2025-09-22T19:45:18.374Z",
       "date_updated": "2026-04-15T05:04:47.702Z",
-      "calle_limpia": "sarratea bis",
+      "calle_limpia": "sarratea",
       "numero_limpio": 625
     },
     {
@@ -94203,7 +94203,7 @@
       "zona": "Otro",
       "date_created": "2024-07-19T00:36:05.000Z",
       "date_updated": "2026-04-23T05:05:27.394Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 400
     },
     {
@@ -94263,7 +94263,7 @@
       "zona": "Otro",
       "date_created": "2026-04-15T14:17:15.879Z",
       "date_updated": "2026-04-17T05:01:54.443Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 400
     },
     {
@@ -94539,7 +94539,7 @@
       "zona": "Otro",
       "date_created": "2024-09-12T01:00:36.000Z",
       "date_updated": "2026-03-05T05:54:21.833Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -94750,12 +94750,12 @@
       "valor_m2": 861.11,
       "fuente": "propia_api_browser",
       "id_propia": 396145,
-      "lat": -32.920723599999995,
-      "lon": -60.68025359999999,
+      "lat": -32.922156,
+      "lon": -60.686794199999994,
       "zona": "Otro",
       "date_created": "2025-08-15T14:21:48.154Z",
       "date_updated": "2026-04-15T05:05:58.452Z",
-      "calle_limpia": "chizzini bis esquina french",
+      "calle_limpia": "chizzini bis esquina french fisherton",
       "numero_limpio": 500
     },
     {
@@ -95033,7 +95033,7 @@
       "zona": "Otro",
       "date_created": "2026-02-25T04:15:47.252Z",
       "date_updated": "2026-03-27T04:53:36.462Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 400
     },
     {
@@ -95353,7 +95353,7 @@
       "zona": "Otro",
       "date_created": "2025-08-26T16:01:08.196Z",
       "date_updated": "2026-04-24T05:06:24.976Z",
-      "calle_limpia": "mariano moreno bis",
+      "calle_limpia": "mariano moreno",
       "numero_limpio": 0
     },
     {
@@ -95711,7 +95711,7 @@
       "zona": "Otro",
       "date_created": "2025-04-19T15:15:24.465Z",
       "date_updated": "2026-02-10T05:29:28.944Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 400
     },
     {
@@ -96067,7 +96067,7 @@
       "zona": "Otro",
       "date_created": "2024-11-14T01:16:36.000Z",
       "date_updated": "2026-04-11T00:00:30.669Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -96307,7 +96307,7 @@
       "zona": "Otro",
       "date_created": "2022-12-10T20:57:49.000Z",
       "date_updated": "2026-04-15T01:39:17.081Z",
-      "calle_limpia": "sarratea bis",
+      "calle_limpia": "sarratea",
       "numero_limpio": 600
     },
     {
@@ -97935,7 +97935,7 @@
       "zona": "Otro",
       "date_created": "2023-11-17T22:12:25.000Z",
       "date_updated": "2026-04-15T05:05:44.067Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 400
     },
     {
@@ -98175,7 +98175,7 @@
       "zona": "Otro",
       "date_created": "2024-11-14T01:18:04.000Z",
       "date_updated": "2026-04-23T22:13:25.352Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -98391,7 +98391,7 @@
       "zona": "Otro",
       "date_created": "2025-11-06T19:45:37.108Z",
       "date_updated": "2026-04-07T15:30:25.470Z",
-      "calle_limpia": "anchorena bis",
+      "calle_limpia": "anchorena",
       "numero_limpio": 29
     },
     {
@@ -98531,7 +98531,7 @@
       "zona": "Otro",
       "date_created": "2026-03-17T16:01:58.346Z",
       "date_updated": "2026-03-19T05:04:25.597Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 400
     },
     {
@@ -98571,7 +98571,7 @@
       "zona": "Otro",
       "date_created": "2023-08-08T19:05:46.000Z",
       "date_updated": "2026-01-14T05:32:24.280Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -98631,7 +98631,7 @@
       "zona": "Otro",
       "date_created": "2021-11-30T17:51:01.000Z",
       "date_updated": "2026-04-26T12:55:29.138Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -99184,12 +99184,12 @@
       "valor_m2": 809.25,
       "fuente": "propia_api_browser",
       "id_propia": 50210,
-      "lat": -32.922016,
-      "lon": -60.734142,
+      "lat": -32.935880600000004,
+      "lon": -60.7343568,
       "zona": "Otro",
       "date_created": "2021-05-16T00:50:20.000Z",
       "date_updated": "2026-04-26T13:10:14.046Z",
-      "calle_limpia": "tarragona bis",
+      "calle_limpia": "tarragona",
       "numero_limpio": 654
     },
     {
@@ -99327,7 +99327,7 @@
       "zona": "Otro",
       "date_created": "2025-05-08T22:00:42.310Z",
       "date_updated": "2026-02-11T22:23:38.783Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -99758,12 +99758,12 @@
       "valor_m2": 1898.09,
       "fuente": "propia_api_browser",
       "id_propia": 53322,
-      "lat": -32.93443499999999,
-      "lon": -60.648421,
+      "lat": -32.9351188,
+      "lon": -60.64812499999999,
       "zona": "Otro",
       "date_created": "2021-05-28T01:06:27.000Z",
       "date_updated": "2026-04-20T20:59:48.428Z",
-      "calle_limpia": "moreno bis",
+      "calle_limpia": "moreno",
       "numero_limpio": 7
     },
     {
@@ -99883,7 +99883,7 @@
       "zona": "Otro",
       "date_created": "2025-10-16T02:11:18.078Z",
       "date_updated": "2026-03-27T22:51:20.673Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 435
     },
     {
@@ -100374,12 +100374,12 @@
       "valor_m2": 1454.55,
       "fuente": "propia_api_browser",
       "id_propia": 103801,
-      "lat": -32.92376,
-      "lon": -60.73468,
+      "lat": -32.9319458,
+      "lon": -60.734509,
       "zona": "Otro",
       "date_created": "2022-01-07T16:15:41.000Z",
       "date_updated": "2026-04-15T11:50:17.791Z",
-      "calle_limpia": "tarragona bis",
+      "calle_limpia": "tarragona",
       "numero_limpio": 349
     },
     {
@@ -100933,7 +100933,7 @@
       "zona": "Otro",
       "date_created": "2022-12-20T17:01:45.000Z",
       "date_updated": "2026-04-22T05:06:43.524Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -101186,12 +101186,12 @@
       "valor_m2": 787.88,
       "fuente": "propia_api_browser",
       "id_propia": 134877,
-      "lat": -32.924934,
-      "lon": -60.730072,
+      "lat": -32.933724600000005,
+      "lon": -60.729443,
       "zona": "Otro",
       "date_created": "2022-06-24T15:30:05.000Z",
       "date_updated": "2026-04-16T17:56:47.988Z",
-      "calle_limpia": "colombres bis",
+      "calle_limpia": "colombres",
       "numero_limpio": 453
     },
     {
@@ -102398,12 +102398,12 @@
       "valor_m2": 1505.05,
       "fuente": "propia_api_browser",
       "id_propia": 393405,
-      "lat": -32.93443499999999,
-      "lon": -60.648421,
+      "lat": -32.9351188,
+      "lon": -60.64812499999999,
       "zona": "Otro",
       "date_created": "2025-07-31T20:01:03.871Z",
       "date_updated": "2026-04-23T18:31:44.845Z",
-      "calle_limpia": "moreno bis",
+      "calle_limpia": "moreno",
       "numero_limpio": 7
     },
     {
@@ -102423,7 +102423,7 @@
       "zona": "Otro",
       "date_created": "2024-10-23T21:02:08.000Z",
       "date_updated": "2026-04-22T14:19:20.506Z",
-      "calle_limpia": "independencia bis",
+      "calle_limpia": "independencia",
       "numero_limpio": 0
     },
     {
@@ -104077,7 +104077,7 @@
       "zona": "Otro",
       "date_created": "2021-09-17T02:53:55.000Z",
       "date_updated": "2026-02-19T05:50:31.498Z",
-      "calle_limpia": "independencia bis",
+      "calle_limpia": "independencia",
       "numero_limpio": 73
     },
     {
@@ -105449,7 +105449,7 @@
       "zona": "Otro",
       "date_created": "2026-03-17T16:46:42.338Z",
       "date_updated": "2026-04-07T20:16:19.391Z",
-      "calle_limpia": "blv avellaneda bis",
+      "calle_limpia": "blv avellaneda",
       "numero_limpio": 300
     },
     {
@@ -105744,8 +105744,8 @@
       "valor_m2": 775.0,
       "fuente": "propia_api_browser",
       "id_propia": 114140,
-      "lat": -32.935485,
-      "lon": -60.71315828571429,
+      "lat": -32.92138116666666,
+      "lon": -60.713820166666665,
       "zona": "Otro",
       "date_created": "2022-03-10T15:00:06.000Z",
       "date_updated": "2026-04-03T20:59:06.961Z",
@@ -105949,7 +105949,7 @@
       "zona": "Otro",
       "date_created": "2021-10-06T16:35:22.000Z",
       "date_updated": "2026-04-25T18:25:06.508Z",
-      "calle_limpia": "sarratea bis",
+      "calle_limpia": "sarratea",
       "numero_limpio": 624
     },
     {
@@ -106249,7 +106249,7 @@
       "zona": "Otro",
       "date_created": "2024-05-11T18:00:40.000Z",
       "date_updated": "2025-12-16T05:33:06.111Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -106943,7 +106943,7 @@
       "zona": "Otro",
       "date_created": "2024-05-11T18:01:10.000Z",
       "date_updated": "2026-01-04T16:07:15.952Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -108277,7 +108277,7 @@
       "zona": "Otro",
       "date_created": "2025-12-18T16:45:45.663Z",
       "date_updated": "2026-04-15T05:05:50.939Z",
-      "calle_limpia": "aduana bis",
+      "calle_limpia": "aduana",
       "numero_limpio": 1599
     },
     {
@@ -108572,8 +108572,8 @@
       "valor_m2": 719.42,
       "fuente": "propia_api_browser",
       "id_propia": 405303,
-      "lat": -32.92898,
-      "lon": -60.680515,
+      "lat": -32.9277154,
+      "lon": -60.6802858,
       "zona": "Otro",
       "date_created": "2025-09-22T16:32:59.655Z",
       "date_updated": "2026-04-23T16:56:57.229Z",
@@ -108795,7 +108795,7 @@
       "zona": "Otro",
       "date_created": "2022-06-24T19:17:00.000Z",
       "date_updated": "2026-04-01T17:25:54.922Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -109050,8 +109050,8 @@
       "valor_m2": 448.72,
       "fuente": "propia_api_browser",
       "id_propia": 427919,
-      "lat": -32.929047000000004,
-      "lon": -60.675074,
+      "lat": -32.92779016666667,
+      "lon": -60.676027833333336,
       "zona": "Otro",
       "date_created": "2025-12-30T14:31:12.624Z",
       "date_updated": "2026-04-24T06:49:47.993Z",
@@ -109613,7 +109613,7 @@
       "zona": "Otro",
       "date_created": "2024-08-15T23:42:09.000Z",
       "date_updated": "2026-03-04T01:41:51.741Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -110619,7 +110619,7 @@
       "zona": "Otro",
       "date_created": "2024-11-14T01:20:29.000Z",
       "date_updated": "2026-01-06T05:31:32.495Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -112475,7 +112475,7 @@
       "zona": "Otro",
       "date_created": "2025-10-31T09:44:57.406Z",
       "date_updated": "2026-03-26T05:06:14.197Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 435
     },
     {
@@ -112693,7 +112693,7 @@
       "zona": "Otro",
       "date_created": "2022-10-14T23:42:28.000Z",
       "date_updated": "2026-04-14T12:45:48.747Z",
-      "calle_limpia": "panambi bis",
+      "calle_limpia": "panambi",
       "numero_limpio": 558
     },
     {
@@ -113113,7 +113113,7 @@
       "zona": "Otro",
       "date_created": "2025-10-24T00:15:13.171Z",
       "date_updated": "2026-02-01T16:54:07.873Z",
-      "calle_limpia": "pedro lino funes bis",
+      "calle_limpia": "pedro lino funes",
       "numero_limpio": 300
     },
     {
@@ -113173,7 +113173,7 @@
       "zona": "Otro",
       "date_created": "2025-10-03T14:45:27.873Z",
       "date_updated": "2026-03-28T05:11:00.584Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -113821,7 +113821,7 @@
       "zona": "Otro",
       "date_created": "2024-03-15T19:08:09.000Z",
       "date_updated": "2026-03-05T05:56:20.954Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -114379,7 +114379,7 @@
       "zona": "Otro",
       "date_created": "2023-03-27T22:19:34.000Z",
       "date_updated": "2026-04-23T19:41:35.865Z",
-      "calle_limpia": "wlde bis",
+      "calle_limpia": "wlde",
       "numero_limpio": 600
     },
     {
@@ -114457,7 +114457,7 @@
       "zona": "Otro",
       "date_created": "2026-01-20T12:15:46.773Z",
       "date_updated": "2026-01-21T05:35:24.802Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 400
     },
     {
@@ -114537,7 +114537,7 @@
       "zona": "Otro",
       "date_created": "2025-10-31T09:45:01.492Z",
       "date_updated": "2026-04-02T20:39:43.509Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 435
     },
     {
@@ -114933,7 +114933,7 @@
       "zona": "Otro",
       "date_created": "2024-11-14T00:07:05.000Z",
       "date_updated": "2026-03-14T19:37:16.276Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -115291,7 +115291,7 @@
       "zona": "Otro",
       "date_created": "2025-10-16T15:46:02.785Z",
       "date_updated": "2026-04-10T15:08:04.360Z",
-      "calle_limpia": "acevedo bis",
+      "calle_limpia": "acevedo",
       "numero_limpio": 660
     },
     {
@@ -115449,7 +115449,7 @@
       "zona": "Otro",
       "date_created": "2025-12-18T18:32:09.413Z",
       "date_updated": "2026-04-15T05:05:51.141Z",
-      "calle_limpia": "aduana bis",
+      "calle_limpia": "aduana",
       "numero_limpio": 1599
     },
     {
@@ -116621,7 +116621,7 @@
       "zona": "Otro",
       "date_created": "2025-03-20T23:41:04.000Z",
       "date_updated": "2026-03-26T13:24:21.615Z",
-      "calle_limpia": "florida bis",
+      "calle_limpia": "florida",
       "numero_limpio": 673
     },
     {
@@ -116841,7 +116841,7 @@
       "zona": "Otro",
       "date_created": "2021-10-06T16:52:35.000Z",
       "date_updated": "2026-04-22T15:57:24.232Z",
-      "calle_limpia": "jose maria rosa bis",
+      "calle_limpia": "jose maria rosa",
       "numero_limpio": 271
     },
     {
@@ -117116,8 +117116,8 @@
       "valor_m2": 546.88,
       "fuente": "propia_api_browser",
       "id_propia": 361464,
-      "lat": -32.935610000000004,
-      "lon": -60.71962833333334,
+      "lat": -32.9196016,
+      "lon": -60.720813,
       "zona": "Otro",
       "date_created": "2025-04-04T14:59:53.918Z",
       "date_updated": "2026-02-19T17:47:59.527Z",
@@ -117950,12 +117950,12 @@
       "valor_m2": 2290.39,
       "fuente": "propia_api_browser",
       "id_propia": 430265,
-      "lat": -32.9185638,
-      "lon": -60.6737026,
+      "lat": -32.939297857142854,
+      "lon": -60.67947971428571,
       "zona": "Otro",
       "date_created": "2026-01-12T17:49:07.695Z",
       "date_updated": "2026-01-13T18:13:04.629Z",
-      "calle_limpia": "avellaneda bis",
+      "calle_limpia": "avellaneda",
       "numero_limpio": 800
     },
     {
@@ -118168,12 +118168,12 @@
       "valor_m2": 683.23,
       "fuente": "propia_api_browser",
       "id_propia": 366390,
-      "lat": -32.96162184615385,
-      "lon": -60.62542138461538,
+      "lat": -32.960971,
+      "lon": -60.626099999999994,
       "zona": "Otro",
       "date_created": "2025-04-15T16:31:27.571Z",
       "date_updated": "2026-04-22T16:56:32.559Z",
-      "calle_limpia": "cochabamba bis",
+      "calle_limpia": "cochabamba",
       "numero_limpio": 28
     },
     {
@@ -120083,7 +120083,7 @@
       "zona": "Otro",
       "date_created": "2024-03-16T00:11:18.000Z",
       "date_updated": "2025-11-06T14:39:51.821Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -120783,7 +120783,7 @@
       "zona": "Otro",
       "date_created": "2024-03-15T08:02:30.000Z",
       "date_updated": "2025-11-06T14:39:51.264Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -121377,7 +121377,7 @@
       "zona": "Otro",
       "date_created": "2024-10-04T01:02:04.000Z",
       "date_updated": "2026-04-25T21:28:48.563Z",
-      "calle_limpia": "suipacha bis",
+      "calle_limpia": "suipacha",
       "numero_limpio": 27
     },
     {
@@ -121768,8 +121768,8 @@
       "valor_m2": 457.94,
       "fuente": "propia_api_browser",
       "id_propia": 454567,
-      "lat": -32.973270166666666,
-      "lon": -60.63073016666667,
+      "lat": -32.973771799999994,
+      "lon": -60.628146599999994,
       "zona": "Otro",
       "date_created": "2026-03-19T16:29:38.888Z",
       "date_updated": "2026-04-22T22:00:32.414Z",
@@ -122411,7 +122411,7 @@
       "zona": "Otro",
       "date_created": "2025-09-12T20:31:16.749Z",
       "date_updated": "2026-04-09T17:37:52.388Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 400
     },
     {
@@ -122526,12 +122526,12 @@
       "valor_m2": 1062.22,
       "fuente": "propia_api_browser",
       "id_propia": 442904,
-      "lat": -32.92749,
-      "lon": -60.734844,
+      "lat": -32.9319458,
+      "lon": -60.734509,
       "zona": "Otro",
       "date_created": "2026-02-27T20:30:18.171Z",
       "date_updated": "2026-04-21T20:39:49.871Z",
-      "calle_limpia": "tarragona bis",
+      "calle_limpia": "tarragona",
       "numero_limpio": 200
     },
     {
@@ -122929,7 +122929,7 @@
       "zona": "Otro",
       "date_created": "2024-12-27T21:10:54.000Z",
       "date_updated": "2025-10-14T05:54:50.320Z",
-      "calle_limpia": "avellaneda bis",
+      "calle_limpia": "avellaneda",
       "numero_limpio": 256
     },
     {
@@ -123147,7 +123147,7 @@
       "zona": "Otro",
       "date_created": "2024-12-05T20:17:46.000Z",
       "date_updated": "2026-04-25T05:01:05.962Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 400
     },
     {
@@ -124307,7 +124307,7 @@
       "zona": "Otro",
       "date_created": "2023-06-22T20:17:57.000Z",
       "date_updated": "2026-02-21T05:57:17.347Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 400
     },
     {
@@ -124802,8 +124802,8 @@
       "valor_m2": 708.66,
       "fuente": "propia_api_browser",
       "id_propia": 460293,
-      "lat": -32.92876,
-      "lon": -60.680664,
+      "lat": -32.9277154,
+      "lon": -60.6802858,
       "zona": "Otro",
       "date_created": "2026-04-15T16:18:13.074Z",
       "date_updated": "2026-04-21T17:02:01.214Z",
@@ -125458,12 +125458,12 @@
       "valor_m2": 550.03,
       "fuente": "propia_api_browser",
       "id_propia": 376034,
-      "lat": -32.918022,
-      "lon": -60.735035,
+      "lat": -32.94156879999999,
+      "lon": -60.733793199999994,
       "zona": "Otro",
       "date_created": "2025-05-22T21:48:12.480Z",
       "date_updated": "2026-04-16T05:02:05.558Z",
-      "calle_limpia": "tarragona bis",
+      "calle_limpia": "tarragona",
       "numero_limpio": 1000
     },
     {
@@ -125813,7 +125813,7 @@
       "zona": "Otro",
       "date_created": "2026-02-19T13:30:00.592Z",
       "date_updated": "2026-04-13T23:53:26.921Z",
-      "calle_limpia": "malabia bis aldea",
+      "calle_limpia": "malabia bis aldea fisherton",
       "numero_limpio": 1251
     },
     {
@@ -126381,7 +126381,7 @@
       "zona": "Otro",
       "date_created": "2023-10-18T07:45:48.000Z",
       "date_updated": "2025-12-15T14:33:42.342Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -126717,7 +126717,7 @@
       "zona": "Otro",
       "date_created": "2025-09-11T03:15:16.179Z",
       "date_updated": "2026-04-20T17:29:43.420Z",
-      "calle_limpia": "venezuela bis",
+      "calle_limpia": "venezuela bis con",
       "numero_limpio": 917
     },
     {
@@ -127097,7 +127097,7 @@
       "zona": "Otro",
       "date_created": "2021-04-16T19:21:23.000Z",
       "date_updated": "2026-04-12T01:20:21.614Z",
-      "calle_limpia": "moreno bis",
+      "calle_limpia": "moreno",
       "numero_limpio": 7
     },
     {
@@ -127217,7 +127217,7 @@
       "zona": "Otro",
       "date_created": "2026-04-09T19:16:50.679Z",
       "date_updated": "2026-04-13T01:56:39.720Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -127317,7 +127317,7 @@
       "zona": "Otro",
       "date_created": "2024-04-08T17:28:52.000Z",
       "date_updated": "2026-04-24T05:03:07.620Z",
-      "calle_limpia": "juarez celman bis",
+      "calle_limpia": "juarez celman",
       "numero_limpio": 1200
     },
     {
@@ -128407,7 +128407,7 @@
       "zona": "Otro",
       "date_created": "2022-05-24T19:17:18.000Z",
       "date_updated": "2026-02-05T15:06:46.697Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -128801,7 +128801,7 @@
       "zona": "Otro",
       "date_created": "2026-01-12T16:47:14.030Z",
       "date_updated": "2026-04-21T05:03:09.844Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 400
     },
     {
@@ -129081,7 +129081,7 @@
       "zona": "Otro",
       "date_created": "2024-09-11T01:24:43.000Z",
       "date_updated": "2026-03-11T05:30:28.615Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -129261,7 +129261,7 @@
       "zona": "Otro",
       "date_created": "2025-12-22T20:30:36.671Z",
       "date_updated": "2026-03-27T05:05:44.625Z",
-      "calle_limpia": "alvarez condarco bis",
+      "calle_limpia": "alvarez condarco",
       "numero_limpio": 1100
     },
     {
@@ -129321,7 +129321,7 @@
       "zona": "Otro",
       "date_created": "2023-04-24T07:00:02.000Z",
       "date_updated": "2026-03-15T12:38:33.336Z",
-      "calle_limpia": "muniagurria bis",
+      "calle_limpia": "muniagurria",
       "numero_limpio": 200
     },
     {
@@ -129399,7 +129399,7 @@
       "zona": "Otro",
       "date_created": "2025-08-26T15:49:19.026Z",
       "date_updated": "2026-04-21T14:29:09.316Z",
-      "calle_limpia": "sarratea bis",
+      "calle_limpia": "sarratea",
       "numero_limpio": 625
     },
     {
@@ -129670,12 +129670,12 @@
       "valor_m2": 623.66,
       "fuente": "propia_api_browser",
       "id_propia": 439307,
-      "lat": -32.973001,
-      "lon": -60.628054799999994,
+      "lat": -32.97260016666666,
+      "lon": -60.629854,
       "zona": "Otro",
       "date_created": "2026-02-19T00:15:21.308Z",
       "date_updated": "2026-04-25T11:07:02.848Z",
-      "calle_limpia": "virasoro bis",
+      "calle_limpia": "virasoro",
       "numero_limpio": 100
     },
     {
@@ -130031,7 +130031,7 @@
       "zona": "Otro",
       "date_created": "2025-11-26T19:45:23.596Z",
       "date_updated": "2026-03-12T14:21:47.242Z",
-      "calle_limpia": "ugarteche bis",
+      "calle_limpia": "ugarteche",
       "numero_limpio": 1200
     },
     {
@@ -130549,7 +130549,7 @@
       "zona": "Otro",
       "date_created": "2026-04-21T20:18:54.679Z",
       "date_updated": "2026-04-23T05:02:32.314Z",
-      "calle_limpia": "donado bis",
+      "calle_limpia": "donado",
       "numero_limpio": 200
     },
     {
@@ -130729,7 +130729,7 @@
       "zona": "Otro",
       "date_created": "2026-01-26T14:39:25.907Z",
       "date_updated": "2026-03-30T08:30:38.618Z",
-      "calle_limpia": "rosetti bis",
+      "calle_limpia": "rosetti bis fisherton",
       "numero_limpio": 247
     },
     {
@@ -131285,7 +131285,7 @@
       "zona": "Otro",
       "date_created": "2025-12-26T13:43:38.717Z",
       "date_updated": "2025-12-27T05:04:33.910Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde bis fisherton",
       "numero_limpio": 455
     },
     {
@@ -131305,7 +131305,7 @@
       "zona": "Otro",
       "date_created": "2026-03-27T13:30:17.258Z",
       "date_updated": "2026-04-03T09:24:33.852Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde bis con",
       "numero_limpio": 455
     },
     {
@@ -131474,12 +131474,12 @@
       "valor_m2": 473.68,
       "fuente": "propia_api_browser",
       "id_propia": 357475,
-      "lat": -32.92779016666667,
-      "lon": -60.676027833333336,
+      "lat": -32.929047000000004,
+      "lon": -60.675074,
       "zona": "Otro",
       "date_created": "2025-03-20T00:02:09.000Z",
       "date_updated": "2026-04-25T00:25:26.263Z",
-      "calle_limpia": "alberdi bis",
+      "calle_limpia": "alberdi",
       "numero_limpio": 53
     },
     {
@@ -131577,7 +131577,7 @@
       "zona": "Otro",
       "date_created": "2024-12-07T02:07:16.000Z",
       "date_updated": "2026-04-09T05:02:39.546Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -131726,8 +131726,8 @@
       "valor_m2": 1911.76,
       "fuente": "propia_api_browser",
       "id_propia": 411491,
-      "lat": -32.9362952,
-      "lon": -60.6484428,
+      "lat": -32.933881,
+      "lon": -60.64813014285714,
       "zona": "Otro",
       "date_created": "2025-10-13T22:16:10.113Z",
       "date_updated": "2026-04-05T22:20:24.676Z",
@@ -131869,7 +131869,7 @@
       "zona": "Otro",
       "date_created": "2023-03-22T04:02:18.000Z",
       "date_updated": "2026-04-16T22:32:56.002Z",
-      "calle_limpia": "ferreyra bis",
+      "calle_limpia": "ferreyra",
       "numero_limpio": 800
     },
     {
@@ -132045,7 +132045,7 @@
       "zona": "Otro",
       "date_created": "2023-09-27T21:28:32.000Z",
       "date_updated": "2026-04-16T05:01:38.147Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -132877,7 +132877,7 @@
       "zona": "Otro",
       "date_created": "2026-04-09T20:16:36.002Z",
       "date_updated": "2026-04-15T05:03:55.679Z",
-      "calle_limpia": "jose ingenieros esquina wilde bis",
+      "calle_limpia": "jose ingenieros esquina wilde",
       "numero_limpio": 8193
     },
     {
@@ -133709,7 +133709,7 @@
       "zona": "Otro",
       "date_created": "2025-09-16T19:33:29.664Z",
       "date_updated": "2026-02-21T05:36:45.804Z",
-      "calle_limpia": "donado bis",
+      "calle_limpia": "donado",
       "numero_limpio": 920
     },
     {
@@ -134545,7 +134545,7 @@
       "zona": "Otro",
       "date_created": "2023-09-16T07:32:16.000Z",
       "date_updated": "2026-02-03T17:40:15.411Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -135621,7 +135621,7 @@
       "zona": "Otro",
       "date_created": "2023-09-27T21:24:13.000Z",
       "date_updated": "2026-04-16T05:01:38.311Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -135859,7 +135859,7 @@
       "zona": "Otro",
       "date_created": "2025-11-06T21:30:26.242Z",
       "date_updated": "2026-02-20T05:48:42.665Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 400
     },
     {
@@ -135954,12 +135954,12 @@
       "valor_m2": 1062.22,
       "fuente": "propia_api_browser",
       "id_propia": 448352,
-      "lat": -32.928482,
-      "lon": -60.734787,
+      "lat": -32.9319458,
+      "lon": -60.734509,
       "zona": "Otro",
       "date_created": "2026-03-06T17:45:30.349Z",
       "date_updated": "2026-03-26T05:00:18.259Z",
-      "calle_limpia": "tarragona bis",
+      "calle_limpia": "tarragona",
       "numero_limpio": 200
     },
     {
@@ -136137,7 +136137,7 @@
       "zona": "Otro",
       "date_created": "2026-02-06T21:16:39.621Z",
       "date_updated": "2026-03-26T05:04:09.985Z",
-      "calle_limpia": "provincias juan jose paso colombia bis",
+      "calle_limpia": "provincias juan jose paso colombia",
       "numero_limpio": 800
     },
     {
@@ -136237,7 +136237,7 @@
       "zona": "Otro",
       "date_created": "2026-01-28T18:32:28.122Z",
       "date_updated": "2026-04-01T13:23:34.758Z",
-      "calle_limpia": "thedy bis",
+      "calle_limpia": "thedy",
       "numero_limpio": 343
     },
     {
@@ -136257,7 +136257,7 @@
       "zona": "Otro",
       "date_created": "2025-06-12T17:45:30.899Z",
       "date_updated": "2026-03-07T05:18:20.435Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 400
     },
     {
@@ -136297,7 +136297,7 @@
       "zona": "Otro",
       "date_created": "2026-04-16T03:15:06.623Z",
       "date_updated": "2026-04-16T05:01:11.831Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 400
     },
     {
@@ -136753,7 +136753,7 @@
       "zona": "Otro",
       "date_created": "2025-11-19T16:32:07.040Z",
       "date_updated": "2026-04-15T05:02:28.363Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 400
     },
     {
@@ -136793,7 +136793,7 @@
       "zona": "Otro",
       "date_created": "2026-01-26T22:02:43.457Z",
       "date_updated": "2026-01-28T13:55:48.981Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde bis con",
       "numero_limpio": 455
     },
     {
@@ -136833,7 +136833,7 @@
       "zona": "Otro",
       "date_created": "2023-11-01T13:20:52.000Z",
       "date_updated": "2026-03-20T05:04:24.558Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -136973,7 +136973,7 @@
       "zona": "Otro",
       "date_created": "2025-10-17T19:46:20.831Z",
       "date_updated": "2026-02-27T23:02:05.400Z",
-      "calle_limpia": "acevedo bis",
+      "calle_limpia": "acevedo",
       "numero_limpio": 600
     },
     {
@@ -137133,7 +137133,7 @@
       "zona": "Otro",
       "date_created": "2026-04-09T19:16:59.522Z",
       "date_updated": "2026-04-10T05:02:00.235Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -137529,7 +137529,7 @@
       "zona": "Otro",
       "date_created": "2026-01-15T21:15:53.345Z",
       "date_updated": "2026-04-21T20:38:46.264Z",
-      "calle_limpia": "alvarez condarco bis",
+      "calle_limpia": "alvarez condarco",
       "numero_limpio": 1000
     },
     {
@@ -137667,7 +137667,7 @@
       "zona": "Otro",
       "date_created": "2026-02-19T18:32:02.399Z",
       "date_updated": "2026-03-04T20:43:54.895Z",
-      "calle_limpia": "liniers bis",
+      "calle_limpia": "liniers",
       "numero_limpio": 100
     },
     {
@@ -139053,7 +139053,7 @@
       "zona": "Otro",
       "date_created": "2024-12-19T05:00:25.000Z",
       "date_updated": "2026-04-16T05:00:59.693Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -140062,12 +140062,12 @@
       "valor_m2": 1304.35,
       "fuente": "propia_api_browser",
       "id_propia": 456859,
-      "lat": -32.92231,
-      "lon": -60.742493,
+      "lat": -33.01538971428571,
+      "lon": -60.645149714285715,
       "zona": "Otro",
       "date_created": "2026-03-31T15:17:43.515Z",
       "date_updated": "2026-04-08T22:19:59.391Z",
-      "calle_limpia": "pasaje oliveros bis",
+      "calle_limpia": "pasaje oliveros",
       "numero_limpio": 678
     },
     {
@@ -140485,7 +140485,7 @@
       "zona": "Otro",
       "date_created": "2025-08-22T15:46:51.708Z",
       "date_updated": "2026-02-19T05:17:43.072Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -140525,7 +140525,7 @@
       "zona": "Otro",
       "date_created": "2023-02-22T18:38:32.000Z",
       "date_updated": "2026-04-17T17:47:59.970Z",
-      "calle_limpia": "arijon bis",
+      "calle_limpia": "arijon",
       "numero_limpio": 81
     },
     {
@@ -140625,7 +140625,7 @@
       "zona": "Otro",
       "date_created": "2026-02-03T18:31:58.445Z",
       "date_updated": "2026-04-23T19:00:50.451Z",
-      "calle_limpia": "dr chapo bis",
+      "calle_limpia": "dr chapo",
       "numero_limpio": 600
     },
     {
@@ -140665,7 +140665,7 @@
       "zona": "Otro",
       "date_created": "2024-10-10T00:02:25.000Z",
       "date_updated": "2026-03-27T01:46:19.076Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 400
     },
     {
@@ -140723,7 +140723,7 @@
       "zona": "Otro",
       "date_created": "2022-05-24T19:17:28.000Z",
       "date_updated": "2026-02-05T15:12:59.424Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -141777,7 +141777,7 @@
       "zona": "Otro",
       "date_created": "2025-08-22T15:46:47.168Z",
       "date_updated": "2026-02-19T05:17:43.788Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -141792,12 +141792,12 @@
       "valor_m2": 1505.05,
       "fuente": "propia_api_browser",
       "id_propia": 353738,
-      "lat": -32.93443499999999,
-      "lon": -60.648421,
+      "lat": -32.9351188,
+      "lon": -60.64812499999999,
       "zona": "Otro",
       "date_created": "2025-02-19T02:04:08.000Z",
       "date_updated": "2026-04-13T16:29:39.351Z",
-      "calle_limpia": "moreno bis",
+      "calle_limpia": "moreno",
       "numero_limpio": 7
     },
     {
@@ -142037,7 +142037,7 @@
       "zona": "Otro",
       "date_created": "2024-11-30T06:37:48.000Z",
       "date_updated": "2026-04-10T23:49:29.304Z",
-      "calle_limpia": "juarez celman bis",
+      "calle_limpia": "juarez celman",
       "numero_limpio": 1200
     },
     {
@@ -142353,7 +142353,7 @@
       "zona": "Otro",
       "date_created": "2025-09-22T16:33:33.650Z",
       "date_updated": "2026-04-24T16:36:46.750Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -142713,7 +142713,7 @@
       "zona": "Otro",
       "date_created": "2026-01-26T20:38:29.772Z",
       "date_updated": "2026-04-21T20:39:04.994Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -142753,7 +142753,7 @@
       "zona": "Otro",
       "date_created": "2025-08-22T15:46:53.507Z",
       "date_updated": "2026-02-19T05:17:44.435Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -143600,8 +143600,8 @@
       "valor_m2": 2466.67,
       "fuente": "propia_api_browser",
       "id_propia": 442744,
-      "lat": -32.935852,
-      "lon": -60.649994,
+      "lat": -32.93387514285715,
+      "lon": -60.649801428571436,
       "zona": "Otro",
       "date_created": "2026-02-27T16:00:23.990Z",
       "date_updated": "2026-04-04T03:20:11.466Z",
@@ -143819,7 +143819,7 @@
       "zona": "Otro",
       "date_created": "2022-11-14T19:30:46.000Z",
       "date_updated": "2026-04-10T05:03:27.671Z",
-      "calle_limpia": "wilde bis en",
+      "calle_limpia": "wilde bis en fisherton",
       "numero_limpio": 455
     },
     {
@@ -144032,8 +144032,8 @@
       "valor_m2": 451.61,
       "fuente": "propia_api_browser",
       "id_propia": 399960,
-      "lat": -32.931982600000005,
-      "lon": -60.704649800000006,
+      "lat": -32.9208488,
+      "lon": -60.748046,
       "zona": "Otro",
       "date_created": "2025-09-02T19:32:32.020Z",
       "date_updated": "2026-04-12T18:47:53.591Z",
@@ -144092,8 +144092,8 @@
       "valor_m2": 2466.67,
       "fuente": "propia_api_browser",
       "id_propia": 461244,
-      "lat": -32.936222,
-      "lon": -60.650074,
+      "lat": -32.93387514285715,
+      "lon": -60.649801428571436,
       "zona": "Otro",
       "date_created": "2026-04-20T02:15:23.646Z",
       "date_updated": "2026-04-20T05:00:37.716Z",
@@ -144335,7 +144335,7 @@
       "zona": "Otro",
       "date_created": "2026-04-09T20:16:42.652Z",
       "date_updated": "2026-04-10T05:02:04.067Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -144513,7 +144513,7 @@
       "zona": "Otro",
       "date_created": "2024-05-28T17:16:18.000Z",
       "date_updated": "2026-04-22T16:50:10.408Z",
-      "calle_limpia": "ernesto palacios bis",
+      "calle_limpia": "ernesto palacios",
       "numero_limpio": 9070
     },
     {
@@ -145129,7 +145129,7 @@
       "zona": "Otro",
       "date_created": "2022-11-14T19:15:38.000Z",
       "date_updated": "2026-04-10T05:03:27.824Z",
-      "calle_limpia": "wilde bis en",
+      "calle_limpia": "wilde bis en fisherton",
       "numero_limpio": 455
     },
     {
@@ -145149,7 +145149,7 @@
       "zona": "Otro",
       "date_created": "2026-04-17T22:15:26.899Z",
       "date_updated": "2026-04-24T16:04:20.874Z",
-      "calle_limpia": "alvarez condarco bis",
+      "calle_limpia": "alvarez condarco",
       "numero_limpio": 300
     },
     {
@@ -145545,7 +145545,7 @@
       "zona": "Otro",
       "date_created": "2026-01-13T15:20:25.781Z",
       "date_updated": "2026-01-29T19:53:50.570Z",
-      "calle_limpia": "iguazu bis",
+      "calle_limpia": "iguazu",
       "numero_limpio": 667
     },
     {
@@ -146403,7 +146403,7 @@
       "zona": "Otro",
       "date_created": "2026-04-13T19:00:30.801Z",
       "date_updated": "2026-04-14T05:00:32.417Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -146721,7 +146721,7 @@
       "zona": "Otro",
       "date_created": "2026-02-03T18:31:56.739Z",
       "date_updated": "2026-04-23T19:00:46.743Z",
-      "calle_limpia": "dr chapo bis",
+      "calle_limpia": "dr chapo",
       "numero_limpio": 600
     },
     {
@@ -147099,7 +147099,7 @@
       "zona": "Otro",
       "date_created": "2025-08-22T15:46:50.126Z",
       "date_updated": "2026-02-19T05:17:45.053Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -147219,7 +147219,7 @@
       "zona": "Otro",
       "date_created": "2026-04-20T21:19:11.484Z",
       "date_updated": "2026-04-20T21:20:48.633Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -147535,7 +147535,7 @@
       "zona": "Otro",
       "date_created": "2025-12-16T16:01:39.160Z",
       "date_updated": "2026-03-12T05:03:17.321Z",
-      "calle_limpia": "acevedo bis",
+      "calle_limpia": "acevedo",
       "numero_limpio": 733
     },
     {
@@ -148131,7 +148131,7 @@
       "zona": "Otro",
       "date_created": "2024-09-10T01:11:36.000Z",
       "date_updated": "2026-04-08T05:02:47.775Z",
-      "calle_limpia": "ugarteche bis",
+      "calle_limpia": "ugarteche",
       "numero_limpio": 1200
     },
     {
@@ -148186,12 +148186,12 @@
       "valor_m2": 691.49,
       "fuente": "propia_api_browser",
       "id_propia": 341224,
-      "lat": -32.918816,
-      "lon": -60.73519,
+      "lat": -32.92942,
+      "lon": -60.734830571428574,
       "zona": "Otro",
       "date_created": "2024-12-18T20:06:12.000Z",
       "date_updated": "2026-04-24T11:18:50.650Z",
-      "calle_limpia": "tarragona bis",
+      "calle_limpia": "tarragona",
       "numero_limpio": 900
     },
     {
@@ -148269,7 +148269,7 @@
       "zona": "Otro",
       "date_created": "2022-02-16T19:14:06.000Z",
       "date_updated": "2026-02-18T13:30:16.551Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 400
     },
     {
@@ -148447,7 +148447,7 @@
       "zona": "Otro",
       "date_created": "2025-09-27T21:15:26.125Z",
       "date_updated": "2026-04-21T20:49:47.957Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 200
     },
     {
@@ -148563,7 +148563,7 @@
       "zona": "Otro",
       "date_created": "2025-02-20T03:02:08.000Z",
       "date_updated": "2026-04-16T21:38:09.300Z",
-      "calle_limpia": "regimiento bis",
+      "calle_limpia": "regimiento",
       "numero_limpio": 11
     },
     {
@@ -148999,7 +148999,7 @@
       "zona": "Otro",
       "date_created": "2023-03-04T23:04:36.000Z",
       "date_updated": "2026-03-28T05:09:35.656Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -149054,12 +149054,12 @@
       "valor_m2": 600.0,
       "fuente": "propia_api_browser",
       "id_propia": 459454,
-      "lat": -32.923107,
-      "lon": -60.734722,
+      "lat": -32.935880600000004,
+      "lon": -60.7343568,
       "zona": "Otro",
       "date_created": "2026-04-13T13:30:57.415Z",
       "date_updated": "2026-04-23T05:04:07.192Z",
-      "calle_limpia": "tarragona bis",
+      "calle_limpia": "tarragona",
       "numero_limpio": 600
     },
     {
@@ -149079,7 +149079,7 @@
       "zona": "Otro",
       "date_created": "2025-01-30T07:40:18.000Z",
       "date_updated": "2025-10-28T09:03:45.770Z",
-      "calle_limpia": "avellaneda bis",
+      "calle_limpia": "avellaneda",
       "numero_limpio": 200
     },
     {
@@ -149617,7 +149617,7 @@
       "zona": "Otro",
       "date_created": "2023-01-17T07:43:51.000Z",
       "date_updated": "2026-03-18T12:54:45.608Z",
-      "calle_limpia": "ugarteche bis",
+      "calle_limpia": "ugarteche",
       "numero_limpio": 1247
     },
     {
@@ -149915,7 +149915,7 @@
       "zona": "Otro",
       "date_created": "2023-03-04T23:03:57.000Z",
       "date_updated": "2026-04-04T17:55:35.336Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -150233,7 +150233,7 @@
       "zona": "Otro",
       "date_created": "2024-11-30T04:44:26.000Z",
       "date_updated": "2026-04-08T23:35:04.805Z",
-      "calle_limpia": "olmos bis",
+      "calle_limpia": "olmos",
       "numero_limpio": 900
     },
     {
@@ -150571,7 +150571,7 @@
       "zona": "Otro",
       "date_created": "2024-02-29T17:01:09.000Z",
       "date_updated": "2026-04-22T01:41:38.441Z",
-      "calle_limpia": "donado bis",
+      "calle_limpia": "donado",
       "numero_limpio": 374
     },
     {
@@ -150946,8 +150946,8 @@
       "valor_m2": 715.69,
       "fuente": "propia_api_browser",
       "id_propia": 422472,
-      "lat": -32.979607,
-      "lon": -60.630787,
+      "lat": -32.97943077777778,
+      "lon": -60.62991011111111,
       "zona": "Otro",
       "date_created": "2025-12-02T15:47:24.757Z",
       "date_updated": "2026-02-28T05:10:16.568Z",
@@ -151705,7 +151705,7 @@
       "zona": "Otro",
       "date_created": "2024-11-30T06:54:43.000Z",
       "date_updated": "2026-03-17T20:46:24.188Z",
-      "calle_limpia": "venezuela bis",
+      "calle_limpia": "venezuela",
       "numero_limpio": 700
     },
     {
@@ -152000,8 +152000,8 @@
       "valor_m2": 814.61,
       "fuente": "propia_api_browser",
       "id_propia": 324089,
-      "lat": -32.942265,
-      "lon": -60.680252,
+      "lat": -32.916005000000006,
+      "lon": -60.67293055555555,
       "zona": "Otro",
       "date_created": "2024-11-04T23:04:55.000Z",
       "date_updated": "2026-04-06T04:23:17.408Z",
@@ -152040,12 +152040,12 @@
       "valor_m2": 1611.57,
       "fuente": "propia_api_browser",
       "id_propia": 307919,
-      "lat": -32.92217,
-      "lon": -60.73471,
+      "lat": -32.935880600000004,
+      "lon": -60.7343568,
       "zona": "Otro",
       "date_created": "2024-09-03T00:02:25.000Z",
       "date_updated": "2026-04-12T19:53:19.973Z",
-      "calle_limpia": "tarragona bis",
+      "calle_limpia": "tarragona",
       "numero_limpio": 600
     },
     {
@@ -152401,7 +152401,7 @@
       "zona": "Otro",
       "date_created": "2026-01-21T16:45:13.567Z",
       "date_updated": "2026-03-26T05:03:49.696Z",
-      "calle_limpia": "alvarez condarco bis",
+      "calle_limpia": "alvarez condarco",
       "numero_limpio": 600
     },
     {
@@ -152694,12 +152694,12 @@
       "valor_m2": 940.86,
       "fuente": "propia_api_browser",
       "id_propia": 386223,
-      "lat": -32.927086,
-      "lon": -60.734383,
+      "lat": -32.9319458,
+      "lon": -60.734509,
       "zona": "Otro",
       "date_created": "2025-07-01T15:31:36.314Z",
       "date_updated": "2026-04-23T05:03:08.643Z",
-      "calle_limpia": "tarragona bis",
+      "calle_limpia": "tarragona",
       "numero_limpio": 200
     },
     {
@@ -153330,12 +153330,12 @@
       "valor_m2": 850.57,
       "fuente": "propia_api_browser",
       "id_propia": 455072,
-      "lat": -32.926968,
-      "lon": -60.734695,
+      "lat": -32.9319458,
+      "lon": -60.734509,
       "zona": "Otro",
       "date_created": "2026-03-20T21:30:40.461Z",
       "date_updated": "2026-04-16T19:23:28.253Z",
-      "calle_limpia": "tarragona bis",
+      "calle_limpia": "tarragona",
       "numero_limpio": 200
     },
     {
@@ -153473,7 +153473,7 @@
       "zona": "Otro",
       "date_created": "2024-05-07T01:01:40.000Z",
       "date_updated": "2026-04-23T19:51:39.876Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -153967,7 +153967,7 @@
       "zona": "Otro",
       "date_created": "2025-06-23T17:46:11.909Z",
       "date_updated": "2026-03-05T05:14:35.755Z",
-      "calle_limpia": "condo norte thedy bis",
+      "calle_limpia": "condo norte thedy",
       "numero_limpio": 343
     },
     {
@@ -154065,7 +154065,7 @@
       "zona": "Otro",
       "date_created": "2026-04-03T22:15:13.667Z",
       "date_updated": "2026-04-05T05:00:45.404Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 400
     },
     {
@@ -154243,7 +154243,7 @@
       "zona": "Otro",
       "date_created": "2025-11-19T16:45:54.532Z",
       "date_updated": "2026-04-15T05:02:28.527Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 400
     },
     {
@@ -154541,7 +154541,7 @@
       "zona": "Otro",
       "date_created": "2024-08-05T19:10:15.000Z",
       "date_updated": "2026-04-09T05:01:06.841Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -155673,7 +155673,7 @@
       "zona": "Otro",
       "date_created": "2025-07-23T20:33:05.491Z",
       "date_updated": "2026-04-25T05:01:38.824Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 400
     },
     {
@@ -155731,7 +155731,7 @@
       "zona": "Otro",
       "date_created": "2023-12-11T23:01:40.000Z",
       "date_updated": "2026-04-09T05:02:58.978Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 450
     },
     {
@@ -156067,7 +156067,7 @@
       "zona": "Otro",
       "date_created": "2022-12-02T03:57:38.000Z",
       "date_updated": "2026-03-23T22:12:58.308Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 653
     },
     {
@@ -156600,8 +156600,8 @@
       "valor_m2": 1875.0,
       "fuente": "propia_api_browser",
       "id_propia": 433964,
-      "lat": -32.936516,
-      "lon": -60.648712,
+      "lat": -32.933881,
+      "lon": -60.64813014285714,
       "zona": "Otro",
       "date_created": "2026-01-27T16:00:10.022Z",
       "date_updated": "2026-03-29T22:29:48.609Z",
@@ -157619,7 +157619,7 @@
       "zona": "Otro",
       "date_created": "2025-08-22T15:46:55.197Z",
       "date_updated": "2026-03-20T05:01:57.393Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -157797,7 +157797,7 @@
       "zona": "Otro",
       "date_created": "2025-12-20T19:15:26.645Z",
       "date_updated": "2026-04-14T22:09:28.221Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 400
     },
     {
@@ -158453,7 +158453,7 @@
       "zona": "Otro",
       "date_created": "2022-08-27T03:47:48.000Z",
       "date_updated": "2026-02-05T14:57:34.780Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -158666,8 +158666,8 @@
       "valor_m2": 1382.35,
       "fuente": "propia_api_browser",
       "id_propia": 462236,
-      "lat": -32.936516,
-      "lon": -60.648712,
+      "lat": -32.933881,
+      "lon": -60.64813014285714,
       "zona": "Otro",
       "date_created": "2026-04-22T19:17:09.164Z",
       "date_updated": "2026-04-25T00:44:02.420Z",
@@ -159085,7 +159085,7 @@
       "zona": "Otro",
       "date_created": "2024-11-13T23:40:41.000Z",
       "date_updated": "2026-04-08T17:06:51.845Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -159981,7 +159981,7 @@
       "zona": "Otro",
       "date_created": "2026-01-16T19:46:00.732Z",
       "date_updated": "2026-04-21T05:04:11.103Z",
-      "calle_limpia": "calle 1506 bis",
+      "calle_limpia": "calle 1506",
       "numero_limpio": 100
     },
     {
@@ -160199,7 +160199,7 @@
       "zona": "Otro",
       "date_created": "2022-06-24T19:17:14.000Z",
       "date_updated": "2025-11-25T18:01:50.214Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -160377,7 +160377,7 @@
       "zona": "Otro",
       "date_created": "2024-11-13T23:41:20.000Z",
       "date_updated": "2026-01-27T14:04:18.013Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -160655,7 +160655,7 @@
       "zona": "Otro",
       "date_created": "2023-06-22T20:22:43.000Z",
       "date_updated": "2026-02-21T05:28:26.594Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 400
     },
     {
@@ -161169,7 +161169,7 @@
       "zona": "Otro",
       "date_created": "2025-08-22T15:46:45.642Z",
       "date_updated": "2026-03-31T00:21:30.757Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -161249,7 +161249,7 @@
       "zona": "Otro",
       "date_created": "2023-07-14T01:56:08.000Z",
       "date_updated": "2026-02-05T16:04:40.457Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -161901,7 +161901,7 @@
       "zona": "Otro",
       "date_created": "2024-12-07T02:08:14.000Z",
       "date_updated": "2026-04-09T05:02:27.200Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 455
     },
     {
@@ -162217,7 +162217,7 @@
       "zona": "Otro",
       "date_created": "2025-09-24T19:31:57.190Z",
       "date_updated": "2026-02-28T05:24:54.573Z",
-      "calle_limpia": "donado bis",
+      "calle_limpia": "donado",
       "numero_limpio": 920
     },
     {
@@ -162232,12 +162232,12 @@
       "valor_m2": 809.25,
       "fuente": "propia_api_browser",
       "id_propia": 418808,
-      "lat": -32.921944,
-      "lon": -60.734634,
+      "lat": -32.935880600000004,
+      "lon": -60.7343568,
       "zona": "Otro",
       "date_created": "2025-11-13T13:30:19.788Z",
       "date_updated": "2025-12-20T17:50:48.077Z",
-      "calle_limpia": "tarragona bis",
+      "calle_limpia": "tarragona",
       "numero_limpio": 654
     },
     {
@@ -163219,7 +163219,7 @@
       "zona": "Otro",
       "date_created": "2026-01-14T21:30:57.853Z",
       "date_updated": "2026-02-28T05:10:37.374Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 400
     },
     {
@@ -163357,7 +163357,7 @@
       "zona": "Otro",
       "date_created": "2023-10-10T19:15:34.000Z",
       "date_updated": "2026-02-21T05:16:20.390Z",
-      "calle_limpia": "arijon bis",
+      "calle_limpia": "arijon",
       "numero_limpio": 17
     },
     {
@@ -167459,7 +167459,7 @@
       "zona": "Otro",
       "date_created": "2025-10-03T21:26:09.975Z",
       "date_updated": "2026-04-16T13:20:46.181Z",
-      "calle_limpia": "francia bis",
+      "calle_limpia": "francia",
       "numero_limpio": 260
     },
     {
@@ -167659,7 +167659,7 @@
       "zona": "Otro",
       "date_created": "2025-10-03T22:56:50.439Z",
       "date_updated": "2026-04-07T18:22:49.400Z",
-      "calle_limpia": "francia bis",
+      "calle_limpia": "francia",
       "numero_limpio": 260
     },
     {
@@ -167834,8 +167834,8 @@
       "valor_m2": 16530.61,
       "fuente": "propia_api_browser",
       "id_propia": 435370,
-      "lat": -32.93624,
-      "lon": -60.64715,
+      "lat": -32.933836428571425,
+      "lon": -60.64687157142857,
       "zona": "Otro",
       "date_created": "2026-02-03T16:14:55.454Z",
       "date_updated": "2026-04-19T18:21:10.791Z",
@@ -170184,8 +170184,8 @@
       "valor_m2": 13793.1,
       "fuente": "propia_api_browser",
       "id_propia": 420661,
-      "lat": -32.941998,
-      "lon": -60.680126,
+      "lat": -32.916005000000006,
+      "lon": -60.67293055555555,
       "zona": "Otro",
       "date_created": "2025-11-25T16:45:12.429Z",
       "date_updated": "2026-04-16T23:22:40.991Z",
@@ -170527,7 +170527,7 @@
       "zona": "Otro",
       "date_created": "2025-10-08T18:45:27.189Z",
       "date_updated": "2026-04-14T23:52:00.197Z",
-      "calle_limpia": "juarez celman bis",
+      "calle_limpia": "juarez celman",
       "numero_limpio": 650
     },
     {
@@ -172233,7 +172233,7 @@
       "zona": "Otro",
       "date_created": "2025-11-27T19:31:33.437Z",
       "date_updated": "2026-04-15T01:12:12.568Z",
-      "calle_limpia": "francia bis",
+      "calle_limpia": "francia",
       "numero_limpio": 269
     },
     {
@@ -172268,8 +172268,8 @@
       "valor_m2": 14000.0,
       "fuente": "propia_api_browser",
       "id_propia": 461311,
-      "lat": -32.961056,
-      "lon": -60.627106,
+      "lat": -32.96187116666667,
+      "lon": -60.62375733333332,
       "zona": "Otro",
       "date_created": "2026-04-20T14:17:14.085Z",
       "date_updated": "2026-04-25T21:10:27.579Z",
@@ -175641,7 +175641,7 @@
       "zona": "Otro",
       "date_created": "2026-04-09T21:15:46.903Z",
       "date_updated": "2026-04-23T00:57:53.966Z",
-      "calle_limpia": "francia bis",
+      "calle_limpia": "francia",
       "numero_limpio": 200
     },
     {
@@ -175977,7 +175977,7 @@
       "zona": "Otro",
       "date_created": "2025-12-09T12:16:07.721Z",
       "date_updated": "2026-04-15T19:01:37.737Z",
-      "calle_limpia": "santiago bis",
+      "calle_limpia": "santiago",
       "numero_limpio": 60
     },
     {
@@ -176215,7 +176215,7 @@
       "zona": "Pellegrini",
       "date_created": "2026-03-27T16:57:23.351Z",
       "date_updated": "2026-04-21T13:52:07.746Z",
-      "calle_limpia": "pellegrini bis",
+      "calle_limpia": "pellegrini",
       "numero_limpio": 49
     },
     {
@@ -176355,7 +176355,7 @@
       "zona": "Otro",
       "date_created": "2026-03-26T17:45:16.174Z",
       "date_updated": "2026-04-14T15:59:05.742Z",
-      "calle_limpia": "santiago bis",
+      "calle_limpia": "santiago",
       "numero_limpio": 60
     },
     {
@@ -176690,8 +176690,8 @@
       "valor_m2": 13714.29,
       "fuente": "propia_api_browser",
       "id_propia": 431150,
-      "lat": -32.936123,
-      "lon": -60.65427,
+      "lat": -32.931932125,
+      "lon": -60.653541,
       "zona": "Otro",
       "date_created": "2026-01-15T15:58:46.586Z",
       "date_updated": "2026-04-24T19:03:12.846Z",
@@ -176868,8 +176868,8 @@
       "valor_m2": 11851.85,
       "fuente": "propia_api_browser",
       "id_propia": 460806,
-      "lat": -32.934464285714284,
-      "lon": -60.65404657142857,
+      "lat": -32.932940125,
+      "lon": -60.653824875,
       "zona": "Otro",
       "date_created": "2026-04-16T19:17:19.545Z",
       "date_updated": "2026-04-22T19:27:08.724Z",
@@ -177542,8 +177542,8 @@
       "valor_m2": 12857.14,
       "fuente": "propia_api_browser",
       "id_propia": 461408,
-      "lat": -32.93616,
-      "lon": -60.650093,
+      "lat": -32.93387514285715,
+      "lon": -60.649801428571436,
       "zona": "Otro",
       "date_created": "2026-04-20T17:19:08.858Z",
       "date_updated": "2026-04-21T17:05:19.266Z",
@@ -177947,7 +177947,7 @@
       "zona": "Otro",
       "date_created": "2026-04-09T21:15:47.989Z",
       "date_updated": "2026-04-15T01:15:05.691Z",
-      "calle_limpia": "francia bis",
+      "calle_limpia": "francia",
       "numero_limpio": 200
     },
     {
@@ -178302,8 +178302,8 @@
       "valor_m2": 8666.67,
       "fuente": "propia_api_browser",
       "id_propia": 424200,
-      "lat": -32.91971,
-      "lon": -60.682377,
+      "lat": -32.9206992,
+      "lon": -60.680932600000006,
       "zona": "Otro",
       "date_created": "2025-12-10T18:32:24.958Z",
       "date_updated": "2026-04-25T01:54:11.045Z",
@@ -179275,7 +179275,7 @@
       "zona": "Otro",
       "date_created": "2025-09-22T15:19:15.295Z",
       "date_updated": "2026-04-17T14:21:19.592Z",
-      "calle_limpia": "francia bis",
+      "calle_limpia": "francia",
       "numero_limpio": 200
     },
     {
@@ -179373,7 +179373,7 @@
       "zona": "Otro",
       "date_created": "2026-04-16T14:07:41.484Z",
       "date_updated": "2026-04-21T16:25:50.624Z",
-      "calle_limpia": "belgrano bis",
+      "calle_limpia": "belgrano",
       "numero_limpio": 929
     },
     {
@@ -179553,7 +179553,7 @@
       "zona": "Otro",
       "date_created": "2025-11-04T14:46:05.919Z",
       "date_updated": "2026-04-17T14:32:12.093Z",
-      "calle_limpia": "francia bis",
+      "calle_limpia": "francia",
       "numero_limpio": 200
     },
     {
@@ -179873,7 +179873,7 @@
       "zona": "Otro",
       "date_created": "2025-10-13T12:24:47.119Z",
       "date_updated": "2026-04-24T04:06:54.435Z",
-      "calle_limpia": "thedy bis",
+      "calle_limpia": "thedy",
       "numero_limpio": 279
     },
     {
@@ -180482,12 +180482,12 @@
       "valor_m2": 14285.71,
       "fuente": "propia_api_browser",
       "id_propia": 460607,
-      "lat": -32.934208,
-      "lon": -60.649406,
+      "lat": -32.935041,
+      "lon": -60.65000239999999,
       "zona": "Otro",
       "date_created": "2026-04-16T14:18:43.514Z",
       "date_updated": "2026-04-18T05:01:39.871Z",
-      "calle_limpia": "balcarce bis",
+      "calle_limpia": "balcarce",
       "numero_limpio": 45
     },
     {
@@ -180787,7 +180787,7 @@
       "zona": "Otro",
       "date_created": "2026-04-21T18:17:48.624Z",
       "date_updated": "2026-04-23T15:10:33.186Z",
-      "calle_limpia": "wilde bis",
+      "calle_limpia": "wilde",
       "numero_limpio": 400
     },
     {
@@ -181736,8 +181736,8 @@
       "valor_m2": 6583.33,
       "fuente": "propia_api_browser",
       "id_propia": 454258,
-      "lat": -32.9198254,
-      "lon": -60.6824698,
+      "lat": -32.9206992,
+      "lon": -60.680932600000006,
       "zona": "Otro",
       "date_created": "2026-03-18T19:26:22.016Z",
       "date_updated": "2026-03-31T16:15:49.523Z",
@@ -182315,7 +182315,7 @@
       "zona": "Otro",
       "date_created": "2026-01-05T22:16:34.017Z",
       "date_updated": "2026-03-25T13:03:43.165Z",
-      "calle_limpia": "santiago bis",
+      "calle_limpia": "santiago",
       "numero_limpio": 60
     },
     {
@@ -182415,7 +182415,7 @@
       "zona": "Otro",
       "date_created": "2026-02-05T15:46:16.504Z",
       "date_updated": "2026-04-22T23:47:24.625Z",
-      "calle_limpia": "francia bis",
+      "calle_limpia": "francia",
       "numero_limpio": 269
     },
     {
@@ -182455,7 +182455,7 @@
       "zona": "Otro",
       "date_created": "2026-03-20T15:45:36.171Z",
       "date_updated": "2026-04-24T05:03:52.743Z",
-      "calle_limpia": "caseros bis",
+      "calle_limpia": "caseros",
       "numero_limpio": 145
     },
     {
@@ -183073,7 +183073,7 @@
       "zona": "Otro",
       "date_created": "2026-04-14T14:30:14.620Z",
       "date_updated": "2026-04-25T19:54:46.843Z",
-      "calle_limpia": "avellaneda bis",
+      "calle_limpia": "avellaneda",
       "numero_limpio": 1000
     },
     {
@@ -184242,12 +184242,12 @@
       "valor_m2": 11481.48,
       "fuente": "propia_api_browser",
       "id_propia": 372180,
-      "lat": -32.9342775,
-      "lon": -60.649764999999995,
+      "lat": -32.935041,
+      "lon": -60.65000239999999,
       "zona": "Otro",
       "date_created": "2025-05-08T05:18:29.522Z",
       "date_updated": "2026-04-25T02:24:43.390Z",
-      "calle_limpia": "balcarce bis",
+      "calle_limpia": "balcarce",
       "numero_limpio": 49
     },
     {
@@ -184740,8 +184740,8 @@
       "valor_m2": 8666.67,
       "fuente": "propia_api_browser",
       "id_propia": 424198,
-      "lat": -32.91971,
-      "lon": -60.682377,
+      "lat": -32.9206992,
+      "lon": -60.680932600000006,
       "zona": "Otro",
       "date_created": "2025-12-10T17:31:33.156Z",
       "date_updated": "2026-04-20T22:31:43.294Z",
@@ -184840,8 +184840,8 @@
       "valor_m2": 13157.89,
       "fuente": "propia_api_browser",
       "id_propia": 455542,
-      "lat": -32.93646,
-      "lon": -60.64732,
+      "lat": -32.933836428571425,
+      "lon": -60.64687157142857,
       "zona": "Otro",
       "date_created": "2026-03-25T18:37:34.778Z",
       "date_updated": "2026-04-23T19:09:54.136Z",
@@ -185278,12 +185278,12 @@
       "valor_m2": 10833.33,
       "fuente": "propia_api_browser",
       "id_propia": 454476,
-      "lat": -32.93376859999999,
-      "lon": -60.6511514,
+      "lat": -32.93519033333334,
+      "lon": -60.650771999999996,
       "zona": "Otro",
       "date_created": "2026-03-19T13:30:25.526Z",
       "date_updated": "2026-04-23T18:27:02.875Z",
-      "calle_limpia": "orono bis",
+      "calle_limpia": "orono",
       "numero_limpio": 74
     },
     {
@@ -185523,7 +185523,7 @@
       "zona": "Otro",
       "date_created": "2026-04-10T19:17:02.281Z",
       "date_updated": "2026-04-24T20:04:40.693Z",
-      "calle_limpia": "donado bis",
+      "calle_limpia": "donado",
       "numero_limpio": 100
     },
     {
@@ -185803,7 +185803,7 @@
       "zona": "Otro",
       "date_created": "2025-09-22T15:32:53.562Z",
       "date_updated": "2026-04-14T23:51:29.809Z",
-      "calle_limpia": "francia bis",
+      "calle_limpia": "francia",
       "numero_limpio": 200
     },
     {
@@ -185996,8 +185996,8 @@
       "valor_m2": 8152.17,
       "fuente": "propia_api_browser",
       "id_propia": 456549,
-      "lat": -32.964213,
-      "lon": -60.6281638,
+      "lat": -32.9649226,
+      "lon": -60.626019199999995,
       "zona": "Otro",
       "date_created": "2026-03-30T14:16:31.306Z",
       "date_updated": "2026-04-25T19:33:47.341Z",
@@ -188416,8 +188416,8 @@
       "valor_m2": 16037.74,
       "fuente": "propia_api_browser",
       "id_propia": 461766,
-      "lat": -32.931287166666664,
-      "lon": -60.761956,
+      "lat": -32.9300518,
+      "lon": -60.7619326,
       "zona": "Otro",
       "date_created": "2026-04-21T15:31:07.969Z",
       "date_updated": "2026-04-22T05:02:48.258Z",
@@ -188777,7 +188777,7 @@
       "zona": "Otro",
       "date_created": "2025-11-04T14:46:04.727Z",
       "date_updated": "2026-02-19T20:31:46.613Z",
-      "calle_limpia": "francia bis",
+      "calle_limpia": "francia",
       "numero_limpio": 200
     },
     {
@@ -189077,7 +189077,7 @@
       "zona": "Otro",
       "date_created": "2024-03-26T00:29:54.000Z",
       "date_updated": "2026-04-20T16:41:15.597Z",
-      "calle_limpia": "cordiviola bis",
+      "calle_limpia": "cordiviola",
       "numero_limpio": 1135
     },
     {
@@ -189177,7 +189177,7 @@
       "zona": "Pellegrini",
       "date_created": "2026-02-05T22:57:29.025Z",
       "date_updated": "2026-04-09T00:08:40.377Z",
-      "calle_limpia": "pellegrini bis",
+      "calle_limpia": "pellegrini",
       "numero_limpio": 25
     },
     {
@@ -189275,7 +189275,7 @@
       "zona": "Otro",
       "date_created": "2026-04-07T03:15:09.830Z",
       "date_updated": "2026-04-14T18:55:42.349Z",
-      "calle_limpia": "santiago bis",
+      "calle_limpia": "santiago",
       "numero_limpio": 60
     },
     {
@@ -190251,7 +190251,7 @@
       "zona": "Otro",
       "date_created": "2022-11-29T18:31:50.000Z",
       "date_updated": "2026-04-19T19:42:23.477Z",
-      "calle_limpia": "venezuela bis",
+      "calle_limpia": "venezuela",
       "numero_limpio": 780
     },
     {
@@ -191262,8 +191262,8 @@
       "valor_m2": 12500.0,
       "fuente": "propia_api_browser",
       "id_propia": 432595,
-      "lat": -32.93467233333333,
-      "lon": -60.650709500000005,
+      "lat": -32.93376859999999,
+      "lon": -60.6511514,
       "zona": "Otro",
       "date_created": "2026-01-22T12:15:39.400Z",
       "date_updated": "2026-04-20T09:19:10.684Z",
@@ -191685,7 +191685,7 @@
       "zona": "Otro",
       "date_created": "2026-02-05T16:46:39.925Z",
       "date_updated": "2026-04-14T05:35:44.965Z",
-      "calle_limpia": "avellaneda bis",
+      "calle_limpia": "avellaneda",
       "numero_limpio": 200
     },
     {
