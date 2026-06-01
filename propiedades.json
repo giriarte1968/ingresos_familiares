@@ -53,13 +53,13 @@
       "id": 9,
       "_ultima_valuacion": {
         "valor_usd": 71632.0,
-        "alquiler_ars": 497128.0,
+        "alquiler_ars": 496727.0,
         "cap_rate": 0.0559,
         "m2_equivalentes": 42.3035,
         "comps": 38,
-        "fecha": "31/05/2026 20:30",
+        "fecha": "31/05/2026 21:00",
         "cache_version": "v5_zonificada",
-        "timestamp": "2026-05-31T20:30:39.060001"
+        "timestamp": "2026-05-31T21:00:54.521883"
       }
     },
     {
@@ -113,13 +113,13 @@
       "id": 10,
       "_ultima_valuacion": {
         "valor_usd": 48797.0,
-        "alquiler_ars": 348348.0,
-        "cap_rate": 0.0575,
+        "alquiler_ars": 348673.0,
+        "cap_rate": 0.0576,
         "m2_equivalentes": 28.9265,
         "comps": 16,
-        "fecha": "31/05/2026 20:31",
+        "fecha": "31/05/2026 21:07",
         "cache_version": "v5_zonificada",
-        "timestamp": "2026-05-31T20:31:27.774194"
+        "timestamp": "2026-05-31T21:07:21.960324"
       }
     },
     {
@@ -174,13 +174,13 @@
       "ultima_valuacion": null,
       "_ultima_valuacion": {
         "valor_usd": 60665.0,
-        "alquiler_ars": 482027.0,
-        "cap_rate": 0.064,
+        "alquiler_ars": 482391.0,
+        "cap_rate": 0.0641,
         "m2_equivalentes": 40.62,
         "comps": 10,
-        "fecha": "31/05/2026 20:30",
+        "fecha": "31/05/2026 21:00",
         "cache_version": "v5_zonificada",
-        "timestamp": "2026-05-31T20:30:25.288981"
+        "timestamp": "2026-05-31T21:00:47.853318"
       }
     },
     {
@@ -249,9 +249,9 @@
         "cap_rate": 0.0569,
         "m2_equivalentes": 88.85,
         "comps": 12,
-        "fecha": "31/05/2026 20:50",
+        "fecha": "31/05/2026 21:00",
         "cache_version": "v5_zonificada",
-        "timestamp": "2026-05-31T20:50:15.615150"
+        "timestamp": "2026-05-31T21:00:24.290262"
       }
     },
     {
@@ -305,13 +305,13 @@
       "id": "prop_baecb40d",
       "_ultima_valuacion": {
         "valor_usd": 76037.0,
-        "alquiler_ars": 552248.0,
+        "alquiler_ars": 551803.0,
         "cap_rate": 0.0585,
         "m2_equivalentes": 34.0,
         "comps": 5,
-        "fecha": "31/05/2026 20:30",
+        "fecha": "31/05/2026 21:00",
         "cache_version": "v5_zonificada",
-        "timestamp": "2026-05-31T20:30:09.404892"
+        "timestamp": "2026-05-31T21:00:32.825504"
       }
     },
     {
@@ -369,13 +369,13 @@
       "id": "prop_e60aea05",
       "_ultima_valuacion": {
         "valor_usd": 277658.0,
-        "alquiler_ars": 912972.0,
-        "cap_rate": 0.0351,
+        "alquiler_ars": 956419.0,
+        "cap_rate": 0.0368,
         "m2_equivalentes": 98.7,
         "comps": 27,
-        "fecha": "31/05/2026 20:29",
+        "fecha": "31/05/2026 21:00",
         "cache_version": "v5_zonificada",
-        "timestamp": "2026-05-31T20:29:31.491970"
+        "timestamp": "2026-05-31T21:00:16.680902"
       }
     }
   ]

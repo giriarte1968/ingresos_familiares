@@ -19,6 +19,7 @@ Ubicación de la lógica principal de valuación y procesamiento.
 | Archivo | Responsabilidad |
 |---------|-----------------|
 | `valu.py` | **Punto de entrada principal (Valu).** Aplicación moderna enfocada 100% en propiedades. |
+| `valu_detail_sections.py` | Componentes de UI detallada: tabla de comparables, catastro, mapas, razonamiento. |
 | `valu_design.py` | Sistema de diseño premium, CSS estilo Zillow y componentes HTML. |
 | `valu_forms.py` | Formularios modulares para la carga de datos de propiedades. |
 | `app.py` | Punto de entrada **Legacy**. Gestión financiera e ingresos familiares. |
@@ -46,6 +47,7 @@ Archivos JSON que actúan como base de datos y parámetros de configuración.
 
 Scripts para validación y documentación automática.
 
+- `scripts/corregir_coords_cache.py`: Corrige coordenadas de cache_scraping.json vía centroide catastral + guarda calle_limpia/numero_limpio. **Ejecutar después de cada scraping.** Ver `docs/POST_SCRAPING.md`.
 - `scripts/auto_validate.py`: Valida tests + syntax + imports (ejecutar después de cada cambio).
 - `scripts/update_docs.py`: Actualiza documentación .MD (--auto para aplicar cambios).
 - `scripts/init_reminder.py`: Recordatorio de flujo de trabajo.

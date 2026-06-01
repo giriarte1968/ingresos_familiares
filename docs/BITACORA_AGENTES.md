@@ -1592,6 +1592,32 @@ Dos nuevas funciones + reemplazo del cap muerto:
 
 ---
 
+## TAREA-023 — 2026-05-31 — Eliminar doble compensación de patio en PB
+
+### Problema
+En `calcular_factores()`, PB con patio ≥10m² y vista interna/pulmón recibía doble compensación:
+1. `factor_piso = 1.00` (patio neutraliza penalización PB)
+2. `factor_vista = max(factor_vista, 0.98)` (atenúa vista interna 0.90→0.98)
+
+La vista interna en PB es inherente a la ubicación — ya compensada por el patio.
+
+### Cambio
+Eliminadas líneas 1878-1882 (bloque de atenuación de vista) del archivo `parsers/mercado_inmobiliario.py`.
+
+### Impacto
+| Propiedad | Antes | Después | Δ |
+|-----------|:-----:|:-------:|:-:|
+| Vera Mujica (PB, 12.7m² patio, vista interna) | ~$61,000 | **$55,448** | **−$5,552 (−9%)** |
+
+**Auditoría de cartera:** Solo 1 propiedad afectada (Vera Mujica). Ninguna otra en `propiedades.json` tiene PB+patio≥10+vista interna.
+
+### Archivos modificados
+- `parsers/mercado_inmobiliario.py` — eliminado bloque redundante
+- `tests/test_regression.py` — benchmark Vera ajustado a [50000, 57000]
+- `docs/BITACORA_AGENTES.md`, `docs/STATUS_ACTUAL.md`, `.opencode/plans/TAREAS_INDEX.md`
+
+---
+
 ## TAREA-021 — 2026-05-31 — Mejora `extraer_calle_numero` + re-corrección cache
 
 ### Problema

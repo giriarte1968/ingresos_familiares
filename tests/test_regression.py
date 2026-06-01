@@ -105,7 +105,7 @@ def test_patio_grande_vera():
     
     # Valor principal dentro del rango (age-filtered, coords corregidas TAREA-020)
     valor_principal = r.get('valor_propiedad_usd', 0)
-    assert 50000 <= valor_principal <= 62000, f"Valor Vera {valor_principal} fuera de rango"
+    assert 50000 <= valor_principal <= 57000, f"Valor Vera {valor_principal} fuera de rango"
 
 
 def test_ui_vs_python_no_diverge():

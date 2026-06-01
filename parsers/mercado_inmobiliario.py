@@ -1875,12 +1875,6 @@ def calcular_factores(prop, ventana_usada=None):
     else:
         factor_piso = 1.0 + (ratio_altura * 0.10)
     
-    # 3. AJUSTE: Vista interna compensada por patio en PB
-    # Solo ajustar si es PB con patio >=10m² y vista interna/pulmon
-    if piso == 0 and m2_patio_total >= 10 and vista in ['interna', 'pulmon']:
-        # Reducir castigo de vista
-        factor_vista = max(factor_vista, 0.98)  # max(-0.02 en vez de -0.05/-0.10)
-    
     # 3. Factor Ubicación v9.5
     u_tipo = prop.get('ubicacion_tipo', 'calle').lower()
     factor_ubica = {
