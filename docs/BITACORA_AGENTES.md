@@ -1749,3 +1749,28 @@ El filtro de bloque: extrae número de altura del comparable y del PH, compara `
 - `docs/BITACORA_AGENTES.md` — esta entrada
 - `.opencode/plans/TAREA-019.md` — plan archivado
 - `.opencode/plans/TAREAS_INDEX.md` — TAREA-019 agregada
+
+---
+
+## 📅 2026-05-31 — Scraping Propia independiente → cache_scraping_may_2026
+
+### Objetivo
+Ejecutar `scripts/scraper_propia_api.py` guardando en archivo independiente (no sobreescribe `cache_scraping.json`).
+
+### Acciones
+1. Parametrizado `output_file` en `scrapear_propia_api()` (default `propia.json`, backward-compatible)
+2. Ejecutado con `max_pages=50, limit=100` → output en `cache_scraping_may_2026`
+3. Restaurado `__main__` a default para no romper comportamiento habitual
+
+### Resultados
+- **Total**: 9,367 propiedades
+- **Venta**: 8,346 | **Alquiler**: 1,021
+- **Archivo**: `cache_scraping_may_2026` (~5.1 MB)
+- Diferencia vs original 9,766 (~399 menos) — esperado por listings removidos + error en combo alquiler-departamento pág 10 (slug None)
+
+### Archivos
+- `scripts/scraper_propia_api.py` — parámetro `output_file` agregado
+- `cache_scraping_may_2026` — scrape independiente (no trackeado en git)
+- `docs/BITACORA_AGENTES.md` — esta entrada
+
+### Tests: 39/39 regression pasando

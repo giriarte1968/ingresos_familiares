@@ -4,7 +4,7 @@ import time
 import urllib.parse
 from playwright.sync_api import sync_playwright
 
-def scrapear_propia_api(max_pages=20, limit=100):
+def scrapear_propia_api(max_pages=20, limit=100, output_file=None):
     print('='*60)
     print('SCRAPING PROPIA API VIA PLAYWRIGHT (Clean)')
     print('='*60)
@@ -89,7 +89,8 @@ def scrapear_propia_api(max_pages=20, limit=100):
         'alquiler': len([p for p in unique_list if p['operacion'] == 'alquiler']),
         'propiedades': unique_list
     }
-    output_file = r'C:\Users\Gustavo\ingresos_familiares_st\propia.json'
+    if output_file is None:
+        output_file = r'C:\Users\Gustavo\ingresos_familiares_st\propia.json'
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
     print('\\n' + '='*60 + '\\nRESULTADO FINAL: ' + str(len(unique_list)) + ' propiedades\\n  Venta: ' + str(output['venta']) + '\\n  Alquiler: ' + str(output['alquiler']) + '\\nOutput: ' + output_file + '\\n' + '='*60)
