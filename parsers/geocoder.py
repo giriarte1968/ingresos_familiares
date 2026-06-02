@@ -61,6 +61,7 @@ def buscar_en_catastro(direccion):
     Busca 'direccion' en rosario_avm_full.csv.
     Retorna dict con lat, lon, address o None si no encuentra.
     """
+    import pandas as pd
     df = _cargar_catastro()
     addr_norm = _deunicodificar(direccion)
     match = df[df["_addr_norm"] == addr_norm]
