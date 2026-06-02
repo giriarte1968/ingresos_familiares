@@ -9,17 +9,22 @@ def _auto_geocode_cb(key_suffix, lat_key, lon_key):
     addr = st.session_state.get(f"direccion_{key_suffix}", "").strip()
     if len(addr) < 3:
         return
-    # Usamos key separada del inline block (que usa _last_geo_) para evitar
-    # que el inline actualice _last_geo_ antes que el usuario presione Enter.
     cb_key = f"_cb_last_geo_{key_suffix}"
     if st.session_state.get(cb_key) == addr:
         return
+    err_key = f"_geo_error_{key_suffix}"
     try:
         from parsers.geocoder import geocoding_manager
         geo = geocoding_manager(addr)
         st.session_state[cb_key] = addr
         if geo and geo.get('lat'):
             st.session_state["_geo_result_" + key_suffix] = geo
+            if err_key in st.session_state:
+                del st.session_state[err_key]
+        else:
+            st.session_state[err_key] = "No se encontró la dirección. Revisá el nombre de la calle y el número."
+            st.session_state[lat_key] = -32.9445
+            st.session_state[lon_key] = -60.6319
     except Exception:
         st.session_state[cb_key] = addr
 
@@ -66,6 +71,7 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
                 errores.append("La dirección es obligatoria")
         with col2:
             # Auto-geocodificar inline (backup por si on_change no se dispare)
+            err_key = f"_geo_error_{key_suffix}"
             if show_geocode:
                 addr = st.session_state.get(f"direccion_{key_suffix}", "").strip()
                 if len(addr) >= 3:
@@ -78,8 +84,13 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
                             if geo and geo.get('lat'):
                                 st.session_state[last_key] = addr
                                 st.session_state[geo_result_key] = geo
+                                if err_key in st.session_state:
+                                    del st.session_state[err_key]
                             else:
                                 st.session_state[last_key] = addr
+                                st.session_state[err_key] = "No se encontró la dirección."
+                                st.session_state[lat_key] = -32.9445
+                                st.session_state[lon_key] = -60.6319
                         except Exception:
                             st.session_state[last_key] = addr
 
@@ -117,14 +128,24 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
                     if geo and geo.get('lat'):
                         st.success(f"Coordenadas: {geo['lat']:.7f}, {geo['lon']:.7f}")
                         st.session_state[geo_pending_key] = geo
+                        if err_key in st.session_state:
+                            del st.session_state[err_key]
                         st.rerun()
                     else:
                         st.error("No se encontró la dirección en OpenStreetMap")
+                        st.session_state[err_key] = "No se encontró la dirección. Revisá el nombre de la calle y el número."
+                        st.session_state[lat_key] = -32.9445
+                        st.session_state[lon_key] = -60.6319
 
             ub_tipos = ["calle", "avenida", "esquina", "pasaje"]
             ubicacion_tipo = st.selectbox("Tipo de Ubicación", ub_tipos, index=ub_tipos.index(prop_inicial.get('ubicacion_tipo', 'calle')) if prop_inicial.get('ubicacion_tipo') in ub_tipos else 0, key=f"ubica_tipo_{key_suffix}")
 
         # ========== MAPA OSM — siempre visible, pin se actualiza dinámicamente ==========
+        # Mostrar error si hubo
+        _geo_error = st.session_state.get(err_key)
+        if _geo_error:
+            st.error(_geo_error)
+
         # Usar coordenadas de geo_pending (si hay verificación), sino las del input
         if geo_pending is not None:
             _map_lat = geo_pending["lat"]
@@ -135,9 +156,11 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
             _map_lon = st.session_state.get(lon_key)
             _map_fuente = None
 
+        # Si hay error, forzar sin pin (aunque las coordenadas estén en default)
         _tiene_coords = (
             _map_lat is not None and _map_lon is not None
             and not (_map_lat == -32.9445 and _map_lon == -60.6319)
+            and not _geo_error
         )
 
         if _tiene_coords:
@@ -175,12 +198,16 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
                     st.session_state[lat_key] = _map_lat
                     st.session_state[lon_key] = _map_lon
                     del st.session_state[geo_pending_key]
+                    if err_key in st.session_state:
+                        del st.session_state[err_key]
                     st.rerun()
             with c_no:
                 if st.button("No, corregir manualmente", key=f"geo_no_{key_suffix}"):
                     st.warning("Ajustá las coordenadas manualmente en los campos de Latitud/Longitud sobre este mapa")
                     st.caption(f"Coordenadas sugeridas: {_map_lat:.7f}, {_map_lon:.7f}")
                     del st.session_state[geo_pending_key]
+                    if err_key in st.session_state:
+                        del st.session_state[err_key]
                     st.rerun()
     
     # === SECCIÓN 2: EDIFICACIÓN ===
