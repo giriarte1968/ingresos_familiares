@@ -85,6 +85,7 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
 
             # Consumir resultado de auto-geocode (on_change o inline backup)
             geo_result_key = "_geo_result_" + key_suffix
+            geo_pending_key = f"_geo_pending_{key_suffix}"
             if geo_result_key in st.session_state:
                 geo = st.session_state.pop(geo_result_key)
                 if lat_key in st.session_state:
@@ -93,8 +94,10 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
                     del st.session_state[lon_key]
                 st.session_state[lat_key] = geo['lat']
                 st.session_state[lon_key] = geo['lon']
+                # Si el usuario cambió la dirección con Enter, cerrar verificación pendiente
+                if geo_pending_key in st.session_state:
+                    del st.session_state[geo_pending_key]
 
-            geo_pending_key = f"_geo_pending_{key_suffix}"
             geo_pending = st.session_state.get(geo_pending_key)
 
             if geo_pending is None:
@@ -118,52 +121,67 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
                     else:
                         st.error("No se encontró la dirección en OpenStreetMap")
 
-            # Mapa de verificacion si hay geocoding pendiente
-            if geo_pending is not None:
-                lat_p, lon_p = geo_pending["lat"], geo_pending["lon"]
-                fuente = geo_pending.get("_fuente", "desconocida")
-                st.markdown("**Verificación de ubicación en mapa**")
-
-                # Mapa OSM con pin marker via iframe embed
-                osm_src = (
-                    f"https://www.openstreetmap.org/export/embed.html"
-                    f"?bbox={lon_p-0.002},{lat_p-0.002},{lon_p+0.002},{lat_p+0.002}"
-                    f"&layer=mapnik&marker={lat_p},{lon_p}"
-                )
-                st.components.v1.html(
-                    f'<iframe width="100%" height="400" frameborder="0" scrolling="no" '
-                    f'marginheight="0" marginwidth="0" src="{osm_src}"></iframe>',
-                    height=420,
-                )
-
-                st.info(f"Fuente: **{fuente}** — ¿La ubicación en el mapa coincide con la propiedad?")
-
-                # Debug expander
-                _dbg = geo_pending.get("_debug", {})
-                if _dbg:
-                    with st.expander("🔍 Ver trazabilidad del geocoding", expanded=False):
-                        st.json(_dbg)
-
-                c_si, c_no = st.columns(2)
-                with c_si:
-                    if st.button("Sí, está correcta", key=f"geo_si_{key_suffix}", type="primary"):
-                        if lat_key in st.session_state:
-                            del st.session_state[lat_key]
-                        if lon_key in st.session_state:
-                            del st.session_state[lon_key]
-                        st.session_state[lat_key] = lat_p
-                        st.session_state[lon_key] = lon_p
-                        del st.session_state[geo_pending_key]
-                        st.rerun()
-                with c_no:
-                    if st.button("No, corregir manualmente", key=f"geo_no_{key_suffix}"):
-                        st.warning("Ajustá las coordenadas manualmente en los campos de Latitud/Longitud sobre este mapa")
-                        st.caption(f"Coordenadas sugeridas: {lat_p:.7f}, {lon_p:.7f}")
-                        del st.session_state[geo_pending_key]
-                        st.rerun()
-            
             ub_tipos = ["calle", "avenida", "esquina", "pasaje"]
             ubicacion_tipo = st.selectbox("Tipo de Ubicación", ub_tipos, index=ub_tipos.index(prop_inicial.get('ubicacion_tipo', 'calle')) if prop_inicial.get('ubicacion_tipo') in ub_tipos else 0, key=f"ubica_tipo_{key_suffix}")
+
+        # ========== MAPA OSM — siempre visible, pin se actualiza dinámicamente ==========
+        # Usar coordenadas de geo_pending (si hay verificación), sino las del input
+        if geo_pending is not None:
+            _map_lat = geo_pending["lat"]
+            _map_lon = geo_pending["lon"]
+            _map_fuente = geo_pending.get("_fuente", "desconocida")
+        else:
+            _map_lat = st.session_state.get(lat_key)
+            _map_lon = st.session_state.get(lon_key)
+            _map_fuente = None
+
+        _tiene_coords = (
+            _map_lat is not None and _map_lon is not None
+            and not (_map_lat == -32.9445 and _map_lon == -60.6319)
+        )
+
+        if _tiene_coords:
+            osm_src = (
+                f"https://www.openstreetmap.org/export/embed.html"
+                f"?bbox={_map_lon-0.002},{_map_lat-0.002},{_map_lon+0.002},{_map_lat+0.002}"
+                f"&layer=mapnik&marker={_map_lat},{_map_lon}"
+            )
+        else:
+            osm_src = (
+                f"https://www.openstreetmap.org/export/embed.html"
+                f"?bbox=-60.66,-32.96,-60.60,-32.92&layer=mapnik"
+            )
+
+        st.components.v1.html(
+            f'<iframe width="100%" height="350" frameborder="0" scrolling="no" '
+            f'marginheight="0" marginwidth="0" src="{osm_src}"></iframe>',
+            height=370,
+        )
+
+        # Verificación solo cuando se usó el botón geocodificar
+        if geo_pending is not None:
+            st.info(f"Fuente: **{_map_fuente}** — ¿La ubicación en el mapa coincide con la propiedad?")
+            _dbg = geo_pending.get("_debug", {})
+            if _dbg:
+                with st.expander("🔍 Ver trazabilidad del geocoding", expanded=False):
+                    st.json(_dbg)
+            c_si, c_no = st.columns(2)
+            with c_si:
+                if st.button("Sí, está correcta", key=f"geo_si_{key_suffix}", type="primary"):
+                    if lat_key in st.session_state:
+                        del st.session_state[lat_key]
+                    if lon_key in st.session_state:
+                        del st.session_state[lon_key]
+                    st.session_state[lat_key] = _map_lat
+                    st.session_state[lon_key] = _map_lon
+                    del st.session_state[geo_pending_key]
+                    st.rerun()
+            with c_no:
+                if st.button("No, corregir manualmente", key=f"geo_no_{key_suffix}"):
+                    st.warning("Ajustá las coordenadas manualmente en los campos de Latitud/Longitud sobre este mapa")
+                    st.caption(f"Coordenadas sugeridas: {_map_lat:.7f}, {_map_lon:.7f}")
+                    del st.session_state[geo_pending_key]
+                    st.rerun()
     
     # === SECCIÓN 2: EDIFICACIÓN ===
     with st.container(border=True):
