@@ -59,16 +59,12 @@ def _cargar_catastro():
 def buscar_en_catastro(direccion):
     """
     Busca 'direccion' en rosario_avm_full.csv.
-    Retorna dict con lat, lon, address o None si no encuentra.
+    Solo match exacto (normalizado). Retorna dict con lat, lon, address o None.
     """
     import pandas as pd
     df = _cargar_catastro()
     addr_norm = _deunicodificar(direccion)
     match = df[df["_addr_norm"] == addr_norm]
-    if len(match) == 0:
-        # intentar matching parcial: solamente calle + numero
-        addr_clean = re.sub(r"\bbis\b", "", addr_norm)
-        match = df[df["_addr_norm"].str.contains(re.escape(addr_clean), na=False)]
     if len(match) > 0:
         row = match.iloc[0]
         lat, lon = row["latitud"], row["longitud"]
