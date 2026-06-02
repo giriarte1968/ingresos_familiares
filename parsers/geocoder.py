@@ -269,9 +269,15 @@ def geocoding_manager(direccion):
 
     # 1. Revisar cache
     if key in cache:
-        debug["pasos"].append("Cache HIT")
-        debug["cache_key"] = key
-        r = dict(cache[key])
+        cached = cache[key]
+        debug["pasos"].append("Cache HIT (resultado de ejecución previa)")
+        debug["fuente_original"] = cached.get("_fuente", "desconocida (cache anterior a TAREA-027)")
+        debug["status_cachead"] = cached.get("status", "?")
+        if cached.get("lat") and not debug.get("errores"):
+            debug["coordenadas_cacheadas"] = f"{cached['lat']:.5f}, {cached['lon']:.5f}"
+        if debug["fuente_original"] == "catastro" and cached.get("status") == "catastro":
+            pass  # no tenemos la dirección matchada, pero sabemos que vino de catastro
+        r = dict(cached)
         r["_debug"] = debug
         return r
     debug["pasos"].append("Cache MISS")
