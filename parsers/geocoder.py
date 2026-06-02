@@ -56,15 +56,73 @@ def _cargar_catastro():
     return _catastro_cache
 
 
+_MAX_NUMERO_GLOBAL = 15000  # tope generoso para cualquier calle de Rosario
+
+
+def _extraer_numero(direccion):
+    """Extrae el primer número de una dirección. Retorna int o None."""
+    import re
+    m = re.search(r"\b(\d{1,10})\b", direccion)
+    if m:
+        return int(m.group(1))
+    return None
+
+
+def _rango_numeros_calle(calle_limpia):
+    """Retorna (min_n, max_n) para una calle según el catastro CSV."""
+    df = _cargar_catastro()
+    import re
+    # Tomar todas las entradas donde _addr_norm comience con la calle
+    mask = df["_addr_norm"].str.startswith(calle_limpia + " ", na=False)
+    mask |= df["_addr_norm"].str.startswith("avenida " + calle_limpia + " ", na=False)
+    nums = df[mask]["_addr_norm"].str.extract(r"\b(\d{1,10})\b", expand=False).dropna().astype(int)
+    if len(nums) > 0:
+        return int(nums.min()), int(nums.max())
+    return None, None
+
+
+def _numero_en_rango_valido(direccion):
+    """
+    Valida que el número de una dirección esté dentro de rangos
+    conocidos para Rosario. Retorna (bool, mensaje_error).
+    """
+    import re
+    num = _extraer_numero(direccion)
+    if num is None:
+        return True, ""  # sin número, no podemos validar
+    if num > _MAX_NUMERO_GLOBAL:
+        return False, f"El número {num} es demasiado alto para Rosario (máx. ~{_MAX_NUMERO_GLOBAL})."
+
+    # Extraer calle (remover el número y 'bis')
+    calle_norm = _deunicodificar(direccion)
+    calle_norm = re.sub(r"\bbis\b", "", calle_norm)
+    calle_norm = re.sub(r"\b\d+\b", "", calle_norm).strip()
+    calle_norm = re.sub(r"\s+", " ", calle_norm).strip()
+
+    min_n, max_n = _rango_numeros_calle(calle_norm)
+    if min_n is not None and max_n is not None:
+        margen = int((max_n - min_n) * 0.2) + 50  # 20% de margen + 50
+        if num < min_n - margen or num > max_n + margen:
+            return False, f"La calle '{direccion.split()[0]}' tiene números entre {min_n} y {max_n}. {num} está fuera de rango."
+    return True, ""
+
+
 def buscar_en_catastro(direccion):
     """
     Busca 'direccion' en rosario_avm_full.csv.
-    Solo match exacto (normalizado). Retorna dict con lat, lon, address o None.
+    Match exacto primero; si falla, intenta match parcial removiendo 'bis'
+    (para capturar variantes como 'Santiago 60' buscando 'Santiago 60 bis').
+    Retorna dict con lat, lon, address o None.
     """
     import pandas as pd
     df = _cargar_catastro()
     addr_norm = _deunicodificar(direccion)
     match = df[df["_addr_norm"] == addr_norm]
+    if len(match) == 0:
+        # Fallback parcial: remover 'bis' + espacio, buscar como substring
+        addr_clean = re.sub(r"\bbis\b", "", addr_norm).strip()
+        if addr_clean != addr_norm:
+            match = df[df["_addr_norm"].str.startswith(addr_clean + " ", na=False)]
     if len(match) > 0:
         row = match.iloc[0]
         lat, lon = row["latitud"], row["longitud"]
@@ -278,6 +336,15 @@ def geocoding_manager(direccion):
         r["_debug"] = debug
         return r
     debug["pasos"].append("Cache MISS")
+
+    # 1b. Validar rango del número antes de geocodificar
+    valido, msg = _numero_en_rango_valido(direccion)
+    if not valido:
+        debug["pasos"].append(f"Rango inválido: {msg}")
+        result = {"lat": None, "lon": None, "status": "error", "_fuente": "validacion_rango", "_debug": debug}
+        cache[key] = result
+        guardar_cache(cache)
+        return result
 
     # 2. Buscar en catastro CSV
     tiene_bis = bool(re.search(r"\bbis\b", direccion, flags=re.IGNORECASE))
