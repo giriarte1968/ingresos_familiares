@@ -9,17 +9,19 @@ def _auto_geocode_cb(key_suffix, lat_key, lon_key):
     addr = st.session_state.get(f"direccion_{key_suffix}", "").strip()
     if len(addr) < 3:
         return
-    last_key = f"_last_geo_{key_suffix}"
-    if st.session_state.get(last_key) == addr:
+    # Usamos key separada del inline block (que usa _last_geo_) para evitar
+    # que el inline actualice _last_geo_ antes que el usuario presione Enter.
+    cb_key = f"_cb_last_geo_{key_suffix}"
+    if st.session_state.get(cb_key) == addr:
         return
     try:
         from parsers.geocoder import geocoding_manager
         geo = geocoding_manager(addr)
-        st.session_state[last_key] = addr
+        st.session_state[cb_key] = addr
         if geo and geo.get('lat'):
             st.session_state["_geo_result_" + key_suffix] = geo
     except Exception:
-        st.session_state[last_key] = addr
+        st.session_state[cb_key] = addr
 
 
 def _titulo_seccion(titulo, icono, color):
