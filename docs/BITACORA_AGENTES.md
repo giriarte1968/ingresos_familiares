@@ -1848,3 +1848,38 @@ Agregar PASO 3 en `enriquecer_anio_comparable()`: cuando PASO 0-2 fallan, buscar
 - `docs/POST_SCRAPING.md` â€” nota actualizada
 - `.opencode/plans/TAREA-025.md` â€” plan archivado
 - `.opencode/plans/TAREAS_INDEX.md` â€” Ã­ndice actualizado
+
+---
+
+## 2026-06-02 — TAREA-026: Fix Francia 250 bis undervaluation (~ vs real ~)
+
+### Objetivo
+Investigar y corregir por que "Francia 250 bis, Puerto Norte" (160m2, real ~) se valua en solo ~ USD.
+
+### Hallazgos (3 bugs criticos + 1 structural)
+
+**Bug 1 (ROOT CAUSE) - "bis" rompe geocoding:**
+- geocoder.py:62: "Francia 250 bis" enviado a Nominatim structured query
+- Nominatim no puede matchear numero 250 con sufijo "bis", cae a centroide de calle 8.3 km al sur (Alvear)
+- Fix: strip "bis" antes de la query con e.sub(r"\bbis\b", "", calle)
+
+**Bug 2 - Puerto Norte centroid erroneo:**
+- mercado_inmobiliario.py:266: centroide en (-32.959, -60.625) — 4.8 km del PN real (-32.928, -60.661)
+- Fix: actualizado a (-32.9280, -60.6608)
+
+**Bug 3 - centro_premium bbox excluye PN:**
+- zonas_depreciacion.json:23: lat_max=-32.930 excluye PN real (lat=-32.928)
+- Fix: lat_max=-32.9200
+
+**Fix adicional - freeform fallback:**
+- geocoder.py:230: solo se activaba para "fuera_de_rosario", ahora tambien para "low_confidence"
+
+### Archivos modificados
+- parsers/geocoder.py — bis stripping + low_confidence freeform fallback
+- parsers/mercado_inmobiliario.py — Puerto Norte centroid corregido
+- data/zonas_depreciacion.json — centro_premium bbox extendido
+
+### Tests
+- python scripts/auto_validate.py: OK
+- pytest tests/test_regression.py: 39/39 passed
+- Commit: 48641b2 (push a main)
