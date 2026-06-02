@@ -1,4 +1,4 @@
-"""
+﻿"""
 Geocodificador V3 para propiedades en Rosario, Argentina.
 Usa Nominatim (OpenStreetMap) + archivo de anclas v2.
 """
@@ -6,6 +6,7 @@ Usa Nominatim (OpenStreetMap) + archivo de anclas v2.
 import math
 import json
 import os
+import re
 import time
 import requests
 
@@ -60,6 +61,9 @@ def geocodificar_nominatim(direccion):
     """
     try:
         calle = direccion.split(",")[0].strip()
+        # Limpiar sufijos como "bis" que confunden a Nominatim (no puede matchear numero con bis)
+        calle = re.sub(r"\bbis\b", "", calle, flags=re.IGNORECASE)
+        calle = re.sub(r"\s+", " ", calle).strip()
         params = {
             "street": calle,
             "city": "Rosario",
@@ -72,7 +76,7 @@ def geocodificar_nominatim(direccion):
         r.raise_for_status()
         return _parse_nominatim_response(r.json())
     except Exception as e:
-        print(f"Error geocodificación Nominatim: {e}")
+        print(f"Error geocodificacion Nominatim: {e}")
     return None
 
 
@@ -91,7 +95,7 @@ def geocodificar_nominatim_freeform(direccion_full):
         r.raise_for_status()
         return _parse_nominatim_response(r.json())
     except Exception as e:
-        print(f"Error geocodificación Nominatim freeform: {e}")
+        print(f"Error geocodificacion Nominatim freeform: {e}")
     return None
 
 
@@ -110,17 +114,17 @@ def haversine_distance(lat1, lon1, lat2, lon2):
 
 
 def snap_a_anclas(lat, lon, anclas, max_dist_km=3.0):
-    """Snap coordenadas al ancla más cercana. Deshabilitado: devuelve originales."""
+    """Snap coordenadas al ancla mas cercana. Deshabilitado: devuelve originales."""
     return lat, lon, 'no_snap'
 
 
-MAX_DISCREPANCIA_M = 500  # máx diferencia entre pin scraping y geocoding textual
+MAX_DISCREPANCIA_M = 500  # max diferencia entre pin scraping y geocoding textual
 
 
 def validar_coordenadas_contra_direccion(direccion, lat_pin, lon_pin, max_diff_m=MAX_DISCREPANCIA_M):
     """
-    Compara coordenadas del pin scraping contra geocoding de la dirección textual.
-    Si difieren > max_diff_m, retorna coordenadas de geocoding más confiables.
+    Compara coordenadas del pin scraping contra geocoding de la direccion textual.
+    Si difieren > max_diff_m, retorna coordenadas de geocoding mas confiables.
     Retorna: (lat, lon, diff_m, accion) donde accion es 'ok', 'corregido', o 'error'.
     """
     if not direccion or not direccion.strip():
@@ -172,7 +176,7 @@ def validar_y_corregir(direccion, geo, anclas):
     # Aplicar snap a anclas (deshabilitado, devuelve original)
     lat_snap, lon_snap, snap_status = snap_a_anclas(lat, lon, anclas)
     
-    # Buscar ancla más cercana a las coordenadas (snap o originales)
+    # Buscar ancla mas cercana a las coordenadas (snap o originales)
     min_dist = float('inf')
     ancla_cerca = None
     for a in anclas:
@@ -198,7 +202,7 @@ def validar_y_corregir(direccion, geo, anclas):
 
 def geocoding_manager(direccion):
     """
-    Manager principal de geocodificación con cache.
+    Manager principal de geocodificacion con cache.
     """
     cache = cargar_cache()
     key = normalizar_direccion(direccion)
@@ -226,8 +230,9 @@ def geocoding_manager(direccion):
     # 3. Validar y corregir
     lat, lon, status, ancla_id, ancla_usd, dist = validar_y_corregir(direccion, geo, anclas)
     
-    # Si quedo fuera de Rosario, reintentar con free-form query (sin estructura)
-    if status == "fuera_de_rosario":
+    # Si quedo fuera de Rosario o low_confidence, reintentar con free-form query (sin estructura)
+    # low_confidence incluye: type no valido (street, tertiary, etc) o score bajo
+    if status in ("fuera_de_rosario", "low_confidence"):
         time.sleep(0.5)
         full_addr = f"{direccion}, Rosario, Santa Fe, Argentina"
         geo2 = geocodificar_nominatim_freeform(full_addr)
@@ -355,4 +360,4 @@ def geocode_all_properties():
 
 if __name__ == "__main__":
     result = geocode_all_properties()
-    print(f"Geocodificación: {result}")
+    print(f"Geocodificacion: {result}")

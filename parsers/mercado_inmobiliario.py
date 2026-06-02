@@ -263,7 +263,7 @@ def inferir_zona_por_coordenadas(lat, lon):
         "Abasto": (-32.9445, -60.6319),
         "Sexta": (-32.9520, -60.6330),
         "Pichincha": (-32.9380, -60.6450),
-        "Puerto Norte": (-32.9590, -60.6250),
+        "Puerto Norte": (-32.9280, -60.6608),
     }
     
     zona_cercana = None
