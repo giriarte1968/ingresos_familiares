@@ -1851,7 +1851,7 @@ Agregar PASO 3 en `enriquecer_anio_comparable()`: cuando PASO 0-2 fallan, buscar
 
 ---
 
-## 2026-06-02 � TAREA-026: Fix Francia 250 bis undervaluation (~ vs real ~)
+## 2026-06-02 � TAREA-026: Fix Francia 250 bis undervaluation (~ vs real ~)
 
 ### Objetivo
 Investigar y corregir por que "Francia 250 bis, Puerto Norte" (160m2, real ~) se valua en solo ~ USD.
@@ -1864,7 +1864,7 @@ Investigar y corregir por que "Francia 250 bis, Puerto Norte" (160m2, real ~) se
 - Fix: strip "bis" antes de la query con e.sub(r"\bbis\b", "", calle)
 
 **Bug 2 - Puerto Norte centroid erroneo:**
-- mercado_inmobiliario.py:266: centroide en (-32.959, -60.625) � 4.8 km del PN real (-32.928, -60.661)
+- mercado_inmobiliario.py:266: centroide en (-32.959, -60.625) � 4.8 km del PN real (-32.928, -60.661)
 - Fix: actualizado a (-32.9280, -60.6608)
 
 **Bug 3 - centro_premium bbox excluye PN:**
@@ -1875,11 +1875,37 @@ Investigar y corregir por que "Francia 250 bis, Puerto Norte" (160m2, real ~) se
 - geocoder.py:230: solo se activaba para "fuera_de_rosario", ahora tambien para "low_confidence"
 
 ### Archivos modificados
-- parsers/geocoder.py � bis stripping + low_confidence freeform fallback
-- parsers/mercado_inmobiliario.py � Puerto Norte centroid corregido
-- data/zonas_depreciacion.json � centro_premium bbox extendido
+- parsers/geocoder.py � bis stripping + low_confidence freeform fallback
+- parsers/mercado_inmobiliario.py � Puerto Norte centroid corregido
+- data/zonas_depreciacion.json � centro_premium bbox extendido
 
 ### Tests
 - python scripts/auto_validate.py: OK
 - pytest tests/test_regression.py: 39/39 passed
 - Commit: 48641b2 (push a main)
+
+---
+
+## 📅 2026-06-02 — TAREA-027: Restaurar 132 bis catastro + geocoder local + OSM map verification
+
+### Objetivo
+Recuperar los 132 sufijos "bis" perdidos en `rosario_avm_full.csv`, y modificar el flujo de geocoding para que consulte el catastro local antes que Nominatim, con verificación visual en mapa.
+
+### Acciones realizadas
+1. **Nuevo script** `scripts/restaurar_bis_catastro.py`: compara backup vs main y restaura los 132 PHs que perdieron "bis" en `direccion_nominatim`. Post-run: 665 bis addresses (533 originales + 132 restaurados).
+2. **Modificación `parsers/geocoder.py`**:
+   - Agregada función `buscar_en_catastro()` que busca dirección normalizada (NFKD + lower) en `rosario_avm_full.csv`. Intenta match exacto primero, luego parcial (street+número sin "bis").
+   - Modificado `geocoding_manager()`: para toda dirección, primero consulta catastro CSV; si tiene "bis" y no está en catastro, usa free-form Nominatim directamente (sin structured query que falla).
+3. **Modificación `valu_forms.py`**:
+   - Agregado mapa OSM (`st.map()`) con marcador de coordenadas después de geocodificar
+   - Agregados botones "Sí, está correcta" / "No, corregir manualmente"
+   - Si usuario rechaza coordenadas, se mantienen los campos de lat/lon editables con las coordenadas sugeridas como referencia
+
+### Archivos modificados
+- `scripts/restaurar_bis_catastro.py` (nuevo)
+- `parsers/geocoder.py` — `buscar_en_catastro()`, `_deunicodificar()`, `_cargar_catastro()`, refactor `geocoding_manager()`
+- `valu_forms.py` — mapa OSM + verificación visual + botones Sí/No
+
+### Tests
+- `python scripts/auto_validate.py`: OK
+- `pytest tests/test_regression.py`: 39/39 passed

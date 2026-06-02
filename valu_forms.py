@@ -81,22 +81,18 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
                         except Exception:
                             st.session_state[last_key] = addr
 
-            geo_result_key = "_geo_result_" + key_suffix
-            if geo_result_key in st.session_state:
-                geo = st.session_state.pop(geo_result_key)
-                if lat_key in st.session_state:
-                    del st.session_state[lat_key]
-                if lon_key in st.session_state:
-                    del st.session_state[lon_key]
-                st.session_state[lat_key] = geo['lat']
-                st.session_state[lon_key] = geo['lon']
+            geo_confirm_key = f"_geo_confirm_{key_suffix}"
+            geo_pending_key = f"_geo_pending_{key_suffix}"
+            geo_pending = st.session_state.get(geo_pending_key)
 
-            if lat_key not in st.session_state:
-                st.session_state[lat_key] = prop_inicial.get('lat', -32.9445)
-            if lon_key not in st.session_state:
-                st.session_state[lon_key] = prop_inicial.get('lon', -60.6319)
+            if geo_pending is None:
+                if lat_key not in st.session_state:
+                    st.session_state[lat_key] = prop_inicial.get('lat', -32.9445)
+                if lon_key not in st.session_state:
+                    st.session_state[lon_key] = prop_inicial.get('lon', -60.6319)
             lat_input = st.number_input("Latitud *", format="%.7f", key=lat_key)
             lon_input = st.number_input("Longitud *", format="%.7f", key=lon_key)
+
             if show_geocode:
                 if st.button("📍 Geocodificar dirección", width='stretch',
                              disabled=not direccion.strip(), key=f"geobtn_{key_suffix}"):
@@ -105,10 +101,36 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
                         geo = geocoding_manager(direccion)
                     if geo and geo.get('lat'):
                         st.success(f"Coordenadas: {geo['lat']:.7f}, {geo['lon']:.7f}")
-                        st.session_state["_geo_result_" + key_suffix] = geo
+                        st.session_state[geo_pending_key] = geo
                         st.rerun()
                     else:
                         st.error("No se encontró la dirección en OpenStreetMap")
+
+            # Mapa de verificacion si hay geocoding pendiente
+            if geo_pending is not None:
+                import pandas as _pd
+                lat_p, lon_p = geo_pending["lat"], geo_pending["lon"]
+                df_map = _pd.DataFrame({"lat": [lat_p], "lon": [lon_p]})
+                st.markdown("**Verificación de ubicación en mapa**")
+                st.map(df_map, zoom=16, use_container_width=True)
+                st.info("¿La ubicación en el mapa coincide con la propiedad?")
+                c_si, c_no = st.columns(2)
+                with c_si:
+                    if st.button("Sí, está correcta", key=f"geo_si_{key_suffix}", type="primary"):
+                        if lat_key in st.session_state:
+                            del st.session_state[lat_key]
+                        if lon_key in st.session_state:
+                            del st.session_state[lon_key]
+                        st.session_state[lat_key] = lat_p
+                        st.session_state[lon_key] = lon_p
+                        del st.session_state[geo_pending_key]
+                        st.rerun()
+                with c_no:
+                    if st.button("No, corregir manualmente", key=f"geo_no_{key_suffix}"):
+                        st.warning("Ajustá las coordenadas manualmente en los campos de Latitud/Longitud sobre este mapa")
+                        st.caption(f"Coordenadas sugeridas: {lat_p:.7f}, {lon_p:.7f}")
+                        del st.session_state[geo_pending_key]
+                        st.rerun()
             
             ub_tipos = ["calle", "avenida", "esquina", "pasaje"]
             ubicacion_tipo = st.selectbox("Tipo de Ubicación", ub_tipos, index=ub_tipos.index(prop_inicial.get('ubicacion_tipo', 'calle')) if prop_inicial.get('ubicacion_tipo') in ub_tipos else 0, key=f"ubica_tipo_{key_suffix}")

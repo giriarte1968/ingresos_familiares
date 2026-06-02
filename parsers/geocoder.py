@@ -18,6 +18,9 @@ CACHE_FILE = os.path.join(BASE_DIR, "geocoding_cache.json")
 NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
 NOMINATIM_HEADERS = {"User-Agent": "rosario_avm_geocoder"}
 
+CATSTRO_CSV = os.path.join(BASE_DIR, "data", "rosario_avm_full.csv")
+_catastro_cache = None  # carga lazy
+
 
 def normalizar_direccion(direccion):
     return direccion.strip().lower()
@@ -33,6 +36,51 @@ def cargar_cache():
 def guardar_cache(cache):
     with open(CACHE_FILE, 'w', encoding='utf-8') as f:
         json.dump(cache, f, indent=2, ensure_ascii=False)
+
+
+def _deunicodificar(s):
+    """NFKD normalize + strip, para comparar direcciones."""
+    import unicodedata
+    s = unicodedata.normalize("NFKD", str(s))
+    s = s.encode("ascii", "ignore").decode("ascii")
+    return s.strip().lower()
+
+
+def _cargar_catastro():
+    global _catastro_cache
+    if _catastro_cache is None:
+        import pandas as pd
+        df = pd.read_csv(CATSTRO_CSV, encoding="utf-8")
+        df["_addr_norm"] = df["direccion_nominatim"].astype(str).apply(_deunicodificar)
+        _catastro_cache = df
+    return _catastro_cache
+
+
+def buscar_en_catastro(direccion):
+    """
+    Busca 'direccion' en rosario_avm_full.csv.
+    Retorna dict con lat, lon, address o None si no encuentra.
+    """
+    df = _cargar_catastro()
+    addr_norm = _deunicodificar(direccion)
+    match = df[df["_addr_norm"] == addr_norm]
+    if len(match) == 0:
+        # intentar matching parcial: solamente calle + numero
+        addr_clean = re.sub(r"\bbis\b", "", addr_norm)
+        match = df[df["_addr_norm"].str.contains(re.escape(addr_clean), na=False)]
+    if len(match) > 0:
+        row = match.iloc[0]
+        lat, lon = row["latitud"], row["longitud"]
+        if pd.notna(lat) and pd.notna(lon):
+            return {
+                "lat": float(lat),
+                "lon": float(lon),
+                "address": row["direccion_nominatim"],
+                "score": 0.9,
+                "type": "catastro",
+                "source": "catastro",
+            }
+    return None
 
 
 # Viewbox para restringir a Rosario centro (formato string: lon_min,lat_min,lon_max,lat_max)
@@ -203,7 +251,14 @@ def validar_y_corregir(direccion, geo, anclas):
 def geocoding_manager(direccion):
     """
     Manager principal de geocodificacion con cache.
+
+    Orden de busqueda:
+      1. Cache
+      2. Catastro CSV (rosario_avm_full.csv) — prioridad para direcciones con "bis"
+      3. Nominatim structured (geocodificar_nominatim) que quita "bis" de la calle
+      4. Nominatim free-form como fallback
     """
+    import time
     cache = cargar_cache()
     key = normalizar_direccion(direccion)
     
@@ -211,13 +266,41 @@ def geocoding_manager(direccion):
     if key in cache:
         return cache[key]
     
+    # 2. Buscar en catastro CSV (prioridad para direcciones con "bis")
+    tiene_bis = bool(re.search(r"\bbis\b", direccion, flags=re.IGNORECASE))
+    catastro_geo = buscar_en_catastro(direccion)
+    if catastro_geo:
+        # Cargar anclas para el resultado
+        with open(ANCLAS_FILE, 'r', encoding='utf-8') as f:
+            anclas_data = json.load(f)
+        anclas = anclas_data.get('anclas', [])
+        lat, lon, status, ancla_id, ancla_usd, dist = validar_y_corregir(direccion, catastro_geo, anclas)
+        result = {
+            "lat": lat,
+            "lon": lon,
+            "status": "catastro",
+            "score": catastro_geo["score"],
+            "type": catastro_geo["type"],
+            "ancla_id": ancla_id,
+            "ancla_usd": ancla_usd,
+            "distancia_km": round(dist, 2)
+        }
+        cache[key] = result
+        guardar_cache(cache)
+        return result
+    
     # Cargar anclas
     with open(ANCLAS_FILE, 'r', encoding='utf-8') as f:
         anclas_data = json.load(f)
     anclas = anclas_data.get('anclas', [])
     
-    # 2. Geocodificar (primer intento solo con calle)
-    geo = geocodificar_arcgis(direccion)
+    # 3. Geocodificar con Nominatim
+    # Si tiene "bis", usar free-form directamente (structured falla con bis)
+    if tiene_bis:
+        full_addr = f"{direccion}, Rosario, Santa Fe, Argentina"
+        geo = geocodificar_nominatim_freeform(full_addr)
+    else:
+        geo = geocodificar_arcgis(direccion)
     
     time.sleep(0.5)  # Rate limiting
     
@@ -227,12 +310,12 @@ def geocoding_manager(direccion):
         guardar_cache(cache)
         return result
     
-    # 3. Validar y corregir
+    # 4. Validar y corregir
     lat, lon, status, ancla_id, ancla_usd, dist = validar_y_corregir(direccion, geo, anclas)
     
     # Si quedo fuera de Rosario o low_confidence, reintentar con free-form query (sin estructura)
     # low_confidence incluye: type no valido (street, tertiary, etc) o score bajo
-    if status in ("fuera_de_rosario", "low_confidence"):
+    if not tiene_bis and status in ("fuera_de_rosario", "low_confidence"):
         time.sleep(0.5)
         full_addr = f"{direccion}, Rosario, Santa Fe, Argentina"
         geo2 = geocodificar_nominatim_freeform(full_addr)
@@ -251,7 +334,7 @@ def geocoding_manager(direccion):
         "distancia_km": round(dist, 2)
     }
     
-    # 4. Guardar en cache
+    # 5. Guardar en cache
     cache[key] = result
     guardar_cache(cache)
     
