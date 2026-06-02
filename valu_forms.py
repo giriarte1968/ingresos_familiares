@@ -81,7 +81,17 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
                         except Exception:
                             st.session_state[last_key] = addr
 
-            geo_confirm_key = f"_geo_confirm_{key_suffix}"
+            # Consumir resultado de auto-geocode (on_change o inline backup)
+            geo_result_key = "_geo_result_" + key_suffix
+            if geo_result_key in st.session_state:
+                geo = st.session_state.pop(geo_result_key)
+                if lat_key in st.session_state:
+                    del st.session_state[lat_key]
+                if lon_key in st.session_state:
+                    del st.session_state[lon_key]
+                st.session_state[lat_key] = geo['lat']
+                st.session_state[lon_key] = geo['lon']
+
             geo_pending_key = f"_geo_pending_{key_suffix}"
             geo_pending = st.session_state.get(geo_pending_key)
 
