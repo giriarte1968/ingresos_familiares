@@ -174,13 +174,13 @@
       "ultima_valuacion": null,
       "_ultima_valuacion": {
         "valor_usd": 55448.0,
-        "alquiler_ars": 441151.0,
-        "cap_rate": 0.0642,
+        "alquiler_ars": 440715.0,
+        "cap_rate": 0.0639,
         "m2_equivalentes": 40.62,
         "comps": 10,
-        "fecha": "01/06/2026 13:10",
+        "fecha": "02/06/2026 12:34",
         "cache_version": "v5_zonificada",
-        "timestamp": "2026-06-01T13:10:54.313246"
+        "timestamp": "2026-06-02T12:34:37.533274"
       }
     },
     {
