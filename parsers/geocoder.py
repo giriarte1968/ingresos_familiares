@@ -257,20 +257,34 @@ def geocoding_manager(direccion):
       2. Catastro CSV (rosario_avm_full.csv) — prioridad para direcciones con "bis"
       3. Nominatim structured (geocodificar_nominatim) que quita "bis" de la calle
       4. Nominatim free-form como fallback
+
+    Retorna dict con lat, lon, status, score, type, _debug (info de trazabilidad).
     """
     import time
+    debug = {"pasos": [], "errores": []}
+    debug["input"] = direccion
+
     cache = cargar_cache()
     key = normalizar_direccion(direccion)
-    
+
     # 1. Revisar cache
     if key in cache:
-        return cache[key]
-    
-    # 2. Buscar en catastro CSV (prioridad para direcciones con "bis")
+        debug["pasos"].append("Cache HIT")
+        debug["cache_key"] = key
+        r = dict(cache[key])
+        r["_debug"] = debug
+        return r
+    debug["pasos"].append("Cache MISS")
+
+    # 2. Buscar en catastro CSV
     tiene_bis = bool(re.search(r"\bbis\b", direccion, flags=re.IGNORECASE))
+    debug["tiene_bis"] = tiene_bis
     catastro_geo = buscar_en_catastro(direccion)
     if catastro_geo:
-        # Cargar anclas para el resultado
+        debug["pasos"].append("Catastro CSV HIT")
+        debug["catastro_addr"] = catastro_geo["address"]
+        debug["catastro_lat"] = catastro_geo["lat"]
+        debug["catastro_lon"] = catastro_geo["lon"]
         with open(ANCLAS_FILE, 'r', encoding='utf-8') as f:
             anclas_data = json.load(f)
         anclas = anclas_data.get('anclas', [])
@@ -283,46 +297,56 @@ def geocoding_manager(direccion):
             "type": catastro_geo["type"],
             "ancla_id": ancla_id,
             "ancla_usd": ancla_usd,
-            "distancia_km": round(dist, 2)
+            "distancia_km": round(dist, 2),
+            "_fuente": "catastro",
+            "_debug": debug,
         }
         cache[key] = result
         guardar_cache(cache)
         return result
-    
+    debug["pasos"].append("Catastro CSV MISS")
+
     # Cargar anclas
     with open(ANCLAS_FILE, 'r', encoding='utf-8') as f:
         anclas_data = json.load(f)
     anclas = anclas_data.get('anclas', [])
-    
+
     # 3. Geocodificar con Nominatim
-    # Si tiene "bis", usar free-form directamente (structured falla con bis)
     if tiene_bis:
+        debug["pasos"].append("Nominatim free-form (tiene bis)")
         full_addr = f"{direccion}, Rosario, Santa Fe, Argentina"
         geo = geocodificar_nominatim_freeform(full_addr)
     else:
+        debug["pasos"].append("Nominatim structured")
         geo = geocodificar_arcgis(direccion)
-    
-    time.sleep(0.5)  # Rate limiting
-    
+
+    time.sleep(0.5)
+
     if not geo:
-        result = {"lat": None, "lon": None, "status": "error", "ancla_id": None, "ancla_usd": None}
+        debug["pasos"].append("Nominatim FAIL (sin resultado)")
+        result = {"lat": None, "lon": None, "status": "error", "ancla_id": None, "ancla_usd": None, "_fuente": "nominatim", "_debug": debug}
         cache[key] = result
         guardar_cache(cache)
         return result
-    
+    debug["pasos"].append(f"Nominatim OK lat={geo['lat']:.5f} lon={geo['lon']:.5f} score={geo['score']} type={geo['type']}")
+
     # 4. Validar y corregir
     lat, lon, status, ancla_id, ancla_usd, dist = validar_y_corregir(direccion, geo, anclas)
-    
-    # Si quedo fuera de Rosario o low_confidence, reintentar con free-form query (sin estructura)
-    # low_confidence incluye: type no valido (street, tertiary, etc) o score bajo
+    debug["pasos"].append(f"Validacion status={status}")
+
+    # Si quedo fuera de Rosario o low_confidence, reintentar con free-form
     if not tiene_bis and status in ("fuera_de_rosario", "low_confidence"):
+        debug["pasos"].append("Fallback: free-form query")
         time.sleep(0.5)
         full_addr = f"{direccion}, Rosario, Santa Fe, Argentina"
         geo2 = geocodificar_nominatim_freeform(full_addr)
         if geo2:
+            debug["pasos"].append(f"Free-form OK lat={geo2['lat']:.5f} lon={geo2['lon']:.5f}")
             geo = geo2
             lat, lon, status, ancla_id, ancla_usd, dist = validar_y_corregir(direccion, geo2, anclas)
-    
+        else:
+            debug["pasos"].append("Free-form FAIL")
+
     result = {
         "lat": lat,
         "lon": lon,
@@ -331,13 +355,15 @@ def geocoding_manager(direccion):
         "type": geo["type"],
         "ancla_id": ancla_id,
         "ancla_usd": ancla_usd,
-        "distancia_km": round(dist, 2)
+        "distancia_km": round(dist, 2),
+        "_fuente": "nominatim",
+        "_debug": debug,
     }
-    
+
     # 5. Guardar en cache
     cache[key] = result
     guardar_cache(cache)
-    
+
     return result
 
 

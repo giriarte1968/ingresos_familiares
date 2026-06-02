@@ -108,12 +108,30 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
 
             # Mapa de verificacion si hay geocoding pendiente
             if geo_pending is not None:
-                import pandas as _pd
                 lat_p, lon_p = geo_pending["lat"], geo_pending["lon"]
-                df_map = _pd.DataFrame({"lat": [lat_p], "lon": [lon_p]})
+                fuente = geo_pending.get("_fuente", "desconocida")
                 st.markdown("**Verificación de ubicación en mapa**")
-                st.map(df_map, zoom=16, use_container_width=True)
-                st.info("¿La ubicación en el mapa coincide con la propiedad?")
+
+                # Mapa OSM con pin marker via iframe embed
+                osm_src = (
+                    f"https://www.openstreetmap.org/export/embed.html"
+                    f"?bbox={lon_p-0.002},{lat_p-0.002},{lon_p+0.002},{lat_p+0.002}"
+                    f"&layer=mapnik&marker={lat_p},{lon_p}"
+                )
+                st.components.v1.html(
+                    f'<iframe width="100%" height="400" frameborder="0" scrolling="no" '
+                    f'marginheight="0" marginwidth="0" src="{osm_src}"></iframe>',
+                    height=420,
+                )
+
+                st.info(f"Fuente: **{fuente}** — ¿La ubicación en el mapa coincide con la propiedad?")
+
+                # Debug expander
+                _dbg = geo_pending.get("_debug", {})
+                if _dbg:
+                    with st.expander("🔍 Ver trazabilidad del geocoding", expanded=False):
+                        st.json(_dbg)
+
                 c_si, c_no = st.columns(2)
                 with c_si:
                     if st.button("Sí, está correcta", key=f"geo_si_{key_suffix}", type="primary"):
