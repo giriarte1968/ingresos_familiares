@@ -1950,3 +1950,21 @@ Recuperar los 132 sufijos "bis" perdidos en `rosario_avm_full.csv`, y modificar 
 ### Tests
 - `pytest tests/test_regression.py`: 39/39 passed (Mabel en $78.830, dentro de rango)
 - `python scripts/auto_validate.py`: OK
+
+## 📅 2026-06-03 — TAREA-029 POST-FIX: Mabel test data → ninguno
+
+### Objetivo:
+Corregir discrepancia entre test data (tipo_balcon: 'corrido') y saved data (tipo_balcon: 'ninguno') que causaba que el test diera $78.830 mientras la UI mostraba $76.293, y el usuario recordaba ~$70k-72k (valor_realizable).
+
+### Acciones realizadas:
+1. Detectado que `ejecutar_valuacion('mabel')` hardcodeaba `tipo_balcon: 'corrido'` y `balcon: True`, pero `propiedades.json` guardaba `tipo_balcon: 'ninguno', balcon: false`
+2. Cambiado `corrido` → `ninguno`, eliminado `balcon: True` en `tests/test_regression.py:33`
+3. `python scripts/auto_validate.py`: OK
+4. `pytest tests/test_regression.py`: 39/39 passed (Mabel ahora en $76.293, valor_realizable $70.190)
+5. `pytest tests/test_disposicion.py`: 9/9 passed
+
+### Verificado:
+- Mabel valor_propiedad_usd con ninguno: $76.293 ✓
+- Mabel valor_realizable_usd: $70.190 ✓ (calza con 70-72k que recordaba el usuario)
+- Rango 75k-85k aún funcional (76.293 dentro)
+- Commit: pendiente

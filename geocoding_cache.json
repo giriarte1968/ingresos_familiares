@@ -407,5 +407,30 @@
       "catastro_lat": -32.9254054,
       "catastro_lon": -60.7203622
     }
+  },
+  "brown 2700": {
+    "lat": -32.9331753,
+    "lon": -60.6575732,
+    "status": "low_confidence",
+    "score": 6.83916990920427e-05,
+    "type": "house",
+    "ancla_id": "macrocentro_3febrero_francia",
+    "ancla_usd": 1400,
+    "distancia_km": 0.87,
+    "_fuente": "nominatim",
+    "_debug": {
+      "pasos": [
+        "Cache MISS",
+        "Catastro CSV MISS",
+        "Nominatim structured",
+        "Nominatim OK lat=-32.93318 lon=-60.65757 score=6.83916990920427e-05 type=house",
+        "Validacion status=low_confidence",
+        "Fallback: free-form query",
+        "Free-form OK lat=-32.93318 lon=-60.65757"
+      ],
+      "errores": [],
+      "input": "Brown 2700",
+      "tiene_bis": false
+    }
   }
 }

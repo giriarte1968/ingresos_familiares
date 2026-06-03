@@ -30,7 +30,7 @@ def ejecutar_valuacion(test_id):
             'estado_detalle': 'muy bueno', 'calidad_edificio': 'media',
             'descripcion_libre': 'luminoso, con aire acondicionado',
             'piso': 2, 'total_pisos': 10, 'ventilacion': 'cruzada',
-            'tipo_balcon': 'corrido', 'balcon': True,
+            'tipo_balcon': 'ninguno',
             'lavadero_independiente': True, 'placares_completos': True,
             'ascensores_edificio': 1, 'detalles_categoria': ['seguridad_camaras'],
             'vista': 'frente', 'ubicacion_tipo': 'calle', 'gas_ok': 'si',
