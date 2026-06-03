@@ -362,15 +362,7 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
             amenities_opts = ["caldera_central", "radiadores", "seguridad_24hs", "seguridad_tag", "seguridad_camaras", "seguridad_totem", "aberturas_premium", "parrilla_propia", "parrilla_compartida", "terraza_compartida", "pileta", "sum", "gym"]
             detalles_legacy = [('parrilla_compartida' if d == 'parrilla' else d) for d in prop_inicial.get('detalles_categoria', [])]
             detalles_default = [v for v in detalles_legacy if v in amenities_opts]
-            extras = []
-            if cochera_nro > 0:
-                extras.extend(["cocheras"] * cochera_nro)
-            if baulera:
-                extras.append("baulera")
-            if extras:
-                detalles_cat = list(detalles_default) + extras
-            else:
-                detalles_cat = list(detalles_default)
+            detalles_cat = list(detalles_default)
             
             vent_bano_opts = ["natural", "forzada", "sin_ventana"]
             ventilacion_bano = st.selectbox("Ventilación baño", vent_bano_opts, index=vent_bano_opts.index(prop_inicial.get('ventilacion_bano', 'natural')) if prop_inicial.get('ventilacion_bano') in vent_bano_opts else 0, key=f"vent_bano_{key_suffix}")

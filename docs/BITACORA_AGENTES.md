@@ -1967,4 +1967,23 @@ Corregir discrepancia entre test data (tipo_balcon: 'corrido') y saved data (tip
 - Mabel valor_propiedad_usd con ninguno: $76.293 ✓
 - Mabel valor_realizable_usd: $70.190 ✓ (calza con 70-72k que recordaba el usuario)
 - Rango 75k-85k aún funcional (76.293 dentro)
-- Commit: pendiente
+- Commit a212ce9 + push
+
+## 📅 2026-06-03 — Fix ambientes error + vista/disposición labels
+
+### Objetivo:
+Corregir StreamlitValueBelowMinError cuando ambientes=0 (min_value=1) y mejorar diferenciación entre Vista y Disposición en la UI.
+
+### Acciones realizadas:
+1. `valu_forms.py:328`: `ambientes` → `min_value=0` (era 1), manejo de default 0
+2. Vista selectbox: labels claros (ej: "Frente / Calle") manteniendo values internos ("frente") para compatibilidad con el motor
+3. Disposición: labels descriptivos + help explicando que SOLO contrafrente/interna penalizan
+4. Misma corrección de labels aplicada en `app.py:3391`
+5. `python scripts/auto_validate.py`: OK
+6. Commit fc45f93 + push
+
+### Resultado:
+- Error StreamlitValueBelowMinError eliminado
+- Vista (calidad visual): "Interna (pared vecina)", "Pulmón (patio interno)", "Frente / Calle", "Despejada", "Río"
+- Disposición (ubicación en planta): "Frente del edificio", "Contrafrente (al fondo)", "Pasante (atraviesa todo)", "Interna (sin ventana exterior)", "Lateral (costado)"
+- Sin cambios en lógica de cálculo (solo UI labels)
