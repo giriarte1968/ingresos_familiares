@@ -98,6 +98,50 @@ def test_delta_seguridad_24hs_reducido():
     assert delta == 0.030, f"seguridad_24hs deberia ser 0.030, obtuvo {delta}"
 
 
+def test_baulera_weight():
+    delta, detalle = calcular_delta_amenities(["baulera"])
+    assert delta == 0.010, f"baulera deberia ser 0.010, obtuvo {delta}"
+    assert "baulera" in detalle
+
+
+def test_cocheras_weight():
+    delta, detalle = calcular_delta_amenities(["cocheras"])
+    assert delta == 0.015, f"cocheras deberia ser 0.015, obtuvo {delta}"
+    assert "cocheras" in detalle
+
+
+def test_baulera_cocheras_en_cap():
+    """Multiple amenities incluyendo baulera y cocheras deben respetar el cap 0.06"""
+    detalles = [
+        "seguridad_24hs", "pileta", "parrilla_propia",
+        "aberturas_premium", "baulera", "cocheras"
+    ]
+    delta, detalle = calcular_delta_amenities(detalles)
+    assert delta <= AMENITY_TOTAL_CAP, f"cap excedido: {delta} > {AMENITY_TOTAL_CAP}"
+    assert "baulera" in detalle
+    assert "cocheras" in detalle
+
+
+def test_baulera_cocheras_en_weights():
+    assert "baulera" in AMENITY_WEIGHTS
+    assert "cocheras" in AMENITY_WEIGHTS
+    assert AMENITY_WEIGHTS["baulera"] == 0.010
+    assert AMENITY_WEIGHTS["cocheras"] == 0.015
+
+
+def test_cocheras_nlp_exclusion():
+    excluir = _keywords_a_excluir(["cocheras"])
+    assert "cochera" in excluir
+    assert "cocheras" in excluir
+    assert "garage" in excluir
+
+
+def test_baulera_nlp_exclusion():
+    excluir = _keywords_a_excluir(["baulera"])
+    assert "baulera" in excluir
+    assert "bauleras" in excluir
+
+
 if __name__ == "__main__":
     test_parrilla_propia_mayor_que_compartida()
     test_terrraza_compartida_impacto_bajo()

@@ -181,6 +181,12 @@ Regla aplicada en `calcular_factores()` vía helper `normalizar_estado_y_calidad
 |-------|------|-------------|
 | `anio_construccion` | int | Año de construcción del edificio. |
 
+### Amenities Estructurados
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `baulera` | bool | Indica si la propiedad tiene baulera. Aporta +0.010 al delta de amenities. |
+| `cochera_nro` | int | Cantidad de cocheras (0-10). Cada cochera aporta +0.015 al delta de amenities. Se traduce a `"cocheras"` en `detalles_categoria` para el motor. |
+
 ### Reglas de Uso
 - **MODO LEGADO**: Si `m2_descubiertos_propios` y `m2_descubiertos_comun_exclusivo` son None → usar `m2_descubiertos`.
 - **MODO GRANULAR**: Usar coeficientes diferenciados para propios vs comun_exclusivo.

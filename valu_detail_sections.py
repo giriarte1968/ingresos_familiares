@@ -596,6 +596,26 @@ def generar_reporte_pdf(prop: dict, res: dict) -> bytes:
         pdf.cell(30, 5, val, new_x="LMARGIN", new_y="NEXT")
     pdf.ln(4)
 
+    # Activos adicionales (cocheras + baulera)
+    val_activos = res.get("valor_activos", {}) or {}
+    if val_activos.get("total", 0) > 0:
+        pdf.set_font("Helvetica", "B", 7)
+        pdf.set_text_color(16, 185, 129)
+        pdf.cell(w, 5, "ACTIVOS ADICIONALES", new_x="LMARGIN", new_y="NEXT")
+        pdf.ln(2)
+        for lbl, val in [
+            ("Cocheras", f"USD {val_activos.get('cocheras', 0):,.0f}"),
+            ("Baulera", f"USD {val_activos.get('baulera', 0):,.0f}"),
+            ("Total activos", f"USD {val_activos['total']:,.0f}"),
+        ]:
+            pdf.set_font("Helvetica", "", 9)
+            pdf.set_text_color(100, 116, 139)
+            pdf.cell(50, 5, lbl)
+            pdf.set_font("Helvetica", "B", 9)
+            pdf.set_text_color(15, 23, 42)
+            pdf.cell(30, 5, val, new_x="LMARGIN", new_y="NEXT")
+        pdf.ln(4)
+
     # Comparables
     comps = res.get("comparables_venta", [])
     n_comps = meta.get("n_propiedades", meta.get("n_filtradas", len(comps)))

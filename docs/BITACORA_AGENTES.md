@@ -1909,3 +1909,26 @@ Recuperar los 132 sufijos "bis" perdidos en `rosario_avm_full.csv`, y modificar 
 ### Tests
 - `python scripts/auto_validate.py`: OK
 - `pytest tests/test_regression.py`: 39/39 passed
+
+## TAREA — 2026-06-03 — Agregar "baulera" y "cocheras" al sistema de amenities
+
+### Cambios realizados
+
+1. **`parsers/mercado_inmobiliario.py`**: Agregados `"baulera": 0.010` y `"cocheras": 0.015` a `AMENITY_WEIGHTS`.
+
+2. **`valu_forms.py`** y **`app.py`**: 
+   - `cochera` (checkbox) reemplazado por `cochera_nro` (number_input, 0-10)
+   - Agregado `baulera` (checkbox)
+   - Al guardar, si `cochera_nro > 0` se agrega `"cocheras"` × N veces a `detalles_categoria`
+   - Si `baulera` está marcado, se agrega `"baulera"` a `detalles_categoria`
+
+3. **`parsers/nlp_inmobiliario.py`**: Agregados `"baulera"` y `"cocheras"` al `AMENITY_NLP_EXCLUSION_MAP` para evitar doble conteo NLP.
+
+4. **`tests/test_amenities.py`**: 6 tests nuevos: `test_baulera_weight`, `test_cocheras_weight`, `test_baulera_cocheras_en_cap`, `test_baulera_cocheras_en_weights`, `test_cocheras_nlp_exclusion`, `test_baulera_nlp_exclusion`.
+
+5. **`docs/DICCIONARIO_DATOS.md`**: Agregados campos `baulera` (bool) y `cochera_nro` (int) a la tabla de amenities estructurados.
+
+### Tests
+- `python scripts/auto_validate.py`: OK
+- `pytest tests/test_amenities.py -v`: 17/17 passed
+- `pytest tests/test_regression.py -q`: 39/39 passed

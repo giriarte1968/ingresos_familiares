@@ -36,6 +36,8 @@ AMENITY_NLP_EXCLUSION_MAP = {
     ],
     "balcon_terraza": ["balcon terraza", "balcón terraza"],
     "terraza_comun": ["terraza comun", "terraza común"],
+    "baulera": ["baulera", "bauleras"],
+    "cocheras": ["cochera", "cocheras", "garage"],
 }
 
 

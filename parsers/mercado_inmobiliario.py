@@ -1788,6 +1788,38 @@ def calcular_delta_amenities(detalles):
     return capped, detalle
 
 
+def calcular_valor_activos(prop, m2_base_zona):
+    """
+    Calcula el valor aditivo de cocheras y bauleras en USD.
+    Cocheras: Valor base * CoefTipo * UtilidadDecreciente
+    Baulera: Valor fijo editable.
+    """
+    # 1. Cocheras
+    cant = prop.get('cocheras_cantidad', 0)
+    tipo = prop.get('cocheras_tipo', 'cubierta')
+    
+    # El valor base puede venir del formulario o sugerirse por zona (12m2 * base)
+    valor_base = prop.get('valor_cochera_base')
+    if valor_base is None or valor_base <= 0:
+        valor_base = m2_base_zona * 12.0
+    
+    coef_tipo = {'cubierta': 1.0, 'semicubierta': 0.7, 'descubierta': 0.4}.get(tipo, 1.0)
+    
+    total_cocheras = 0.0
+    for i in range(1, cant + 1):
+        factor_utilidad = 1.0 if i == 1 else 0.7 if i == 2 else 0.5
+        total_cocheras += (valor_base * coef_tipo * factor_utilidad)
+    
+    # 2. Baulera
+    valor_baulera = prop.get('valor_baulera', 0.0)
+    
+    return {
+        'total': total_cocheras + valor_baulera,
+        'cocheras': total_cocheras,
+        'baulera': valor_baulera,
+        'detalle': f"{cant} cocheras {tipo} (${total_cocheras:,.0f}) + baulera (${valor_baulera:,.0f})" if cant > 0 or valor_baulera > 0 else "Sin activos adicionales"
+    }
+
 def calcular_factores(prop, ventana_usada=None):
     """
     Calcula factores de propiedad.
@@ -2014,12 +2046,17 @@ def calcular_factores(prop, ventana_usada=None):
     delta_gas = factor_gas - 1.0
     delta_balcon = factor_balcon - 1.0
     delta_funcional = f_funcional - 1.0
+    
+    # Nuevos deltas específicos
+    delta_cocina = 0.003 if prop.get('terminaciones_cocina') == 'silestone' else 0.0
+    delta_preinst = 0.002 if prop.get('preinstalacion_aa') else 0.0
+
     # delta_seguridad reemplazado por delta_amenities (v10.0)
     
     # Sumar todos los deltas
     suma_cruda = (delta_estado + delta_calidad + delta_vent + delta_vista + 
-                 delta_piso + delta_ubica + delta_gas + delta_balcon + 
-                 delta_funcional + delta_amenities)
+                     delta_piso + delta_ubica + delta_gas + delta_balcon + 
+                     delta_funcional + delta_cocina + delta_preinst + delta_amenities)
     
     # Clamp suma_cruda
     suma_cruda_clamped = max(-0.40, min(0.40, suma_cruda))
@@ -3169,6 +3206,10 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True):
     valor_venta = valor_venta * (1 + ajuste_nlp_capped)
     alquiler_mensual_ars = alquiler_mensual_ars * (1 + ajuste_nlp_capped)
     
+    # Asset values aditivos (cocheras + baulera)
+    valor_activos = calcular_valor_activos(prop, m2_base_venta)
+    valor_venta += valor_activos['total']
+    
     # === ALQUILER: Cap Rate DATA-DRIVEN (v8.1) ===
     # Obtener lat/lon para Cap Rate (necesario para la función)
     lat_cr = prop.get('lat')
@@ -3374,6 +3415,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True):
     try:
         razonamiento = generar_razonamiento_valuacion(prop, {
             'valor_propiedad_usd': valor_venta,
+            'valor_activos': valor_activos,
             'valor_venta_conservador': valor_venta_conservador,
             'valor_venta_optimista': valor_venta_optimista,
             'valor_realizable': valor_realizable,
@@ -3481,6 +3523,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True):
         },
         'f_dict': f_dict,
         'n_comps': n_v,
+        'valor_activos': valor_activos,
         'tiene_barreras': bool(meta_venta.get('n_same_side', 0) > 0 and meta_venta.get('n_cross_soft', 0) > 0),
         'meta_venta': {
             'n_same_side': meta_venta.get('n_same_side', 0),
@@ -4133,6 +4176,14 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
         texto_rango += (
             f"Para una venta rápida, considerando los gastos de cierre habituales, "
             f"el valor realizable se ubica en USD {vr:,.0f}."
+        )
+
+    # Mention asset values (cocheras, baulera) if present
+    val_act = resultado.get('valor_activos', {}) or {}
+    if val_act.get('total', 0) > 0:
+        texto_rango += (
+            f" Se consideraron activos adicionales por "
+            f"USD {val_act['total']:,.0f} ({val_act.get('detalle', '')})."
         )
 
     lineas.append(texto_rango)

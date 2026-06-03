@@ -289,13 +289,25 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
             calidades = ["premium", "media", "economica"]
             calidad_edificio = st.selectbox("Calidad", calidades, index=calidades.index(prop_inicial.get('calidad_edificio', 'media')) if prop_inicial.get('calidad_edificio') in calidades else 1, key=f"calidad_{key_suffix}")
         with col2:
-            suelos = ["madera_noble", "porcelanato", "ceramico", "estandar"]
+            suelos = ["madera_noble", "porcelanato", "ceramico", "vinilico", "estandar"]
             terminaciones_suelo = st.selectbox("Suelo", suelos, index=suelos.index(prop_inicial.get('terminaciones_suelo', 'estandar')) if prop_inicial.get('terminaciones_suelo') in suelos else 3, key=f"suelo_{key_suffix}")
             
             carps = ["piso_techo", "dvh", "estandar"]
             carpinteria = st.selectbox("Carpintería", carps, index=carps.index(prop_inicial.get('carpinteria', 'estandar')) if prop_inicial.get('carpinteria') in carps else 2, key=f"carp_{key_suffix}")
             
-            cochera = st.checkbox("Cochera", value=prop_inicial.get('cochera', False), key=f"cochera_{key_suffix}")
+            cocinas = ["silestone", "granito", "estandar"]
+            term_cocina = st.selectbox("Mesadas", cocinas, index=cocinas.index(prop_inicial.get('terminaciones_cocina', 'estandar')) if prop_inicial.get('terminaciones_cocina') in cocinas else 2, key=f"cocina_{key_suffix}")
+            
+            col_c1, col_c2, col_c3 = st.columns(3)
+            with col_c1:
+                cocheras_cantidad = st.number_input("Cant. Cocheras", min_value=0, max_value=10, value=int(prop_inicial.get('cocheras_cantidad', prop_inicial.get('cochera_nro', 0))), key=f"coch_cant_{key_suffix}")
+            with col_c2:
+                cochera_tipos = ["cubierta", "semicubierta", "descubierta"]
+                cocheras_tipo = st.selectbox("Tipo Cochera", cochera_tipos, index=cochera_tipos.index(prop_inicial.get('cocheras_tipo', 'cubierta')) if prop_inicial.get('cocheras_tipo') in cochera_tipos else 0, key=f"coch_tipo_{key_suffix}")
+            with col_c3:
+                valor_cochera_base = st.number_input("Valor Base Cochera (USD)", min_value=0.0, value=float(prop_inicial.get('valor_cochera_base', 15000.0)), step=500.0, key=f"coch_val_{key_suffix}")
+            
+            valor_baulera = st.number_input("Valor Baulera (USD)", min_value=0.0, value=float(prop_inicial.get('valor_baulera', 3000.0)) if prop_inicial.get('baulera') or prop_inicial.get('valor_baulera') else 0.0, step=500.0, key=f"baul_val_{key_suffix}")
     
     # === SECCIÓN 5: FUNCIONALIDAD ===
     with st.container(border=True):
@@ -313,6 +325,7 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
             
             doble_ingreso = st.checkbox("Doble Ingreso", value=prop_inicial.get('doble_ingreso', False), key=f"doble_{key_suffix}")
             lavadero = st.checkbox("Lavadero Independiente", value=prop_inicial.get('lavadero_independiente', False), key=f"lavadero_{key_suffix}")
+            preinst_aa = st.checkbox("Preinstalación A/A", value=prop_inicial.get('preinstalacion_aa', False), key=f"preinst_aa_{key_suffix}")
             layout_flexible = st.checkbox("Layout flexible", value=prop_inicial.get('layout_flexible', False), key=f"layout_{key_suffix}")
             placares = st.checkbox("Placares completos", value=prop_inicial.get('placares_completos', False), key=f"placares_{key_suffix}")
             despensa = st.checkbox("Despensa", value=prop_inicial.get('despensa', False), key=f"despensa_{key_suffix}")
@@ -321,7 +334,15 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
             amenities_opts = ["caldera_central", "radiadores", "seguridad_24hs", "seguridad_tag", "seguridad_camaras", "seguridad_totem", "aberturas_premium", "parrilla_propia", "parrilla_compartida", "terraza_compartida", "pileta", "sum", "gym"]
             detalles_legacy = [('parrilla_compartida' if d == 'parrilla' else d) for d in prop_inicial.get('detalles_categoria', [])]
             detalles_default = [v for v in detalles_legacy if v in amenities_opts]
-            detalles_cat = st.multiselect("Amenities", amenities_opts, default=detalles_default, key=f"detalles_{key_suffix}")
+            extras = []
+            if cochera_nro > 0:
+                extras.extend(["cocheras"] * cochera_nro)
+            if baulera:
+                extras.append("baulera")
+            if extras:
+                detalles_cat = list(detalles_default) + extras
+            else:
+                detalles_cat = list(detalles_default)
             
             vent_bano_opts = ["natural", "forzada", "sin_ventana"]
             ventilacion_bano = st.selectbox("Ventilación baño", vent_bano_opts, index=vent_bano_opts.index(prop_inicial.get('ventilacion_bano', 'natural')) if prop_inicial.get('ventilacion_bano') in vent_bano_opts else 0, key=f"vent_bano_{key_suffix}")
@@ -335,10 +356,14 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
         col1, col2 = st.columns(2)
         with col1:
             valor_compra_usd = st.number_input("Valor compra (USD)", min_value=0.0, step=1000.0, value=float(prop_inicial.get('valor_compra_usd', 0.0)), key=f"v_compra_{key_suffix}")
-            fecha_compra = st.date_input("Fecha compra", value=datetime.strptime(prop_inicial.get('fecha_compra', '2020-01-01'), '%Y-%m-%d') if prop_inicial.get('fecha_compra') else datetime(2020, 1, 1), key=f"f_compra_{key_suffix}")
-        with col2:
-            expensas_ars = st.number_input("Expensas (ARS)", min_value=0, value=int(prop_inicial.get('expensas_ars', 0)), step=1000, key=f"exp_{key_suffix}")
-            fecha_publicacion = st.date_input("Fecha de publicación", value=datetime.strptime(prop_inicial.get('fecha_publicacion', datetime.now().strftime('%Y-%m-%d')), '%Y-%m-%d') if prop_inicial.get('fecha_publicacion') else datetime.now(), key=f"f_pub_{key_suffix}")
+            # Manejo robusto de fechas para evitar errores con valores nulos
+            f_compra_val = prop_inicial.get('fecha_compra')
+            fecha_compra_init = datetime.strptime(f_compra_val, '%Y-%m-%d') if f_compra_val else datetime(2020, 1, 1)
+            fecha_compra = st.date_input("Fecha compra", value=fecha_compra_init, key=f"f_compra_{key_suffix}")
+            
+            f_pub_val = prop_inicial.get('fecha_publicacion')
+            fecha_pub_init = datetime.strptime(f_pub_val, '%Y-%m-%d') if f_pub_val else datetime.now()
+            fecha_publicacion = st.date_input("Fecha de publicación", value=fecha_pub_init, key=f"f_pub_{key_suffix}")
     
     # === PROCESAR DATOS ===
     seg = 'ninguna'
@@ -357,8 +382,10 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
         'balcon': False, 'tipo_balcon': 'ninguno', 'orientacion': orientacion,
         'ventilacion': ventilacion, 'estado_detalle': estado_detalle,
         'calidad_edificio': calidad_edificio, 'seguridad': seg,
-        'terminaciones_suelo': terminaciones_suelo, 'carpinteria': carpinteria,
-        'cochera': cochera, 'doble_ingreso': doble_ingreso,
+         'terminaciones_suelo': terminaciones_suelo, 'carpinteria': carpinteria,
+         'terminaciones_cocina': term_cocina, 'preinstalacion_aa': preinst_aa,
+         'cocheras_cantidad': cocheras_cantidad, 'cocheras_tipo': cocheras_tipo, 'valor_cochera_base': valor_cochera_base,
+         'valor_baulera': valor_baulera, 'doble_ingreso': doble_ingreso,
         'lavadero_independiente': lavadero, 'reciclado': tiene_reciclado,
         'reciclado_tipo': reciclado_tipo, 'anio_reciclado': anio_reciclado,
         'ventilacion_bano': ventilacion_bano, 'layout_flexible': layout_flexible,

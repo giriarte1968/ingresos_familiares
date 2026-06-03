@@ -3449,7 +3449,8 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
         carpinteria = st.selectbox("Carpintería", ["piso_techo", "dvh", "estandar"], 
                                   index=["piso_techo", "dvh", "estandar"].index(prop_inicial.get('carpinteria', 'estandar')) if prop_inicial.get('carpinteria') in ["piso_techo", "dvh", "estandar"] else 2,
                                   key=f"carp_{key_suffix}")
-        cochera = st.checkbox("Tiene Cochera", value=prop_inicial.get('cochera', False), key=f"cochera_{key_suffix}")
+        cochera_nro = st.number_input("Cocheras", min_value=0, max_value=10, value=int(prop_inicial.get('cochera_nro', 0)), key=f"cochera_{key_suffix}")
+        baulera = st.checkbox("Baulera", value=prop_inicial.get('baulera', False), key=f"baulera_{key_suffix}")
 
     st.caption("Funcionalidad y Descripción")
     col_f1, col_f2 = st.columns(2)
@@ -3469,6 +3470,15 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
             "caldera_central", "radiadores", "seguridad_24hs", "seguridad_tag", "seguridad_camaras", "seguridad_totem",
             "aberturas_premium", "parrilla_propia", "parrilla_compartida", "terraza_compartida", "pileta", "sum", "gym"
         ], default=prop_inicial.get('detalles_categoria', []), key=f"detalles_{key_suffix}")
+        extras = []
+        if cochera_nro > 0:
+            extras.extend(["cocheras"] * cochera_nro)
+        if baulera:
+            extras.append("baulera")
+        if extras:
+            detalles_cat = list(detalles_cat) + extras
+        else:
+            detalles_cat = list(detalles_cat)
     with col_f2:
         descripcion_libre = st.text_area("Descripción libre", value=prop_inicial.get('descripcion_libre', ''), placeholder="Ej: muy luminoso, balcón corrido...", key=f"desc_{key_suffix}")
 
@@ -3498,7 +3508,7 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
             'balcon': False, 'tipo_balcon': 'ninguno',
             'orientacion': orientacion, 'ventilacion': ventilacion, 'estado_detalle': estado_detalle,
             'calidad_edificio': calidad_edificio, 'seguridad': seguridad_val, 'terminaciones_suelo': terminaciones_suelo,
-            'carpinteria': carpinteria, 'cochera': cochera, 'doble_ingreso': doble_ingreso,
+            'carpinteria': carpinteria, 'cochera_nro': cochera_nro, 'baulera': baulera, 'doble_ingreso': doble_ingreso,
             'lavadero_independiente': lavadero_independiente, 'reciclado': tiene_reciclado, 'reciclado_tipo': reciclado_tipo,
             'anio_reciclado': anio_reciclado, 'ventilacion_bano': ventilacion_bano, 'layout_flexible': layout_flexible,
             'placares_completos': placares_completos, 'despensa': despensa, 'ascensores_edificio': ascensores_edificio,
