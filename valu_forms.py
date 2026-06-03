@@ -384,6 +384,8 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
             f_pub_val = prop_inicial.get('fecha_publicacion')
             fecha_pub_init = datetime.strptime(f_pub_val, '%Y-%m-%d') if f_pub_val else datetime.now()
             fecha_publicacion = st.date_input("Fecha de publicación", value=fecha_pub_init, key=f"f_pub_{key_suffix}")
+        with col2:
+            expensas_ars = st.number_input("Expensas (ARS)", min_value=0, value=int(prop_inicial.get('expensas_ars', 0)), step=1000, key=f"exp_{key_suffix}")
     
     # === PROCESAR DATOS ===
     seg = 'ninguna'
