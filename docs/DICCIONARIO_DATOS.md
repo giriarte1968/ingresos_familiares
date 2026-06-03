@@ -119,6 +119,18 @@ Regla aplicada en `calcular_factores()` vía helper `normalizar_estado_y_calidad
 | `doble` | 1.00 | Doble ventilación (neutro) |
 | `cruzada` | 1.05 | Ventilación cruzada (antes 1.10) |
 
+### Factor de Balcón/Terraza (TAREA-029)
+
+Se eliminó `bonus_m2` de `calcular_m2_equivalentes` (duplicaba los m² semi). El tipo de balcón solo impacta vía `factor_balcon`.
+
+| Clave | Factor | Descripción |
+|-------|--------|-------------|
+| `terraza` | 1.09 | Terraza privada, premium cualitativo |
+| `L` | 1.07 | Balcón en L, mayor aprovechamiento |
+| `corrido` | 1.035 | Balcón corrido usable |
+| `frances` | 0.98 | Balcón francés (solo baranda, sin espacio usable) |
+| `ninguno` | 1.00 | Sin balcón o terraza |
+
 ### Factor de Disposición (TAREA-028)
 
 Solo penalizaciones. Pasante no suma (ya cubierto por ventilación cruzada).

@@ -337,6 +337,13 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
             lavadero = st.checkbox("Lavadero Independiente", value=prop_inicial.get('lavadero_independiente', False), key=f"lavadero_{key_suffix}")
             preinst_aa = st.checkbox("Preinstalación A/A", value=prop_inicial.get('preinstalacion_aa', False), key=f"preinst_aa_{key_suffix}")
             layout_flexible = st.checkbox("Layout flexible", value=prop_inicial.get('layout_flexible', False), key=f"layout_{key_suffix}")
+            
+            tipos_balcon = ["ninguno", "corrido", "L", "frances", "terraza"]
+            tipo_balcon = st.selectbox("Tipo balcón/terraza", tipos_balcon,
+                index=tipos_balcon.index(prop_inicial.get('tipo_balcon', 'ninguno')) if prop_inicial.get('tipo_balcon') in tipos_balcon else 0,
+                key=f"t_balcon_{key_suffix}",
+                help="Tipo de balcón o terraza privada. Afecta el factor de valuación.")
+            
             placares = st.checkbox("Placares completos", value=prop_inicial.get('placares_completos', False), key=f"placares_{key_suffix}")
             despensa = st.checkbox("Despensa", value=prop_inicial.get('despensa', False), key=f"despensa_{key_suffix}")
             ascensores = st.number_input("Ascensores", min_value=1, max_value=4, value=int(prop_inicial.get('ascensores_edificio', 2) or 2), key=f"ascensores_{key_suffix}")
@@ -389,7 +396,7 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
         'constructora': constructora, 'piso': piso, 'total_pisos': total_pisos,
         'vista': vista, 'disposicion': disposicion, 'gas_ok': gas_ok, 'm2_semicubiertos': m2_semi,
         'm2_descubiertos_propios': m2_dp, 'm2_descubiertos_comun_exclusivo': m2_dce,
-        'balcon': False, 'tipo_balcon': 'ninguno', 'orientacion': orientacion,
+        'tipo_balcon': tipo_balcon, 'orientacion': orientacion,
         'ventilacion': ventilacion, 'estado_detalle': estado_detalle,
         'calidad_edificio': calidad_edificio, 'seguridad': seg,
          'terminaciones_suelo': terminaciones_suelo, 'carpinteria': carpinteria,

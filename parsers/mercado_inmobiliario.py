@@ -1645,20 +1645,10 @@ def calcular_m2_equivalentes(prop):
     
     if m2_semi_propios is not None and m2_semi_exclusivos is not None:
         m2_semi = normalize_float(m2_semi_propios) + normalize_float(m2_semi_exclusivos)
-        base_bonus_balcon = normalize_float(m2_semi_exclusivos)
     else:
         m2_semi = normalize_float(prop.get('m2_semicubiertos'))
-        base_bonus_balcon = m2_semi
     
     m2_semi_detalle = prop.get('m2_semicubiertos_detalle', 'medio').lower()
-    
-    # Bonus balcon sobre base_bonus_balcon
-    tipo_balcon = prop.get('tipo_balcon', 'ninguno').lower()
-    bonus_m2 = 0
-    if tipo_balcon == 'corrido':
-        bonus_m2 = base_bonus_balcon * 0.05
-    elif tipo_balcon == 'L':
-        bonus_m2 = base_bonus_balcon * 0.10
     
     # Coef según tamaño semicubiertos (solo si m2_semi = 0)
     if m2_semi > 0:
@@ -1702,8 +1692,7 @@ def calcular_m2_equivalentes(prop):
         m2_cub +
         m2_semi * coef_semi +
         m2_desc_aporte +
-        m2_com * factor_com +
-        bonus_m2
+        m2_com * factor_com
     )
     
     # Clamp dinámico v9.3: Casas tienen menos premio por m2 descubierto
@@ -1964,14 +1953,13 @@ def calcular_factores(prop, ventana_usada=None):
     except:
         pass
     
-    # 6. Factor Balcón/Terraza v10.0
-    # Tabla coef: corrido +2%, L +5%, francesa -2%, terraza +6%
+    # 6. Factor Balcón/Terraza v10.1 (TAREA-029: sin bonus_m2)
     t_balcon = prop.get('tipo_balcon', 'ninguno').lower()
     factor_balcon = {
-        'L': 1.05,          # balcón en L: +5%
-        'corrido': 1.02,    # balcón corrido: +2% (AJUSTE 2)
-        'frances': 0.98,   # balcón francés: -2%
-        'terraza': 1.06,   # balcón terraza: +6%
+        'L': 1.07,          # balcón en L: +7%
+        'corrido': 1.035,   # balcón corrido: +3.5%
+        'frances': 0.98,    # balcón francés: -2%
+        'terraza': 1.09,    # terraza privada: +9%
         'ninguno': 1.0
     }.get(t_balcon, 1.0)
     

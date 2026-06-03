@@ -1,6 +1,6 @@
 ﻿# ðŸ  STATUS ACTUAL DEL PROYECTO â€” AVM Rosario
 
-*Actualizado: 02/06/2026 (TAREA-026 - Fix Francia 250 bis)*
+*Actualizado: 03/06/2026 (TAREA-029 - Balcón: eliminar bonus_m2, desbloquear tipo_balcon)*
 
 ---
 

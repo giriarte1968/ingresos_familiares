@@ -1932,3 +1932,21 @@ Recuperar los 132 sufijos "bis" perdidos en `rosario_avm_full.csv`, y modificar 
 - `python scripts/auto_validate.py`: OK
 - `pytest tests/test_amenities.py -v`: 17/17 passed
 - `pytest tests/test_regression.py -q`: 39/39 passed
+
+## TAREA — 2026-06-03 — TAREA-029: Balcón — eliminar bonus_m2, desbloquear tipo_balcon, recalibrar
+
+### Cambios realizados
+
+1. **`parsers/mercado_inmobiliario.py`**:
+   - Eliminado `bonus_m2` de `calcular_m2_equivalentes()` (duplicaba los m² semicubiertos)
+   - Recalibrados `factor_balcon`: terraza 1.09, L 1.07, corrido 1.035, frances 0.98, ninguno 1.0
+
+2. **`valu_forms.py`** y **`app.py`**:
+   - Agregado `tipo_balcon` selectbox al formulario (ninguno/corrido/L/frances/terraza)
+   - Reemplazado hardcodeo `'balcon': False, 'tipo_balcon': 'ninguno'` por valor real del form
+
+3. **`docs/DICCIONARIO_DATOS.md`**: Nueva tabla de factor_balcon con coeficientes actualizados.
+
+### Tests
+- `pytest tests/test_regression.py`: 39/39 passed (Mabel en $78.830, dentro de rango)
+- `python scripts/auto_validate.py`: OK

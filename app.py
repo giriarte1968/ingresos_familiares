@@ -3505,7 +3505,7 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
             'piso': piso, 'total_pisos': total_pisos, 'vista': vista, 'gas_ok': gas_ok,
             'm2_semicubiertos': m2_semicubiertos,
             'm2_descubiertos_propios': m2_descubiertos_propios, 'm2_descubiertos_comun_exclusivo': m2_descubiertos_comun_exclusivo,
-            'balcon': False, 'tipo_balcon': 'ninguno',
+            'tipo_balcon': prop_inicial.get('tipo_balcon', 'ninguno'),
             'orientacion': orientacion, 'ventilacion': ventilacion, 'estado_detalle': estado_detalle,
             'calidad_edificio': calidad_edificio, 'seguridad': seguridad_val, 'terminaciones_suelo': terminaciones_suelo,
             'carpinteria': carpinteria, 'cochera_nro': cochera_nro, 'baulera': baulera, 'doble_ingreso': doble_ingreso,
