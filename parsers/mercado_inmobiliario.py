@@ -1978,6 +1978,23 @@ def calcular_factores(prop, ventana_usada=None):
     ventilacion = prop.get('ventilacion', 'simple').lower()
     factor_vent = 1.05 if 'cruzada' in ventilacion else 1.0 if 'doble' in ventilacion else 0.95
     
+    # 6b. Factor Disposición (TAREA-028): solo penalizaciones, sin premio a pasante
+    disposicion_raw = prop.get('disposicion')
+    if disposicion_raw is None:
+        delta_disposicion = 0.0  # propiedades legacy sin cambios
+    else:
+        disp = disposicion_raw.lower()
+        vista = prop.get('vista', 'frente').lower()
+        penalizaciones = {
+            'contrafrente': -0.005,
+            'interna': -0.01,
+        }
+        delta_disposicion = penalizaciones.get(disp, 0.0)
+        # Evitar doble castigo si vista ya es interna/pulmon
+        if delta_disposicion < 0 and vista in ('interna', 'pulmon'):
+            delta_disposicion = max(delta_disposicion, -0.005)
+    factor_disposicion = 1.0 + delta_disposicion
+    
     # 7. Detalles Funcionales v10.0
     f_funcional = 1.0
     if prop.get('doble_ingreso'): f_funcional *= 1.03
@@ -2056,7 +2073,8 @@ def calcular_factores(prop, ventana_usada=None):
     # Sumar todos los deltas
     suma_cruda = (delta_estado + delta_calidad + delta_vent + delta_vista + 
                      delta_piso + delta_ubica + delta_gas + delta_balcon + 
-                     delta_funcional + delta_cocina + delta_preinst + delta_amenities)
+                     delta_funcional + delta_cocina + delta_preinst + delta_amenities +
+                     delta_disposicion)
     
     # Clamp suma_cruda
     suma_cruda_clamped = max(-0.40, min(0.40, suma_cruda))
@@ -2091,6 +2109,8 @@ def calcular_factores(prop, ventana_usada=None):
         'ventana': ventana_usada,
         'delta_amenities': delta_amenities,
         'detalle_amenities': detalle_amenities,
+        'factor_disposicion': factor_disposicion,
+        'delta_disposicion': delta_disposicion,
         # FASE 7B: tasa zonificada de depreciacion (siempre mostrar la real)
         'tasa_zonal': _tasa_zonal,
         'meta_mz': _meta_mz,
@@ -3826,8 +3846,10 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
     elif orientacion in ('sur',):
         texto_orientacion = ' con orientación sur, que limita la entrada de luz natural'
 
+    amb = prop.get('ambientes', 0)
+    texto_amb = f" de {amb} ambientes" if amb and amb > dorms else ""
     lineas.append(
-        f"{nombre} es {art} {tipo_inm} de {texto_dorms} ubicado en {zona}, Rosario, "
+        f"{nombre} es {art} {tipo_inm}{texto_amb} de {texto_dorms} ubicado en {zona}, Rosario, "
         f"{texto_piso}{texto_orientacion}. "
         f"Con {m2_cub:.0f} m2 cubiertos, fue construido en {anio}"
         f"{' y tiene ' + str(antiguedad) + ' años de antigüedad' if antiguedad > 0 else ''}."
@@ -3953,6 +3975,15 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
         factores_neg.append("no dispone de gas natural, un aspecto relevante en Rosario donde la calefacción a gas es el sistema predominante")
     elif gas == 'en_proceso':
         factores_neutros.append("tiene gas natural en proceso de conexión")
+
+    # Disposición (TAREA-028)
+    disp = prop.get('disposicion', '')
+    if disp == 'interna':
+        factores_neg.append("la disposición interna limita la exposición y ventilación natural")
+    elif disp == 'contrafrente':
+        factores_neg.append("la disposición al contrafrente reduce la luminosidad respecto a una unidad al frente")
+    elif disp == 'pasante':
+        factores_pos.append("al ser pasante, goza de ventilación cruzada y luz en ambos frentes")
 
     # Balcón
     t_balcon = prop.get('tipo_balcon', 'ninguno').lower()

@@ -28,3 +28,4 @@
 | TAREA-024 | Mejora matching catastral: normalización acentos/ñ en token + fix "bis" | `ec5ad9a` | 2026-05-31 |
 | TAREA-025 | PASO 3 en enriquecimiento: nearest PH misma calle por coordenadas ≤60m | `b31ca9c` | 2026-06-01 |
 | TAREA-027 | Restaurar 132 bis catastro + geocoder con catastro local + map verification | _(current)_ | 2026-06-02 |
+| TAREA-028 | Disposición solo-penalizaciones + Ambientes informativo en formulario y narrativa | _(current)_ | 2026-06-03 |

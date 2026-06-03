@@ -119,6 +119,24 @@ Regla aplicada en `calcular_factores()` vía helper `normalizar_estado_y_calidad
 | `doble` | 1.00 | Doble ventilación (neutro) |
 | `cruzada` | 1.05 | Ventilación cruzada (antes 1.10) |
 
+### Factor de Disposición (TAREA-028)
+
+Solo penalizaciones. Pasante no suma (ya cubierto por ventilación cruzada).
+
+| Clave | Delta | Condición |
+|-------|-------|-----------|
+| `frente` | 0.000 | Neutro (default) |
+| `lateral` | 0.000 | Neutro |
+| `pasante` | 0.000 | Neutro (ya cubierto por vent. cruzada) |
+| `contrafrente` | -0.005 | Penalización leve |
+| `interna` | -0.010 | Se reduce a -0.005 si `vista` ya es `interna`/`pulmon` |
+
+### Campo Ambientes (TAREA-028)
+
+| Campo | Tipo | Valores | Default | Descripción |
+|---|---|---|---|---|
+| `ambientes` | int | 1-20 | `null` | Cantidad total de ambientes. Solo informativo, no afecta precio. |
+
 ---
 
 ## 5. Parámetros de Atenuación Dinámica y Guardrails (V13.0)

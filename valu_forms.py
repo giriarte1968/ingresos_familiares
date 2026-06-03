@@ -244,6 +244,12 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
             vistas = ["interna", "pulmon", "frente", "despejada", "rio"]
             vista = st.selectbox("Vista", vistas, index=vistas.index(prop_inicial.get('vista', 'frente')) if prop_inicial.get('vista') in vistas else 2, key=f"vista_{key_suffix}")
             
+            disposiciones = ["frente", "contrafrente", "pasante", "interna", "lateral"]
+            disposicion = st.selectbox("Disposición", disposiciones,
+                index=disposiciones.index(prop_inicial.get('disposicion', 'frente')) if prop_inicial.get('disposicion') in disposiciones else 0,
+                key=f"disp_{key_suffix}",
+                help="Posición de la unidad en la planta. Pasante ya está cubierto por ventilación cruzada.")
+            
             gas_opts = ["si", "no", "en_proceso"]
             gas_ok = st.selectbox("Gas", gas_opts, index=gas_opts.index(prop_inicial.get('gas_ok', 'si')) if prop_inicial.get('gas_ok') in gas_opts else 0, key=f"gas_{key_suffix}")
     
@@ -319,6 +325,10 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
             if dormitorios is None or dormitorios < 0:
                 errores.append("Los dormitorios son obligatorios")
             
+            ambientes = st.number_input("Ambientes", min_value=1, max_value=20, step=1,
+                value=prop_inicial.get('ambientes', 0) or 0, key=f"amb_{key_suffix}",
+                help="Cantidad total de ambientes (solo informativo, no afecta precio)")
+            
             baños = st.number_input("Baños", min_value=0, max_value=10, value=int(prop_inicial.get('baños', 0) or 0), key=f"baños_{key_suffix}")
             toilet = st.checkbox("Toilette", value=prop_inicial.get('toilet', False), key=f"toilet_{key_suffix}")
             baño_servicio = st.checkbox("Baño de servicio", value=prop_inicial.get('baño_servicio', False), key=f"baño_serv_{key_suffix}")
@@ -374,10 +384,10 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
     data = {
         'nombre': nombre, 'tipo_inmueble': tipo, 'zona': zona, 'direccion': direccion,
         'lat': lat_input, 'lon': lon_input, 'ubicacion_tipo': ubicacion_tipo,
-        'm2_cubiertos': m2_cubiertos, 'dormitorios': dormitorios, 'baños': baños,
+        'm2_cubiertos': m2_cubiertos, 'dormitorios': dormitorios, 'ambientes': ambientes if ambientes > 0 else None, 'baños': baños,
         'toilet': toilet, 'baño_servicio': baño_servicio, 'anio_construccion': anio_const,
         'constructora': constructora, 'piso': piso, 'total_pisos': total_pisos,
-        'vista': vista, 'gas_ok': gas_ok, 'm2_semicubiertos': m2_semi,
+        'vista': vista, 'disposicion': disposicion, 'gas_ok': gas_ok, 'm2_semicubiertos': m2_semi,
         'm2_descubiertos_propios': m2_dp, 'm2_descubiertos_comun_exclusivo': m2_dce,
         'balcon': False, 'tipo_balcon': 'ninguno', 'orientacion': orientacion,
         'ventilacion': ventilacion, 'estado_detalle': estado_detalle,
