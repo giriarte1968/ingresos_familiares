@@ -1,169 +1,411 @@
 {
-  "pellegrini 1200": {
-    "lat": -32.956916883494,
-    "lon": -60.642178026958,
-    "status": "ok",
-    "score": 97.87,
-    "type": "StreetAddressExt",
-    "ancla_id": "pellegrini_necochea",
-    "ancla_usd": 1650,
-    "distancia_km": 0.48
-  },
-  "3 de febrero 520": {
-    "lat": -32.9540559151,
-    "lon": -60.631614933085,
-    "status": "ok",
-    "score": 98.97,
-    "type": "PointAddress",
-    "ancla_id": "parque_espana",
-    "ancla_usd": 1800,
-    "distancia_km": 0.76
-  },
-  "ayacucho 1518": {
-    "lat": -32.957389900907,
-    "lon": -60.629279902498,
-    "status": "ok",
-    "score": 98.97,
-    "type": "PointAddress",
-    "ancla_id": "pellegrini_necochea",
-    "ancla_usd": 1650,
-    "distancia_km": 1.11
-  },
-  "vera mujica 912": {
-    "lat": -32.942622915349,
-    "lon": -60.667335922209,
-    "status": "ok",
-    "score": 98.97,
-    "type": "PointAddress",
-    "ancla_id": "lourdes_oeste",
-    "ancla_usd": 1400,
-    "distancia_km": 1.12
-  },
-  "amenabar 5358": {
-    "lat": -32.963424913102,
-    "lon": -60.695823915627,
-    "status": "ok",
-    "score": 98.97,
-    "type": "PointAddress",
-    "ancla_id": "oeste_cercano",
-    "ancla_usd": 1100,
-    "distancia_km": 0.54
-  },
-  "entre ríos 400": {
-    "lat": -32.9412249,
-    "lon": -60.6397994,
-    "status": "low_confidence",
+  "donado 650 bis": {
+    "lat": -32.9216977,
+    "lon": -60.7276528,
+    "status": "fuera_de_rosario",
     "score": 6.83916990920427e-05,
     "type": "house",
-    "ancla_id": "macrocentro_salta_lagos",
-    "ancla_usd": 1620,
-    "distancia_km": 0.14
+    "ancla_id": "zona_oeste_empalme",
+    "ancla_usd": 1000,
+    "distancia_km": 1.17,
+    "_fuente": "nominatim",
+    "_debug": {
+      "pasos": [
+        "Cache MISS",
+        "Catastro CSV MISS",
+        "Nominatim free-form (tiene bis)",
+        "Nominatim OK lat=-32.92170 lon=-60.72765 score=6.83916990920427e-05 type=house",
+        "Validacion status=fuera_de_rosario"
+      ],
+      "errores": [],
+      "input": "Donado 650 bis",
+      "tiene_bis": true
+    }
   },
-  "entre ríos  1000": {
-    "lat": -32.9484766,
-    "lon": -60.6415897,
+  "cerrito": {
+    "lat": -32.9594895,
+    "lon": -60.653464375,
+    "status": "catastro",
+    "score": 0.9,
+    "type": "catastro",
+    "ancla_id": "auto_gap_medio_922",
+    "ancla_usd": 1240,
+    "distancia_km": 0.13,
+    "_fuente": "catastro",
+    "_debug": {
+      "pasos": [
+        "Cache MISS",
+        "Catastro CSV HIT"
+      ],
+      "errores": [],
+      "input": "Cerrito",
+      "tiene_bis": false,
+      "catastro_addr": "Cerrito 1922",
+      "catastro_lat": -32.9594895,
+      "catastro_lon": -60.653464375
+    }
+  },
+  "santiago 60 bis": {
+    "lat": -32.932940125,
+    "lon": -60.653824875,
+    "status": "catastro",
+    "score": 0.9,
+    "type": "catastro",
+    "ancla_id": "pichincha_norte_brown",
+    "ancla_usd": 1550,
+    "distancia_km": 0.59,
+    "_fuente": "catastro",
+    "_debug": {
+      "pasos": [
+        "Cache MISS",
+        "Catastro CSV HIT"
+      ],
+      "errores": [],
+      "input": "Santiago 60 bis",
+      "tiene_bis": true,
+      "catastro_addr": "Santiago 60 bis",
+      "catastro_lat": -32.932940125,
+      "catastro_lon": -60.653824875
+    }
+  },
+  "avenida francia 253 bis": {
+    "lat": -32.9517795,
+    "lon": -60.6682031,
     "status": "low_confidence",
-    "score": 6.83916990920427e-05,
-    "type": "house",
-    "ancla_id": "centro_san_juan_entre_rios",
-    "ancla_usd": 1600,
-    "distancia_km": 0.05
+    "score": 0.053401725032425386,
+    "type": "secondary",
+    "ancla_id": "auto_gap_medio_800",
+    "ancla_usd": 1200,
+    "distancia_km": 0.28,
+    "_fuente": "nominatim",
+    "_debug": {
+      "pasos": [
+        "Cache MISS",
+        "Catastro CSV MISS",
+        "Nominatim free-form (tiene bis)",
+        "Nominatim OK lat=-32.95178 lon=-60.66820 score=0.053401725032425386 type=secondary",
+        "Validacion status=low_confidence"
+      ],
+      "errores": [],
+      "input": "Avenida Francia 253 bis",
+      "tiene_bis": true
+    }
   },
-  "entre ríos  4000": {
-    "lat": -32.9833415,
-    "lon": -60.650467,
-    "status": "low_confidence",
-    "score": 6.83916990920427e-05,
-    "type": "house",
-    "ancla_id": "sur_battle_ordonez_san_martin",
-    "ancla_usd": 1020,
-    "distancia_km": 0.54
-  },
-  "entre ríos  400": {
-    "lat": -32.9412249,
-    "lon": -60.6397994,
-    "status": "low_confidence",
-    "score": 6.83916990920427e-05,
-    "type": "house",
-    "ancla_id": "macrocentro_salta_lagos",
-    "ancla_usd": 1620,
-    "distancia_km": 0.14
-  },
-  "entre ríos  401": {
-    "lat": -32.9414023,
-    "lon": -60.6397314,
-    "status": "low_confidence",
-    "score": 6.83916990920427e-05,
-    "type": "house",
-    "ancla_id": "macrocentro_salta_lagos",
-    "ancla_usd": 1620,
-    "distancia_km": 0.16
-  },
-  "entre ríos  410": {
-    "lat": -32.9414585,
-    "lon": -60.6398576,
+  "rueda 5288": {
+    "lat": -32.9622593,
+    "lon": -60.6948271,
     "status": "low_confidence",
     "score": 9.99999999995449e-06,
     "type": "house",
-    "ancla_id": "macrocentro_salta_lagos",
-    "ancla_usd": 1620,
-    "distancia_km": 0.15
+    "ancla_id": "sudoeste_amenabar_avellaneda",
+    "ancla_usd": 1100,
+    "distancia_km": 0.14,
+    "_fuente": "nominatim",
+    "_debug": {
+      "pasos": [
+        "Cache MISS",
+        "Catastro CSV MISS",
+        "Nominatim structured",
+        "Nominatim OK lat=-32.96226 lon=-60.69483 score=9.99999999995449e-06 type=house",
+        "Validacion status=low_confidence",
+        "Fallback: free-form query",
+        "Free-form OK lat=-32.96226 lon=-60.69483"
+      ],
+      "errores": [],
+      "input": "Rueda 5288",
+      "tiene_bis": false
+    }
   },
-  "entre ríos  7000": {
-    "lat": -32.9751464,
-    "lon": -60.6483129,
+  "mitre 1358": {
+    "lat": -32.9531112,
+    "lon": -60.6413547,
+    "status": "low_confidence",
+    "score": 9.99999999995449e-06,
+    "type": "house",
+    "ancla_id": "auto_gap_medio_806",
+    "ancla_usd": 1490,
+    "distancia_km": 0.18,
+    "_fuente": "nominatim",
+    "_debug": {
+      "pasos": [
+        "Cache MISS",
+        "Catastro CSV MISS",
+        "Nominatim structured",
+        "Nominatim OK lat=-32.95311 lon=-60.64135 score=9.99999999995449e-06 type=house",
+        "Validacion status=low_confidence",
+        "Fallback: free-form query",
+        "Free-form OK lat=-32.95311 lon=-60.64135"
+      ],
+      "errores": [],
+      "input": "Mitre 1358",
+      "tiene_bis": false
+    }
+  },
+  "mitre 130": {
+    "lat": -32.9388138,
+    "lon": -60.6377434,
+    "status": "low_confidence",
+    "score": 9.99999999995449e-06,
+    "type": "house",
+    "ancla_id": "auto_gap_medio_798",
+    "ancla_usd": 1610,
+    "distancia_km": 0.24,
+    "_fuente": "nominatim",
+    "_debug": {
+      "pasos": [
+        "Cache MISS",
+        "Catastro CSV MISS",
+        "Nominatim structured",
+        "Nominatim OK lat=-32.93881 lon=-60.63774 score=9.99999999995449e-06 type=house",
+        "Validacion status=low_confidence",
+        "Fallback: free-form query",
+        "Free-form OK lat=-32.93881 lon=-60.63774"
+      ],
+      "errores": [],
+      "input": "Mitre 130",
+      "tiene_bis": false
+    }
+  },
+  "amenabar 12341": {
+    "lat": -32.9725828,
+    "lon": -60.6425344,
     "status": "low_confidence",
     "score": 0.053401725032425386,
     "type": "residential",
-    "ancla_id": "zona_sur_san_martin_saavedra",
-    "ancla_usd": 1100,
-    "distancia_km": 0.31
+    "ancla_id": "auto_gap_medio_910",
+    "ancla_usd": 1160,
+    "distancia_km": 0.2,
+    "_fuente": "nominatim",
+    "_debug": {
+      "pasos": [
+        "Cache MISS",
+        "Catastro CSV MISS",
+        "Nominatim structured",
+        "Nominatim OK lat=-32.96355 lon=-60.69523 score=0.053401725032425386 type=residential",
+        "Validacion status=low_confidence",
+        "Fallback: free-form query",
+        "Free-form OK lat=-32.97258 lon=-60.64253"
+      ],
+      "errores": [],
+      "input": "Amenabar 12341",
+      "tiene_bis": false
+    }
   },
-  "entre ríos  7": {
+  "amenabar 123410": {
     "lat": null,
     "lon": null,
     "status": "error",
     "ancla_id": null,
-    "ancla_usd": null
+    "ancla_usd": null,
+    "_fuente": "nominatim",
+    "_debug": {
+      "pasos": [
+        "Cache MISS",
+        "Catastro CSV MISS",
+        "Nominatim structured",
+        "Nominatim FAIL (sin resultado)"
+      ],
+      "errores": [],
+      "input": "Amenabar 123410",
+      "tiene_bis": false
+    }
   },
-  "ayacucho 1805": {
-    "lat": -32.9606229,
-    "lon": -60.62989,
+  "amenabar 1234100": {
+    "lat": null,
+    "lon": null,
+    "status": "error",
+    "ancla_id": null,
+    "ancla_usd": null,
+    "_fuente": "nominatim",
+    "_debug": {
+      "pasos": [
+        "Cache MISS",
+        "Catastro CSV MISS",
+        "Nominatim structured",
+        "Nominatim FAIL (sin resultado)"
+      ],
+      "errores": [],
+      "input": "Amenabar 1234100",
+      "tiene_bis": false
+    }
+  },
+  "amenabar 1234100a": {
+    "lat": null,
+    "lon": null,
+    "status": "error",
+    "ancla_id": null,
+    "ancla_usd": null,
+    "_fuente": "nominatim",
+    "_debug": {
+      "pasos": [
+        "Cache MISS",
+        "Catastro CSV MISS",
+        "Nominatim structured",
+        "Nominatim FAIL (sin resultado)"
+      ],
+      "errores": [],
+      "input": "Amenabar 1234100a",
+      "tiene_bis": false
+    }
+  },
+  "amenabar 1234": {
+    "lat": -33.0365403,
+    "lon": -60.6263183,
+    "status": "fuera_de_rosario",
+    "score": 9.99999999995449e-06,
+    "type": "house",
+    "ancla_id": "zona_sur_grandoli",
+    "ancla_usd": 950,
+    "distancia_km": 5.19,
+    "_fuente": "nominatim",
+    "_debug": {
+      "pasos": [
+        "Cache MISS",
+        "Catastro CSV MISS",
+        "Nominatim structured",
+        "Nominatim OK lat=-33.03654 lon=-60.62632 score=9.99999999995449e-06 type=house",
+        "Validacion status=fuera_de_rosario",
+        "Fallback: free-form query",
+        "Free-form OK lat=-33.03654 lon=-60.62632"
+      ],
+      "errores": [],
+      "input": "Amenabar 1234",
+      "tiene_bis": false
+    }
+  },
+  "amenabar 123": {
+    "lat": -32.97161425,
+    "lon": -60.64658325,
+    "status": "catastro",
+    "score": 0.9,
+    "type": "catastro",
+    "ancla_id": "auto_gap_medio_926",
+    "ancla_usd": 1150,
+    "distancia_km": 0.11,
+    "_fuente": "catastro",
+    "_debug": {
+      "pasos": [
+        "Cache MISS",
+        "Catastro CSV HIT"
+      ],
+      "errores": [],
+      "input": "Amenabar 123",
+      "tiene_bis": false,
+      "catastro_addr": "José de Amenábar 1238",
+      "catastro_lat": -32.97161425,
+      "catastro_lon": -60.64658325
+    }
+  },
+  "santiago 600000": {
+    "lat": -33.0015189,
+    "lon": -60.6677039,
+    "status": "low_confidence",
+    "score": 0.053401725032425386,
+    "type": "residential",
+    "ancla_id": "sur_grandoli_circunvalacion",
+    "ancla_usd": 950,
+    "distancia_km": 1.47,
+    "_fuente": "nominatim",
+    "_debug": {
+      "pasos": [
+        "Cache MISS",
+        "Catastro CSV MISS",
+        "Nominatim structured",
+        "Nominatim OK lat=-33.00152 lon=-60.66770 score=0.053401725032425386 type=residential",
+        "Validacion status=low_confidence",
+        "Fallback: free-form query",
+        "Free-form OK lat=-33.00152 lon=-60.66770"
+      ],
+      "errores": [],
+      "input": "Santiago 600000",
+      "tiene_bis": false
+    }
+  },
+  "santiago 6000000": {
+    "lat": null,
+    "lon": null,
+    "status": "error",
+    "_fuente": "validacion_rango",
+    "_debug": {
+      "pasos": [
+        "Cache MISS",
+        "Rango inválido: El número 6000000 es demasiado alto para Rosario (máx. ~15000)."
+      ],
+      "errores": [],
+      "input": "Santiago 6000000"
+    }
+  },
+  "santiago 60": {
+    "lat": -32.9345769,
+    "lon": -60.6538769,
     "status": "low_confidence",
     "score": 9.99999999995449e-06,
     "type": "house",
-    "ancla_id": "martin_rio_urquiza",
-    "ancla_usd": 1850,
-    "distancia_km": 0.47
+    "ancla_id": "pichincha_norte_brown",
+    "ancla_usd": 1550,
+    "distancia_km": 0.55,
+    "_fuente": "nominatim",
+    "_debug": {
+      "pasos": [
+        "Cache MISS",
+        "Catastro CSV MISS",
+        "Nominatim structured",
+        "Nominatim OK lat=-32.93458 lon=-60.65388 score=9.99999999995449e-06 type=house",
+        "Validacion status=low_confidence",
+        "Fallback: free-form query",
+        "Free-form OK lat=-32.93458 lon=-60.65388"
+      ],
+      "errores": [],
+      "input": "Santiago 60",
+      "tiene_bis": false
+    }
   },
-  "entre rios 400": {
-    "lat": -32.9412249,
-    "lon": -60.6397994,
-    "status": "low_confidence",
-    "score": 6.83916990920427e-05,
+  "brasil 333": {
+    "lat": -32.932138,
+    "lon": -60.7199253,
+    "status": "fuera_de_rosario",
+    "score": 9.99999999995449e-06,
     "type": "house",
-    "ancla_id": "macrocentro_salta_lagos",
-    "ancla_usd": 1620,
-    "distancia_km": 0.14
+    "ancla_id": "zona_oeste_empalme",
+    "ancla_usd": 1000,
+    "distancia_km": 0.24,
+    "_fuente": "nominatim",
+    "_debug": {
+      "pasos": [
+        "Cache MISS",
+        "Catastro CSV MISS",
+        "Nominatim structured",
+        "Nominatim OK lat=-32.93214 lon=-60.71993 score=9.99999999995449e-06 type=house",
+        "Validacion status=fuera_de_rosario",
+        "Fallback: free-form query",
+        "Free-form OK lat=-32.93214 lon=-60.71993"
+      ],
+      "errores": [],
+      "input": "Brasil 333",
+      "tiene_bis": false
+    }
   },
-  "san martin 1500": {
-    "lat": -32.9551912,
-    "lon": -60.6388916,
-    "status": "low_confidence",
-    "score": 6.83916990920427e-05,
-    "type": "house",
-    "ancla_id": "ayacucho_pellegrini",
-    "ancla_usd": 1400,
-    "distancia_km": 0.15
-  },
-  "brown 2700": {
-    "lat": -32.9331753,
-    "lon": -60.6575732,
-    "status": "low_confidence",
-    "score": 6.83916990920427e-05,
-    "type": "house",
-    "ancla_id": "macrocentro_3febrero_francia",
-    "ancla_usd": 1400,
-    "distancia_km": 0.87
+  "brasil 333 bis": {
+    "lat": -32.9254054,
+    "lon": -60.7203622,
+    "status": "catastro",
+    "score": 0.9,
+    "type": "catastro",
+    "ancla_id": "zona_oeste_empalme",
+    "ancla_usd": 1000,
+    "distancia_km": 0.51,
+    "_fuente": "catastro",
+    "_debug": {
+      "pasos": [
+        "Cache MISS",
+        "Catastro CSV HIT"
+      ],
+      "errores": [],
+      "input": "Brasil 333 bis",
+      "tiene_bis": true,
+      "catastro_addr": "Brasil 333 bis",
+      "catastro_lat": -32.9254054,
+      "catastro_lon": -60.7203622
+    }
   }
 }
