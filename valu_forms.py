@@ -296,15 +296,9 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
             estados = ["a estrenar", "excelente", "muy bueno", "bueno", "regular", "a refaccionar"]
             estado_detalle = st.selectbox("Estado *", estados, index=estados.index(prop_inicial.get('estado_detalle', 'bueno')) if prop_inicial.get('estado_detalle') in estados else 3, key=f"estado_{key_suffix}")
             
-            tiene_reciclado = st.checkbox("Reciclada", value=prop_inicial.get('reciclado', False), key=f"reciclado_{key_suffix}")
-            reciclado_tipo, anio_reciclado = "ninguno", None
-            if tiene_reciclado:
-                reciclado_tipo = st.radio("Tipo reciclado", ["parcial", "total"], index=["parcial", "total"].index(prop_inicial.get('reciclado_tipo', 'parcial')) if prop_inicial.get('reciclado_tipo') in ["parcial", "total"] else 0, key=f"reciclado_tipo_{key_suffix}", horizontal=True)
-                anio_reciclado = st.number_input("Año reciclado", min_value=2000, max_value=ANIO_ACTUAL, value=int(prop_inicial.get('anio_reciclado', 2020) or 2020), key=f"anio_reciclado_{key_suffix}")
-            
             calidades = ["premium", "media", "economica"]
             calidad_edificio = st.selectbox("Calidad", calidades, index=calidades.index(prop_inicial.get('calidad_edificio', 'media')) if prop_inicial.get('calidad_edificio') in calidades else 1, key=f"calidad_{key_suffix}")
-        with col2:
+            
             suelos = ["madera_noble", "porcelanato", "ceramico", "vinilico", "estandar"]
             terminaciones_suelo = st.selectbox("Suelo", suelos, index=suelos.index(prop_inicial.get('terminaciones_suelo', 'estandar')) if prop_inicial.get('terminaciones_suelo') in suelos else 3, key=f"suelo_{key_suffix}")
             
@@ -313,6 +307,12 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
             
             cocinas = ["silestone", "granito", "estandar"]
             term_cocina = st.selectbox("Mesadas", cocinas, index=cocinas.index(prop_inicial.get('terminaciones_cocina', 'estandar')) if prop_inicial.get('terminaciones_cocina') in cocinas else 2, key=f"cocina_{key_suffix}")
+        with col2:
+            tiene_reciclado = st.checkbox("Reciclada", value=prop_inicial.get('reciclado', False), key=f"reciclado_{key_suffix}")
+            reciclado_tipo, anio_reciclado = "ninguno", None
+            if tiene_reciclado:
+                reciclado_tipo = st.radio("Tipo reciclado", ["parcial", "total"], index=["parcial", "total"].index(prop_inicial.get('reciclado_tipo', 'parcial')) if prop_inicial.get('reciclado_tipo') in ["parcial", "total"] else 0, key=f"reciclado_tipo_{key_suffix}", horizontal=True)
+                anio_reciclado = st.number_input("Año reciclado", min_value=2000, max_value=ANIO_ACTUAL, value=int(prop_inicial.get('anio_reciclado', 2020) or 2020), key=f"anio_reciclado_{key_suffix}")
             
             col_c1, col_c2, col_c3 = st.columns(3)
             with col_c1:
@@ -341,6 +341,23 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
                 help="Cantidad total de ambientes (solo informativo, no afecta precio)")
             
             baños = st.number_input("Baños", min_value=0, max_value=10, value=int(prop_inicial.get('baños', 0) or 0), key=f"baños_{key_suffix}")
+            
+            tipos_balcon = ["ninguno", "corrido", "L", "frances", "terraza"]
+            tipo_balcon = st.selectbox("Tipo balcón/terraza", tipos_balcon,
+                index=tipos_balcon.index(prop_inicial.get('tipo_balcon', 'ninguno')) if prop_inicial.get('tipo_balcon') in tipos_balcon else 0,
+                key=f"t_balcon_{key_suffix}",
+                help="Tipo de balcón o terraza privada. Afecta el factor de valuación.")
+            
+            ascensores = st.number_input("Ascensores", min_value=1, max_value=4, value=int(prop_inicial.get('ascensores_edificio', 2) or 2), key=f"ascensores_{key_suffix}")
+            
+            vent_bano_opts = ["natural", "forzada", "sin_ventana"]
+            ventilacion_bano = st.selectbox("Ventilación baño", vent_bano_opts, index=vent_bano_opts.index(prop_inicial.get('ventilacion_bano', 'natural')) if prop_inicial.get('ventilacion_bano') in vent_bano_opts else 0, key=f"vent_bano_{key_suffix}")
+            
+            amenities_opts = ["caldera_central", "radiadores", "seguridad_24hs", "seguridad_tag", "seguridad_camaras", "seguridad_totem", "parrilla_propia", "parrilla_compartida", "terraza_compartida", "pileta", "sum", "gym"]
+            detalles_legacy = [('parrilla_compartida' if d == 'parrilla' else d) for d in prop_inicial.get('detalles_categoria', [])]
+            detalles_default = [v for v in detalles_legacy if v in amenities_opts]
+            detalles_cat = st.multiselect("Amenities / Extras", amenities_opts, default=detalles_default, key=f"detalles_{key_suffix}")
+        with col2:
             toilet = st.checkbox("Toilette", value=prop_inicial.get('toilet', False), key=f"toilet_{key_suffix}")
             baño_servicio = st.checkbox("Baño de servicio", value=prop_inicial.get('baño_servicio', False), key=f"baño_serv_{key_suffix}")
             
@@ -349,25 +366,10 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
             preinst_aa = st.checkbox("Preinstalación A/A", value=prop_inicial.get('preinstalacion_aa', False), key=f"preinst_aa_{key_suffix}")
             layout_flexible = st.checkbox("Layout flexible", value=prop_inicial.get('layout_flexible', False), key=f"layout_{key_suffix}")
             
-            tipos_balcon = ["ninguno", "corrido", "L", "frances", "terraza"]
-            tipo_balcon = st.selectbox("Tipo balcón/terraza", tipos_balcon,
-                index=tipos_balcon.index(prop_inicial.get('tipo_balcon', 'ninguno')) if prop_inicial.get('tipo_balcon') in tipos_balcon else 0,
-                key=f"t_balcon_{key_suffix}",
-                help="Tipo de balcón o terraza privada. Afecta el factor de valuación.")
-            
             placares = st.checkbox("Placares completos", value=prop_inicial.get('placares_completos', False), key=f"placares_{key_suffix}")
             despensa = st.checkbox("Despensa", value=prop_inicial.get('despensa', False), key=f"despensa_{key_suffix}")
-            ascensores = st.number_input("Ascensores", min_value=1, max_value=4, value=int(prop_inicial.get('ascensores_edificio', 2) or 2), key=f"ascensores_{key_suffix}")
             
-            amenities_opts = ["caldera_central", "radiadores", "seguridad_24hs", "seguridad_tag", "seguridad_camaras", "seguridad_totem", "parrilla_propia", "parrilla_compartida", "terraza_compartida", "pileta", "sum", "gym"]
-            detalles_legacy = [('parrilla_compartida' if d == 'parrilla' else d) for d in prop_inicial.get('detalles_categoria', [])]
-            detalles_default = [v for v in detalles_legacy if v in amenities_opts]
-            detalles_cat = st.multiselect("Amenities / Extras", amenities_opts, default=detalles_default, key=f"detalles_{key_suffix}")
-            
-            vent_bano_opts = ["natural", "forzada", "sin_ventana"]
-            ventilacion_bano = st.selectbox("Ventilación baño", vent_bano_opts, index=vent_bano_opts.index(prop_inicial.get('ventilacion_bano', 'natural')) if prop_inicial.get('ventilacion_bano') in vent_bano_opts else 0, key=f"vent_bano_{key_suffix}")
-        with col2:
-            descripcion_libre = st.text_area("Descripción libre", value=prop_inicial.get('descripcion_libre', ''), key=f"desc_{key_suffix}", height=200)
+            descripcion_libre = st.text_area("Descripción libre", value=prop_inicial.get('descripcion_libre', ''), key=f"desc_{key_suffix}", height=140)
     
     # === SECCIÓN 6: DATOS FINANCIEROS ===
     with st.container(border=True):
