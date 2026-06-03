@@ -241,14 +241,24 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
             piso = st.number_input("Piso *", min_value=0, max_value=50, value=int(prop_inicial.get('piso', 0) or 0), key=f"piso_{key_suffix}")
             total_pisos = st.number_input("Total pisos edificio *", min_value=1, max_value=60, value=int(prop_inicial.get('total_pisos', 1) or 1), key=f"total_p_{key_suffix}")
             
-            vistas = ["interna", "pulmon", "frente", "despejada", "rio"]
-            vista = st.selectbox("Vista", vistas, index=vistas.index(prop_inicial.get('vista', 'frente')) if prop_inicial.get('vista') in vistas else 2, key=f"vista_{key_suffix}")
-            
-            disposiciones = ["frente", "contrafrente", "pasante", "interna", "lateral"]
-            disposicion = st.selectbox("Disposición", disposiciones,
-                index=disposiciones.index(prop_inicial.get('disposicion', 'frente')) if prop_inicial.get('disposicion') in disposiciones else 0,
+            vista_map = {"interna": "Interna (pared vecina)", "pulmon": "Pulmón (patio interno)", "frente": "Frente / Calle", "despejada": "Despejada (sin obstáculos)", "rio": "Río"}
+            vista_keys = list(vista_map.keys())
+            vista_labels = list(vista_map.values())
+            vista_def = prop_inicial.get('vista', 'frente')
+            vista_idx = vista_keys.index(vista_def) if vista_def in vista_keys else 2
+            vista_label = st.selectbox("Vista (lo que se ve por la ventana)", vista_labels, index=vista_idx, key=f"vista_{key_suffix}",
+                help="Calidad visual del entorno: la vista直接影响 el valor de mercado")
+            vista = vista_keys[vista_labels.index(vista_label)]
+
+            disp_map = {"frente": "Frente del edificio", "contrafrente": "Contrafrente (al fondo)", "pasante": "Pasante (atraviesa todo)", "interna": "Interna (sin ventana exterior)", "lateral": "Lateral (costado)"}
+            disp_keys = list(disp_map.keys())
+            disp_labels = list(disp_map.values())
+            disp_def = prop_inicial.get('disposicion', 'frente')
+            disp_idx = disp_keys.index(disp_def) if disp_def in disp_keys else 0
+            disp_label = st.selectbox("Disposición (ubicación en la planta)", disp_labels, index=disp_idx,
                 key=f"disp_{key_suffix}",
-                help="Posición de la unidad en la planta. Pasante ya está cubierto por ventilación cruzada.")
+                help="Posición de la unidad dentro del plano del edificio. SOLO contrafrente o interna penalizan. Pasante es neutro (ya lo cubre ventilación cruzada).")
+            disposicion = disp_keys[disp_labels.index(disp_label)]
             
             gas_opts = ["si", "no", "en_proceso"]
             gas_ok = st.selectbox("Gas", gas_opts, index=gas_opts.index(prop_inicial.get('gas_ok', 'si')) if prop_inicial.get('gas_ok') in gas_opts else 0, key=f"gas_{key_suffix}")
@@ -325,8 +335,9 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
             if dormitorios is None or dormitorios < 0:
                 errores.append("Los dormitorios son obligatorios")
             
-            ambientes = st.number_input("Ambientes", min_value=1, max_value=20, step=1,
-                value=prop_inicial.get('ambientes', 0) or 0, key=f"amb_{key_suffix}",
+            amb_init = prop_inicial.get('ambientes', 0) or 0
+            ambientes = st.number_input("Ambientes", min_value=0, max_value=20, step=1,
+                value=amb_init, key=f"amb_{key_suffix}",
                 help="Cantidad total de ambientes (solo informativo, no afecta precio)")
             
             baños = st.number_input("Baños", min_value=0, max_value=10, value=int(prop_inicial.get('baños', 0) or 0), key=f"baños_{key_suffix}")

@@ -3388,9 +3388,13 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
         piso = st.number_input("Piso de la unidad", min_value=0, max_value=50, value=int(prop_inicial.get('piso', 0) or 0), key=f"piso_{key_suffix}")
         total_pisos = st.number_input("Total de pisos del edificio", min_value=1, max_value=60, value=int(prop_inicial.get('total_pisos', 1) or 1), key=f"total_p_{key_suffix}")
     with col_p2:
-        vista = st.selectbox("Calidad de Vista", ["interna", "pulmon", "frente", "despejada", "rio"],
-                            index=["interna", "pulmon", "frente", "despejada", "rio"].index(prop_inicial.get('vista', 'frente')) if prop_inicial.get('vista') in ["interna", "pulmon", "frente", "despejada", "rio"] else 2,
-                            key=f"vista_{key_suffix}")
+        vista_map = {"interna": "Interna (pared vecina)", "pulmon": "Pulmón (patio interno)", "frente": "Frente / Calle", "despejada": "Despejada (sin obstáculos)", "rio": "Río"}
+        vista_keys = list(vista_map.keys())
+        vista_labels = list(vista_map.values())
+        vista_def = prop_inicial.get('vista', 'frente')
+        vista_idx = vista_keys.index(vista_def) if vista_def in vista_keys else 2
+        vista_label = st.selectbox("Vista (lo que se ve por la ventana)", vista_labels, index=vista_idx, key=f"vista_{key_suffix}")
+        vista = vista_keys[vista_labels.index(vista_label)]
         gas_ok = st.selectbox("Adecuación de Gas", ["si", "no", "en_proceso"], 
                              index=["si", "no", "en_proceso"].index(prop_inicial.get('gas_ok', 'si')) if prop_inicial.get('gas_ok') in ["si", "no", "en_proceso"] else 0,
                              key=f"gas_{key_suffix}")
