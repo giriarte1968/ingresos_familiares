@@ -1106,6 +1106,24 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 
                 same_side = barreras_result['same_side']
                 cross_soft = barreras_result['cross_soft']
+                excluded_hard = barreras_result['excluded_hard']
+                
+                # PASO 1: Convertir excluded_hard → cross_soft para zonas urbanas densas
+                ZONAS_BARRERA_BLANDA = ['Puerto Norte', 'Refinería', 'Centro', 'Alberto Olmedo']
+                if zona_normalizada in ZONAS_BARRERA_BLANDA and excluded_hard:
+                    for comp in excluded_hard:
+                        comp['_penalizacion_barrier'] = 0.97
+                        cross_soft.append(comp)
+                    excluded_hard = []
+                    logger.info(f"[BARRERA_BLANDA] {zona_normalizada}: convirtiendo {len(cross_soft)} props (penalización 0.97)")
+                
+                # PASO 2: Fallback si todas cruzan barrera dura
+                if not same_side and not cross_soft and len(excluded_hard) >= 5:
+                    for comp in excluded_hard:
+                        comp['_penalizacion_barrier'] = 0.97
+                        cross_soft.append(comp)
+                    excluded_hard = []
+                    logger.info(f"[BARRERA_FALLBACK] usando {len(cross_soft)} props vía fallback (penalización 0.97)")
                 
                 for p in same_side:
                     p['_cross_soft'] = False
@@ -1162,7 +1180,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         else:
             logger.info(f"[AGE_FILTER] No aplicado: solo {n_age_filtered} post-filtro (mín 5 en ±15/±30)")
 
-        precios = [p['valor_m2'] for p in pool_final]
+        precios = [p['valor_m2'] * p.get('_penalizacion_barrier', 1.0) for p in pool_final]
         n_raw = len(precios)
         
         if not precios:
@@ -1234,7 +1252,8 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         precios_cross = []
         
         for p in pool_final:
-            val = p.get('valor_m2', 0)
+            penalty = p.get('_penalizacion_barrier', 1.0)
+            val = p.get('valor_m2', 0) * penalty
             if val <= 0:
                 continue
             if p.get('_cross_soft', False):
@@ -3093,7 +3112,18 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True):
     else:
         # Fallback a ancla
         antiguedad = ANIO_ACTUAL - anio_const
-        factor_deprec = max(0.5, 1.0 - (antiguedad * 0.006))
+
+        # Puerto Norte: forzar rio_puerto_norte (2100) y NO depreciar si es a estrenar
+        if zona_txt.lower() in ('puerto norte',) or 'puerto norte' in str(prop.get('zona', '')).lower():
+            valor_ancla_geo = 2100
+            ancla_seleccionada = 'rio_puerto_norte'
+            if prop.get('estado_detalle') == 'a estrenar' and anio_const >= 2020:
+                factor_deprec = 1.0
+            else:
+                factor_deprec = max(0.5, 1.0 - (antiguedad * 0.006))
+        else:
+            factor_deprec = max(0.5, 1.0 - (antiguedad * 0.006))
+
         m2_base_venta = valor_ancla_geo * factor_deprec
         metodo_origen = "Ancla (fallback)"
     

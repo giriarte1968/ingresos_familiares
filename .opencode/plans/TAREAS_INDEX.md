@@ -30,3 +30,4 @@
 | TAREA-027 | Restaurar 132 bis catastro + geocoder con catastro local + map verification | _(current)_ | 2026-06-02 |
 | TAREA-028 | Disposición solo-penalizaciones + Ambientes informativo en formulario y narrativa | `d3c393d` | 2026-06-03 |
 | TAREA-029 | Balcón: eliminar bonus_m2, desbloquear tipo_balcon en form, recalibrar factores | _(current)_ | 2026-06-03 |
+| TAREA-030 | Fix barreras duras como blandas en Puerto Norte + Fallback + Ancla | _(current)_ | 2026-06-03 |

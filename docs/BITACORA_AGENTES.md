@@ -1987,3 +1987,28 @@ Corregir StreamlitValueBelowMinError cuando ambientes=0 (min_value=1) y mejorar 
 - Vista (calidad visual): "Interna (pared vecina)", "Pulmón (patio interno)", "Frente / Calle", "Despejada", "Río"
 - Disposición (ubicación en planta): "Frente del edificio", "Contrafrente (al fondo)", "Pasante (atraviesa todo)", "Interna (sin ventana exterior)", "Lateral (costado)"
 - Sin cambios en lógica de cálculo (solo UI labels)
+
+---
+
+## 📅 2026-06-03 — TAREA-030: FIX BARRERAS EN PUERTO NORTE + FALLBACK CLUSTER + ANCLA
+
+### Objetivo:
+Francia 250 bis quedaba entre dos vías de tren (sur ~-32.93087, norte ~-32.9296). Las 73 propiedades dentro de 500m estaban todas al otro lado de al menos una vía → `excluded_hard` para todas → pool vacío → fallback ancla incorrecto.
+
+### Solución (B + C, descartar A):
+NO se tocaron coordenadas. Se corrigió la regla de barreras.
+
+### Cambios en `parsers/mercado_inmobiliario.py`:
+1. **PASO 1 (líneas ~1107)**: Post-`separar_por_barreras`, si `zona_normalizada` está en `ZONAS_BARRERA_BLANDA` (`['Puerto Norte', 'Refinería', 'Centro', 'Alberto Olmedo']`), los `excluded_hard` se reconvierten a `cross_soft` con penalización 0.97.
+2. **PASO 2**: Fallback: si `same_side + cross_soft == 0` y `excluded_hard >= 5`, se usan todos con 0.97.
+3. **PASO 1b**: Penalización 0.97 aplicada en `precios = [p['valor_m2'] * p.get('_penalizacion_barrier', 1.0)...]` y en el split `precios_same`/`precios_cross`.
+4. **PASO 3 (líneas ~3112)**: Ancla para Puerto Norte fuerza `rio_puerto_norte` (2.100 USD/m²) en vez de macrocentro, sin depreciar si es "a estrenar" con año >= 2020.
+
+### Validación:
+- `n_comparables_total`: 0 → **13** (a 300m)
+- `m2_base_venta`: 1.456 (ancla fallback) → **2.262** (cluster real)
+- `confianza`: BAJA → **ALTA**
+- `resolution`: GLOBAL → **GEO**
+- Tests: 200 passed, 4 pre-existing failures (baulera/cocheras weights, unrelated)
+- `auto_validate.py`: OK
+- Mabel y Ayacucho: sin regresión
