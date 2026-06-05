@@ -2004,18 +2004,19 @@ def calcular_factores(prop, ventana_usada=None):
     gas = prop.get('gas_ok', 'si').lower()
     factor_gas = {'si': 1.0, 'en_proceso': 0.96, 'no': 0.92}.get(gas, 1.0)
     
-    # 5. Factor Constructora v9.5 (Carga desde JSON)
+    # 5. Factor Constructora (Carga desde JSON plano)
     factor_const = 1.0
     try:
         constr_path = "C:/Users/Gustavo/ingresos_familiares_st/constructoras_rosario.json"
         if os.path.exists(constr_path):
             with open(constr_path, "r", encoding="utf-8") as f:
-                tiers = json.load(f)
-                constr = prop.get('constructora', '').lower()
-                if constr:
-                    for tier, data in tiers.items():
-                        if any(nombre in constr for nombre in data.get('nombres', [])):
-                            factor_const = data.get('factor', 1.0)
+                constr_list = json.load(f)
+                constr = prop.get('constructora', '').lower().strip()
+                if constr and isinstance(constr_list, list):
+                    for entry in constr_list:
+                        if constr == entry.get('descripcion', '').lower().strip():
+                            pct = entry.get('porcentaje', 0)
+                            factor_const = 1.0 + pct / 100.0
                             break
     except:
         pass

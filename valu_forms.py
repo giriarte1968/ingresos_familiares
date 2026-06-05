@@ -225,12 +225,13 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
             
             import json, os
             try:
-                with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "constructoras_rosario.json"), "r", encoding="utf-8") as f:
-                    constr_data = json.load(f)
-                    lista_c = []
-                    for tier in constr_data.values():
-                        lista_c.extend(tier.get("nombres", []))
-                    lista_c = sorted(list(set(lista_c))) + ["Otra"]
+                constr_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "constructoras_rosario.json")
+                with open(constr_path, "r", encoding="utf-8") as f:
+                    constr_list = json.load(f)
+                if isinstance(constr_list, list):
+                    lista_c = sorted([e.get('descripcion', '') for e in constr_list if e.get('descripcion')]) + ["Otra"]
+                else:
+                    lista_c = ["Otra"]
             except:
                 lista_c = ["Otra"]
             constructora_sel = st.selectbox("Constructora", lista_c, index=lista_c.index(prop_inicial.get('constructora', '')) if prop_inicial.get('constructora') in lista_c else lista_c.index("Otra"), key=f"const_sel_{key_suffix}")

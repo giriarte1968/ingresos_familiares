@@ -491,6 +491,86 @@ def mostrar_dashboard():
                 st.success(f"Propiedad {new_prop['nombre']} guardada!")
                 st.rerun()
 
+        # ─── Constructoras ───
+        CONSTR_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "constructoras_rosario.json")
+        def _cargar_constructoras():
+            try:
+                with open(CONSTR_PATH, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except:
+                return []
+        def _guardar_constructoras(data):
+            with open(CONSTR_PATH, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+
+        st.markdown("---")
+        with st.expander("🏗️ Administrar Constructoras", expanded=False):
+            constr_data = _cargar_constructoras()
+
+            if not isinstance(constr_data, list):
+                constr_data = []
+
+            # Formulario de alta
+            with st.form("nueva_constructora", clear_on_submit=True):
+                cols = st.columns([3, 1, 1])
+                with cols[0]:
+                    nueva_desc = st.text_input("Nombre de la constructora")
+                with cols[1]:
+                    nuevo_pct = st.number_input("Porcentaje %", value=0.0, step=0.5, format="%.2f",
+                        help="Positivo = bonus sobre precio base, Negativo = descuento")
+                with cols[2]:
+                    st.write("")
+                    st.write("")
+                    submitted = st.form_submit_button("➕ Agregar", use_container_width=True)
+                if submitted and nueva_desc.strip():
+                    constr_data.append({"descripcion": nueva_desc.strip(), "porcentaje": nuevo_pct})
+                    _guardar_constructoras(constr_data)
+                    st.success(f"Constructora '{nueva_desc.strip()}' agregada con {nuevo_pct:+.2f}%")
+                    st.rerun()
+
+            # Tabla existente
+            if constr_data:
+                st.markdown("---")
+                st.markdown("**Constructoras registradas:**")
+                for i, c in enumerate(list(constr_data)):
+                    cols = st.columns([3, 1, 0.5, 0.5])
+                    with cols[0]:
+                        st.text(c.get('descripcion', ''))
+                    with cols[1]:
+                        pct = c.get('porcentaje', 0)
+                        color = "green" if pct >= 0 else "red"
+                        st.markdown(f":{color}[{pct:+.2f}%]")
+                    with cols[2]:
+                        edit_key = f"edit_{i}"
+                        if st.button("✏️", key=edit_key):
+                            st.session_state[f"editando_constr_{i}"] = True
+                    with cols[3]:
+                        if st.button("🗑️", key=f"del_{i}"):
+                            constr_data.pop(i)
+                            _guardar_constructoras(constr_data)
+                            st.rerun()
+
+                    # Edición inline
+                    if st.session_state.get(f"editando_constr_{i}", False):
+                        with st.form(f"edit_constr_{i}", clear_on_submit=True):
+                            ec = st.columns([3, 1, 1])
+                            with ec[0]:
+                                edit_desc = st.text_input("Nombre", value=c.get('descripcion', ''), key=f"ed_desc_{i}")
+                            with ec[1]:
+                                edit_pct = st.number_input("Porcentaje %", value=float(c.get('porcentaje', 0)), step=0.5, format="%.2f", key=f"ed_pct_{i}")
+                            with ec[2]:
+                                st.write("")
+                                st.write("")
+                                if st.form_submit_button("💾 Guardar", use_container_width=True):
+                                    constr_data[i] = {"descripcion": edit_desc.strip(), "porcentaje": edit_pct}
+                                    _guardar_constructoras(constr_data)
+                                    st.session_state[f"editando_constr_{i}"] = False
+                                    st.rerun()
+                        if st.button("Cancelar", key=f"cancel_edit_{i}"):
+                            st.session_state[f"editando_constr_{i}"] = False
+                            st.rerun()
+            else:
+                st.info("No hay constructoras registradas. Agregue una usando el formulario de arriba.")
 
         # ─── Profiling de rendimiento ───
         st.markdown("---")

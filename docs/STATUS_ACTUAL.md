@@ -1,6 +1,6 @@
 ﻿# ðŸ  STATUS ACTUAL DEL PROYECTO â€” AVM Rosario
 
-*Actualizado: 03/06/2026 (TAREA-029 - Balcón: eliminar bonus_m2, desbloquear tipo_balcon)*
+*Actualizado: 05/06/2026 (Constructoras dinámicas desde Configuración)*
 
 ---
 

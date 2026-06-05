@@ -2015,7 +2015,7 @@ NO se tocaron coordenadas. Se corrigió la regla de barreras.
 
 ---
 
-## 2026-06-05 � TAREA-031: FECHA DINAMICA - ULTIMOS 12 MESES CON date_created
+## 2026-06-05 � TAREA-031: FECHA DINAMICA - ULTIMOS 12 MESES CON date_created
 
 ### Objetivo:
 Todas las valuaciones usan date_created en vez de date_updated, ventana fija de 365 dias (12 meses desde hoy), y aceptan tanto YYYY-MM-DD como YYYY-MM.
@@ -2034,7 +2034,7 @@ Todas las valuaciones usan date_created en vez de date_updated, ventana fija de 
 
 ---
 
-## 2026-06-05 � TAREA-032: PUERTO NORTE - TIME-EXPANSION EN ZONA CERRADA
+## 2026-06-05 � TAREA-032: PUERTO NORTE - TIME-EXPANSION EN ZONA CERRADA
 
 ### Objetivo:
 Puerto Norte no debe salir de su zona a buscar comparables (se contamina con Pichincha). En vez de expandir radio, expande fecha hacia atras con factor de ajuste temporal (-4.5%/anual).
@@ -2051,6 +2051,32 @@ Puerto Norte no debe salir de su zona a buscar comparables (se contamina con Pic
 ### Factor de ajuste:
 factor = 1 + (-0.045) * anios_desde_ref
 Para un comp de 2024 (1.62 anos): 0.927 -> ~7% de ajuste a la baja
+
+### Validacion:
+- 39/39 tests pasan
+- auto_validate.py: OK
+
+---
+
+## 📅 2026-06-05 — CONSTRUCTORAS DINÁMICAS DESDE CONFIGURACIÓN
+
+### Objetivo:
+Reemplazar el esquema de tiers fijos en `constructoras_rosario.json` por un formato plano editable desde la UI, permitiendo alta/baja/modificación de constructoras con porcentaje de ajuste (positivo o negativo).
+
+### Acciones realizadas:
+1. **JSON reescrito** (`constructoras_rosario.json`): de estructura `{tier: {factor, nombres}}` a `[{descripcion, porcentaje}]`. Porcentaje = ajuste percentual directo (ej: 12 → +12%, -8 → -8%).
+2. **`parsers/mercado_inmobiliario.py:2007-2021`**: `calcular_factores()` actualizado para leer el nuevo formato plano, comparar `prop['constructora'].lower()` contra `entry['descripcion'].lower()`, y calcular `factor_const = 1 + porcentaje/100`.
+3. **`valu_forms.py:226-239`**: dropdown de constructoras adaptado al nuevo formato plano (lee `descripcion` en vez de anidar tiers).
+4. **`valu.py`**: nuevo expander `🏗️ Administrar Constructoras` en Configuración con:
+   - Formulario de alta (nombre + %)
+   - Tabla con edición inline (✏️) y borrado (🗑️)
+   - Los cambios persisten inmediatamente en `constructoras_rosario.json`
+
+### Archivos modificados:
+- `constructoras_rosario.json` (formato completo)
+- `parsers/mercado_inmobiliario.py` (factor_const)
+- `valu_forms.py` (dropdown)
+- `valu.py` (UI de gestión)
 
 ### Validacion:
 - 39/39 tests pasan

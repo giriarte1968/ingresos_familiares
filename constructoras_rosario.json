@@ -1,18 +1,27 @@
-{
-  "tier_1_premium": {
-    "factor": 1.12,
-    "nombres": ["ulanovsky", "fundar", "msr", "mor", "pellegrinet", "bauen", "vanzini", "bassini"]
-  },
-  "tier_2_alta": {
-    "factor": 1.05,
-    "nombres": ["guillermo rodriguez", "ducler", "giaganti", "dunod", "ferreyra", "telleria", "rgm"]
-  },
-  "tier_3_estandar": {
-    "factor": 1.0,
-    "nombres": ["uno", "valerio", "pereyra", "berbari", "fransa", "imperia", "escala", "crestale", "ma", "bled"]
-  },
-  "tier_4_economica": {
-    "factor": 0.92,
-    "nombres": []
-  }
-}
+[
+  {"descripcion": "Ulanovsky", "porcentaje": 12},
+  {"descripcion": "Fundar", "porcentaje": 12},
+  {"descripcion": "MSR", "porcentaje": 12},
+  {"descripcion": "MOR", "porcentaje": 12},
+  {"descripcion": "Pellegrinet", "porcentaje": 12},
+  {"descripcion": "Bauen", "porcentaje": 12},
+  {"descripcion": "Vanzini", "porcentaje": 12},
+  {"descripcion": "Bassini", "porcentaje": 12},
+  {"descripcion": "Guillermo Rodriguez", "porcentaje": 5},
+  {"descripcion": "Ducler", "porcentaje": 5},
+  {"descripcion": "Giaganti", "porcentaje": 5},
+  {"descripcion": "Dunod", "porcentaje": 5},
+  {"descripcion": "Ferreyra", "porcentaje": 5},
+  {"descripcion": "Telleria", "porcentaje": 5},
+  {"descripcion": "RGM", "porcentaje": 5},
+  {"descripcion": "Uno", "porcentaje": 0},
+  {"descripcion": "Valerio", "porcentaje": 0},
+  {"descripcion": "Pereyra", "porcentaje": 0},
+  {"descripcion": "Berbari", "porcentaje": 0},
+  {"descripcion": "Fransa", "porcentaje": 0},
+  {"descripcion": "Imperia", "porcentaje": 0},
+  {"descripcion": "Escala", "porcentaje": 0},
+  {"descripcion": "Crestale", "porcentaje": 0},
+  {"descripcion": "MA", "porcentaje": 0},
+  {"descripcion": "Bled", "porcentaje": 0}
+]
