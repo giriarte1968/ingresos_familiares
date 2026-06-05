@@ -1009,7 +1009,8 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         mejor_resultado = None
         
         # 1. Intentar búsqueda geográfica primero si hay coordenadas
-        if lat_ref is not None and lon_ref is not None:
+        # PN: salta Tier 1 (se contamina con Pichincha), va directo a Tier 2
+        if lat_ref is not None and lon_ref is not None and zona_normalizada != 'puerto norte':
             for radio in RADIOS_PROGRESIVOS:
                 props_geo = cluster_filters.filtrar_por_radio(
                     cache.get('propiedades', []), lat_ref, lon_ref,
@@ -1025,11 +1026,6 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 props_geo = aplicar_filtro_fecha(props_geo, fecha_ref)
                 
                 if len(props_geo) >= MIN_COMPARABLES:
-                    # PN: si >80% comps son de otra zona, seguir expandiendo radio
-                    if zona_normalizada == 'puerto norte':
-                        pn_match = sum(1 for p in props_geo if normalizar_zona(p.get('zona', '')) == 'puerto norte')
-                        if pn_match / len(props_geo) < 0.2 and radio < RADIOS_PROGRESIVOS[-1]:
-                            continue
                     mejor_resultado = (props_geo, radio, "busqueda_geografica")
                     break
             else:
@@ -1053,24 +1049,32 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         
         # 2. Fallback: zona normalizada + radio progresivo (o time-expansion para PN)
         if mejor_resultado is None:
-            if zona_normalizada == 'puerto norte':
+            if zona_normalizada == 'Puerto Norte':
                 # PN: expandir fecha hacia atrás, radio fijo 800m
                 for dias, min_req in zip(VENTANAS_FECHA_PN, MIN_PN):
-                    props = buscar_en_zona('puerto norte', dormitorios, operacion, lat_ref, lon_ref, 800)
+                    props = buscar_en_zona(zona_normalizada, dormitorios, operacion, lat_ref, lon_ref, 800)
                     props = filtrar_por_fecha(props, fecha_ref, dias=dias)
                     if len(props) >= min_req:
                         # Marcar comps con time adjustment
-                        now = datetime.strptime(fecha_ref, '%Y-%m-%d') if fecha_ref and fecha_ref.count('-') == 2 else datetime.now()
+                        try:
+                            if fecha_ref and fecha_ref.count('-') == 2:
+                                ref_dt = datetime.strptime(fecha_ref, '%Y-%m-%d')
+                            elif fecha_ref and fecha_ref.count('-') == 1:
+                                ref_dt = datetime.strptime(fecha_ref, '%Y-%m')
+                            else:
+                                ref_dt = datetime.now()
+                        except:
+                            ref_dt = datetime.now()
                         for p in props:
                             dc = p.get('date_created', '')
                             if dc:
                                 try:
                                     dt = datetime.strptime(str(dc)[:10], '%Y-%m-%d')
-                                    anios_desde_ref = max(0, (now - dt).days / 365.25)
+                                    anios_desde_ref = max(0, (ref_dt - dt).days / 365.25)
                                     p['_time_adjustment'] = 1 + TASA_AJUSTE_PN * anios_desde_ref
                                 except:
                                     p['_time_adjustment'] = 1.0
-                        mejor_resultado = (props, 800, 'puerto norte')
+                        mejor_resultado = (props, 800, 'Puerto Norte')
                         break
             else:
                 for radio in RADIOS_PROGRESIVOS:
@@ -1482,6 +1486,8 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                     'precio': p.get('precio'),
                     'm2': p.get('m2'),
                     'precio_m2': p.get('valor_m2'),
+                    'time_adjustment': round(p.get('_time_adjustment', 1.0), 4),
+                    'precio_m2_ajustado': round(p.get('valor_m2', 0) * p.get('_time_adjustment', 1.0), 2),
                     'dormitorios': p.get('dormitorios'),
                     'direccion': p.get('direccion', '')[:60],
                     'direccion_limpia': _formatear_direccion_limpia(p),

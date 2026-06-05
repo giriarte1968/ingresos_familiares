@@ -1435,13 +1435,22 @@ def mostrar_detalle(prop, resultado, guardarin_propiedades_fn=None):
             comparables = resultado.get('comparables_venta', [])
             for comp in comparables:
                 if comp.get('lat') and comp.get('lon'):
+                    vm2 = comp.get('precio_m2', 0)
+                    ta = comp.get('time_adjustment', 1.0)
+                    vm2_ajust = comp.get('precio_m2_ajustado', vm2)
+                    if ta != 1.0:
+                        popup_txt = f"${vm2:,.0f} → <b>${vm2_ajust:,.0f}</b>/m²"
+                        color = '#ff6b35'
+                    else:
+                        popup_txt = f"${vm2:,.0f}/m²"
+                        color = 'blue'
                     folium.CircleMarker(
                         [float(comp['lat']), float(comp['lon'])],
                         radius=4,
-                        color='blue',
+                        color=color,
                         fill=True,
                         fill_opacity=0.6,
-                        popup=f"${comp.get('precio_m2', 0):,.0f}/m²"
+                        popup=popup_txt
                     ).add_to(m)
 
             st_folium(m, width=700, height=350)

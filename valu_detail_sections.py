@@ -236,17 +236,25 @@ def render_tabla_comparables(res):
     rows = []
     for i, c in enumerate(comparables):
         anio_est = c.get('anio_estimado', '')
+        ta = c.get('time_adjustment', 1.0)
+        vm2_orig = c.get('precio_m2', 0)
+        vm2_ajust = c.get('precio_m2_ajustado', vm2_orig)
+        if ta != 1.0:
+            precio_m2_str = f"<span style='color:#888'>{'${:,.0f}'.format(vm2_orig)}</span> → <span style='color:#ff6b35;font-weight:bold'>{'${:,.0f}'.format(vm2_ajust)}</span>"
+        else:
+            precio_m2_str = f"<span style='color:#ccc'>{'${:,.0f}'.format(vm2_orig)}</span>"
         rows.append({
             '#': i+1, 'Precio': f"${c.get('precio', 0):,.0f}",
-            'm2': f"{c.get('m2', 0):.0f}", 'Precio/m2': f"${c.get('precio_m2', 0):,.0f}",
+            'm2': f"{c.get('m2', 0):.0f}",
+            'Precio/m2': precio_m2_str,
             'Dorm.': str(c.get('dormitorios', '?')),
             'Tipo': str((c.get('tipo') or '')[:12]) if c.get('tipo') else '',
             'Dirección': ((c.get('direccion_limpia') or c.get('direccion','')) or '')[:35],
             'Ano est.': str(anio_est) if anio_est is not None and anio_est != '' else '',
             'Dist.': f"{c.get('distancia_m', 0):.0f}m" if c.get('distancia_m') else '',
         })
-    df = pd.DataFrame(rows).astype(str)
-    st.dataframe(df, width='stretch', hide_index=True)
+    df = pd.DataFrame(rows)
+    st.markdown(df.to_html(escape=False, index=False), unsafe_allow_html=True)
 
 
 def render_catastro(prop, res, compact=False):
