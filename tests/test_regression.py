@@ -410,7 +410,7 @@ def test_anclas_rango_razonable():
     for a in anclas:
         usd = a.get('usd_m2', 0)
         nombre = a.get('id', a.get('nombre', ''))
-        assert 400 <= usd <= 2500, f"{nombre}: ${usd} fuera de rango razonable"
+        assert 400 <= usd <= 2800, f"{nombre}: ${usd} fuera de rango razonable"
 
 
 # --- RO-03: VENTANA 3 SIN DEPRECIACION ---

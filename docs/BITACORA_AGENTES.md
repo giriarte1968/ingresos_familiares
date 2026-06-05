@@ -2031,3 +2031,27 @@ Todas las valuaciones usan date_created en vez de date_updated, ventana fija de 
 - 39/39 tests pasan
 - auto_validate.py: OK
 - valuar_propiedad_smart ahora usa fecha dinamica
+
+---
+
+## 2026-06-05 — TAREA-032: PUERTO NORTE - TIME-EXPANSION EN ZONA CERRADA
+
+### Objetivo:
+Puerto Norte no debe salir de su zona a buscar comparables (se contamina con Pichincha). En vez de expandir radio, expande fecha hacia atras con factor de ajuste temporal (-4.5%/anual).
+
+### Cambios:
+1. data/anclas_rosario_v5_1_limpio.json: rio_puerto_norte 2100->2800
+2. mercado_inmobiliario.py:935-937: constantes TASA_AJUSTE_PN, VENTANAS_FECHA_PN, MIN_PN
+3. mercado_inmobiliario.py:1022-1028: Tier 1 - si PN y >80% comps otra zona, no detenerse
+4. mercado_inmobiliario.py:1044-1071: Tier 2 - para PN, loop de fechas expansivas (365/545/730/9999d) en vez de radios, con _time_adjustment en comps viejos
+5. mercado_inmobiliario.py:1210: aplicar _time_adjustment en calculo de precios
+6. mercado_inmobiliario.py:3117: hardcoded ancla PN 2100->2800
+7. test_regression.py:413: rango anclas 2500->2800
+
+### Factor de ajuste:
+factor = 1 + (-0.045) * anios_desde_ref
+Para un comp de 2024 (1.62 anos): 0.927 -> ~7% de ajuste a la baja
+
+### Validacion:
+- 39/39 tests pasan
+- auto_validate.py: OK

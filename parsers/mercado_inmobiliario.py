@@ -936,6 +936,11 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         MIN_COMPARABLES = 10
         MIN_COMPARABLES_FALLBACK = 5
         
+        # Puerto Norte: time-expansion en vez de radius-expansion
+        TASA_AJUSTE_PN = -0.045
+        VENTANAS_FECHA_PN = [365, 545, 730, 9999]
+        MIN_PN = [10, 8, 5, 2]
+        
         from datetime import datetime, timedelta
         
         def filtrar_por_fecha(props, fecha_ref_str, dias=365):
@@ -1020,6 +1025,11 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 props_geo = aplicar_filtro_fecha(props_geo, fecha_ref)
                 
                 if len(props_geo) >= MIN_COMPARABLES:
+                    # PN: si >80% comps son de otra zona, seguir expandiendo radio
+                    if zona_normalizada == 'puerto norte':
+                        pn_match = sum(1 for p in props_geo if normalizar_zona(p.get('zona', '')) == 'puerto norte')
+                        if pn_match / len(props_geo) < 0.2 and radio < RADIOS_PROGRESIVOS[-1]:
+                            continue
                     mejor_resultado = (props_geo, radio, "busqueda_geografica")
                     break
             else:
@@ -1041,14 +1051,34 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 if len(props_geo) >= 2:
                     mejor_resultado = (props_geo, 1500, "busqueda_geografica")
         
-        # 2. Fallback: zona normalizada + radio progresivo
+        # 2. Fallback: zona normalizada + radio progresivo (o time-expansion para PN)
         if mejor_resultado is None:
-            for radio in RADIOS_PROGRESIVOS:
-                props = buscar_en_zona(zona_normalizada, dormitorios, operacion, lat_ref, lon_ref, radio, fecha_ref)
-                props = aplicar_filtro_fecha(props, fecha_ref)
-                if len(props) >= MIN_COMPARABLES:
-                    mejor_resultado = (props, radio, zona_normalizada)
-                    break
+            if zona_normalizada == 'puerto norte':
+                # PN: expandir fecha hacia atrás, radio fijo 800m
+                for dias, min_req in zip(VENTANAS_FECHA_PN, MIN_PN):
+                    props = buscar_en_zona('puerto norte', dormitorios, operacion, lat_ref, lon_ref, 800)
+                    props = filtrar_por_fecha(props, fecha_ref, dias=dias)
+                    if len(props) >= min_req:
+                        # Marcar comps con time adjustment
+                        now = datetime.strptime(fecha_ref, '%Y-%m-%d') if fecha_ref and fecha_ref.count('-') == 2 else datetime.now()
+                        for p in props:
+                            dc = p.get('date_created', '')
+                            if dc:
+                                try:
+                                    dt = datetime.strptime(str(dc)[:10], '%Y-%m-%d')
+                                    anios_desde_ref = max(0, (now - dt).days / 365.25)
+                                    p['_time_adjustment'] = 1 + TASA_AJUSTE_PN * anios_desde_ref
+                                except:
+                                    p['_time_adjustment'] = 1.0
+                        mejor_resultado = (props, 800, 'puerto norte')
+                        break
+            else:
+                for radio in RADIOS_PROGRESIVOS:
+                    props = buscar_en_zona(zona_normalizada, dormitorios, operacion, lat_ref, lon_ref, radio, fecha_ref)
+                    props = aplicar_filtro_fecha(props, fecha_ref)
+                    if len(props) >= MIN_COMPARABLES:
+                        mejor_resultado = (props, radio, zona_normalizada)
+                        break
         
         # 3. Último fallback: usar datos disponibles aunque sean mínimos
         if mejor_resultado is None:
@@ -1177,7 +1207,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         else:
             logger.info(f"[AGE_FILTER] No aplicado: solo {n_age_filtered} post-filtro (mín 5 en ±15/±30)")
 
-        precios = [p['valor_m2'] * p.get('_penalizacion_barrier', 1.0) for p in pool_final]
+        precios = [p['valor_m2'] * p.get('_penalizacion_barrier', 1.0) * p.get('_time_adjustment', 1.0) for p in pool_final]
         n_raw = len(precios)
         
         if not precios:
@@ -3112,9 +3142,9 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True):
         # Fallback a ancla
         antiguedad = ANIO_ACTUAL - anio_const
 
-        # Puerto Norte: forzar rio_puerto_norte (2100) y NO depreciar si es a estrenar
+        # Puerto Norte: forzar rio_puerto_norte (2800) y NO depreciar si es a estrenar
         if zona_txt.lower() in ('puerto norte',) or 'puerto norte' in str(prop.get('zona', '')).lower():
-            valor_ancla_geo = 2100
+            valor_ancla_geo = 2800
             ancla_seleccionada = 'rio_puerto_norte'
             if prop.get('estado_detalle') == 'a estrenar' and anio_const >= 2020:
                 factor_deprec = 1.0

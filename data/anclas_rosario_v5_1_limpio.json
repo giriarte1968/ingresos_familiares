@@ -10,8 +10,8 @@
       "id": "rio_puerto_norte",
       "lat": -32.9315,
       "lon": -60.6375,
-      "usd_m2": 2100,
-      "fecha_calibracion": "2026-05-15",
+      "usd_m2": 2800,
+      "fecha_calibracion": "2026-06-05",
       "fuente": "v3_heredada",
       "n_zonal": 0
     },
