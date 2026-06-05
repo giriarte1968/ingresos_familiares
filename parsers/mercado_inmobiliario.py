@@ -938,20 +938,23 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         
         from datetime import datetime, timedelta
         
-        def filtrar_por_fecha(props, fecha_ref_str, dias=180):
-            """Filtra propiedades por ventana de fecha (días hacia atrás)."""
+        def filtrar_por_fecha(props, fecha_ref_str, dias=365):
+            """Filtra propiedades por ventana de fecha (días hacia atrás). Usa date_created."""
             if not fecha_ref_str:
                 return props
             try:
-                fecha_ref_dt = datetime.strptime(fecha_ref_str, '%Y-%m-%d')
+                if '-' in fecha_ref_str and fecha_ref_str.count('-') == 2:
+                    fecha_ref_dt = datetime.strptime(fecha_ref_str, '%Y-%m-%d')
+                else:
+                    fecha_ref_dt = datetime.strptime(fecha_ref_str, '%Y-%m')
                 fecha_limite = fecha_ref_dt - timedelta(days=dias)
                 props_filtrados = []
                 for p in props:
-                    date_upd = p.get('date_updated', '')
-                    if not date_upd:
+                    date_cr = p.get('date_created', p.get('date_updated', ''))
+                    if not date_cr:
                         continue
                     try:
-                        dt = datetime.strptime(date_upd[:10], '%Y-%m-%d')
+                        dt = datetime.strptime(str(date_cr)[:10], '%Y-%m-%d')
                         if fecha_limite <= dt <= fecha_ref_dt:
                             props_filtrados.append(p)
                     except:
@@ -992,16 +995,10 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             return props
         
         def aplicar_filtro_fecha(props, fecha_filtro):
-            """Aplica ventana móvil de 6 meses (180 días). Si <5 muestras, extiende a 365."""
+            """Aplica ventana móvil de 12 meses (365 días)."""
             if not fecha_filtro:
                 return props
-            # Primero intentar 180 días
-            props_180 = filtrar_por_fecha(props, fecha_filtro, dias=180)
-            if len(props_180) >= 5:
-                return props_180
-            # Extender a 365 días si hay menos de 5
-            props_365 = filtrar_por_fecha(props, fecha_filtro, dias=365)
-            return props_365
+            return filtrar_por_fecha(props, fecha_filtro, dias=365)
         
         # Estrategia: Radio progresivo + fallback de zona
         mejor_resultado = None
@@ -1498,6 +1495,8 @@ def calcular_base_calibrada(valor_ancla, prop_data):
     anio_const = prop_data.get('anio_construccion', 2020)
     anio_tasacion = prop_data.get('anio_tasacion', ANIO_ACTUAL)
     
+    from datetime import datetime
+    fecha_ref = datetime.now().strftime('%Y-%m-%d')
     # Usar v2 con coordenadas (IGUAL que valuar_propiedad_v7)
     valor_cluster, muestras, meta = obtener_mediana_cluster_v2(
         zona=normalizar_zona(zona),
@@ -1505,7 +1504,7 @@ def calcular_base_calibrada(valor_ancla, prop_data):
         operacion='venta',
         lat_ref=lat,
         lon_ref=lon,
-        fecha_ref='2026-04'
+        fecha_ref=fecha_ref
     )
 
     # Handle None returns
@@ -3159,7 +3158,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True):
     # Usar zona normalizada para mejor match con cache
     zona_alq = normalizar_zona(zona_txt)
     with profile_block("cluster_alquiler", prop):
-        m2_base_alq_raw, n_a, meta_alq = obtener_mediana_cluster_v2(zona=zona_alq, dormitorios=dorms, operacion='alquiler', lat_ref=lat, lon_ref=lon, tipo_inmueble=prop.get('tipo_inmueble', prop.get('tipo', 'departamento')), cache_scraping=cache_scraping_compartido)
+        m2_base_alq_raw, n_a, meta_alq = obtener_mediana_cluster_v2(zona=zona_alq, dormitorios=dorms, operacion='alquiler', lat_ref=lat, lon_ref=lon, fecha_ref=fecha_ref, tipo_inmueble=prop.get('tipo_inmueble', prop.get('tipo', 'departamento')), cache_scraping=cache_scraping_compartido)
     
     # Fallback si no hay datos específicos (en ARS/m²)
     # Ajustar para entrar en rango:

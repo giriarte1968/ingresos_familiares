@@ -31,3 +31,4 @@
 | TAREA-028 | Disposición solo-penalizaciones + Ambientes informativo en formulario y narrativa | `d3c393d` | 2026-06-03 |
 | TAREA-029 | Balcón: eliminar bonus_m2, desbloquear tipo_balcon en form, recalibrar factores | _(current)_ | 2026-06-03 |
 | TAREA-030 | Fix barreras duras como blandas en Puerto Norte + Fallback + Ancla | _(current)_ | 2026-06-03 |
+| TAREA-031 | Fecha dinámica: date_created + 12 meses + formatos YYYY-MM/DD | _(current)_ | 2026-06-05 |

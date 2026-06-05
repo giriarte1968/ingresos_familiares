@@ -2012,3 +2012,22 @@ NO se tocaron coordenadas. Se corrigió la regla de barreras.
 - Tests: 200 passed, 4 pre-existing failures (baulera/cocheras weights, unrelated)
 - `auto_validate.py`: OK
 - Mabel y Ayacucho: sin regresión
+
+---
+
+## 2026-06-05 � TAREA-031: FECHA DINAMICA - ULTIMOS 12 MESES CON date_created
+
+### Objetivo:
+Todas las valuaciones usan date_created en vez de date_updated, ventana fija de 365 dias (12 meses desde hoy), y aceptan tanto YYYY-MM-DD como YYYY-MM.
+
+### Cambios:
+1. mercado_inmobiliario.py:941 - filtrar_por_fecha: date_updated->date_created, acepta YYYY-MM y YYYY-MM-DD, default dias=365
+2. mercado_inmobiliario.py:994 - aplicar_filtro_fecha: ventana fija 365 dias (eliminado try 180->365)
+3. mercado_inmobiliario.py:1502 - valuar_propiedad_smart: hardcoded 2026-04 -> datetime.now()
+4. mercado_inmobiliario.py:3161 - Alquiler en valuar_propiedad_v7: agregado fecha_ref=fecha_ref
+5. test_regression.py - Tests actualizados con nuevos rangos (39/39 pass)
+
+### Validacion:
+- 39/39 tests pasan
+- auto_validate.py: OK
+- valuar_propiedad_smart ahora usa fecha dinamica
