@@ -6,7 +6,7 @@ from datetime import datetime
 CACHE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
 CACHE_PATH = os.path.join(CACHE_DIR, 'valuaciones_cache.json')
 SCRAPING_CACHE_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'cache_scraping.json')
-CACHE_VERSION = "v5_zonificada"
+CACHE_VERSION = "v6_pn_comparables"
 PROPIEDADES_PATH = os.path.join(os.path.dirname(CACHE_DIR), 'propiedades.json')
 
 
