@@ -1217,6 +1217,27 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         precios = [p['valor_m2'] * p.get('_penalizacion_barrier', 1.0) * p.get('_time_adjustment', 1.0) for p in pool_final]
         n_raw = len(precios)
         
+        # Build comparables_reales early so all return paths include them
+        comparables_reales = [
+            {
+                'precio': p.get('precio'),
+                'm2': p.get('m2'),
+                'precio_m2': p.get('valor_m2'),
+                'time_adjustment': round(p.get('_time_adjustment', 1.0), 4),
+                'precio_m2_ajustado': round(p.get('valor_m2', 0) * p.get('_time_adjustment', 1.0), 2),
+                'dormitorios': p.get('dormitorios'),
+                'direccion': (p.get('direccion_limpia') or p.get('direccion', ''))[:60],
+                'direccion_limpia': _formatear_direccion_limpia(p),
+                'lat': p.get('lat'),
+                'lon': p.get('lon'),
+                'zona': p.get('zona'),
+                'tipo': p.get('tipo'),
+                'anio_estimado': p.get('anio_estimado'),
+                'distancia_m': round(calcular_distancia_km(lat_ref, lon_ref, float(p['lat']), float(p['lon'])) * 1000, 0) if lat_ref and lon_ref and p.get('lat') and p.get('lon') else None,
+            }
+            for p in pool_final[:30]
+        ] if pool_final else []
+        
         if not precios:
             return 0.0, 0, {
                 'percentil_usado': percentil_usado,
@@ -1226,7 +1247,8 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 'fecha_ref': fecha_ref,
                 'operacion': operacion,
                 'zona_original': zona_original,
-                'zona_resolucion': zona_resol
+                'zona_resolucion': zona_resol,
+                'comparables_reales': comparables_reales
             }
         
         if len(precios) < 3:
@@ -1238,7 +1260,8 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 'fecha_ref': fecha_ref,
                 'operacion': operacion,
                 'zona_original': zona_original,
-                'zona_resolucion': zona_resol
+                'zona_resolucion': zona_resol,
+                'comparables_reales': comparables_reales
             }
         
         # FILTRO PRE-IQR robusto
@@ -1260,7 +1283,8 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                     'fecha_ref': fecha_ref,
                     'operacion': operacion,
                     'zona_original': zona_original,
-                    'zona_resolucion': zona_resol
+                    'zona_resolucion': zona_resol,
+                    'comparables_reales': comparables_reales
                 }
             q1 = _calcular_percentil_linear(precios_ordenados, 25)
             q3 = _calcular_percentil_linear(precios_ordenados, 75)
@@ -1277,7 +1301,8 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 'fecha_ref': fecha_ref,
                 'operacion': operacion,
                 'zona_original': zona_original,
-                'zona_resolucion': zona_resol
+                'zona_resolucion': zona_resol,
+                'comparables_reales': comparables_reales
             }
         
         # Calcular percentil CON BLENDING same-side / cross-soft
@@ -1485,25 +1510,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             'base_age': round(base_age_val, 2) if base_age_val is not None else None,
             'base_all': round(base_all_val, 2) if base_all_val is not None else None,
             # Comparables reales (muestra de hasta 30)
-            'comparables_reales': [
-                {
-                    'precio': p.get('precio'),
-                    'm2': p.get('m2'),
-                    'precio_m2': p.get('valor_m2'),
-                    'time_adjustment': round(p.get('_time_adjustment', 1.0), 4),
-                    'precio_m2_ajustado': round(p.get('valor_m2', 0) * p.get('_time_adjustment', 1.0), 2),
-                    'dormitorios': p.get('dormitorios'),
-                    'direccion': p.get('direccion', '')[:60],
-                    'direccion_limpia': _formatear_direccion_limpia(p),
-                    'lat': p.get('lat'),
-                    'lon': p.get('lon'),
-                    'zona': p.get('zona'),
-                    'tipo': p.get('tipo'),
-                    'anio_estimado': p.get('anio_estimado'),
-                    'distancia_m': round(calcular_distancia_km(lat_ref, lon_ref, float(p['lat']), float(p['lon'])) * 1000, 0) if lat_ref and lon_ref and p.get('lat') and p.get('lon') else None,
-                }
-                for p in pool_final[:30]
-            ] if pool_final else [],
+            'comparables_reales': comparables_reales,
         }
         
         return valor, n_filtradas, meta
@@ -1756,7 +1763,7 @@ def calcular_m2_equivalentes(prop):
     )
     
     # Clamp dinámico v9.3: Casas tienen menos premio por m2 descubierto
-    tipo = prop.get('tipo_inmueble', prop.get('tipo', 'departamento')).lower()
+    tipo = (prop.get('tipo_inmueble') or prop.get('tipo') or 'departamento').lower()
     if 'casa' in tipo or 'cochera' in tipo:
         max_ratio = 1.15
     else:
@@ -1889,8 +1896,8 @@ def calcular_factores(prop, ventana_usada=None):
     
     # Normalización defensiva: premium no es estado, es calidad
     def normalizar_estado_y_calidad(prop):
-        estado_raw = prop.get('estado_detalle', 'bueno').lower().replace(' ', '_')
-        calidad_raw = prop.get('calidad_edificio', 'media').lower()
+        estado_raw = (prop.get('estado_detalle') or 'bueno').lower().replace(' ', '_')
+        calidad_raw = (prop.get('calidad_edificio') or 'media').lower()
         if estado_raw == 'premium':
             estado_norm = 'excelente'
             if calidad_raw in (None, '', 'media'):
@@ -2082,7 +2089,7 @@ def calcular_factores(prop, ventana_usada=None):
                      factor_balcon * f_funcional * f_seguridad)
     
     # Factor Pasillo v9.3 (Castigo SOLO para casas/pasos, NO para deptos)
-    tipo = prop.get('tipo_inmueble', prop.get('tipo', '')).lower()
+    tipo = (prop.get('tipo_inmueble') or prop.get('tipo') or '').lower()
     es_depto = 'departamento' in tipo or 'depto' in tipo or 'ph' in tipo
     
     # Factor estructural BRUTO (sin anti, sin pasillo para deptos)
@@ -3142,7 +3149,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True):
             lon_ref=lon,
             fecha_ref=fecha_ref,
             anio_sujeto=anio_const,
-            tipo_inmueble=prop.get('tipo_inmueble', prop.get('tipo', 'departamento')),
+            tipo_inmueble=prop.get('tipo_inmueble') or prop.get('tipo') or 'departamento',
             cache_scraping=cache_scraping_compartido
         )
     
@@ -3200,7 +3207,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True):
     # Usar zona normalizada para mejor match con cache
     zona_alq = normalizar_zona(zona_txt)
     with profile_block("cluster_alquiler", prop):
-        m2_base_alq_raw, n_a, meta_alq = obtener_mediana_cluster_v2(zona=zona_alq, dormitorios=dorms, operacion='alquiler', lat_ref=lat, lon_ref=lon, fecha_ref=fecha_ref, tipo_inmueble=prop.get('tipo_inmueble', prop.get('tipo', 'departamento')), cache_scraping=cache_scraping_compartido)
+        m2_base_alq_raw, n_a, meta_alq = obtener_mediana_cluster_v2(zona=zona_alq, dormitorios=dorms, operacion='alquiler', lat_ref=lat, lon_ref=lon, fecha_ref=fecha_ref, tipo_inmueble=prop.get('tipo_inmueble') or prop.get('tipo') or 'departamento', cache_scraping=cache_scraping_compartido)
     
     # Fallback si no hay datos específicos (en ARS/m²)
     # Ajustar para entrar en rango:
@@ -3243,7 +3250,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True):
     factores_alquiler = f_dict['depreciacion'] * f_puros * (1.0 + (fact_ec - 1.0) * 0.50)
     
     # Regional Rental Buffer v9.4: Sinceramiento Periferia (Standard vs Profunda)
-    tipo_det = prop.get('tipo_inmueble', prop.get('tipo', '')).lower()
+    tipo_det = (prop.get('tipo_inmueble') or prop.get('tipo') or '').lower()
     if 'casa' in tipo_det and any(x in zona_txt.lower() for x in ['oeste', 'sur', 'norte']):
         # Detección de Periferia Profunda (Humble areas)
         direccion = prop.get('direccion', '')
@@ -3846,7 +3853,7 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
     """
     nombre = prop.get('nombre', 'La propiedad')
     zona = prop.get('zona', '')
-    tipo = prop.get('tipo_inmueble', 'departamento')
+    tipo = prop.get('tipo_inmueble') or prop.get('tipo') or 'departamento'
     m2_equiv = resultado.get('m2_equivalentes', 0)
     m2_cub = prop.get('m2_cubiertos', 0)
     dorms = prop.get('dormitorios', 0)
@@ -3980,7 +3987,7 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
         factores_neg.append("la vista a pulmón de manzana es menos valorada que una vista frontal")
 
     # Calidad
-    calidad = prop.get('calidad_edificio', 'media').lower().replace(' ', '_')
+    calidad = (prop.get('calidad_edificio') or 'media').lower().replace(' ', '_')
     if calidad in ('premium',):
         factores_pos.append("la calidad constructiva premium es un factor distintivo que la posiciona por encima del estándar de la zona")
     elif calidad in ('excelente',):
@@ -3993,7 +4000,7 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
         factores_neg.append("la calidad constructiva es económica, lo que modera su valor frente a otras propiedades")
 
     # Estado
-    estado = prop.get('estado_detalle', 'bueno').lower().replace(' ', '_')
+    estado = (prop.get('estado_detalle') or 'bueno').lower().replace(' ', '_')
     if estado in ('a_estrenar',):
         factores_pos.append("se encuentra a estrenar, lo que representa un diferencial importante en el mercado")
     elif estado in ('excelente',):
