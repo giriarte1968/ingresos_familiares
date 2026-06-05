@@ -1010,7 +1010,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         
         # 1. Intentar búsqueda geográfica primero si hay coordenadas
         # PN: salta Tier 1 (se contamina con Pichincha), va directo a Tier 2
-        if lat_ref is not None and lon_ref is not None and zona_normalizada != 'puerto norte':
+        if lat_ref is not None and lon_ref is not None and zona_normalizada != 'Puerto Norte':
             for radio in RADIOS_PROGRESIVOS:
                 props_geo = cluster_filters.filtrar_por_radio(
                     cache.get('propiedades', []), lat_ref, lon_ref,
@@ -1050,9 +1050,11 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         # 2. Fallback: zona normalizada + radio progresivo (o time-expansion para PN)
         if mejor_resultado is None:
             if zona_normalizada == 'Puerto Norte':
-                # PN: expandir fecha hacia atrás, radio fijo 800m
+                # PN: expandir fecha hacia atrás, radio amplio para cubrir toda la zona
+                tipo_guard = tipo_inmueble
+                tipo_inmueble = None  # PN: no filtrar por tipo (muy pocos comps)
                 for dias, min_req in zip(VENTANAS_FECHA_PN, MIN_PN):
-                    props = buscar_en_zona(zona_normalizada, dormitorios, operacion, lat_ref, lon_ref, 800)
+                    props = buscar_en_zona(zona_normalizada, dormitorios, operacion, lat_ref, lon_ref, 1500)
                     props = filtrar_por_fecha(props, fecha_ref, dias=dias)
                     if len(props) >= min_req:
                         # Marcar comps con time adjustment
@@ -1074,8 +1076,9 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                                     p['_time_adjustment'] = 1 + TASA_AJUSTE_PN * anios_desde_ref
                                 except:
                                     p['_time_adjustment'] = 1.0
-                        mejor_resultado = (props, 800, 'Puerto Norte')
+                        mejor_resultado = (props, 1500, 'Puerto Norte')
                         break
+                tipo_inmueble = tipo_guard  # restaurar filtro tipo
             else:
                 for radio in RADIOS_PROGRESIVOS:
                     props = buscar_en_zona(zona_normalizada, dormitorios, operacion, lat_ref, lon_ref, radio, fecha_ref)
@@ -1284,7 +1287,8 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         
         for p in pool_final:
             penalty = p.get('_penalizacion_barrier', 1.0)
-            val = p.get('valor_m2', 0) * penalty
+            ta = p.get('_time_adjustment', 1.0)
+            val = p.get('valor_m2', 0) * penalty * ta
             if val <= 0:
                 continue
             if p.get('_cross_soft', False):
@@ -1459,10 +1463,10 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             'alpha_optimista': alpha_opt if 'alpha_opt' in dir() else 0.55,
             'ratio_same_cross': round(ratio, 3) if 'ratio' in dir() else 1.0,
             # Percentiles del cluster
-            'p25_cluster': round(p25_cluster, 2),
-            'p33_cluster': round(p33_cluster, 2),
-            'p50_cluster': round(p50_cluster, 2),
-            'p75_cluster': round(p75_cluster, 2),
+            'p25_cluster': round(p25_cluster, 2) if p25_cluster is not None else None,
+            'p33_cluster': round(p33_cluster, 2) if p33_cluster is not None else None,
+            'p50_cluster': round(p50_cluster, 2) if p50_cluster is not None else None,
+            'p75_cluster': round(p75_cluster, 2) if p75_cluster is not None else None,
             # Fuente del rango
             'fuente_rango': fuente_rango,
             # Enriquecimiento Fase 1 (catastro)
@@ -1504,6 +1508,8 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         
         return valor, n_filtradas, meta
     except Exception as e:
+        import traceback
+        logger.error(f"[EXCEPTION] {e}\n{traceback.format_exc()}")
         return 0, 0, {
             'percentil_usado': 'P50' if operacion == 'alquiler' else 'P33',
             'n_raw': 0,
