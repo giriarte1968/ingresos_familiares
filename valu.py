@@ -563,7 +563,7 @@ def mostrar_dashboard():
                 st.info("No hay constructoras registradas. Agregue una usando el formulario de arriba.")
 
         # ─── Zonas / Anclas ───
-        ANCLAS_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "anclas_rosario_v5_1_limpio.json")
+        ANCLAS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "anclas_rosario_v5_1_limpio.json")
         def _cargar_anclas_completo():
             try:
                 with open(ANCLAS_PATH, "r", encoding="utf-8") as f:
