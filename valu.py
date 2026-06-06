@@ -481,16 +481,6 @@ def mostrar_dashboard():
     elif st.session_state.page == "Configuración":
         st.header("⚙️ Configuración")
 
-        st.markdown("---")
-        with st.expander("➕ Agregar Nueva Propiedad", expanded=False):
-            new_prop = ui_formulario_propiedad(key_suffix="new")
-            if st.button("Guardar Propiedad", type="primary"):
-                props = cargar_propiedades()
-                props.append(new_prop)
-                guardar_propiedades(props)
-                st.success(f"Propiedad {new_prop['nombre']} guardada!")
-                st.rerun()
-
         # ─── Constructoras ───
         CONSTR_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "constructoras_rosario.json")
         def _cargar_constructoras():
@@ -603,6 +593,17 @@ def mostrar_dashboard():
                         from parsers.profiler import reset
                         reset()
                         st.rerun()
+
+        # ─── Agregar Nueva Propiedad (último, porque ui_formulario_propiedad hace st.stop()) ───
+        st.markdown("---")
+        with st.expander("➕ Agregar Nueva Propiedad", expanded=False):
+            new_prop = ui_formulario_propiedad(key_suffix="new")
+            if st.button("Guardar Propiedad", type="primary"):
+                props = cargar_propiedades()
+                props.append(new_prop)
+                guardar_propiedades(props)
+                st.success(f"Propiedad {new_prop['nombre']} guardada!")
+                st.rerun()
     profile_end(_routing_ctx)
 
 # --- MAIN APP ---
