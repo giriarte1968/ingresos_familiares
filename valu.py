@@ -659,8 +659,16 @@ def mostrar_dashboard():
 
                     # Link propiedades
                     with st.expander("🔗 Ver propiedades por zona", expanded=False):
-                        for z_nombre in sorted(set(zonas_ui + list(zona_counts.keys()))):
-                            props_en_zona = zona_props_list.get(z_nombre, [])
+                        from collections import Counter
+                        zona_counts = Counter(p.get('zona', 'Otro') for p in cargar_propiedades())
+                        zona_props = {}
+                        for p in cargar_propiedades():
+                            z = p.get('zona', 'Otro')
+                            if z not in zona_props:
+                                zona_props[z] = []
+                            zona_props[z].append(p.get('nombre', '?'))
+                        for z_nombre in sorted(zona_counts.keys()):
+                            props_en_zona = zona_props.get(z_nombre, [])
                             if props_en_zona:
                                 st.markdown(f"**{z_nombre}** ({len(props_en_zona)}): {', '.join(props_en_zona)}")
 
