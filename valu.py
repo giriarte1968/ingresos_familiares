@@ -584,106 +584,91 @@ def mostrar_dashboard():
 
             from parsers.motor_vpp_core import cargar_anclas_cached
 
-            # Link propiedades a anclas (mismo criterio que fallback: zona → anchor id)
+            # Link cada propiedad al ancla más cercana por distancia Haversine
             todos_props = cargar_propiedades()
             ancla_props = {}
+            import math
             for a in anclas:
-                a_id_lower = a.get('id', '').lower()
-                linked = []
-                for p in todos_props:
-                    p_zona = p.get('zona', '').lower().replace(' ', '_').replace('á','a').replace('é','e').replace('í','i').replace('ó','o').replace('ú','u').replace('ñ','n')
-                    if p_zona and p_zona in a_id_lower:
-                        linked.append(p.get('nombre', '?'))
-                ancla_props[a['id']] = linked
-
-            tab1, tab2 = st.tabs(["📊 Editar anclas", "📝 Editor JSON"])
-
-            with tab1:
-                st.caption(f"{len(anclas)} anclas · editá el USD/m² directo en la tabla")
-                df_anclas = []
+                ancla_props[a['id']] = []
+            for p in todos_props:
+                p_lat = p.get('lat')
+                p_lon = p.get('lon')
+                if p_lat is None or p_lon is None:
+                    continue
+                best_id = None
+                best_dist = float('inf')
                 for a in anclas:
-                    linked_names = ancla_props.get(a['id'], [])
-                    df_anclas.append({
-                        "id": a.get('id', ''),
-                        "USD/m²": a.get('usd_m2', 0),
-                        "lat": a.get('lat', 0),
-                        "lon": a.get('lon', 0),
-                        "fuente": a.get('fuente', '')[:15],
-                        "fecha": a.get('fecha_calibracion', '')[:10],
-                        "props": len(linked_names),
-                        "_props_names": ", ".join(linked_names) if linked_names else ""
-                    })
-                df_a = pd.DataFrame(df_anclas)
+                    a_lat = a.get('lat')
+                    a_lon = a.get('lon')
+                    if a_lat is None or a_lon is None:
+                        continue
+                    R = 6371
+                    lat1, lon1, lat2, lon2 = math.radians(p_lat), math.radians(p_lon), math.radians(a_lat), math.radians(a_lon)
+                    dlat, dlon = lat2 - lat1, lon2 - lon1
+                    dist = 2 * R * math.asin(math.sqrt(math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2))
+                    if dist < best_dist:
+                        best_dist = dist
+                        best_id = a['id']
+                if best_id:
+                    ancla_props[best_id].append(p.get('nombre', '?'))
 
-                edited = st.data_editor(
-                    df_a[["id", "USD/m²", "lat", "lon", "fuente", "fecha", "props"]],
-                    column_config={
-                        "id": st.column_config.TextColumn("Ancla ID", disabled=True, width="medium"),
-                        "USD/m²": st.column_config.NumberColumn("USD/m²", min_value=0, step=50.0, format="$%.0f", width="small"),
-                        "lat": st.column_config.NumberColumn("Lat", disabled=True, format="%.4f", width="small"),
-                        "lon": st.column_config.NumberColumn("Lon", disabled=True, format="%.4f", width="small"),
-                        "fuente": st.column_config.TextColumn("Fuente", disabled=True, width="small"),
-                        "fecha": st.column_config.TextColumn("Fecha", disabled=True, width="small"),
-                        "props": st.column_config.NumberColumn("Props", disabled=True, width="small"),
-                    },
-                    hide_index=True,
-                    use_container_width=True,
-                    key="anclas_editor"
-                )
+            st.caption(f"{len(anclas)} anclas · editá el USD/m² directo en la tabla")
+            df_anclas = []
+            for a in anclas:
+                linked_names = ancla_props.get(a['id'], [])
+                df_anclas.append({
+                    "id": a.get('id', ''),
+                    "USD/m²": a.get('usd_m2', 0),
+                    "lat": a.get('lat', 0),
+                    "lon": a.get('lon', 0),
+                    "fuente": a.get('fuente', '')[:15],
+                    "fecha": a.get('fecha_calibracion', '')[:10],
+                    "props": len(linked_names),
+                    "_props_names": ", ".join(linked_names) if linked_names else ""
+                })
+            df_a = pd.DataFrame(df_anclas)
 
-                if st.button("💾 Guardar cambios", type="primary", use_container_width=True):
-                    cambios = 0
-                    for _, row in edited.iterrows():
-                        a_id = row["id"]
-                        nuevo_usd = row["USD/m²"]
-                        for a in anclas:
-                            if a["id"] == a_id and abs(a.get("usd_m2", 0) - nuevo_usd) > 0.5:
-                                a["usd_m2"] = nuevo_usd
-                                a["fecha_calibracion"] = datetime.now().strftime("%Y-%m-%d")
-                                cambios += 1
-                    if cambios:
-                        anclas_data["anclas"] = anclas
-                        _guardar_anclas_completo(anclas_data)
-                        cargar_anclas_cached(force_reload=True)
-                        st.success(f"{cambios} ancla(s) actualizadas. Caché invalidada.")
-                        st.rerun()
-                    else:
-                        st.info("Sin cambios detectados.")
+            edited = st.data_editor(
+                df_a[["id", "USD/m²", "lat", "lon", "fuente", "fecha", "props"]],
+                column_config={
+                    "id": st.column_config.TextColumn("Ancla ID", disabled=True, width="medium"),
+                    "USD/m²": st.column_config.NumberColumn("USD/m²", min_value=0, step=50.0, format="$%.0f", width="small"),
+                    "lat": st.column_config.NumberColumn("Lat", disabled=True, format="%.4f", width="small"),
+                    "lon": st.column_config.NumberColumn("Lon", disabled=True, format="%.4f", width="small"),
+                    "fuente": st.column_config.TextColumn("Fuente", disabled=True, width="small"),
+                    "fecha": st.column_config.TextColumn("Fecha", disabled=True, width="small"),
+                    "props": st.column_config.NumberColumn("Props", disabled=True, width="small"),
+                },
+                hide_index=True,
+                use_container_width=True,
+                key="anclas_editor"
+            )
 
-                # Link propiedades
-                with st.expander("🔗 Propiedades por ancla", expanded=False):
+            if st.button("💾 Guardar cambios", type="primary", use_container_width=True):
+                cambios = 0
+                for _, row in edited.iterrows():
+                    a_id = row["id"]
+                    nuevo_usd = row["USD/m²"]
                     for a in anclas:
-                        linked = ancla_props.get(a['id'], [])
-                        if linked:
-                            st.markdown(f"**{a['id']}** (${a.get('usd_m2',0):.0f}): {', '.join(linked)}")
+                        if a["id"] == a_id and abs(a.get("usd_m2", 0) - nuevo_usd) > 0.5:
+                            a["usd_m2"] = nuevo_usd
+                            a["fecha_calibracion"] = datetime.now().strftime("%Y-%m-%d")
+                            cambios += 1
+                if cambios:
+                    anclas_data["anclas"] = anclas
+                    _guardar_anclas_completo(anclas_data)
+                    cargar_anclas_cached(force_reload=True)
+                    st.success(f"{cambios} ancla(s) actualizadas. Caché invalidada.")
+                    st.rerun()
+                else:
+                    st.info("Sin cambios detectados.")
 
-                    # Link propiedades
-                    with st.expander("🔗 Ver propiedades por zona", expanded=False):
-                        from collections import Counter
-                        zona_counts = Counter(p.get('zona', 'Otro') for p in cargar_propiedades())
-                        zona_props = {}
-                        for p in cargar_propiedades():
-                            z = p.get('zona', 'Otro')
-                            if z not in zona_props:
-                                zona_props[z] = []
-                            zona_props[z].append(p.get('nombre', '?'))
-                        for z_nombre in sorted(zona_counts.keys()):
-                            props_en_zona = zona_props.get(z_nombre, [])
-                            if props_en_zona:
-                                st.markdown(f"**{z_nombre}** ({len(props_en_zona)}): {', '.join(props_en_zona)}")
-
-            with tab2:
-                json_str = json.dumps(anclas_data, ensure_ascii=False, indent=2)
-                json_edit = st.text_area("Editar JSON directamente", value=json_str, height=400, key="anclas_json_editor")
-                if st.button("💾 Guardar JSON", type="primary", use_container_width=True):
-                    try:
-                        parsed = json.loads(json_edit)
-                        _guardar_anclas_completo(parsed)
-                        cargar_anclas_cached(force_reload=True)
-                        st.success("JSON guardado. Caché invalidada.")
-                        st.rerun()
-                    except json.JSONDecodeError as e:
-                        st.error(f"JSON inválido: {e}")
+            # Link propiedades (cada propiedad aparece en el ancla más cercano)
+            with st.expander("🔗 Propiedades por ancla", expanded=False):
+                for a in anclas:
+                    linked = ancla_props.get(a['id'], [])
+                    if linked:
+                        st.markdown(f"**{a['id']}** (${a.get('usd_m2',0):.0f}): {', '.join(linked)}")
 
         # ─── Profiling de rendimiento ───
         st.markdown("---")
