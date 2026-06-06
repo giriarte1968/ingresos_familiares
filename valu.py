@@ -564,57 +564,100 @@ def mostrar_dashboard():
 
         # ─── Zonas / Anclas ───
         ANCLAS_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "anclas_rosario_v5_1_limpio.json")
-        def _cargar_anclas():
+        def _cargar_anclas_completo():
             try:
                 with open(ANCLAS_PATH, "r", encoding="utf-8") as f:
                     data = json.load(f)
-                    return data if isinstance(data, dict) else {"anclas": data}
+                    return data if isinstance(data, dict) else {"anclas": data if isinstance(data, list) else []}
             except:
                 return {"anclas": []}
-        def _guardar_anclas(data):
+        def _guardar_anclas_completo(data):
             with open(ANCLAS_PATH, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
 
         st.markdown("---")
         with st.expander("📍 Administrar Zonas (Anclas)", expanded=False):
-            anclas_data = _cargar_anclas()
+            anclas_data = _cargar_anclas_completo()
             anclas = anclas_data.get("anclas", [])
             if not isinstance(anclas, list):
                 anclas = []
 
-            st.caption(f"{len(anclas)} zonas registradas. Modificá el valor ancla (USD/m²) y guardá.")
+            # 1. Construir lista de zonas desde dropdown + propiedades + anclas
+            zonas_ui = ["Centro", "Macrocentro", "Barrio Inglés", "Pichincha", "Abasto", "Martin", "Facultades", "Puerto Norte", "Barrio Tigre", "Rosario Norte", "Alvear", "San Martín", "General Paz", "Echesortu", "Fisherton", "Ruta 9", "Sur", "Norte", "Oeste", "Sexta Pellegrini", "República de la Sexta", "Otro"]
+            todos_props = cargar_propiedades()
+            zona_counts = {}
+            for p in todos_props:
+                z = p.get('zona', 'Otro')
+                zona_counts[z] = zona_counts.get(z, 0) + 1
 
+            # 2. Para cada zona, encontrar anchor(es) que coinciden por texto (mismo criterio que fallback)
+            zonas_info = {}
+            for z_nombre in sorted(set(zonas_ui + list(zona_counts.keys()))):
+                z_key = z_nombre.lower().replace(' ', '_').replace('á','a').replace('é','e').replace('í','i').replace('ó','o').replace('ú','u').replace('ñ','n')
+                # Buscar anchors cuyo id contenga z_key
+                matching = [a for a in anclas if z_key in a.get('id', '').lower()]
+                n_props = zona_counts.get(z_nombre, 0)
+                n_anclas = len(matching)
+                if matching:
+                    avg_usd = sum(a.get('usd_m2', 0) for a in matching) / len(matching)
+                    min_usd = min(a.get('usd_m2', 0) for a in matching)
+                    max_usd = max(a.get('usd_m2', 0) for a in matching)
+                else:
+                    avg_usd = min_usd = max_usd = None
+                zonas_info[z_nombre] = {
+                    'n_props': n_props,
+                    'n_anclas': n_anclas,
+                    'avg_usd': avg_usd,
+                    'min_usd': min_usd,
+                    'max_usd': max_usd,
+                    'matching_ids': [a['id'] for a in matching]
+                }
+
+            # 3. Botón guardar
             from parsers.motor_vpp_core import cargar_anclas_cached
-
-            if st.button("💾 Guardar todos los cambios", type="primary", use_container_width=True):
+            if st.button("💾 Guardar cambios en anclas", type="primary", use_container_width=True):
                 anclas_data["anclas"] = anclas
-                _guardar_anclas(anclas_data)
+                _guardar_anclas_completo(anclas_data)
                 cargar_anclas_cached(force_reload=True)
                 st.success("Anclas guardadas. Caché invalidada.")
                 st.rerun()
 
-            changes = False
-            for i, a in enumerate(list(anclas)):
-                cols = st.columns([15, 8, 8, 5])
-                with cols[0]:
-                    st.code(a.get("id", ""))
-                with cols[1]:
-                    old_val = a.get("usd_m2", 0)
-                    new_val = st.number_input("USD/m²", value=float(old_val), step=10.0, format="%.0f",
-                        key=f"ancla_usd_{i}", label_visibility="collapsed")
-                    if abs(new_val - old_val) > 0.01:
-                        anclas[i]["usd_m2"] = new_val
-                        changes = True
-                        anclas[i]["fecha_calibracion"] = datetime.now().strftime("%Y-%m-%d")
-                with cols[2]:
-                    fecha = a.get("fecha_calibracion", "")
-                    st.caption(fecha)
-                with cols[3]:
-                    fuente = a.get("fuente", "")
-                    st.caption(fuente[:12] if fuente else "")
+            # 4. Tabla
+            st.markdown(f"**{len(zonas_info)} zonas** · {len(anclas)} anclas en total")
+            st.caption("El valor USD/m² muestra el promedio de anclas que coinciden por nombre. Los cambios se guardan a TODAS las anclas de esa zona.")
 
-            if changes:
-                st.info("Hay cambios sin guardar. Usá el botón 'Guardar todos los cambios' de arriba.")
+            for z_nombre, info in sorted(zonas_info.items()):
+                with st.container(border=True):
+                    cols = st.columns([3, 2, 2, 1, 2])
+                    with cols[0]:
+                        st.markdown(f"**{z_nombre}**")
+                        st.caption(f"{info['n_anclas']} anclas · {info['n_props']} props")
+                    with cols[1]:
+                        if info['avg_usd'] is not None:
+                            st.metric("USD/m² promedio", f"${info['avg_usd']:.0f}")
+                    with cols[2]:
+                        if info['min_usd'] is not None and info['max_usd'] is not None:
+                            if info['min_usd'] != info['max_usd']:
+                                st.caption(f"rango: ${info['min_usd']:.0f} – ${info['max_usd']:.0f}")
+                        # Editar valor
+                        if info['n_anclas'] > 0:
+                            new_val = st.number_input("Nuevo USD/m²", value=float(info['avg_usd']), step=50.0, format="%.0f",
+                                key=f"zona_usd_{z_nombre}", label_visibility="collapsed")
+                            if abs(new_val - info['avg_usd']) > 1:
+                                for a in anclas:
+                                    if a['id'] in info['matching_ids']:
+                                        a['usd_m2'] = new_val
+                                st.info(f"✏️ {z_nombre} → ${new_val:.0f} (sin guardar)")
+                    with cols[3]:
+                        if info['n_props'] > 0:
+                            st.markdown(f"🏠 {info['n_props']}")
+                    with cols[4]:
+                        if info['n_anclas'] > 0:
+                            with st.expander("Ver anclas", expanded=False):
+                                for aid in info['matching_ids']:
+                                    a = next((x for x in anclas if x['id'] == aid), None)
+                                    if a:
+                                        st.code(f"{a['id']}: ${a.get('usd_m2',0):.0f}")
 
         # ─── Profiling de rendimiento ───
         st.markdown("---")
