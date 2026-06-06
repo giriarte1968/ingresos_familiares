@@ -562,6 +562,60 @@ def mostrar_dashboard():
             else:
                 st.info("No hay constructoras registradas. Agregue una usando el formulario de arriba.")
 
+        # ─── Zonas / Anclas ───
+        ANCLAS_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "anclas_rosario_v5_1_limpio.json")
+        def _cargar_anclas():
+            try:
+                with open(ANCLAS_PATH, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    return data if isinstance(data, dict) else {"anclas": data}
+            except:
+                return {"anclas": []}
+        def _guardar_anclas(data):
+            with open(ANCLAS_PATH, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+
+        st.markdown("---")
+        with st.expander("📍 Administrar Zonas (Anclas)", expanded=False):
+            anclas_data = _cargar_anclas()
+            anclas = anclas_data.get("anclas", [])
+            if not isinstance(anclas, list):
+                anclas = []
+
+            st.caption(f"{len(anclas)} zonas registradas. Modificá el valor ancla (USD/m²) y guardá.")
+
+            from parsers.motor_vpp_core import cargar_anclas_cached
+
+            if st.button("💾 Guardar todos los cambios", type="primary", use_container_width=True):
+                anclas_data["anclas"] = anclas
+                _guardar_anclas(anclas_data)
+                cargar_anclas_cached(force_reload=True)
+                st.success("Anclas guardadas. Caché invalidada.")
+                st.rerun()
+
+            changes = False
+            for i, a in enumerate(list(anclas)):
+                cols = st.columns([15, 8, 8, 5])
+                with cols[0]:
+                    st.code(a.get("id", ""))
+                with cols[1]:
+                    old_val = a.get("usd_m2", 0)
+                    new_val = st.number_input("USD/m²", value=float(old_val), step=10.0, format="%.0f",
+                        key=f"ancla_usd_{i}", label_visibility="collapsed")
+                    if abs(new_val - old_val) > 0.01:
+                        anclas[i]["usd_m2"] = new_val
+                        changes = True
+                        anclas[i]["fecha_calibracion"] = datetime.now().strftime("%Y-%m-%d")
+                with cols[2]:
+                    fecha = a.get("fecha_calibracion", "")
+                    st.caption(fecha)
+                with cols[3]:
+                    fuente = a.get("fuente", "")
+                    st.caption(fuente[:12] if fuente else "")
+
+            if changes:
+                st.info("Hay cambios sin guardar. Usá el botón 'Guardar todos los cambios' de arriba.")
+
         # ─── Profiling de rendimiento ───
         st.markdown("---")
         with st.expander("⏱️ Perfilado de Rendimiento", expanded=False):
