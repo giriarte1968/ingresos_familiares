@@ -793,12 +793,21 @@ def render_valuacion_manual(prop, res):
     ancla_list = sorted(k for k in ancla_options if k)
     ancla_list = ["Sin Ancla"] + ancla_list
 
-    # Detectar ancla mas cercana para pre-seleccionar
-    lat = prop.get('lat')
-    lon = prop.get('lon')
-    ancla_cercana = get_ancla_mas_cercana(lat, lon, anclas) if lat and lon else None
-    default_ancla_id = ancla_cercana.get('id', '') if ancla_cercana else 'Sin Ancla'
-    default_usd_m2 = ancla_cercana.get('usd_m2', 0) if ancla_cercana else 0
+    # Detectar ancla: por zona (prefijo -> subcadena -> Haversine)
+    zona_prop = (prop.get('zona') or '').lower().strip()
+    zona_key = zona_prop.replace(' ', '_').replace('-', '_')
+    ancla_por_zona = next((a for a in anclas if a.get('id', '').lower().startswith(zona_key)), None)
+    if not ancla_por_zona:
+        ancla_por_zona = next((a for a in anclas if zona_key in a.get('id', '').lower()), None)
+    if ancla_por_zona:
+        default_ancla_id = ancla_por_zona.get('id', '')
+        default_usd_m2 = ancla_por_zona.get('usd_m2', 0)
+    else:
+        lat = prop.get('lat')
+        lon = prop.get('lon')
+        ancla_cercana = get_ancla_mas_cercana(lat, lon, anclas) if lat and lon else None
+        default_ancla_id = ancla_cercana.get('id', '') if ancla_cercana else 'Sin Ancla'
+        default_usd_m2 = ancla_cercana.get('usd_m2', 0) if ancla_cercana else 0
 
     # Factor hedonico default = factores combinados del motor
     default_factor_hedonico = 1.0
