@@ -122,7 +122,7 @@ def render_header(prop, res):
             <div style="display:flex;align-items:center;margin-top:20px;">
                 <span style="width:12px;height:12px;border-radius:50%;background:{dot};margin-right:8px;"></span>
                 <span style="color:#1A2B5C;font-weight:600;font-size:14px;">{conf if not es_manual else 'Manual'}</span>
-                <span style="color:#9CA3AF;font-size:14px;margin-left:8px;">({'(' + str(n_comps) + ' comparables)' if not es_manual else '(parametros del analista)'})</span>
+                <span style="color:#9CA3AF;font-size:14px;margin-left:8px;">({str(n_comps) + ' comparables' if not es_manual else 'parametros del analista'})</span>
             </div>
         </div>
         """, unsafe_allow_html=True)
