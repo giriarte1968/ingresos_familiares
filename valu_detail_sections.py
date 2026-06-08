@@ -791,8 +791,8 @@ def render_valuacion_manual(prop, res):
     # ─── CREATE MODE ───
     from parsers.location_engine import cargar_anclas
     anclas = cargar_anclas()
-    ancla_options = {a['nombre']: a for a in anclas}
-    ancla_list = sorted(ancla_options.keys())
+    ancla_options = {a.get('id', a.get('nombre', '')): a for a in anclas}
+    ancla_list = sorted(k for k in ancla_options if k)
     ancla_list = ["Sin Ancla"] + ancla_list
 
     constr_label = ""
