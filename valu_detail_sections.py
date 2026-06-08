@@ -104,7 +104,6 @@ def render_header(prop, res):
     m2_base = res.get('m2_base_venta', 0)
     n_comps = res.get('resolution_metadata', {}).get('n_propiedades', 0)
 
-    es_manual = res.get('fuente') == 'manual'
     c_h1, c_h2 = st.columns([3, 2])
     with c_h1:
         dot = '#16A34A' if n_comps >= 15 else '#F59E0B' if n_comps >= 8 else '#DC2626'
@@ -115,14 +114,13 @@ def render_header(prop, res):
                 <span class="badge" style="background:#006AFF15;color:#006AFF;">{prop.get('tipo_inmueble','').upper()}</span>
                 <span class="badge" style="background:#0D948815;color:#0D9488;margin-left:5px;">{zona.upper()}</span>
                 <span class="badge" style="background:#F4F6FB;color:#6B7280;margin-left:5px;">ANO {prop.get('anio_construccion','?')}</span>
-                {'<span class="badge" style="background:#FF6B3515;color:#FF6B35;margin-left:5px;">MANUAL</span>' if es_manual else ''}
             </div>
             <h1 style="color:#1A2B5C;margin:0;font-size:36px;"> {nombre}</h1>
             <p style="color:#6B7280;font-size:16px;">{prop.get('direccion', 'Rosario, Argentina')}</p>
             <div style="display:flex;align-items:center;margin-top:20px;">
                 <span style="width:12px;height:12px;border-radius:50%;background:{dot};margin-right:8px;"></span>
-                <span style="color:#1A2B5C;font-weight:600;font-size:14px;">{conf if not es_manual else 'Manual'}</span>
-                <span style="color:#9CA3AF;font-size:14px;margin-left:8px;">({str(n_comps) + ' comparables' if not es_manual else 'parametros del analista'})</span>
+                <span style="color:#1A2B5C;font-weight:600;font-size:14px;">{conf}</span>
+                <span style="color:#9CA3AF;font-size:14px;margin-left:8px;">({n_comps} comparables)</span>
             </div>
         </div>
         """, unsafe_allow_html=True)
