@@ -3846,6 +3846,103 @@ def _generar_html_mapa(prop, resultado):
         return None
 
 
+def generar_resultado_manual(prop, manual_params):
+    """
+    Genera resultado de valuacion completo a partir de parametros manuales.
+    Estructura compatible con valuar_propiedad_v7() para UI.
+    """
+    from parsers.motor_vpp_core import get_binance_usdt_ars
+    usdt_ars = get_binance_usdt_ars()
+
+    m2_equiv = calcular_m2_equivalentes(prop)
+    usd_m2 = manual_params.get('usd_m2', 0)
+    factor_hedonico = manual_params.get('factor_hedonico', 1.0)
+    ajuste_pct = manual_params.get('ajuste_pct', 0.0)
+    incertidumbre_pct = manual_params.get('incertidumbre_pct', 10.0)
+
+    # Factor constructora desde JSON
+    factor_const = 1.0
+    try:
+        constr_path = "C:/Users/Gustavo/ingresos_familiares_st/constructoras_rosario.json"
+        if os.path.exists(constr_path):
+            with open(constr_path, "r", encoding="utf-8") as f:
+                constr_list = json.load(f)
+                constr = prop.get('constructora', '').lower().strip()
+                if constr and isinstance(constr_list, list):
+                    for entry in constr_list:
+                        if constr == entry.get('descripcion', '').lower().strip():
+                            pct = entry.get('porcentaje', 0)
+                            factor_const = 1.0 + pct / 100.0
+                            break
+    except:
+        pass
+
+    valor_activos = calcular_valor_activos(prop, usd_m2)
+
+    subtotal = (m2_equiv * usd_m2 * factor_hedonico * factor_const) + valor_activos['total']
+    valor_venta = subtotal * (1 + ajuste_pct / 100.0)
+
+    v_cons = valor_venta * (1 - incertidumbre_pct / 100.0)
+    v_opt = valor_venta * (1 + incertidumbre_pct / 100.0)
+    spread_pct = ((v_opt - v_cons) / v_cons) * 100 if v_cons > 0 else 0
+
+    rango_venta = {
+        'min': round(v_cons),
+        'mid': round(valor_venta),
+        'max': round(v_opt),
+        'spread_pct': round(spread_pct, 1),
+    }
+
+    GAP_CIERRE = 0.92
+    cap_rate = 0.05
+    alquiler_mensual_usd = valor_venta * cap_rate / 12
+    alquiler_mensual_ars = alquiler_mensual_usd * usdt_ars
+
+    result = {
+        'valor_propiedad_usd': round(valor_venta, 0),
+        'valor_realizable_usd': round(valor_venta * GAP_CIERRE, 0),
+        'valor_m2_actual_usd': round(valor_venta / m2_equiv, 2) if m2_equiv > 0 else 0,
+        'm2_base_venta': round(usd_m2, 2),
+        'valor_venta_conservador': int(v_cons),
+        'valor_venta_mercado': int(valor_venta),
+        'valor_venta_optimista': int(v_opt),
+        'valor_cierre_conservador': int(v_cons * GAP_CIERRE),
+        'valor_cierre_mercado': int(valor_venta * GAP_CIERRE),
+        'valor_cierre_optimista': int(v_opt * GAP_CIERRE),
+        'rango_venta': rango_venta,
+        'alquiler_estimado_ars': round(alquiler_mensual_ars, 0),
+        'alquiler_rango': {
+            'min': round(alquiler_mensual_ars * 0.9),
+            'mid': round(alquiler_mensual_ars),
+            'max': round(alquiler_mensual_ars * 1.1),
+        },
+        'cap_rate': cap_rate,
+        'usdt_ars': usdt_ars,
+        'm2_equivalentes': m2_equiv,
+        'rango_m2': f"USD {int(v_cons):,} - {int(v_opt):,}",
+        'confianza': 'media',
+        'justificacion': 'Valuacion manual — parametros especificados por el analista.',
+        'razonamiento': 'Valuacion manual — parametros especificados por el analista.',
+        'comparables_venta': [],
+        'mapa_html': None,
+        'catastro_detalle': None,
+        'valor_activos': valor_activos,
+        'fuente': 'manual',
+        'manual_params': manual_params,
+        'resolution_metadata': {
+            'n_propiedades': 0,
+            'fuente': 'manual',
+            'zona': prop.get('zona', ''),
+        },
+        'factor_total': factor_hedonico * factor_const,
+        'factor_const': factor_const,
+        'constructora': prop.get('constructora', ''),
+        'delta_anti': 1.0,
+        'nlp_ajuste': 0,
+    }
+    return result
+
+
 def generar_razonamiento_valuacion(prop, resultado, meta):
     """
     Genera un texto narrativo profesional que justifica la valuacion.

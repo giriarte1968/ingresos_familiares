@@ -155,6 +155,8 @@ def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict) -
                             'fecha': datetime.now().strftime("%d/%m/%Y %H:%M"),
                             'cache_version': CACHE_VERSION,
                             'timestamp': datetime.now().isoformat(),
+                            'fuente': resultado.get('fuente', 'auto'),
+                            'manual_params': resultado.get('manual_params'),
                         }
                         break
 

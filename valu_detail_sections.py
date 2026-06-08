@@ -104,6 +104,7 @@ def render_header(prop, res):
     m2_base = res.get('m2_base_venta', 0)
     n_comps = res.get('resolution_metadata', {}).get('n_propiedades', 0)
 
+    es_manual = res.get('fuente') == 'manual'
     c_h1, c_h2 = st.columns([3, 2])
     with c_h1:
         dot = '#16A34A' if n_comps >= 15 else '#F59E0B' if n_comps >= 8 else '#DC2626'
@@ -114,13 +115,14 @@ def render_header(prop, res):
                 <span class="badge" style="background:#006AFF15;color:#006AFF;">{prop.get('tipo_inmueble','').upper()}</span>
                 <span class="badge" style="background:#0D948815;color:#0D9488;margin-left:5px;">{zona.upper()}</span>
                 <span class="badge" style="background:#F4F6FB;color:#6B7280;margin-left:5px;">ANO {prop.get('anio_construccion','?')}</span>
+                {'<span class="badge" style="background:#FF6B3515;color:#FF6B35;margin-left:5px;">MANUAL</span>' if es_manual else ''}
             </div>
             <h1 style="color:#1A2B5C;margin:0;font-size:36px;"> {nombre}</h1>
             <p style="color:#6B7280;font-size:16px;">{prop.get('direccion', 'Rosario, Argentina')}</p>
             <div style="display:flex;align-items:center;margin-top:20px;">
                 <span style="width:12px;height:12px;border-radius:50%;background:{dot};margin-right:8px;"></span>
-                <span style="color:#1A2B5C;font-weight:600;font-size:14px;">{conf}</span>
-                <span style="color:#9CA3AF;font-size:14px;margin-left:8px;">({n_comps} comparables)</span>
+                <span style="color:#1A2B5C;font-weight:600;font-size:14px;">{conf if not es_manual else 'Manual'}</span>
+                <span style="color:#9CA3AF;font-size:14px;margin-left:8px;">({'(' + str(n_comps) + ' comparables)' if not es_manual else '(parametros del analista)'})</span>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -734,3 +736,208 @@ def guardar_propiedades(props):
     except Exception as e:
         st.error(f"Error guardando: {e}")
         return False
+
+
+def render_valuacion_manual(prop, res):
+    """
+    UI de Valuacion Manual.
+    Si res.get('fuente') == 'manual': modo vista con Revaluar.
+    Si no: formulario para crear nueva valuacion manual.
+    """
+    nombre = prop.get('nombre', '')
+
+    if res.get('fuente') == 'manual':
+        mp = res.get('manual_params', {})
+        st.info("Valuacion generada con parametros manuales.")
+
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            st.metric("Ancla", mp.get('ancla_id', 'Sin ancla'))
+        with c2:
+            st.metric("USD/m²", f"${mp.get('usd_m2', 0):,.0f}")
+        with c3:
+            constr = res.get('constructora', '')
+            if constr:
+                fconst = res.get('factor_const', 1.0)
+                lp = f"({(fconst - 1) * 100:+.0f}%)" if fconst != 1.0 else ""
+                st.metric("Constructora", f"{constr} {lp}".strip())
+            else:
+                st.metric("Constructora", "—")
+
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            st.metric("Factor Hedonico", f"{mp.get('factor_hedonico', 1.0):.4f}")
+        with c2:
+            st.metric("Ajuste %", f"{mp.get('ajuste_pct', 0):+.1f}%")
+        with c3:
+            st.metric("Incertidumbre %", f"{mp.get('incertidumbre_pct', 10):.1f}%")
+
+        val_act = res.get('valor_activos', {})
+        st.caption(f"Cocheras: ${val_act.get('cocheras', 0):,.0f} | Baulera: ${val_act.get('baulera', 0):,.0f}")
+
+        if st.button("Revaluar (volver a automatico)", use_container_width=True, type="primary"):
+            props = cargar_propiedades()
+            for i, p in enumerate(props):
+                if p.get('nombre') == nombre:
+                    uv = p.setdefault('_ultima_valuacion', {})
+                    uv['fuente'] = 'auto'
+                    uv.pop('manual_params', None)
+                    break
+            guardar_propiedades(props)
+            st.session_state[f'forzar_recalculo_{nombre}'] = True
+            st.rerun()
+        return
+
+    # ─── CREATE MODE ───
+    from parsers.location_engine import cargar_anclas
+    anclas = cargar_anclas()
+    ancla_options = {a['nombre']: a for a in anclas}
+    ancla_list = sorted(ancla_options.keys())
+    ancla_list = ["Sin Ancla"] + ancla_list
+
+    constr_label = ""
+    factor_const = 1.0
+    try:
+        constr_path = "C:/Users/Gustavo/ingresos_familiares_st/constructoras_rosario.json"
+        if os.path.exists(constr_path):
+            with open(constr_path, "r", encoding="utf-8") as f:
+                constr_list = json.load(f)
+            constr_prop = prop.get('constructora', '').lower().strip()
+            if constr_prop and isinstance(constr_list, list):
+                for entry in constr_list:
+                    if constr_prop == entry.get('descripcion', '').lower().strip():
+                        pct = entry.get('porcentaje', 0)
+                        factor_const = 1.0 + pct / 100.0
+                        constr_label = f"{entry['descripcion']} ({pct:+.0f}%)"
+                        break
+    except:
+        pass
+    if not constr_label and prop.get('constructora'):
+        constr_label = prop.get('constructora', '')
+
+    ss_key = f"manual_params_{nombre}"
+    if ss_key not in st.session_state:
+        st.session_state[ss_key] = {
+            'ancla_id': 'Sin Ancla',
+            'usd_m2': 0,
+            'factor_hedonico': 1.0,
+            'ajuste_pct': 0.0,
+            'incertidumbre_pct': 10.0,
+        }
+
+    saved = st.session_state[ss_key]
+
+    st.markdown("#### Parametros de Valuacion Manual")
+
+    col_a, col_b = st.columns(2)
+    with col_a:
+        ancla_sel = st.selectbox(
+            "Ancla de referencia",
+            options=ancla_list,
+            index=ancla_list.index(saved['ancla_id']) if saved['ancla_id'] in ancla_list else 0,
+            key=f"manual_ancla_{nombre}",
+        )
+    with col_b:
+        usd_m2_input = st.number_input(
+            "USD/m2",
+            min_value=0.0, max_value=10000.0,
+            value=float(saved['usd_m2'] or 0),
+            step=50.0, format="%.0f",
+            key=f"manual_usd_m2_{nombre}",
+        )
+
+    if constr_label:
+        st.caption(f"Constructora: {constr_label} (aplicado automaticamente)")
+
+    cant_cocheras = prop.get('cocheras_cantidad', 0)
+    tipo_cochera = prop.get('cocheras_tipo', 'cubierta')
+    valor_baulera = prop.get('valor_baulera', 0)
+
+    if cant_cocheras > 0:
+        coef_tipo = {'cubierta': 1.0, 'semicubierta': 0.7, 'descubierta': 0.4}.get(tipo_cochera, 1.0)
+        vbc = prop.get('valor_cochera_base', usd_m2_input * 12)
+        dets = []
+        for i in range(1, cant_cocheras + 1):
+            fu = 1.0 if i == 1 else 0.7 if i == 2 else 0.5
+            v = vbc * coef_tipo * fu
+            dets.append(f"Cochera {i}: ${v:,.0f} (utilidad {fu*100:.0f}%)")
+        st.caption("Cocheras (solo lectura): " + " | ".join(dets))
+    if valor_baulera > 0:
+        st.caption(f"Baulera (solo lectura): ${valor_baulera:,.0f}")
+    if cant_cocheras == 0 and valor_baulera == 0:
+        st.caption("Sin activos adicionales (cocheras / baulera)")
+
+    col_c, col_d, col_e = st.columns(3)
+    with col_c:
+        fh = st.number_input(
+            "Factor Hedonico",
+            min_value=0.0, max_value=5.0,
+            value=float(saved['factor_hedonico']),
+            step=0.05, format="%.4f",
+            key=f"manual_fh_{nombre}",
+        )
+    with col_d:
+        aj = st.number_input(
+            "Ajuste %",
+            min_value=-100.0, max_value=500.0,
+            value=float(saved['ajuste_pct']),
+            step=1.0, format="%.1f",
+            key=f"manual_aj_{nombre}",
+        )
+    with col_e:
+        inc = st.number_input(
+            "Incertidumbre %",
+            min_value=0.0, max_value=100.0,
+            value=float(saved['incertidumbre_pct']),
+            step=1.0, format="%.0f",
+            key=f"manual_inc_{nombre}",
+        )
+
+    # Preview
+    m2_eq = res.get('m2_equivalentes', 0)
+    pre_sub = m2_eq * usd_m2_input * fh * factor_const
+    pre_act = 0
+    if cant_cocheras > 0:
+        coef_tipo = {'cubierta': 1.0, 'semicubierta': 0.7, 'descubierta': 0.4}.get(tipo_cochera, 1.0)
+        vbc = prop.get('valor_cochera_base', usd_m2_input * 12)
+        for i in range(1, cant_cocheras + 1):
+            fu = 1.0 if i == 1 else 0.7 if i == 2 else 0.5
+            pre_act += vbc * coef_tipo * fu
+    pre_act += valor_baulera
+    pre_total = pre_sub + pre_act
+    pre_final = pre_total * (1 + aj / 100.0)
+    st.caption(
+        f"Preview: ({m2_eq:.0f}m2 x ${usd_m2_input:,.0f}/m2 x fh={fh:.4f} x constr={factor_const:.4f}) "
+        f"+ activos=${pre_act:,.0f} = ${pre_total:,.0f} "
+        f"x (1 + {aj:+.1f}%) = **${pre_final:,.0f} USD**"
+    )
+
+    if st.button("Calcular y Guardar Valuacion Manual", type="primary", use_container_width=True):
+        if usd_m2_input <= 0:
+            st.error("Ingrese un valor de USD/m2 valido.")
+            return
+        manual_params = {
+            'ancla_id': ancla_sel,
+            'usd_m2': usd_m2_input,
+            'factor_hedonico': fh,
+            'ajuste_pct': aj,
+            'incertidumbre_pct': inc,
+        }
+        from parsers.mercado_inmobiliario import generar_resultado_manual
+        resultado_manual = generar_resultado_manual(prop, manual_params)
+
+        from parsers.valuacion_cache import persistir_valuacion, cargar_cache_valuaciones
+        cache = cargar_cache_valuaciones()
+        persistir_valuacion(nombre, prop, resultado_manual, cache)
+
+        props = cargar_propiedades()
+        for i, p in enumerate(props):
+            if p.get('nombre') == nombre:
+                uv = p.setdefault('_ultima_valuacion', {})
+                uv['fuente'] = 'manual'
+                uv['manual_params'] = manual_params
+                break
+        guardar_propiedades(props)
+
+        st.success(f"Valuacion manual guardada: ${resultado_manual['valor_propiedad_usd']:,.0f} USD")
+        st.rerun()

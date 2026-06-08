@@ -227,6 +227,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         render_actions, render_header, render_rango, render_metricas,
         render_razonamiento, render_mapa_propiedad, render_tabla_comparables,
         render_catastro, render_street_view, render_historial, generar_reporte_pdf,
+        render_valuacion_manual,
     )
     _dl.mark("after_imports")
 
@@ -262,6 +263,12 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                 render_tabla_comparables(res)
         _dl.mark("after_render_tabla_comparables")
     _dl.mark("after_section_comparables")
+
+    # ─── 📐 Valuación Manual ───
+    with st.expander("📐 Valuacion Manual", expanded=False):
+        with profile_block("render_valuacion_manual", prop):
+            render_valuacion_manual(prop, res)
+    _dl.mark("after_section_manual")
 
     # ─── 📋 Valuaciones ───
     with st.expander("📋 Valuaciones", expanded=False):
@@ -378,6 +385,13 @@ def mostrar_dashboard():
                     _sl.mark("before_valuar")
                     resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False)
                     _sl.mark("after_valuar_con_cache")
+
+                    # Override con valuación manual si está persistida
+                    uv = p_obj.get('_ultima_valuacion', {})
+                    if uv.get('fuente') == 'manual' and uv.get('manual_params'):
+                        from parsers.mercado_inmobiliario import generar_resultado_manual
+                        resultado = generar_resultado_manual(p_obj, uv['manual_params'])
+                    _sl.mark("after_manual_override")
 
                 with profile_block("detalle_volver_btn", None):
                     if st.button("← Volver al Portafolio"):
