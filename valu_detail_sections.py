@@ -787,11 +787,27 @@ def render_valuacion_manual(prop, res):
         return
 
     # ─── CREATE MODE ───
-    from parsers.location_engine import cargar_anclas
+    from parsers.location_engine import cargar_anclas, get_ancla_mas_cercana
     anclas = cargar_anclas()
     ancla_options = {a.get('id', a.get('nombre', '')): a for a in anclas}
     ancla_list = sorted(k for k in ancla_options if k)
     ancla_list = ["Sin Ancla"] + ancla_list
+
+    # Detectar ancla mas cercana para pre-seleccionar
+    lat = prop.get('lat')
+    lon = prop.get('lon')
+    ancla_cercana = get_ancla_mas_cercana(lat, lon, anclas) if lat and lon else None
+    default_ancla_id = ancla_cercana.get('id', '') if ancla_cercana else 'Sin Ancla'
+    default_usd_m2 = ancla_cercana.get('usd_m2', 0) if ancla_cercana else 0
+
+    # Factor hedonico default = factores combinados del motor
+    default_factor_hedonico = 1.0
+    try:
+        from parsers.mercado_inmobiliario import calcular_factores
+        f_dict = calcular_factores(prop)
+        default_factor_hedonico = round(f_dict['total'], 4)
+    except:
+        pass
 
     constr_label = ""
     factor_const = 1.0
@@ -816,9 +832,9 @@ def render_valuacion_manual(prop, res):
     ss_key = f"manual_params_{nombre}"
     if ss_key not in st.session_state:
         st.session_state[ss_key] = {
-            'ancla_id': 'Sin Ancla',
-            'usd_m2': 0,
-            'factor_hedonico': 1.0,
+            'ancla_id': default_ancla_id,
+            'usd_m2': default_usd_m2,
+            'factor_hedonico': default_factor_hedonico,
             'ajuste_pct': 0.0,
             'incertidumbre_pct': 10.0,
         }
