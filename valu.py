@@ -216,6 +216,8 @@ def mostrar_dashboard_valu(propiedades, resultados):
 
 
 def mostrar_detalle_valu(prop, res, guardar_fn):
+    insuficientes = res.get('error') == 'insuficientes_comparables'
+
     nombre = prop.get('nombre', '')
     dolar = res.get('usdt_ars', 1480)
     valor_usd = res.get('valor_propiedad_usd', 0)
@@ -244,6 +246,14 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     _dl.mark("after_render_rango")
     st.markdown("<br>", unsafe_allow_html=True)
 
+    if insuficientes:
+        st.warning(
+            "**No se encontraron suficientes comparables** "
+            "(mínimo 2). "
+            "Usá la sección **📐 Valuación Manual** debajo "
+            "para definir el valor manualmente."
+        )
+
     with profile_block("render_metricas", prop):
         render_metricas(prop, res, valor_usd, dolar)
     _dl.mark("after_render_metricas")
@@ -265,7 +275,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     _dl.mark("after_section_comparables")
 
     # ─── 📐 Valuación Manual ───
-    with st.expander("📐 Valuacion Manual", expanded=False):
+    with st.expander("📐 Valuacion Manual", expanded=insuficientes):
         with profile_block("render_valuacion_manual", prop):
             render_valuacion_manual(prop, res)
     _dl.mark("after_section_manual")

@@ -768,7 +768,7 @@ def render_valuacion_manual(prop, res):
         with c2:
             st.metric("Ajuste %", f"{mp.get('ajuste_pct', 0):+.1f}%")
         with c3:
-            st.metric("Incertidumbre %", f"{mp.get('incertidumbre_pct', 10):.1f}%")
+            st.metric("Incertidumbre %", f"±{mp.get('incertidumbre_pct', 10):.1f}%")
 
         val_act = res.get('valor_activos', {})
         st.caption(f"Cocheras: ${val_act.get('cocheras', 0):,.0f} | Baulera: ${val_act.get('baulera', 0):,.0f}")
@@ -934,7 +934,7 @@ def render_valuacion_manual(prop, res):
         )
     with col_e:
         inc = st.number_input(
-            "Incertidumbre %",
+            "Incertidumbre (±%)",
             min_value=0.0, max_value=100.0,
             value=float(saved['incertidumbre_pct']),
             step=1.0, format="%.0f",
