@@ -2030,6 +2030,36 @@ Todas las valuaciones usan date_created en vez de date_updated, ventana fija de 
 ### Validacion:
 - 39/39 tests pasan
 - auto_validate.py: OK
+
+---
+
+## 2026-06-09 — TAREA-036: Filtro distancia para zona comercial
+
+### Cambios:
+1. `scripts/generar_anclas_grid.py`:
+   - Agregada funcion `haversine()` para calcular distancia geografica
+   - Agregada tabla `ZONA_CENTROIDES` con centros reales desde cache_scraping.json
+   - Modificada la asignacion de `zona_label`: ahora chequea que el centroide de la celda este dentro del radio de referencia antes de asignar la zona comercial
+   - Si el centroide esta fuera del radio, cae a macrozona geografica (centro/norte/sur/oeste)
+   - Eliminada zona `facultades` (1 prop, scraping artifact) y `sexta` (4 props dispersas)
+
+### Distribucion final de zonas comerciales:
+  - martin: 14→5 anc, median $1.795 (antes incluia celdas a 8km)
+  - pellegrini: 17→8 anc, median $2.041
+  - abasto: 4→3 anc
+  - pichincha: 4→4 anc (estable)
+  - puerto_norte: 4→4 anc (estable)
+  - 322 anclas total (sin cambios en cantidad)
+
+### Archivos:
+1. `scripts/generar_anclas_grid.py`: haversine(), ZONA_CENTROIDES, distancia filter (modificado)
+2. `data/anclas_rosario_v6_cluster.json`: regenerado con nuevo filtro
+3. `data/anclas_rosario_v5_1_limpio.json`: reemplazado con 322 anchors limpios
+4. `data/anclas_rosario_v5_1_limpio.json.bak`: backup original (sin cambios)
+
+### Validacion:
+- 39/39 tests pasan
+- auto_validate.py: OK
 - valuar_propiedad_smart ahora usa fecha dinamica
 
 ---

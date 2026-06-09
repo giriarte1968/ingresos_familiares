@@ -9,2902 +9,2902 @@
   "total_props": 8366,
   "anclas": [
     {
-      "n_zonal": 8,
-      "usd_m2": 2120.0,
-      "lon": -60.756497,
+      "id": "acacias_carlos_pellegrini_oeste",
       "lat": -32.932505,
-      "id": "acacias_carlos_pellegrini_pellegrini",
+      "lon": -60.756497,
+      "usd_m2": 2120.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 8
     },
     {
-      "n_zonal": 9,
-      "usd_m2": 1036.0,
-      "lon": -60.74846,
-      "lat": -32.922221,
       "id": "acevedo_oeste",
+      "lat": -32.922221,
+      "lon": -60.74846,
+      "usd_m2": 1036.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 9
     },
     {
-      "n_zonal": 5,
-      "usd_m2": 1171.0,
-      "lon": -60.691667,
-      "lat": -32.886039,
       "id": "agrelo_norte",
+      "lat": -32.886039,
+      "lon": -60.691667,
+      "usd_m2": 1171.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 5
     },
     {
-      "n_zonal": 10,
-      "usd_m2": 1190.0,
-      "lon": -60.692028,
-      "lat": -32.892391,
       "id": "agrelo_norte_2",
+      "lat": -32.892391,
+      "lon": -60.692028,
+      "usd_m2": 1190.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 10
     },
     {
-      "n_zonal": 14,
-      "usd_m2": 637.0,
-      "lon": -60.688568,
+      "id": "aguado_norte",
       "lat": -32.911355,
-      "id": "aguado_sexta",
+      "lon": -60.688568,
+      "usd_m2": 637.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 14
     },
     {
-      "n_zonal": 5,
-      "usd_m2": 832.0,
-      "lon": -60.675866,
-      "lat": -32.929014,
       "id": "alberdi_centro",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 29,
-      "usd_m2": 1270.0,
-      "lon": -60.632128,
-      "lat": -32.965278,
-      "id": "alem_abasto",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 20,
-      "usd_m2": 1332.0,
-      "lon": -60.632589,
-      "lat": -32.968024,
-      "id": "alem_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 13,
-      "usd_m2": 599.0,
-      "lon": -60.688506,
-      "lat": -32.928632,
-      "id": "alemania_centro",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 15,
-      "usd_m2": 734.0,
-      "lon": -60.688347,
-      "lat": -32.917813,
-      "id": "almafuerte_centro",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 31,
-      "usd_m2": 920.0,
-      "lon": -60.680411,
-      "lat": -32.918363,
-      "id": "almafuerte_norte",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 26,
-      "usd_m2": 1159.0,
-      "lon": -60.675383,
-      "lat": -32.936294,
-      "id": "alsina_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 13,
-      "usd_m2": 944.0,
-      "lon": -60.680157,
-      "lat": -32.954512,
-      "id": "alsina_sur_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 13,
-      "usd_m2": 1066.0,
-      "lon": -60.675283,
-      "lat": -32.940472,
-      "id": "alsina_sur_3",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 7,
-      "usd_m2": 1827.0,
-      "lon": -60.688494,
-      "lat": -32.888983,
-      "id": "alvarez_thomas_norte",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 11,
-      "usd_m2": 928.0,
-      "lon": -60.684552,
-      "lat": -32.90404,
-      "id": "alvarez_thomas_norte_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 9,
-      "usd_m2": 1105.0,
-      "lon": -60.689605,
-      "lat": -32.884953,
-      "id": "alvarez_thomas_norte_3",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 33,
-      "usd_m2": 1917.0,
-      "lon": -60.653727,
-      "lat": -32.936449,
-      "id": "alvear_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 13,
-      "usd_m2": 1033.0,
-      "lon": -60.662064,
-      "lat": -32.969424,
-      "id": "alvear_sur_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 14,
-      "usd_m2": 1094.0,
-      "lon": -60.645592,
-      "lat": -32.972273,
-      "id": "amenabar_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 17,
-      "usd_m2": 882.0,
-      "lon": -60.640918,
-      "lat": -32.973124,
-      "id": "amenabar_sur_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 10,
-      "usd_m2": 795.0,
-      "lon": -60.654252,
-      "lat": -32.971288,
-      "id": "amenabar_sur_3",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 6,
-      "usd_m2": 1058.0,
-      "lon": -60.637248,
-      "lat": -32.973365,
-      "id": "amenabar_sur_4",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 10,
-      "usd_m2": 688.0,
-      "lon": -60.641031,
-      "lat": -32.997452,
-      "id": "anchorena_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 13,
-      "usd_m2": 1412.0,
-      "lon": -60.743782,
-      "lat": -32.925028,
-      "id": "argentino_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 19,
-      "usd_m2": 1299.0,
-      "lon": -60.752263,
-      "lat": -32.924548,
-      "id": "argentino_oeste_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 9,
-      "usd_m2": 687.0,
-      "lon": -60.628579,
-      "lat": -33.002184,
-      "id": "arijon_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 6,
-      "usd_m2": 639.0,
-      "lon": -60.657252,
-      "lat": -33.003595,
-      "id": "arijon_sur_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 9,
-      "usd_m2": 638.0,
-      "lon": -60.636832,
-      "lat": -33.003942,
-      "id": "arijon_sur_3",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 33,
-      "usd_m2": 1290.0,
-      "lon": -60.683004,
-      "lat": -32.908017,
-      "id": "artigas_norte",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 24,
-      "usd_m2": 1165.0,
-      "lon": -60.674956,
-      "lat": -32.918438,
-      "id": "avellaneda_norte",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 11,
-      "usd_m2": 2247.0,
-      "lon": -60.672945,
-      "lat": -32.915994,
-      "id": "avellaneda_norte_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 26,
-      "usd_m2": 1335.0,
-      "lon": -60.679656,
-      "lat": -32.940034,
-      "id": "avellaneda_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 10,
-      "usd_m2": 1110.0,
-      "lon": -60.679922,
-      "lat": -32.943114,
-      "id": "avellaneda_sur_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 8,
-      "usd_m2": 1501.0,
-      "lon": -60.679353,
-      "lat": -32.936195,
-      "id": "avellaneda_sur_3",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 38,
-      "usd_m2": 2071.0,
-      "lon": -60.628494,
-      "lat": -32.954216,
-      "id": "ayacucho_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 7,
-      "usd_m2": 624.0,
-      "lon": -60.730701,
-      "lat": -32.919608,
-      "id": "aymara_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 6,
-      "usd_m2": 641.0,
-      "lon": -60.700946,
-      "lat": -32.892525,
-      "id": "baigorria_norte",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 85,
-      "usd_m2": 2140.0,
-      "lon": -60.650155,
-      "lat": -32.93999,
-      "id": "balcarce_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 19,
-      "usd_m2": 1836.0,
-      "lon": -60.650218,
-      "lat": -32.944113,
-      "id": "balcarce_sur_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 15,
-      "usd_m2": 1072.0,
-      "lon": -60.658152,
-      "lat": -32.968828,
-      "id": "balcarce_sur_3",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 6,
-      "usd_m2": 715.0,
-      "lon": -60.663582,
-      "lat": -32.997087,
-      "id": "balcarce_sur_4",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 7,
-      "usd_m2": 827.0,
-      "lon": -60.641718,
-      "lat": -33.001587,
-      "id": "bermudez_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 8,
-      "usd_m2": 685.0,
-      "lon": -60.64179,
-      "lat": -32.982653,
-      "id": "biedma_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 9,
-      "usd_m2": 915.0,
-      "lon": -60.645053,
-      "lat": -32.982197,
-      "id": "biedma_sur_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 6,
-      "usd_m2": 610.0,
-      "lon": -60.713614,
-      "lat": -32.946171,
-      "id": "bolivia_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 111,
-      "usd_m2": 2483.0,
-      "lon": -60.65831,
-      "lat": -32.932738,
-      "id": "brown_pichincha",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 18,
-      "usd_m2": 786.0,
-      "lon": -60.696542,
-      "lat": -32.882613,
-      "id": "buchanan_norte",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 7,
-      "usd_m2": 883.0,
-      "lon": -60.688981,
-      "lat": -32.88165,
-      "id": "buchanan_norte_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 14,
-      "usd_m2": 913.0,
-      "lon": -60.637653,
-      "lat": -32.967813,
-      "id": "buenos_aires_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 5,
-      "usd_m2": 994.0,
-      "lon": -60.645608,
-      "lat": -32.994601,
-      "id": "buenos_aires_sur_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 64,
-      "usd_m2": 1813.0,
-      "lon": -60.670938,
-      "lat": -32.940544,
-      "id": "cafferata_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 8,
-      "usd_m2": 525.0,
-      "lon": -60.683739,
-      "lat": -32.925521,
-      "id": "caggiano_centro",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 6,
-      "usd_m2": 1210.0,
-      "lon": -60.64515,
-      "lat": -33.01539,
-      "id": "caldas_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 6,
-      "usd_m2": 677.0,
-      "lon": -60.70962,
-      "lat": -32.936514,
-      "id": "campbell_centro",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 8,
-      "usd_m2": 936.0,
-      "lon": -60.654414,
-      "lat": -32.990557,
-      "id": "campo_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 10,
-      "usd_m2": 661.0,
-      "lon": -60.679242,
-      "lat": -32.928799,
-      "id": "cangallo_centro",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 28,
-      "usd_m2": 3074.0,
-      "lon": -60.66553,
-      "lat": -32.924829,
-      "id": "carballo_centro",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 28,
-      "usd_m2": 1968.0,
-      "lon": -60.671122,
-      "lat": -32.922092,
-      "id": "carballo_puerto_norte",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 69,
-      "usd_m2": 2482.0,
-      "lon": -60.645445,
-      "lat": -32.939534,
-      "id": "catamarca_centro",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 15,
-      "usd_m2": 746.0,
-      "lon": -60.654316,
-      "lat": -32.983656,
-      "id": "centeno_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 23,
-      "usd_m2": 519.0,
-      "lon": -60.642585,
-      "lat": -32.985868,
-      "id": "centeno_sur_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 19,
-      "usd_m2": 2932.0,
-      "lon": -60.663626,
-      "lat": -32.928746,
-      "id": "central_argentino_puerto_norte",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 27,
-      "usd_m2": 1164.0,
-      "lon": -60.628369,
-      "lat": -32.965048,
-      "id": "cerrito_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 14,
-      "usd_m2": 1184.0,
-      "lon": -60.667655,
-      "lat": -32.957914,
-      "id": "cerrito_sur_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 28,
-      "usd_m2": 1565.0,
-      "lon": -60.625657,
-      "lat": -32.960966,
-      "id": "chacabuco_pellegrini",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 5,
-      "usd_m2": 710.0,
-      "lon": -60.730997,
-      "lat": -32.939809,
-      "id": "chaparro_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 8,
-      "usd_m2": 985.0,
-      "lon": -60.726608,
-      "lat": -32.928809,
-      "id": "chassaing_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 7,
-      "usd_m2": 798.0,
-      "lon": -60.6879,
-      "lat": -32.921881,
-      "id": "chizzini_french_centro",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 78,
-      "usd_m2": 1795.0,
-      "lon": -60.641378,
-      "lat": -32.957883,
-      "id": "cochabamba_martin",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 7,
-      "usd_m2": 1742.0,
-      "lon": -60.764874,
-      "lat": -32.906759,
-      "id": "coloma_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 7,
-      "usd_m2": 834.0,
-      "lon": -60.717046,
-      "lat": -32.930002,
-      "id": "colombia_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 6,
-      "usd_m2": 756.0,
-      "lon": -60.730923,
-      "lat": -32.936624,
-      "id": "colombres_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 79,
-      "usd_m2": 1730.0,
-      "lon": -60.628288,
-      "lat": -32.961119,
-      "id": "colon_pellegrini",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 13,
-      "usd_m2": 919.0,
-      "lon": -60.632799,
-      "lat": -32.975633,
-      "id": "colon_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 30,
-      "usd_m2": 1037.0,
-      "lon": -60.671718,
-      "lat": -32.936356,
-      "id": "constitucion_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 8,
-      "usd_m2": 1156.0,
-      "lon": -60.675146,
-      "lat": -32.947222,
-      "id": "constitucion_sur_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 32,
-      "usd_m2": 1507.0,
-      "lon": -60.63296,
-      "lat": -32.947609,
-      "id": "cordoba_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 25,
-      "usd_m2": 1702.0,
-      "lon": -60.667226,
-      "lat": -32.939896,
-      "id": "cordoba_sur_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 21,
-      "usd_m2": 1422.0,
-      "lon": -60.64482,
-      "lat": -32.946865,
-      "id": "cordoba_sur_3",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 52,
-      "usd_m2": 2106.0,
-      "lon": -60.663222,
-      "lat": -32.942529,
-      "id": "cordoba_sur_4",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 24,
-      "usd_m2": 1163.0,
-      "lon": -60.64157,
-      "lat": -32.947327,
-      "id": "corrientes_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 13,
-      "usd_m2": 659.0,
-      "lon": -60.64983,
-      "lat": -32.968335,
-      "id": "corrientes_sur_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 11,
-      "usd_m2": 659.0,
-      "lon": -60.653452,
-      "lat": -33.001081,
-      "id": "corrientes_sur_3",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 30,
-      "usd_m2": 1491.0,
-      "lon": -60.671451,
-      "lat": -32.924854,
-      "id": "corvalan_centro",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 43,
-      "usd_m2": 1449.0,
-      "lon": -60.667274,
-      "lat": -32.936379,
-      "id": "crespo_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 14,
-      "usd_m2": 1386.0,
-      "lon": -60.76059,
-      "lat": -32.929853,
-      "id": "cuberta_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 6,
-      "usd_m2": 669.0,
-      "lon": -60.709016,
-      "lat": -32.93296,
-      "id": "cullen_centro",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 9,
-      "usd_m2": 1104.0,
-      "lon": -60.691758,
-      "lat": -32.900141,
-      "id": "darregueira_norte",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 15,
-      "usd_m2": 860.0,
-      "lon": -60.646344,
-      "lat": -32.975892,
-      "id": "dean_funes_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 11,
-      "usd_m2": 659.0,
-      "lon": -60.705461,
-      "lat": -32.936174,
-      "id": "derqui_centro",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 6,
-      "usd_m2": 614.0,
-      "lon": -60.717945,
-      "lat": -32.939624,
-      "id": "derqui_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 11,
-      "usd_m2": 633.0,
-      "lon": -60.628362,
-      "lat": -32.972264,
-      "id": "di_pierri_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 9,
-      "usd_m2": 1042.0,
-      "lon": -60.727062,
-      "lat": -32.932497,
-      "id": "donado_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 28,
-      "usd_m2": 2291.0,
-      "lon": -60.646936,
-      "lat": -32.933896,
-      "id": "dorrego_pichincha",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 114,
-      "usd_m2": 2501.0,
-      "lon": -60.645839,
-      "lat": -32.936233,
-      "id": "dorrego_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 111,
-      "usd_m2": 2113.0,
-      "lon": -60.650258,
-      "lat": -32.951331,
-      "id": "dorrego_sur_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 19,
-      "usd_m2": 696.0,
-      "lon": -60.654427,
-      "lat": -32.969143,
-      "id": "dorrego_sur_3",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 6,
-      "usd_m2": 716.0,
-      "lon": -60.693641,
-      "lat": -32.935538,
-      "id": "echague_centro",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 9,
-      "usd_m2": 635.0,
-      "lon": -60.713977,
-      "lat": -32.940772,
-      "id": "ecuador_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 5,
-      "usd_m2": 1158.0,
-      "lon": -60.679326,
-      "lat": -32.924972,
-      "id": "eguren_centro",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 92,
-      "usd_m2": 2088.0,
-      "lon": -60.640617,
-      "lat": -32.942364,
-      "id": "entre_rios_centro",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 47,
-      "usd_m2": 1784.0,
-      "lon": -60.640859,
-      "lat": -32.940042,
-      "id": "entre_rios_centro_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 7,
-      "usd_m2": 768.0,
-      "lon": -60.649886,
-      "lat": -32.98367,
-      "id": "entre_rios_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 5,
-      "usd_m2": 1479.0,
-      "lon": -60.766188,
-      "lat": -32.911836,
-      "id": "ernesto_palacios_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 9,
-      "usd_m2": 1552.0,
-      "lon": -60.688694,
-      "lat": -32.879645,
-      "id": "escauriza_norte",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 9,
-      "usd_m2": 620.0,
-      "lon": -60.706033,
-      "lat": -32.932786,
-      "id": "eva_peron_centro",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 34,
-      "usd_m2": 1747.0,
-      "lon": -60.748792,
-      "lat": -32.926103,
-      "id": "eva_peron_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 9,
-      "usd_m2": 1043.0,
-      "lon": -60.731127,
-      "lat": -32.93177,
-      "id": "eva_peron_oeste_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 80,
-      "usd_m2": 1526.0,
-      "lon": -60.636459,
-      "lat": -32.964967,
-      "id": "febrero_sexta",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 12,
-      "usd_m2": 780.0,
-      "lon": -60.693484,
-      "lat": -32.94406,
-      "id": "felipe_more_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 18,
-      "usd_m2": 1747.0,
-      "lon": -60.696416,
-      "lat": -32.879174,
-      "id": "florida_rondeau_martin",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 53,
-      "usd_m2": 1608.0,
-      "lon": -60.666236,
-      "lat": -32.942907,
-      "id": "francia_facultades",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 35,
-      "usd_m2": 1645.0,
-      "lon": -60.66642,
-      "lat": -32.94678,
-      "id": "francia_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 12,
-      "usd_m2": 853.0,
-      "lon": -60.670434,
-      "lat": -32.957892,
-      "id": "francia_sur_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 13,
-      "usd_m2": 992.0,
-      "lon": -60.670797,
-      "lat": -32.961424,
-      "id": "francia_sur_3",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 13,
-      "usd_m2": 1333.0,
-      "lon": -60.675671,
-      "lat": -32.922017,
-      "id": "french_puerto_norte",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 18,
-      "usd_m2": 777.0,
-      "lon": -60.657687,
-      "lat": -32.971999,
-      "id": "gaboto_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 5,
-      "usd_m2": 715.0,
-      "lon": -60.67976,
-      "lat": -32.921463,
-      "id": "gabriel_carrasco_norte",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 5,
-      "usd_m2": 896.0,
-      "lon": -60.689667,
-      "lat": -32.874653,
-      "id": "galicia_martin",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 5,
-      "usd_m2": 977.0,
-      "lon": -60.645085,
-      "lat": -32.968375,
-      "id": "galvez_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 10,
-      "usd_m2": 934.0,
-      "lon": -60.663746,
-      "lat": -32.965317,
-      "id": "galvez_sur_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 5,
-      "usd_m2": 646.0,
-      "lon": -60.709706,
-      "lat": -32.88939,
-      "id": "gambartes_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 6,
-      "usd_m2": 2149.0,
-      "lon": -60.747405,
-      "lat": -32.897974,
-      "id": "garcia_cossio_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 13,
-      "usd_m2": 1014.0,
-      "lon": -60.683586,
-      "lat": -32.914727,
-      "id": "genova_norte",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 9,
-      "usd_m2": 847.0,
-      "lon": -60.735514,
-      "lat": -32.929289,
-      "id": "gonzalez_solar_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 57,
-      "usd_m2": 3292.0,
-      "lon": -60.650041,
-      "lat": -32.932987,
-      "id": "guemes_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 25,
-      "usd_m2": 2357.0,
-      "lon": -60.653859,
-      "lat": -32.932705,
-      "id": "guemes_sur_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 17,
-      "usd_m2": 812.0,
-      "lon": -60.688237,
-      "lat": -32.942871,
-      "id": "gutenberg_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 11,
-      "usd_m2": 646.0,
-      "lon": -60.683897,
-      "lat": -32.929044,
-      "id": "harding_centro",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 8,
-      "usd_m2": 771.0,
-      "lon": -60.760358,
-      "lat": -32.92644,
-      "id": "higgins_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 9,
-      "usd_m2": 695.0,
-      "lon": -60.671334,
-      "lat": -32.972156,
-      "id": "hopkins_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 11,
-      "usd_m2": 1277.0,
-      "lon": -60.700692,
-      "lat": -32.878452,
-      "id": "huerto_norte",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 7,
-      "usd_m2": 1158.0,
-      "lon": -60.692356,
-      "lat": -32.874858,
-      "id": "iriarte_florida_rio_norte",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 29,
-      "usd_m2": 1479.0,
-      "lon": -60.671693,
-      "lat": -32.950158,
-      "id": "iriondo_pellegrini",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 13,
-      "usd_m2": 844.0,
-      "lon": -60.674679,
-      "lat": -32.958425,
-      "id": "iriondo_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 28,
-      "usd_m2": 1395.0,
-      "lon": -60.671341,
-      "lat": -32.943361,
-      "id": "iriondo_sur_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 15,
-      "usd_m2": 1004.0,
-      "lon": -60.672375,
-      "lat": -32.954028,
-      "id": "iriondo_sur_3",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 15,
-      "usd_m2": 1324.0,
-      "lon": -60.671293,
-      "lat": -32.946708,
-      "id": "iriondo_sur_4",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 31,
-      "usd_m2": 1539.0,
-      "lon": -60.646064,
-      "lat": -32.943235,
-      "id": "italia_centro",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 75,
-      "usd_m2": 1973.0,
-      "lon": -60.636183,
-      "lat": -32.961344,
-      "id": "ituzaingo_abasto",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 69,
-      "usd_m2": 2644.0,
-      "lon": -60.652706,
-      "lat": -32.958495,
-      "id": "ituzaingo_abasto_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 96,
-      "usd_m2": 2041.0,
-      "lon": -60.650276,
-      "lat": -32.958294,
-      "id": "ituzaingo_pellegrini",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 32,
-      "usd_m2": 1472.0,
-      "lon": -60.632922,
-      "lat": -32.961162,
-      "id": "ituzaingo_pellegrini_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 30,
-      "usd_m2": 1737.0,
-      "lon": -60.64236,
-      "lat": -32.960834,
-      "id": "ituzaingo_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 11,
-      "usd_m2": 836.0,
-      "lon": -60.675716,
-      "lat": -32.954104,
-      "id": "ituzaingo_sur_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 15,
-      "usd_m2": 1665.0,
-      "lon": -60.684136,
-      "lat": -32.901105,
-      "id": "jose_hernandez_norte",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 36,
-      "usd_m2": 1297.0,
-      "lon": -60.680315,
-      "lat": -32.914895,
-      "id": "jose_ingenieros_norte",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 7,
-      "usd_m2": 765.0,
-      "lon": -60.657606,
-      "lat": -32.987627,
-      "id": "juan_canals_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 217,
-      "usd_m2": 2236.0,
-      "lon": -60.652564,
-      "lat": -32.947759,
-      "id": "juan_centro",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 67,
-      "usd_m2": 2085.0,
-      "lon": -60.729811,
-      "lat": -32.920509,
-      "id": "juan_jose_paso_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 23,
-      "usd_m2": 1252.0,
-      "lon": -60.727663,
-      "lat": -32.921064,
-      "id": "juan_jose_paso_oeste_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 7,
-      "usd_m2": 1378.0,
-      "lon": -60.74409,
-      "lat": -32.921471,
-      "id": "juan_jose_paso_oeste_3",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 77,
-      "usd_m2": 1724.0,
-      "lon": -60.632319,
-      "lat": -32.957405,
-      "id": "juan_manuel_rosas_pellegrini",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 126,
-      "usd_m2": 1909.0,
-      "lon": -60.632716,
-      "lat": -32.951336,
-      "id": "juan_manuel_rosas_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 8,
-      "usd_m2": 929.0,
-      "lon": -60.638246,
-      "lat": -32.976148,
-      "id": "juan_manuel_rosas_sur_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 12,
-      "usd_m2": 1229.0,
-      "lon": -60.675727,
-      "lat": -32.943619,
-      "id": "juan_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 13,
-      "usd_m2": 701.0,
-      "lon": -60.688851,
-      "lat": -32.940263,
-      "id": "juan_sur_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 10,
-      "usd_m2": 1368.0,
-      "lon": -60.678681,
-      "lat": -32.96961,
-      "id": "juan_sur_3",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 20,
-      "usd_m2": 1517.0,
-      "lon": -60.753326,
-      "lat": -32.921834,
-      "id": "juarez_celman_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 23,
-      "usd_m2": 3109.0,
-      "lon": -60.641609,
-      "lat": -32.937349,
-      "id": "jujuy_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 29,
-      "usd_m2": 1910.0,
-      "lon": -60.665141,
-      "lat": -32.933494,
-      "id": "jujuy_sur_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 226,
-      "usd_m2": 2135.0,
-      "lon": -60.654315,
-      "lat": -32.950685,
-      "id": "julio_centro",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 6,
-      "usd_m2": 656.0,
-      "lon": -60.663428,
-      "lat": -32.992935,
-      "id": "julio_marc_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 21,
-      "usd_m2": 1966.0,
-      "lon": -60.675177,
-      "lat": -32.925807,
-      "id": "junin_centro",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 15,
-      "usd_m2": 2375.0,
-      "lon": -60.663113,
-      "lat": -32.925584,
-      "id": "junin_puerto_norte",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 8,
-      "usd_m2": 966.0,
-      "lon": -60.645664,
-      "lat": -32.997257,
-      "id": "lamadrid_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 32,
-      "usd_m2": 1333.0,
-      "lon": -60.636919,
-      "lat": -32.95424,
-      "id": "laprida_martin",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 15,
-      "usd_m2": 701.0,
-      "lon": -60.641349,
-      "lat": -32.975683,
-      "id": "laprida_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 7,
-      "usd_m2": 1072.0,
-      "lon": -60.697134,
-      "lat": -32.939765,
-      "id": "larrea_centro",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 6,
-      "usd_m2": 801.0,
-      "lon": -60.670972,
-      "lat": -32.96768,
-      "id": "latzina_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 16,
-      "usd_m2": 1106.0,
-      "lon": -60.6795,
-      "lat": -32.94734,
-      "id": "lavalle_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 53,
-      "usd_m2": 2758.0,
-      "lon": -60.628906,
-      "lat": -32.951403,
-      "id": "libertad_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 20,
-      "usd_m2": 887.0,
-      "lon": -60.684319,
-      "lat": -32.943762,
-      "id": "lima_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 6,
-      "usd_m2": 703.0,
-      "lon": -60.697435,
-      "lat": -32.93331,
-      "id": "lorenzo_centro",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 5,
-      "usd_m2": 650.0,
-      "lon": -60.662927,
-      "lat": -33.004413,
-      "id": "madre_cabrini_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 6,
-      "usd_m2": 858.0,
-      "lon": -60.696519,
-      "lat": -32.874528,
-      "id": "maestro_massa_norte",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 9,
-      "usd_m2": 915.0,
-      "lon": -60.705601,
-      "lat": -32.94037,
-      "id": "magallanes_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 12,
-      "usd_m2": 2660.0,
-      "lon": -60.634599,
-      "lat": -32.944486,
-      "id": "maipu_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 18,
-      "usd_m2": 744.0,
-      "lon": -60.688144,
-      "lat": -32.914745,
-      "id": "mario_antelo_norte",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 53,
-      "usd_m2": 1980.0,
-      "lon": -60.657974,
-      "lat": -32.939992,
-      "id": "martin_martin",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 29,
-      "usd_m2": 1986.0,
-      "lon": -60.658097,
-      "lat": -32.936779,
-      "id": "martin_martin_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 10,
-      "usd_m2": 869.0,
-      "lon": -60.666565,
-      "lat": -32.969171,
-      "id": "martin_martin_3",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 6,
-      "usd_m2": 768.0,
-      "lon": -60.644811,
-      "lat": -32.986812,
-      "id": "martin_martin_4",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 8,
-      "usd_m2": 929.0,
-      "lon": -60.693285,
-      "lat": -32.882597,
-      "id": "martini_martin",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 5,
-      "usd_m2": 1357.0,
-      "lon": -60.692227,
-      "lat": -32.889646,
-      "id": "matheu_norte",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 6,
-      "usd_m2": 745.0,
-      "lon": -60.692965,
-      "lat": -32.957639,
-      "id": "matienzo_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 49,
-      "usd_m2": 1858.0,
-      "lon": -60.699609,
-      "lat": -32.87394,
-      "id": "mayo_norte",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 77,
-      "usd_m2": 2041.0,
-      "lon": -60.632117,
-      "lat": -32.953947,
-      "id": "mayo_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 60,
-      "usd_m2": 2246.0,
-      "lon": -60.635938,
-      "lat": -32.95164,
-      "id": "mendoza_martin",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 7,
-      "usd_m2": 780.0,
-      "lon": -60.734884,
-      "lat": -32.939861,
-      "id": "mendoza_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 6,
-      "usd_m2": 697.0,
-      "lon": -60.709137,
-      "lat": -32.940767,
-      "id": "mendoza_oeste_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 76,
-      "usd_m2": 2044.0,
-      "lon": -60.645015,
-      "lat": -32.950375,
-      "id": "mendoza_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 10,
-      "usd_m2": 1066.0,
-      "lon": -60.735046,
-      "lat": -32.921665,
-      "id": "mieli_aldo_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 5,
-      "usd_m2": 1754.0,
-      "lon": -60.760538,
-      "lat": -32.935947,
-      "id": "miglierini_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 5,
-      "usd_m2": 957.0,
-      "lon": -60.713816,
-      "lat": -32.891587,
-      "id": "minturn_zerva_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 37,
-      "usd_m2": 2379.0,
-      "lon": -60.637704,
-      "lat": -32.940477,
-      "id": "mitre_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 15,
-      "usd_m2": 658.0,
-      "lon": -60.649784,
-      "lat": -32.997586,
-      "id": "mitre_sur_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 13,
-      "usd_m2": 875.0,
-      "lon": -60.650104,
-      "lat": -33.000984,
-      "id": "mitre_sur_3",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 35,
-      "usd_m2": 1245.0,
-      "lon": -60.64842,
-      "lat": -32.972427,
-      "id": "monroe_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 45,
-      "usd_m2": 1320.0,
-      "lon": -60.666257,
-      "lat": -32.95007,
-      "id": "monroe_sur_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 33,
-      "usd_m2": 1795.0,
-      "lon": -60.66234,
-      "lat": -32.950967,
-      "id": "montevideo_martin",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 11,
-      "usd_m2": 626.0,
-      "lon": -60.7051,
-      "lat": -32.946666,
-      "id": "montevideo_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 215,
-      "usd_m2": 2737.0,
-      "lon": -60.638142,
-      "lat": -32.957115,
-      "id": "montevideo_pellegrini",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 50,
-      "usd_m2": 1585.0,
-      "lon": -60.645984,
-      "lat": -32.953922,
-      "id": "montevideo_pellegrini_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 7,
-      "usd_m2": 774.0,
-      "lon": -60.701871,
-      "lat": -32.94679,
-      "id": "montevideo_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 15,
-      "usd_m2": 785.0,
-      "lon": -60.697335,
-      "lat": -32.946853,
-      "id": "montevideo_sur_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 13,
-      "usd_m2": 678.0,
-      "lon": -60.631805,
-      "lat": -32.979172,
-      "id": "morales_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 24,
-      "usd_m2": 1733.0,
-      "lon": -60.653282,
-      "lat": -32.953454,
-      "id": "moreno_pellegrini",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 78,
-      "usd_m2": 2266.0,
-      "lon": -60.650848,
-      "lat": -32.947587,
-      "id": "moreno_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 15,
-      "usd_m2": 1039.0,
-      "lon": -60.654249,
-      "lat": -32.965191,
-      "id": "moreno_sur_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 19,
-      "usd_m2": 1702.0,
-      "lon": -60.756404,
-      "lat": -32.925294,
-      "id": "morrison_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 5,
-      "usd_m2": 1378.0,
-      "lon": -60.735881,
-      "lat": -32.925084,
-      "id": "morrison_oeste_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 10,
-      "usd_m2": 1103.0,
-      "lon": -60.72673,
-      "lat": -32.925764,
-      "id": "morrison_oeste_3",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 8,
-      "usd_m2": 729.0,
-      "lon": -60.71419,
-      "lat": -32.932271,
-      "id": "navarro_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 12,
-      "usd_m2": 2039.0,
-      "lon": -60.625508,
-      "lat": -32.954808,
-      "id": "necochea_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 5,
-      "usd_m2": 1642.0,
-      "lon": -60.756558,
-      "lat": -32.907572,
-      "id": "newbery_jorge_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 12,
-      "usd_m2": 927.0,
-      "lon": -60.675271,
-      "lat": -32.950161,
-      "id": "nicolas_pellegrini",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 8,
-      "usd_m2": 1820.0,
-      "lon": -60.75495,
-      "lat": -32.92159,
-      "id": "nogales_juan_jose_paso_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 15,
-      "usd_m2": 862.0,
-      "lon": -60.687906,
-      "lat": -32.907759,
-      "id": "noviembre_norte",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 5,
-      "usd_m2": 682.0,
-      "lon": -60.623577,
-      "lat": -32.998635,
-      "id": "nuestra_senora_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 8,
-      "usd_m2": 743.0,
-      "lon": -60.696732,
-      "lat": -32.943852,
-      "id": "olascoaga_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 7,
-      "usd_m2": 2615.0,
-      "lon": -60.676503,
-      "lat": -32.912727,
-      "id": "olive_norte",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 39,
-      "usd_m2": 1550.0,
-      "lon": -60.676008,
-      "lat": -32.914164,
-      "id": "olive_norte_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 7,
-      "usd_m2": 1142.0,
-      "lon": -60.667558,
-      "lat": -32.971459,
-      "id": "ovidio_lagos_martin",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 71,
-      "usd_m2": 2017.0,
-      "lon": -60.662877,
-      "lat": -32.947348,
-      "id": "ovidio_lagos_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 5,
-      "usd_m2": 697.0,
-      "lon": -60.666825,
-      "lat": -32.965606,
-      "id": "ovidio_lagos_sur_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 51,
-      "usd_m2": 1724.0,
-      "lon": -60.645797,
-      "lat": -32.961234,
-      "id": "paraguay_abasto",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 36,
-      "usd_m2": 1724.0,
-      "lon": -60.645329,
-      "lat": -32.958491,
-      "id": "paraguay_pellegrini",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 50,
-      "usd_m2": 2078.0,
-      "lon": -60.648298,
-      "lat": -32.961585,
-      "id": "paraguay_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 23,
-      "usd_m2": 1533.0,
-      "lon": -60.649492,
-      "lat": -32.964412,
-      "id": "paraguay_sur_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 5,
-      "usd_m2": 694.0,
-      "lon": -60.691878,
-      "lat": -32.93976,
-      "id": "parana_centro",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 5,
-      "usd_m2": 755.0,
-      "lon": -60.682805,
-      "lat": -32.957734,
-      "id": "paz_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 8,
-      "usd_m2": 687.0,
-      "lon": -60.701141,
-      "lat": -32.943509,
-      "id": "pedro_lino_funes_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 52,
-      "usd_m2": 2240.0,
-      "lon": -60.662067,
-      "lat": -32.953269,
-      "id": "pellegrini_pellegrini",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 65,
-      "usd_m2": 2119.0,
-      "lon": -60.65006,
-      "lat": -32.954421,
-      "id": "pellegrini_pellegrini_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 26,
-      "usd_m2": 778.0,
-      "lon": -60.679865,
-      "lat": -32.950562,
-      "id": "pellegrini_pellegrini_3",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 11,
-      "usd_m2": 1566.0,
-      "lon": -60.759915,
-      "lat": -32.931241,
-      "id": "petrone_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 6,
-      "usd_m2": 844.0,
-      "lon": -60.714412,
-      "lat": -32.936051,
-      "id": "provincias_unidas_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 5,
-      "usd_m2": 700.0,
-      "lon": -60.712699,
-      "lat": -32.949902,
-      "id": "provincias_unidas_oeste_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 34,
-      "usd_m2": 1644.0,
-      "lon": -60.659074,
-      "lat": -32.95315,
-      "id": "pueyrredon_pellegrini",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 8,
-      "usd_m2": 2362.0,
-      "lon": -60.7701,
-      "lat": -32.921356,
-      "id": "real_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 9,
-      "usd_m2": 1631.0,
-      "lon": -60.774647,
-      "lat": -32.918175,
-      "id": "real_oeste_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 21,
-      "usd_m2": 795.0,
-      "lon": -60.684198,
-      "lat": -32.918498,
-      "id": "reconquista_norte",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 46,
-      "usd_m2": 1584.0,
-      "lon": -60.661834,
-      "lat": -32.933676,
-      "id": "riccheri_pichincha",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 47,
-      "usd_m2": 1622.0,
-      "lon": -60.662081,
-      "lat": -32.936486,
-      "id": "ricchieri_pichincha",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 14,
-      "usd_m2": 996.0,
-      "lon": -60.683046,
-      "lat": -32.947349,
-      "id": "rio_janeiro_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 8,
-      "usd_m2": 656.0,
-      "lon": -60.683872,
-      "lat": -32.954369,
-      "id": "rio_janeiro_sur_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 7,
-      "usd_m2": 1276.0,
-      "lon": -60.653182,
-      "lat": -32.962087,
-      "id": "riobamba_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 17,
-      "usd_m2": 756.0,
-      "lon": -60.69721,
-      "lat": -32.936868,
-      "id": "rioja_centro",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 18,
-      "usd_m2": 1088.0,
-      "lon": -60.636935,
-      "lat": -32.947243,
-      "id": "rioja_martin",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 50,
-      "usd_m2": 1936.0,
-      "lon": -60.658706,
-      "lat": -32.943308,
-      "id": "rioja_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 74,
-      "usd_m2": 2067.0,
-      "lon": -60.658319,
-      "lat": -32.94697,
-      "id": "rodriguez_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 5,
-      "usd_m2": 855.0,
-      "lon": -60.691856,
-      "lat": -32.896321,
-      "id": "rondeau_norte",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 16,
-      "usd_m2": 1455.0,
-      "lon": -60.687808,
-      "lat": -32.904221,
-      "id": "rondeau_norte_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 12,
-      "usd_m2": 827.0,
-      "lon": -60.688524,
-      "lat": -32.900947,
-      "id": "rondeau_norte_3",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 7,
-      "usd_m2": 833.0,
-      "lon": -60.688142,
-      "lat": -32.946846,
-      "id": "rosas_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 10,
-      "usd_m2": 728.0,
-      "lon": -60.700943,
-      "lat": -32.939874,
-      "id": "rouillon_centro",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 9,
-      "usd_m2": 886.0,
-      "lon": -60.683695,
-      "lat": -32.921066,
-      "id": "ruben_dario_centro",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 8,
-      "usd_m2": 697.0,
-      "lon": -60.63258,
-      "lat": -32.973471,
-      "id": "rueda_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 9,
-      "usd_m2": 756.0,
-      "lon": -60.646049,
-      "lat": -32.978332,
-      "id": "saavedra_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 16,
-      "usd_m2": 684.0,
-      "lon": -60.65019,
-      "lat": -32.975944,
-      "id": "saavedra_sur_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 13,
-      "usd_m2": 765.0,
-      "lon": -60.662625,
-      "lat": -32.975891,
-      "id": "saavedra_sur_3",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 113,
-      "usd_m2": 2392.0,
-      "lon": -60.649139,
-      "lat": -32.93629,
-      "id": "salta_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 33,
-      "usd_m2": 1881.0,
-      "lon": -60.670094,
-      "lat": -32.933472,
-      "id": "salta_sur_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 5,
-      "usd_m2": 576.0,
-      "lon": -60.641452,
-      "lat": -33.004248,
-      "id": "salva_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 6,
-      "usd_m2": 816.0,
-      "lon": -60.705443,
-      "lat": -32.882543,
-      "id": "salvat_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 14,
-      "usd_m2": 879.0,
-      "lon": -60.633046,
-      "lat": -33.000896,
-      "id": "sanchez_bustamante_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 8,
-      "usd_m2": 883.0,
-      "lon": -60.732417,
-      "lat": -32.9296,
-      "id": "sanchez_loria_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 5,
-      "usd_m2": 630.0,
-      "lon": -60.624165,
-      "lat": -32.991476,
-      "id": "sanchez_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 8,
-      "usd_m2": 794.0,
-      "lon": -60.688168,
-      "lat": -32.936004,
-      "id": "santa_fe_centro",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 8,
-      "usd_m2": 639.0,
-      "lon": -60.717705,
-      "lat": -32.93591,
-      "id": "santa_fe_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 56,
-      "usd_m2": 2074.0,
-      "lon": -60.654171,
-      "lat": -32.943203,
-      "id": "santa_fe_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 48,
-      "usd_m2": 2422.0,
-      "lon": -60.654413,
-      "lat": -32.940397,
-      "id": "santiago_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 86,
-      "usd_m2": 1779.0,
-      "lon": -60.640544,
-      "lat": -32.950969,
-      "id": "sarmiento_centro",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 82,
-      "usd_m2": 1892.0,
-      "lon": -60.641318,
-      "lat": -32.95509,
-      "id": "sarmiento_centro_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 52,
-      "usd_m2": 1208.0,
-      "lon": -60.641953,
-      "lat": -32.964537,
-      "id": "sarmiento_sexta",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 49,
-      "usd_m2": 1508.0,
-      "lon": -60.636805,
-      "lat": -32.943326,
-      "id": "sarmiento_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 8,
+      "lat": -32.929014,
+      "lon": -60.675866,
       "usd_m2": 832.0,
-      "lon": -60.649948,
-      "lat": -32.986137,
-      "id": "sarmiento_sur_2",
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 5
     },
     {
-      "n_zonal": 9,
-      "usd_m2": 700.0,
-      "lon": -60.648698,
-      "lat": -32.990242,
-      "id": "sarmiento_sur_3",
+      "id": "alem_sur",
+      "lat": -32.965278,
+      "lon": -60.632128,
+      "usd_m2": 1270.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 29
     },
     {
-      "n_zonal": 16,
-      "usd_m2": 2051.0,
-      "lon": -60.761567,
-      "lat": -32.914927,
-      "id": "schweitzer_oeste",
+      "id": "alem_sur_2",
+      "lat": -32.968024,
+      "lon": -60.632589,
+      "usd_m2": 1332.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 20
     },
     {
-      "n_zonal": 21,
-      "usd_m2": 1547.0,
-      "lon": -60.756438,
-      "lat": -32.914847,
-      "id": "schweitzer_oeste_2",
+      "id": "alemania_centro",
+      "lat": -32.928632,
+      "lon": -60.688506,
+      "usd_m2": 599.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 13
     },
     {
-      "n_zonal": 10,
-      "usd_m2": 2121.0,
-      "lon": -60.76877,
-      "lat": -32.915365,
-      "id": "schweitzer_piedra_negra_oeste",
+      "id": "almafuerte_centro",
+      "lat": -32.917813,
+      "lon": -60.688347,
+      "usd_m2": 734.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 15
     },
     {
-      "n_zonal": 17,
-      "usd_m2": 879.0,
-      "lon": -60.64959,
-      "lat": -32.979305,
-      "id": "segui_sur",
+      "id": "almafuerte_norte",
+      "lat": -32.918363,
+      "lon": -60.680411,
+      "usd_m2": 920.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 31
     },
     {
-      "n_zonal": 8,
-      "usd_m2": 618.0,
-      "lon": -60.666292,
-      "lat": -32.975011,
-      "id": "segui_sur_2",
+      "id": "alsina_sur",
+      "lat": -32.936294,
+      "lon": -60.675383,
+      "usd_m2": 1159.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 26
     },
     {
-      "n_zonal": 13,
-      "usd_m2": 724.0,
-      "lon": -60.64025,
-      "lat": -32.979672,
-      "id": "segui_sur_3",
+      "id": "alsina_sur_2",
+      "lat": -32.954512,
+      "lon": -60.680157,
+      "usd_m2": 944.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 13
     },
     {
-      "n_zonal": 7,
-      "usd_m2": 853.0,
-      "lon": -60.65489,
-      "lat": -32.979448,
-      "id": "septiembre_sur",
+      "id": "alsina_sur_3",
+      "lat": -32.940472,
+      "lon": -60.675283,
+      "usd_m2": 1066.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 13
     },
     {
-      "n_zonal": 5,
-      "usd_m2": 731.0,
-      "lon": -60.658722,
-      "lat": -32.977804,
-      "id": "septiembre_sur_2",
+      "id": "alvarez_thomas_norte",
+      "lat": -32.888983,
+      "lon": -60.688494,
+      "usd_m2": 1827.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 7
     },
     {
-      "n_zonal": 6,
-      "usd_m2": 708.0,
-      "lon": -60.704822,
-      "lat": -32.942771,
-      "id": "solis_oeste",
+      "id": "alvarez_thomas_norte_2",
+      "lat": -32.90404,
+      "lon": -60.684552,
+      "usd_m2": 928.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 11
     },
     {
-      "n_zonal": 7,
+      "id": "alvarez_thomas_norte_3",
+      "lat": -32.884953,
+      "lon": -60.689605,
+      "usd_m2": 1105.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 9
+    },
+    {
+      "id": "alvear_sur",
+      "lat": -32.936449,
+      "lon": -60.653727,
+      "usd_m2": 1917.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 33
+    },
+    {
+      "id": "alvear_sur_2",
+      "lat": -32.969424,
+      "lon": -60.662064,
+      "usd_m2": 1033.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 13
+    },
+    {
+      "id": "amenabar_sur",
+      "lat": -32.972273,
+      "lon": -60.645592,
+      "usd_m2": 1094.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 14
+    },
+    {
+      "id": "amenabar_sur_2",
+      "lat": -32.973124,
+      "lon": -60.640918,
+      "usd_m2": 882.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 17
+    },
+    {
+      "id": "amenabar_sur_3",
+      "lat": -32.971288,
+      "lon": -60.654252,
+      "usd_m2": 795.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 10
+    },
+    {
+      "id": "amenabar_sur_4",
+      "lat": -32.973365,
+      "lon": -60.637248,
+      "usd_m2": 1058.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 6
+    },
+    {
+      "id": "anchorena_sur",
+      "lat": -32.997452,
+      "lon": -60.641031,
+      "usd_m2": 688.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 10
+    },
+    {
+      "id": "argentino_oeste",
+      "lat": -32.925028,
+      "lon": -60.743782,
+      "usd_m2": 1412.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 13
+    },
+    {
+      "id": "argentino_oeste_2",
+      "lat": -32.924548,
+      "lon": -60.752263,
+      "usd_m2": 1299.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 19
+    },
+    {
+      "id": "arijon_sur",
+      "lat": -33.002184,
+      "lon": -60.628579,
+      "usd_m2": 687.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 9
+    },
+    {
+      "id": "arijon_sur_2",
+      "lat": -33.003595,
+      "lon": -60.657252,
+      "usd_m2": 639.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 6
+    },
+    {
+      "id": "arijon_sur_3",
+      "lat": -33.003942,
+      "lon": -60.636832,
+      "usd_m2": 638.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 9
+    },
+    {
+      "id": "artigas_norte",
+      "lat": -32.908017,
+      "lon": -60.683004,
+      "usd_m2": 1290.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 33
+    },
+    {
+      "id": "avellaneda_norte",
+      "lat": -32.918438,
+      "lon": -60.674956,
+      "usd_m2": 1165.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 24
+    },
+    {
+      "id": "avellaneda_norte_2",
+      "lat": -32.915994,
+      "lon": -60.672945,
+      "usd_m2": 2247.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 11
+    },
+    {
+      "id": "avellaneda_sur",
+      "lat": -32.940034,
+      "lon": -60.679656,
+      "usd_m2": 1335.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 26
+    },
+    {
+      "id": "avellaneda_sur_2",
+      "lat": -32.943114,
+      "lon": -60.679922,
+      "usd_m2": 1110.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 10
+    },
+    {
+      "id": "avellaneda_sur_3",
+      "lat": -32.936195,
+      "lon": -60.679353,
+      "usd_m2": 1501.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 8
+    },
+    {
+      "id": "ayacucho_sur",
+      "lat": -32.954216,
+      "lon": -60.628494,
+      "usd_m2": 2071.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 38
+    },
+    {
+      "id": "aymara_oeste",
+      "lat": -32.919608,
+      "lon": -60.730701,
       "usd_m2": 624.0,
-      "lon": -60.691688,
-      "lat": -32.907311,
-      "id": "sorrento_norte",
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 7
     },
     {
-      "n_zonal": 13,
-      "usd_m2": 1209.0,
-      "lon": -60.685524,
-      "lat": -32.932972,
-      "id": "storni_centro",
+      "id": "baigorria_norte",
+      "lat": -32.892525,
+      "lon": -60.700946,
+      "usd_m2": 641.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 6
     },
     {
-      "n_zonal": 6,
-      "usd_m2": 736.0,
-      "lon": -60.675838,
-      "lat": -32.990439,
-      "id": "suipacha_sur",
+      "id": "balcarce_sur",
+      "lat": -32.93999,
+      "lon": -60.650155,
+      "usd_m2": 2140.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 85
     },
     {
-      "n_zonal": 13,
-      "usd_m2": 911.0,
-      "lon": -60.688846,
-      "lat": -32.892597,
-      "id": "superi_norte",
+      "id": "balcarce_sur_2",
+      "lat": -32.944113,
+      "lon": -60.650218,
+      "usd_m2": 1836.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 19
     },
     {
-      "n_zonal": 15,
-      "usd_m2": 1075.0,
-      "lon": -60.735582,
-      "lat": -32.932378,
-      "id": "tarragona_oeste",
+      "id": "balcarce_sur_3",
+      "lat": -32.968828,
+      "lon": -60.658152,
+      "usd_m2": 1072.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 15
     },
     {
-      "n_zonal": 10,
-      "usd_m2": 942.0,
-      "lon": -60.735103,
-      "lat": -32.936188,
-      "id": "tarragona_oeste_2",
+      "id": "balcarce_sur_4",
+      "lat": -32.997087,
+      "lon": -60.663582,
+      "usd_m2": 715.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 6
     },
     {
-      "n_zonal": 5,
-      "usd_m2": 1050.0,
-      "lon": -60.717263,
-      "lat": -32.932871,
-      "id": "tucuman_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 11,
-      "usd_m2": 2156.0,
-      "lon": -60.758539,
-      "lat": -32.935757,
-      "id": "ugarteche_oeste",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 6,
-      "usd_m2": 666.0,
-      "lon": -60.658729,
-      "lat": -32.990792,
-      "id": "uriburu_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 79,
-      "usd_m2": 1842.0,
-      "lon": -60.661336,
-      "lat": -32.939179,
-      "id": "urquiza_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 11,
-      "usd_m2": 948.0,
-      "lon": -60.683519,
-      "lat": -32.936127,
-      "id": "urquiza_sur_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 9,
-      "usd_m2": 719.0,
-      "lon": -60.654838,
-      "lat": -32.976119,
-      "id": "uruguay_sur",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 6,
-      "usd_m2": 1001.0,
-      "lon": -60.657901,
-      "lat": -32.975753,
-      "id": "uruguay_sur_2",
-      "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
-    },
-    {
-      "n_zonal": 13,
+      "id": "bermudez_sur",
+      "lat": -33.001587,
+      "lon": -60.641718,
       "usd_m2": 827.0,
-      "lon": -60.696782,
-      "lat": -32.893775,
-      "id": "valentin_gomez_norte",
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 7
     },
     {
-      "n_zonal": 6,
-      "usd_m2": 735.0,
-      "lon": -60.696915,
-      "lat": -32.896018,
-      "id": "valentin_gomez_norte_2",
+      "id": "biedma_sur",
+      "lat": -32.982653,
+      "lon": -60.64179,
+      "usd_m2": 685.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 8
     },
     {
-      "n_zonal": 16,
-      "usd_m2": 655.0,
-      "lon": -60.696647,
-      "lat": -32.885397,
-      "id": "valle_hermoso_norte",
+      "id": "biedma_sur_2",
+      "lat": -32.982197,
+      "lon": -60.645053,
+      "usd_m2": 915.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 9
     },
     {
-      "n_zonal": 7,
+      "id": "bolivia_oeste",
+      "lat": -32.946171,
+      "lon": -60.713614,
+      "usd_m2": 610.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 6
+    },
+    {
+      "id": "brown_pichincha",
+      "lat": -32.932738,
+      "lon": -60.65831,
+      "usd_m2": 2483.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 111
+    },
+    {
+      "id": "buchanan_norte",
+      "lat": -32.882613,
+      "lon": -60.696542,
+      "usd_m2": 786.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 18
+    },
+    {
+      "id": "buchanan_norte_2",
+      "lat": -32.88165,
+      "lon": -60.688981,
+      "usd_m2": 883.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 7
+    },
+    {
+      "id": "buenos_aires_sur",
+      "lat": -32.967813,
+      "lon": -60.637653,
       "usd_m2": 913.0,
-      "lon": -60.671438,
-      "lat": -32.918146,
-      "id": "valle_iberlucea_norte",
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 14
     },
     {
-      "n_zonal": 12,
-      "usd_m2": 852.0,
-      "lon": -60.683826,
-      "lat": -32.940762,
-      "id": "valparaiso_sur",
+      "id": "buenos_aires_sur_2",
+      "lat": -32.994601,
+      "lon": -60.645608,
+      "usd_m2": 994.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 5
     },
     {
-      "n_zonal": 51,
-      "usd_m2": 1373.0,
-      "lon": -60.645927,
-      "lat": -32.964584,
-      "id": "viamonte_sur",
+      "id": "cafferata_sur",
+      "lat": -32.940544,
+      "lon": -60.670938,
+      "usd_m2": 1813.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 64
     },
     {
-      "n_zonal": 11,
-      "usd_m2": 1200.0,
-      "lon": -60.628141,
-      "lat": -32.968124,
-      "id": "viamonte_sur_2",
+      "id": "caggiano_centro",
+      "lat": -32.925521,
+      "lon": -60.683739,
+      "usd_m2": 525.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 8
     },
     {
-      "n_zonal": 11,
-      "usd_m2": 913.0,
-      "lon": -60.667713,
-      "lat": -32.961623,
-      "id": "viamonte_sur_3",
+      "id": "caldas_sur",
+      "lat": -33.01539,
+      "lon": -60.64515,
+      "usd_m2": 1210.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 6
     },
     {
-      "n_zonal": 6,
-      "usd_m2": 886.0,
-      "lon": -60.68742,
-      "lat": -32.896561,
-      "id": "vila_norte",
+      "id": "campbell_centro",
+      "lat": -32.936514,
+      "lon": -60.70962,
+      "usd_m2": 677.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 6
     },
     {
-      "n_zonal": 6,
-      "usd_m2": 1598.0,
-      "lon": -60.764682,
-      "lat": -32.930294,
-      "id": "villalobos_santa_fe_oeste",
+      "id": "campo_sur",
+      "lat": -32.990557,
+      "lon": -60.654414,
+      "usd_m2": 936.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 8
     },
     {
-      "n_zonal": 17,
-      "usd_m2": 971.0,
-      "lon": -60.691993,
-      "lat": -32.904245,
-      "id": "warnes_norte",
+      "id": "cangallo_centro",
+      "lat": -32.928799,
+      "lon": -60.679242,
+      "usd_m2": 661.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 10
     },
     {
-      "n_zonal": 77,
-      "usd_m2": 1771.0,
-      "lon": -60.739384,
-      "lat": -32.925085,
-      "id": "wilde_oeste",
+      "id": "carballo_centro",
+      "lat": -32.924829,
+      "lon": -60.66553,
+      "usd_m2": 3074.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 28
     },
     {
-      "n_zonal": 48,
-      "usd_m2": 1485.0,
-      "lon": -60.740493,
-      "lat": -32.921501,
-      "id": "wilde_oeste_2",
+      "id": "carballo_puerto_norte",
+      "lat": -32.922092,
+      "lon": -60.671122,
+      "usd_m2": 1968.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 28
     },
     {
-      "n_zonal": 81,
-      "usd_m2": 1773.0,
-      "lon": -60.738503,
-      "lat": -32.933588,
-      "id": "wilde_oeste_3",
+      "id": "catamarca_centro",
+      "lat": -32.939534,
+      "lon": -60.645445,
+      "usd_m2": 2482.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 69
     },
     {
-      "n_zonal": 11,
-      "usd_m2": 1598.0,
-      "lon": -60.738441,
-      "lat": -32.929096,
-      "id": "wilde_oeste_4",
+      "id": "centeno_sur",
+      "lat": -32.983656,
+      "lon": -60.654316,
+      "usd_m2": 746.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 15
     },
     {
-      "n_zonal": 63,
-      "usd_m2": 1846.0,
-      "lon": -60.658622,
-      "lat": -32.95064,
-      "id": "zeballos_martin",
+      "id": "centeno_sur_2",
+      "lat": -32.985868,
+      "lon": -60.642585,
+      "usd_m2": 519.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 23
     },
     {
-      "n_zonal": 75,
-      "usd_m2": 2186.0,
-      "lon": -60.629515,
-      "lat": -32.957255,
-      "id": "zeballos_pellegrini",
+      "id": "central_argentino_puerto_norte",
+      "lat": -32.928746,
+      "lon": -60.663626,
+      "usd_m2": 2932.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 19
     },
     {
-      "n_zonal": 9,
-      "usd_m2": 2240.0,
-      "lon": -60.62544,
-      "lat": -32.957657,
-      "id": "zeballos_sur",
+      "id": "cerrito_sur",
+      "lat": -32.965048,
+      "lon": -60.628369,
+      "usd_m2": 1164.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 27
     },
     {
-      "n_zonal": 9,
+      "id": "cerrito_sur_2",
+      "lat": -32.957914,
+      "lon": -60.667655,
+      "usd_m2": 1184.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 14
+    },
+    {
+      "id": "chacabuco_sur",
+      "lat": -32.960966,
+      "lon": -60.625657,
+      "usd_m2": 1565.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 28
+    },
+    {
+      "id": "chaparro_oeste",
+      "lat": -32.939809,
+      "lon": -60.730997,
+      "usd_m2": 710.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 5
+    },
+    {
+      "id": "chassaing_oeste",
+      "lat": -32.928809,
+      "lon": -60.726608,
+      "usd_m2": 985.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 8
+    },
+    {
+      "id": "chizzini_french_centro",
+      "lat": -32.921881,
+      "lon": -60.6879,
       "usd_m2": 798.0,
-      "lon": -60.696525,
-      "lat": -32.889565,
-      "id": "zelaya_norte",
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 7
     },
     {
-      "n_zonal": 5,
-      "usd_m2": 729.0,
-      "lon": -60.700732,
-      "lat": -32.936419,
-      "id": "zuviria_centro",
+      "id": "cochabamba_martin",
+      "lat": -32.957883,
+      "lon": -60.641378,
+      "usd_m2": 1795.0,
+      "fecha_calibracion": "2026-06-01",
       "fuente": "grid_v6_dual",
-      "fecha_calibracion": "2026-06-01"
+      "n_zonal": 78
+    },
+    {
+      "id": "coloma_oeste",
+      "lat": -32.906759,
+      "lon": -60.764874,
+      "usd_m2": 1742.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 7
+    },
+    {
+      "id": "colombia_oeste",
+      "lat": -32.930002,
+      "lon": -60.717046,
+      "usd_m2": 834.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 7
+    },
+    {
+      "id": "colombres_oeste",
+      "lat": -32.936624,
+      "lon": -60.730923,
+      "usd_m2": 756.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 6
+    },
+    {
+      "id": "colon_sur",
+      "lat": -32.961119,
+      "lon": -60.628288,
+      "usd_m2": 1730.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 79
+    },
+    {
+      "id": "colon_sur_2",
+      "lat": -32.975633,
+      "lon": -60.632799,
+      "usd_m2": 919.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 13
+    },
+    {
+      "id": "constitucion_sur",
+      "lat": -32.936356,
+      "lon": -60.671718,
+      "usd_m2": 1037.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 30
+    },
+    {
+      "id": "constitucion_sur_2",
+      "lat": -32.947222,
+      "lon": -60.675146,
+      "usd_m2": 1156.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 8
+    },
+    {
+      "id": "cordoba_sur",
+      "lat": -32.947609,
+      "lon": -60.63296,
+      "usd_m2": 1507.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 32
+    },
+    {
+      "id": "cordoba_sur_2",
+      "lat": -32.939896,
+      "lon": -60.667226,
+      "usd_m2": 1702.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 25
+    },
+    {
+      "id": "cordoba_sur_3",
+      "lat": -32.946865,
+      "lon": -60.64482,
+      "usd_m2": 1422.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 21
+    },
+    {
+      "id": "cordoba_sur_4",
+      "lat": -32.942529,
+      "lon": -60.663222,
+      "usd_m2": 2106.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 52
+    },
+    {
+      "id": "corrientes_sur",
+      "lat": -32.947327,
+      "lon": -60.64157,
+      "usd_m2": 1163.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 24
+    },
+    {
+      "id": "corrientes_sur_2",
+      "lat": -32.968335,
+      "lon": -60.64983,
+      "usd_m2": 659.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 13
+    },
+    {
+      "id": "corrientes_sur_3",
+      "lat": -33.001081,
+      "lon": -60.653452,
+      "usd_m2": 659.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 11
+    },
+    {
+      "id": "corvalan_centro",
+      "lat": -32.924854,
+      "lon": -60.671451,
+      "usd_m2": 1491.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 30
+    },
+    {
+      "id": "crespo_sur",
+      "lat": -32.936379,
+      "lon": -60.667274,
+      "usd_m2": 1449.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 43
+    },
+    {
+      "id": "cuberta_oeste",
+      "lat": -32.929853,
+      "lon": -60.76059,
+      "usd_m2": 1386.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 14
+    },
+    {
+      "id": "cullen_centro",
+      "lat": -32.93296,
+      "lon": -60.709016,
+      "usd_m2": 669.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 6
+    },
+    {
+      "id": "darregueira_norte",
+      "lat": -32.900141,
+      "lon": -60.691758,
+      "usd_m2": 1104.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 9
+    },
+    {
+      "id": "dean_funes_sur",
+      "lat": -32.975892,
+      "lon": -60.646344,
+      "usd_m2": 860.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 15
+    },
+    {
+      "id": "derqui_centro",
+      "lat": -32.936174,
+      "lon": -60.705461,
+      "usd_m2": 659.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 11
+    },
+    {
+      "id": "derqui_oeste",
+      "lat": -32.939624,
+      "lon": -60.717945,
+      "usd_m2": 614.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 6
+    },
+    {
+      "id": "di_pierri_sur",
+      "lat": -32.972264,
+      "lon": -60.628362,
+      "usd_m2": 633.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 11
+    },
+    {
+      "id": "donado_oeste",
+      "lat": -32.932497,
+      "lon": -60.727062,
+      "usd_m2": 1042.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 9
+    },
+    {
+      "id": "dorrego_pichincha",
+      "lat": -32.933896,
+      "lon": -60.646936,
+      "usd_m2": 2291.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 28
+    },
+    {
+      "id": "dorrego_sur",
+      "lat": -32.936233,
+      "lon": -60.645839,
+      "usd_m2": 2501.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 114
+    },
+    {
+      "id": "dorrego_sur_2",
+      "lat": -32.951331,
+      "lon": -60.650258,
+      "usd_m2": 2113.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 111
+    },
+    {
+      "id": "dorrego_sur_3",
+      "lat": -32.969143,
+      "lon": -60.654427,
+      "usd_m2": 696.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 19
+    },
+    {
+      "id": "echague_centro",
+      "lat": -32.935538,
+      "lon": -60.693641,
+      "usd_m2": 716.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 6
+    },
+    {
+      "id": "ecuador_oeste",
+      "lat": -32.940772,
+      "lon": -60.713977,
+      "usd_m2": 635.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 9
+    },
+    {
+      "id": "eguren_centro",
+      "lat": -32.924972,
+      "lon": -60.679326,
+      "usd_m2": 1158.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 5
+    },
+    {
+      "id": "entre_rios_centro",
+      "lat": -32.942364,
+      "lon": -60.640617,
+      "usd_m2": 2088.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 92
+    },
+    {
+      "id": "entre_rios_centro_2",
+      "lat": -32.940042,
+      "lon": -60.640859,
+      "usd_m2": 1784.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 47
+    },
+    {
+      "id": "entre_rios_sur",
+      "lat": -32.98367,
+      "lon": -60.649886,
+      "usd_m2": 768.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 7
+    },
+    {
+      "id": "ernesto_palacios_oeste",
+      "lat": -32.911836,
+      "lon": -60.766188,
+      "usd_m2": 1479.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 5
+    },
+    {
+      "id": "escauriza_norte",
+      "lat": -32.879645,
+      "lon": -60.688694,
+      "usd_m2": 1552.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 9
+    },
+    {
+      "id": "eva_peron_centro",
+      "lat": -32.932786,
+      "lon": -60.706033,
+      "usd_m2": 620.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 9
+    },
+    {
+      "id": "eva_peron_oeste",
+      "lat": -32.926103,
+      "lon": -60.748792,
+      "usd_m2": 1747.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 34
+    },
+    {
+      "id": "eva_peron_oeste_2",
+      "lat": -32.93177,
+      "lon": -60.731127,
+      "usd_m2": 1043.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 9
+    },
+    {
+      "id": "febrero_sur",
+      "lat": -32.964967,
+      "lon": -60.636459,
+      "usd_m2": 1526.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 80
+    },
+    {
+      "id": "felipe_more_sur",
+      "lat": -32.94406,
+      "lon": -60.693484,
+      "usd_m2": 780.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 12
+    },
+    {
+      "id": "florida_rondeau_norte",
+      "lat": -32.879174,
+      "lon": -60.696416,
+      "usd_m2": 1747.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 18
+    },
+    {
+      "id": "francia_sur",
+      "lat": -32.94678,
+      "lon": -60.66642,
+      "usd_m2": 1645.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 35
+    },
+    {
+      "id": "francia_sur_2",
+      "lat": -32.942907,
+      "lon": -60.666236,
+      "usd_m2": 1608.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 53
+    },
+    {
+      "id": "francia_sur_3",
+      "lat": -32.957892,
+      "lon": -60.670434,
+      "usd_m2": 853.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 12
+    },
+    {
+      "id": "francia_sur_4",
+      "lat": -32.961424,
+      "lon": -60.670797,
+      "usd_m2": 992.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 13
+    },
+    {
+      "id": "french_puerto_norte",
+      "lat": -32.922017,
+      "lon": -60.675671,
+      "usd_m2": 1333.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 13
+    },
+    {
+      "id": "gaboto_sur",
+      "lat": -32.971999,
+      "lon": -60.657687,
+      "usd_m2": 777.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 18
+    },
+    {
+      "id": "gabriel_carrasco_norte",
+      "lat": -32.921463,
+      "lon": -60.67976,
+      "usd_m2": 715.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 5
+    },
+    {
+      "id": "galicia_norte",
+      "lat": -32.874653,
+      "lon": -60.689667,
+      "usd_m2": 896.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 5
+    },
+    {
+      "id": "galvez_sur",
+      "lat": -32.968375,
+      "lon": -60.645085,
+      "usd_m2": 977.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 5
+    },
+    {
+      "id": "galvez_sur_2",
+      "lat": -32.965317,
+      "lon": -60.663746,
+      "usd_m2": 934.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 10
+    },
+    {
+      "id": "gambartes_oeste",
+      "lat": -32.88939,
+      "lon": -60.709706,
+      "usd_m2": 646.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 5
+    },
+    {
+      "id": "garcia_cossio_oeste",
+      "lat": -32.897974,
+      "lon": -60.747405,
+      "usd_m2": 2149.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 6
+    },
+    {
+      "id": "genova_norte",
+      "lat": -32.914727,
+      "lon": -60.683586,
+      "usd_m2": 1014.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 13
+    },
+    {
+      "id": "gonzalez_solar_oeste",
+      "lat": -32.929289,
+      "lon": -60.735514,
+      "usd_m2": 847.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 9
+    },
+    {
+      "id": "guemes_sur",
+      "lat": -32.932987,
+      "lon": -60.650041,
+      "usd_m2": 3292.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 57
+    },
+    {
+      "id": "guemes_sur_2",
+      "lat": -32.932705,
+      "lon": -60.653859,
+      "usd_m2": 2357.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 25
+    },
+    {
+      "id": "gutenberg_sur",
+      "lat": -32.942871,
+      "lon": -60.688237,
+      "usd_m2": 812.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 17
+    },
+    {
+      "id": "harding_centro",
+      "lat": -32.929044,
+      "lon": -60.683897,
+      "usd_m2": 646.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 11
+    },
+    {
+      "id": "higgins_oeste",
+      "lat": -32.92644,
+      "lon": -60.760358,
+      "usd_m2": 771.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 8
+    },
+    {
+      "id": "hopkins_sur",
+      "lat": -32.972156,
+      "lon": -60.671334,
+      "usd_m2": 695.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 9
+    },
+    {
+      "id": "huerto_norte",
+      "lat": -32.878452,
+      "lon": -60.700692,
+      "usd_m2": 1277.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 11
+    },
+    {
+      "id": "iriarte_florida_rio_norte",
+      "lat": -32.874858,
+      "lon": -60.692356,
+      "usd_m2": 1158.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 7
+    },
+    {
+      "id": "iriondo_sur",
+      "lat": -32.958425,
+      "lon": -60.674679,
+      "usd_m2": 844.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 13
+    },
+    {
+      "id": "iriondo_sur_2",
+      "lat": -32.950158,
+      "lon": -60.671693,
+      "usd_m2": 1479.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 29
+    },
+    {
+      "id": "iriondo_sur_3",
+      "lat": -32.943361,
+      "lon": -60.671341,
+      "usd_m2": 1395.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 28
+    },
+    {
+      "id": "iriondo_sur_4",
+      "lat": -32.954028,
+      "lon": -60.672375,
+      "usd_m2": 1004.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 15
+    },
+    {
+      "id": "iriondo_sur_5",
+      "lat": -32.946708,
+      "lon": -60.671293,
+      "usd_m2": 1324.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 15
+    },
+    {
+      "id": "italia_centro",
+      "lat": -32.943235,
+      "lon": -60.646064,
+      "usd_m2": 1539.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 31
+    },
+    {
+      "id": "ituzaingo_abasto",
+      "lat": -32.961344,
+      "lon": -60.636183,
+      "usd_m2": 1973.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 75
+    },
+    {
+      "id": "ituzaingo_abasto_2",
+      "lat": -32.958495,
+      "lon": -60.652706,
+      "usd_m2": 2644.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 69
+    },
+    {
+      "id": "ituzaingo_pellegrini",
+      "lat": -32.958294,
+      "lon": -60.650276,
+      "usd_m2": 2041.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 96
+    },
+    {
+      "id": "ituzaingo_sur",
+      "lat": -32.961162,
+      "lon": -60.632922,
+      "usd_m2": 1472.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 32
+    },
+    {
+      "id": "ituzaingo_sur_2",
+      "lat": -32.960834,
+      "lon": -60.64236,
+      "usd_m2": 1737.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 30
+    },
+    {
+      "id": "ituzaingo_sur_3",
+      "lat": -32.954104,
+      "lon": -60.675716,
+      "usd_m2": 836.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 11
+    },
+    {
+      "id": "jose_hernandez_norte",
+      "lat": -32.901105,
+      "lon": -60.684136,
+      "usd_m2": 1665.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 15
+    },
+    {
+      "id": "jose_ingenieros_norte",
+      "lat": -32.914895,
+      "lon": -60.680315,
+      "usd_m2": 1297.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 36
+    },
+    {
+      "id": "juan_canals_sur",
+      "lat": -32.987627,
+      "lon": -60.657606,
+      "usd_m2": 765.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 7
+    },
+    {
+      "id": "juan_centro",
+      "lat": -32.947759,
+      "lon": -60.652564,
+      "usd_m2": 2236.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 217
+    },
+    {
+      "id": "juan_jose_paso_oeste",
+      "lat": -32.920509,
+      "lon": -60.729811,
+      "usd_m2": 2085.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 67
+    },
+    {
+      "id": "juan_jose_paso_oeste_2",
+      "lat": -32.921064,
+      "lon": -60.727663,
+      "usd_m2": 1252.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 23
+    },
+    {
+      "id": "juan_jose_paso_oeste_3",
+      "lat": -32.921471,
+      "lon": -60.74409,
+      "usd_m2": 1378.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 7
+    },
+    {
+      "id": "juan_manuel_rosas_sur",
+      "lat": -32.951336,
+      "lon": -60.632716,
+      "usd_m2": 1909.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 126
+    },
+    {
+      "id": "juan_manuel_rosas_sur_2",
+      "lat": -32.957405,
+      "lon": -60.632319,
+      "usd_m2": 1724.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 77
+    },
+    {
+      "id": "juan_manuel_rosas_sur_3",
+      "lat": -32.976148,
+      "lon": -60.638246,
+      "usd_m2": 929.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 8
+    },
+    {
+      "id": "juan_sur",
+      "lat": -32.943619,
+      "lon": -60.675727,
+      "usd_m2": 1229.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 12
+    },
+    {
+      "id": "juan_sur_2",
+      "lat": -32.940263,
+      "lon": -60.688851,
+      "usd_m2": 701.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 13
+    },
+    {
+      "id": "juan_sur_3",
+      "lat": -32.96961,
+      "lon": -60.678681,
+      "usd_m2": 1368.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 10
+    },
+    {
+      "id": "juarez_celman_oeste",
+      "lat": -32.921834,
+      "lon": -60.753326,
+      "usd_m2": 1517.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 20
+    },
+    {
+      "id": "jujuy_sur",
+      "lat": -32.937349,
+      "lon": -60.641609,
+      "usd_m2": 3109.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 23
+    },
+    {
+      "id": "jujuy_sur_2",
+      "lat": -32.933494,
+      "lon": -60.665141,
+      "usd_m2": 1910.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 29
+    },
+    {
+      "id": "julio_centro",
+      "lat": -32.950685,
+      "lon": -60.654315,
+      "usd_m2": 2135.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 226
+    },
+    {
+      "id": "julio_marc_sur",
+      "lat": -32.992935,
+      "lon": -60.663428,
+      "usd_m2": 656.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 6
+    },
+    {
+      "id": "junin_centro",
+      "lat": -32.925807,
+      "lon": -60.675177,
+      "usd_m2": 1966.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 21
+    },
+    {
+      "id": "junin_puerto_norte",
+      "lat": -32.925584,
+      "lon": -60.663113,
+      "usd_m2": 2375.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 15
+    },
+    {
+      "id": "lamadrid_sur",
+      "lat": -32.997257,
+      "lon": -60.645664,
+      "usd_m2": 966.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 8
+    },
+    {
+      "id": "laprida_sur",
+      "lat": -32.95424,
+      "lon": -60.636919,
+      "usd_m2": 1333.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 32
+    },
+    {
+      "id": "laprida_sur_2",
+      "lat": -32.975683,
+      "lon": -60.641349,
+      "usd_m2": 701.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 15
+    },
+    {
+      "id": "larrea_centro",
+      "lat": -32.939765,
+      "lon": -60.697134,
+      "usd_m2": 1072.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 7
+    },
+    {
+      "id": "latzina_sur",
+      "lat": -32.96768,
+      "lon": -60.670972,
+      "usd_m2": 801.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 6
+    },
+    {
+      "id": "lavalle_sur",
+      "lat": -32.94734,
+      "lon": -60.6795,
+      "usd_m2": 1106.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 16
+    },
+    {
+      "id": "libertad_sur",
+      "lat": -32.951403,
+      "lon": -60.628906,
+      "usd_m2": 2758.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 53
+    },
+    {
+      "id": "lima_sur",
+      "lat": -32.943762,
+      "lon": -60.684319,
+      "usd_m2": 887.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 20
+    },
+    {
+      "id": "lorenzo_centro",
+      "lat": -32.93331,
+      "lon": -60.697435,
+      "usd_m2": 703.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 6
+    },
+    {
+      "id": "madre_cabrini_sur",
+      "lat": -33.004413,
+      "lon": -60.662927,
+      "usd_m2": 650.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 5
+    },
+    {
+      "id": "maestro_massa_norte",
+      "lat": -32.874528,
+      "lon": -60.696519,
+      "usd_m2": 858.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 6
+    },
+    {
+      "id": "magallanes_oeste",
+      "lat": -32.94037,
+      "lon": -60.705601,
+      "usd_m2": 915.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 9
+    },
+    {
+      "id": "maipu_sur",
+      "lat": -32.944486,
+      "lon": -60.634599,
+      "usd_m2": 2660.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 12
+    },
+    {
+      "id": "mario_antelo_norte",
+      "lat": -32.914745,
+      "lon": -60.688144,
+      "usd_m2": 744.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 18
+    },
+    {
+      "id": "martin_martin",
+      "lat": -32.939992,
+      "lon": -60.657974,
+      "usd_m2": 1980.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 53
+    },
+    {
+      "id": "martin_sur",
+      "lat": -32.936779,
+      "lon": -60.658097,
+      "usd_m2": 1986.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 29
+    },
+    {
+      "id": "martin_sur_2",
+      "lat": -32.969171,
+      "lon": -60.666565,
+      "usd_m2": 869.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 10
+    },
+    {
+      "id": "martin_sur_3",
+      "lat": -32.986812,
+      "lon": -60.644811,
+      "usd_m2": 768.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 6
+    },
+    {
+      "id": "martini_norte",
+      "lat": -32.882597,
+      "lon": -60.693285,
+      "usd_m2": 929.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 8
+    },
+    {
+      "id": "matheu_norte",
+      "lat": -32.889646,
+      "lon": -60.692227,
+      "usd_m2": 1357.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 5
+    },
+    {
+      "id": "matienzo_sur",
+      "lat": -32.957639,
+      "lon": -60.692965,
+      "usd_m2": 745.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 6
+    },
+    {
+      "id": "mayo_norte",
+      "lat": -32.87394,
+      "lon": -60.699609,
+      "usd_m2": 1858.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 49
+    },
+    {
+      "id": "mayo_sur",
+      "lat": -32.953947,
+      "lon": -60.632117,
+      "usd_m2": 2041.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 77
+    },
+    {
+      "id": "mendoza_oeste",
+      "lat": -32.939861,
+      "lon": -60.734884,
+      "usd_m2": 780.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 7
+    },
+    {
+      "id": "mendoza_oeste_2",
+      "lat": -32.940767,
+      "lon": -60.709137,
+      "usd_m2": 697.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 6
+    },
+    {
+      "id": "mendoza_sur",
+      "lat": -32.950375,
+      "lon": -60.645015,
+      "usd_m2": 2044.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 76
+    },
+    {
+      "id": "mendoza_sur_2",
+      "lat": -32.95164,
+      "lon": -60.635938,
+      "usd_m2": 2246.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 60
+    },
+    {
+      "id": "mieli_aldo_oeste",
+      "lat": -32.921665,
+      "lon": -60.735046,
+      "usd_m2": 1066.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 10
+    },
+    {
+      "id": "miglierini_oeste",
+      "lat": -32.935947,
+      "lon": -60.760538,
+      "usd_m2": 1754.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 5
+    },
+    {
+      "id": "minturn_zerva_oeste",
+      "lat": -32.891587,
+      "lon": -60.713816,
+      "usd_m2": 957.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 5
+    },
+    {
+      "id": "mitre_sur",
+      "lat": -32.940477,
+      "lon": -60.637704,
+      "usd_m2": 2379.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 37
+    },
+    {
+      "id": "mitre_sur_2",
+      "lat": -32.997586,
+      "lon": -60.649784,
+      "usd_m2": 658.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 15
+    },
+    {
+      "id": "mitre_sur_3",
+      "lat": -33.000984,
+      "lon": -60.650104,
+      "usd_m2": 875.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 13
+    },
+    {
+      "id": "monroe_sur",
+      "lat": -32.972427,
+      "lon": -60.64842,
+      "usd_m2": 1245.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 35
+    },
+    {
+      "id": "monroe_sur_2",
+      "lat": -32.95007,
+      "lon": -60.666257,
+      "usd_m2": 1320.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 45
+    },
+    {
+      "id": "montevideo_martin",
+      "lat": -32.950967,
+      "lon": -60.66234,
+      "usd_m2": 1795.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 33
+    },
+    {
+      "id": "montevideo_oeste",
+      "lat": -32.946666,
+      "lon": -60.7051,
+      "usd_m2": 626.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 11
+    },
+    {
+      "id": "montevideo_pellegrini",
+      "lat": -32.957115,
+      "lon": -60.638142,
+      "usd_m2": 2737.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 215
+    },
+    {
+      "id": "montevideo_pellegrini_2",
+      "lat": -32.953922,
+      "lon": -60.645984,
+      "usd_m2": 1585.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 50
+    },
+    {
+      "id": "montevideo_sur",
+      "lat": -32.94679,
+      "lon": -60.701871,
+      "usd_m2": 774.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 7
+    },
+    {
+      "id": "montevideo_sur_2",
+      "lat": -32.946853,
+      "lon": -60.697335,
+      "usd_m2": 785.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 15
+    },
+    {
+      "id": "morales_sur",
+      "lat": -32.979172,
+      "lon": -60.631805,
+      "usd_m2": 678.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 13
+    },
+    {
+      "id": "moreno_pellegrini",
+      "lat": -32.953454,
+      "lon": -60.653282,
+      "usd_m2": 1733.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 24
+    },
+    {
+      "id": "moreno_sur",
+      "lat": -32.947587,
+      "lon": -60.650848,
+      "usd_m2": 2266.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 78
+    },
+    {
+      "id": "moreno_sur_2",
+      "lat": -32.965191,
+      "lon": -60.654249,
+      "usd_m2": 1039.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 15
+    },
+    {
+      "id": "morrison_oeste",
+      "lat": -32.925294,
+      "lon": -60.756404,
+      "usd_m2": 1702.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 19
+    },
+    {
+      "id": "morrison_oeste_2",
+      "lat": -32.925084,
+      "lon": -60.735881,
+      "usd_m2": 1378.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 5
+    },
+    {
+      "id": "morrison_oeste_3",
+      "lat": -32.925764,
+      "lon": -60.72673,
+      "usd_m2": 1103.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 10
+    },
+    {
+      "id": "navarro_oeste",
+      "lat": -32.932271,
+      "lon": -60.71419,
+      "usd_m2": 729.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 8
+    },
+    {
+      "id": "necochea_sur",
+      "lat": -32.954808,
+      "lon": -60.625508,
+      "usd_m2": 2039.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 12
+    },
+    {
+      "id": "newbery_jorge_oeste",
+      "lat": -32.907572,
+      "lon": -60.756558,
+      "usd_m2": 1642.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 5
+    },
+    {
+      "id": "nicolas_sur",
+      "lat": -32.950161,
+      "lon": -60.675271,
+      "usd_m2": 927.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 12
+    },
+    {
+      "id": "nogales_juan_jose_paso_oeste",
+      "lat": -32.92159,
+      "lon": -60.75495,
+      "usd_m2": 1820.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 8
+    },
+    {
+      "id": "noviembre_norte",
+      "lat": -32.907759,
+      "lon": -60.687906,
+      "usd_m2": 862.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 15
+    },
+    {
+      "id": "nuestra_senora_sur",
+      "lat": -32.998635,
+      "lon": -60.623577,
+      "usd_m2": 682.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 5
+    },
+    {
+      "id": "olascoaga_sur",
+      "lat": -32.943852,
+      "lon": -60.696732,
+      "usd_m2": 743.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 8
+    },
+    {
+      "id": "olive_norte",
+      "lat": -32.912727,
+      "lon": -60.676503,
+      "usd_m2": 2615.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 7
+    },
+    {
+      "id": "olive_norte_2",
+      "lat": -32.914164,
+      "lon": -60.676008,
+      "usd_m2": 1550.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 39
+    },
+    {
+      "id": "ovidio_lagos_sur",
+      "lat": -32.947348,
+      "lon": -60.662877,
+      "usd_m2": 2017.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 71
+    },
+    {
+      "id": "ovidio_lagos_sur_2",
+      "lat": -32.965606,
+      "lon": -60.666825,
+      "usd_m2": 697.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 5
+    },
+    {
+      "id": "ovidio_lagos_sur_3",
+      "lat": -32.971459,
+      "lon": -60.667558,
+      "usd_m2": 1142.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 7
+    },
+    {
+      "id": "paraguay_abasto",
+      "lat": -32.961234,
+      "lon": -60.645797,
+      "usd_m2": 1724.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 51
+    },
+    {
+      "id": "paraguay_pellegrini",
+      "lat": -32.958491,
+      "lon": -60.645329,
+      "usd_m2": 1724.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 36
+    },
+    {
+      "id": "paraguay_sur",
+      "lat": -32.961585,
+      "lon": -60.648298,
+      "usd_m2": 2078.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 50
+    },
+    {
+      "id": "paraguay_sur_2",
+      "lat": -32.964412,
+      "lon": -60.649492,
+      "usd_m2": 1533.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 23
+    },
+    {
+      "id": "parana_centro",
+      "lat": -32.93976,
+      "lon": -60.691878,
+      "usd_m2": 694.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 5
+    },
+    {
+      "id": "paz_sur",
+      "lat": -32.957734,
+      "lon": -60.682805,
+      "usd_m2": 755.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 5
+    },
+    {
+      "id": "pedro_lino_funes_sur",
+      "lat": -32.943509,
+      "lon": -60.701141,
+      "usd_m2": 687.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 8
+    },
+    {
+      "id": "pellegrini_pellegrini",
+      "lat": -32.953269,
+      "lon": -60.662067,
+      "usd_m2": 2240.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 52
+    },
+    {
+      "id": "pellegrini_pellegrini_2",
+      "lat": -32.954421,
+      "lon": -60.65006,
+      "usd_m2": 2119.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 65
+    },
+    {
+      "id": "pellegrini_sur",
+      "lat": -32.950562,
+      "lon": -60.679865,
+      "usd_m2": 778.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 26
+    },
+    {
+      "id": "petrone_oeste",
+      "lat": -32.931241,
+      "lon": -60.759915,
+      "usd_m2": 1566.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 11
+    },
+    {
+      "id": "provincias_unidas_oeste",
+      "lat": -32.936051,
+      "lon": -60.714412,
+      "usd_m2": 844.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 6
+    },
+    {
+      "id": "provincias_unidas_oeste_2",
+      "lat": -32.949902,
+      "lon": -60.712699,
+      "usd_m2": 700.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 5
+    },
+    {
+      "id": "pueyrredon_pellegrini",
+      "lat": -32.95315,
+      "lon": -60.659074,
+      "usd_m2": 1644.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 34
+    },
+    {
+      "id": "real_oeste",
+      "lat": -32.921356,
+      "lon": -60.7701,
+      "usd_m2": 2362.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 8
+    },
+    {
+      "id": "real_oeste_2",
+      "lat": -32.918175,
+      "lon": -60.774647,
+      "usd_m2": 1631.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 9
+    },
+    {
+      "id": "reconquista_norte",
+      "lat": -32.918498,
+      "lon": -60.684198,
+      "usd_m2": 795.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 21
+    },
+    {
+      "id": "riccheri_pichincha",
+      "lat": -32.933676,
+      "lon": -60.661834,
+      "usd_m2": 1584.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 46
+    },
+    {
+      "id": "ricchieri_pichincha",
+      "lat": -32.936486,
+      "lon": -60.662081,
+      "usd_m2": 1622.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 47
+    },
+    {
+      "id": "rio_janeiro_sur",
+      "lat": -32.947349,
+      "lon": -60.683046,
+      "usd_m2": 996.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 14
+    },
+    {
+      "id": "rio_janeiro_sur_2",
+      "lat": -32.954369,
+      "lon": -60.683872,
+      "usd_m2": 656.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 8
+    },
+    {
+      "id": "riobamba_sur",
+      "lat": -32.962087,
+      "lon": -60.653182,
+      "usd_m2": 1276.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 7
+    },
+    {
+      "id": "rioja_centro",
+      "lat": -32.936868,
+      "lon": -60.69721,
+      "usd_m2": 756.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 17
+    },
+    {
+      "id": "rioja_martin",
+      "lat": -32.947243,
+      "lon": -60.636935,
+      "usd_m2": 1088.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 18
+    },
+    {
+      "id": "rioja_sur",
+      "lat": -32.943308,
+      "lon": -60.658706,
+      "usd_m2": 1936.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 50
+    },
+    {
+      "id": "rodriguez_sur",
+      "lat": -32.94697,
+      "lon": -60.658319,
+      "usd_m2": 2067.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 74
+    },
+    {
+      "id": "rondeau_norte",
+      "lat": -32.896321,
+      "lon": -60.691856,
+      "usd_m2": 855.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 5
+    },
+    {
+      "id": "rondeau_norte_2",
+      "lat": -32.904221,
+      "lon": -60.687808,
+      "usd_m2": 1455.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 16
+    },
+    {
+      "id": "rondeau_norte_3",
+      "lat": -32.900947,
+      "lon": -60.688524,
+      "usd_m2": 827.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 12
+    },
+    {
+      "id": "rosas_sur",
+      "lat": -32.946846,
+      "lon": -60.688142,
+      "usd_m2": 833.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 7
+    },
+    {
+      "id": "rouillon_centro",
+      "lat": -32.939874,
+      "lon": -60.700943,
+      "usd_m2": 728.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 10
+    },
+    {
+      "id": "ruben_dario_centro",
+      "lat": -32.921066,
+      "lon": -60.683695,
+      "usd_m2": 886.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 9
+    },
+    {
+      "id": "rueda_sur",
+      "lat": -32.973471,
+      "lon": -60.63258,
+      "usd_m2": 697.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 8
+    },
+    {
+      "id": "saavedra_sur",
+      "lat": -32.978332,
+      "lon": -60.646049,
+      "usd_m2": 756.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 9
+    },
+    {
+      "id": "saavedra_sur_2",
+      "lat": -32.975944,
+      "lon": -60.65019,
+      "usd_m2": 684.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 16
+    },
+    {
+      "id": "saavedra_sur_3",
+      "lat": -32.975891,
+      "lon": -60.662625,
+      "usd_m2": 765.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 13
+    },
+    {
+      "id": "salta_sur",
+      "lat": -32.93629,
+      "lon": -60.649139,
+      "usd_m2": 2392.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 113
+    },
+    {
+      "id": "salta_sur_2",
+      "lat": -32.933472,
+      "lon": -60.670094,
+      "usd_m2": 1881.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 33
+    },
+    {
+      "id": "salva_sur",
+      "lat": -33.004248,
+      "lon": -60.641452,
+      "usd_m2": 576.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 5
+    },
+    {
+      "id": "salvat_oeste",
+      "lat": -32.882543,
+      "lon": -60.705443,
+      "usd_m2": 816.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 6
+    },
+    {
+      "id": "sanchez_bustamante_sur",
+      "lat": -33.000896,
+      "lon": -60.633046,
+      "usd_m2": 879.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 14
+    },
+    {
+      "id": "sanchez_loria_oeste",
+      "lat": -32.9296,
+      "lon": -60.732417,
+      "usd_m2": 883.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 8
+    },
+    {
+      "id": "sanchez_sur",
+      "lat": -32.991476,
+      "lon": -60.624165,
+      "usd_m2": 630.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 5
+    },
+    {
+      "id": "santa_fe_centro",
+      "lat": -32.936004,
+      "lon": -60.688168,
+      "usd_m2": 794.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 8
+    },
+    {
+      "id": "santa_fe_oeste",
+      "lat": -32.93591,
+      "lon": -60.717705,
+      "usd_m2": 639.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 8
+    },
+    {
+      "id": "santa_fe_sur",
+      "lat": -32.943203,
+      "lon": -60.654171,
+      "usd_m2": 2074.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 56
+    },
+    {
+      "id": "santiago_sur",
+      "lat": -32.940397,
+      "lon": -60.654413,
+      "usd_m2": 2422.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 48
+    },
+    {
+      "id": "sarmiento_centro",
+      "lat": -32.950969,
+      "lon": -60.640544,
+      "usd_m2": 1779.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 86
+    },
+    {
+      "id": "sarmiento_sur",
+      "lat": -32.964537,
+      "lon": -60.641953,
+      "usd_m2": 1208.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 52
+    },
+    {
+      "id": "sarmiento_sur_2",
+      "lat": -32.943326,
+      "lon": -60.636805,
+      "usd_m2": 1508.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 49
+    },
+    {
+      "id": "sarmiento_sur_3",
+      "lat": -32.95509,
+      "lon": -60.641318,
+      "usd_m2": 1892.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 82
+    },
+    {
+      "id": "sarmiento_sur_4",
+      "lat": -32.986137,
+      "lon": -60.649948,
+      "usd_m2": 832.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 8
+    },
+    {
+      "id": "sarmiento_sur_5",
+      "lat": -32.990242,
+      "lon": -60.648698,
+      "usd_m2": 700.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 9
+    },
+    {
+      "id": "schweitzer_oeste",
+      "lat": -32.914927,
+      "lon": -60.761567,
+      "usd_m2": 2051.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 16
+    },
+    {
+      "id": "schweitzer_oeste_2",
+      "lat": -32.914847,
+      "lon": -60.756438,
+      "usd_m2": 1547.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 21
+    },
+    {
+      "id": "schweitzer_piedra_negra_oeste",
+      "lat": -32.915365,
+      "lon": -60.76877,
+      "usd_m2": 2121.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 10
+    },
+    {
+      "id": "segui_sur",
+      "lat": -32.979305,
+      "lon": -60.64959,
+      "usd_m2": 879.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 17
+    },
+    {
+      "id": "segui_sur_2",
+      "lat": -32.975011,
+      "lon": -60.666292,
+      "usd_m2": 618.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 8
+    },
+    {
+      "id": "segui_sur_3",
+      "lat": -32.979672,
+      "lon": -60.64025,
+      "usd_m2": 724.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 13
+    },
+    {
+      "id": "septiembre_sur",
+      "lat": -32.979448,
+      "lon": -60.65489,
+      "usd_m2": 853.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 7
+    },
+    {
+      "id": "septiembre_sur_2",
+      "lat": -32.977804,
+      "lon": -60.658722,
+      "usd_m2": 731.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 5
+    },
+    {
+      "id": "solis_oeste",
+      "lat": -32.942771,
+      "lon": -60.704822,
+      "usd_m2": 708.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 6
+    },
+    {
+      "id": "sorrento_norte",
+      "lat": -32.907311,
+      "lon": -60.691688,
+      "usd_m2": 624.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 7
+    },
+    {
+      "id": "storni_centro",
+      "lat": -32.932972,
+      "lon": -60.685524,
+      "usd_m2": 1209.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 13
+    },
+    {
+      "id": "suipacha_sur",
+      "lat": -32.990439,
+      "lon": -60.675838,
+      "usd_m2": 736.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 6
+    },
+    {
+      "id": "superi_norte",
+      "lat": -32.892597,
+      "lon": -60.688846,
+      "usd_m2": 911.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 13
+    },
+    {
+      "id": "tarragona_oeste",
+      "lat": -32.932378,
+      "lon": -60.735582,
+      "usd_m2": 1075.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 15
+    },
+    {
+      "id": "tarragona_oeste_2",
+      "lat": -32.936188,
+      "lon": -60.735103,
+      "usd_m2": 942.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 10
+    },
+    {
+      "id": "tucuman_oeste",
+      "lat": -32.932871,
+      "lon": -60.717263,
+      "usd_m2": 1050.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 5
+    },
+    {
+      "id": "ugarteche_oeste",
+      "lat": -32.935757,
+      "lon": -60.758539,
+      "usd_m2": 2156.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 11
+    },
+    {
+      "id": "uriburu_sur",
+      "lat": -32.990792,
+      "lon": -60.658729,
+      "usd_m2": 666.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 6
+    },
+    {
+      "id": "urquiza_sur",
+      "lat": -32.939179,
+      "lon": -60.661336,
+      "usd_m2": 1842.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 79
+    },
+    {
+      "id": "urquiza_sur_2",
+      "lat": -32.936127,
+      "lon": -60.683519,
+      "usd_m2": 948.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 11
+    },
+    {
+      "id": "uruguay_sur",
+      "lat": -32.976119,
+      "lon": -60.654838,
+      "usd_m2": 719.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 9
+    },
+    {
+      "id": "uruguay_sur_2",
+      "lat": -32.975753,
+      "lon": -60.657901,
+      "usd_m2": 1001.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 6
+    },
+    {
+      "id": "valentin_gomez_norte",
+      "lat": -32.893775,
+      "lon": -60.696782,
+      "usd_m2": 827.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 13
+    },
+    {
+      "id": "valentin_gomez_norte_2",
+      "lat": -32.896018,
+      "lon": -60.696915,
+      "usd_m2": 735.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 6
+    },
+    {
+      "id": "valle_hermoso_norte",
+      "lat": -32.885397,
+      "lon": -60.696647,
+      "usd_m2": 655.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 16
+    },
+    {
+      "id": "valle_iberlucea_norte",
+      "lat": -32.918146,
+      "lon": -60.671438,
+      "usd_m2": 913.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 7
+    },
+    {
+      "id": "valparaiso_sur",
+      "lat": -32.940762,
+      "lon": -60.683826,
+      "usd_m2": 852.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 12
+    },
+    {
+      "id": "viamonte_sur",
+      "lat": -32.964584,
+      "lon": -60.645927,
+      "usd_m2": 1373.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 51
+    },
+    {
+      "id": "viamonte_sur_2",
+      "lat": -32.968124,
+      "lon": -60.628141,
+      "usd_m2": 1200.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 11
+    },
+    {
+      "id": "viamonte_sur_3",
+      "lat": -32.961623,
+      "lon": -60.667713,
+      "usd_m2": 913.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 11
+    },
+    {
+      "id": "vila_norte",
+      "lat": -32.896561,
+      "lon": -60.68742,
+      "usd_m2": 886.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 6
+    },
+    {
+      "id": "villalobos_santa_fe_oeste",
+      "lat": -32.930294,
+      "lon": -60.764682,
+      "usd_m2": 1598.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 6
+    },
+    {
+      "id": "warnes_norte",
+      "lat": -32.904245,
+      "lon": -60.691993,
+      "usd_m2": 971.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 17
+    },
+    {
+      "id": "wilde_oeste",
+      "lat": -32.925085,
+      "lon": -60.739384,
+      "usd_m2": 1771.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 77
+    },
+    {
+      "id": "wilde_oeste_2",
+      "lat": -32.921501,
+      "lon": -60.740493,
+      "usd_m2": 1485.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 48
+    },
+    {
+      "id": "wilde_oeste_3",
+      "lat": -32.933588,
+      "lon": -60.738503,
+      "usd_m2": 1773.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 81
+    },
+    {
+      "id": "wilde_oeste_4",
+      "lat": -32.929096,
+      "lon": -60.738441,
+      "usd_m2": 1598.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 11
+    },
+    {
+      "id": "zeballos_martin",
+      "lat": -32.95064,
+      "lon": -60.658622,
+      "usd_m2": 1846.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 63
+    },
+    {
+      "id": "zeballos_sur",
+      "lat": -32.957255,
+      "lon": -60.629515,
+      "usd_m2": 2186.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 75
+    },
+    {
+      "id": "zeballos_sur_2",
+      "lat": -32.957657,
+      "lon": -60.62544,
+      "usd_m2": 2240.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 9
+    },
+    {
+      "id": "zelaya_norte",
+      "lat": -32.889565,
+      "lon": -60.696525,
+      "usd_m2": 798.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 9
+    },
+    {
+      "id": "zuviria_centro",
+      "lat": -32.936419,
+      "lon": -60.700732,
+      "usd_m2": 729.0,
+      "fecha_calibracion": "2026-06-01",
+      "fuente": "grid_v6_dual",
+      "n_zonal": 5
     }
   ]
 }

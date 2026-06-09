@@ -815,32 +815,44 @@ Entrada: cache_scraping.json (8.366 propiedades venta con lat/lon + valor_m2 + d
 3. Para cada celda con ≥5 propiedades:
    a. Centroide geográfico: lat = avg(lat_props), lon = avg(lon_props)
    b. Valor ancla: mediana de lista_hoy de las propiedades en la celda
-   c. Nombre: dos calles más frecuentes (limpias de ruido descriptivo) + macrozona
-   d. Macrozona: asignada por posición geográfica (centro/norte/sur/oeste)
+   c. Nombre: calle más frecuente + zona comercial (con filtro de distancia)
+   d. Zona comercial:
+      - Se toma la `zona` más común entre las propiedades de la celda
+      - Se valida que el centroide esté dentro del radio de referencia (ej. Martin ≤ 1.5km)
+      - Si está fuera del radio o no hay zona, cae a macrozona geográfica
+   e. Macrozona de respaldo: asignada por posición geográfica (centro/norte/sur/oeste)
 ```
 
 ### 6.3 Naming de Anclas
 
-Formato: `calle_principal_calle_secundaria_macrozona`
+Formato: `calle_mas_comun_zona_comercial`
 
 Ejemplos:
-- `brown_aristobulo_norte` (Pichincha)
-- `junin_avellaneda_centro` (Centro)
-- `mendoza_avellaneda_oeste` (Oeste)
-- `battle_ordonez_san_martin_sur` (Sur)
+- `montevideo_martin` (Martin)
+- `pellegrini_pellegrini` (Pellegrini)
+- `french_puerto_norte` (Puerto Norte)
+- `carballo_norte` (Macrozona Norte)
+- `francia_sur` (Macrozona Sur)
 
 Limpieza de calles: se eliminan tokens de ruido (tipos de propiedad, descriptores, artículos) y tokens mixtos letras+números que no sean calles tipo "3_de_febrero".
 
-### 6.4 Macrozona
+Zona comercial única (no dos calles) para evitar inestabilidad en celdas pequeñas (5-28 props).
 
-Asignada por posición geográfica relativa al centro (-32.92776, -60.69769):
+### 6.4 Macrozona y Zona Comercial
 
-| Macrozona | Criterio | Anclas |
-|-----------|----------|--------|
-| Centro | Radio < 1.5km del centro | 27 |
-| Norte | Al norte, corredor ribereño | 46 |
-| Sur | Al sur, corredor ribereño | 189 |
-| Oeste | Tierra adentro (al oeste) | 60 |
+Asignada por posición geográfica relativa al centro (-32.92776, -60.69769). Las zonas comerciales se asignan solo si el centroide de la celda está dentro del radio de referencia calculado desde cache_scraping.json:
+
+| Zona | Centro real | Radio | Anclas |
+|------|------------|-------|--------|
+| Centro (macro) | Radio < 1.5km del centro | - | 32 |
+| Norte (macro) | Al norte, corredor ribereño | - | 44 |
+| Sur (macro) | Al sur, corredor ribereño | - | 162 |
+| Oeste (macro) | Tierra adentro (al oeste) | - | 60 |
+| Pellegrini | (-32.9551, -60.6507) | 1500m | 8 |
+| Martin | (-32.9500, -60.6525) | 1500m | 5 |
+| Pichincha | (-32.9373, -60.6581) | 1200m | 4 |
+| Puerto Norte | (-32.9250, -60.6660) | 1200m | 4 |
+| Abasto | (-32.9589, -60.6453) | 1200m | 3 |
 
 ### 6.5 Tabla Ct (Ajuste Temporal)
 

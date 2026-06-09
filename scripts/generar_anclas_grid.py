@@ -77,6 +77,26 @@ def clean_calle(calle):
         cleaned.append(t)
     return ' '.join(cleaned) if cleaned else ''
 
+def haversine(lat1, lon1, lat2, lon2):
+    R = 6371000
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    a = math.sin(dlat/2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon/2)**2
+    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+# Centros de referencia para validar zona comercial
+# Si el centroide de la celda esta fuera del radio, cae a macrozona geografica
+ZONA_CENTROIDES = {
+    # Centros reales desde cache_scraping.json (media de props con esa zona)
+    'martin':       {'lat': -32.9500, 'lon': -60.6525, 'radio': 1500},
+    'pellegrini':   {'lat': -32.9551, 'lon': -60.6507, 'radio': 1500},
+    'puerto_norte': {'lat': -32.9250, 'lon': -60.6660, 'radio': 1200},
+    'pichincha':    {'lat': -32.9373, 'lon': -60.6581, 'radio': 1200},
+    'abasto':       {'lat': -32.9589, 'lon': -60.6453, 'radio': 1200},
+    # centro aproximado
+    'centro':       {'lat': -32.940,  'lon': -60.649, 'radio': 1500},
+}
+
 def macrozona(lat, lon):
     dlat = lat - CENTRO_LAT
     dlon = lon - CENTRO_LON
@@ -173,10 +193,16 @@ def main():
             name_base = 'microzona'
 
         # Zona comercial: la mas comun no-Otro en la celda
+        # Solo se asigna si el centroide esta dentro del radio de referencia
         zonas_en_celda = collections.Counter(
             p['zona'] for p in miembros if p['zona'] and p['zona'] != 'Otro')
         if zonas_en_celda:
-            zona_label = zonas_en_celda.most_common(1)[0][0].lower().replace(' ', '_')
+            cand_zone = zonas_en_celda.most_common(1)[0][0].lower().replace(' ', '_')
+            ref = ZONA_CENTROIDES.get(cand_zone)
+            if ref and haversine(lat_c, lon_c, ref['lat'], ref['lon']) <= ref['radio']:
+                zona_label = cand_zone
+            else:
+                zona_label = macrozona(lat_c, lon_c)
         else:
             zona_label = macrozona(lat_c, lon_c)
         name = '%s_%s' % (name_base, zona_label)

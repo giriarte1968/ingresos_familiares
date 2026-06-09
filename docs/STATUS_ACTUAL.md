@@ -1,6 +1,6 @@
 ﻿# ðŸ  STATUS ACTUAL DEL PROYECTO â€” AVM Rosario
 
-*Actualizado: 09/06/2026 (TAREA-035: Anclas por grilla 400m, 322 microzonas)*
+*Actualizado: 09/06/2026 (TAREA-036: Filtro distancia zona comercial)*
 
 ---
 
@@ -18,7 +18,8 @@
 | Tests regresiÃ³n | âœ… 39/39 |
 | Tests persistencia | âœ… 16/16 |
 | Despliegue DO | Sin redeploy loop |
-| Anclas grilla 400m | 322 microzonas, 96% cobertura (TAREA-035) |
+| Anclas grilla 400m | 322 microzonas, 96% cobertura (TAREA-036) |
+| Zonas comerciales | Martin(5) Pellegrini(8) Pichincha(4) PN(4) Abasto(3) — con filtro distancia |
 
 ---
 
