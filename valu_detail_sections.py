@@ -792,22 +792,31 @@ def render_valuacion_manual(prop, res):
     ancla_options = {a.get('id', a.get('nombre', '')): a for a in anclas}
     ancla_list = sorted(k for k in ancla_options if k)
     ancla_list = ["Sin Ancla"] + ancla_list
+    # Mapa: display name -> id y valor
+    ancla_display_map = {}
+    for a in anclas:
+        aid = a.get('id', a.get('nombre', ''))
+        v = a.get('usd_m2', 0)
+        ancla_display_map[f"{aid} (${v:,}/m2)"] = {'id': aid, 'usd_m2': v}
+    ancla_display_list = sorted(ancla_display_map.keys())
+    ancla_display_list = ["Sin Ancla"] + ancla_display_list
 
-    # Detectar ancla: por zona (prefijo -> subcadena -> Haversine)
-    zona_prop = (prop.get('zona') or '').lower().strip()
-    zona_key = zona_prop.replace(' ', '_').replace('-', '_')
-    ancla_por_zona = next((a for a in anclas if a.get('id', '').lower().startswith(zona_key)), None)
-    if not ancla_por_zona:
-        ancla_por_zona = next((a for a in anclas if zona_key in a.get('id', '').lower()), None)
-    if ancla_por_zona:
-        default_ancla_id = ancla_por_zona.get('id', '')
-        default_usd_m2 = ancla_por_zona.get('usd_m2', 0)
+    # Detectar ancla: Haversine primero (mas confiable que el campo zona)
+    lat = prop.get('lat')
+    lon = prop.get('lon')
+    ancla_cercana = get_ancla_mas_cercana(lat, lon, anclas) if lat and lon else None
+    if ancla_cercana:
+        default_ancla_id = ancla_cercana.get('id', '')
+        default_usd_m2 = ancla_cercana.get('usd_m2', 0)
     else:
-        lat = prop.get('lat')
-        lon = prop.get('lon')
-        ancla_cercana = get_ancla_mas_cercana(lat, lon, anclas) if lat and lon else None
-        default_ancla_id = ancla_cercana.get('id', '') if ancla_cercana else 'Sin Ancla'
-        default_usd_m2 = ancla_cercana.get('usd_m2', 0) if ancla_cercana else 0
+        # Fallback por zona si no hay coordenadas
+        zona_prop = (prop.get('zona') or '').lower().strip()
+        zona_key = zona_prop.replace(' ', '_').replace('-', '_')
+        ancla_por_zona = next((a for a in anclas if a.get('id', '').lower().startswith(zona_key)), None)
+        if not ancla_por_zona:
+            ancla_por_zona = next((a for a in anclas if zona_key in a.get('id', '').lower()), None)
+        default_ancla_id = ancla_por_zona.get('id', '') if ancla_por_zona else 'Sin Ancla'
+        default_usd_m2 = ancla_por_zona.get('usd_m2', 0) if ancla_por_zona else 0
 
     # Factor hedonico default = factores combinados del motor
     default_factor_hedonico = 1.0
@@ -854,20 +863,36 @@ def render_valuacion_manual(prop, res):
 
     col_a, col_b = st.columns(2)
     with col_a:
-        ancla_sel = st.selectbox(
+        # Mostrar ancla con USD/m2 en el dropdown
+        saved_display = "Sin Ancla"
+        for dk in ancla_display_list:
+            if ancla_display_map.get(dk, {}).get('id') == saved['ancla_id']:
+                saved_display = dk
+                break
+        ancla_display_sel = st.selectbox(
             "Ancla de referencia",
-            options=ancla_list,
-            index=ancla_list.index(saved['ancla_id']) if saved['ancla_id'] in ancla_list else 0,
+            options=ancla_display_list,
+            index=ancla_display_list.index(saved_display),
             key=f"manual_ancla_{nombre}",
         )
+        ancla_sel = "Sin Ancla"
+        if ancla_display_sel in ancla_display_map:
+            ancla_sel = ancla_display_map[ancla_display_sel]['id']
     with col_b:
+        tiene_ancla = ancla_sel != "Sin Ancla"
+        usd_display = saved['usd_m2']
+        if tiene_ancla and ancla_sel in ancla_options:
+            usd_display = ancla_options[ancla_sel].get('usd_m2', saved['usd_m2'])
         usd_m2_input = st.number_input(
             "USD/m2",
             min_value=0.0, max_value=10000.0,
-            value=float(saved['usd_m2'] or 0),
+            value=float(usd_display or 0),
             step=50.0, format="%.0f",
+            disabled=tiene_ancla,
             key=f"manual_usd_m2_{nombre}",
         )
+        if tiene_ancla:
+            st.caption("Valor determinado por el ancla seleccionada. Deseleccione el ancla para editar manualmente.")
 
     if constr_label:
         st.caption(f"Constructora: {constr_label} (aplicado automaticamente)")
