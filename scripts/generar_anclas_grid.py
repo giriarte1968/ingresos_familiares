@@ -59,7 +59,10 @@ PROP_NOISE = {'duplex','casa','casas','departamento','dormitorio','dormitorios',
     'al','el','un','una','para','semi','piso','planta','frente','contrafrente',
     'exclusivo','exclusiva','completo','completa','tipo','gran','gran_',
     'nuevo','nueva','usado','usada','consultar','consulte','permuta',
-    'c','s','n','e','o'}
+    'c','s','n','e','o','en','de','la','las','los','del',
+    'republica','pago','largo','bajo','alto','alta','bis','pasaje','pje',
+    'esquina','esq','lt','lote','manzana','mz',
+    'moderno','chalet','retasado','fisherton','pasos'}
 
 def clean_calle(calle):
     if not calle: return ''
@@ -159,14 +162,13 @@ def main():
         vals_d = sorted(p['lista_hoy_dual'] for p in miembros)
         med_d = vals_d[n//2] if n%2 else (vals_d[n//2-1]+vals_d[n//2])/2
 
-        # Naming
+        # Naming: zona + calle principal (top 1, no 2 — mas estable)
         calles_raw = [clean_calle(p['calle']) for p in miembros if p['calle']]
         calles = [c for c in calles_raw if c]
+        top1 = ''
         if calles:
-            top2 = collections.Counter(calles).most_common(2)
-            c1 = top2[0][0].replace(' ', '_')
-            c2 = top2[1][0].replace(' ', '_') if len(top2) > 1 else c1
-            name_base = c1 if c1 == c2 else '%s_%s' % (c1, c2)
+            top1 = collections.Counter(calles).most_common(1)[0][0].replace(' ', '_')
+            name_base = top1
         else:
             name_base = 'microzona'
 
@@ -197,8 +199,7 @@ def main():
             'fecha_calibracion': '2026-06-01',
             'fuente': 'grid_v6_dual',
             'n_zonal': n,
-            'calle_principal': calles[0] if calles else '',
-            'calle_secundaria': top2[1][0] if len(top2) > 1 else '',
+            'calle_principal': top1 if calles else '',
             'macrozona': zona_label,
         })
 
