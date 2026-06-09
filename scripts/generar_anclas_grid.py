@@ -170,8 +170,14 @@ def main():
         else:
             name_base = 'microzona'
 
-        mz = macrozona(lat_c, lon_c)
-        name = '%s_%s' % (name_base, mz)
+        # Zona comercial: la mas comun no-Otro en la celda
+        zonas_en_celda = collections.Counter(
+            p['zona'] for p in miembros if p['zona'] and p['zona'] != 'Otro')
+        if zonas_en_celda:
+            zona_label = zonas_en_celda.most_common(1)[0][0].lower().replace(' ', '_')
+        else:
+            zona_label = macrozona(lat_c, lon_c)
+        name = '%s_%s' % (name_base, zona_label)
         if name in usado:
             for i in range(2, 999):
                 cand = '%s_%d' % (name, i)
@@ -193,7 +199,7 @@ def main():
             'n_zonal': n,
             'calle_principal': calles[0] if calles else '',
             'calle_secundaria': top2[1][0] if len(top2) > 1 else '',
-            'macrozona': mz,
+            'macrozona': zona_label,
         })
 
     anclas.sort(key=lambda a: a['id'])
