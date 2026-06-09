@@ -773,17 +773,32 @@ def render_valuacion_manual(prop, res):
         val_act = res.get('valor_activos', {})
         st.caption(f"Cocheras: ${val_act.get('cocheras', 0):,.0f} | Baulera: ${val_act.get('baulera', 0):,.0f}")
 
-        if st.button("Revaluar (volver a automatico)", use_container_width=True, type="primary"):
-            props = cargar_propiedades()
-            for i, p in enumerate(props):
-                if p.get('nombre') == nombre:
-                    uv = p.setdefault('_ultima_valuacion', {})
-                    uv['fuente'] = 'auto'
-                    uv.pop('manual_params', None)
-                    break
-            guardar_propiedades(props)
-            st.session_state[f'forzar_recalculo_{nombre}'] = True
-            st.rerun()
+        c_btn = st.columns(2)
+        with c_btn[0]:
+            if st.button("Re-valuar manualmente", use_container_width=True):
+                props = cargar_propiedades()
+                for i, p in enumerate(props):
+                    if p.get('nombre') == nombre:
+                        uv = p.setdefault('_ultima_valuacion', {})
+                        uv.pop('manual_params', None)
+                        ss_key = f"manual_params_{nombre}"
+                        st.session_state.pop(ss_key, None)
+                        break
+                guardar_propiedades(props)
+                st.session_state[f'forzar_recalculo_{nombre}'] = True
+                st.rerun()
+        with c_btn[1]:
+            if st.button("Volver a automatico", use_container_width=True, type="primary"):
+                props = cargar_propiedades()
+                for i, p in enumerate(props):
+                    if p.get('nombre') == nombre:
+                        uv = p.setdefault('_ultima_valuacion', {})
+                        uv['fuente'] = 'auto'
+                        uv.pop('manual_params', None)
+                        break
+                guardar_propiedades(props)
+                st.session_state[f'forzar_recalculo_{nombre}'] = True
+                st.rerun()
         return
 
     # ─── CREATE MODE ───
