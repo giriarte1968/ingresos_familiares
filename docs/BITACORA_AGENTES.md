@@ -2147,3 +2147,24 @@ Reemplazar las 117 anclas artesanales (46% cobertura) por 322 microzonas automat
 ### Validacion:
 - 39/39 tests pasan
 - auto_validate.py: OK
+
+---
+
+## 09/06/2026 — TAREA-037: Validacion factor hedonico = 0
+
+### Problema:
+- Usuario mostraba pantalla con Factor Hedonico = 0.0000 para Francia 250 bis
+- Esto anulaba contribucion del m2 → valor total = solo cocheras + baulera = $56,000 USD
+- `calcular_factores()` devuelve 1.35 para esta propiedad (nuevo, premium, piso 6)
+- 0.0000 fue ingresado manualmente en el formulario CREATE
+
+### Cambio:
+- `valu_detail_sections.py:982-984`: validacion que impide guardar con fh <= 0
+- Mensaje de error al guardar: "Factor Hedonico debe ser mayor a 0"
+
+### Archivos modificados:
+1. valu_detail_sections.py: validacion fh <= 0 al guardar
+
+### Validacion:
+- 39/39 tests pasan
+- auto_validate.py: OK

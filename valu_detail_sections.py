@@ -979,6 +979,9 @@ def render_valuacion_manual(prop, res):
         if usd_m2_input <= 0:
             st.error("Ingrese un valor de USD/m2 valido.")
             return
+        if fh <= 0:
+            st.error("Factor Hedonico debe ser mayor a 0 (sugerido: ~1.0). Con 0 el valor del m2 se anula.")
+            return
         manual_params = {
             'ancla_id': ancla_sel,
             'usd_m2': usd_m2_input,
