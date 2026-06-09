@@ -1095,19 +1095,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 mejor_resultado = (props, None, zona_normalizada)
         
         if mejor_resultado is None:
-            if props:
-                return 0, 0, {
-                    'percentil_usado': percentil_usado, 
-                    'n_raw': 0, 
-                    'n_filtradas': 0,
-                    'radio_usado': None,
-                    'fecha_ref': fecha_ref,
-                    'operacion': operacion,
-                    'zona_original': zona_original,
-                    'zona_resolucion': zona_normalizada,
-                    'debug': f'Sin datos suficientes ({len(props)} muestras)'
-                }
-            # Fallback final al ancla
+            n_available = len(props) if props else 0
             return 0, 0, {
                 'percentil_usado': percentil_usado, 
                 'n_raw': 0, 
@@ -1116,7 +1104,11 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 'fecha_ref': fecha_ref,
                 'operacion': operacion,
                 'zona_original': zona_original,
-                'zona_resolucion': zona_normalizada
+                'zona_resolucion': zona_normalizada,
+                'insuficientes_comparables': True,
+                'n_comparables': n_available,
+                'debug': f'Solo {n_available} comparables encontrados. '
+                         'Se requiere mínimo 2 para valuación automática.'
             }
         
         props, radio_usado, zona_resol = mejor_resultado
@@ -1818,6 +1810,9 @@ AMENITY_WEIGHTS = {
     "pileta": 0.015,
     "sum": 0.010,
     "gym": 0.005,
+    "quincho": 0.020,
+    "marinas": 0.020,
+    "co_working": 0.010,
 }
 AMENITY_TOTAL_CAP = 0.06
 
@@ -3159,19 +3154,24 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True):
         m2_base_venta = m2_base_venta_raw
         metodo_origen = f"cluster_v2 (P{meta_venta.get('percentil_usado','33')}, {n_v} props)"
     else:
+        if meta_venta.get('insuficientes_comparables'):
+            return {
+                'error': 'insuficientes_comparables',
+                'mensaje': 'No se encontraron suficientes comparables (mínimo 2).',
+                'n_comps': meta_venta.get('n_comparables', 0),
+                'resolution_metadata': {
+                    'zona_original': meta_venta.get('zona_original'),
+                    'zona_resolucion': meta_venta.get('zona_resolucion'),
+                    'n_disponibles': meta_venta.get('n_comparables', 0),
+                    'metodo': 'insuficiente',
+                    'confidence': 'INSUFICIENTE',
+                },
+                'fuente': 'insuficiente',
+            }
         # Fallback a ancla
         antiguedad = ANIO_ACTUAL - anio_const
 
-        # Puerto Norte: forzar rio_puerto_norte (2800) y NO depreciar si es a estrenar
-        if zona_txt.lower() in ('puerto norte',) or 'puerto norte' in str(prop.get('zona', '')).lower():
-            valor_ancla_geo = 2800
-            ancla_seleccionada = 'rio_puerto_norte'
-            if prop.get('estado_detalle') == 'a estrenar' and anio_const >= 2020:
-                factor_deprec = 1.0
-            else:
-                factor_deprec = max(0.5, 1.0 - (antiguedad * 0.006))
-        else:
-            factor_deprec = max(0.5, 1.0 - (antiguedad * 0.006))
+        factor_deprec = max(0.5, 1.0 - (antiguedad * 0.006))
 
         m2_base_venta = valor_ancla_geo * factor_deprec
         metodo_origen = "Ancla (fallback)"
