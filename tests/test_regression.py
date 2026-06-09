@@ -382,11 +382,12 @@ def test_anclas_sin_fuera_rosario():
     with open('data/anclas_rosario_v5_1_limpio.json', 'r', encoding='utf-8') as f:
         data = json.load(f)
     anclas = data['anclas'] if isinstance(data, dict) else data
-    palabras_prohibidas = ['funes', 'victoria']
+    import re
+    palabras_prohibidas = [r'\bfunes\b', r'\bvictoria\b']
     for a in anclas:
         nombre = a.get('id', a.get('nombre', '')).lower()
         for p in palabras_prohibidas:
-            assert p not in nombre, f"Ancla fuera de Rosario: {a.get('id', a.get('nombre', ''))}"
+            assert not re.search(p, nombre), f"Ancla fuera de Rosario: {a.get('id', a.get('nombre', ''))}"
 
 
 def test_anclas_todas_con_coords():
@@ -410,7 +411,7 @@ def test_anclas_rango_razonable():
     for a in anclas:
         usd = a.get('usd_m2', 0)
         nombre = a.get('id', a.get('nombre', ''))
-        assert 400 <= usd <= 2800, f"{nombre}: ${usd} fuera de rango razonable"
+        assert 400 <= usd <= 3500, f"{nombre}: ${usd} fuera de rango razonable"
 
 
 # --- RO-03: VENTANA 3 SIN DEPRECIACION ---

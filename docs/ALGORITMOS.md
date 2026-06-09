@@ -780,5 +780,120 @@ ensamblar_metadata_resolucion() ← metadata de resolución para UI
 
 ---
 
+## 6. Generación de Anclas por Grilla Espacial (TAREA-035)
+
+### 6.1 Problema original
+
+Las 117 anclas artesanales (`v5_1`) tenían:
+- **Cobertura insuficiente**: solo 46% de propiedades a ≤300m de un ancla
+- **Sesgo `v3_heredada`**: 12 anclas del sistema anterior estaban 40-50% sobreestimadas vs mercado actual
+- **PN mal posicionado**: `rio_puerto_norte` estaba 2.8km de su posición real (en el puerto, no en Av. Carballo)
+
+### 6.2 Solución: Grid Espacial 400m
+
+Se reemplazan las anclas artesanales por una grilla regular de 400m × 400m sobre toda la ciudad de Rosario.
+
+#### Algoritmo
+
+```
+Entrada: cache_scraping.json (8.366 propiedades venta con lat/lon + valor_m2 + date_created)
+         TABLA_CT (curva de ajuste temporal, ver sección 6.5)
+
+1. Para cada propiedad:
+   a. Calcular meses desde su date_created hasta fecha_ref (2026-06-01)
+   b. Calcular Ct según segmento:
+      - USADO (99.9%): Ct = 1.0 + (Ct_base - 1.0) × 1.12
+      - NUEVO (0.1%):  Ct = 1.0 + (Ct_base - 1.0) × 0.95
+   c. lista_hoy = valor_m2 × Ct
+
+2. Asignar a grilla:
+   dlat = 400m → grados latitud
+   dlon = 400m → grados longitud (ajustado por coseno de latitud)
+   ix = floor((lon_prop - lon_min) / dlon)
+   iy = floor((lat_prop - lat_min) / dlat)
+
+3. Para cada celda con ≥5 propiedades:
+   a. Centroide geográfico: lat = avg(lat_props), lon = avg(lon_props)
+   b. Valor ancla: mediana de lista_hoy de las propiedades en la celda
+   c. Nombre: dos calles más frecuentes (limpias de ruido descriptivo) + macrozona
+   d. Macrozona: asignada por posición geográfica (centro/norte/sur/oeste)
+```
+
+### 6.3 Naming de Anclas
+
+Formato: `calle_principal_calle_secundaria_macrozona`
+
+Ejemplos:
+- `brown_aristobulo_norte` (Pichincha)
+- `junin_avellaneda_centro` (Centro)
+- `mendoza_avellaneda_oeste` (Oeste)
+- `battle_ordonez_san_martin_sur` (Sur)
+
+Limpieza de calles: se eliminan tokens de ruido (tipos de propiedad, descriptores, artículos) y tokens mixtos letras+números que no sean calles tipo "3_de_febrero".
+
+### 6.4 Macrozona
+
+Asignada por posición geográfica relativa al centro (-32.92776, -60.69769):
+
+| Macrozona | Criterio | Anclas |
+|-----------|----------|--------|
+| Centro | Radio < 1.5km del centro | 27 |
+| Norte | Al norte, corredor ribereño | 46 |
+| Sur | Al sur, corredor ribereño | 189 |
+| Oeste | Tierra adentro (al oeste) | 60 |
+
+### 6.5 Tabla Ct (Ajuste Temporal)
+
+La tabla representa el movimiento del mercado de departamentos de Rosario desde el piso de 2023 hasta el amesetamiento de 2026:
+
+| Meses | Ct_base | Ct_usado (×1.12) | Descripción |
+|-------|---------|-------------------|-------------|
+| 0 | 1.000 | 1.000 | Hoy |
+| 3 | 1.011 | 1.012 | |
+| 6 | 1.033 | 1.037 | |
+| 12 | 1.105 | 1.118 | |
+| 18 | 1.207 | 1.232 | |
+| 24 | 1.235 | 1.263 | |
+| 30 | 1.267 | 1.299 | Pico del mercado |
+| 36 | 1.254 | 1.284 | |
+| 42 | 1.203 | 1.227 | |
+| 48 | 1.173 | 1.194 | |
+| 54 | 1.152 | 1.170 | |
+| 60 | 1.131 | 1.147 | |
+| 66 | 1.105 | 1.118 | |
+| 72 | 1.067 | 1.075 | |
+| 78 | 1.027 | 1.030 | |
+| ≥83 | 1.000 | 1.000 | Anteriores a 2019 |
+
+Fuente: COCIR + IIE-UNR (ciclo 2018-2024), MeLi+UdeSA (2024-2026), Zonaprop ZP Index.
+
+### 6.6 Cobertura
+
+| Métrica | Viejas (117) | Nuevas (322) |
+|---------|-------------|--------------|
+| Propiedades a ≤300m de un ancla | 3.815 (46%) | **8.014 (96%)** |
+| Cobertura de la ciudad | 47% | ~100% (urbano continuo) |
+
+### 6.7 Diferenciación Ct por Segmento (Nuevo vs Usado)
+
+Basado en datos de Bassini (COCIR, Enero 2026):
+- **Usado**: apreció 10-15% más que el índice general → factor 1.12 sobre (Ct-1.0)
+- **Nuevo/Estrenar**: mercado competitivo, apreció 5% menos → factor 0.95 sobre (Ct-1.0)
+
+Impacto práctico: como el 99.9% de las propiedades en caché son usadas, la mediana de las anclas cambia solo ~1% vs la tabla única. El mayor impacto se verá al valuar propiedades nuevas individualmente.
+
+### 6.8 Script Generador
+
+`scripts/generar_anclas_grid.py` — script autónomo que:
+1. Lee `cache_scraping.json`
+2. Calcula lista_hoy con Ct dual
+3. Genera grilla 400m
+4. Produce `data/anclas_rosario_v6_cluster.json` (archivo intermedio)
+5. Luego se copia manualmente a `data/anclas_rosario_v5_1_limpio.json`
+
+El archivo anterior se conserva como `data/anclas_rosario_v5_1_limpio.json.bak`.
+
+---
+
 **Generado por**: OpenCode
 **Fecha**: 2026-05-16

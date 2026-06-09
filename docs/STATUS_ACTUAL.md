@@ -1,6 +1,6 @@
 ﻿# ðŸ  STATUS ACTUAL DEL PROYECTO â€” AVM Rosario
 
-*Actualizado: 05/06/2026 (Constructoras dinámicas desde Configuración)*
+*Actualizado: 09/06/2026 (TAREA-035: Anclas por grilla 400m, 322 microzonas)*
 
 ---
 
@@ -17,7 +17,8 @@
 | Landing page | âœ… NavegaciÃ³n por teclado (PageDown/PageUp/Home/End) |
 | Tests regresiÃ³n | âœ… 39/39 |
 | Tests persistencia | âœ… 16/16 |
-| Despliegue DO | âœ… Sin redeploy loop |
+| Despliegue DO | Sin redeploy loop |
+| Anclas grilla 400m | 322 microzonas, 96% cobertura (TAREA-035) |
 
 ---
 
@@ -26,6 +27,8 @@
 | MÃ©trica | Cantidad |
 |---------|----------|
 | Propiedades totales | 9,766 |
+| Anclas disponibles | 322 microzonas (grilla 400m, TAREA-035) |
+| Cobertura anclas (prop ≤300m) | 96% (8.014/8.366) |
 | Con lat/lon | **9,754** (99.9%) |
 | Sin lat/lon | 12 (nunca las tuvo Propia) |
 | Con `calle_limpia`/`numero_limpio` | **8,782** (89.9%) |

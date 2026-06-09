@@ -2081,3 +2081,39 @@ Reemplazar el esquema de tiers fijos en `constructoras_rosario.json` por un form
 ### Validacion:
 - 39/39 tests pasan
 - auto_validate.py: OK
+
+
+---
+
+## 2026-06-09 — TAREA-035: GENERACION DE ANCLAS POR GRILLA ESPACIAL 400m
+
+### Objetivo:
+Reemplazar las 117 anclas artesanales (46% cobertura) por 322 microzonas automaticas via grilla 400m (96% cobertura), corrigiendo sesgo v3_heredada y posicion de Puerto Norte.
+
+### Cambios:
+1. scripts/generar_anclas_grid.py: nuevo script generador de anclas por grilla 400m
+2. data/anclas_rosario_v5_1_limpio.json.bak: backup del archivo original (117 anclas)
+3. data/anclas_rosario_v5_1_limpio.json: reemplazado por 322 anclas grid_v6_dual
+4. tests/test_regression.py: actualizados rangos (400-3500) y regex word-boundary para test fuera de Rosario
+5. docs/ALGORITMOS.md: seccion 6 completa sobre generacion de anclas
+6. docs/STATUS_ACTUAL.md: metricas de cobertura actualizadas
+7. .opencode/plans/TAREA-035.md: plan de tarea
+8. .opencode/plans/TAREAS_INDEX.md: entrada de TAREA-035
+
+### Algoritmo:
+- Grilla 400m x 400m sobre toda la ciudad
+- 8.366 props de venta con lat/lon asignadas a celdas
+- Ct dual: usado (factor 1.12 sobre apreciacion) y nuevo (factor 0.95)
+- Centroide de props reales como georeferencia de cada ancla
+- Naming: dos calles mas frecuentes + macrozona
+
+### Resultados:
+- 322 anclas (vs 117 anteriores)
+- Cobertura: 96% (vs 46% anterior)
+- Correccion v3_heredada: bajas de 40-50% en Oeste/Sur
+- PN corregido a centroide real
+- Nombres con interseccion de calles: ej. brown_aristobulo_norte
+
+### Validacion:
+- 39/39 tests pasan
+- auto_validate.py: OK

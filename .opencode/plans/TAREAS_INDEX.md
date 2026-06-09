@@ -33,3 +33,4 @@
 | TAREA-030 | Fix barreras duras como blandas en Puerto Norte + Fallback + Ancla | _(current)_ | 2026-06-03 |
 | TAREA-031 | Fecha dinámica: date_created + 12 meses + formatos YYYY-MM/DD | `b9a3133` | 2026-06-05 |
 | TAREA-032 | Puerto Norte: time-expansion en zona cerrada + ancla 2800 | _(current)_ | 2026-06-05 |
+| TAREA-035 | Anclas por grilla 400m (322 microzonas, 96% cobertura, Ct dual) | _(current)_ | 2026-06-09 |
