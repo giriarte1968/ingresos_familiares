@@ -3856,7 +3856,8 @@ def generar_resultado_manual(prop, manual_params):
 
     m2_equiv = calcular_m2_equivalentes(prop)
     usd_m2 = manual_params.get('usd_m2', 0)
-    factor_hedonico = manual_params.get('factor_hedonico', 1.0)
+    fh_raw = manual_params.get('factor_hedonico', 1.0)
+    factor_hedonico = fh_raw if fh_raw != 0 else 1.0
     ajuste_pct = manual_params.get('ajuste_pct', 0.0)
     incertidumbre_pct = manual_params.get('incertidumbre_pct', 10.0)
 
@@ -3935,6 +3936,7 @@ def generar_resultado_manual(prop, manual_params):
             'zona': prop.get('zona', ''),
         },
         'factor_total': factor_hedonico * factor_const,
+        'factor_hedonico_efectivo': factor_hedonico,
         'factor_const': factor_const,
         'constructora': prop.get('constructora', ''),
         'delta_anti': 1.0,

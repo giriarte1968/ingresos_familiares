@@ -432,5 +432,76 @@
       "input": "Brown 2700",
       "tiene_bis": false
     }
+  },
+  "vera mujica 912": {
+    "lat": -32.9427374,
+    "lon": -60.6673362,
+    "status": "low_confidence",
+    "score": 9.99999999995449e-06,
+    "type": "house",
+    "ancla_id": "oeste_francia_mendoza",
+    "ancla_usd": 1300,
+    "distancia_km": 0.33,
+    "_fuente": "nominatim",
+    "_debug": {
+      "pasos": [
+        "Cache MISS",
+        "Catastro CSV MISS",
+        "Nominatim structured",
+        "Nominatim OK lat=-32.94274 lon=-60.66734 score=9.99999999995449e-06 type=house",
+        "Validacion status=low_confidence",
+        "Fallback: free-form query",
+        "Free-form OK lat=-32.94274 lon=-60.66734"
+      ],
+      "errores": [],
+      "input": "Vera Mujica 912",
+      "tiene_bis": false
+    }
+  },
+  "ayacucho 1805": {
+    "lat": -32.960649375,
+    "lon": -60.629792125,
+    "status": "catastro",
+    "score": 0.9,
+    "type": "catastro",
+    "ancla_id": "martin_rio_urquiza",
+    "ancla_usd": 1850,
+    "distancia_km": 0.46,
+    "_fuente": "catastro",
+    "_debug": {
+      "pasos": [
+        "Cache MISS",
+        "Catastro CSV HIT"
+      ],
+      "errores": [],
+      "input": "Ayacucho 1805",
+      "tiene_bis": false,
+      "catastro_addr": "Ayacucho 1805",
+      "catastro_lat": -32.960649375,
+      "catastro_lon": -60.629792125
+    }
+  },
+  "avenida francia 250 bis": {
+    "lat": -32.9304159,
+    "lon": -60.6620818,
+    "status": "low_confidence",
+    "score": 0.053401725032425386,
+    "type": "tertiary",
+    "ancla_id": "macrocentro_3febrero_francia",
+    "ancla_usd": 1400,
+    "distancia_km": 1.24,
+    "_fuente": "nominatim",
+    "_debug": {
+      "pasos": [
+        "Cache MISS",
+        "Catastro CSV MISS",
+        "Nominatim free-form (tiene bis)",
+        "Nominatim OK lat=-32.93042 lon=-60.66208 score=0.053401725032425386 type=tertiary",
+        "Validacion status=low_confidence"
+      ],
+      "errores": [],
+      "input": "Avenida Francia 250 bis",
+      "tiene_bis": true
+    }
   }
 }

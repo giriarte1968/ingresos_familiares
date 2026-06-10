@@ -1,0 +1,15 @@
+feature,coef,pvalue,sig
+const,189881.21326,0.0,***
+m2,-0.00083,0.0,***
+dormitorios,-0.01769,0.0037,***
+zona_Centro,-0.00271,0.9855,
+zona_Facultades,-0.44375,0.346,
+zona_Martin,-0.15944,0.169,
+zona_Otro,-0.27557,0.009,***
+zona_Pellegrini,0.0706,0.52,
+zona_Pichincha,-0.12095,0.4548,
+zona_Puerto Norte,0.38844,0.022,**
+zona_Sexta,0.09097,0.7186,
+lat,5755.38593,0.0,***
+lon,3125.6828,0.0,***
+lat_lon,94.74449,0.0,***

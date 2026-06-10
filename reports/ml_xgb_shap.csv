@@ -1,0 +1,13 @@
+feature,mean_abs_shap
+lon,369.17
+lat,317.42
+m2,136.2
+dormitorios,43.48
+zona_Otro,6.6
+zona_Pellegrini,4.94
+zona_Puerto Norte,1.13
+zona_Martin,0.61
+zona_Centro,0.29
+zona_Sexta,0.19
+zona_Pichincha,0.16
+zona_Facultades,0.02

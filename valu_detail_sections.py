@@ -764,7 +764,7 @@ def render_valuacion_manual(prop, res):
 
         c1, c2, c3 = st.columns(3)
         with c1:
-            st.metric("Factor Hedonico", f"{mp.get('factor_hedonico', 1.0):.4f}")
+            st.metric("Factor Hedonico", f"{res.get('factor_hedonico_efectivo', mp.get('factor_hedonico', 1.0)):.4f}")
         with c2:
             st.metric("Ajuste %", f"{mp.get('ajuste_pct', 0):+.1f}%")
         with c3:
@@ -959,7 +959,8 @@ def render_valuacion_manual(prop, res):
     # Preview
     from parsers.mercado_inmobiliario import calcular_m2_equivalentes
     m2_eq = calcular_m2_equivalentes(prop)
-    pre_sub = m2_eq * usd_m2_input * fh * factor_const
+    fh_eff = fh if fh != 0 else 1.0
+    pre_sub = m2_eq * usd_m2_input * fh_eff * factor_const
     pre_act = 0
     if cant_cocheras > 0:
         coef_tipo = {'cubierta': 1.0, 'semicubierta': 0.7, 'descubierta': 0.4}.get(tipo_cochera, 1.0)
@@ -971,7 +972,7 @@ def render_valuacion_manual(prop, res):
     pre_total = pre_sub + pre_act
     pre_final = pre_total * (1 + aj / 100.0)
     st.caption(
-        f"Preview: ({m2_eq:.0f}m2 x ${usd_m2_input:,.0f}/m2 x fh={fh:.4f} x constr={factor_const:.4f}) "
+        f"Preview: ({m2_eq:.0f}m2 x ${usd_m2_input:,.0f}/m2 x fh={fh_eff:.4f} x constr={factor_const:.4f}) "
         f"+ activos=${pre_act:,.0f} = ${pre_total:,.0f} "
         f"x (1 + {aj:+.1f}%) = **${pre_final:,.0f} USD**"
     )

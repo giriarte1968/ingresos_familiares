@@ -38,6 +38,9 @@ AMENITY_NLP_EXCLUSION_MAP = {
     "terraza_comun": ["terraza comun", "terraza común"],
     "baulera": ["baulera", "bauleras"],
     "cocheras": ["cochera", "cocheras", "garage"],
+    "quincho": ["quincho", "quincho con parrilla"],
+    "marinas": ["marina", "marinas", "amarre"],
+    "co_working": ["co working", "coworking", "espacio cowork"],
 }
 
 

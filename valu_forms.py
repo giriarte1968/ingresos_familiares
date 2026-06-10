@@ -229,14 +229,30 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
                 with open(constr_path, "r", encoding="utf-8") as f:
                     constr_list = json.load(f)
                 if isinstance(constr_list, list):
-                    lista_c = sorted([e.get('descripcion', '') for e in constr_list if e.get('descripcion')]) + ["Otra"]
+                    _map_c = {}  # display_label -> real_name
+                    for e in constr_list:
+                        desc = e.get('descripcion', '')
+                        if desc:
+                            pct = e.get('porcentaje', 0)
+                            label = f"{desc} ({pct:+.0f}%)" if pct != 0 else desc
+                            _map_c[label] = desc
+                    lista_display = sorted(_map_c.keys()) + ["Otra"]
                 else:
-                    lista_c = ["Otra"]
+                    lista_display = ["Otra"]
+                    _map_c = {}
             except:
-                lista_c = ["Otra"]
-            constructora_sel = st.selectbox("Constructora", lista_c, index=lista_c.index(prop_inicial.get('constructora', '')) if prop_inicial.get('constructora') in lista_c else lista_c.index("Otra"), key=f"const_sel_{key_suffix}")
-            constructora = constructora_sel
-            if constructora_sel == "Otra":
+                lista_display = ["Otra"]
+                _map_c = {}
+            _display_val = prop_inicial.get('constructora', '')
+            if _display_val in _map_c.values():
+                _display_val = next(k for k, v in _map_c.items() if v == _display_val)
+            else:
+                _display_val = "Otra"
+            if _display_val not in lista_display:
+                _display_val = "Otra"
+            display_sel = st.selectbox("Constructora", lista_display, index=lista_display.index(_display_val) if _display_val in lista_display else len(lista_display)-1, key=f"const_sel_{key_suffix}")
+            constructora = _map_c.get(display_sel, display_sel)
+            if display_sel == "Otra":
                 constructora = st.text_input("Especificar Constructora", value=prop_inicial.get('constructora', ''), key=f"const_text_{key_suffix}")
         with col2:
             piso = st.number_input("Piso *", min_value=0, max_value=50, value=int(prop_inicial.get('piso', 0) or 0), key=f"piso_{key_suffix}")
@@ -354,7 +370,7 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
             vent_bano_opts = ["natural", "forzada", "sin_ventana"]
             ventilacion_bano = st.selectbox("Ventilación baño", vent_bano_opts, index=vent_bano_opts.index(prop_inicial.get('ventilacion_bano', 'natural')) if prop_inicial.get('ventilacion_bano') in vent_bano_opts else 0, key=f"vent_bano_{key_suffix}")
             
-            amenities_opts = ["caldera_central", "radiadores", "seguridad_24hs", "seguridad_tag", "seguridad_camaras", "seguridad_totem", "parrilla_propia", "parrilla_compartida", "terraza_compartida", "pileta", "sum", "gym"]
+            amenities_opts = ["caldera_central", "radiadores", "seguridad_24hs", "seguridad_tag", "seguridad_camaras", "seguridad_totem", "parrilla_propia", "parrilla_compartida", "terraza_compartida", "pileta", "sum", "gym", "quincho", "marinas", "co_working"]
             detalles_legacy = [('parrilla_compartida' if d == 'parrilla' else d) for d in prop_inicial.get('detalles_categoria', [])]
             detalles_default = [v for v in detalles_legacy if v in amenities_opts]
             detalles_cat = st.multiselect("Amenities / Extras", amenities_opts, default=detalles_default, key=f"detalles_{key_suffix}")
