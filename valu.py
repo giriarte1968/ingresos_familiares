@@ -295,29 +295,32 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                 st.rerun()
         with col_fs:
             if flex_active:
-                st.caption("Incluir dormitorios:")
+                st.caption("Filtrar dormitorios:")
                 dorm_cols = st.columns(5)
-                old = set(st.session_state.get(f'flex_dormitorios_{prop_name}', []))
-                new = set()
                 for idx, d in enumerate([1, 2, 3, 4, 5]):
                     with dorm_cols[idx]:
-                        if st.checkbox(f"{d}", value=d in old, key=f'flex_dorm_cb_{prop_name}_{d}'):
-                            new.add(d)
-                if new != old:
-                    st.session_state[f'flex_dormitorios_{prop_name}'] = list(new)
-                    st.session_state[f'forzar_recalculo_{prop_name}'] = True
-                    st.rerun()
+                        st.checkbox(f"{d}", key=f'flex_dorm_cb_{prop_name}_{d}')
 
         with st.expander("🗺️ Mapa", expanded=False):
             with profile_block("render_mapa_propiedad", prop):
                 render_mapa_propiedad(res)
         _dl.mark("after_render_mapa")
 
-        comparables = res.get('comparables_venta', [])
+        comparables_todos = res.get('comparables_venta', [])
+        # Client-side filter by bedroom checkboxes (when Retro Flexible active)
+        flex_active = st.session_state.get(f'flex_active_{prop_name}', False)
+        if flex_active:
+            checked_dorms = [d for d in [1, 2, 3, 4, 5] if st.session_state.get(f'flex_dorm_cb_{prop_name}_{d}', False)]
+            if checked_dorms:
+                comparables = [c for c in comparables_todos if c.get('dormitorios') in checked_dorms]
+            else:
+                comparables = comparables_todos  # show all when none selected
+        else:
+            comparables = comparables_todos
         n_comps = len(comparables)
-        with st.expander(f"{n_comps} Propiedades Comparables", expanded=False):
+        with st.expander(f"{n_comps} Propiedades Comparables (de {len(comparables_todos)} totales)" if len(comparables) != len(comparables_todos) else f"{n_comps} Propiedades Comparables", expanded=False):
             with profile_block("render_tabla_comparables", prop):
-                render_tabla_comparables(res, prop_name=prop_name)
+                render_tabla_comparables({**res, 'comparables_venta': comparables}, prop_name=prop_name)
 
             # Selección de comparables: recálculo local
             sel_apply_key = f'comp_selection_apply_{prop_name}'
@@ -467,7 +470,11 @@ def mostrar_dashboard():
                     retro_meses = st.session_state.get(f'retro_meses_{prop_name}', 36) if retro_active else 0
                     retro_dias = retro_meses if retro_active else 0
                     flex_active = st.session_state.get(f'flex_active_{prop_name}', False)
-                    flex_dormitorios = st.session_state.get(f'flex_dormitorios_{prop_name}', []) if flex_active else None
+                    if flex_active:
+                        # Fetch all bedrooms; client-side filter via checkboxes
+                        flex_dormitorios = [1, 2, 3, 4, 5]
+                    else:
+                        flex_dormitorios = None
                     resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios)
                     _sl.mark("after_valuar_con_cache")
 
