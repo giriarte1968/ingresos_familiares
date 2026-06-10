@@ -424,7 +424,12 @@ def mostrar_dashboard():
                     uv = p_obj.get('_ultima_valuacion', {})
                     if uv.get('fuente') == 'manual' and uv.get('manual_params'):
                         from parsers.mercado_inmobiliario import generar_resultado_manual
-                        resultado = generar_resultado_manual(p_obj, uv['manual_params'])
+                        manual_result = generar_resultado_manual(p_obj, uv['manual_params'])
+                        # Preservar comparables y retro del resultado original
+                        manual_result['comparables_venta'] = resultado.get('comparables_venta', [])
+                        manual_result['retro_activo'] = resultado.get('retro_activo', False)
+                        manual_result['total_dias_ventana'] = resultado.get('total_dias_ventana', 180)
+                        resultado = manual_result
                     _sl.mark("after_manual_override")
 
                 with profile_block("detalle_volver_btn", None):
