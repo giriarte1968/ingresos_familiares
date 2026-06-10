@@ -1058,8 +1058,6 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         if mejor_resultado is None:
             if zona_normalizada == 'Puerto Norte':
                 # PN: expandir fecha hacia atrás, radio amplio para cubrir toda la zona
-                tipo_guard = tipo_inmueble
-                tipo_inmueble = None  # PN: no filtrar por tipo (muy pocos comps)
                 for dias, min_req in zip(VENTANAS_FECHA_PN, MIN_PN):
                     props = buscar_en_zona(zona_normalizada, dormitorios, operacion, lat_ref, lon_ref, 1500)
                     props = filtrar_por_fecha(props, fecha_ref, dias=dias)
@@ -1085,7 +1083,6 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                                     p['_time_adjustment'] = 1.0
                         mejor_resultado = (props, 1500, 'Puerto Norte')
                         break
-                tipo_inmueble = tipo_guard  # restaurar filtro tipo
             else:
                 for radio in RADIOS_PROGRESIVOS:
                     props = buscar_en_zona(zona_normalizada, dormitorios, operacion, lat_ref, lon_ref, radio, fecha_ref)
