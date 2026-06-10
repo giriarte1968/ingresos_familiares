@@ -972,6 +972,14 @@ def main():
     # Sincronizar propiedades.json una vez por proceso (no una vez por sesión/pestaña)
     git_pull_once_per_process()
 
+    # ─── Interceptar ?prop=xxx antes de cualquier check de landing ───
+    if 'prop' in st.query_params:
+        st.session_state.prop_sel = st.query_params['prop']
+        st.session_state.vista_actual = 'dashboard'
+        st.query_params.clear()
+        st.rerun()
+        return
+
     if 'vista_actual' not in st.session_state:
         st.session_state.vista_actual = 'landing'
     

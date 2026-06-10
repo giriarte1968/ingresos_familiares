@@ -739,13 +739,6 @@ def mostrar_portfolio2(
     """
     st.markdown(PORTFOLIO2_CSS, unsafe_allow_html=True)
 
-    if 'prop' in st.query_params:
-        nombre = st.query_params['prop']
-        st.query_params.clear()
-        st.session_state.prop_sel = nombre
-        st.rerun()
-        return
-
     propiedades = cargar_propiedades_fn()
     if not propiedades:
         _render_empty_state()
