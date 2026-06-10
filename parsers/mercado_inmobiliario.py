@@ -3874,6 +3874,36 @@ def _generar_html_mapa(prop, resultado):
         return None
 
 
+def _calcular_sub_factors_breakdown(prop):
+    """Retorna desglose del factor hedonico agrupado por categoría."""
+    from parsers.mercado_inmobiliario import calcular_factores
+    f_dict = calcular_factores(prop)
+    ef = f_dict['factor_estado']
+    cf = f_dict['factor_calidad']
+    pf = f_dict.get('factor_piso', 1.0)
+    vf = f_dict.get('factor_vista', 1.0)
+    bf = f_dict.get('factor_balcon', 1.0)
+    vcf = f_dict.get('factor_vent', 1.0)
+    uf = f_dict.get('factor_ubica', 1.0)
+    gf = f_dict.get('factor_gas', 1.0)
+    ff = f_dict.get('f_funcional', 1.0)
+    df = f_dict.get('factor_disposicion', 1.0)
+    anti = f_dict.get('anti', 1.0)
+    contrib_edif = (ef - 1.0) + (cf - 1.0) + (pf - 1.0) + (vf - 1.0) + (bf - 1.0) + \
+                   (vcf - 1.0) + (uf - 1.0) + (gf - 1.0) + (ff - 1.0) + (df - 1.0) + (anti - 1.0)
+    contrib_amenities = f_dict.get('delta_amenities', 0.0)
+    contrib_nlp = 0.0
+    if prop.get('terminaciones_cocina') == 'silestone':
+        contrib_nlp += 0.003
+    if prop.get('preinstalacion_aa'):
+        contrib_nlp += 0.002
+    return {
+        'edificacion': round(1.0 + min(0.40, max(-0.40, contrib_edif)), 4),
+        'amenities': round(1.0 + min(0.40, max(-0.40, contrib_amenities)), 4),
+        'nlp': round(1.0 + min(0.40, max(-0.40, contrib_nlp)), 4),
+        'detalle_amenities': f_dict.get('detalle_amenities', ''),
+    }
+
 def generar_resultado_manual(prop, manual_params):
     """
     Genera resultado de valuacion completo a partir de parametros manuales.
@@ -3932,6 +3962,7 @@ def generar_resultado_manual(prop, manual_params):
         'valor_realizable_usd': round(valor_venta * GAP_CIERRE, 0),
         'valor_m2_actual_usd': round(valor_venta / m2_equiv, 2) if m2_equiv > 0 else 0,
         'm2_base_venta': round(usd_m2, 2),
+        'valor_activos': valor_activos,
         'valor_venta_conservador': int(v_cons),
         'valor_venta_mercado': int(valor_venta),
         'valor_venta_optimista': int(v_opt),
@@ -3955,7 +3986,6 @@ def generar_resultado_manual(prop, manual_params):
         'comparables_venta': [],
         'mapa_html': None,
         'catastro_detalle': None,
-        'valor_activos': valor_activos,
         'fuente': 'manual',
         'manual_params': manual_params,
         'resolution_metadata': {
@@ -3969,6 +3999,7 @@ def generar_resultado_manual(prop, manual_params):
         'constructora': prop.get('constructora', ''),
         'delta_anti': 1.0,
         'nlp_ajuste': 0,
+        'sub_factors_breakdown': _calcular_sub_factors_breakdown(prop),
     }
     return result
 

@@ -767,15 +767,43 @@ def render_valuacion_manual(prop, res):
                 st.metric("Constructora", "—")
 
         c1, c2, c3 = st.columns(3)
+        fh_valor = res.get('factor_hedonico_efectivo', mp.get('factor_hedonico', 1.0))
         with c1:
-            st.metric("Factor Hedonico", f"{res.get('factor_hedonico_efectivo', mp.get('factor_hedonico', 1.0)):.4f}")
+            st.metric("Factor Hedonico", f"{fh_valor:.4f}")
         with c2:
             st.metric("Ajuste %", f"{mp.get('ajuste_pct', 0):+.1f}%")
         with c3:
             st.metric("Incertidumbre %", f"±{mp.get('incertidumbre_pct', 10):.1f}%")
 
+        # Sub-factors breakdown grouped
+        sb = res.get('sub_factors_breakdown', {})
+        if sb:
+            st.markdown("#### Desglose del Factor Hedonico")
+            sc1, sc2, sc3 = st.columns(3)
+            with sc1:
+                st.metric("Edificación/Construcción", f"{sb.get('edificacion', 1.0):.4f}")
+            with sc2:
+                det_amen = sb.get('detalle_amenities', '')
+                label_am = f"Amenities ({det_amen[:30]})" if det_amen else "Amenities"
+                st.metric(label_am, f"{sb.get('amenities', 1.0):.4f}")
+            with sc3:
+                st.metric("NLP (cocina/AA)", f"{sb.get('nlp', 1.0):.4f}")
+            # Clamp info
+            suma_sub = (sb.get('edificacion', 1.0) - 1.0) + (sb.get('amenities', 1.0) - 1.0) + (sb.get('nlp', 1.0) - 1.0) + 1.0
+            if abs(suma_sub - fh_valor) > 0.001:
+                st.caption(f"Suma de grupos: {suma_sub:.4f} → clamp a {fh_valor:.4f} (límite ±40%)")
+
+        # Activos: cocheras y baulera como metricas grandes
         val_act = res.get('valor_activos', {})
-        st.caption(f"Cocheras: ${val_act.get('cocheras', 0):,.0f} | Baulera: ${val_act.get('baulera', 0):,.0f}")
+        if val_act.get('cocheras', 0) > 0 or val_act.get('baulera', 0) > 0:
+            st.markdown("#### Activos adicionales")
+            ac1, ac2 = st.columns(2)
+            with ac1:
+                st.metric("Cocheras", f"${val_act.get('cocheras', 0):,.0f}")
+            with ac2:
+                st.metric("Baulera", f"${val_act.get('baulera', 0):,.0f}")
+            if val_act.get('detalle'):
+                st.caption(val_act['detalle'])
 
         c_btn = st.columns(2)
         with c_btn[0]:
@@ -920,18 +948,26 @@ def render_valuacion_manual(prop, res):
     tipo_cochera = prop.get('cocheras_tipo', 'cubierta')
     valor_baulera = prop.get('valor_baulera', 0)
 
-    if cant_cocheras > 0:
-        coef_tipo = {'cubierta': 1.0, 'semicubierta': 0.7, 'descubierta': 0.4}.get(tipo_cochera, 1.0)
-        vbc = prop.get('valor_cochera_base', usd_m2_input * 12)
-        dets = []
-        for i in range(1, cant_cocheras + 1):
-            fu = 1.0 if i == 1 else 0.7 if i == 2 else 0.5
-            v = vbc * coef_tipo * fu
-            dets.append(f"Cochera {i}: ${v:,.0f} (utilidad {fu*100:.0f}%)")
-        st.caption("Cocheras (solo lectura): " + " | ".join(dets))
-    if valor_baulera > 0:
-        st.caption(f"Baulera (solo lectura): ${valor_baulera:,.0f}")
-    if cant_cocheras == 0 and valor_baulera == 0:
+    if cant_cocheras > 0 or valor_baulera > 0:
+        st.markdown("#### Activos adicionales")
+        c_col1, c_col2 = st.columns(2)
+        if cant_cocheras > 0:
+            coef_tipo = {'cubierta': 1.0, 'semicubierta': 0.7, 'descubierta': 0.4}.get(tipo_cochera, 1.0)
+            vbc = prop.get('valor_cochera_base', usd_m2_input * 12)
+            total_c = 0.0
+            dets = []
+            for i in range(1, cant_cocheras + 1):
+                fu = 1.0 if i == 1 else 0.7 if i == 2 else 0.5
+                v = vbc * coef_tipo * fu
+                total_c += v
+                dets.append(f"Cochera {i}: ${v:,.0f} (utilidad {fu*100:.0f}%)")
+            with c_col1:
+                st.metric("Cocheras", f"${total_c:,.0f}")
+                st.caption(" | ".join(dets))
+        if valor_baulera > 0:
+            with c_col2:
+                st.metric("Baulera", f"${valor_baulera:,.0f}")
+    else:
         st.caption("Sin activos adicionales (cocheras / baulera)")
 
     col_c, col_d, col_e = st.columns(3)
