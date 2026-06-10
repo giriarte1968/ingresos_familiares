@@ -261,21 +261,10 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
 
     # ─── 📊 Comparables ───
     with st.expander("📊 Comparables", expanded=False):
-        # CSS para botones Retro verde oscuro inactivo / verde claro activo
-        st.markdown("""<style>
-#retro_ctrls ~ div button[data-testid="baseButton-secondary"] {
-    background-color: #2e7d32 !important; border-color: #1b5e20 !important; color: white !important;
-}
-#retro_ctrls ~ div button[data-testid="baseButton-primary"] {
-    background-color: #4caf50 !important; border-color: #388e3c !important; color: white !important;
-}
-</style>""", unsafe_allow_html=True)
-        st.markdown('<div id="retro_ctrls"></div>', unsafe_allow_html=True)
-
         prop_name = prop.get('nombre', '')
         retro_key = f'retro_active_{prop_name}'
         retro_active = st.session_state.get(retro_key, False)
-        col_btn, col_status, col_slider = st.columns([1.5, 1, 2])
+        col_btn, col_status, col_slider = st.columns([1.5, 1.5, 2])
         with col_btn:
             label = "🔙 Retro Activado" if retro_active else "🔙 Retro"
             if st.button(label, type="primary" if retro_active else "secondary", use_container_width=True):
@@ -409,6 +398,8 @@ def mostrar_dashboard():
     st.markdown("""
     <style>
     .main .block-container { transition: opacity 0.15s ease; min-height: 60vh; }
+    button[kind="secondary"] { background-color: #2e7d32 !important; border-color: #1b5e20 !important; color: white !important; }
+    button[kind="primary"] { background-color: #4caf50 !important; border-color: #388e3c !important; color: white !important; border-radius: 8px !important; font-weight: 600 !important; }
     </style>
     """, unsafe_allow_html=True)
     
