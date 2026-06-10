@@ -228,9 +228,11 @@ def render_mapa_propiedad(res):
 
 
 def render_tabla_comparables(res, prop_name=None):
-    """Tabla de propiedades comparables utilizadas.
-    Returns selected indices list, or None if selection not active.
+    """Tabla de propiedades comparables utilizadas con checkbox de selección.
+    Muestra el recálculo P33/P50 según los comps seleccionados.
     """
+    if not prop_name:
+        prop_name = 'default'
     if res.get('retro_activo'):
         st.caption(f"🔙 Retro activo: ventana de {res.get('total_dias_ventana', 180)} días")
     flex_dormitorios = res.get('flex_dormitorios', None)
@@ -241,56 +243,63 @@ def render_tabla_comparables(res, prop_name=None):
     if not comparables:
         st.caption("Sin comparables disponibles")
         return
-    rows = []
-    for i, c in enumerate(comparables):
-        anio_est = c.get('anio_estimado', '')
-        ta = c.get('time_adjustment', 1.0)
-        vm2_orig = c.get('precio_m2', 0)
-        vm2_ajust = c.get('precio_m2_ajustado', vm2_orig)
-        retro_badge = ""
-        if ta != 1.0:
-            retro_badge = " <span style='background:#ff6b35;color:white;font-size:10px;padding:1px 5px;border-radius:8px;font-weight:bold;'>RETRO</span>"
-            precio_m2_str = f"<span style='color:#888'>{'${:,.0f}'.format(vm2_orig)}</span> → <span style='color:#ff6b35;font-weight:bold'>{'${:,.0f}'.format(vm2_ajust)}</span>{retro_badge}"
-        if flex_dormitorios and sujeto_dorms is not None and c.get('dormitorios') != sujeto_dorms:
-            flex_badge = " <span style='background:#9b59b6;color:white;font-size:10px;padding:1px 5px;border-radius:8px;font-weight:bold;'>FLEX</span>"
-            precio_m2_str += flex_badge
-        else:
-            precio_m2_str = f"<span style='color:#2ecc71;font-weight:bold'>{'${:,.0f}'.format(vm2_orig)}</span>"
-        rows.append({
-            '#': i+1, 'Precio': f"${c.get('precio', 0):,.0f}",
-            'm2': f"{c.get('m2', 0):.0f}",
-            'Precio/m2': precio_m2_str,
-            'Dorm.': str(c.get('dormitorios', '?')),
-            'Tipo': str((c.get('tipo') or '')[:12]) if c.get('tipo') else '',
-            'Dirección': ((c.get('direccion_limpia') or c.get('direccion','')) or '')[:35],
-            'Ano est.': str(anio_est) if anio_est is not None and anio_est != '' else '',
-            'Dist.': f"{c.get('distancia_m', 0):.0f}m" if c.get('distancia_m') else '',
-        })
-    df = pd.DataFrame(rows)
-    st.markdown(df.to_html(escape=False, index=False), unsafe_allow_html=True)
 
-    # Select/deselect individual comparables
-    if not prop_name:
-        return
+    # Cabecera de la tabla
+    hdr = st.columns([0.4, 0.5, 1.5, 0.8, 1.5, 0.6, 1, 2, 0.7, 0.6])
+    hdr_labels = ['', '#', 'Precio USD', 'm²', 'Precio/m²', 'Dorm', 'Tipo', 'Dirección', 'Año', 'Dist']
+    for col, label in zip(hdr, hdr_labels):
+        col.markdown(f"**{label}**")
+
+    # Filas con checkbox a la izquierda
     sel_key = f'comp_selection_{prop_name}'
     all_idx = list(range(len(comparables)))
     default_sel = st.session_state.get(sel_key, all_idx)
-    with st.popover("🔽 Seleccionar comparables", use_container_width=True):
-        selected = []
-        for idx, c in enumerate(comparables):
-            checked = st.checkbox(
-                f"#{idx+1} – {c.get('direccion_limpia') or c.get('direccion','') or '?'} ({c.get('dormitorios','?')}d, ${c.get('precio_m2_ajustado',0):,.0f}/m2)",
-                value=idx in default_sel,
-                key=f'comp_cb_{prop_name}_{idx}'
-            )
-            if checked:
-                selected.append(idx)
-        st.session_state[sel_key] = selected
-        n_sel = len(selected)
-        st.caption(f"{n_sel}/{len(comparables)} seleccionados")
-        if st.button("Aplicar selección", type="primary", use_container_width=True):
-            st.session_state[f'comp_selection_apply_{prop_name}'] = True
-            st.rerun()
+    selected_indices = []
+    for i, c in enumerate(comparables):
+        cols = st.columns([0.4, 0.5, 1.5, 0.8, 1.5, 0.6, 1, 2, 0.7, 0.6])
+        checked = cols[0].checkbox("", value=i in default_sel, key=f'sel_comp_{prop_name}_{i}')
+        if checked:
+            selected_indices.append(i)
+        cols[1].write(str(i+1))
+        cols[2].write(f"${c.get('precio', 0):,.0f}")
+        cols[3].write(f"{c.get('m2', 0):.0f}")
+        # Precio/m2 con badges
+        ta = c.get('time_adjustment', 1.0)
+        vm2_orig = c.get('precio_m2', 0)
+        vm2_ajust = c.get('precio_m2_ajustado', vm2_orig)
+        badges = ""
+        if ta != 1.0:
+            badges += " <span style='background:#ff6b35;color:white;font-size:9px;padding:1px 4px;border-radius:6px;font-weight:bold;'>RETRO</span>"
+        if flex_dormitorios and sujeto_dorms is not None and c.get('dormitorios') != sujeto_dorms:
+            badges += " <span style='background:#9b59b6;color:white;font-size:9px;padding:1px 4px;border-radius:6px;font-weight:bold;'>FLEX</span>"
+        if badges:
+            cols[4].markdown(f"<span style='font-weight:bold'>${vm2_ajust:,.0f}</span>{badges}", unsafe_allow_html=True)
+        else:
+            cols[4].markdown(f"<span style='color:#2ecc71;font-weight:bold'>${vm2_orig:,.0f}</span>", unsafe_allow_html=True)
+        cols[5].write(str(c.get('dormitorios', '?')))
+        cols[6].write(str((c.get('tipo') or '')[:12]) if c.get('tipo') else '')
+        cols[7].write(((c.get('direccion_limpia') or c.get('direccion','')) or '')[:35])
+        cols[8].write(str(c.get('anio_estimado', '')) if c.get('anio_estimado') else '')
+        cols[9].write(f"{c.get('distancia_m', 0):.0f}m" if c.get('distancia_m') else '')
+
+    st.session_state[sel_key] = selected_indices
+
+    # Recálculo automático P33/P50 desde los seleccionados
+    if selected_indices:
+        selected_comps = [comparables[i] for i in selected_indices]
+        precios = [c.get('precio_m2_ajustado', c.get('precio_m2', 0)) for c in selected_comps]
+        precios_sorted = sorted(precios)
+        n_sel = len(precios_sorted)
+        perc_idx = max(0, int(n_sel * 0.33) - 1)
+        p33 = precios_sorted[perc_idx]
+        p50 = precios_sorted[n_sel // 2]
+        p33_p50 = p33 if n_sel >= 8 else p50
+        col_a, col_b = st.columns([1, 2])
+        with col_a:
+            st.metric("Valor/m² por selección", f"${p33_p50:,.0f}",
+                      delta=f"{'${:,.0f}'.format(p33_p50 - res.get('valor_m2', 0))} vs original")
+        with col_b:
+            st.caption(f"P{'33' if n_sel >= 8 else '50'} sobre {n_sel} comps seleccionados de {len(comparables)} totales")
 
 def render_catastro(prop, res, compact=False):
     """Datos catastrales con seleccion de PH y boton de plano.

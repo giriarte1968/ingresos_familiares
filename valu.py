@@ -294,10 +294,14 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                 st.rerun()
         with col_fs:
             if flex_active:
-                dorm_cols = st.columns([1]*5)
-                for idx, d in enumerate([1, 2, 3, 4, 5]):
-                    with dorm_cols[idx]:
-                        st.checkbox(f"{d}", key=f'flex_dorm_cb_{prop_name}_{d}')
+                todos_key = f'flex_todos_{prop_name}'
+                todos_val = st.session_state.get(todos_key, True)
+                st.checkbox("Todos", value=todos_val, key=todos_key)
+                if not todos_val:
+                    dorm_cols = st.columns([1]*5)
+                    for idx, d in enumerate([1, 2, 3, 4, 5]):
+                        with dorm_cols[idx]:
+                            st.checkbox(f"{d}", key=f'flex_dorm_cb_{prop_name}_{d}')
 
         with st.expander("🗺️ Mapa", expanded=False):
             with profile_block("render_mapa_propiedad", prop):
@@ -305,42 +309,22 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         _dl.mark("after_render_mapa")
 
         comparables_todos = res.get('comparables_venta', [])
-        # Client-side filter by bedroom checkboxes (when Retro Flexible active)
         flex_active = st.session_state.get(f'flex_active_{prop_name}', False)
         if flex_active:
-            checked_dorms = [d for d in [1, 2, 3, 4, 5] if st.session_state.get(f'flex_dorm_cb_{prop_name}_{d}', False)]
-            if checked_dorms:
-                comparables = [c for c in comparables_todos if c.get('dormitorios') in checked_dorms]
+            todos_val = st.session_state.get(f'flex_todos_{prop_name}', True)
+            if todos_val:
+                comparables = comparables_todos
             else:
-                comparables = comparables_todos  # show all when none selected
+                checked_dorms = [d for d in [1, 2, 3, 4, 5] if st.session_state.get(f'flex_dorm_cb_{prop_name}_{d}', False)]
+                comparables = [c for c in comparables_todos if c.get('dormitorios') in checked_dorms] if checked_dorms else []
         else:
             comparables = comparables_todos
         n_comps = len(comparables)
-        with st.expander(f"{n_comps} Propiedades Comparables (de {len(comparables_todos)} totales)" if len(comparables) != len(comparables_todos) else f"{n_comps} Propiedades Comparables", expanded=False):
-            with profile_block("render_tabla_comparables", prop):
-                render_tabla_comparables({**res, 'comparables_venta': comparables}, prop_name=prop_name)
-
-            # Selección de comparables: recálculo local
-            sel_apply_key = f'comp_selection_apply_{prop_name}'
-            if st.session_state.get(sel_apply_key, False):
-                sel_key = f'comp_selection_{prop_name}'
-                sel_idx = st.session_state.get(sel_key, list(range(n_comps)))
-                st.session_state[sel_apply_key] = False
-                selected_comps = [comparables[i] for i in sel_idx]
-                if selected_comps:
-                    precios = [c.get('precio_m2_ajustado', c.get('precio_m2', 0)) for c in selected_comps]
-                    precios_sorted = sorted(precios)
-                    n_sel = len(precios_sorted)
-                    perc_idx = max(0, int(n_sel * 0.33) - 1)
-                    p33 = precios_sorted[perc_idx]
-                    p50 = precios_sorted[n_sel // 2]
-                    p33_p50 = p33 if n_sel >= 8 else p50
-                    col_a, col_b = st.columns([1, 2])
-                    with col_a:
-                        st.metric("Valor/m2 ajustado", f"${p33_p50:,.0f}",
-                                  delta=f"{'${:,.0f}'.format(p33_p50 - res.get('valor_m2', 0))} vs original")
-                    with col_b:
-                        st.caption(f"P33/P50 sobre {n_sel} comps seleccionados de {n_comps} totales")
+        expander_label = f"{n_comps} Propiedades Comparables"
+        if len(comparables) != len(comparables_todos):
+            expander_label += f" (de {len(comparables_todos)} totales)"
+        with st.expander(expander_label, expanded=False):
+            render_tabla_comparables({**res, 'comparables_venta': comparables}, prop_name=prop_name)
         _dl.mark("after_render_tabla_comparables")
     _dl.mark("after_section_comparables")
 
