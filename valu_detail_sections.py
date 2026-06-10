@@ -783,8 +783,9 @@ def render_valuacion_manual(prop, res):
             with sc1:
                 st.metric("Edificación/Construcción", f"{sb.get('edificacion', 1.0):.4f}")
             with sc2:
-                det_amen = sb.get('detalle_amenities', '')
-                label_am = f"Amenities ({det_amen[:30]})" if det_amen else "Amenities"
+                det_amen = sb.get('detalle_amenities', {})
+                det_str = ", ".join(det_amen.keys()) if isinstance(det_amen, dict) else str(det_amen)[:30]
+                label_am = f"Amenities ({det_str[:40]})" if det_str else "Amenities"
                 st.metric(label_am, f"{sb.get('amenities', 1.0):.4f}")
             with sc3:
                 st.metric("NLP (cocina/AA)", f"{sb.get('nlp', 1.0):.4f}")
@@ -948,26 +949,18 @@ def render_valuacion_manual(prop, res):
     tipo_cochera = prop.get('cocheras_tipo', 'cubierta')
     valor_baulera = prop.get('valor_baulera', 0)
 
-    if cant_cocheras > 0 or valor_baulera > 0:
-        st.markdown("#### Activos adicionales")
-        c_col1, c_col2 = st.columns(2)
-        if cant_cocheras > 0:
-            coef_tipo = {'cubierta': 1.0, 'semicubierta': 0.7, 'descubierta': 0.4}.get(tipo_cochera, 1.0)
-            vbc = prop.get('valor_cochera_base', usd_m2_input * 12)
-            total_c = 0.0
-            dets = []
-            for i in range(1, cant_cocheras + 1):
-                fu = 1.0 if i == 1 else 0.7 if i == 2 else 0.5
-                v = vbc * coef_tipo * fu
-                total_c += v
-                dets.append(f"Cochera {i}: ${v:,.0f} (utilidad {fu*100:.0f}%)")
-            with c_col1:
-                st.metric("Cocheras", f"${total_c:,.0f}")
-                st.caption(" | ".join(dets))
-        if valor_baulera > 0:
-            with c_col2:
-                st.metric("Baulera", f"${valor_baulera:,.0f}")
-    else:
+    if cant_cocheras > 0:
+        coef_tipo = {'cubierta': 1.0, 'semicubierta': 0.7, 'descubierta': 0.4}.get(tipo_cochera, 1.0)
+        vbc = prop.get('valor_cochera_base', usd_m2_input * 12)
+        dets = []
+        for i in range(1, cant_cocheras + 1):
+            fu = 1.0 if i == 1 else 0.7 if i == 2 else 0.5
+            v = vbc * coef_tipo * fu
+            dets.append(f"Cochera {i}: ${v:,.0f} (utilidad {fu*100:.0f}%)")
+        st.caption("Cocheras (solo lectura): " + " | ".join(dets))
+    if valor_baulera > 0:
+        st.caption(f"Baulera (solo lectura): ${valor_baulera:,.0f}")
+    if cant_cocheras == 0 and valor_baulera == 0:
         st.caption("Sin activos adicionales (cocheras / baulera)")
 
     col_c, col_d, col_e = st.columns(3)
