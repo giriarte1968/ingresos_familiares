@@ -1,6 +1,6 @@
 ﻿# ðŸ  STATUS ACTUAL DEL PROYECTO â€” AVM Rosario
 
-*Actualizado: 09/06/2026 (TAREA-037: Validacion factor hedonico)*
+*Actualizado: 09/06/2026 (TAREA-037b: Correcciones post feedback)*
 
 ---
 
@@ -144,7 +144,6 @@ git checkout origin/do-state -- propiedades.json data/valuaciones_cache.json
 1. âš ï¸ Vera Mujica benchmark desactualizado (test_regression)
 2. `data/history/` directorio untracked (generado por scraping)
 3. ValidaciÃ³n manual en DO del flujo do-state
-4. âš ï¸ Factor Hedonico = 0 anula contribucion m2 (validacion agregada, ver TAREA-037)
 
 ## 8. ESQUINAS â€” CORRECCIÃ“N DE DIRECCIONES VIA CENTROIDE CATASTRAL
 

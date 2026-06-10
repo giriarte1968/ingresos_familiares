@@ -957,7 +957,8 @@ def render_valuacion_manual(prop, res):
         )
 
     # Preview
-    m2_eq = res.get('m2_equivalentes', 0)
+    from parsers.mercado_inmobiliario import calcular_m2_equivalentes
+    m2_eq = calcular_m2_equivalentes(prop)
     pre_sub = m2_eq * usd_m2_input * fh * factor_const
     pre_act = 0
     if cant_cocheras > 0:
@@ -978,9 +979,6 @@ def render_valuacion_manual(prop, res):
     if st.button("Calcular y Guardar Valuacion Manual", type="primary", use_container_width=True):
         if usd_m2_input <= 0:
             st.error("Ingrese un valor de USD/m2 valido.")
-            return
-        if fh <= 0:
-            st.error("Factor Hedonico debe ser mayor a 0 (sugerido: ~1.0). Con 0 el valor del m2 se anula.")
             return
         manual_params = {
             'ancla_id': ancla_sel,

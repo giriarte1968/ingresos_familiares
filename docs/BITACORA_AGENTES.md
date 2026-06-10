@@ -2168,3 +2168,18 @@ Reemplazar las 117 anclas artesanales (46% cobertura) por 322 microzonas automat
 ### Validacion:
 - 39/39 tests pasan
 - auto_validate.py: OK
+
+---
+
+## 09/06/2026 — TAREA-037b: Correcciones post feedback
+
+### Cambios:
+1. **Eliminada validacion fh > 0** — manual permite cualquier valor, incluso negativo
+2. **Preview corregido** — `m2_eq` ahora usa `calcular_m2_equivalentes(prop)` en vez de `res.get('m2_equivalentes', 0)`. Bug: cuando `res` es resultado auto con `insuficientes_comparables`, no tiene `m2_equivalentes` → preview mostraba solo activos ($56,000) aunque el calculo real usara el m2 correcto de la propiedad.
+
+### Archivos modificados:
+1. valu_detail_sections.py: preview m2_eq desde prop; removida validacion fh<=0
+
+### Validacion:
+- 39/39 tests pasan
+- auto_validate.py: OK
