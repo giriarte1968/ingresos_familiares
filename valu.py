@@ -261,7 +261,17 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
 
     # ─── 📊 Comparables ───
     with st.expander("📊 Comparables", expanded=False):
-        # Botón Retro + slider
+        # CSS para botones Retro verde oscuro inactivo / verde claro activo
+        st.markdown("""<style>
+#retro_ctrls ~ div button[data-testid="baseButton-secondary"] {
+    background-color: #2e7d32 !important; border-color: #1b5e20 !important; color: white !important;
+}
+#retro_ctrls ~ div button[data-testid="baseButton-primary"] {
+    background-color: #4caf50 !important; border-color: #388e3c !important; color: white !important;
+}
+</style>""", unsafe_allow_html=True)
+        st.markdown('<div id="retro_ctrls"></div>', unsafe_allow_html=True)
+
         prop_name = prop.get('nombre', '')
         retro_key = f'retro_active_{prop_name}'
         retro_active = st.session_state.get(retro_key, False)
@@ -281,7 +291,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                 st.slider("Meses atrás", 12, 60, st.session_state.get(f'retro_meses_{prop_name}', 36),
                           key=f'retro_meses_{prop_name}')
 
-        # Retro Flexible: checkboxes acumulativos de dormitorios
+        # Retro Flexible: checkboxes inline con el botón
         flex_key = f'flex_active_{prop_name}'
         flex_active = st.session_state.get(flex_key, False)
         col_fb, col_fs = st.columns([1.5, 3.5])
@@ -295,8 +305,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                 st.rerun()
         with col_fs:
             if flex_active:
-                st.caption("Filtrar dormitorios:")
-                dorm_cols = st.columns(5)
+                dorm_cols = st.columns([1]*5)
                 for idx, d in enumerate([1, 2, 3, 4, 5]):
                     with dorm_cols[idx]:
                         st.checkbox(f"{d}", key=f'flex_dorm_cb_{prop_name}_{d}')
