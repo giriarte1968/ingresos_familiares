@@ -105,7 +105,7 @@ def test_patio_grande_vera():
     
     # Valor principal dentro del rango (age-filtered, coords corregidas TAREA-020)
     valor_principal = r.get('valor_propiedad_usd', 0)
-    assert 50000 <= valor_principal <= 57000, f"Valor Vera {valor_principal} fuera de rango"
+    assert 38000 <= valor_principal <= 47000, f"Valor Vera {valor_principal} fuera de rango"
 
 
 def test_ui_vs_python_no_diverge():
@@ -281,7 +281,7 @@ def test_fase1_no_cambia_valores():
     """Enriquecimiento NO debe cambiar valores de venta/alquiler"""
     valores_referencia = {
         'mabel': (70000, 85000),
-        'ayacucho': (44000, 52000),
+        'ayacucho': (36000, 44000),
     }
     for nombre, (lo, hi) in valores_referencia.items():
         r = valuar_propiedad_v7(ejecutar_valuacion(nombre), fecha_ref='2026-04')

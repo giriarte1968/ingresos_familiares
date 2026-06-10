@@ -5876,37 +5876,37 @@
     "fecha_legible": "05/06/2026 16:08"
   },
   "Francia 250b": {
-    "timestamp": "2026-06-09T21:05:20.650024",
+    "timestamp": "2026-06-10T15:29:33.530914",
     "hash_prop": "81040a68c17b",
     "hash_scraping": "97d5090a9e39",
     "cache_version": "v6_pn_comparables",
     "resultado_completo": {
-      "valor_propiedad_usd": 56000.0,
-      "valor_realizable_usd": 51520.0,
-      "valor_m2_actual_usd": 350.0,
+      "valor_propiedad_usd": 765309.0,
+      "valor_realizable_usd": 704085.0,
+      "valor_m2_actual_usd": 4783.18,
       "m2_base_venta": 2932.0,
-      "valor_venta_conservador": 50400,
-      "valor_venta_mercado": 56000,
-      "valor_venta_optimista": 61600,
-      "valor_cierre_conservador": 46368,
-      "valor_cierre_mercado": 51520,
-      "valor_cierre_optimista": 56672,
+      "valor_venta_conservador": 688778,
+      "valor_venta_mercado": 765309,
+      "valor_venta_optimista": 841840,
+      "valor_cierre_conservador": 633676,
+      "valor_cierre_mercado": 704084,
+      "valor_cierre_optimista": 774493,
       "rango_venta": {
-        "min": 50400,
-        "mid": 56000,
-        "max": 61600,
+        "min": 688778,
+        "mid": 765309,
+        "max": 841840,
         "spread_pct": 22.2
       },
-      "alquiler_estimado_ars": 353788.0,
+      "alquiler_estimado_ars": 4785814.0,
       "alquiler_rango": {
-        "min": 318410,
-        "mid": 353788,
-        "max": 389167
+        "min": 4307233,
+        "mid": 4785814,
+        "max": 5264396
       },
       "cap_rate": 0.05,
-      "usdt_ars": 1516.2363,
+      "usdt_ars": 1500.8248,
       "m2_equivalentes": 160.0,
-      "rango_m2": "USD 50,400 - 61,600",
+      "rango_m2": "USD 688,778 - 841,840",
       "confianza": "media",
       "justificacion": "Valuacion manual — parametros especificados por el analista.",
       "razonamiento": "Valuacion manual — parametros especificados por el analista.",
@@ -5923,7 +5923,7 @@
       "manual_params": {
         "ancla_id": "central_argentino_puerto_norte",
         "usd_m2": 2932.0,
-        "factor_hedonico": 0.0,
+        "factor_hedonico": 1.35,
         "ajuste_pct": 0.0,
         "incertidumbre_pct": 10.0
       },
@@ -5932,12 +5932,13 @@
         "fuente": "manual",
         "zona": "Puerto Norte"
       },
-      "factor_total": 0.0,
+      "factor_total": 1.5120000000000002,
+      "factor_hedonico_efectivo": 1.35,
       "factor_const": 1.12,
       "constructora": "Ulanovsky",
       "delta_anti": 1.0,
       "nlp_ajuste": 0
     },
-    "fecha_legible": "09/06/2026 21:05"
+    "fecha_legible": "10/06/2026 15:29"
   }
 }

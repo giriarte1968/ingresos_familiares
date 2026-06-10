@@ -445,19 +445,19 @@
       "expensas_ars": 0,
       "id": "prop_de9ad3e4",
       "_ultima_valuacion": {
-        "valor_usd": 56000.0,
-        "alquiler_ars": 353788.0,
+        "valor_usd": 765309.0,
+        "alquiler_ars": 4785814.0,
         "cap_rate": 0.05,
         "m2_equivalentes": 160.0,
         "comps": 0,
-        "fecha": "09/06/2026 21:05",
+        "fecha": "10/06/2026 15:29",
         "cache_version": "v6_pn_comparables",
-        "timestamp": "2026-06-09T21:05:20.696216",
+        "timestamp": "2026-06-10T15:29:33.547467",
         "fuente": "manual",
         "manual_params": {
           "ancla_id": "central_argentino_puerto_norte",
           "usd_m2": 2932.0,
-          "factor_hedonico": 0.0,
+          "factor_hedonico": 1.35,
           "ajuste_pct": 0.0,
           "incertidumbre_pct": 10.0
         }

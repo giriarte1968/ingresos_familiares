@@ -278,9 +278,8 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                 st.caption(f"📆 +{meses} meses")
         with col_slider:
             if retro_active:
-                meses = st.slider("Meses atrás", 12, 60, st.session_state.get(f'retro_meses_{prop_name}', 36),
-                                  key=f'retro_meses_{prop_name}')
-                st.session_state[f'retro_meses_{prop_name}'] = meses
+                st.slider("Meses atrás", 12, 60, st.session_state.get(f'retro_meses_{prop_name}', 36),
+                          key=f'retro_meses_{prop_name}')
 
         with st.expander("🗺️ Mapa", expanded=False):
             with profile_block("render_mapa_propiedad", prop):
@@ -431,6 +430,9 @@ def mostrar_dashboard():
                 with profile_block("detalle_volver_btn", None):
                     if st.button("← Volver al Portafolio"):
                         st.session_state.prop_sel = None
+                        st.session_state['nav_page_radio'] = 'Portfolio'
+                        if 'prop' in st.query_params:
+                            st.query_params.clear()
                         st.rerun()
 
                 with profile_block("mostrar_detalle_valu_total", p_obj):
@@ -638,7 +640,7 @@ def mostrar_dashboard():
         active_file_name = os.path.basename(active_file_rel) if active_file_rel else ''
         anchor_files = sorted([f for f in os.listdir(DATA_DIR) if f.endswith('.json') and ('anclas_v7_' in f or 'anclas_rosario_v5' in f)])
 
-        tab1, tab2, tab3, tab4 = st.tabs(["📂 Archivos", "⚡ Generar", "✏️ Editor Manual", "⚙️ Config"])
+        tab1, tab2, tab3, tab4, tab5 = st.tabs(["📂 Archivos", "⚡ Generar", "✏️ Editor Manual", "📈 Ct / Ajuste Temporal", "⚙️ Config"])
 
         # ─── TAB 1: Archivos Disponibles ───
         with tab1:
@@ -806,8 +808,99 @@ def mostrar_dashboard():
                     if linked:
                         st.markdown(f"**{a['id']}** (${a.get('usd_m2',0):.0f}): {', '.join(linked)}")
 
-        # ─── TAB 4: Config ───
+        # ─── TAB 4: Ct / Ajuste Temporal ───
         with tab4:
+            st.caption("Curva de Ajuste Temporal (Ct) y Factores COCIR")
+            st.markdown("---")
+
+            # ct_table editor
+            st.markdown("**Tabla Ct (mes → factor)**")
+            ct_table = gen_cfg.get('ct_table', [[0, 1.0]])
+            ct_df = pd.DataFrame(ct_table, columns=["meses", "Ct"])
+            edited_ct = st.data_editor(
+                ct_df, num_rows="dynamic", use_container_width=True,
+                key="ct_table_editor"
+            )
+            if st.button("💾 Guardar Tabla Ct", key="save_ct_table", use_container_width=True):
+                new_ct = [[int(r.meses), float(r.Ct)] for _, r in edited_ct.iterrows()]
+                cfg = load_anclas_config(force_reload=True)
+                cfg['generator']['ct_table'] = new_ct
+                save_anclas_config(cfg)
+                load_anclas_config(force_reload=True)
+                bump_cache_version()
+                st.success("Tabla Ct guardada. Caché invalidada.")
+                st.rerun()
+
+            # Gráfico Plotly de Ct
+            try:
+                import plotly.graph_objects as go
+                ct_sorted = sorted(ct_table, key=lambda x: x[0])
+                meses_vals = [r[0] for r in ct_sorted]
+                ct_vals = [r[1] for r in ct_sorted]
+                fig = go.Figure()
+                fig.add_trace(go.Scatter(
+                    x=meses_vals, y=ct_vals, mode='lines+markers',
+                    name='Ct',
+                    line=dict(color='#ff6b35', width=3),
+                    marker=dict(size=8)
+                ))
+                # Línea vertical en ventana natural (180d = 6 meses)
+                fig.add_vline(x=6, line_dash="dash", line_color="green",
+                              annotation_text="ventana natural (6m)")
+                # Línea horizontal en 1.0
+                fig.add_hline(y=1.0, line_dash="dot", line_color="gray",
+                              annotation_text="Ct=1.0 (sin ajuste)")
+                fig.update_layout(
+                    title="Curva Ct - Ajuste Temporal",
+                    xaxis_title="Meses desde publicación",
+                    yaxis_title="Factor Ct",
+                    template="plotly_dark"
+                )
+                st.plotly_chart(fig, use_container_width=True)
+            except ImportError:
+                st.info("Plotly no disponible. Instalar con `pip install plotly`")
+
+            st.markdown("---")
+
+            # Factores COCIR
+            st.markdown("**Factores COCIR**")
+            cf = gen_cfg.get('ct_factors', {})
+            col_f1, col_f2, col_f3 = st.columns(3)
+            with col_f1:
+                nuevo_factor = st.number_input("Factor NUEVO", min_value=0.5, max_value=2.0, value=cf.get('nuevo', 0.95), step=0.01, key="cocir_nuevo")
+            with col_f2:
+                usado_factor = st.number_input("Factor USADO", min_value=0.5, max_value=2.0, value=cf.get('usado', 1.12), step=0.01, key="cocir_usado")
+            with col_f3:
+                fv = st.text_input("Fecha vigencia (YYYY-MM)", value=cf.get('fecha_vigencia', '2026-01'), key="cocir_fv")
+
+            if st.button("💾 Guardar Factores COCIR", key="save_cocir", use_container_width=True):
+                cfg = load_anclas_config(force_reload=True)
+                cfg['generator']['ct_factors'] = {
+                    'usado': usado_factor,
+                    'nuevo': nuevo_factor,
+                    'fecha_vigencia': fv
+                }
+                save_anclas_config(cfg)
+                load_anclas_config(force_reload=True)
+                bump_cache_version()
+                st.success("Factores COCIR guardados. Caché invalidada.")
+                st.rerun()
+
+            # Histórico de cambios de factores
+            try:
+                hist_path = os.path.join(CONFIG_DIR, "ct_factors_history.json")
+                if os.path.exists(hist_path):
+                    with open(hist_path, encoding='utf-8') as f:
+                        history = json.load(f)
+                    if history:
+                        st.markdown("---")
+                        st.markdown("**Historial de cambios**")
+                        st.json(history)
+            except:
+                pass
+
+        # ─── TAB 5: Config ───
+        with tab5:
             st.caption("Edición directa de config/anclas_config.json")
             cfg_json = json.dumps(config, indent=2, ensure_ascii=False)
             edited_cfg = st.text_area("Config JSON", cfg_json, height=400, key="cfg_editor")
@@ -911,6 +1004,10 @@ def main():
         
         def ir_al_inicio():
             st.session_state.vista_actual = 'landing'
+            st.session_state.prop_sel = None
+            st.session_state.pop('_force_nav_page', None)
+            if 'nav_page_radio' in st.session_state:
+                del st.session_state['nav_page_radio']
 
         # ─── Password gate (solo para Mercado) ───
         pwd = st.text_input("🔑 Acceso a Mercado", type="password", placeholder="••••••", key="_nav_pwd")

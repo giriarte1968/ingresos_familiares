@@ -15,43 +15,15 @@ PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
 sys.path.insert(0, PROJECT_ROOT)
 
 from parsers.motor_vpp_core import load_anclas_config
+from parsers.time_adjustment import interpolar, ct_segmento, meses_desde, es_nuevo
 
 FECHA_REF = datetime(2026, 6, 1)
-
-TABLA_CT = [(0,1.000),(3,1.011),(6,1.033),(12,1.105),(18,1.207),
-            (24,1.235),(30,1.267),(36,1.254),(42,1.203),(48,1.173),
-            (54,1.152),(60,1.131),(66,1.105),(72,1.067),(78,1.027),(83,1.000)]
-
-def interpolar(tabla, x):
-    if x <= tabla[0][0]: return tabla[0][1]
-    if x >= tabla[-1][0]: return 1.0
-    for i in range(len(tabla)-1):
-        x1,y1 = tabla[i]; x2,y2 = tabla[i+1]
-        if x1 <= x <= x2:
-            return y1 + (y2 - y1) * (x - x1) / (x2 - x1)
-    return 1.0
-
-def ct_segmento(meses, factor):
-    ct_base = interpolar(TABLA_CT, meses)
-    return 1.0 + (ct_base - 1.0) * factor
-
-def meses_desde(fecha_str):
-    if not fecha_str: return None
-    try:
-        dt = datetime.strptime(str(fecha_str)[:10], '%Y-%m-%d')
-        return max(0, (FECHA_REF - dt).days / 30.44)
-    except:
-        return None
 
 def m2deg_lat(m):
     return m / 111000.0
 
 def m2deg_lon(m, lat):
     return m / (111320.0 * math.cos(math.radians(lat)))
-
-def es_nuevo(p):
-    txt = ('%s %s %s' % (p.get('direccion',''), p.get('tipo',''), p.get('zona',''))).lower()
-    return any(k in txt for k in ['a estrenar', 'estrenar', 'pozo', 'obra nueva'])
 
 def build_noise_set(noise_tokens, noise_patterns):
     s = set(t.lower() for t in noise_tokens if t)
@@ -111,6 +83,7 @@ def main():
     noise_tokens = gen_cfg.get('noise_tokens', [])
     noise_patterns = gen_cfg.get('noise_patterns', [])
     noise_set, _ = build_noise_set(noise_tokens, noise_patterns)
+    ct_table = gen_cfg.get('ct_table', [])
 
     RUTA_CACHE = os.path.join(PROJECT_ROOT, 'cache_scraping.json')
 
@@ -143,7 +116,7 @@ def main():
         is_new = es_nuevo(p)
         if is_new: n_nuevo += 1
 
-        ct_base = interpolar(TABLA_CT, m)
+        ct_base = interpolar(ct_table, m)
         ct_usado = ct_segmento(m, FACTOR_USADO)
         ct_nuevo_val = ct_segmento(m, FACTOR_NUEVO)
         ct = ct_nuevo_val if is_new else ct_usado
