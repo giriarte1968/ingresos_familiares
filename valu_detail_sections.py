@@ -23,7 +23,7 @@ def render_actions(prop, guardar_fn):
         if st.button("Editar", type="primary", use_container_width=True):
             st.session_state[f"edit_{prop['id']}"] = True
     with col_recalc:
-        if st.button("Revaluar", type="primary", use_container_width=True):
+        if st.button("Revaluar con comparables", type="primary", use_container_width=True):
             st.session_state[f'forzar_recalculo_{nombre}'] = True
             st.rerun()
     with col_delete:
@@ -971,11 +971,6 @@ def render_valuacion_manual(prop, res):
     pre_act += valor_baulera
     pre_total = pre_sub + pre_act
     pre_final = pre_total * (1 + aj / 100.0)
-    st.caption(
-        f"Preview: ({m2_eq:.0f}m2 x ${usd_m2_input:,.0f}/m2 x fh={fh_eff:.4f} x constr={factor_const:.4f}) "
-        f"+ activos=${pre_act:,.0f} = ${pre_total:,.0f} "
-        f"x (1 + {aj:+.1f}%) = **${pre_final:,.0f} USD**"
-    )
 
     if st.button("Calcular y Guardar Valuacion Manual", type="primary", use_container_width=True):
         if usd_m2_input <= 0:
