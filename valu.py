@@ -261,6 +261,27 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
 
     # ─── 📊 Comparables ───
     with st.expander("📊 Comparables", expanded=False):
+        # Botón Retro + slider
+        prop_name = prop.get('nombre', '')
+        retro_key = f'retro_active_{prop_name}'
+        retro_active = st.session_state.get(retro_key, False)
+        col_btn, col_status, col_slider = st.columns([1.5, 1, 2])
+        with col_btn:
+            label = "🔙 Retro activo" if retro_active else "🔙 Retro"
+            if st.button(label, type="primary" if retro_active else "secondary", use_container_width=True):
+                st.session_state[retro_key] = not retro_active
+                st.session_state[f'forzar_recalculo_{prop_name}'] = True
+                st.rerun()
+        with col_status:
+            if retro_active:
+                meses = st.session_state.get(f'retro_meses_{prop_name}', 36)
+                st.caption(f"📆 +{meses} meses")
+        with col_slider:
+            if retro_active:
+                meses = st.slider("Meses atrás", 12, 60, st.session_state.get(f'retro_meses_{prop_name}', 36),
+                                  key=f'retro_meses_{prop_name}')
+                st.session_state[f'retro_meses_{prop_name}'] = meses
+
         with st.expander("🗺️ Mapa", expanded=False):
             with profile_block("render_mapa_propiedad", prop):
                 render_mapa_propiedad(res)
@@ -393,7 +414,11 @@ def mostrar_dashboard():
                 with profile_block("detalle_spinner_valuar", p_obj):
                     _sl = StepLedger("detalle_spinner_valuar_ledger", p_obj.get('nombre'))
                     _sl.mark("before_valuar")
-                    resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False)
+                    prop_name = p_obj.get('nombre', '')
+                    retro_active = st.session_state.get(f'retro_active_{prop_name}', False)
+                    retro_meses = st.session_state.get(f'retro_meses_{prop_name}', 36) if retro_active else 0
+                    retro_dias = retro_meses if retro_active else 0
+                    resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias)
                     _sl.mark("after_valuar_con_cache")
 
                     # Override con valuación manual si está persistida

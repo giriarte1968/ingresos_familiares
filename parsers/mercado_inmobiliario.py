@@ -886,7 +886,7 @@ def _filtrar_por_ventana_edad(pool, anio_sujeto, ventana=15, min_con_anio=5):
     return pool, False, len(pool_con_anio), 0, 0
 
 
-def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=None, lon_ref=None, fecha_ref=None, anio_sujeto=None, tipo_inmueble=None, cache_scraping=None):
+def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=None, lon_ref=None, fecha_ref=None, anio_sujeto=None, tipo_inmueble=None, cache_scraping=None, retro_dias=0):
     """
     Obtiene la mediana del cluster desde cache_scraping.json.
     Versión v2 con metadata extendida Y radios progresivos.
@@ -915,7 +915,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 'cache_scraping.json'
             )
             if not os.path.exists(cache_path):
-                return 0, 0, {'percentil_usado': 'P50' if operacion == 'alquiler' else 'P33', 'n_raw': 0, 'n_filtradas': 0}
+                return 0, 0, {'percentil_usado': 'P50' if operacion == 'alquiler' else 'P33', 'n_raw': 0, 'n_filtradas': 0, 'retro_activo': bool(retro_dias), 'total_dias_ventana': get_natural_window_dias() + retro_dias * 30}
             from parsers.profiler import profile_block
             with profile_block("load_cache_scraping"):
                 with open(cache_path, 'r', encoding='utf-8') as f:
@@ -935,6 +935,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         RADIOS_PROGRESIVOS = [300, 500, 800, 1000, 1500]
         MIN_COMPARABLES = 10
         MIN_COMPARABLES_FALLBACK = 5
+        from parsers.time_adjustment import get_natural_window_dias
         
         # Puerto Norte: time-expansion en vez de radius-expansion
         TASA_AJUSTE_PN = -0.045
@@ -999,11 +1000,14 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             
             return props
         
-        def aplicar_filtro_fecha(props, fecha_filtro):
-            """Aplica ventana móvil de 12 meses (365 días)."""
+        def aplicar_filtro_fecha(props, fecha_filtro, dias=None):
+            """Aplica ventana móvil. Default desde config (180d) + retro si corresponde."""
             if not fecha_filtro:
                 return props
-            return filtrar_por_fecha(props, fecha_filtro, dias=365)
+            if dias is None:
+                from parsers.time_adjustment import get_natural_window_dias
+                dias = get_natural_window_dias() + retro_dias * 30
+            return filtrar_por_fecha(props, fecha_filtro, dias=dias)
         
         # Estrategia: Radio progresivo + fallback de zona
         mejor_resultado = None
@@ -1107,11 +1111,27 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 'zona_resolucion': zona_normalizada,
                 'insuficientes_comparables': True,
                 'n_comparables': n_available,
+                'retro_activo': bool(retro_dias),
+                'total_dias_ventana': get_natural_window_dias() + retro_dias * 30,
                 'debug': f'Solo {n_available} comparables encontrados. '
                          'Se requiere mínimo 2 para valuación automática.'
             }
         
         props, radio_usado, zona_resol = mejor_resultado
+        
+# === AJUSTE Ct PARA COMPARABLES > VENTANA NATURAL ===
+        from parsers.time_adjustment import get_natural_window_dias, calcular_ct, meses_desde, es_nuevo
+        natural_dias = get_natural_window_dias()
+        for p in props:
+            dc = p.get('date_created', '')
+            if not dc:
+                continue
+            try:
+                m = meses_desde(dc, fecha_ref)
+                if m is not None and m > natural_dias / 30:
+                    p['_time_adjustment'] = calcular_ct(m, es_nuevo(p))
+            except Exception:
+                pass
         
 # === APLICAR BARRERAS GEOGRÁFICAS (Rosario) ===
 # Blending same-side / cross-soft para evitar contaminación
@@ -1227,7 +1247,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 'anio_estimado': p.get('anio_estimado'),
                 'distancia_m': round(calcular_distancia_km(lat_ref, lon_ref, float(p['lat']), float(p['lon'])) * 1000, 0) if lat_ref and lon_ref and p.get('lat') and p.get('lon') else None,
             }
-            for p in pool_final[:30]
+            for p in pool_final[:60 if retro_dias > 0 else 30]
         ] if pool_final else []
         
         if not precios:
@@ -1501,8 +1521,11 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             'alpha_age_blend': alpha_age_blend,
             'base_age': round(base_age_val, 2) if base_age_val is not None else None,
             'base_all': round(base_all_val, 2) if base_all_val is not None else None,
-            # Comparables reales (muestra de hasta 30)
+            # Comparables reales (muestra de hasta 30/60)
             'comparables_reales': comparables_reales,
+            # Retro
+            'retro_activo': bool(retro_dias),
+            'total_dias_ventana': get_natural_window_dias() + retro_dias * 30,
         }
         
         return valor, n_filtradas, meta
@@ -1510,10 +1533,12 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         import traceback
         logger.error(f"[EXCEPTION] {e}\n{traceback.format_exc()}")
         return 0, 0, {
-            'percentil_usado': 'P50' if operacion == 'alquiler' else 'P33',
-            'n_raw': 0,
-            'n_filtradas': 0,
-            'radio_usado': None,
+        'percentil_usado': 'P50' if operacion == 'alquiler' else 'P33',
+        'n_raw': 0,
+        'n_filtradas': 0,
+        'retro_activo': bool(retro_dias),
+        'total_dias_ventana': get_natural_window_dias() + retro_dias * 30,
+        'radio_usado': None,
             'fecha_ref': fecha_ref,
             'operacion': operacion,
             'zona_original': zona_original,
@@ -3001,7 +3026,7 @@ def obtener_nodos_dinamicos(lat, lon, tipo, operacion, dorms=2, fecha_ref=None):
         return {"error": str(e)}
 
 
-def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True):
+def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retro_dias=0):
     """
     🚀 Modelo v7.0 - Evolución Híbrida PROFESIONAL
     Fusiona el Motor VPP (Clusters/Market) con Factores Físicos (Legacy).
@@ -3146,7 +3171,8 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True):
             fecha_ref=fecha_ref,
             anio_sujeto=anio_const,
             tipo_inmueble=prop.get('tipo_inmueble') or prop.get('tipo') or 'departamento',
-            cache_scraping=cache_scraping_compartido
+            cache_scraping=cache_scraping_compartido,
+            retro_dias=retro_dias
         )
     
     # Si v2 tiene valor, usarlo; si no, fallback a ancla
@@ -3596,6 +3622,8 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True):
         'serie_mensual_m2': [],
         'resolution_metadata': resolution_metadata,
         'comparables_venta': comparables_venta,
+        'retro_activo': meta_venta.get('retro_activo', False),
+        'total_dias_ventana': meta_venta.get('total_dias_ventana', 180),
         'mapa_html': mapa_html,
         'razonamiento': razonamiento,
         'catastro_detalle': catastro_detalle,

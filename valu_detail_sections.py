@@ -229,6 +229,8 @@ def render_mapa_propiedad(res):
 
 def render_tabla_comparables(res):
     """Tabla de propiedades comparables utilizadas."""
+    if res.get('retro_activo'):
+        st.caption(f"🔙 Retro activo: ventana de {res.get('total_dias_ventana', 180)} días")
     comparables = res.get('comparables_venta', [])
     if not comparables:
         st.caption("Sin comparables disponibles")
@@ -239,10 +241,12 @@ def render_tabla_comparables(res):
         ta = c.get('time_adjustment', 1.0)
         vm2_orig = c.get('precio_m2', 0)
         vm2_ajust = c.get('precio_m2_ajustado', vm2_orig)
+        retro_badge = ""
         if ta != 1.0:
-            precio_m2_str = f"<span style='color:#888'>{'${:,.0f}'.format(vm2_orig)}</span> → <span style='color:#ff6b35;font-weight:bold'>{'${:,.0f}'.format(vm2_ajust)}</span>"
+            retro_badge = " <span style='background:#ff6b35;color:white;font-size:10px;padding:1px 5px;border-radius:8px;font-weight:bold;'>RETRO</span>"
+            precio_m2_str = f"<span style='color:#888'>{'${:,.0f}'.format(vm2_orig)}</span> → <span style='color:#ff6b35;font-weight:bold'>{'${:,.0f}'.format(vm2_ajust)}</span>{retro_badge}"
         else:
-            precio_m2_str = f"<span style='color:#ccc'>{'${:,.0f}'.format(vm2_orig)}</span>"
+            precio_m2_str = f"<span style='color:#2ecc71;font-weight:bold'>{'${:,.0f}'.format(vm2_orig)}</span>"
         rows.append({
             '#': i+1, 'Precio': f"${c.get('precio', 0):,.0f}",
             'm2': f"{c.get('m2', 0):.0f}",
