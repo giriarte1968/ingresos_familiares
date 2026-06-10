@@ -973,6 +973,20 @@ def render_valuacion_manual(prop, res):
     if cant_cocheras == 0 and valor_baulera == 0:
         st.caption("Sin activos adicionales (cocheras / baulera)")
 
+    # Sub-factors breakdown (letra chica, referencia)
+    try:
+        from parsers.mercado_inmobiliario import _calcular_sub_factors_breakdown
+        sb_pre = _calcular_sub_factors_breakdown(prop)
+        if sb_pre:
+            de = sb_pre.get('delta_edificacion', 0.0)
+            da = sb_pre.get('delta_amenities', 0.0)
+            dn = sb_pre.get('delta_nlp', 0.0)
+            danti = sb_pre.get('delta_anti', 0.0)
+            stot = sb_pre.get('total', 1.0)
+            st.caption(f"Subfactores: Edif {de:+.4f} · Amen {da:+.4f} · NLP {dn:+.4f} · Anti {danti:+.4f} → Total {stot:.4f}")
+    except Exception:
+        pass
+
     col_c, col_d, col_e = st.columns(3)
     with col_c:
         fh = st.number_input(
