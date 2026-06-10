@@ -261,7 +261,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
 
     # ─── 📊 Comparables ───
     prop_name = prop.get('nombre', '')
-    with st.expander("📊 Comparables", expanded=False, key=f'retro_expander_{prop_name}'):
+    with st.expander("📊 Comparables", expanded=False):
         retro_key = f'retro_active_{prop_name}'
         retro_active = st.session_state.get(retro_key, False)
         col_btn, col_status, col_slider = st.columns([1.5, 1.5, 2])
@@ -320,10 +320,11 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         else:
             comparables = comparables_todos
         n_comps = len(comparables)
-        expander_label = f"{n_comps} Propiedades Comparables"
-        if len(comparables) != len(comparables_todos):
-            expander_label += f" (de {len(comparables_todos)} totales)"
-        with st.expander(expander_label, expanded=False, key=f'comps_expander_{prop_name}'):
+        with st.expander("Propiedades Comparables", expanded=False):
+            if len(comparables) != len(comparables_todos):
+                st.caption(f"{n_comps} mostradas de {len(comparables_todos)} totales")
+            else:
+                st.caption(f"{n_comps} propiedades comparables")
             render_tabla_comparables({**res, 'comparables_venta': comparables}, prop_name=prop_name)
         _dl.mark("after_render_tabla_comparables")
     _dl.mark("after_section_comparables")
