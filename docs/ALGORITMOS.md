@@ -894,16 +894,54 @@ Basado en datos de Bassini (COCIR, Enero 2026):
 
 Impacto práctico: como el 99.9% de las propiedades en caché son usadas, la mediana de las anclas cambia solo ~1% vs la tabla única. El mayor impacto se verá al valuar propiedades nuevas individualmente.
 
-### 6.8 Script Generador
+### 6.8 Pipeline de Regeneración de Anclas (TAREA-038)
 
-`scripts/generar_anclas_grid.py` — script autónomo que:
-1. Lee `cache_scraping.json`
-2. Calcula lista_hoy con Ct dual
-3. Genera grilla 400m
-4. Produce `data/anclas_rosario_v6_cluster.json` (archivo intermedio)
-5. Luego se copia manualmente a `data/anclas_rosario_v5_1_limpio.json`
+A partir de TAREA-038, las anclas se gestionan mediante un pipeline configurable:
 
-El archivo anterior se conserva como `data/anclas_rosario_v5_1_limpio.json.bak`.
+**Arquitectura:**
+```
+config/anclas_config.json  (parámetros + active_anchor_file + cache_version)
+         │
+         ▼
+scripts/generar_anclas_grid.py  (lee config, output timestamped)
+         │
+         ▼
+data/anclas_v7_AAAAMMDD_HHMMSS.json  (cada generación)
+         │
+         ▼ (activación desde Admin UI)
+config/anclas_config.json → active_anchor_file actualizado + cache_version bump
+         │
+         ▼
+Runtime (motor_vpp_core.py, location_engine.py, valuacion_cache.py, valu.py)
+         lee active_anchor_file + cache_version desde config
+```
+
+**Configuración centralizada** (`config/anclas_config.json`):
+- **generator**: grid_size_m, min_props_per_cell, ct_factors, city_center, noise_tokens
+- **zones**: centroides y radios de zonas comerciales (martin, pellegrini, puerto_norte, etc.)
+- **runtime**: active_anchor_file, cache_version, cache_ttl_minutes
+
+**Script Generador** (`scripts/generar_anclas_grid.py`):
+1. Lee `config/anclas_config.json` (parámetros, zona_centroides)
+2. CLI overrides: `--grid-size`, `--min-props`, `--output`
+3. Output: `data/anclas_v7_AAAAMMDD_HHMMSS.json` (timestamped, no sobreescribe)
+4. Reporta cobertura, distribución, top 10 cambios
+
+**Activación desde Admin UI (valu.py):**
+1. Pestaña "Archivos": lista todos los archivos `anclas_v7_*.json`, indica activo, botón "Activar"
+2. Pestaña "Generar": parámetros + botón "Generar" → preview → "Activar"
+3. Pestaña "Editor Manual": tabla data_editor para ajustar USD/m² del archivo activo
+4. Pestaña "Config": editor inline de `config/anclas_config.json`
+
+**Al activar nuevas anclas:**
+1. `set_active_anchor_file()` escribe el path relativo en config
+2. `bump_cache_version()` incrementa cache_version (invalida valuaciones previas)
+3. `cargar_anclas_cached(force_reload=True)` recarga en memoria
+
+**Runtime dinámico:**
+- `active_anchor_file` se lee desde config en cada carga de anclas
+- `cache_version` se lee desde config dinámicamente (no es constante de módulo)
+- `load_anclas_config()` con caché de 60s + `force_reload`
 
 ---
 

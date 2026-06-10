@@ -587,7 +587,11 @@ def mostrar_dashboard():
                 st.info("No hay constructoras registradas. Agregue una usando el formulario de arriba.")
 
         # ─── Zonas / Anclas ───
-        ANCLAS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "anclas_rosario_v5_1_limpio.json")
+        from parsers.motor_vpp_core import (
+            _get_anclas_file, cargar_anclas_cached, load_anclas_config,
+            save_anclas_config, bump_cache_version, set_active_anchor_file
+        )
+        ANCLAS_PATH = _get_anclas_file()
         def _cargar_anclas_completo():
             try:
                 with open(ANCLAS_PATH, "r", encoding="utf-8") as f:
@@ -600,13 +604,95 @@ def mostrar_dashboard():
                 json.dump(data, f, ensure_ascii=False, indent=2)
 
         st.markdown("---")
-        with st.expander("📍 Administrar Zonas (Anclas)", expanded=False):
+        st.markdown("### ⚙️ Pipeline de Anclas")
+
+        # ─── Listar archivos de anclas disponibles ───
+        DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+        config = load_anclas_config()
+        active_file_rel = config.get('runtime', {}).get('active_anchor_file', '')
+        active_file_name = os.path.basename(active_file_rel) if active_file_rel else ''
+        anchor_files = sorted([f for f in os.listdir(DATA_DIR) if f.endswith('.json') and ('anclas_v7_' in f or 'anclas_rosario_v5' in f)])
+
+        tab1, tab2, tab3, tab4 = st.tabs(["📂 Archivos", "⚡ Generar", "✏️ Editor Manual", "⚙️ Config"])
+
+        # ─── TAB 1: Archivos Disponibles ───
+        with tab1:
+            st.caption("Archivos de anclas disponibles. El archivo activo se usa en todas las valuaciones.")
+            for fname in anchor_files:
+                fpath = os.path.join("data", fname)
+                is_active = (fpath == active_file_rel) or (fname == active_file_name)
+                col1, col2, col3, col4 = st.columns([3, 1, 1, 1])
+                col1.write(f"**{fname}**" if is_active else fname)
+                fsize = os.path.getsize(os.path.join(DATA_DIR, fname))
+                col2.caption(f"{fsize//1024} KB")
+                if is_active:
+                    col3.success("ACTIVO")
+                else:
+                    if col3.button("Activar", key=f"act_{fname}"):
+                        set_active_anchor_file(fpath)
+                        bump_cache_version()
+                        cargar_anclas_cached(force_reload=True)
+                        st.success(f"Activado: {fname}. Caché invalidada.")
+                        st.rerun()
+                try:
+                    with open(os.path.join(DATA_DIR, fname), encoding='utf-8') as f:
+                        adata = json.load(f)
+                    anclas_list = adata.get('anclas', adata) if isinstance(adata, dict) else adata
+                    col4.caption(f"{len(anclas_list)} anclas")
+                except:
+                    col4.caption("?")
+
+        # ─── TAB 2: Generar Nuevas Anclas ───
+        with tab2:
+            st.caption("Regenerar anclas desde el cache actual. Cada generación produce un archivo timestamped.")
+            gen_cfg = config.get('generator', {})
+            grid_size = st.number_input("Grid size (m)", min_value=100, max_value=2000, value=gen_cfg.get('grid_size_m', 400), step=50)
+            min_props = st.number_input("Min props por celda", min_value=2, max_value=50, value=gen_cfg.get('min_props_per_cell', 5), step=1)
+
+            if st.button("🚀 Generar Nuevas Anclas", type="primary", use_container_width=True):
+                import subprocess, sys
+                result = subprocess.run(
+                    [sys.executable, "scripts/generar_anclas_grid.py", "--grid-size", str(grid_size), "--min-props", str(min_props)],
+                    capture_output=True, text=True, cwd=os.path.dirname(os.path.abspath(__file__))
+                )
+                if result.returncode == 0:
+                    st.success("Generación completada!")
+                    # Parse output for summary
+                    lines = result.stdout.split('\n')
+                    for line in lines:
+                        if 'Output:' in line:
+                            st.code(line.strip())
+                        elif 'Anclas generadas:' in line:
+                            st.code(line.strip())
+                        elif 'Cobertura' in line:
+                            st.code(line.strip())
+                    # Find the generated file path
+                    out_path = ''
+                    for line in lines:
+                        if 'Output:' in line:
+                            out_path = line.split('Output:')[1].strip()
+                            break
+                    if out_path and os.path.exists(out_path):
+                        with st.expander("📊 Vista previa", expanded=True):
+                            st.text(result.stdout)
+                        fname = os.path.basename(out_path)
+                        if st.button(f"✅ Activar {fname}", use_container_width=True):
+                            rel_path = os.path.join("data", fname)
+                            set_active_anchor_file(rel_path)
+                            bump_cache_version()
+                            cargar_anclas_cached(force_reload=True)
+                            st.success(f"Activado: {fname}. Caché invalidada.")
+                            st.rerun()
+                else:
+                    st.error("Error en generación:")
+                    st.code(result.stderr)
+
+        # ─── TAB 3: Editor Manual de Anclas (existente) ───
+        with tab3:
             anclas_data = _cargar_anclas_completo()
             anclas = anclas_data.get("anclas", [])
             if not isinstance(anclas, list):
                 anclas = []
-
-            from parsers.motor_vpp_core import cargar_anclas_cached
 
             # Link cada propiedad al ancla más cercana por distancia Haversine
             todos_props = cargar_propiedades()
@@ -636,7 +722,8 @@ def mostrar_dashboard():
                 if best_id:
                     ancla_props[best_id].append(p.get('nombre', '?'))
 
-            st.caption(f"{len(anclas)} anclas · editá el USD/m² directo en la tabla")
+            st.caption(f"{len(anclas)} anclas en el archivo activo · editá el USD/m² directo en la tabla")
+            st.info("Los cambios se guardan en el archivo activo actual. Para cambiar de archivo, usá la pestaña Archivos.")
             df_anclas = []
             for a in anclas:
                 linked_names = ancla_props.get(a['id'], [])
@@ -687,12 +774,28 @@ def mostrar_dashboard():
                 else:
                     st.info("Sin cambios detectados.")
 
-            # Link propiedades (cada propiedad aparece en el ancla más cercano)
+            # Link propiedades
             with st.expander("🔗 Propiedades por ancla", expanded=False):
                 for a in anclas:
                     linked = ancla_props.get(a['id'], [])
                     if linked:
                         st.markdown(f"**{a['id']}** (${a.get('usd_m2',0):.0f}): {', '.join(linked)}")
+
+        # ─── TAB 4: Config ───
+        with tab4:
+            st.caption("Edición directa de config/anclas_config.json")
+            cfg_json = json.dumps(config, indent=2, ensure_ascii=False)
+            edited_cfg = st.text_area("Config JSON", cfg_json, height=400, key="cfg_editor")
+            if st.button("💾 Guardar Config", type="primary", use_container_width=True):
+                try:
+                    new_cfg = json.loads(edited_cfg)
+                    save_anclas_config(new_cfg)
+                    load_anclas_config(force_reload=True)
+                    cargar_anclas_cached(force_reload=True)
+                    st.success("Config guardada. Caché invalidada.")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Error en JSON: {e}")
 
         # ─── Profiling de rendimiento ───
         st.markdown("---")

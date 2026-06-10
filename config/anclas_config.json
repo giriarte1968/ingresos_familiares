@@ -1,0 +1,90 @@
+{
+  "generator": {
+    "grid_size_m": 400,
+    "min_props_per_cell": 5,
+    "ct_factors": {
+      "usado": 1.12,
+      "nuevo": 0.95
+    },
+    "city_center": {
+      "lat": -32.92776,
+      "lon": -60.69769
+    },
+    "output_dir": "data",
+    "output_prefix": "anclas_v7_",
+    "noise_tokens": [
+      "planta baja",
+      "piso",
+      "dormitorio",
+      "departamento",
+      "casa",
+      "cochera",
+      "duplex",
+      "local",
+      "oficina",
+      "ph",
+      "monoambiente",
+      "ambiente",
+      "baño",
+      "cocina",
+      "living",
+      "comedor",
+      "suite",
+      "hall",
+      "lavadero",
+      "terraza",
+      "patio",
+      "balcon",
+      "jardin",
+      "garage",
+      "quincho",
+      "pileta",
+      "parrilla",
+      "sum",
+      "gimnasio",
+      "laundry",
+      "rooftop"
+    ],
+    "noise_patterns": [
+      "\\b\\d+\\b",
+      "\\b(de|la|del|el|los|las|en|y|al|con|por|para|sin|entre)\\b"
+    ]
+  },
+  "zones": {
+    "martin": {
+      "lat": -32.95,
+      "lon": -60.6525,
+      "radio": 1500
+    },
+    "pellegrini": {
+      "lat": -32.9551,
+      "lon": -60.6507,
+      "radio": 1500
+    },
+    "puerto_norte": {
+      "lat": -32.925,
+      "lon": -60.666,
+      "radio": 1200
+    },
+    "pichincha": {
+      "lat": -32.9373,
+      "lon": -60.6581,
+      "radio": 1200
+    },
+    "abasto": {
+      "lat": -32.9589,
+      "lon": -60.6453,
+      "radio": 1200
+    },
+    "centro": {
+      "lat": -32.94,
+      "lon": -60.649,
+      "radio": 1500
+    }
+  },
+  "runtime": {
+    "active_anchor_file": "data/anclas_rosario_v5_1_limpio.json",
+    "cache_version": "v6_pn_comparables",
+    "cache_ttl_minutes": 60
+  }
+}

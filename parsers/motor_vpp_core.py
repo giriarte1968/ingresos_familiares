@@ -28,9 +28,65 @@ from parsers.mercado_inmobiliario import valuar_propiedad_v7
 
 # Rutas y Configuración
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CONFIG_DIR = os.path.join(BASE_DIR, "config")
+CONFIG_FILE = os.path.join(CONFIG_DIR, "anclas_config.json")
 CACHE_FILE = os.path.join(BASE_DIR, "cache_scraping.json")
-ANCLAS_FILE = os.path.join(BASE_DIR, "data", "anclas_rosario_v5_1_limpio.json")
 CACHE_TTL_MINUTES = 60
+
+_ANCLAS_CONFIG_CACHE = None
+_ANCLAS_CONFIG_TS = 0
+
+def load_anclas_config(force_reload=False):
+    """Lee config/anclas_config.json con cache de 60s."""
+    global _ANCLAS_CONFIG_CACHE, _ANCLAS_CONFIG_TS
+    now = datetime.now().timestamp()
+    if not force_reload and _ANCLAS_CONFIG_CACHE is not None and (now - _ANCLAS_CONFIG_TS) < 60:
+        return _ANCLAS_CONFIG_CACHE
+    try:
+        with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+            cfg = json.load(f)
+        _ANCLAS_CONFIG_CACHE = cfg
+        _ANCLAS_CONFIG_TS = now
+        return cfg
+    except Exception as e:
+        logger.error(f"[CONFIG] Error loading {CONFIG_FILE}: {e}")
+        return {"generator": {}, "zones": {}, "runtime": {}}
+
+def save_anclas_config(cfg):
+    """Escribe config/anclas_config.json a disco."""
+    try:
+        with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+            json.dump(cfg, f, indent=2, ensure_ascii=False)
+        return True
+    except Exception as e:
+        logger.error(f"[CONFIG] Error saving {CONFIG_FILE}: {e}")
+        return False
+
+def bump_cache_version():
+    """Incrementa cache_version en config para invalidar todas las valuaciones."""
+    cfg = load_anclas_config(force_reload=True)
+    old_ver = cfg.get('runtime', {}).get('cache_version', 'v0')
+    ts = datetime.now().strftime('%Y%m%d_%H%M%S')
+    new_ver = '%s_%s' % (old_ver.split('_')[0], ts)
+    cfg['runtime']['cache_version'] = new_ver
+    save_anclas_config(cfg)
+    logger.info("[CONFIG] cache_version bumped: %s -> %s" % (old_ver, new_ver))
+    return new_ver
+
+def set_active_anchor_file(rel_path):
+    """Cambia active_anchor_file en config."""
+    cfg = load_anclas_config(force_reload=True)
+    cfg['runtime']['active_anchor_file'] = rel_path
+    save_anclas_config(cfg)
+    logger.info("[CONFIG] active_anchor_file -> %s" % rel_path)
+    return True
+
+def _get_anclas_file():
+    cfg = load_anclas_config()
+    rel = cfg.get('runtime', {}).get('active_anchor_file', 'data/anclas_rosario_v5_1_limpio.json')
+    return os.path.join(BASE_DIR, rel)
+
+ANCLAS_FILE = _get_anclas_file()
 
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -162,9 +218,10 @@ def validar_schema_propiedad(prop):
     return True, "OK"
 
 def cargar_anclas():
-    if not os.path.exists(ANCLAS_FILE):
+    path = _get_anclas_file()
+    if not os.path.exists(path):
         return {}
-    with open(ANCLAS_FILE, "r", encoding="utf-8") as f:
+    with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
         anclas_list = data.get("anclas", data) if isinstance(data, dict) else data
         return {a["id"]: a for a in anclas_list}

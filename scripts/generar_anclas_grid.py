@@ -1,33 +1,26 @@
-"""Genera anclas por grilla 400m con Ct dual (nuevo vs usado).
-Output: data/anclas_rosario_v6_cluster.json + comparacion vs Ct unico.
+"""Genera anclas por grilla espacial con Ct dual (nuevo vs usado).
+Lee configuracion de config/anclas_config.json.
+Output: data/anclas_v7_AAAAMMDD_HHMMSS.json
+
+CLI:
+  --grid-size    override grid_size_m del config
+  --min-props    override min_props_per_cell del config
+  --output       ruta especifica (default: timestamped)
 """
-import json, math, collections, re
+import sys, os, json, math, collections, re, argparse
 from datetime import datetime
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
+sys.path.insert(0, PROJECT_ROOT)
+
+from parsers.motor_vpp_core import load_anclas_config
 
 FECHA_REF = datetime(2026, 6, 1)
 
-# Ct base (general market)
-TABLA_CT  = [(0,1.000),(3,1.011),(6,1.033),(12,1.105),(18,1.207),
-             (24,1.235),(30,1.267),(36,1.254),(42,1.203),(48,1.173),
-             (54,1.152),(60,1.131),(66,1.105),(72,1.067),(78,1.027),(83,1.000)]
-
-# Ct diferenciado por segmento
-# Bassini: usado +10-15% vs general, estrenar competitivo (-5%)
-# Formula: Ct_segmento = 1.0 + (Ct_base - 1.0) * factor
-FACTOR_USADO = 1.12  # usado aprecia 12% mas que el general
-FACTOR_NUEVO = 0.95  # nuevo aprecia 5% menos que el general
-
-def ct_segmento(meses, factor):
-    ct_base = interpolar(TABLA_CT, meses)
-    return 1.0 + (ct_base - 1.0) * factor
-
-RUTA_CACHE = 'C:/Users/Gustavo/ingresos_familiares_st/cache_scraping.json'
-RUTA_OUT   = 'C:/Users/Gustavo/ingresos_familiares_st/data/anclas_rosario_v6_cluster.json'
-GRID_SIZE_M = 400
-MIN_PROPS   = 5
-
-CENTRO_LAT = -32.92776
-CENTRO_LON = -60.69769
+TABLA_CT = [(0,1.000),(3,1.011),(6,1.033),(12,1.105),(18,1.207),
+            (24,1.235),(30,1.267),(36,1.254),(42,1.203),(48,1.173),
+            (54,1.152),(60,1.131),(66,1.105),(72,1.067),(78,1.027),(83,1.000)]
 
 def interpolar(tabla, x):
     if x <= tabla[0][0]: return tabla[0][1]
@@ -38,38 +31,38 @@ def interpolar(tabla, x):
             return y1 + (y2 - y1) * (x - x1) / (x2 - x1)
     return 1.0
 
+def ct_segmento(meses, factor):
+    ct_base = interpolar(TABLA_CT, meses)
+    return 1.0 + (ct_base - 1.0) * factor
+
 def meses_desde(fecha_str):
     if not fecha_str: return None
     try:
         dt = datetime.strptime(str(fecha_str)[:10], '%Y-%m-%d')
         return max(0, (FECHA_REF - dt).days / 30.44)
-    except: return None
+    except:
+        return None
 
-def m2deg_lat(m):  return m / 111000.0
-def m2deg_lon(m, lat): return m / (111320.0 * math.cos(math.radians(lat)))
+def m2deg_lat(m):
+    return m / 111000.0
+
+def m2deg_lon(m, lat):
+    return m / (111320.0 * math.cos(math.radians(lat)))
 
 def es_nuevo(p):
     txt = ('%s %s %s' % (p.get('direccion',''), p.get('tipo',''), p.get('zona',''))).lower()
     return any(k in txt for k in ['a estrenar', 'estrenar', 'pozo', 'obra nueva'])
 
-PROP_NOISE = {'duplex','casa','casas','departamento','dormitorio','dormitorios',
-    'cochera','monoambiente','ph','local','oficina','patio','jardin','terraza',
-    'balcon','living','comedor','cocina','banio','bano','lavadero','pileta',
-    'quincho','marina','co_working','con','sin','y','e','o','a','su','tu','mi',
-    'al','el','un','una','para','semi','piso','planta','frente','contrafrente',
-    'exclusivo','exclusiva','completo','completa','tipo','gran','gran_',
-    'nuevo','nueva','usado','usada','consultar','consulte','permuta',
-    'c','s','n','e','o','en','de','la','las','los','del',
-    'republica','pago','largo','bajo','alto','alta','bis','pasaje','pje',
-    'esquina','esq','lt','lote','manzana','mz',
-    'moderno','chalet','retasado','fisherton','pasos'}
+def build_noise_set(noise_tokens, noise_patterns):
+    s = set(t.lower() for t in noise_tokens if t)
+    return s, noise_patterns
 
-def clean_calle(calle):
+def clean_calle(calle, noise_set, noise_patterns):
     if not calle: return ''
     tokens = calle.lower().split()
     cleaned = []
     for t in tokens:
-        if t in PROP_NOISE: continue
+        if t in noise_set: continue
         if t.isdigit(): continue
         if re.search(r'\d', t) and re.search(r'[a-z]', t):
             if not re.match(r'^\d+[a-z]', t):
@@ -84,22 +77,10 @@ def haversine(lat1, lon1, lat2, lon2):
     a = math.sin(dlat/2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon/2)**2
     return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
-# Centros de referencia para validar zona comercial
-# Si el centroide de la celda esta fuera del radio, cae a macrozona geografica
-ZONA_CENTROIDES = {
-    # Centros reales desde cache_scraping.json (media de props con esa zona)
-    'martin':       {'lat': -32.9500, 'lon': -60.6525, 'radio': 1500},
-    'pellegrini':   {'lat': -32.9551, 'lon': -60.6507, 'radio': 1500},
-    'puerto_norte': {'lat': -32.9250, 'lon': -60.6660, 'radio': 1200},
-    'pichincha':    {'lat': -32.9373, 'lon': -60.6581, 'radio': 1200},
-    'abasto':       {'lat': -32.9589, 'lon': -60.6453, 'radio': 1200},
-    # centro aproximado
-    'centro':       {'lat': -32.940,  'lon': -60.649, 'radio': 1500},
-}
-
-def macrozona(lat, lon):
-    dlat = lat - CENTRO_LAT
-    dlon = lon - CENTRO_LON
+def macrozona(lat, lon, city_center):
+    clat, clon = city_center['lat'], city_center['lon']
+    dlat = lat - clat
+    dlon = lon - clon
     dist_km = math.sqrt((dlat*111)**2 + (dlon*93)**2)
     dlat_km = dlat * 111
     dlon_km = dlon * 93
@@ -111,6 +92,39 @@ def macrozona(lat, lon):
     else: return 'oeste'
 
 def main():
+    cfg = load_anclas_config(force_reload=True)
+    gen_cfg = cfg.get('generator', {})
+    zones_cfg = cfg.get('zones', {})
+    runtime_cfg = cfg.get('runtime', {})
+
+    parser = argparse.ArgumentParser(description='Generar anclas por grilla')
+    parser.add_argument('--grid-size', type=int, default=gen_cfg.get('grid_size_m', 400))
+    parser.add_argument('--min-props', type=int, default=gen_cfg.get('min_props_per_cell', 5))
+    parser.add_argument('--output', type=str, default=None)
+    args = parser.parse_args()
+
+    GRID_SIZE_M = args.grid_size
+    MIN_PROPS = args.min_props
+    FACTOR_USADO = gen_cfg.get('ct_factors', {}).get('usado', 1.12)
+    FACTOR_NUEVO = gen_cfg.get('ct_factors', {}).get('nuevo', 0.95)
+    city_center = gen_cfg.get('city_center', {'lat': -32.92776, 'lon': -60.69769})
+    noise_tokens = gen_cfg.get('noise_tokens', [])
+    noise_patterns = gen_cfg.get('noise_patterns', [])
+    noise_set, _ = build_noise_set(noise_tokens, noise_patterns)
+
+    RUTA_CACHE = os.path.join(PROJECT_ROOT, 'cache_scraping.json')
+
+    ts = datetime.now().strftime('%Y%m%d_%H%M%S')
+    if args.output:
+        RUTA_OUT = args.output
+    else:
+        prefix = gen_cfg.get('output_prefix', 'anclas_v7_')
+        out_name = '%s%s.json' % (prefix, ts)
+        RUTA_OUT = os.path.join(PROJECT_ROOT, gen_cfg.get('output_dir', 'data'), out_name)
+
+    print("Grid size: %dm, min props: %d" % (GRID_SIZE_M, MIN_PROPS))
+    print("Ct: usado=1.0+(Ct-1.0)*%.2f, nuevo=1.0+(Ct-1.0)*%.2f" % (FACTOR_USADO, FACTOR_NUEVO))
+
     with open(RUTA_CACHE, encoding='utf-8') as f:
         cache = json.load(f)
     props_raw = cache.get('propiedades', [])
@@ -129,19 +143,16 @@ def main():
         is_new = es_nuevo(p)
         if is_new: n_nuevo += 1
 
-        # Three versions of lista_hoy
         ct_base = interpolar(TABLA_CT, m)
         ct_usado = ct_segmento(m, FACTOR_USADO)
         ct_nuevo_val = ct_segmento(m, FACTOR_NUEVO)
-
-        # Use the appropriate Ct based on segment
         ct = ct_nuevo_val if is_new else ct_usado
 
         props.append({
             'lat': lat, 'lon': lon,
             'valor_m2': vm2,
-            'lista_hoy_unico': round(vm2 * ct_base, 2),      # Ct unico (original)
-            'lista_hoy_dual':  round(vm2 * ct, 2),            # Ct dual (segmento)
+            'lista_hoy_unico': round(vm2 * ct_base, 2),
+            'lista_hoy_dual':  round(vm2 * ct, 2),
             'ct_base': ct_base,
             'ct_aplicado': ct,
             'es_nuevo': is_new,
@@ -158,14 +169,12 @@ def main():
     dlat = m2deg_lat(GRID_SIZE_M)
     dlon = m2deg_lon(GRID_SIZE_M, (lat0+lat1)/2)
 
-    # Asignar props a celdas (misma grilla para ambas versiones)
     celdas = collections.defaultdict(list)
     for p in props:
         ix = int(math.floor((p['lon'] - lon0) / dlon))
         iy = int(math.floor((p['lat'] - lat0) / dlat))
         celdas[(ix, iy)].append(p)
 
-    # Nombrar y valorar celdas (con Ct dual)
     usado = set()
     anclas = []
     for (ix, iy), miembros in celdas.items():
@@ -174,16 +183,13 @@ def main():
         lat_c = sum(p['lat'] for p in miembros) / n
         lon_c = sum(p['lon'] for p in miembros) / n
 
-        # Mediana con Ct unico
         vals_u = sorted(p['lista_hoy_unico'] for p in miembros)
         med_u = vals_u[n//2] if n%2 else (vals_u[n//2-1]+vals_u[n//2])/2
 
-        # Mediana con Ct dual
         vals_d = sorted(p['lista_hoy_dual'] for p in miembros)
         med_d = vals_d[n//2] if n%2 else (vals_d[n//2-1]+vals_d[n//2])/2
 
-        # Naming: zona + calle principal (top 1, no 2 — mas estable)
-        calles_raw = [clean_calle(p['calle']) for p in miembros if p['calle']]
+        calles_raw = [clean_calle(p['calle'], noise_set, noise_patterns) for p in miembros if p['calle']]
         calles = [c for c in calles_raw if c]
         top1 = ''
         if calles:
@@ -192,19 +198,17 @@ def main():
         else:
             name_base = 'microzona'
 
-        # Zona comercial: la mas comun no-Otro en la celda
-        # Solo se asigna si el centroide esta dentro del radio de referencia
         zonas_en_celda = collections.Counter(
             p['zona'] for p in miembros if p['zona'] and p['zona'] != 'Otro')
         if zonas_en_celda:
             cand_zone = zonas_en_celda.most_common(1)[0][0].lower().replace(' ', '_')
-            ref = ZONA_CENTROIDES.get(cand_zone)
+            ref = zones_cfg.get(cand_zone)
             if ref and haversine(lat_c, lon_c, ref['lat'], ref['lon']) <= ref['radio']:
                 zona_label = cand_zone
             else:
-                zona_label = macrozona(lat_c, lon_c)
+                zona_label = macrozona(lat_c, lon_c, city_center)
         else:
-            zona_label = macrozona(lat_c, lon_c)
+            zona_label = macrozona(lat_c, lon_c, city_center)
         name = '%s_%s' % (name_base, zona_label)
         if name in usado:
             for i in range(2, 999):
@@ -219,11 +223,11 @@ def main():
             'id': name,
             'lat': round(lat_c, 6),
             'lon': round(lon_c, 6),
-            'usd_m2': round(med_d, 0),         # Valor con Ct dual
-            'usd_m2_ct_unico': round(med_u, 0), # Valor con Ct unico (ref)
+            'usd_m2': round(med_d, 0),
+            'usd_m2_ct_unico': round(med_u, 0),
             'diff_pct': round((med_d - med_u) / med_u * 100, 1) if med_u else 0,
             'fecha_calibracion': '2026-06-01',
-            'fuente': 'grid_v6_dual',
+            'fuente': 'grid_v7',
             'n_zonal': n,
             'calle_principal': top1 if calles else '',
             'macrozona': zona_label,
@@ -232,22 +236,45 @@ def main():
     anclas.sort(key=lambda a: a['id'])
     print("Total anclas: %d" % len(anclas))
 
+    # Cobertura: props a <=300m de alguna ancla
+    props_con_coord = [p for p in props_raw if p.get('lat') and p.get('lon') and p.get('operacion') == 'venta']
+    cubiertas = 0
+    for p in props_con_coord:
+        pl, pn = p['lat'], p['lon']
+        for a in anclas:
+            if haversine(pl, pn, a['lat'], a['lon']) <= 300:
+                cubiertas += 1
+                break
+    cobertura = cubiertas / len(props_con_coord) * 100 if props_con_coord else 0
+    n_con_zona = sum(1 for a in anclas if a['macrozona'] not in ('centro', 'norte', 'sur', 'oeste'))
+    n_sin_zona = sum(1 for a in anclas if a['macrozona'] in ('centro', 'norte', 'sur', 'oeste'))
+
     doc = {
-        'version': 'v6_grid_dual',
-        'fecha_generacion': '2026-06-01',
-        'algoritmo': 'grid_400m',
+        'version': 'v7_grid',
+        'fecha_generacion': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'algoritmo': 'grid_%dm' % GRID_SIZE_M,
         'parametros': {
+            'grid_size_m': GRID_SIZE_M,
+            'min_props': MIN_PROPS,
             'ct_usado_factor': FACTOR_USADO,
             'ct_nuevo_factor': FACTOR_NUEVO,
         },
         'total_props': len(props),
+        'total_anclas': len(anclas),
+        'coverage_pct': round(cobertura, 1),
         'anclas': anclas,
     }
     with open(RUTA_OUT, 'w', encoding='utf-8') as f:
         json.dump(doc, f, indent=2, ensure_ascii=False)
-    print("Guardado:", RUTA_OUT)
+    print("Guardado: %s" % RUTA_OUT)
 
-    # Stats comparativas
+    print("\n=== RESUMEN GENERACION ===")
+    print("Output: %s" % RUTA_OUT)
+    print("Anclas generadas: %d" % len(anclas))
+    print("Cobertura (props <=300m de ancla): %.1f%%" % cobertura)
+    print("Anclas con zona comercial: %d (%.1f%%)" % (n_con_zona, n_con_zona/len(anclas)*100 if anclas else 0))
+    print("Anclas sin zona (macrozona): %d (%.1f%%)" % (n_sin_zona, n_sin_zona/len(anclas)*100 if anclas else 0))
+
     vals_d = sorted(a['usd_m2'] for a in anclas)
     vals_u = sorted(a['usd_m2_ct_unico'] for a in anclas)
     print("\nDistribucion:")

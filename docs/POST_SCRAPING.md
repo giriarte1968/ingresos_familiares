@@ -56,7 +56,25 @@ Confirma que:
 - Imports correctos
 - Performance aceptable
 
-### PASO 3 — Commit y push
+### PASO 3 (opcional) — Regenerar anclas
+
+Si hay datos nuevos significativos en el scraping, se pueden regenerar las anclas:
+
+```bash
+# Desde Admin UI → pestaña Anclas → "Generar Nuevas Anclas"
+# O via CLI:
+python scripts/generar_anclas_grid.py --grid-size 400 --min-props 5
+```
+
+El generador produce un archivo timestamped `data/anclas_v7_AAAAMMDD_HHMMSS.json`.
+Revisar el preview de cobertura en la UI. Si es满意, hacer clic en "Activar".
+
+**NO** se sobreescribe el archivo activo directamente. La activación desde la UI:
+1. Cambia `active_anchor_file` en `config/anclas_config.json`
+2. Bump de `cache_version` (invalida valuaciones previas)
+3. Recarga en memoria
+
+### PASO 4 — Commit y push
 
 ```bash
 git add -A

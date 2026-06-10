@@ -6,7 +6,15 @@ from datetime import datetime
 CACHE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
 CACHE_PATH = os.path.join(CACHE_DIR, 'valuaciones_cache.json')
 SCRAPING_CACHE_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'cache_scraping.json')
-CACHE_VERSION = "v6_pn_comparables"
+def get_cache_version():
+    try:
+        from parsers.motor_vpp_core import load_anclas_config
+        cfg = load_anclas_config()
+        return cfg.get('runtime', {}).get('cache_version', 'v6_pn_comparables')
+    except Exception:
+        return "v6_pn_comparables"
+
+CACHE_VERSION = get_cache_version()
 PROPIEDADES_PATH = os.path.join(os.path.dirname(CACHE_DIR), 'propiedades.json')
 
 
@@ -89,8 +97,9 @@ def necesita_recalcular(nombre: str, prop: dict, cache: dict) -> tuple[bool, str
     entrada = cache[nombre]
 
     # Invalidar por versión del código
-    if entrada.get('cache_version', '') != CACHE_VERSION:
-        return True, f"version_cambio ({entrada.get('cache_version', '')} -> {CACHE_VERSION})"
+    current_cv = get_cache_version()
+    if entrada.get('cache_version', '') != current_cv:
+        return True, f"version_cambio ({entrada.get('cache_version', '')} -> {current_cv})"
 
     hash_actual = _calcular_hash_propiedad(prop)
     if hash_actual != entrada.get('hash_prop'):
@@ -132,7 +141,7 @@ def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict) -
                 "timestamp": datetime.now().isoformat(),
                 "hash_prop": _calcular_hash_propiedad(prop),
                 "hash_scraping": _calcular_hash_scraping(),
-                "cache_version": CACHE_VERSION,
+                "cache_version": get_cache_version(),
                 "resultado_completo": resultado,
                 "fecha_legible": datetime.now().strftime("%d/%m/%Y %H:%M"),
             }
@@ -153,7 +162,7 @@ def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict) -
                             'm2_equivalentes': resultado.get('m2_equivalentes'),
                             'comps': resultado.get('resolution_metadata', {}).get('n_propiedades', 0),
                             'fecha': datetime.now().strftime("%d/%m/%Y %H:%M"),
-                            'cache_version': CACHE_VERSION,
+                            'cache_version': get_cache_version(),
                             'timestamp': datetime.now().isoformat(),
                             'fuente': resultado.get('fuente', 'auto'),
                             'manual_params': resultado.get('manual_params'),

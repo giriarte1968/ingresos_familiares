@@ -4,7 +4,13 @@ import os
 
 def cargar_anclas(path=None):
     if path is None:
-        path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'anclas_rosario_v5_1_limpio.json')
+        try:
+            from parsers.motor_vpp_core import load_anclas_config
+            cfg = load_anclas_config()
+            rel = cfg.get('runtime', {}).get('active_anchor_file', 'data/anclas_rosario_v5_1_limpio.json')
+            path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), rel)
+        except Exception:
+            path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'anclas_rosario_v5_1_limpio.json')
     if not os.path.exists(path):
         return []
     with open(path, "r", encoding="utf-8") as f:

@@ -2183,3 +2183,32 @@ Reemplazar las 117 anclas artesanales (46% cobertura) por 322 microzonas automat
 ### Validacion:
 - 39/39 tests pasan
 - auto_validate.py: OK
+
+---
+
+## 10/06/2026 — TAREA-038: Pipeline de regeneracion de anclas configurable
+
+### Cambios:
+1. **config/anclas_config.json** (nuevo) — parametros centralizados del generador + runtime (active_anchor_file, cache_version, zones centroids, ct_factors, noise_tokens)
+2. **scripts/generar_anclas_grid.py** — refactor para leer desde config; output timestamped `data/anclas_v7_AAAAMMDD_HHMMSS.json`; CLI overrides `--grid-size`, `--min-props`, `--output`
+3. **Runtime modificado**: `ANCLAS_FILE` (motor_vpp_core.py), `cargar_anclas()` (location_engine.py), `ANCLAS_PATH` (valu.py), `CACHE_VERSION` (valuacion_cache.py) — todos leen desde `config/anclas_config.json`
+4. **Admin UI** — nueva pestana "Anclas" con: lista de archivos disponibles, indicador de activo, generacion con preview de cobertura, activacion (copia a config + bump cache_version + force_reload), editor inline de config
+5. **Documentacion** — ALGORITMOS.md (seccion pipeline), POST_SCRAPING.md (paso opcional), BITACORA, TAREAS_INDEX
+
+### Archivos modificados:
+- `config/anclas_config.json` (nuevo)
+- `scripts/generar_anclas_grid.py` (refactor)
+- `parsers/motor_vpp_core.py` (load_anclas_config, ANCLAS_FILE dinamico)
+- `parsers/location_engine.py` (cargar_anclas desde config)
+- `parsers/valuacion_cache.py` (CACHE_VERSION desde config)
+- `valu.py` (ANCLAS_PATH dinamico + admin UI Anclas)
+- `docs/ALGORITMOS.md` (seccion 7 pipeline)
+- `docs/POST_SCRAPING.md` (paso 3 opcional)
+- `.opencode/plans/TAREA-038.md` (plan)
+- `.opencode/plans/TAREAS_INDEX.md` (entrada)
+
+### Validacion:
+- [ ] auto_validate.py OK
+- [ ] pytest test_regression.py (39/39)
+- [ ] generador produce archivo timestamped
+- [ ] activacion desde UI funciona
