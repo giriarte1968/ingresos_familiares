@@ -645,7 +645,7 @@ def mostrar_dashboard():
         active_file_name = os.path.basename(active_file_rel) if active_file_rel else ''
         anchor_files = sorted([f for f in os.listdir(DATA_DIR) if f.endswith('.json') and ('anclas_v7_' in f or 'anclas_rosario_v5' in f)])
 
-        tab1, tab2, tab3, tab4, tab5 = st.tabs(["📂 Archivos", "⚡ Generar", "✏️ Editor Manual", "📈 Ct / Ajuste Temporal", "⚙️ Config"])
+        tab1, tab2, tab3, tab4 = st.tabs(["📂 Archivos", "⚡ Generar", "✏️ Editor Manual", "📈 Ct / Ajuste Temporal"])
 
         # ─── TAB 1: Archivos Disponibles ───
         with tab1:
@@ -758,29 +758,23 @@ def mostrar_dashboard():
             st.info("Los cambios se guardan en el archivo activo actual. Para cambiar de archivo, usá la pestaña Archivos.")
             df_anclas = []
             for a in anclas:
-                linked_names = ancla_props.get(a['id'], [])
                 df_anclas.append({
                     "id": a.get('id', ''),
                     "USD/m²": a.get('usd_m2', 0),
                     "lat": a.get('lat', 0),
                     "lon": a.get('lon', 0),
-                    "fuente": a.get('fuente', '')[:15],
                     "fecha": a.get('fecha_calibracion', '')[:10],
-                    "props": len(linked_names),
-                    "_props_names": ", ".join(linked_names) if linked_names else ""
                 })
             df_a = pd.DataFrame(df_anclas)
 
             edited = st.data_editor(
-                df_a[["id", "USD/m²", "lat", "lon", "fuente", "fecha", "props"]],
+                df_a[["id", "USD/m²", "lat", "lon", "fecha"]],
                 column_config={
                     "id": st.column_config.TextColumn("Ancla ID", disabled=True, width="medium"),
                     "USD/m²": st.column_config.NumberColumn("USD/m²", min_value=0, step=50.0, format="$%.0f", width="small"),
                     "lat": st.column_config.NumberColumn("Lat", disabled=True, format="%.4f", width="small"),
                     "lon": st.column_config.NumberColumn("Lon", disabled=True, format="%.4f", width="small"),
-                    "fuente": st.column_config.TextColumn("Fuente", disabled=True, width="small"),
                     "fecha": st.column_config.TextColumn("Fecha", disabled=True, width="small"),
-                    "props": st.column_config.NumberColumn("Props", disabled=True, width="small"),
                 },
                 hide_index=True,
                 use_container_width=True,
@@ -867,18 +861,18 @@ def mostrar_dashboard():
 
             st.markdown("---")
 
-            # Factores COCIR
-            st.markdown("**Factores COCIR**")
+            # Factores nuevo-usado
+            st.markdown("**Factores nuevo-usado**")
             cf = gen_cfg.get('ct_factors', {})
             col_f1, col_f2, col_f3 = st.columns(3)
             with col_f1:
-                nuevo_factor = st.number_input("Factor NUEVO", min_value=0.5, max_value=2.0, value=cf.get('nuevo', 0.95), step=0.01, key="cocir_nuevo")
+                nuevo_factor = st.number_input("Factor NUEVO", min_value=0.5, max_value=2.0, value=cf.get('nuevo', 0.95), step=0.01, key="ct_nuevo")
             with col_f2:
-                usado_factor = st.number_input("Factor USADO", min_value=0.5, max_value=2.0, value=cf.get('usado', 1.12), step=0.01, key="cocir_usado")
+                usado_factor = st.number_input("Factor USADO", min_value=0.5, max_value=2.0, value=cf.get('usado', 1.12), step=0.01, key="ct_usado")
             with col_f3:
-                fv = st.text_input("Fecha vigencia (YYYY-MM)", value=cf.get('fecha_vigencia', '2026-01'), key="cocir_fv")
+                fv = st.text_input("Fecha vigencia (YYYY-MM)", value=cf.get('fecha_vigencia', '2026-01'), key="ct_fv")
 
-            if st.button("💾 Guardar Factores COCIR", key="save_cocir", use_container_width=True):
+            if st.button("💾 Guardar Factores nuevo-usado", key="save_ct_factors", use_container_width=True):
                 cfg = load_anclas_config(force_reload=True)
                 cfg['generator']['ct_factors'] = {
                     'usado': usado_factor,
@@ -888,7 +882,7 @@ def mostrar_dashboard():
                 save_anclas_config(cfg)
                 load_anclas_config(force_reload=True)
                 bump_cache_version()
-                st.success("Factores COCIR guardados. Caché invalidada.")
+                st.success("Factores nuevo-usado guardados. Caché invalidada.")
                 st.rerun()
 
             # Histórico de cambios de factores
@@ -903,22 +897,6 @@ def mostrar_dashboard():
                         st.json(history)
             except:
                 pass
-
-        # ─── TAB 5: Config ───
-        with tab5:
-            st.caption("Edición directa de config/anclas_config.json")
-            cfg_json = json.dumps(config, indent=2, ensure_ascii=False)
-            edited_cfg = st.text_area("Config JSON", cfg_json, height=400, key="cfg_editor")
-            if st.button("💾 Guardar Config", type="primary", use_container_width=True):
-                try:
-                    new_cfg = json.loads(edited_cfg)
-                    save_anclas_config(new_cfg)
-                    load_anclas_config(force_reload=True)
-                    cargar_anclas_cached(force_reload=True)
-                    st.success("Config guardada. Caché invalidada.")
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"Error en JSON: {e}")
 
         # ─── Profiling de rendimiento ───
         st.markdown("---")
