@@ -281,6 +281,27 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                 st.slider("Meses atrás", 12, 60, st.session_state.get(f'retro_meses_{prop_name}', 36),
                           key=f'retro_meses_{prop_name}')
 
+        # Flex bedrooms (solo cuando retro está activo)
+        flex_key = f'flex_active_{prop_name}'
+        flex_active = st.session_state.get(flex_key, False)
+        col_fb, col_fs = st.columns([1.5, 3.5])
+        with col_fb:
+            flex_label = "🔍 Flexible" if not flex_active else "🔍 Flexible activo"
+            if st.button(flex_label, type="primary" if flex_active else "secondary", use_container_width=True, key=f"flex_btn_{prop_name}"):
+                st.session_state[flex_key] = not flex_active
+                st.session_state[f'forzar_recalculo_{prop_name}'] = True
+                if not st.session_state.get(retro_key, False):
+                    st.session_state[retro_key] = True
+                st.rerun()
+        with col_fs:
+            if flex_active:
+                st.selectbox("Tolerancia dormitorios",
+                    options=[0, 1, 2, 3],
+                    index=st.session_state.get(f'flex_bedrooms_{prop_name}', 1),
+                    key=f'flex_bedrooms_{prop_name}',
+                    help="0=solo exactos, 1=±1 dorm, 2=±2 dorms, 3=todos")
+                st.caption(f"Tolerancia ±{st.session_state.get(f'flex_bedrooms_{prop_name}', 1)} dorm.")
+
         with st.expander("🗺️ Mapa", expanded=False):
             with profile_block("render_mapa_propiedad", prop):
                 render_mapa_propiedad(res)
@@ -290,7 +311,29 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         n_comps = len(comparables)
         with st.expander(f"{n_comps} Propiedades Comparables", expanded=False):
             with profile_block("render_tabla_comparables", prop):
-                render_tabla_comparables(res)
+                render_tabla_comparables(res, prop_name=prop_name)
+
+            # Selección de comparables: recálculo local
+            sel_apply_key = f'comp_selection_apply_{prop_name}'
+            if st.session_state.get(sel_apply_key, False):
+                sel_key = f'comp_selection_{prop_name}'
+                sel_idx = st.session_state.get(sel_key, list(range(n_comps)))
+                st.session_state[sel_apply_key] = False
+                selected_comps = [comparables[i] for i in sel_idx]
+                if selected_comps:
+                    precios = [c.get('precio_m2_ajustado', c.get('precio_m2', 0)) for c in selected_comps]
+                    precios_sorted = sorted(precios)
+                    n_sel = len(precios_sorted)
+                    perc_idx = max(0, int(n_sel * 0.33) - 1)
+                    p33 = precios_sorted[perc_idx]
+                    p50 = precios_sorted[n_sel // 2]
+                    p33_p50 = p33 if n_sel >= 8 else p50
+                    col_a, col_b = st.columns([1, 2])
+                    with col_a:
+                        st.metric("Valor/m2 ajustado", f"${p33_p50:,.0f}",
+                                  delta=f"{'${:,.0f}'.format(p33_p50 - res.get('valor_m2', 0))} vs original")
+                    with col_b:
+                        st.caption(f"P33/P50 sobre {n_sel} comps seleccionados de {n_comps} totales")
         _dl.mark("after_render_tabla_comparables")
     _dl.mark("after_section_comparables")
 
@@ -417,7 +460,9 @@ def mostrar_dashboard():
                     retro_active = st.session_state.get(f'retro_active_{prop_name}', False)
                     retro_meses = st.session_state.get(f'retro_meses_{prop_name}', 36) if retro_active else 0
                     retro_dias = retro_meses if retro_active else 0
-                    resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias)
+                    flex_active = st.session_state.get(f'flex_active_{prop_name}', False)
+                    flex_bedrooms = st.session_state.get(f'flex_bedrooms_{prop_name}', 1) if flex_active else 0
+                    resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_bedrooms=flex_bedrooms)
                     _sl.mark("after_valuar_con_cache")
 
                     # Override con valuación manual si está persistida

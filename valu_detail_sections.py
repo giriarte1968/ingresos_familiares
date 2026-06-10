@@ -227,10 +227,16 @@ def render_mapa_propiedad(res):
         st.caption("Mapa no disponible")
 
 
-def render_tabla_comparables(res):
-    """Tabla de propiedades comparables utilizadas."""
+def render_tabla_comparables(res, prop_name=None):
+    """Tabla de propiedades comparables utilizadas.
+    Returns selected indices list, or None if selection not active.
+    """
     if res.get('retro_activo'):
         st.caption(f"🔙 Retro activo: ventana de {res.get('total_dias_ventana', 180)} días")
+    flex_bedrooms = res.get('flex_bedrooms', 0)
+    sujeto_dorms = res.get('sujeto_dormitorios', None)
+    if flex_bedrooms > 0 and sujeto_dorms is not None:
+        st.caption(f"🔍 Flexible ±{flex_bedrooms} dorm. (base: {sujeto_dorms})")
     comparables = res.get('comparables_venta', [])
     if not comparables:
         st.caption("Sin comparables disponibles")
@@ -245,6 +251,9 @@ def render_tabla_comparables(res):
         if ta != 1.0:
             retro_badge = " <span style='background:#ff6b35;color:white;font-size:10px;padding:1px 5px;border-radius:8px;font-weight:bold;'>RETRO</span>"
             precio_m2_str = f"<span style='color:#888'>{'${:,.0f}'.format(vm2_orig)}</span> → <span style='color:#ff6b35;font-weight:bold'>{'${:,.0f}'.format(vm2_ajust)}</span>{retro_badge}"
+        if flex_bedrooms > 0 and sujeto_dorms is not None and c.get('dormitorios') != sujeto_dorms:
+            flex_badge = " <span style='background:#9b59b6;color:white;font-size:10px;padding:1px 5px;border-radius:8px;font-weight:bold;'>FLEX</span>"
+            precio_m2_str += flex_badge
         else:
             precio_m2_str = f"<span style='color:#2ecc71;font-weight:bold'>{'${:,.0f}'.format(vm2_orig)}</span>"
         rows.append({
@@ -260,6 +269,28 @@ def render_tabla_comparables(res):
     df = pd.DataFrame(rows)
     st.markdown(df.to_html(escape=False, index=False), unsafe_allow_html=True)
 
+    # Select/deselect individual comparables
+    if not prop_name:
+        return
+    sel_key = f'comp_selection_{prop_name}'
+    all_idx = list(range(len(comparables)))
+    default_sel = st.session_state.get(sel_key, all_idx)
+    with st.popover("🔽 Seleccionar comparables", use_container_width=True):
+        selected = []
+        for idx, c in enumerate(comparables):
+            checked = st.checkbox(
+                f"#{idx+1} – {c.get('direccion_limpia') or c.get('direccion','') or '?'} ({c.get('dormitorios','?')}d, ${c.get('precio_m2_ajustado',0):,.0f}/m2)",
+                value=idx in default_sel,
+                key=f'comp_cb_{prop_name}_{idx}'
+            )
+            if checked:
+                selected.append(idx)
+        st.session_state[sel_key] = selected
+        n_sel = len(selected)
+        st.caption(f"{n_sel}/{len(comparables)} seleccionados")
+        if st.button("Aplicar selección", type="primary", use_container_width=True):
+            st.session_state[f'comp_selection_apply_{prop_name}'] = True
+            st.rerun()
 
 def render_catastro(prop, res, compact=False):
     """Datos catastrales con seleccion de PH y boton de plano.

@@ -886,7 +886,7 @@ def _filtrar_por_ventana_edad(pool, anio_sujeto, ventana=15, min_con_anio=5):
     return pool, False, len(pool_con_anio), 0, 0
 
 
-def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=None, lon_ref=None, fecha_ref=None, anio_sujeto=None, tipo_inmueble=None, cache_scraping=None, retro_dias=0):
+def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=None, lon_ref=None, fecha_ref=None, anio_sujeto=None, tipo_inmueble=None, cache_scraping=None, retro_dias=0, flex_bedrooms=0):
     """
     Obtiene la mediana del cluster desde cache_scraping.json.
     Versión v2 con metadata extendida Y radios progresivos.
@@ -915,7 +915,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 'cache_scraping.json'
             )
             if not os.path.exists(cache_path):
-                return 0, 0, {'percentil_usado': 'P50' if operacion == 'alquiler' else 'P33', 'n_raw': 0, 'n_filtradas': 0, 'retro_activo': bool(retro_dias), 'total_dias_ventana': get_natural_window_dias() + retro_dias * 30}
+                return 0, 0, {'percentil_usado': 'P50' if operacion == 'alquiler' else 'P33', 'n_raw': 0, 'n_filtradas': 0,                 'retro_activo': bool(retro_dias), 'total_dias_ventana': get_natural_window_dias() + retro_dias * 30, 'flex_bedrooms': flex_bedrooms}
             from parsers.profiler import profile_block
             with profile_block("load_cache_scraping"):
                 with open(cache_path, 'r', encoding='utf-8') as f:
@@ -974,7 +974,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             props = [
                 p for p in cache.get('propiedades', [])
                 if (p.get('zona') == zona_buscar or normalizar_zona(p.get('zona', '')) == zona_buscar)
-                and p.get('dormitorios') == dorms
+                and (abs(p.get('dormitorios', 0) - dorms) <= flex_bedrooms if flex_bedrooms > 0 else p.get('dormitorios') == dorms)
                 and p.get('operacion') == oper
                 and p.get('valor_m2', 0) > 0
                 and (not tipo_inmueble or tipo_inmueble in str(p.get('tipo', p.get('tipo_inmueble', ''))).lower())
@@ -1040,7 +1040,10 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                     if not (p_lat and p_lon): continue
                     dist = calcular_distancia_km(lat_ref, lon_ref, p_lat, p_lon)
                     if dist > 1.5: continue
-                    if p.get('dormitorios') != dormitorios: continue
+                    if flex_bedrooms > 0:
+                        if abs(p.get('dormitorios', 0) - dormitorios) > flex_bedrooms: continue
+                    else:
+                        if p.get('dormitorios') != dormitorios: continue
                     if p.get('operacion') != operacion: continue
                     if p.get('valor_m2', 0) <= 0: continue
                     if tipo_inmueble and tipo_inmueble not in str(p.get('tipo', p.get('tipo_inmueble', ''))).lower(): continue
@@ -1526,6 +1529,8 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             # Retro
             'retro_activo': bool(retro_dias),
             'total_dias_ventana': get_natural_window_dias() + retro_dias * 30,
+            'flex_bedrooms': flex_bedrooms,
+            'sujeto_dormitorios': dormitorios,
         }
         
         return valor, n_filtradas, meta
@@ -1538,6 +1543,8 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         'n_filtradas': 0,
         'retro_activo': bool(retro_dias),
         'total_dias_ventana': get_natural_window_dias() + retro_dias * 30,
+        'flex_bedrooms': flex_bedrooms,
+        'sujeto_dormitorios': dormitorios,
         'radio_usado': None,
             'fecha_ref': fecha_ref,
             'operacion': operacion,
@@ -3026,7 +3033,7 @@ def obtener_nodos_dinamicos(lat, lon, tipo, operacion, dorms=2, fecha_ref=None):
         return {"error": str(e)}
 
 
-def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retro_dias=0):
+def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retro_dias=0, flex_bedrooms=0):
     """
     🚀 Modelo v7.0 - Evolución Híbrida PROFESIONAL
     Fusiona el Motor VPP (Clusters/Market) con Factores Físicos (Legacy).
@@ -3172,9 +3179,10 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
             anio_sujeto=anio_const,
             tipo_inmueble=prop.get('tipo_inmueble') or prop.get('tipo') or 'departamento',
             cache_scraping=cache_scraping_compartido,
-            retro_dias=retro_dias
+            retro_dias=retro_dias,
+            flex_bedrooms=flex_bedrooms
         )
-    
+
     # Si v2 tiene valor, usarlo; si no, fallback a ancla
     if m2_base_venta_raw > 0:
         m2_base_venta = m2_base_venta_raw
@@ -3234,7 +3242,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
     # Usar zona normalizada para mejor match con cache
     zona_alq = normalizar_zona(zona_txt)
     with profile_block("cluster_alquiler", prop):
-        m2_base_alq_raw, n_a, meta_alq = obtener_mediana_cluster_v2(zona=zona_alq, dormitorios=dorms, operacion='alquiler', lat_ref=lat, lon_ref=lon, fecha_ref=fecha_ref, tipo_inmueble=prop.get('tipo_inmueble') or prop.get('tipo') or 'departamento', cache_scraping=cache_scraping_compartido)
+        m2_base_alq_raw, n_a, meta_alq = obtener_mediana_cluster_v2(zona=zona_alq, dormitorios=dorms, operacion='alquiler', lat_ref=lat, lon_ref=lon, fecha_ref=fecha_ref, tipo_inmueble=prop.get('tipo_inmueble') or prop.get('tipo') or 'departamento', cache_scraping=cache_scraping_compartido, flex_bedrooms=flex_bedrooms)
     
     # Fallback si no hay datos específicos (en ARS/m²)
     # Ajustar para entrar en rango:
@@ -3624,6 +3632,8 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
         'comparables_venta': comparables_venta,
         'retro_activo': meta_venta.get('retro_activo', False),
         'total_dias_ventana': meta_venta.get('total_dias_ventana', 180),
+        'flex_bedrooms': meta_venta.get('flex_bedrooms', 0),
+        'sujeto_dormitorios': meta_venta.get('sujeto_dormitorios', None),
         'mapa_html': mapa_html,
         'razonamiento': razonamiento,
         'catastro_detalle': catastro_detalle,
