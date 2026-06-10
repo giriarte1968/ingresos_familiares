@@ -775,24 +775,34 @@ def render_valuacion_manual(prop, res):
         with c3:
             st.metric("Incertidumbre %", f"±{mp.get('incertidumbre_pct', 10):.1f}%")
 
-        # Sub-factors breakdown grouped
+        # Sub-factors breakdown grouped (misma fórmula que calcular_factores)
         sb = res.get('sub_factors_breakdown', {})
         if sb:
             st.markdown("#### Desglose del Factor Hedonico")
-            sc1, sc2, sc3 = st.columns(3)
+            de = sb.get('delta_edificacion', 0.0)
+            da = sb.get('delta_amenities', 0.0)
+            dn = sb.get('delta_nlp', 0.0)
+            danti = sb.get('delta_anti', 0.0)
+            sc = sb.get('suma_cruda', 0.0)
+            scl = sb.get('suma_clamped', 0.0)
+            stot = sb.get('total', 1.0)
+            det_amen = sb.get('detalle_amenities', {})
+            det_str = ", ".join(det_amen.keys()) if isinstance(det_amen, dict) else str(det_amen)[:30]
+
+            sc1, sc2, sc3, sc4 = st.columns(4)
             with sc1:
-                st.metric("Edificación/Construcción", f"{sb.get('edificacion', 1.0):.4f}")
+                st.metric("Edificación", f"{de:+.4f}")
+                st.caption("estado+calidad+piso+vista+balcón+vent+ubic+gas+func+disp")
             with sc2:
-                det_amen = sb.get('detalle_amenities', {})
-                det_str = ", ".join(det_amen.keys()) if isinstance(det_amen, dict) else str(det_amen)[:30]
-                label_am = f"Amenities ({det_str[:40]})" if det_str else "Amenities"
-                st.metric(label_am, f"{sb.get('amenities', 1.0):.4f}")
+                label_am = f"Amenities ({det_str[:30]})" if det_str else "Amenities"
+                st.metric(label_am, f"{da:+.4f}")
             with sc3:
-                st.metric("NLP (cocina/AA)", f"{sb.get('nlp', 1.0):.4f}")
-            # Clamp info
-            suma_sub = (sb.get('edificacion', 1.0) - 1.0) + (sb.get('amenities', 1.0) - 1.0) + (sb.get('nlp', 1.0) - 1.0) + 1.0
-            if abs(suma_sub - fh_valor) > 0.001:
-                st.caption(f"Suma de grupos: {suma_sub:.4f} → clamp a {fh_valor:.4f} (límite ±40%)")
+                st.metric("NLP", f"{dn:+.4f}")
+                st.caption("cocina+preinst AA")
+            with sc4:
+                st.metric("Depreciación", f"{danti:+.4f}")
+                st.caption("antigüedad")
+            st.caption(f"Σ cruda = {sc:+.4f} → clamp(±0.40) = {scl:+.4f} → +1 + anti = 1{scl:+.4f}{danti:+.4f} = {1+scl+danti:.4f} → total = {stot:.4f} [{0.70}, {1.35}]")
 
         # Activos: cocheras y baulera como metricas grandes
         val_act = res.get('valor_activos', {})
