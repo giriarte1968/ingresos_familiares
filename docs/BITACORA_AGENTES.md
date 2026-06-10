@@ -2212,3 +2212,34 @@ Reemplazar las 117 anclas artesanales (46% cobertura) por 322 microzonas automat
 - [ ] pytest test_regression.py (39/39)
 - [ ] generador produce archivo timestamped
 - [ ] activacion desde UI funciona
+
+---
+
+## 10/06/2026 — TAREA-039: Retro — Expansión de comparables con Ct + Admin UI curva
+
+### Cambios:
+1. **config/anclas_config.json**: agregados `ct_table`, `natural_window_dias=180`, `retro_default_meses=36`, `ct_factors.fecha_vigencia`
+2. **parsers/time_adjustment.py** (nuevo): módulo compartido con TABLA_CT, interpolar, ct_segmento, meses_desde, es_nuevo, calcular_ct. Lee desde config.
+3. **scripts/generar_anclas_grid.py**: refactor — importa desde time_adjustment en vez de definiciones locales
+4. **parsers/mercado_inmobiliario.py**: `aplicar_filtro_fecha` default 180d; `obtener_mediana_cluster_v2` acepta `retro_dias`, aplica Ct a >180d, límite 30/60 comps
+5. **valu_detail_sections.py**: botón Retro toggle + slider 12-60 meses + badge "🔙 RETRO" en tabla de comps con time_adjustment != 1.0
+6. **valu.py**: pasa retro_dias desde session_state; Admin UI nueva pestaña "Ct / Ajuste Temporal" con tabla editable, gráfico Plotly (3 trazos + líneas verticales 6m/36m), factores COCIR editables con fecha vigencia, histórico en ct_factors_history.json
+
+### Archivos modificados:
+- `config/anclas_config.json` (cambios)
+- `parsers/time_adjustment.py` (nuevo)
+- `scripts/generar_anclas_grid.py` (refactor)
+- `parsers/mercado_inmobiliario.py` (180d + retro_dias + Ct)
+- `valu_detail_sections.py` (boton Retro + slider + badge)
+- `valu.py` (retro_dias en valuacion + admin Ct)
+- `config/ct_factors_history.json` (nuevo)
+- `docs/ALGORITMOS.md` (seccion 8)
+- `.opencode/plans/TAREA-039.md` (plan)
+- `.opencode/plans/TAREAS_INDEX.md` (entrada)
+
+### Validacion:
+- [ ] auto_validate.py OK
+- [ ] pytest test_regression.py (39/39)
+- [ ] generar_anclas_grid.py produce mismas 322 anclas
+- [ ] boton Retro funcional en UI
+- [ ] Admin Ct con tabla + grafico + factores
