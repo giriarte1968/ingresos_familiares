@@ -1335,7 +1335,7 @@ def valuar_con_cache(prop: dict,
                      forzar_recalculo: bool = False,
                      consultar_infomapa: bool = True,
                      retro_dias: int = 0,
-                     flex_bedrooms: int = 0) -> dict:
+                     flex_dormitorios: list = None) -> dict:
     """
     Wrapper de valuación con caché persistente.
     Solo recalcula si es necesario o se fuerza.
@@ -1373,7 +1373,7 @@ def valuar_con_cache(prop: dict,
         logger.info(f"[CACHE] {nombre}: recalculando ({razon})")
         try:
             with profile_block("valuar_propiedad_v7_total", prop):
-                resultado = valuar_propiedad_v7(prop, fecha_ref=fecha_ref, consultar_infomapa=consultar_infomapa, retro_dias=retro_dias, flex_bedrooms=flex_bedrooms)
+                resultado = valuar_propiedad_v7(prop, fecha_ref=fecha_ref, consultar_infomapa=consultar_infomapa, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios)
             save_results()
         except Exception as e:
             logger.error(f"Error en valuar_propiedad_v7: {e}")

@@ -233,10 +233,10 @@ def render_tabla_comparables(res, prop_name=None):
     """
     if res.get('retro_activo'):
         st.caption(f"🔙 Retro activo: ventana de {res.get('total_dias_ventana', 180)} días")
-    flex_bedrooms = res.get('flex_bedrooms', 0)
+    flex_dormitorios = res.get('flex_dormitorios', None)
     sujeto_dorms = res.get('sujeto_dormitorios', None)
-    if flex_bedrooms > 0 and sujeto_dorms is not None:
-        st.caption(f"🔍 Flexible ±{flex_bedrooms} dorm. (base: {sujeto_dorms})")
+    if flex_dormitorios and sujeto_dorms is not None:
+        st.caption(f"🔍 Retro Flexible: incluye {flex_dormitorios} dorm. (sujeto: {sujeto_dorms})")
     comparables = res.get('comparables_venta', [])
     if not comparables:
         st.caption("Sin comparables disponibles")
@@ -251,7 +251,7 @@ def render_tabla_comparables(res, prop_name=None):
         if ta != 1.0:
             retro_badge = " <span style='background:#ff6b35;color:white;font-size:10px;padding:1px 5px;border-radius:8px;font-weight:bold;'>RETRO</span>"
             precio_m2_str = f"<span style='color:#888'>{'${:,.0f}'.format(vm2_orig)}</span> → <span style='color:#ff6b35;font-weight:bold'>{'${:,.0f}'.format(vm2_ajust)}</span>{retro_badge}"
-        if flex_bedrooms > 0 and sujeto_dorms is not None and c.get('dormitorios') != sujeto_dorms:
+        if flex_dormitorios and sujeto_dorms is not None and c.get('dormitorios') != sujeto_dorms:
             flex_badge = " <span style='background:#9b59b6;color:white;font-size:10px;padding:1px 5px;border-radius:8px;font-weight:bold;'>FLEX</span>"
             precio_m2_str += flex_badge
         else:

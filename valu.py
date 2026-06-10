@@ -267,7 +267,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         retro_active = st.session_state.get(retro_key, False)
         col_btn, col_status, col_slider = st.columns([1.5, 1, 2])
         with col_btn:
-            label = "🔙 Retro activo" if retro_active else "🔙 Retro"
+            label = "🔙 Retro Activado" if retro_active else "🔙 Retro"
             if st.button(label, type="primary" if retro_active else "secondary", use_container_width=True):
                 st.session_state[retro_key] = not retro_active
                 st.session_state[f'forzar_recalculo_{prop_name}'] = True
@@ -281,12 +281,12 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                 st.slider("Meses atrás", 12, 60, st.session_state.get(f'retro_meses_{prop_name}', 36),
                           key=f'retro_meses_{prop_name}')
 
-        # Flex bedrooms (solo cuando retro está activo)
+        # Retro Flexible: checkboxes acumulativos de dormitorios
         flex_key = f'flex_active_{prop_name}'
         flex_active = st.session_state.get(flex_key, False)
         col_fb, col_fs = st.columns([1.5, 3.5])
         with col_fb:
-            flex_label = "🔍 Flexible" if not flex_active else "🔍 Flexible activo"
+            flex_label = "🔍 Retro Flexible Activado" if flex_active else "🔍 Retro Flexible"
             if st.button(flex_label, type="primary" if flex_active else "secondary", use_container_width=True, key=f"flex_btn_{prop_name}"):
                 st.session_state[flex_key] = not flex_active
                 st.session_state[f'forzar_recalculo_{prop_name}'] = True
@@ -295,12 +295,18 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                 st.rerun()
         with col_fs:
             if flex_active:
-                st.selectbox("Tolerancia dormitorios",
-                    options=[0, 1, 2, 3],
-                    index=st.session_state.get(f'flex_bedrooms_{prop_name}', 1),
-                    key=f'flex_bedrooms_{prop_name}',
-                    help="0=solo exactos, 1=±1 dorm, 2=±2 dorms, 3=todos")
-                st.caption(f"Tolerancia ±{st.session_state.get(f'flex_bedrooms_{prop_name}', 1)} dorm.")
+                st.caption("Incluir dormitorios:")
+                dorm_cols = st.columns(5)
+                old = set(st.session_state.get(f'flex_dormitorios_{prop_name}', []))
+                new = set()
+                for idx, d in enumerate([1, 2, 3, 4, 5]):
+                    with dorm_cols[idx]:
+                        if st.checkbox(f"{d}", value=d in old, key=f'flex_dorm_cb_{prop_name}_{d}'):
+                            new.add(d)
+                if new != old:
+                    st.session_state[f'flex_dormitorios_{prop_name}'] = list(new)
+                    st.session_state[f'forzar_recalculo_{prop_name}'] = True
+                    st.rerun()
 
         with st.expander("🗺️ Mapa", expanded=False):
             with profile_block("render_mapa_propiedad", prop):
@@ -461,8 +467,8 @@ def mostrar_dashboard():
                     retro_meses = st.session_state.get(f'retro_meses_{prop_name}', 36) if retro_active else 0
                     retro_dias = retro_meses if retro_active else 0
                     flex_active = st.session_state.get(f'flex_active_{prop_name}', False)
-                    flex_bedrooms = st.session_state.get(f'flex_bedrooms_{prop_name}', 1) if flex_active else 0
-                    resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_bedrooms=flex_bedrooms)
+                    flex_dormitorios = st.session_state.get(f'flex_dormitorios_{prop_name}', []) if flex_active else None
+                    resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios)
                     _sl.mark("after_valuar_con_cache")
 
                     # Override con valuación manual si está persistida
