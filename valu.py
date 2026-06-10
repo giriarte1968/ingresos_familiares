@@ -288,20 +288,18 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
             flex_label = "🔍 Retro Flexible Activado" if flex_active else "🔍 Retro Flexible"
             if st.button(flex_label, type="primary" if flex_active else "secondary", use_container_width=True, key=f"flex_btn_{prop_name}"):
                 st.session_state[flex_key] = not flex_active
-                st.session_state[f'forzar_recalculo_{prop_name}'] = True
-                if not st.session_state.get(retro_key, False):
-                    st.session_state[retro_key] = True
+                if not flex_active:
+                    st.session_state[f'forzar_recalculo_{prop_name}'] = True
                 st.rerun()
         with col_fs:
             if flex_active:
                 todos_key = f'flex_todos_{prop_name}'
-                todos_val = st.session_state.get(todos_key, True)
+                todos_val = st.session_state.get(todos_key, False)
                 st.checkbox("Todos", value=todos_val, key=todos_key)
-                if not todos_val:
-                    dorm_cols = st.columns([1]*5)
-                    for idx, d in enumerate([1, 2, 3, 4, 5]):
-                        with dorm_cols[idx]:
-                            st.checkbox(f"{d}", key=f'flex_dorm_cb_{prop_name}_{d}')
+                dorm_cols = st.columns([1]*5)
+                for idx, d in enumerate([1, 2, 3, 4, 5]):
+                    with dorm_cols[idx]:
+                        st.checkbox(f"{d}", key=f'flex_dorm_cb_{prop_name}_{d}')
 
         with st.expander("🗺️ Mapa", expanded=False):
             with profile_block("render_mapa_propiedad", prop):
@@ -311,7 +309,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         comparables_todos = res.get('comparables_venta', [])
         flex_active = st.session_state.get(f'flex_active_{prop_name}', False)
         if flex_active:
-            todos_val = st.session_state.get(f'flex_todos_{prop_name}', True)
+            todos_val = st.session_state.get(f'flex_todos_{prop_name}', False)
             if todos_val:
                 comparables = comparables_todos
             else:
@@ -321,11 +319,14 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
             comparables = comparables_todos
         n_comps = len(comparables)
         with st.expander("Propiedades Comparables", expanded=False):
-            if len(comparables) != len(comparables_todos):
+            if flex_active and n_comps == 0 and not st.session_state.get(f'flex_todos_{prop_name}', False):
+                st.caption("✅ Seleccione «Todos» o marque dormitorios específicos para mostrar comparables flexibles")
+            elif flex_active and len(comparables) != len(comparables_todos):
                 st.caption(f"{n_comps} mostradas de {len(comparables_todos)} totales")
             else:
                 st.caption(f"{n_comps} propiedades comparables")
-            render_tabla_comparables({**res, 'comparables_venta': comparables}, prop_name=prop_name)
+            if n_comps > 0 or not flex_active:
+                render_tabla_comparables({**res, 'comparables_venta': comparables}, prop_name=prop_name)
         _dl.mark("after_render_tabla_comparables")
     _dl.mark("after_section_comparables")
 
