@@ -4,6 +4,48 @@ Este documento es el "diario de trabajo". Cada agente de IA que trabaje en este 
 
 ---
 
+## 📅 2026-06-11 — FIX: toggles Retro/Flex ya no disparan valuación automática
+
+### Problema:
+Los toggles Retro y Retro Flexible seteban `forzar_recalculo` cuando la propiedad estaba Pendiente (`fuente is None`). Esto valuaba la propiedad automáticamente sin que el usuario presionara "Aplicar cambios". Se persistía `_ultima_valuacion` y al volver al portafolio la propiedad aparecía como valuada.
+
+### Cambio:
+- Retro toggle (`valu.py:270-272`): eliminado `if res.get('fuente') is None: forzar_recalculo = True`
+- Retro Flexible toggle (`valu.py:288-290`): mismo cambio
+- Solo "✅ Aplicar cambios" puede setear `forzar_recalculo` y disparar una valuación
+
+### Nuevo flujo Pendiente:
+1. Abrir propiedad → Pendiente (0 comps, $0, mapa del sujeto)
+2. Toggle Retro ON → aparece slider (sin valuación)
+3. Toggle Retro Flexible ON → aparecen checkboxes (sin valuación)
+4. "✅ Aplicar cambios" → única acción que dispara valuación con parámetros
+
+### Tests: 39/39 OK, auto_validate OK
+
+---
+
+## 📅 2026-06-10 — PENDIENTE: mostrar detalle con 0 comps y Retro/Flex
+
+### Objetivo:
+Que una propiedad nunca valuada (Pendiente) no se auto-valúe al entrar al detalle. En vez de eso, mostrar página con $0 y 0 comparables, dejando que el usuario use Retro/Flex para encontrar comps y luego haga clic en "Aplicar cambios".
+
+### Acciones:
+1. En `valu.py`: antes de llamar `valuar_con_cache`, chequear `_ultima_valuacion` en `propiedades.json`. Si no existe y no hay `forzar_recalculo`, crear resultado vacío `{valor_propiedad_usd: 0, comparables_venta: [], resolution_metadata: {n_propiedades: 0}}` y llamar `mostrar_detalle_valu` directamente.
+2. Si el usuario activa Retro/Flex y clickea "Aplicar cambios", ahí se setea `forzar_recalculo` que permite pasar el guard y ejecutar `valuar_con_cache` con los parámetros elegidos.
+
+### ⚠️ Lección aprendida — LIMPIEZA DE VALUACIÓN:
+Para resetear una propiedad a Pendiente hay que eliminar **ambos** archivos:
+- **Cache**: `data/valuaciones_cache.json` → borrar entrada `"Francia 250b": {...}`
+- **Metadata**: `propiedades.json` → borrar `_ultima_valuacion: {...}` del objeto de la propiedad
+
+Y **MUY IMPORTANTE**: después de borrar `_ultima_valuacion`, verificar que no quede **coma colgante** en la línea anterior del JSON (ej: `"id": "prop_xxx",` debe pasar a `"id": "prop_xxx"` sin coma). De lo contrario el JSON se rompe y Streamlit muestra "Agregar primera propiedad".
+
+### Verificado:
+- 39 tests OK
+- auto_validate OK
+
+---
+
 ## 📅 2026-05-24 — MONUMENTO A LA BANDERA EN 3RA FEATURE CARD
 
 ### Objetivo:
@@ -2243,3 +2285,28 @@ Reemplazar las 117 anclas artesanales (46% cobertura) por 322 microzonas automat
 - [ ] generar_anclas_grid.py produce mismas 322 anclas
 - [ ] boton Retro funcional en UI
 - [ ] Admin Ct con tabla + grafico + factores
+
+## 📅 2026-06-10 — FLEX BEDROOMS + SELECT/DESELECT COMPARABLES
+
+### Objetivo:
+Dar al usuario flexibilidad para: (1) relajar el filtro de dormitorios y obtener más comparables en Puerto Norte y otras zonas con pocos comps, (2) seleccionar/deseleccionar individualmente qué comparables usar en el cálculo.
+
+### Acciones realizadas:
+1. **lex_bedrooms parameter** en obtener_mediana_cluster_v2 (def 0). Cuando >0, usa bs(dorm - target) <= flex_bedrooms en vez de igualdad exacta.
+2. **Propagación completa**: aluar_propiedad_v7 y aluar_con_cache ahora aceptan y pasan lex_bedrooms.
+3. **UI Toggle "Flexible"**: Nuevo botón en la sección Retro (valu.py). Al activarlo, aparecen un selectbox con tolerancia 0-3 dormitorios. Si Retro no está activo, se activa automáticamente.
+4. **FLEX badge**: En ender_tabla_comparables, los comps con dormitorios diferentes al sujeto muestran badge púrpura FLEX.
+5. **Select/deselect popover**: Cada comp tiene checkbox individual. Botón "Aplicar selección" recalcula P33/P50 localmente desde los precios/m2 ajustados de los comps seleccionados.
+6. **Stored metadata**: lex_bedrooms y sujeto_dormitorios en meta de resultado para render condicional.
+7. **Commit 8d0c1a3 + push a origin main.
+
+### Archivos modificados:
+- parsers/mercado_inmobiliario.py — flex_bedrooms param + filter relajado en geo/zonal paths
+- parsers/motor_vpp_core.py — flex_bedrooms en valuar_con_cache
+- valu.py — UI toggle Flexible + selectbox + recálculo local al aplicar selección
+- valu_detail_sections.py — FLEX badge + popover de selección en tabla comparables
+
+### Pendiente:
+- Validar visualmente que el badge FLEX y el recálculo local funcionan en Streamlit
+- Si el usuario quiere más tipos de flexibilidad (tipo_inmueble, zona), extender patrón análogo
+
