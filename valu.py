@@ -269,7 +269,6 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
             label = "🔙 Retro Activado" if retro_active else "🔙 Retro"
             if st.button(label, type="primary" if retro_active else "secondary", use_container_width=True):
                 st.session_state[retro_key] = not retro_active
-                st.session_state[f'forzar_recalculo_{prop_name}'] = True
                 st.rerun()
         with col_status:
             if retro_active:
@@ -288,8 +287,6 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
             flex_label = "🔍 Retro Flexible Activado" if flex_active else "🔍 Retro Flexible"
             if st.button(flex_label, type="primary" if flex_active else "secondary", use_container_width=True, key=f"flex_btn_{prop_name}"):
                 st.session_state[flex_key] = not flex_active
-                if not flex_active:
-                    st.session_state[f'forzar_recalculo_{prop_name}'] = True
                 st.rerun()
         with col_fs:
             if flex_active:
@@ -300,8 +297,11 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                 for idx, d in enumerate([1, 2, 3, 4, 5]):
                     with dorm_cols[idx]:
                         st.checkbox(f"{d}", key=f'flex_dorm_cb_{prop_name}_{d}')
-        if flex_active:
-            if st.button("🔄 Revaluar con esta selección", type="primary", use_container_width=True, key=f'flex_apply_{prop_name}'):
+
+        # Botón Aplicar: dispara recálculo con slider/checkboxes actuales
+        if retro_active or flex_active:
+            if st.button("✅ Aplicar cambios", type="primary", use_container_width=True,
+                         key=f'aplicar_cambios_{prop_name}'):
                 st.session_state[f'forzar_recalculo_{prop_name}'] = True
                 st.rerun()
 
@@ -440,6 +440,42 @@ def mostrar_dashboard():
                 except Exception:
                     pass
 
+            # ── Si nunca fue valuado (Pendiente): mostrar detalle con 0 comps ──
+            uv = p_obj.get('_ultima_valuacion', {})
+            ya_valuado = bool(uv.get('valor_usd') or uv.get('fuente'))
+            if not ya_valuado and not forzar:
+                mapa_html = None
+                lat = p_obj.get('lat')
+                lon = p_obj.get('lon')
+                if lat and lon:
+                    try:
+                        import folium
+                        m = folium.Map(location=[float(lat), float(lon)], zoom_start=14, tiles='cartodbpositron')
+                        folium.Marker([float(lat), float(lon)], popup="📍 Sujeto", icon=folium.Icon(color='red', icon='home')).add_to(m)
+                        folium.Circle([float(lat), float(lon)], radius=300, color='gray', fill=False, dash_array='5').add_to(m)
+                        mapa_html = m._repr_html_()
+                    except Exception:
+                        pass
+                resultado = {
+                    'valor_propiedad_usd': 0,
+                    'fuente': None,
+                    'comparables_venta': [],
+                    'resolution_metadata': {'n_propiedades': 0},
+                    'usdt_ars': 1480,
+                    'mapa_html': mapa_html,
+                }
+                with profile_block("detalle_volver_btn", None):
+                    if st.button("← Volver al Portafolio"):
+                        st.session_state.prop_sel = None
+                        st.session_state['nav_page_radio'] = 'Portfolio'
+                        if 'prop' in st.query_params:
+                            st.query_params.clear()
+                        st.rerun()
+                with profile_block("mostrar_detalle_valu_total", p_obj):
+                    mostrar_detalle_valu(p_obj, resultado, actualizar_propiedad)
+                profile_end(_routing_ctx)
+                return
+
             _loader = st.empty()
             _loader.markdown("""
 <div style="
@@ -455,19 +491,28 @@ def mostrar_dashboard():
                     _sl = StepLedger("detalle_spinner_valuar_ledger", p_obj.get('nombre'))
                     _sl.mark("before_valuar")
                     prop_name = p_obj.get('nombre', '')
-                    retro_active = st.session_state.get(f'retro_active_{prop_name}', False)
-                    retro_meses = st.session_state.get(f'retro_meses_{prop_name}', 36) if retro_active else 0
-                    retro_dias = retro_meses if retro_active else 0
-                    flex_active = st.session_state.get(f'flex_active_{prop_name}', False)
-                    if flex_active:
-                        todos_val = st.session_state.get(f'flex_todos_{prop_name}', False)
-                        if todos_val:
-                            flex_dormitorios = [1, 2, 3, 4, 5]
-                        else:
-                            checked = [d for d in [1, 2, 3, 4, 5] if st.session_state.get(f'flex_dorm_cb_{prop_name}_{d}', False)]
-                            flex_dormitorios = checked if checked else None
+                    vista_key = f'vista_valuacion_{prop_name}'
+                    # Re-entry: solo la primera vez usar params cacheados
+                    if ya_valuado and not forzar and not st.session_state.get(vista_key, False):
+                        cache_params = entrada_antigua.get('resultado_completo', {}).get('_cache', {})
+                        retro_dias = cache_params.get('retro_dias', 0)
+                        flex_dormitorios = cache_params.get('flex_dormitorios', None)
+                        st.session_state[vista_key] = True
                     else:
-                        flex_dormitorios = None
+                        st.session_state[vista_key] = True
+                        retro_active = st.session_state.get(f'retro_active_{prop_name}', False)
+                        retro_meses = st.session_state.get(f'retro_meses_{prop_name}', 36) if retro_active else 0
+                        retro_dias = retro_meses if retro_active else 0
+                        flex_active = st.session_state.get(f'flex_active_{prop_name}', False)
+                        if flex_active:
+                            todos_val = st.session_state.get(f'flex_todos_{prop_name}', False)
+                            if todos_val:
+                                flex_dormitorios = [1, 2, 3, 4, 5]
+                            else:
+                                checked = [d for d in [1, 2, 3, 4, 5] if st.session_state.get(f'flex_dorm_cb_{prop_name}_{d}', False)]
+                                flex_dormitorios = checked if checked else None
+                        else:
+                            flex_dormitorios = None
                     resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios)
                     _sl.mark("after_valuar_con_cache")
 
