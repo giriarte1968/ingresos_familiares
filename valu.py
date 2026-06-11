@@ -300,9 +300,10 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                 for idx, d in enumerate([1, 2, 3, 4, 5]):
                     with dorm_cols[idx]:
                         st.checkbox(f"{d}", key=f'flex_dorm_cb_{prop_name}_{d}')
-                if st.button("🔄 Revaluar con esta selección", type="primary", use_container_width=True, key=f'flex_apply_{prop_name}'):
-                    st.session_state[f'forzar_recalculo_{prop_name}'] = True
-                    st.rerun()
+        if flex_active:
+            if st.button("🔄 Revaluar con esta selección", type="primary", use_container_width=True, key=f'flex_apply_{prop_name}'):
+                st.session_state[f'forzar_recalculo_{prop_name}'] = True
+                st.rerun()
 
         with st.expander("🗺️ Mapa", expanded=False):
             with profile_block("render_mapa_propiedad", prop):
