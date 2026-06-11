@@ -4,27 +4,18 @@ Este documento es el "diario de trabajo". Cada agente de IA que trabaje en este 
 
 ---
 
-## 📅 2026-06-11 — FIX: toggles Retro/Flex ya no disparan valuación automática
-
-### Problema:
-Los toggles Retro y Retro Flexible seteban `forzar_recalculo` cuando la propiedad estaba Pendiente (`fuente is None`). Esto valuaba la propiedad automáticamente sin que el usuario presionara "Aplicar cambios". Se persistía `_ultima_valuacion` y al volver al portafolio la propiedad aparecía como valuada.
-
-### Cambio:
-- Retro toggle (`valu.py:270-272`): eliminado `if res.get('fuente') is None: forzar_recalculo = True`
-- Retro Flexible toggle (`valu.py:288-290`): mismo cambio
-- Solo "✅ Aplicar cambios" puede setear `forzar_recalculo` y disparar una valuación
-
-### Nuevo flujo Pendiente:
-1. Abrir propiedad → Pendiente (0 comps, $0, mapa del sujeto)
-2. Toggle Retro ON → aparece slider (sin valuación)
-3. Toggle Retro Flexible ON → aparecen checkboxes (sin valuación)
-4. "✅ Aplicar cambios" → única acción que dispara valuación con parámetros
-
-### Tests: 39/39 OK, auto_validate OK
-
----
-
 ## 📅 2026-06-10 — PENDIENTE: mostrar detalle con 0 comps y Retro/Flex
+
+### ⚠️ LECCIÓN CRÍTICA — NO ROMPER FUNCIONALIDAD EXISTENTE
+
+**Error cometido:** Remover `forzar_recalculo` de los toggles Retro/Flex para evitar que persistan a portfolio. Esto rompió Retro por completo — el toggle ya no disparaba la búsqueda de comps.
+
+**Regla:** Cualquier cambio debe planificarse en formato TAREA (`.opencode/plans/TAREA-NNN.md`) ANTES de modificar código. El plan debe incluir:
+1. **Análisis de impacto**: qué archivos se modifican y qué flujos existentes podrían romperse
+2. **Verificación explícita**: cada paso debe listar `pytest` o `auto_validate` como check
+3. **Rollback fácil**: un cambio atómico por commit para poder revertir sin arrastrar dependencias
+
+**Solución pendiente (TAREA-040):** Agregar modo `preview` a `valuar_con_cache` para que los toggles calculen comps sin persistir `_ultima_valuacion`. Solo "Aplicar cambios" hace commit completo.
 
 ### Objetivo:
 Que una propiedad nunca valuada (Pendiente) no se auto-valúe al entrar al detalle. En vez de eso, mostrar página con $0 y 0 comparables, dejando que el usuario use Retro/Flex para encontrar comps y luego haga clic en "Aplicar cambios".

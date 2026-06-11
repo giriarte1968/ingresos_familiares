@@ -269,6 +269,8 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
             label = "🔙 Retro Activado" if retro_active else "🔙 Retro"
             if st.button(label, type="primary" if retro_active else "secondary", use_container_width=True):
                 st.session_state[retro_key] = not retro_active
+                if res.get('fuente') is None:
+                    st.session_state[f'forzar_recalculo_{prop_name}'] = True
                 st.rerun()
         with col_status:
             if retro_active:
@@ -287,6 +289,8 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
             flex_label = "🔍 Retro Flexible Activado" if flex_active else "🔍 Retro Flexible"
             if st.button(flex_label, type="primary" if flex_active else "secondary", use_container_width=True, key=f"flex_btn_{prop_name}"):
                 st.session_state[flex_key] = not flex_active
+                if res.get('fuente') is None:
+                    st.session_state[f'forzar_recalculo_{prop_name}'] = True
                 st.rerun()
         with col_fs:
             if flex_active:

@@ -101,6 +101,7 @@ PORTFOLIO2_CSS = """
 .p2-property-card {
     border-radius: 20px;
     padding: 18px;
+    margin: 6px;
     min-height: 270px;
     cursor: pointer;
     transition: box-shadow 0.2s, transform 0.15s;
