@@ -1368,6 +1368,17 @@ def valuar_con_cache(prop: dict,
         razon = "forzado_por_usuario"
         _vl.mark("forzar_recalculo")
 
+    # Invalidar cache si cambian parámetros de retro/flex
+    if not recalcular:
+        cached = obtener_resultado_cacheado(nombre, cache)
+        if cached:
+            cached_retro = cached.get('_cache', {}).get('retro_dias', 0)
+            cached_flex = cached.get('_cache', {}).get('flex_dormitorios', None)
+            if cached_retro != retro_dias or cached_flex != flex_dormitorios:
+                recalcular = True
+                razon = f"parametros_cambiados (retro:{cached_retro}->{retro_dias}, flex:{cached_flex}->{flex_dormitorios})"
+                _vl.mark("parametros_cambiados")
+
     if recalcular:
         _vl.mark("before_valuar_propiedad_v7")
         logger.info(f"[CACHE] {nombre}: recalculando ({razon})")
@@ -1383,6 +1394,8 @@ def valuar_con_cache(prop: dict,
         resultado['_cache'] = {
             'recalculado': True,
             'razon': razon,
+            'retro_dias': retro_dias,
+            'flex_dormitorios': flex_dormitorios,
             'timestamp': datetime.now().isoformat()
         }
 
