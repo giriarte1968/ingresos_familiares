@@ -137,6 +137,7 @@ def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict, c
     NO hace git sync.
     """
     from parsers.profiler import profile_block
+    logger.info(f"[DEBUG-CACHE] persistir_valuacion({nombre}): commit={commit}, valor_usd={resultado.get('valor_propiedad_usd')}, n_comps={resultado.get('resolution_metadata',{}).get('n_propiedades',0)}")
     with profile_block("persistir_valuacion", None):
         try:
             # 1. Actualizar cache en memoria

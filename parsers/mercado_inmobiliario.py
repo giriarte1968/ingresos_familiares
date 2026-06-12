@@ -908,6 +908,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
     - zona_resolucion: zona que devolvió resultados
     """
     try:
+        logger.info(f"[DEBUG-ENGINE] obtener_mediana_cluster_v2: zona={zona}, dormitorios={dormitorios}, operacion={operacion}, flex_dormitorios={flex_dormitorios}, retro_dias={retro_dias}")
         
         if cache_scraping is None:
             cache_path = os.path.join(
