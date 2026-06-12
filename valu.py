@@ -5,11 +5,13 @@ import pandas as pd
 import uuid
 import time
 import requests
+import logging
 from datetime import datetime
 from valu_design import VALU_CSS, kpi_card, property_card, hero_price, metric_card, range_bar, insights_card
 from valu_forms import ui_formulario_propiedad
 from landing import mostrar_landing
 from parsers.profiler import profile_block, profile_start, profile_end, StepLedger
+logger = logging.getLogger(__name__)
 
 # --- CONFIGURACIÓN ---
 st.set_page_config(page_title="Valu — Valuador de Propiedades", page_icon="🏠", layout="wide")
