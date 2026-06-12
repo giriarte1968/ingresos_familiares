@@ -120,15 +120,18 @@ def guardar_resultado(nombre: str, prop: dict, resultado: dict, cache: dict):
     persistir_valuacion(nombre, prop, resultado, cache)
 
 
-def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict) -> bool:
+def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict, commit: bool = True) -> bool:
     """
     Persiste una valuación completa.
+
+    commit=True:  actualiza cache + _ultima_valuacion (valuación oficial)
+    commit=False: solo actualiza cache (preview, no marca como valuada en portfolio)
 
     Orden obligatorio:
     1. Actualizar cache en memoria.
     2. Escribir data/valuaciones_cache.json a disco.
-    3. Actualizar propiedades.json con _ultima_valuacion.
-    4. Escribir propiedades.json a disco.
+    3. Actualizar propiedades.json con _ultima_valuacion (solo si commit=True).
+    4. Escribir propiedades.json a disco (solo si commit=True).
     5. Retornar True/False.
 
     NO hace git sync.
@@ -149,8 +152,8 @@ def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict) -
             # 2. Escribir valuaciones_cache.json a disco
             atomic_write_json(CACHE_PATH, cache)
 
-            # 3. Actualizar propiedades.json con _ultima_valuacion
-            if os.path.exists(PROPIEDADES_PATH):
+            # 3-4: Actualizar propiedades.json con _ultima_valuacion solo si es commit
+            if commit and os.path.exists(PROPIEDADES_PATH):
                 with open(PROPIEDADES_PATH, 'r', encoding='utf-8') as f:
                     props_data = json.load(f)
                 for p in props_data.get('propiedades', []):
@@ -169,7 +172,6 @@ def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict) -
                         }
                         break
 
-                # 4. Escribir propiedades.json a disco
                 atomic_write_json(PROPIEDADES_PATH, props_data)
 
             return True

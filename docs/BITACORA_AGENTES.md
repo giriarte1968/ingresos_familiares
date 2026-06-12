@@ -2311,3 +2311,32 @@ Dar al usuario flexibilidad para: (1) relajar el filtro de dormitorios y obtener
 - Validar visualmente que el badge FLEX y el recálculo local funcionan en Streamlit
 - Si el usuario quiere más tipos de flexibilidad (tipo_inmueble, zona), extender patrón análogo
 
+---
+
+## 📅 2026-06-11 — TAREA-041: Preview valuation — toggles Retro/Flex sin persistir en Pendiente
+
+### Problema:
+Toggle Retro ON en Pendiente setea `forzar_recalculo` → engine encuentra comps ✅, pero persiste `_ultima_valuacion` → portfolio muestra valuada ❌. Además, Retro Flexible reemplazaba comps en vez de agregarlos (OR logic fix).
+
+### Solución (5 pasos):
+1. **`persistir_valuacion(commit=False)`** — solo actualiza cache, no escribe `_ultima_valuacion` en `propiedades.json`.
+   - `parsers/valuacion_cache.py`: parámetro `commit: bool = True`. Si `False`, skip paso 3-4 (propiedades.json).
+2. **`valuar_con_cache(preview=True)`** — pasa `commit=not preview` a `persistir_valuacion`.
+   - `parsers/motor_vpp_core.py`: parámetro `preview: bool = False`. Guarda `preview` en `_cache` metadata.
+3. **Retro Flexible OR logic** — ya estaba implementado en lineas 977 y 1044 de `mercado_inmobiliario.py` (OR inclusion).
+4. **`valu.py`: toggles setean `preview_mode=True`** + `forzar_recalculo`. "Aplicar cambios" lo limpia.
+   - Toggle Retro/Flex: `st.session_state[f'preview_mode_{prop_name}'] = True`
+   - "Aplicar cambios": `st.session_state.pop(f'preview_mode_{prop_name}', None)`
+   - `mostrar_dashboard`: lee `preview_mode`, pasa `preview=preview_mode` a `valuar_con_cache`.
+5. **Validación**: auto_validate.py OK, regression tests OK.
+
+### Archivos modificados:
+- `parsers/valuacion_cache.py` — parámetro `commit` en `persistir_valuacion`
+- `parsers/motor_vpp_core.py` — parámetro `preview` en `valuar_con_cache` + metadata
+- `valu.py` — toggles Retro/Flex setean `preview_mode`, "Aplicar cambios" lo limpia, pasa `preview` a motor
+
+### Pendiente:
+- Probar manualmente en Streamlit: Pendiente + Retro toggle → comps visibles, portfolio sigue Pendiente
+- Probar: Pendiente + "Aplicar cambios" → portfolio muestra valuada
+- Probar: ya valuada + toggle → comps visibles, portfolio sigue valuada (sin cambios en comportamiento)
+

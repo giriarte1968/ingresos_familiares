@@ -269,6 +269,8 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
             label = "🔙 Retro Activado" if retro_active else "🔙 Retro"
             if st.button(label, type="primary" if retro_active else "secondary", use_container_width=True):
                 st.session_state[retro_key] = not retro_active
+                st.session_state[f'forzar_recalculo_{prop_name}'] = True
+                st.session_state[f'preview_mode_{prop_name}'] = True
                 st.rerun()
         with col_status:
             if retro_active:
@@ -287,6 +289,8 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
             flex_label = "🔍 Retro Flexible Activado" if flex_active else "🔍 Retro Flexible"
             if st.button(flex_label, type="primary" if flex_active else "secondary", use_container_width=True, key=f"flex_btn_{prop_name}"):
                 st.session_state[flex_key] = not flex_active
+                st.session_state[f'forzar_recalculo_{prop_name}'] = True
+                st.session_state[f'preview_mode_{prop_name}'] = True
                 st.rerun()
         with col_fs:
             if flex_active:
@@ -303,6 +307,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
             if st.button("✅ Aplicar cambios", type="primary", use_container_width=True,
                          key=f'aplicar_cambios_{prop_name}'):
                 st.session_state[f'forzar_recalculo_{prop_name}'] = True
+                st.session_state.pop(f'preview_mode_{prop_name}', None)
                 st.rerun()
 
         with st.expander("🗺️ Mapa", expanded=False):
@@ -416,6 +421,7 @@ def mostrar_dashboard():
             p_obj = next((p for p in propiedades if p['nombre'] == st.session_state.prop_sel), None)
         if p_obj:
             forzar = st.session_state.pop(f'forzar_recalculo_{p_obj["nombre"]}', False)
+            preview_mode = st.session_state.pop(f'preview_mode_{p_obj["nombre"]}', False)
 
             with profile_block("detalle_cache_check", p_obj):
                 cache_existente = cargar_cache_valuaciones()
@@ -513,7 +519,7 @@ def mostrar_dashboard():
                                 flex_dormitorios = checked if checked else None
                         else:
                             flex_dormitorios = None
-                    resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios)
+                    resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios, preview=preview_mode)
                     _sl.mark("after_valuar_con_cache")
 
                     # Override con valuación manual si está persistida
