@@ -1421,7 +1421,10 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             # Valor principal ya tiene fallback al inicio
         
 # GARANTIZAR ORDEN: conservador <= mercado <= optimista
-        bases_sorted = sorted([base_conservadora, base_mercado, base_optimista])
+        bases_validas = [b for b in [base_conservadora, base_mercado, base_optimista] if b is not None]
+        if len(bases_validas) < 3:
+            bases_validas = [b if b is not None else 0 for b in [base_conservadora, base_mercado, base_optimista]]
+        bases_sorted = sorted(bases_validas)
         base_conservadora = bases_sorted[0]
         base_mercado = bases_sorted[1]
         base_optimista = bases_sorted[2]
