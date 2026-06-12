@@ -271,7 +271,9 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
             label = "🔙 Retro Activado" if retro_active else "🔙 Retro"
             if st.button(label, type="primary" if retro_active else "secondary", use_container_width=True):
                 st.session_state[retro_key] = not retro_active
-                print(f"[DEBUG-DETALLE] Toggle Retro {prop_name}: ahora={not retro_active}")
+                st.session_state[f'forzar_recalculo_{prop_name}'] = True
+                st.session_state[f'preview_mode_{prop_name}'] = True
+                print(f"[DEBUG-DETALLE] Toggle Retro {prop_name}: ahora={not retro_active}, forzar=True, preview=True")
                 st.rerun()
         with col_status:
             if retro_active:
@@ -290,7 +292,9 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
             flex_label = "🔍 Retro Flexible Activado" if flex_active else "🔍 Retro Flexible"
             if st.button(flex_label, type="primary" if flex_active else "secondary", use_container_width=True, key=f"flex_btn_{prop_name}"):
                 st.session_state[flex_key] = not flex_active
-                print(f"[DEBUG-DETALLE] Toggle Flex {prop_name}: ahora={not flex_active}")
+                st.session_state[f'forzar_recalculo_{prop_name}'] = True
+                st.session_state[f'preview_mode_{prop_name}'] = True
+                print(f"[DEBUG-DETALLE] Toggle Flex {prop_name}: ahora={not flex_active}, forzar=True, preview=True")
                 st.rerun()
         with col_fs:
             if flex_active:
@@ -309,8 +313,9 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                 retro = st.session_state.get(retro_key, False)
                 flex = st.session_state.get(flex_key, False)
                 checked = [d for d in [1,2,3,4,5] if st.session_state.get(f'flex_dorm_cb_{prop_name}_{d}', False)]
-                print(f"[DEBUG-DETALLE] Aplicar cambios {prop_name}: retro={retro}, flex={flex}, checked={checked}")
+                print(f"[DEBUG-DETALLE] Aplicar cambios {prop_name}: retro={retro}, flex={flex}, checked={checked}, preview_mode=CLEARED")
                 st.session_state[f'forzar_recalculo_{prop_name}'] = True
+                st.session_state.pop(f'preview_mode_{prop_name}', None)
                 st.rerun()
 
         with st.expander("🗺️ Mapa", expanded=False):
@@ -429,7 +434,8 @@ def mostrar_dashboard():
             p_obj = next((p for p in propiedades if p['nombre'] == st.session_state.prop_sel), None)
         if p_obj:
             forzar = st.session_state.pop(f'forzar_recalculo_{p_obj["nombre"]}', False)
-            print(f"[DEBUG-DASH] {p_obj['nombre']}: forzar={forzar}, ya_valuado={bool(p_obj.get('_ultima_valuacion',{}).get('valor_usd') or p_obj.get('_ultima_valuacion',{}).get('fuente'))}")
+            preview_mode = st.session_state.pop(f'preview_mode_{p_obj["nombre"]}', False)
+            print(f"[DEBUG-DASH] {p_obj['nombre']}: forzar={forzar}, preview_mode={preview_mode}, ya_valuado={bool(p_obj.get('_ultima_valuacion',{}).get('valor_usd') or p_obj.get('_ultima_valuacion',{}).get('fuente'))}")
             retro_active_ss = st.session_state.get(f'retro_active_{p_obj["nombre"]}', False)
             flex_active_ss = st.session_state.get(f'flex_active_{p_obj["nombre"]}', False)
             flex_checked_ss = [d for d in [1,2,3,4,5] if st.session_state.get(f'flex_dorm_cb_{p_obj["nombre"]}_{d}', False)]
@@ -458,41 +464,48 @@ def mostrar_dashboard():
                 except Exception:
                     pass
 
-            # ── Si nunca fue valuado (Pendiente): mostrar detalle con 0 comps ──
+            # ── Si nunca fue valuado (Pendiente): mostrar detalle con 0 comps, salvo que haya cache ──
             uv = p_obj.get('_ultima_valuacion', {})
             ya_valuado = bool(uv.get('valor_usd') or uv.get('fuente'))
             if not ya_valuado and not forzar:
-                mapa_html = None
-                lat = p_obj.get('lat')
-                lon = p_obj.get('lon')
-                if lat and lon:
-                    try:
-                        import folium
-                        m = folium.Map(location=[float(lat), float(lon)], zoom_start=14, tiles='cartodbpositron')
-                        folium.Marker([float(lat), float(lon)], popup="📍 Sujeto", icon=folium.Icon(color='red', icon='home')).add_to(m)
-                        folium.Circle([float(lat), float(lon)], radius=300, color='gray', fill=False, dash_array='5').add_to(m)
-                        mapa_html = m._repr_html_()
-                    except Exception:
-                        pass
-                resultado = {
-                    'valor_propiedad_usd': 0,
-                    'fuente': None,
-                    'comparables_venta': [],
-                    'resolution_metadata': {'n_propiedades': 0},
-                    'usdt_ars': 1480,
-                    'mapa_html': mapa_html,
-                }
-                with profile_block("detalle_volver_btn", None):
-                    if st.button("← Volver al Portafolio"):
-                        st.session_state.prop_sel = None
-                        st.session_state['nav_page_radio'] = 'Portfolio'
-                        if 'prop' in st.query_params:
-                            st.query_params.clear()
-                        st.rerun()
-                with profile_block("mostrar_detalle_valu_total", p_obj):
-                    mostrar_detalle_valu(p_obj, resultado, actualizar_propiedad)
-                profile_end(_routing_ctx)
-                return
+                # Verificar si hay resultado cacheado con comparables
+                cache_existente = cargar_cache_valuaciones()
+                entrada_cache = cache_existente.get(p_obj['nombre'], {})
+                resultado_cacheado = entrada_cache.get('resultado_completo', {}) or {}
+                if resultado_cacheado.get('comparables_venta'):
+                    print(f"[DEBUG-DASH] {p_obj['nombre']}: Pendiente con cache, usando resultado cacheado ({len(resultado_cacheado.get('comparables_venta',[]))} comps)")
+                else:
+                    mapa_html = None
+                    lat = p_obj.get('lat')
+                    lon = p_obj.get('lon')
+                    if lat and lon:
+                        try:
+                            import folium
+                            m = folium.Map(location=[float(lat), float(lon)], zoom_start=14, tiles='cartodbpositron')
+                            folium.Marker([float(lat), float(lon)], popup="📍 Sujeto", icon=folium.Icon(color='red', icon='home')).add_to(m)
+                            folium.Circle([float(lat), float(lon)], radius=300, color='gray', fill=False, dash_array='5').add_to(m)
+                            mapa_html = m._repr_html_()
+                        except Exception:
+                            pass
+                    resultado = {
+                        'valor_propiedad_usd': 0,
+                        'fuente': None,
+                        'comparables_venta': [],
+                        'resolution_metadata': {'n_propiedades': 0},
+                        'usdt_ars': 1480,
+                        'mapa_html': mapa_html,
+                    }
+                    with profile_block("detalle_volver_btn", None):
+                        if st.button("← Volver al Portafolio"):
+                            st.session_state.prop_sel = None
+                            st.session_state['nav_page_radio'] = 'Portfolio'
+                            if 'prop' in st.query_params:
+                                st.query_params.clear()
+                            st.rerun()
+                    with profile_block("mostrar_detalle_valu_total", p_obj):
+                        mostrar_detalle_valu(p_obj, resultado, actualizar_propiedad)
+                    profile_end(_routing_ctx)
+                    return
 
             _loader = st.empty()
             _loader.markdown("""
@@ -531,8 +544,8 @@ def mostrar_dashboard():
                                 flex_dormitorios = checked if checked else None
                         else:
                             flex_dormitorios = None
-                    print(f"[DEBUG-DASH] {p_obj['nombre']}: retro_dias={retro_dias}, flex_dormitorios={flex_dormitorios}, preview=False")
-                    resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios)
+                    print(f"[DEBUG-DASH] {p_obj['nombre']}: retro_dias={retro_dias}, flex_dormitorios={flex_dormitorios}, preview={preview_mode}")
+                    resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios, preview=preview_mode)
                     _sl.mark("after_valuar_con_cache")
 
                     # Override con valuación manual si está persistida
