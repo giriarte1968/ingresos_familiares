@@ -269,9 +269,6 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
             label = "🔙 Retro Activado" if retro_active else "🔙 Retro"
             if st.button(label, type="primary" if retro_active else "secondary", use_container_width=True):
                 st.session_state[retro_key] = not retro_active
-                if res.get('fuente') is None:
-                    st.session_state[f'forzar_recalculo_{prop_name}'] = True
-                    st.session_state[f'preview_mode_{prop_name}'] = True
                 st.rerun()
         with col_status:
             if retro_active:
@@ -290,9 +287,6 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
             flex_label = "🔍 Retro Flexible Activado" if flex_active else "🔍 Retro Flexible"
             if st.button(flex_label, type="primary" if flex_active else "secondary", use_container_width=True, key=f"flex_btn_{prop_name}"):
                 st.session_state[flex_key] = not flex_active
-                if res.get('fuente') is None:
-                    st.session_state[f'forzar_recalculo_{prop_name}'] = True
-                    st.session_state[f'preview_mode_{prop_name}'] = True
                 st.rerun()
         with col_fs:
             if flex_active:
@@ -304,12 +298,11 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                     with dorm_cols[idx]:
                         st.checkbox(f"{d}", key=f'flex_dorm_cb_{prop_name}_{d}')
 
-        # Botón Aplicar: dispara recálculo con slider/checkboxes actuales (commit)
+        # Botón Aplicar: único trigger de recálculo
         if retro_active or flex_active:
             if st.button("✅ Aplicar cambios", type="primary", use_container_width=True,
                          key=f'aplicar_cambios_{prop_name}'):
                 st.session_state[f'forzar_recalculo_{prop_name}'] = True
-                st.session_state.pop(f'preview_mode_{prop_name}', None)
                 st.rerun()
 
         with st.expander("🗺️ Mapa", expanded=False):
@@ -474,7 +467,6 @@ def mostrar_dashboard():
                 with profile_block("detalle_volver_btn", None):
                     if st.button("← Volver al Portafolio"):
                         st.session_state.prop_sel = None
-                        _limpiar_preview_mode()
                         st.session_state['nav_page_radio'] = 'Portfolio'
                         if 'prop' in st.query_params:
                             st.query_params.clear()
@@ -521,7 +513,7 @@ def mostrar_dashboard():
                                 flex_dormitorios = checked if checked else None
                         else:
                             flex_dormitorios = None
-                    resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios, preview=st.session_state.get(f'preview_mode_{prop_name}', False))
+                    resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios)
                     _sl.mark("after_valuar_con_cache")
 
                     # Override con valuación manual si está persistida
@@ -539,7 +531,6 @@ def mostrar_dashboard():
                 with profile_block("detalle_volver_btn", None):
                     if st.button("← Volver al Portafolio"):
                         st.session_state.prop_sel = None
-                        _limpiar_preview_mode()
                         st.session_state['nav_page_radio'] = 'Portfolio'
                         if 'prop' in st.query_params:
                             st.query_params.clear()
@@ -1098,18 +1089,12 @@ def main():
     with st.sidebar:
         st.markdown('<div style="padding:10px 0;"><h2 style="color:white;margin:0;">🏠 Valu</h2><p style="color:#006AFF;font-size:11px;margin:0;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Valuador de Propiedades</p></div>', unsafe_allow_html=True)
         
-        def _limpiar_preview_mode():
-            for k in list(st.session_state.keys()):
-                if k.startswith('preview_mode_'):
-                    del st.session_state[k]
-
         def ir_al_inicio():
             st.session_state.vista_actual = 'landing'
             st.session_state.prop_sel = None
             st.session_state.pop('_force_nav_page', None)
             if 'nav_page_radio' in st.session_state:
                 del st.session_state['nav_page_radio']
-            _limpiar_preview_mode()
 
         # ─── Password gate (solo para Mercado) ───
         pwd = st.text_input("🔑 Acceso a Mercado", type="password", placeholder="••••••", key="_nav_pwd")

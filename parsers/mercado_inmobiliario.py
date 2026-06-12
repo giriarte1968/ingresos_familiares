@@ -974,7 +974,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             props = [
                 p for p in cache.get('propiedades', [])
                 if (p.get('zona') == zona_buscar or normalizar_zona(p.get('zona', '')) == zona_buscar)
-                and (p.get('dormitorios') in flex_dormitorios if flex_dormitorios else p.get('dormitorios') == dorms)
+                and ((p.get('dormitorios') in flex_dormitorios or p.get('dormitorios') == dorms) if flex_dormitorios else p.get('dormitorios') == dorms)
                 and p.get('operacion') == oper
                 and p.get('valor_m2', 0) > 0
                 and (not tipo_inmueble or tipo_inmueble in str(p.get('tipo', p.get('tipo_inmueble', ''))).lower())
@@ -1041,7 +1041,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                     dist = calcular_distancia_km(lat_ref, lon_ref, p_lat, p_lon)
                     if dist > 1.5: continue
                     if flex_dormitorios:
-                        if p.get('dormitorios') not in flex_dormitorios: continue
+                        if p.get('dormitorios') not in flex_dormitorios and p.get('dormitorios') != dormitorios: continue
                     else:
                         if p.get('dormitorios') != dormitorios: continue
                     if p.get('operacion') != operacion: continue
