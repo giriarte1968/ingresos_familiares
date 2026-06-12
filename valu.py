@@ -271,7 +271,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
             label = "🔙 Retro Activado" if retro_active else "🔙 Retro"
             if st.button(label, type="primary" if retro_active else "secondary", use_container_width=True):
                 st.session_state[retro_key] = not retro_active
-                logger.info(f"[DEBUG-DETALLE] Toggle Retro {prop_name}: ahora={not retro_active}")
+                print(f"[DEBUG-DETALLE] Toggle Retro {prop_name}: ahora={not retro_active}")
                 st.rerun()
         with col_status:
             if retro_active:
@@ -290,7 +290,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
             flex_label = "🔍 Retro Flexible Activado" if flex_active else "🔍 Retro Flexible"
             if st.button(flex_label, type="primary" if flex_active else "secondary", use_container_width=True, key=f"flex_btn_{prop_name}"):
                 st.session_state[flex_key] = not flex_active
-                logger.info(f"[DEBUG-DETALLE] Toggle Flex {prop_name}: ahora={not flex_active}")
+                print(f"[DEBUG-DETALLE] Toggle Flex {prop_name}: ahora={not flex_active}")
                 st.rerun()
         with col_fs:
             if flex_active:
@@ -309,7 +309,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                 retro = st.session_state.get(retro_key, False)
                 flex = st.session_state.get(flex_key, False)
                 checked = [d for d in [1,2,3,4,5] if st.session_state.get(f'flex_dorm_cb_{prop_name}_{d}', False)]
-                logger.info(f"[DEBUG-DETALLE] Aplicar cambios {prop_name}: retro={retro}, flex={flex}, checked={checked}")
+                print(f"[DEBUG-DETALLE] Aplicar cambios {prop_name}: retro={retro}, flex={flex}, checked={checked}")
                 st.session_state[f'forzar_recalculo_{prop_name}'] = True
                 st.rerun()
 
@@ -324,16 +324,16 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         if flex_active:
             todos_val = st.session_state.get(f'flex_todos_{prop_name}', False)
             checked_dorms = [d for d in [1, 2, 3, 4, 5] if st.session_state.get(f'flex_dorm_cb_{prop_name}_{d}', False)]
-            logger.info(f"[DEBUG-DETALLE] Filtro Flex {prop_name}: activo=True, checked={checked_dorms}, sujeto_dorms={sujeto_dorms}, total_comps={len(comparables_todos)}")
+            print(f"[DEBUG-DETALLE] Filtro Flex {prop_name}: activo=True, checked={checked_dorms}, sujeto_dorms={sujeto_dorms}, total_comps={len(comparables_todos)}")
             if todos_val:
                 comparables = comparables_todos
-                logger.info(f"[DEBUG-DETALLE] Filtro Flex {prop_name}: modo TODOS -> {len(comparables)} comps")
+                print(f"[DEBUG-DETALLE] Filtro Flex {prop_name}: modo TODOS -> {len(comparables)} comps")
             elif checked_dorms:
                 comparables = [c for c in comparables_todos if c.get('dormitorios') in checked_dorms or (sujeto_dorms is not None and c.get('dormitorios') == sujeto_dorms)]
-                logger.info(f"[DEBUG-DETALLE] Filtro Flex {prop_name}: checked={checked_dorms}, incluyendo sujeto_dorms={sujeto_dorms} -> {len(comparables)} comps de {len(comparables_todos)}")
+                print(f"[DEBUG-DETALLE] Filtro Flex {prop_name}: checked={checked_dorms}, incluyendo sujeto_dorms={sujeto_dorms} -> {len(comparables)} comps de {len(comparables_todos)}")
             else:
                 comparables = comparables_todos  # default: show exact-match comps
-                logger.info(f"[DEBUG-DETALLE] Filtro Flex {prop_name}: sin checks -> {len(comparables)} comps (todos)")
+                print(f"[DEBUG-DETALLE] Filtro Flex {prop_name}: sin checks -> {len(comparables)} comps (todos)")
         else:
             comparables = comparables_todos
         n_comps = len(comparables)
@@ -429,11 +429,11 @@ def mostrar_dashboard():
             p_obj = next((p for p in propiedades if p['nombre'] == st.session_state.prop_sel), None)
         if p_obj:
             forzar = st.session_state.pop(f'forzar_recalculo_{p_obj["nombre"]}', False)
-            logger.info(f"[DEBUG-DASH] {p_obj['nombre']}: forzar={forzar}, ya_valuado={bool(p_obj.get('_ultima_valuacion',{}).get('valor_usd') or p_obj.get('_ultima_valuacion',{}).get('fuente'))}")
+            print(f"[DEBUG-DASH] {p_obj['nombre']}: forzar={forzar}, ya_valuado={bool(p_obj.get('_ultima_valuacion',{}).get('valor_usd') or p_obj.get('_ultima_valuacion',{}).get('fuente'))}")
             retro_active_ss = st.session_state.get(f'retro_active_{p_obj["nombre"]}', False)
             flex_active_ss = st.session_state.get(f'flex_active_{p_obj["nombre"]}', False)
             flex_checked_ss = [d for d in [1,2,3,4,5] if st.session_state.get(f'flex_dorm_cb_{p_obj["nombre"]}_{d}', False)]
-            logger.info(f"[DEBUG-DASH] {p_obj['nombre']}: retro_active={retro_active_ss}, flex_active={flex_active_ss}, flex_checked={flex_checked_ss}")
+            print(f"[DEBUG-DASH] {p_obj['nombre']}: retro_active={retro_active_ss}, flex_active={flex_active_ss}, flex_checked={flex_checked_ss}")
 
             with profile_block("detalle_cache_check", p_obj):
                 cache_existente = cargar_cache_valuaciones()
@@ -531,7 +531,7 @@ def mostrar_dashboard():
                                 flex_dormitorios = checked if checked else None
                         else:
                             flex_dormitorios = None
-                    logger.info(f"[DEBUG-DASH] {p_obj['nombre']}: retro_dias={retro_dias}, flex_dormitorios={flex_dormitorios}, preview=False")
+                    print(f"[DEBUG-DASH] {p_obj['nombre']}: retro_dias={retro_dias}, flex_dormitorios={flex_dormitorios}, preview=False")
                     resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios)
                     _sl.mark("after_valuar_con_cache")
 
