@@ -433,6 +433,32 @@ def mostrar_dashboard():
         with profile_block("detalle_buscar_prop", None):
             p_obj = next((p for p in propiedades if p['nombre'] == st.session_state.prop_sel), None)
         if p_obj:
+            prop_name = p_obj.get('nombre', '')
+            # Limpiar Valuación: borrar cache, _ultima_valuacion y manual staging
+            if st.session_state.get(f"clean_valuacion_{prop_name}", False):
+                st.session_state.pop(f"clean_valuacion_{prop_name}", None)
+                st.session_state.pop(f"manual_preview_{prop_name}", None)
+                try:
+                    from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
+                    cache_v = cargar_cache_valuaciones()
+                    cache_v.pop(prop_name, None)
+                    guardar_cache_valuaciones(cache_v)
+                    
+                    props = cargar_propiedades()
+                    for p in props.get('propiedades', []):
+                        if p.get('nombre') == prop_name:
+                            p.pop('_ultima_valuacion', None)
+                            break
+                    guardar_propiedades(props)
+                except Exception as e:
+                    print(f"Error limpiando valuacion: {e}")
+                st.rerun()
+
+            # Mezclar datos de previsualización manual si existen
+            manual_preview = st.session_state.get(f'manual_preview_{prop_name}', {})
+            if manual_preview:
+                p_obj.update(manual_preview)
+                
             forzar = st.session_state.pop(f'forzar_recalculo_{p_obj["nombre"]}', False)
             preview_mode = st.session_state.pop(f'preview_mode_{p_obj["nombre"]}', False)
             print(f"[DEBUG-DASH] {p_obj['nombre']}: forzar={forzar}, preview_mode={preview_mode}, ya_valuado={bool(p_obj.get('_ultima_valuacion',{}).get('valor_usd') or p_obj.get('_ultima_valuacion',{}).get('fuente'))}")
@@ -449,17 +475,16 @@ def mostrar_dashboard():
                             f"a la nueva versión del motor ({CACHE_VERSION})...")
 
             def actualizar_propiedad(nueva_data):
-                props = cargar_propiedades()
-                for i, p in enumerate(props):
-                    if p.get('nombre') == p_obj.get('nombre'):
-                        props[i] = nueva_data
-                        break
-                guardar_propiedades(props)
-                # Invalidar cache de valuación para que refleje los cambios
+                prop_name = p_obj.get('nombre', '')
+                # Almacenar en staging (preview) en lugar de guardar en disco inmediatamente
+                st.session_state[f'manual_preview_{prop_name}'] = nueva_data
+                # Actualizar objeto local para que la UI refleje los cambios inmediatamente
+                p_obj.update(nueva_data)
+                # Invalidar cache de valuación para que refleje los cambios en el próximo recálculo
                 try:
                     from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
                     cache_v = cargar_cache_valuaciones()
-                    cache_v.pop(p_obj['nombre'], None)
+                    cache_v.pop(prop_name, None)
                     guardar_cache_valuaciones(cache_v)
                 except Exception:
                     pass
@@ -475,36 +500,12 @@ def mostrar_dashboard():
                 if resultado_cacheado.get('comparables_venta'):
                     print(f"[DEBUG-DASH] {p_obj['nombre']}: Pendiente con cache, usando resultado cacheado ({len(resultado_cacheado.get('comparables_venta',[]))} comps)")
                 else:
-                    mapa_html = None
-                    lat = p_obj.get('lat')
-                    lon = p_obj.get('lon')
-                    if lat and lon:
-                        try:
-                            import folium
-                            m = folium.Map(location=[float(lat), float(lon)], zoom_start=14, tiles='cartodbpositron')
-                            folium.Marker([float(lat), float(lon)], popup="📍 Sujeto", icon=folium.Icon(color='red', icon='home')).add_to(m)
-                            folium.Circle([float(lat), float(lon)], radius=300, color='gray', fill=False, dash_array='5').add_to(m)
-                            mapa_html = m._repr_html_()
-                        except Exception:
-                            pass
-                    resultado = {
-                        'valor_propiedad_usd': 0,
-                        'fuente': None,
-                        'comparables_venta': [],
-                        'resolution_metadata': {'n_propiedades': 0},
-                        'usdt_ars': 1480,
-                        'mapa_html': mapa_html,
-                    }
-                    with profile_block("detalle_volver_btn", None):
-                        if st.button("← Volver al Portafolio"):
-                            st.session_state.prop_sel = None
-                            st.session_state['nav_page_radio'] = 'Portfolio'
-                            if 'prop' in st.query_params:
-                                st.query_params.clear()
-                            st.rerun()
-                    with profile_block("mostrar_detalle_valu_total", p_obj):
-                        mostrar_detalle_valu(p_obj, resultado, actualizar_propiedad)
-                    profile_end(_routing_ctx)
+                    # Carga Natural: si es Pendiente y no hay cache, forzar valuación preview
+                    print(f"[DEBUG-DASH] {p_obj['nombre']}: Pendiente sin cache, disparando Carga Natural (preview)")
+                    st.session_state[f'forzar_recalculo_{p_obj["nombre"]}'] = True
+                    st.session_state[f'preview_mode_{p_obj["nombre"]}'] = True
+                    st.rerun()
+                    # El return es redundante por el rerun, pero se mantiene por flujo
                     return
 
             _loader = st.empty()
@@ -545,7 +546,7 @@ def mostrar_dashboard():
                         else:
                             flex_dormitorios = None
                     print(f"[DEBUG-DASH] {p_obj['nombre']}: retro_dias={retro_dias}, flex_dormitorios={flex_dormitorios}, preview={preview_mode}")
-                    resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios, preview=preview_mode)
+                    resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios, preview=preview_mode, manual_data=st.session_state.get(f'manual_preview_{prop_name}', None))
                     _sl.mark("after_valuar_con_cache")
 
                     # Override con valuación manual si está persistida

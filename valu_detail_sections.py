@@ -12,9 +12,9 @@ from streamlit.components.v1 import html
 
 
 def render_actions(prop, guardar_fn):
-    """Barra de acciones: Volver, Editar, Revaluar, Eliminar."""
+    """Barra de acciones: Volver, Editar, Revaluar, Limpiar, Eliminar."""
     nombre = prop.get('nombre', '')
-    col_back, col_edit, col_recalc, col_delete = st.columns(4)
+    col_back, col_edit, col_recalc, col_clean, col_delete = st.columns([1, 1, 1.5, 1.5, 1])
     with col_back:
         if st.button("<- Volver", type="primary", use_container_width=True):
             st.session_state.prop_sel = None
@@ -26,6 +26,9 @@ def render_actions(prop, guardar_fn):
         if st.button("Revaluar con comparables", type="primary", use_container_width=True):
             st.session_state[f'forzar_recalculo_{nombre}'] = True
             st.rerun()
+    with col_clean:
+        if st.button("🗑️ Limpiar Valuación", type="secondary", use_container_width=True):
+            st.session_state[f"clean_valuacion_{nombre}"] = True
     with col_delete:
         if st.button("Eliminar", type="primary", use_container_width=True):
             st.session_state[f"delete_confirm_{prop['id']}"] = True

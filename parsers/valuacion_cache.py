@@ -120,7 +120,7 @@ def guardar_resultado(nombre: str, prop: dict, resultado: dict, cache: dict):
     persistir_valuacion(nombre, prop, resultado, cache)
 
 
-def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict, commit: bool = True) -> bool:
+def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict, commit: bool = True, manual_data: dict = None) -> bool:
     """
     Persiste una valuación completa.
 
@@ -159,6 +159,10 @@ def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict, c
                     props_data = json.load(f)
                 for p in props_data.get('propiedades', []):
                     if p.get('nombre') == nombre:
+                        # PERSISTIR MANUAL PREVIEW: si hay datos manuales, los escribimos definitivamente
+                        if manual_data:
+                            p.update(manual_data)
+                        
                         p['_ultima_valuacion'] = {
                             'valor_usd': resultado.get('valor_propiedad_usd'),
                             'alquiler_ars': resultado.get('alquiler_estimado_ars'),

@@ -1336,7 +1336,8 @@ def valuar_con_cache(prop: dict,
                      consultar_infomapa: bool = True,
                      retro_dias: int = 0,
                      flex_dormitorios: list = None,
-                     preview: bool = False) -> dict:
+                     preview: bool = False,
+                     manual_data: dict = None) -> dict:
     """
     Wrapper de valuación con caché persistente.
     Solo recalcula si es necesario o se fuerza.
@@ -1403,7 +1404,7 @@ def valuar_con_cache(prop: dict,
 
         with profile_block("vcc_persistir_valuacion", prop):
             _vl.mark("before_persistir_valuacion")
-            ok_persist = persistir_valuacion(nombre, prop, resultado, cache, commit=not preview)
+            ok_persist = persistir_valuacion(nombre, prop, resultado, cache, commit=not preview, manual_data=manual_data)
             _vl.mark("after_persistir_valuacion")
 
             if not ok_persist:
