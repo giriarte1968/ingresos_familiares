@@ -120,15 +120,18 @@ def guardar_resultado(nombre: str, prop: dict, resultado: dict, cache: dict):
     persistir_valuacion(nombre, prop, resultado, cache)
 
 
-def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict) -> bool:
+def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict, commit: bool = True) -> bool:
     """
     Persiste una valuación completa.
+
+    commit=True:  cache + _ultima_valuacion (valuación oficial)
+    commit=False: solo cache (preview, sin marcar como valuada en portfolio)
 
     Orden obligatorio:
     1. Actualizar cache en memoria.
     2. Escribir data/valuaciones_cache.json a disco.
-    3. Actualizar propiedades.json con _ultima_valuacion.
-    4. Escribir propiedades.json a disco.
+    3. Actualizar propiedades.json con _ultima_valuacion (solo si commit=True).
+    4. Escribir propiedades.json a disco (solo si commit=True).
     5. Retornar True/False.
 
     NO hace git sync.
@@ -149,28 +152,28 @@ def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict) -
             # 2. Escribir valuaciones_cache.json a disco
             atomic_write_json(CACHE_PATH, cache)
 
-            # 3. Actualizar propiedades.json con _ultima_valuacion
-            if os.path.exists(PROPIEDADES_PATH):
-                with open(PROPIEDADES_PATH, 'r', encoding='utf-8') as f:
-                    props_data = json.load(f)
-                for p in props_data.get('propiedades', []):
-                    if p.get('nombre') == nombre:
-                        p['_ultima_valuacion'] = {
-                            'valor_usd': resultado.get('valor_propiedad_usd'),
-                            'alquiler_ars': resultado.get('alquiler_estimado_ars'),
-                            'cap_rate': resultado.get('cap_rate'),
-                            'm2_equivalentes': resultado.get('m2_equivalentes'),
-                            'comps': resultado.get('resolution_metadata', {}).get('n_propiedades', 0),
-                            'fecha': datetime.now().strftime("%d/%m/%Y %H:%M"),
-                            'cache_version': get_cache_version(),
-                            'timestamp': datetime.now().isoformat(),
-                            'fuente': resultado.get('fuente', 'auto'),
-                            'manual_params': resultado.get('manual_params'),
-                        }
-                        break
+            # 3-4: _ultima_valuacion solo en modo commit
+            if commit:
+                if os.path.exists(PROPIEDADES_PATH):
+                    with open(PROPIEDADES_PATH, 'r', encoding='utf-8') as f:
+                        props_data = json.load(f)
+                    for p in props_data.get('propiedades', []):
+                        if p.get('nombre') == nombre:
+                            p['_ultima_valuacion'] = {
+                                'valor_usd': resultado.get('valor_propiedad_usd'),
+                                'alquiler_ars': resultado.get('alquiler_estimado_ars'),
+                                'cap_rate': resultado.get('cap_rate'),
+                                'm2_equivalentes': resultado.get('m2_equivalentes'),
+                                'comps': resultado.get('resolution_metadata', {}).get('n_propiedades', 0),
+                                'fecha': datetime.now().strftime("%d/%m/%Y %H:%M"),
+                                'cache_version': get_cache_version(),
+                                'timestamp': datetime.now().isoformat(),
+                                'fuente': resultado.get('fuente', 'auto'),
+                                'manual_params': resultado.get('manual_params'),
+                            }
+                            break
 
-                # 4. Escribir propiedades.json a disco
-                atomic_write_json(PROPIEDADES_PATH, props_data)
+                    atomic_write_json(PROPIEDADES_PATH, props_data)
 
             return True
 

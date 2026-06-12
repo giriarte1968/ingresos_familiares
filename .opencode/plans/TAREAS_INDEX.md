@@ -36,4 +36,4 @@
 | TAREA-035 | Anclas por grilla 400m (322 microzonas, 96% cobertura, Ct dual) | `33d18ec` | 2026-06-09 |
 | TAREA-038 | Pipeline de regeneración de anclas configurable (config, refactor, admin UI) | `9162203` | 2026-06-10 |
 | TAREA-039 | Retro: expansión de comparables con Ct + Admin UI curva temporal | _(current)_ | 2026-06-10 |
-| TAREA-040 | Preview valuation: toggles Retro/Flex muestran comps sin persistir a portfolio | _(pendiente)_ | 2026-06-11 |
+| TAREA-040 | Preview valuation: toggles Retro/Flex muestran comps sin persistir a portfolio | _completada_ | 2026-06-11 |

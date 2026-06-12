@@ -4,18 +4,28 @@ Este documento es el "diario de trabajo". Cada agente de IA que trabaje en este 
 
 ---
 
+## 📅 2026-06-11 — TAREA-040: Preview valuation — toggles Retro/Flex sin persistir
+
+### Problema:
+Toggle Retro ON en Pendiente setea `forzar_recalculo` → engine encuentra comps ✅, pero persiste `_ultima_valuacion` → portfolio muestra valuada ❌.
+
+### Solución:
+Modo `preview` en `valuar_con_cache`/`persistir_valuacion`:
+- Toggle Retro/Flex en Pendiente → `preview_mode=True` → `persistir_valuacion(commit=False)` → cachea comps pero NO escribe `_ultima_valuacion`
+- "Aplicar cambios" → elimina `preview_mode` → commit completo (cache + `_ultima_valuacion`)
+- `_limpiar_preview_mode()` al navegar fuera del detalle
+
+### Archivos:
+- `parsers/valuacion_cache.py`: `persistir_valuacion` parámetro `commit`
+- `parsers/motor_vpp_core.py`: `valuar_con_cache` parámetro `preview`
+- `valu.py`: `preview_mode` en toggles, `_limpiar_preview_mode()`
+
+### Tests: 39/39 OK, auto_validate OK
+### Commit: `d93d7b7` (mismo que revert + plan)
+
+---
+
 ## 📅 2026-06-10 — PENDIENTE: mostrar detalle con 0 comps y Retro/Flex
-
-### ⚠️ LECCIÓN CRÍTICA — NO ROMPER FUNCIONALIDAD EXISTENTE
-
-**Error cometido:** Remover `forzar_recalculo` de los toggles Retro/Flex para evitar que persistan a portfolio. Esto rompió Retro por completo — el toggle ya no disparaba la búsqueda de comps.
-
-**Regla:** Cualquier cambio debe planificarse en formato TAREA (`.opencode/plans/TAREA-NNN.md`) ANTES de modificar código. El plan debe incluir:
-1. **Análisis de impacto**: qué archivos se modifican y qué flujos existentes podrían romperse
-2. **Verificación explícita**: cada paso debe listar `pytest` o `auto_validate` como check
-3. **Rollback fácil**: un cambio atómico por commit para poder revertir sin arrastrar dependencias
-
-**Solución pendiente (TAREA-040):** Agregar modo `preview` a `valuar_con_cache` para que los toggles calculen comps sin persistir `_ultima_valuacion`. Solo "Aplicar cambios" hace commit completo.
 
 ### Objetivo:
 Que una propiedad nunca valuada (Pendiente) no se auto-valúe al entrar al detalle. En vez de eso, mostrar página con $0 y 0 comparables, dejando que el usuario use Retro/Flex para encontrar comps y luego haga clic en "Aplicar cambios".
