@@ -29,6 +29,7 @@ def render_actions(prop, guardar_fn):
     with col_clean:
         if st.button("🗑️ Limpiar Valuación", type="secondary", use_container_width=True):
             st.session_state[f"clean_valuacion_{nombre}"] = True
+            st.rerun()
     with col_delete:
         if st.button("Eliminar", type="primary", use_container_width=True):
             st.session_state[f"delete_confirm_{prop['id']}"] = True
@@ -230,6 +231,13 @@ def render_mapa_propiedad(res):
         st.caption("Mapa no disponible")
 
 
+def _get_comp_id(c):
+    """Genera un ID único y estable para un comparable basado en sus datos."""
+    import hashlib
+    # Usamos datos que no cambian entre renders para crear un hash estable
+    seed = f"{c.get('precio')}_{c.get('m2')}_{c.get('direccion_limpia') or c.get('direccion')}_{c.get('lat')}_{c.get('lon')}"
+    return hashlib.md5(seed.encode()).hexdigest()[:12]
+
 def render_tabla_comparables(res, prop_name=None):
     """Tabla de propiedades comparables utilizadas con checkbox de selección.
     Muestra el recálculo P33/P50 según los comps seleccionados.
@@ -241,11 +249,24 @@ def render_tabla_comparables(res, prop_name=None):
     flex_dormitorios = res.get('flex_dormitorios', None)
     sujeto_dorms = res.get('sujeto_dormitorios', None)
     if flex_dormitorios and sujeto_dorms is not None:
-        st.caption(f"🔍 Retro Flexible: incluye {flex_dormitorios} dorm. (sujeto: {sujeto_dorms})")
+        st.caption(f"🔍 Retro: incluye {flex_dormitorios} dorm. (sujeto: {sujeto_dorms})")
     comparables = res.get('comparables_venta', [])
     if not comparables:
         st.caption("Sin comparables disponibles")
         return
+
+    # Mostrar info si hay comparables excluidos aplicados
+    n_excluidos = res.get('_n_excluidos', 0)
+    if n_excluidos:
+        col_info, col_reset = st.columns([3, 1])
+        with col_info:
+            st.info(f"⚡ Valuación calculada con {len(comparables)} comparables seleccionados ({n_excluidos} excluidos por el usuario).")
+        with col_reset:
+            if st.button("↩️ Restablecer todos", key=f'reset_comp_sel_{prop_name}', use_container_width=True):
+                st.session_state.pop(f'comp_selection_{prop_name}', None)
+                st.session_state.pop(f'comp_excluded_{prop_name}', None)
+                st.session_state[f'forzar_recalculo_{prop_name}'] = True
+                st.rerun()
 
     # Cabecera de la tabla
     hdr = st.columns([0.4, 0.5, 1.5, 0.8, 1.5, 0.6, 1, 2, 0.7, 0.6])
@@ -255,14 +276,36 @@ def render_tabla_comparables(res, prop_name=None):
 
     # Filas con checkbox a la izquierda
     sel_key = f'comp_selection_{prop_name}'
-    all_idx = list(range(len(comparables)))
-    default_sel = st.session_state.get(sel_key, all_idx)
-    selected_indices = []
+    
+    # 1. Generar IDs estables para todos los comparables actuales
+    comp_ids = [_get_comp_id(c) for c in comparables]
+    
+    # 2. Manejar el estado de selección basado en IDs (no índices)
+    stored_sel = st.session_state.get(sel_key, None)
+    if stored_sel is None:
+        # Inicialmente todos seleccionados
+        stored_sel = set(comp_ids)
+        st.session_state[sel_key] = stored_sel
+    
+    # Asegurar que stored_sel sea un set (por compatibilidad con versiones viejas)
+    if not isinstance(stored_sel, set):
+        stored_sel = set(stored_sel)
+
+    selected_ids = set()
     for i, c in enumerate(comparables):
+        comp_id = comp_ids[i]
         cols = st.columns([0.4, 0.5, 1.5, 0.8, 1.5, 0.6, 1, 2, 0.7, 0.6])
-        checked = cols[0].checkbox("", value=i in default_sel, key=f'sel_comp_{prop_name}_{i}')
+        
+        # El valor del checkbox depende de si el ID está en el set de seleccionados
+        checked = cols[0].checkbox("", value=comp_id in stored_sel, key=f'sel_comp_{prop_name}_{comp_id}')
+        
         if checked:
-            selected_indices.append(i)
+            selected_ids.add(comp_id)
+        else:
+            # Si el usuario desmarca, removemos el ID del set en session_state inmediatamente
+            if comp_id in stored_sel:
+                stored_sel.remove(comp_id)
+        
         cols[1].write(str(i+1))
         cols[2].write(f"${c.get('precio', 0):,.0f}")
         cols[3].write(f"{c.get('m2', 0):.0f}")
@@ -285,24 +328,61 @@ def render_tabla_comparables(res, prop_name=None):
         cols[8].write(str(c.get('anio_estimado', '')) if c.get('anio_estimado') else '')
         cols[9].write(f"{c.get('distancia_m', 0):.0f}m" if c.get('distancia_m') else '')
 
-    st.session_state[sel_key] = selected_indices
+    # Guardar selección actual
+    st.session_state[sel_key] = selected_ids
 
     # Recálculo automático P33/P50 desde los seleccionados
-    if selected_indices:
-        selected_comps = [comparables[i] for i in selected_indices]
+    if selected_ids:
+        selected_comps = [c for c in comparables if _get_comp_id(c) in selected_ids]
         precios = [c.get('precio_m2_ajustado', c.get('precio_m2', 0)) for c in selected_comps]
         precios_sorted = sorted(precios)
         n_sel = len(precios_sorted)
+        
+        # Determinamos si la selección actual ya está aplicada
+        # Comparamos los IDs excluidos actuales con los guardados en el resultado
+        all_ids = [_get_comp_id(c) for c in comparables]
+        excluded_indices = res.get('_comp_excluded', [])
+        current_excluded_ids = {all_ids[i] for i in excluded_indices if i < len(all_ids)}
+        actual_excluded_ids = set(all_ids) - selected_ids
+        is_applied = (actual_excluded_ids == current_excluded_ids)
+
         perc_idx = max(0, int(n_sel * 0.33) - 1)
         p33 = precios_sorted[perc_idx]
         p50 = precios_sorted[n_sel // 2]
-        p33_p50 = p33 if n_sel >= 8 else p50
-        col_a, col_b = st.columns([1, 2])
+        p33_p50 = p50 if n_sel >= 8 else p33
+        
+        col_a, col_b, col_c = st.columns([1, 2, 1.2])
         with col_a:
             st.metric("Valor/m² por selección", f"${p33_p50:,.0f}",
                       delta=f"{'${:,.0f}'.format(p33_p50 - res.get('valor_m2', 0))} vs original")
         with col_b:
-            st.caption(f"P{'33' if n_sel >= 8 else '50'} sobre {n_sel} comps seleccionados de {len(comparables)} totales")
+            st.caption(f"P{'50' if n_sel >= 8 else '33'} sobre {n_sel} comps seleccionados de {len(comparables)} totales")
+        with col_c:
+            # Botón para re-valuar usando solo los comparables seleccionados
+            excluded = [i for i, cid in enumerate(all_ids) if cid not in selected_ids]
+            
+            if n_sel < 2:
+                st.button("Mínimo 2 comparables", disabled=True, use_container_width=True)
+            elif is_applied:
+                st.button("✅ Selección Aplicada", type="secondary", disabled=True, use_container_width=True)
+            elif excluded:
+                if st.button(
+                    f"✅ Aplicar selección ({n_sel}/{len(comparables)})",
+                    key=f'apply_comp_sel_{prop_name}',
+                    type='primary',
+                    use_container_width=True,
+                ):
+                    st.session_state[f'comp_excluded_{prop_name}'] = excluded
+                    st.session_state[f'forzar_recalculo_{prop_name}'] = True
+                    st.rerun()
+    elif not selected_ids:
+        st.warning("⚠️ Seleccioná al menos un comparable para calcular el valor.")
+        if st.button("Seleccionar todos", key=f'sel_all_{prop_name}'):
+            st.session_state[sel_key] = set([_get_comp_id(c) for c in comparables])
+            # Limpiar exclusión previa
+            st.session_state.pop(f'comp_excluded_{prop_name}', None)
+            st.rerun()
+
 
 def render_catastro(prop, res, compact=False):
     """Datos catastrales con seleccion de PH y boton de plano.

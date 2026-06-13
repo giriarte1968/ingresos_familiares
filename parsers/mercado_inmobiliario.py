@@ -937,11 +937,10 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         MIN_COMPARABLES = 10
         MIN_COMPARABLES_FALLBACK = 5
         from parsers.time_adjustment import get_natural_window_dias
+        window_dias_usado = get_natural_window_dias() + retro_dias * 30
         
         # Puerto Norte: time-expansion en vez de radius-expansion
         TASA_AJUSTE_PN = -0.045
-        VENTANAS_FECHA_PN = [365, 545, 730, 9999]
-        MIN_PN = [10, 8, 5, 2]
         
         from datetime import datetime, timedelta
         
@@ -959,6 +958,8 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 for p in props:
                     date_cr = p.get('date_created', p.get('date_updated', ''))
                     if not date_cr:
+                        # Si no hay fecha, la incluimos por defecto para evitar vaciar el pool
+                        props_filtrados.append(p)
                         continue
                     try:
                         dt = datetime.strptime(str(date_cr)[:10], '%Y-%m-%d')
@@ -1058,32 +1059,43 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         # 2. Fallback: zona normalizada + radio progresivo (o time-expansion para PN)
         if mejor_resultado is None:
             if zona_normalizada == 'Puerto Norte':
-                # PN: expandir fecha hacia atrás, radio amplio para cubrir toda la zona
-                for dias, min_req in zip(VENTANAS_FECHA_PN, MIN_PN):
-                    props = buscar_en_zona(zona_normalizada, dormitorios, operacion, lat_ref, lon_ref, 1500)
-                    props = filtrar_por_fecha(props, fecha_ref, dias=dias)
-                    if len(props) >= min_req:
-                        # Marcar comps con time adjustment
-                        try:
-                            if fecha_ref and fecha_ref.count('-') == 2:
-                                ref_dt = datetime.strptime(fecha_ref, '%Y-%m-%d')
-                            elif fecha_ref and fecha_ref.count('-') == 1:
-                                ref_dt = datetime.strptime(fecha_ref, '%Y-%m')
-                            else:
-                                ref_dt = datetime.now()
-                        except:
+                # PN: No expande radio para no contaminar con Pichincha. 
+                # Ventana gobernada 100% por el slider (Suelo Natural: 180d)
+                if retro_dias == 0:
+                    dias_ventana = get_natural_window_dias()
+                else:
+                    dias_ventana = get_natural_window_dias() + retro_dias * 30
+                
+                props = buscar_en_zona(zona_normalizada, dormitorios, operacion, lat_ref, lon_ref, 1500)
+                props = filtrar_por_fecha(props, fecha_ref, dias=dias_ventana)
+                
+                if len(props) >= 2:
+                    window_dias_usado = dias_ventana
+                    # Aplicar ajuste temporal (-4.5% anual) a comparables > 180 días
+                    try:
+                        if fecha_ref and fecha_ref.count('-') == 2:
+                            ref_dt = datetime.strptime(fecha_ref, '%Y-%m-%d')
+                        elif fecha_ref and fecha_ref.count('-') == 1:
+                            ref_dt = datetime.strptime(fecha_ref, '%Y-%m')
+                        else:
                             ref_dt = datetime.now()
-                        for p in props:
-                            dc = p.get('date_created', '')
-                            if dc:
-                                try:
-                                    dt = datetime.strptime(str(dc)[:10], '%Y-%m-%d')
-                                    anios_desde_ref = max(0, (ref_dt - dt).days / 365.25)
+                    except:
+                        ref_dt = datetime.now()
+                    for p in props:
+                        dc = p.get('date_created', '')
+                        if dc:
+                            try:
+                                dt = datetime.strptime(str(dc)[:10], '%Y-%m-%d')
+                                anios_desde_ref = max(0, (ref_dt - dt).days / 365.25)
+                                if (ref_dt - dt).days > get_natural_window_dias():
                                     p['_time_adjustment'] = 1 + TASA_AJUSTE_PN * anios_desde_ref
-                                except:
+                                else:
                                     p['_time_adjustment'] = 1.0
-                        mejor_resultado = (props, 1500, 'Puerto Norte')
-                        break
+                            except:
+                                p['_time_adjustment'] = 1.0
+                    mejor_resultado = (props, 1500, 'Puerto Norte')
+                else:
+                    mejor_resultado = None
             else:
                 for radio in RADIOS_PROGRESIVOS:
                     props = buscar_en_zona(zona_normalizada, dormitorios, operacion, lat_ref, lon_ref, radio, fecha_ref)
@@ -1101,10 +1113,29 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         
         if mejor_resultado is None:
             n_available = len(props) if props else 0
+            comparables_reales = [
+                {
+                    'precio': p.get('precio'),
+                    'm2': p.get('m2'),
+                    'precio_m2': p.get('valor_m2'),
+                    'time_adjustment': round(p.get('_time_adjustment', 1.0), 4),
+                    'precio_m2_ajustado': round(p.get('valor_m2', 0) * p.get('_time_adjustment', 1.0), 2),
+                    'dormitorios': p.get('dormitorios'),
+                    'direccion': (p.get('direccion_limpia') or p.get('direccion', ''))[:60],
+                    'direccion_limpia': _formatear_direccion_limpia(p),
+                    'lat': p.get('lat'),
+                    'lon': p.get('lon'),
+                    'zona': p.get('zona'),
+                    'tipo': p.get('tipo'),
+                    'anio_estimado': p.get('anio_estimado'),
+                    'distancia_m': round(calcular_distancia_km(lat_ref, lon_ref, float(p['lat']), float(p['lon'])) * 1000, 0) if lat_ref and lon_ref and p.get('lat') and p.get('lon') else None,
+                }
+                for p in props
+            ] if props else []
             return 0, 0, {
                 'percentil_usado': percentil_usado, 
                 'n_raw': 0, 
-                'n_filtradas': 0,
+                'n_filtradas': n_available,
                 'radio_usado': None,
                 'fecha_ref': fecha_ref,
                 'operacion': operacion,
@@ -1112,11 +1143,13 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 'zona_resolucion': zona_normalizada,
                 'insuficientes_comparables': True,
                 'n_comparables': n_available,
+                'comparables_reales': comparables_reales,
                 'retro_activo': bool(retro_dias),
                 'total_dias_ventana': get_natural_window_dias() + retro_dias * 30,
                 'debug': f'Solo {n_available} comparables encontrados. '
-                         'Se requiere mínimo 2 para valuación automática.'
+                          'Se requiere mínimo 2 para valuación automática.'
             }
+
         
         props, radio_usado, zona_resol = mejor_resultado
         
@@ -1420,11 +1453,18 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             fuente_rango = 'p33_unico'
             # Valor principal ya tiene fallback al inicio
         
-# GARANTIZAR ORDEN: conservador <= mercado <= optimista
-        bases_sorted = sorted([base_conservadora, base_mercado, base_optimista])
-        base_conservadora = bases_sorted[0]
-        base_mercado = bases_sorted[1]
-        base_optimista = bases_sorted[2]
+        # GARANTIZAR ORDEN: conservador <= mercado <= optimista
+        # Filtrar Nones antes de ordenar para evitar TypeError
+        bases_to_sort = [b for b in [base_conservadora, base_mercado, base_optimista] if b is not None]
+        if not bases_to_sort:
+            base_conservadora = base_mercado = base_optimista = 0.0
+        else:
+            bases_sorted = sorted(bases_to_sort)
+            # Rellenar con el valor mínimo si faltan bases
+            while len(bases_sorted) < 3:
+                bases_sorted.insert(0, bases_sorted[0])
+            base_conservadora, base_mercado, base_optimista = bases_sorted
+
         
         # Valor principal = BLEND PURO con alpha 0.70 (para Venta Lista)
         # Las otras bases quedan disponibles para el rango
@@ -1526,7 +1566,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             'comparables_reales': comparables_reales,
             # Retro
             'retro_activo': bool(retro_dias),
-            'total_dias_ventana': get_natural_window_dias() + retro_dias * 30,
+            'total_dias_ventana': window_dias_usado,
             'flex_dormitorios': flex_dormitorios,
             'sujeto_dormitorios': dormitorios,
         }
@@ -1539,9 +1579,9 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         'percentil_usado': 'P50' if operacion == 'alquiler' else 'P33',
         'n_raw': 0,
         'n_filtradas': 0,
-        'retro_activo': bool(retro_dias),
-        'total_dias_ventana': get_natural_window_dias() + retro_dias * 30,
-        'flex_dormitorios': flex_dormitorios,
+            'retro_activo': bool(retro_dias),
+            'total_dias_ventana': window_dias_usado,
+            'flex_dormitorios': flex_dormitorios,
         'sujeto_dormitorios': dormitorios,
         'radio_usado': None,
             'fecha_ref': fecha_ref,
@@ -3187,10 +3227,20 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
         metodo_origen = f"cluster_v2 (P{meta_venta.get('percentil_usado','33')}, {n_v} props)"
     else:
         if meta_venta.get('insuficientes_comparables'):
+            comparables_venta = meta_venta.get('comparables_reales', [])
+            mapa_html = _generar_html_mapa(prop, {
+                'resolution_metadata': {
+                    'radio_usado': 300,
+                },
+                'comparables_venta': comparables_venta,
+                'valor_propiedad_usd': 0,
+            })
             return {
                 'error': 'insuficientes_comparables',
                 'mensaje': 'No se encontraron suficientes comparables (mínimo 2).',
                 'n_comps': meta_venta.get('n_comparables', 0),
+                'comparables_venta': comparables_venta,
+                'mapa_html': mapa_html,
                 'resolution_metadata': {
                     'zona_original': meta_venta.get('zona_original'),
                     'zona_resolucion': meta_venta.get('zona_resolucion'),

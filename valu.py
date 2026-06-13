@@ -265,15 +265,22 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     prop_name = prop.get('nombre', '')
     with st.expander("📊 Comparables", expanded=False):
         retro_key = f'retro_active_{prop_name}'
+        flex_key = f'flex_active_{prop_name}'
         retro_active = st.session_state.get(retro_key, False)
         col_btn, col_status, col_slider = st.columns([1.5, 1.5, 2])
         with col_btn:
             label = "🔙 Retro Activado" if retro_active else "🔙 Retro"
-            if st.button(label, type="primary" if retro_active else "secondary", use_container_width=True):
-                st.session_state[retro_key] = not retro_active
+            if st.button(label, type="primary" if retro_active else "secondary", use_container_width=True, key=f'retro_btn_{prop_name}'):
+                nuevo_valor = not retro_active
+                st.session_state[retro_key] = nuevo_valor
+                if not nuevo_valor:
+                    st.session_state.pop(f'flex_active_{prop_name}', None)
+                    st.session_state.pop(f'comp_excluded_{prop_name}', None)
+                # Resetear selección de comparables al cambiar modo retro
+                st.session_state.pop(f'comp_selection_{prop_name}', None)
                 st.session_state[f'forzar_recalculo_{prop_name}'] = True
                 st.session_state[f'preview_mode_{prop_name}'] = True
-                print(f"[DEBUG-DETALLE] Toggle Retro {prop_name}: ahora={not retro_active}, forzar=True, preview=True")
+                print(f"[DEBUG-DETALLE] Toggle Retro {prop_name}: ahora={nuevo_valor}, forzar=True, preview=True, flex_reset={not nuevo_valor}")
                 st.rerun()
         with col_status:
             if retro_active:
@@ -281,39 +288,40 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                 st.caption(f"📆 +{meses} meses")
         with col_slider:
             if retro_active:
+                def _on_retro_slider_change(prop_name=prop_name):
+                    # Marcar para recalculo; Streamlit ya hace rerun después del on_change
+                    st.session_state[f'forzar_recalculo_{prop_name}'] = True
+                    st.session_state[f'preview_mode_{prop_name}'] = True
+                    # Resetear selección de comparables al cambiar la ventana temporal
+                    st.session_state.pop(f'comp_selection_{prop_name}', None)
+                    st.session_state.pop(f'comp_excluded_{prop_name}', None)
                 st.slider("Meses atrás", 12, 60, st.session_state.get(f'retro_meses_{prop_name}', 36),
-                          key=f'retro_meses_{prop_name}')
+                          key=f'retro_meses_{prop_name}', on_change=_on_retro_slider_change)
 
-        # Retro Flexible: checkboxes inline con el botón
-        flex_key = f'flex_active_{prop_name}'
-        flex_active = st.session_state.get(flex_key, False)
-        col_fb, col_fs = st.columns([1.5, 3.5])
-        with col_fb:
-            flex_label = "🔍 Retro Flexible Activado" if flex_active else "🔍 Retro Flexible"
-            if st.button(flex_label, type="primary" if flex_active else "secondary", use_container_width=True, key=f"flex_btn_{prop_name}"):
-                st.session_state[flex_key] = not flex_active
-                st.session_state[f'forzar_recalculo_{prop_name}'] = True
-                st.session_state[f'preview_mode_{prop_name}'] = True
-                print(f"[DEBUG-DETALLE] Toggle Flex {prop_name}: ahora={not flex_active}, forzar=True, preview=True")
-                st.rerun()
-        with col_fs:
-            if flex_active:
-                todos_key = f'flex_todos_{prop_name}'
-                todos_val = st.session_state.get(todos_key, False)
-                st.checkbox("Todos", value=todos_val, key=todos_key)
-                dorm_cols = st.columns([1]*5)
-                for idx, d in enumerate([1, 2, 3, 4, 5]):
-                    with dorm_cols[idx]:
-                        st.checkbox(f"{d}", key=f'flex_dorm_cb_{prop_name}_{d}')
+        # Retro: checkbox para incluir todos los dormitorios
+        if retro_active:
+            col_cb, col_fs = st.columns([1.5, 3.5])
+            with col_cb:
+                flex_label = "🔍 Todos los dormitorios"
+                flex_activo_ahora = st.session_state.get(flex_key, False)
+                if st.button(flex_label, type="primary" if flex_activo_ahora else "secondary", use_container_width=True, key=f"flex_btn_{prop_name}"):
+                    nuevo_flex = not flex_activo_ahora
+                    st.session_state[flex_key] = nuevo_flex
+                    st.session_state[f'forzar_recalculo_{prop_name}'] = True
+                    st.session_state[f'preview_mode_{prop_name}'] = True
+                    # Resetear selección de comparables al cambiar dormitorios
+                    st.session_state.pop(f'comp_selection_{prop_name}', None)
+                    st.session_state.pop(f'comp_excluded_{prop_name}', None)
+                    print(f"[DEBUG-DETALLE] Toggle Flex {prop_name}: ahora={nuevo_flex}, forzar=True, preview=True")
+                    st.rerun()
 
-        # Botón Aplicar: único trigger de recálculo
-        if retro_active or flex_active:
+        # Botón Aplicar: único trigger de commit
+        if retro_active:
             if st.button("✅ Aplicar cambios", type="primary", use_container_width=True,
                          key=f'aplicar_cambios_{prop_name}'):
                 retro = st.session_state.get(retro_key, False)
                 flex = st.session_state.get(flex_key, False)
-                checked = [d for d in [1,2,3,4,5] if st.session_state.get(f'flex_dorm_cb_{prop_name}_{d}', False)]
-                print(f"[DEBUG-DETALLE] Aplicar cambios {prop_name}: retro={retro}, flex={flex}, checked={checked}, preview_mode=CLEARED")
+                print(f"[DEBUG-DETALLE] Aplicar cambios {prop_name}: retro={retro}, flex={flex}, preview_mode=CLEARED")
                 st.session_state[f'forzar_recalculo_{prop_name}'] = True
                 st.session_state.pop(f'preview_mode_{prop_name}', None)
                 st.rerun()
@@ -323,30 +331,10 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                 render_mapa_propiedad(res)
         _dl.mark("after_render_mapa")
 
-        comparables_todos = res.get('comparables_venta', [])
-        flex_active = st.session_state.get(f'flex_active_{prop_name}', False)
-        sujeto_dorms = prop.get('dormitorios', prop.get('dorm', None))
-        if flex_active:
-            todos_val = st.session_state.get(f'flex_todos_{prop_name}', False)
-            checked_dorms = [d for d in [1, 2, 3, 4, 5] if st.session_state.get(f'flex_dorm_cb_{prop_name}_{d}', False)]
-            print(f"[DEBUG-DETALLE] Filtro Flex {prop_name}: activo=True, checked={checked_dorms}, sujeto_dorms={sujeto_dorms}, total_comps={len(comparables_todos)}")
-            if todos_val:
-                comparables = comparables_todos
-                print(f"[DEBUG-DETALLE] Filtro Flex {prop_name}: modo TODOS -> {len(comparables)} comps")
-            elif checked_dorms:
-                comparables = [c for c in comparables_todos if c.get('dormitorios') in checked_dorms or (sujeto_dorms is not None and c.get('dormitorios') == sujeto_dorms)]
-                print(f"[DEBUG-DETALLE] Filtro Flex {prop_name}: checked={checked_dorms}, incluyendo sujeto_dorms={sujeto_dorms} -> {len(comparables)} comps de {len(comparables_todos)}")
-            else:
-                comparables = comparables_todos  # default: show exact-match comps
-                print(f"[DEBUG-DETALLE] Filtro Flex {prop_name}: sin checks -> {len(comparables)} comps (todos)")
-        else:
-            comparables = comparables_todos
+        comparables = res.get('comparables_venta', [])
         n_comps = len(comparables)
         with st.expander("Propiedades Comparables", expanded=False):
-            if flex_active and len(comparables) != len(comparables_todos):
-                st.caption(f"{n_comps} mostradas de {len(comparables_todos)} totales")
-            else:
-                st.caption(f"{n_comps} propiedades comparables")
+            st.caption(f"{n_comps} propiedades comparables")
             render_tabla_comparables({**res, 'comparables_venta': comparables}, prop_name=prop_name)
         _dl.mark("after_render_tabla_comparables")
     _dl.mark("after_section_comparables")
@@ -438,6 +426,9 @@ def mostrar_dashboard():
             if st.session_state.get(f"clean_valuacion_{prop_name}", False):
                 st.session_state.pop(f"clean_valuacion_{prop_name}", None)
                 st.session_state.pop(f"manual_preview_{prop_name}", None)
+                st.session_state.pop(f"preview_mode_{prop_name}", None)
+                st.session_state.pop(f"retro_active_{prop_name}", None)
+                st.session_state.pop(f"flex_active_{prop_name}", None)
                 try:
                     from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
                     cache_v = cargar_cache_valuaciones()
@@ -445,13 +436,18 @@ def mostrar_dashboard():
                     guardar_cache_valuaciones(cache_v)
                     
                     props = cargar_propiedades()
-                    for p in props.get('propiedades', []):
+                    for p in props:
                         if p.get('nombre') == prop_name:
                             p.pop('_ultima_valuacion', None)
                             break
                     guardar_propiedades(props)
                 except Exception as e:
                     print(f"Error limpiando valuacion: {e}")
+                # Redirigir al portafolio para evitar que la carga natural re-valuate
+                st.session_state.prop_sel = None
+                st.session_state['_force_nav_page'] = 'Portfolio'
+                if 'prop' in st.query_params:
+                    st.query_params.clear()
                 st.rerun()
 
             # Mezclar datos de previsualización manual si existen
@@ -460,12 +456,11 @@ def mostrar_dashboard():
                 p_obj.update(manual_preview)
                 
             forzar = st.session_state.pop(f'forzar_recalculo_{p_obj["nombre"]}', False)
-            preview_mode = st.session_state.pop(f'preview_mode_{p_obj["nombre"]}', False)
+            preview_mode = st.session_state.get(f'preview_mode_{p_obj["nombre"]}', False)
             print(f"[DEBUG-DASH] {p_obj['nombre']}: forzar={forzar}, preview_mode={preview_mode}, ya_valuado={bool(p_obj.get('_ultima_valuacion',{}).get('valor_usd') or p_obj.get('_ultima_valuacion',{}).get('fuente'))}")
             retro_active_ss = st.session_state.get(f'retro_active_{p_obj["nombre"]}', False)
             flex_active_ss = st.session_state.get(f'flex_active_{p_obj["nombre"]}', False)
-            flex_checked_ss = [d for d in [1,2,3,4,5] if st.session_state.get(f'flex_dorm_cb_{p_obj["nombre"]}_{d}', False)]
-            print(f"[DEBUG-DASH] {p_obj['nombre']}: retro_active={retro_active_ss}, flex_active={flex_active_ss}, flex_checked={flex_checked_ss}")
+            print(f"[DEBUG-DASH] {p_obj['nombre']}: retro_active={retro_active_ss}, flex_active={flex_active_ss}")
 
             with profile_block("detalle_cache_check", p_obj):
                 cache_existente = cargar_cache_valuaciones()
@@ -497,7 +492,7 @@ def mostrar_dashboard():
                 cache_existente = cargar_cache_valuaciones()
                 entrada_cache = cache_existente.get(p_obj['nombre'], {})
                 resultado_cacheado = entrada_cache.get('resultado_completo', {}) or {}
-                if resultado_cacheado.get('comparables_venta'):
+                if resultado_cacheado:
                     print(f"[DEBUG-DASH] {p_obj['nombre']}: Pendiente con cache, usando resultado cacheado ({len(resultado_cacheado.get('comparables_venta',[]))} comps)")
                 else:
                     # Carga Natural: si es Pendiente y no hay cache, forzar valuación preview
@@ -536,15 +531,7 @@ def mostrar_dashboard():
                         retro_meses = st.session_state.get(f'retro_meses_{prop_name}', 36) if retro_active else 0
                         retro_dias = retro_meses if retro_active else 0
                         flex_active = st.session_state.get(f'flex_active_{prop_name}', False)
-                        if flex_active:
-                            todos_val = st.session_state.get(f'flex_todos_{prop_name}', False)
-                            if todos_val:
-                                flex_dormitorios = [1, 2, 3, 4, 5]
-                            else:
-                                checked = [d for d in [1, 2, 3, 4, 5] if st.session_state.get(f'flex_dorm_cb_{prop_name}_{d}', False)]
-                                flex_dormitorios = checked if checked else None
-                        else:
-                            flex_dormitorios = None
+                        flex_dormitorios = [1, 2, 3, 4, 5] if flex_active else None
                     print(f"[DEBUG-DASH] {p_obj['nombre']}: retro_dias={retro_dias}, flex_dormitorios={flex_dormitorios}, preview={preview_mode}")
                     resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios, preview=preview_mode, manual_data=st.session_state.get(f'manual_preview_{prop_name}', None))
                     _sl.mark("after_valuar_con_cache")
@@ -561,10 +548,48 @@ def mostrar_dashboard():
                         resultado = manual_result
                     _sl.mark("after_manual_override")
 
+                    # ── Aplicar exclusión de comparables seleccionada por el usuario ──
+                    comp_excluded = st.session_state.get(f'comp_excluded_{prop_name}', [])
+                    if comp_excluded and resultado.get('comparables_venta'):
+                        comps_orig = resultado['comparables_venta']
+                        comps_filtrados = [c for i, c in enumerate(comps_orig) if i not in comp_excluded]
+                        if len(comps_filtrados) >= 2:
+                            precios = [c.get('precio_m2_ajustado', c.get('precio_m2', 0)) for c in comps_filtrados]
+                            precios_sorted = sorted(precios)
+                            n_sel = len(precios_sorted)
+                            perc_idx = max(0, int(n_sel * 0.33) - 1)
+                            p33 = precios_sorted[perc_idx]
+                            p50 = precios_sorted[n_sel // 2]
+                            nuevo_vm2 = p33 if n_sel >= 8 else p50
+                            # Recalcular valor total con el nuevo vm2
+                            m2_eq = resultado.get('m2_equivalentes', 0)
+                            factor = resultado.get('factor_total', 1.0)
+                            if m2_eq > 0:
+                                 nuevo_valor = m2_eq * nuevo_vm2
+                                 v_cons = nuevo_valor * 0.93
+                                 v_opt = nuevo_valor * 1.07
+                                 resultado = dict(resultado)
+                                 # NOTA: Ya NO sobrescribimos resultado['comparables_venta'] con comps_filtrados
+                                 # para evitar que desaparezcan de la tabla en la UI.
+                                 resultado['valor_propiedad_usd'] = nuevo_valor
+                                 resultado['valor_m2'] = nuevo_vm2
+                                 resultado['valor_venta_conservador'] = v_cons
+                                 resultado['valor_venta_optimista'] = v_opt
+                                 resultado['_comp_excluded'] = comp_excluded
+                                 resultado['_n_excluidos'] = len(comp_excluded)
+                                 print(f"[DEBUG-DASH] {prop_name}: comp_excluded aplicado, {n_sel} comps, nuevo valor=${nuevo_valor:,.0f}")
+
+
+
+
+                        # Limpiar la exclusión para que no se acumule en reruns futuros
+                        st.session_state.pop(f'comp_excluded_{prop_name}', None)
+
                 with profile_block("detalle_volver_btn", None):
                     if st.button("← Volver al Portafolio"):
+                        st.session_state.pop(f'preview_mode_{p_obj.get("nombre","")}', None)
                         st.session_state.prop_sel = None
-                        st.session_state['nav_page_radio'] = 'Portfolio'
+                        st.session_state['_force_nav_page'] = 'Portfolio'
                         if 'prop' in st.query_params:
                             st.query_params.clear()
                         st.rerun()

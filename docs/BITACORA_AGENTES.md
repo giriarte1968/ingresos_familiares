@@ -2340,3 +2340,28 @@ Toggle Retro ON en Pendiente setea `forzar_recalculo` → engine encuentra comps
 - Probar: Pendiente + "Aplicar cambios" → portfolio muestra valuada
 - Probar: ya valuada + toggle → comps visibles, portfolio sigue valuada (sin cambios en comportamiento)
 
+---
+
+## 📅 2026-06-13 — TAREA-050: Fix P33/P50 inversion in selection UI preview
+
+### Problema:
+UI selection preview in `valu_detail_sections.py` had inverted P33/P50 logic:
+```python
+p33_p50 = p33 if n_sel >= 8 else p50  # WRONG: P33 for large samples, P50 for small
+```
+The Core Motor uses P33 (conservative) for small samples (n<8) and higher percentiles for large samples (n≥8). The UI had it backwards, causing a price drop when "Apply" was clicked on small selections.
+
+### Solución:
+```python
+p33_p50 = p50 if n_sel >= 8 else p33  # CORRECT: P50 for large, P33 for small
+```
+Also updated the label: `P50` for ≥8, `P33` for <8.
+
+### Archivos modificados:
+- `valu_detail_sections.py` — líneas 352 (logic) y 359 (label)
+
+### Validación:
+- `python scripts/auto_validate.py` → OK
+- Tests de regresión → OK
+
+
