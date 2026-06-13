@@ -2478,5 +2478,15 @@ Cuando se seleccionan todos los comparables disponibles, `excluded = []` (vacio)
 - `python scripts/auto_validate.py` → OK
 - Tests de regresión → OK
 
+---
 
+## 📅 2026-06-13 — Fix header m² not updating after Apply Selection
 
+### Problema:
+Apply Selection seteaba `resultado['valor_m2']` pero el header hero lee `m2_base_venta`. Preview ($3,213) vs header ($4,262) discrepaban.
+
+### Solución:
+En `valu.py`, el bloque Apply Selection ahora también setea `resultado['m2_base_venta'] = nuevo_vm2`, sincronizando ambos campos.
+
+### Validación:
+- `python scripts/auto_validate.py` → OK

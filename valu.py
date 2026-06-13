@@ -580,6 +580,7 @@ def mostrar_dashboard():
                                  # para evitar que desaparezcan de la tabla en la UI.
                                  resultado['valor_propiedad_usd'] = nuevo_valor
                                  resultado['valor_m2'] = nuevo_vm2
+                                 resultado['m2_base_venta'] = nuevo_vm2
                                  resultado['valor_venta_conservador'] = v_cons
                                  resultado['valor_venta_optimista'] = v_opt
                                  resultado['_comp_excluded'] = comp_excluded
