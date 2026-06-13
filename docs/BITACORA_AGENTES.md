@@ -2364,4 +2364,21 @@ Also updated the label: `P50` for ≥8, `P33` for <8.
 - `python scripts/auto_validate.py` → OK
 - Tests de regresión → OK
 
+---
+
+## 📅 2026-06-13 — TAREA-051: Alinear percentil preview UI con Core Motor
+
+### Problema:
+La UI preview tenía un umbral binario (≥8→P50, <8→P33) que no calzaba con la granularidad del Core Motor (P40 para 8-9, P45 para 10-19, P50 para ≥20). Para n=8 (Francia 250b con todos los dorms) mostraba P50 ($3,592) cuando el Core usa P40 ($3,213).
+
+### Solución:
+Se importó `seleccionar_percentil_por_edad` desde `parsers/cluster_filters.py` y se reemplazó la lógica binaria con la misma función que usa el motor principal. Ahora la UI refleja exactamente el mismo percentil que el Core Motor aplicaría.
+
+### Archivos modificados:
+- `valu_detail_sections.py` — import de `seleccionar_percentil_por_edad`, reemplazo de lógica binaria por la función del Core Motor (líneas 350-363, 370)
+
+### Validación:
+- `python scripts/auto_validate.py` → OK
+- Tests de regresión → OK
+
 

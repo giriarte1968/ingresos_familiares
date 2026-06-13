@@ -8,6 +8,7 @@ import pandas as pd
 import json, os
 from datetime import datetime
 from valu_design import kpi_card, metric_card, hero_price, range_bar, insights_card, property_card
+from parsers.cluster_filters import seleccionar_percentil_por_edad
 from streamlit.components.v1 import html
 
 
@@ -346,17 +347,27 @@ def render_tabla_comparables(res, prop_name=None):
         actual_excluded_ids = set(all_ids) - selected_ids
         is_applied = (actual_excluded_ids == current_excluded_ids)
 
-        perc_idx = max(0, int(n_sel * 0.33) - 1)
-        p33 = precios_sorted[perc_idx]
-        p50 = precios_sorted[n_sel // 2]
-        p33_p50 = p50 if n_sel >= 8 else p33
+        percentil, label = seleccionar_percentil_por_edad(True, n_sel)
+        if percentil == 50:
+            perc_idx = n_sel // 2
+            label_short = 'P50'
+        elif percentil == 45:
+            perc_idx = max(0, int(n_sel * 0.45) - 1)
+            label_short = 'P45'
+        elif percentil == 40:
+            perc_idx = max(0, int(n_sel * 0.40) - 1)
+            label_short = 'P40'
+        else:
+            perc_idx = max(0, int(n_sel * 0.33) - 1)
+            label_short = 'P33'
+        p33_p50 = precios_sorted[perc_idx]
         
         col_a, col_b, col_c = st.columns([1, 2, 1.2])
         with col_a:
             st.metric("Valor/m² por selección", f"${p33_p50:,.0f}",
                       delta=f"{'${:,.0f}'.format(p33_p50 - res.get('valor_m2', 0))} vs original")
         with col_b:
-            st.caption(f"P{'50' if n_sel >= 8 else '33'} sobre {n_sel} comps seleccionados de {len(comparables)} totales")
+            st.caption(f"{label_short} sobre {n_sel} comps seleccionados de {len(comparables)} totales")
         with col_c:
             # Botón para re-valuar usando solo los comparables seleccionados
             excluded = [i for i, cid in enumerate(all_ids) if cid not in selected_ids]
