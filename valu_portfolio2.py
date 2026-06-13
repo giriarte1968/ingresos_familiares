@@ -245,6 +245,7 @@ def _cargar_resultados_cache(propiedades: list[dict[str, Any]]) -> tuple[dict[st
         nombre = prop.get("nombre", "")
         entrada = cache.get(nombre)
         ultima = prop.get("_ultima_valuacion")
+        processed = False
 
         if entrada:
             if entrada.get("cache_version") != CACHE_VERSION:
@@ -254,47 +255,51 @@ def _cargar_resultados_cache(propiedades: list[dict[str, Any]]) -> tuple[dict[st
                     "badge": "blue",
                     "detalle": f"Cache {entrada.get('cache_version', '?')} → {CACHE_VERSION}",
                 }
-                continue
-
-            resultado = entrada.get("resultado_completo", {}) or {}
-            resultados[nombre] = resultado
-
-            if resultado.get("error"):
-                estados[nombre] = {
-                    "estado": "error",
-                    "label": "Error",
-                    "badge": "red",
-                    "detalle": str(resultado.get("error"))[:120],
-                }
+                processed = True
             else:
+                resultado = entrada.get("resultado_completo", {}) or {}
+                if not resultado.get('_cache', {}).get('preview', False):
+                    # Cache oficial (no preview)
+                    resultados[nombre] = resultado
+                    processed = True
+                    if resultado.get("error"):
+                        estados[nombre] = {
+                            "estado": "error",
+                            "label": "Error",
+                            "badge": "red",
+                            "detalle": str(resultado.get("error"))[:120],
+                        }
+                    else:
+                        estados[nombre] = {
+                            "estado": "ok",
+                            "label": "Actualizada",
+                            "badge": "green",
+                            "detalle": entrada.get("fecha_legible", ""),
+                        }
+
+        if not processed:
+            if ultima:
+                # Fallback: usar resumen guardado en propiedades.json
+                resultados[nombre] = {
+                    "valor_propiedad_usd": ultima.get("valor_usd"),
+                    "alquiler_estimado_ars": ultima.get("alquiler_ars"),
+                    "cap_rate": ultima.get("cap_rate"),
+                    "m2_equivalentes": ultima.get("m2_equivalentes"),
+                    "resolution_metadata": {"n_propiedades": ultima.get("comps", 0)},
+                }
                 estados[nombre] = {
                     "estado": "ok",
                     "label": "Actualizada",
                     "badge": "green",
-                    "detalle": entrada.get("fecha_legible", ""),
+                    "detalle": ultima.get("fecha", ""),
                 }
-        elif ultima:
-            # Fallback: usar resumen guardado en propiedades.json
-            resultados[nombre] = {
-                "valor_propiedad_usd": ultima.get("valor_usd"),
-                "alquiler_estimado_ars": ultima.get("alquiler_ars"),
-                "cap_rate": ultima.get("cap_rate"),
-                "m2_equivalentes": ultima.get("m2_equivalentes"),
-                "resolution_metadata": {"n_propiedades": ultima.get("comps", 0)},
-            }
-            estados[nombre] = {
-                "estado": "ok",
-                "label": "Actualizada",
-                "badge": "green",
-                "detalle": ultima.get("fecha", ""),
-            }
-        else:
-            estados[nombre] = {
-                "estado": "pendiente",
-                "label": "Pendiente",
-                "badge": "amber",
-                "detalle": "Sin valuación cacheada",
-            }
+            else:
+                estados[nombre] = {
+                    "estado": "pendiente",
+                    "label": "Pendiente",
+                    "badge": "amber",
+                    "detalle": "Sin valuación cacheada",
+                }
 
     return resultados, estados
 

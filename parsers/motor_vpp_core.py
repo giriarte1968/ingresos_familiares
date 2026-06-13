@@ -1370,16 +1370,22 @@ def valuar_con_cache(prop: dict,
         razon = "forzado_por_usuario"
         _vl.mark("forzar_recalculo")
 
-    # Invalidar cache si cambian parámetros de retro/flex
+    # Invalidar cache si cambian parámetros de retro/flex o es solo preview
     if not recalcular:
         cached = obtener_resultado_cacheado(nombre, cache)
         if cached:
-            cached_retro = cached.get('_cache', {}).get('retro_dias', 0)
-            cached_flex = cached.get('_cache', {}).get('flex_dormitorios', None)
-            if cached_retro != retro_dias or cached_flex != flex_dormitorios:
+            # Si necesitamos resultado oficial pero el cache es preview, forzar recalculo
+            if not preview and cached.get('_cache', {}).get('preview', False):
                 recalcular = True
-                razon = f"parametros_cambiados (retro:{cached_retro}->{retro_dias}, flex:{cached_flex}->{flex_dormitorios})"
-                _vl.mark("parametros_cambiados")
+                razon = "reemplazar_preview_por_oficial"
+                _vl.mark("reemplazar_preview_por_oficial")
+            else:
+                cached_retro = cached.get('_cache', {}).get('retro_dias', 0)
+                cached_flex = cached.get('_cache', {}).get('flex_dormitorios', None)
+                if cached_retro != retro_dias or cached_flex != flex_dormitorios:
+                    recalcular = True
+                    razon = f"parametros_cambiados (retro:{cached_retro}->{retro_dias}, flex:{cached_flex}->{flex_dormitorios})"
+                    _vl.mark("parametros_cambiados")
 
     if recalcular:
         _vl.mark("before_valuar_propiedad_v7")

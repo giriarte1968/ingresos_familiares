@@ -2415,5 +2415,30 @@ Se introdujo una verificación de existencia de la clave: `has_applied = '_comp_
 - `python scripts/auto_validate.py` → OK
 - Flujo de usuario: Default -> Modificar -> Revertir -> Default (botón no bloqueado) ✅
 
+---
+
+## 📅 2026-06-13 — TAREA-053: Fix preview valuation leak into Portfolio
+
+### Problema:
+Cuando un usuario interactúa con una propiedad en modo preview (toggles, selección de comps), `persistir_valuacion(commit=False)` escribe el resultado preview en `valuaciones_cache.json`. Al volver al Portfolio, `_cargar_resultados_cache` lee del cache y muestra el valor preview, como si se hubiera aplicado oficialmente.
+
+### Causa raíz:
+`valu_portfolio2.py` no distinguía entre cache oficial y cache preview. Cualquier entrada en el cache se mostraba como la valuación oficial.
+
+### Solución:
+**Fix 1 — `valu_portfolio2.py`**: Se refactorizó `_cargar_resultados_cache` para ignorar entradas del cache donde `resultado['_cache']['preview'] == True`. Estas entradas son tratadas como si no hubiera cache, cayendo al fallback `_ultima_valuacion` (de `propiedades.json`) o mostrando "Pendiente".
+
+**Fix 2 — `parsers/motor_vpp_core.py`**: En `valuar_con_cache`, si se solicita un resultado oficial (`preview=False`) pero el cache solo contiene un preview, se fuerza el recálculo para producir y persistir un resultado oficial.
+
+### Archivos modificados:
+- `valu_portfolio2.py` — lógica de `_cargar_resultados_cache` para filtrar previews
+- `parsers/motor_vpp_core.py` — invalidación de cache en `valuar_con_cache` para forzar recálculo oficial
+
+### Validación:
+- `python scripts/auto_validate.py` → OK
+- Tests de regresión → OK
+- Flujo esperado: Pendiente con preview → Portfolio → Pendiente ✅
+- Flujo esperado: Valuada + toggles → Portfolio → valor valuado original ✅
+
 
 
