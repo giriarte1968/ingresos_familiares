@@ -565,7 +565,7 @@ def mostrar_dashboard():
                         if excluded_ids is not None:
                             comps_filtrados = [c for c in comps_orig if _get_comp_id(c) not in excluded_ids]
                             if len(comps_filtrados) >= 2:
-                                precios = [c.get('precio_m2_ajustado', c.get('precio_m2', 0)) for c in comps_filtrados]
+                                precios = [c.get('precio_m2', 0) * c.get('time_adjustment', 1.0) * c.get('barrier_penalty', 1.0) for c in comps_filtrados]
                                 precios_sorted = sorted(precios)
                                 n_sel = len(precios_sorted)
                                 from parsers.cluster_filters import seleccionar_percentil_por_edad

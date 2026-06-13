@@ -47,3 +47,4 @@
 | TAREA-055 | Show Apply Selection button even when all comparables selected | _completada_ | 2026-06-13 |
 | TAREA-056 | Persistent Apply Selection (IDs) + Fix Preview Delta | _completada_ | 2026-06-13 |
 | TAREA-057 | Sincronización Total Motor <-> UI (Fórmulas Premium y Barreras) | _in_progress_ | 2026-06-13 |
+| TAREA-058 | Calcular precio ajustado dinámicamente en UI (sin depender del cache) | _completada_ | 2026-06-13 |

@@ -339,7 +339,7 @@ def render_tabla_comparables(res, prop_name=None):
     # Recálculo automático P33/P50 desde los seleccionados
     if selected_ids:
         selected_comps = [c for c in comparables if _get_comp_id(c) in selected_ids]
-        precios = [c.get('precio_m2_ajustado', c.get('precio_m2', 0)) for c in selected_comps]
+        precios = [c.get('precio_m2', 0) * c.get('time_adjustment', 1.0) * c.get('barrier_penalty', 1.0) for c in selected_comps]
         precios_sorted = sorted(precios)
         n_sel = len(precios_sorted)
         
