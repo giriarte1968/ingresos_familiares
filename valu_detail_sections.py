@@ -8,6 +8,7 @@ import pandas as pd
 import json, os
 from datetime import datetime
 from valu_design import kpi_card, metric_card, hero_price, range_bar, insights_card, property_card
+from parsers.mercado_inmobiliario import _calcular_mediana
 from parsers.cluster_filters import seleccionar_percentil_por_edad
 from streamlit.components.v1 import html
 
@@ -312,11 +313,14 @@ def render_tabla_comparables(res, prop_name=None):
         cols[3].write(f"{c.get('m2', 0):.0f}")
         # Precio/m2 con badges
         ta = c.get('time_adjustment', 1.0)
+        bp = c.get('barrier_penalty', 1.0)
         vm2_orig = c.get('precio_m2', 0)
-        vm2_ajust = c.get('precio_m2_ajustado', vm2_orig)
+        vm2_ajust = c.get('precio_m2_ajustado', vm2_orig * ta * bp)
         badges = ""
         if ta != 1.0:
             badges += " <span style='background:#ff6b35;color:white;font-size:9px;padding:1px 4px;border-radius:6px;font-weight:bold;'>RETRO</span>"
+        if bp != 1.0:
+            badges += f" <span style='background:#e74c3c;color:white;font-size:9px;padding:1px 4px;border-radius:6px;font-weight:bold;'>BARRERA ({int(round((1-bp)*100))})%</span>"
         if flex_dormitorios and sujeto_dorms is not None and c.get('dormitorios') != sujeto_dorms:
             badges += " <span style='background:#9b59b6;color:white;font-size:9px;padding:1px 4px;border-radius:6px;font-weight:bold;'>FLEX</span>"
         if badges:
@@ -346,23 +350,22 @@ def render_tabla_comparables(res, prop_name=None):
 
         percentil, label = seleccionar_percentil_por_edad(True, n_sel)
         if percentil == 50:
-            perc_idx = n_sel // 2
+            p33_p50 = _calcular_mediana(precios_sorted)
             label_short = 'P50'
         elif percentil == 45:
-            perc_idx = max(0, int(n_sel * 0.45) - 1)
+            p33_p50 = precios_sorted[max(0, int(n_sel * 0.45) - 1)]
             label_short = 'P45'
         elif percentil == 40:
-            perc_idx = max(0, int(n_sel * 0.40) - 1)
+            p33_p50 = precios_sorted[max(0, int(n_sel * 0.40) - 1)]
             label_short = 'P40'
         else:
-            perc_idx = max(0, int(n_sel * 0.33) - 1)
+            p33_p50 = precios_sorted[max(0, int(n_sel * 0.33) - 1)]
             label_short = 'P33'
-        p33_p50 = precios_sorted[perc_idx]
         
         col_a, col_b, col_c = st.columns([1, 2, 1.2])
         with col_a:
             st.metric("Valor/m² por selección", f"${p33_p50:,.0f}",
-                      delta=f"{'${:,.0f}'.format(p33_p50 - res.get('valor_m2_actual_usd', res.get('m2_base_venta', 0)))} vs original")
+                      delta=f"{'${:,.0f}'.format(p33_p50 - res.get('m2_base_venta', 0))} vs original")
         with col_b:
             st.caption(f"{label_short} sobre {n_sel} comps seleccionados de {len(comparables)} totales")
         with col_c:

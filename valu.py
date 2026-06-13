@@ -11,6 +11,8 @@ from valu_design import VALU_CSS, kpi_card, property_card, hero_price, metric_ca
 from valu_forms import ui_formulario_propiedad
 from landing import mostrar_landing
 from valu_detail_sections import _get_comp_id
+from valu_detail_sections import _get_comp_id
+from parsers.mercado_inmobiliario import _calcular_mediana
 from parsers.profiler import profile_block, profile_start, profile_end, StepLedger
 logger = logging.getLogger(__name__)
 
@@ -569,23 +571,30 @@ def mostrar_dashboard():
                                 from parsers.cluster_filters import seleccionar_percentil_por_edad
                                 percentil, _ = seleccionar_percentil_por_edad(True, n_sel)
                                 if percentil == 50:
-                                    nuevo_vm2 = precios_sorted[n_sel // 2]
+                                    nuevo_vm2 = _calcular_mediana(precios_sorted)
                                 elif percentil == 45:
                                     nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.45) - 1)]
                                 elif percentil == 40:
                                     nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.40) - 1)]
                                 else:
                                     nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.33) - 1)]
+                                
                                 m2_eq = resultado.get('m2_equivalentes', 0)
-                                if m2_eq > 0:
-                                    nuevo_valor = m2_eq * nuevo_vm2
+                                valor_orig = resultado.get('valor_propiedad_usd', 0)
+                                valor_activos = resultado.get('valor_activos', {}).get('total', 0)
+                                m2_base_orig = resultado.get('m2_base_venta', 1.0)
+                                
+                                if m2_eq > 0 and m2_base_orig > 0:
+                                    # Extraer multiplicador implícito de factores y NLP
+                                    mult_factores = (valor_orig - valor_activos) / (m2_eq * m2_base_orig)
+                                    nuevo_valor = (m2_eq * nuevo_vm2 * mult_factores) + valor_activos
                                     v_cons = nuevo_valor * 0.93
                                     v_opt = nuevo_valor * 1.07
                                     resultado = dict(resultado)
-                                    resultado['valor_propiedad_usd'] = nuevo_valor
+                                    resultado['valor_propiedad_usd'] = round(nuevo_valor, 0)
                                     resultado['valor_m2'] = nuevo_vm2
                                     resultado['m2_base_venta'] = nuevo_vm2
-                                    resultado['valor_m2_actual_usd'] = nuevo_vm2
+                                    resultado['valor_m2_actual_usd'] = round(nuevo_valor / m2_eq, 2)
                                     resultado['valor_venta_conservador'] = v_cons
                                     resultado['valor_venta_optimista'] = v_opt
                                     resultado['_comp_excluded'] = excluded_ids

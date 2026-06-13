@@ -1112,6 +1112,26 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 mejor_resultado = (props, None, zona_normalizada)
         
         if mejor_resultado is None:
+            # Aplicar barreras geográficas incluso en fallback para consistencia de precios ajustados
+            if lat_ref and lon_ref and props:
+                try:
+                    from parsers.location_engine import check_barrier_crossing, cargar_barreras
+                    barreras = cargar_barreras()
+                    barreras_result = separar_por_barreras(
+                        props=props, lat_ref=lat_ref, lon_ref=lon_ref,
+                        check_barrier_fn=lambda p1, p2: check_barrier_crossing(p1, p2, barreras)
+                    )
+                    # Marcar penalizaciones en las propiedades
+                    for p in props:
+                        p['_penalizacion_barrier'] = 1.0
+                        if p in barreras_result['cross_soft']:
+                            p['_penalizacion_barrier'] = 0.97
+                        elif p in barreras_result['excluded_hard']:
+                            # En fallback, permitimos hard con penalización
+                            p['_penalizacion_barrier'] = 0.97
+                except Exception as e:
+                    logger.warning(f"Error aplicando barreras en fallback: {e}")
+
             n_available = len(props) if props else 0
             comparables_reales = [
                 {
@@ -1119,7 +1139,8 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                     'm2': p.get('m2'),
                     'precio_m2': p.get('valor_m2'),
                     'time_adjustment': round(p.get('_time_adjustment', 1.0), 4),
-                    'precio_m2_ajustado': round(p.get('valor_m2', 0) * p.get('_time_adjustment', 1.0), 2),
+                    'barrier_penalty': round(p.get('_penalizacion_barrier', 1.0), 4),
+                    'precio_m2_ajustado': round(p.get('valor_m2', 0) * p.get('_time_adjustment', 1.0) * p.get('_penalizacion_barrier', 1.0), 2),
                     'dormitorios': p.get('dormitorios'),
                     'direccion': (p.get('direccion_limpia') or p.get('direccion', ''))[:60],
                     'direccion_limpia': _formatear_direccion_limpia(p),
