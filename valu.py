@@ -549,8 +549,9 @@ def mostrar_dashboard():
                     _sl.mark("after_manual_override")
 
                     # ── Aplicar exclusión de comparables seleccionada por el usuario ──
-                    comp_excluded = st.session_state.get(f'comp_excluded_{prop_name}', [])
-                    if comp_excluded and resultado.get('comparables_venta'):
+                    comp_excluded_key = f'comp_excluded_{prop_name}'
+                    if comp_excluded_key in st.session_state and resultado.get('comparables_venta'):
+                        comp_excluded = st.session_state[comp_excluded_key]
                         comps_orig = resultado['comparables_venta']
                         comps_filtrados = [c for i, c in enumerate(comps_orig) if i not in comp_excluded]
                         if len(comps_filtrados) >= 2:

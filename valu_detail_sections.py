@@ -377,7 +377,8 @@ def render_tabla_comparables(res, prop_name=None):
                 st.button("Mínimo 2 comparables", disabled=True, use_container_width=True)
             elif is_applied:
                 st.button("✅ Selección Aplicada", type="secondary", disabled=True, use_container_width=True)
-            elif excluded:
+            else:
+                # Botón visible incluso si no hay exclusiones (todos seleccionados)
                 if st.button(
                     f"✅ Aplicar selección ({n_sel}/{len(comparables)})",
                     key=f'apply_comp_sel_{prop_name}',

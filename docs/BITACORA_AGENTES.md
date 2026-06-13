@@ -2458,5 +2458,25 @@ Reemplazar la lógica binaria en `valu.py` con `seleccionar_percentil_por_edad(T
 - Tests de regresión → OK
 - Preview y Apply Selection ahora usan el mismo percentil para cualquier n
 
+---
+
+## 📅 2026-06-13 — TAREA-055: Show Apply Selection button even when all comparables selected
+
+### Problema:
+Cuando se seleccionan todos los comparables disponibles, `excluded = []` (vacio), lo cual es falsy en Python. El botón "✅ Aplicar selección" solo se mostraba cuando `elif excluded:` era True, por lo que desaparecía cuando todos estaban seleccionados. Esto impedía al usuario aplicar la previsualización P33 al resultado principal.
+
+### Solución:
+**Fix 1 — `valu_detail_sections.py`**: Se eliminó el `elif excluded:` reemplazándolo por `else:`, mostrando el botón siempre que no sea "Applied" y n≥2.
+
+**Fix 2 — `valu.py`**: Se cambió la condición `if comp_excluded and ...` por `if 'comp_excluded_{prop_name}' in st.session_state and ...`. Esto permite que `comp_excluded = []` (todos seleccionados) active el recalculo.
+
+### Archivos modificados:
+- `valu_detail_sections.py` — botón visible para todos seleccionados
+- `valu.py` — condición de activación con lista vacía
+
+### Validación:
+- `python scripts/auto_validate.py` → OK
+- Tests de regresión → OK
+
 
 
