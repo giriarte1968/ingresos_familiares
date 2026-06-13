@@ -557,10 +557,16 @@ def mostrar_dashboard():
                             precios = [c.get('precio_m2_ajustado', c.get('precio_m2', 0)) for c in comps_filtrados]
                             precios_sorted = sorted(precios)
                             n_sel = len(precios_sorted)
-                            perc_idx = max(0, int(n_sel * 0.33) - 1)
-                            p33 = precios_sorted[perc_idx]
-                            p50 = precios_sorted[n_sel // 2]
-                            nuevo_vm2 = p33 if n_sel >= 8 else p50
+                            from parsers.cluster_filters import seleccionar_percentil_por_edad
+                            percentil, _ = seleccionar_percentil_por_edad(True, n_sel)
+                            if percentil == 50:
+                                nuevo_vm2 = precios_sorted[n_sel // 2]
+                            elif percentil == 45:
+                                nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.45) - 1)]
+                            elif percentil == 40:
+                                nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.40) - 1)]
+                            else:
+                                nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.33) - 1)]
                             # Recalcular valor total con el nuevo vm2
                             m2_eq = resultado.get('m2_equivalentes', 0)
                             factor = resultado.get('factor_total', 1.0)

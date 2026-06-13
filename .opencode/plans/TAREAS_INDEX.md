@@ -43,3 +43,4 @@
 | TAREA-051 | Alinear UI percentil preview con Core Motor (granularidad completa) | _completada_ | 2026-06-13 |
 | TAREA-052 | Fix "is_applied" false positive in selection UI | _completada_ | 2026-06-13 |
 | TAREA-053 | Fix preview valuation leak into Portfolio | _completada_ | 2026-06-13 |
+| TAREA-054 | Fix Apply Selection percentil logic in valu.py | _completada_ | 2026-06-13 |

@@ -2440,5 +2440,23 @@ Cuando un usuario interactúa con una propiedad en modo preview (toggles, selecc
 - Flujo esperado: Pendiente con preview → Portfolio → Pendiente ✅
 - Flujo esperado: Valuada + toggles → Portfolio → valor valuado original ✅
 
+---
+
+## 📅 2026-06-13 — TAREA-054: Fix Apply Selection percentil logic in valu.py
+
+### Problema:
+El código de "Apply Selection" en `valu.py:563` seguía usando la vieja lógica binaria invertida (`p33 if n_sel >= 8 else p50`), nunca actualizada en TAREA-050/051. Al aplicar selección de 2 comps, usaba P50 ($5,574) en vez de P33 ($3,213), creando inconsistencia con el preview de la UI que sí usaba la lógica correcta.
+
+### Solución:
+Reemplazar la lógica binaria en `valu.py` con `seleccionar_percentil_por_edad(True, n_sel)`, idéntico a `valu_detail_sections.py`. Ahora Apply Selection usa el mismo percentil que el preview.
+
+### Archivos modificados:
+- `valu.py` — líneas 557-563: reemplazo de lógica binaria por `seleccionar_percentil_por_edad`
+
+### Validación:
+- `python scripts/auto_validate.py` → OK
+- Tests de regresión → OK
+- Preview y Apply Selection ahora usan el mismo percentil para cualquier n
+
 
 
