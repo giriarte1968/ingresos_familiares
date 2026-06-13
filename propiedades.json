@@ -433,7 +433,19 @@
       "fecha_compra": "2026-06-01",
       "fecha_publicacion": "2026-06-03",
       "expensas_ars": 0,
-      "id": "prop_de9ad3e4"
+      "id": "prop_de9ad3e4",
+      "_ultima_valuacion": {
+        "valor_usd": 976544.0,
+        "alquiler_ars": 6242622.0,
+        "cap_rate": 0.0676,
+        "m2_equivalentes": 160.0,
+        "comps": 2,
+        "fecha": "13/06/2026 16:53",
+        "cache_version": "v7_retro_cache_fix",
+        "timestamp": "2026-06-13T16:53:56.911634",
+        "fuente": "auto",
+        "manual_params": null
+      }
     }
   ]
 }

@@ -339,14 +339,10 @@ def render_tabla_comparables(res, prop_name=None):
         precios_sorted = sorted(precios)
         n_sel = len(precios_sorted)
         
-        # Determinamos si la selección actual ya está aplicada
         # Comparamos los IDs excluidos actuales con los guardados en el resultado
         all_ids = [_get_comp_id(c) for c in comparables]
-        has_applied = '_comp_excluded' in res
-        excluded_indices = res.get('_comp_excluded', [])
-        current_excluded_ids = {all_ids[i] for i in excluded_indices if i < len(all_ids)}
-        actual_excluded_ids = set(all_ids) - selected_ids
-        is_applied = has_applied and (actual_excluded_ids == current_excluded_ids)
+        excluded_ids = [cid for cid in all_ids if cid not in selected_ids]
+        is_applied = set(res.get('_comp_excluded', [])) == set(excluded_ids)
 
         percentil, label = seleccionar_percentil_por_edad(True, n_sel)
         if percentil == 50:
@@ -366,12 +362,12 @@ def render_tabla_comparables(res, prop_name=None):
         col_a, col_b, col_c = st.columns([1, 2, 1.2])
         with col_a:
             st.metric("Valor/m² por selección", f"${p33_p50:,.0f}",
-                      delta=f"{'${:,.0f}'.format(p33_p50 - res.get('valor_m2', 0))} vs original")
+                      delta=f"{'${:,.0f}'.format(p33_p50 - res.get('valor_m2_actual_usd', res.get('m2_base_venta', 0)))} vs original")
         with col_b:
             st.caption(f"{label_short} sobre {n_sel} comps seleccionados de {len(comparables)} totales")
         with col_c:
             # Botón para re-valuar usando solo los comparables seleccionados
-            excluded = [i for i, cid in enumerate(all_ids) if cid not in selected_ids]
+            excluded = [cid for cid in all_ids if cid not in selected_ids]
             
             if n_sel < 2:
                 st.button("Mínimo 2 comparables", disabled=True, use_container_width=True)

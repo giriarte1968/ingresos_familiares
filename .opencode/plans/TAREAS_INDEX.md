@@ -45,3 +45,4 @@
 | TAREA-053 | Fix preview valuation leak into Portfolio | _completada_ | 2026-06-13 |
 | TAREA-054 | Fix Apply Selection percentil logic in valu.py | _completada_ | 2026-06-13 |
 | TAREA-055 | Show Apply Selection button even when all comparables selected | _completada_ | 2026-06-13 |
+| TAREA-056 | Persistent Apply Selection (IDs) + Fix Preview Delta | _completada_ | 2026-06-13 |

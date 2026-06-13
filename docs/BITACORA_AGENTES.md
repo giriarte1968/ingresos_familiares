@@ -2490,3 +2490,19 @@ En `valu.py`, el bloque Apply Selection ahora también setea `resultado['m2_base
 
 ### Validación:
 - `python scripts/auto_validate.py` → OK
+
+---
+
+## TAREA-056: Persistent Apply Selection + Fix Preview Delta
+
+### Problemas:
+1. Delta de preview erroneo: comparaba contra valor_m2=0 en vez del m2 real del motor.
+2. Seleccion aplicada se pierde al mover slider.
+
+### Solucion:
+- valu_detail_sections.py: is_applied ahora compara sets de IDs; delta usa valor_m2_actual_usd; excluded almacena IDs.
+- valu.py: importa _get_comp_id; Apply lee de session_state O de resultado cacheado; filtra por ID; NO hace pop del estado.
+
+### Validacion:
+- python scripts/auto_validate.py -> OK
+- Tests de regresion -> OK

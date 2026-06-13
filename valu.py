@@ -10,6 +10,7 @@ from datetime import datetime
 from valu_design import VALU_CSS, kpi_card, property_card, hero_price, metric_card, range_bar, insights_card
 from valu_forms import ui_formulario_propiedad
 from landing import mostrar_landing
+from valu_detail_sections import _get_comp_id
 from parsers.profiler import profile_block, profile_start, profile_end, StepLedger
 logger = logging.getLogger(__name__)
 
@@ -550,48 +551,46 @@ def mostrar_dashboard():
 
                     # ── Aplicar exclusión de comparables seleccionada por el usuario ──
                     comp_excluded_key = f'comp_excluded_{prop_name}'
-                    if comp_excluded_key in st.session_state and resultado.get('comparables_venta'):
-                        comp_excluded = st.session_state[comp_excluded_key]
-                        comps_orig = resultado['comparables_venta']
-                        comps_filtrados = [c for i, c in enumerate(comps_orig) if i not in comp_excluded]
-                        if len(comps_filtrados) >= 2:
-                            precios = [c.get('precio_m2_ajustado', c.get('precio_m2', 0)) for c in comps_filtrados]
-                            precios_sorted = sorted(precios)
-                            n_sel = len(precios_sorted)
-                            from parsers.cluster_filters import seleccionar_percentil_por_edad
-                            percentil, _ = seleccionar_percentil_por_edad(True, n_sel)
-                            if percentil == 50:
-                                nuevo_vm2 = precios_sorted[n_sel // 2]
-                            elif percentil == 45:
-                                nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.45) - 1)]
-                            elif percentil == 40:
-                                nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.40) - 1)]
-                            else:
-                                nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.33) - 1)]
-                            # Recalcular valor total con el nuevo vm2
-                            m2_eq = resultado.get('m2_equivalentes', 0)
-                            factor = resultado.get('factor_total', 1.0)
-                            if m2_eq > 0:
-                                 nuevo_valor = m2_eq * nuevo_vm2
-                                 v_cons = nuevo_valor * 0.93
-                                 v_opt = nuevo_valor * 1.07
-                                 resultado = dict(resultado)
-                                 # NOTA: Ya NO sobrescribimos resultado['comparables_venta'] con comps_filtrados
-                                 # para evitar que desaparezcan de la tabla en la UI.
-                                 resultado['valor_propiedad_usd'] = nuevo_valor
-                                 resultado['valor_m2'] = nuevo_vm2
-                                 resultado['m2_base_venta'] = nuevo_vm2
-                                 resultado['valor_venta_conservador'] = v_cons
-                                 resultado['valor_venta_optimista'] = v_opt
-                                 resultado['_comp_excluded'] = comp_excluded
-                                 resultado['_n_excluidos'] = len(comp_excluded)
-                                 print(f"[DEBUG-DASH] {prop_name}: comp_excluded aplicado, {n_sel} comps, nuevo valor=${nuevo_valor:,.0f}")
-
-
-
-
-                        # Limpiar la exclusión para que no se acumule en reruns futuros
-                        st.session_state.pop(f'comp_excluded_{prop_name}', None)
+                    comps_orig = resultado.get('comparables_venta')
+                    if not comps_orig:
+                        pass
+                    else:
+                        excluded_ids = None
+                        if comp_excluded_key in st.session_state:
+                            excluded_ids = st.session_state[comp_excluded_key]
+                        elif resultado.get('_comp_excluded') is not None:
+                            excluded_ids = resultado['_comp_excluded']
+                        if excluded_ids is not None:
+                            comps_filtrados = [c for c in comps_orig if _get_comp_id(c) not in excluded_ids]
+                            if len(comps_filtrados) >= 2:
+                                precios = [c.get('precio_m2_ajustado', c.get('precio_m2', 0)) for c in comps_filtrados]
+                                precios_sorted = sorted(precios)
+                                n_sel = len(precios_sorted)
+                                from parsers.cluster_filters import seleccionar_percentil_por_edad
+                                percentil, _ = seleccionar_percentil_por_edad(True, n_sel)
+                                if percentil == 50:
+                                    nuevo_vm2 = precios_sorted[n_sel // 2]
+                                elif percentil == 45:
+                                    nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.45) - 1)]
+                                elif percentil == 40:
+                                    nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.40) - 1)]
+                                else:
+                                    nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.33) - 1)]
+                                m2_eq = resultado.get('m2_equivalentes', 0)
+                                if m2_eq > 0:
+                                    nuevo_valor = m2_eq * nuevo_vm2
+                                    v_cons = nuevo_valor * 0.93
+                                    v_opt = nuevo_valor * 1.07
+                                    resultado = dict(resultado)
+                                    resultado['valor_propiedad_usd'] = nuevo_valor
+                                    resultado['valor_m2'] = nuevo_vm2
+                                    resultado['m2_base_venta'] = nuevo_vm2
+                                    resultado['valor_m2_actual_usd'] = nuevo_vm2
+                                    resultado['valor_venta_conservador'] = v_cons
+                                    resultado['valor_venta_optimista'] = v_opt
+                                    resultado['_comp_excluded'] = excluded_ids
+                                    resultado['_n_excluidos'] = len(excluded_ids)
+                                    logger.info(f"[APPLY] {prop_name}: {n_sel} comps, valor=${nuevo_valor:,.0f}")
 
                 with profile_block("detalle_volver_btn", None):
                     if st.button("← Volver al Portafolio"):
