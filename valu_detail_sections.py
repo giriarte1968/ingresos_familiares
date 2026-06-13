@@ -342,10 +342,11 @@ def render_tabla_comparables(res, prop_name=None):
         # Determinamos si la selección actual ya está aplicada
         # Comparamos los IDs excluidos actuales con los guardados en el resultado
         all_ids = [_get_comp_id(c) for c in comparables]
+        has_applied = '_comp_excluded' in res
         excluded_indices = res.get('_comp_excluded', [])
         current_excluded_ids = {all_ids[i] for i in excluded_indices if i < len(all_ids)}
         actual_excluded_ids = set(all_ids) - selected_ids
-        is_applied = (actual_excluded_ids == current_excluded_ids)
+        is_applied = has_applied and (actual_excluded_ids == current_excluded_ids)
 
         percentil, label = seleccionar_percentil_por_edad(True, n_sel)
         if percentil == 50:
