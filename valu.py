@@ -569,15 +569,18 @@ def mostrar_dashboard():
                                 precios_sorted = sorted(precios)
                                 n_sel = len(precios_sorted)
                                 from parsers.cluster_filters import seleccionar_percentil_por_edad
-                                percentil, _ = seleccionar_percentil_por_edad(True, n_sel)
-                                if percentil == 50:
+                                if n_sel < 3:
                                     nuevo_vm2 = _calcular_mediana(precios_sorted)
-                                elif percentil == 45:
-                                    nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.45) - 1)]
-                                elif percentil == 40:
-                                    nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.40) - 1)]
                                 else:
-                                    nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.33) - 1)]
+                                    percentil, _ = seleccionar_percentil_por_edad(True, n_sel)
+                                    if percentil == 50:
+                                        nuevo_vm2 = _calcular_mediana(precios_sorted)
+                                    elif percentil == 45:
+                                        nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.45) - 1)]
+                                    elif percentil == 40:
+                                        nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.40) - 1)]
+                                    else:
+                                        nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.33) - 1)]
                                 
                                 m2_eq = resultado.get('m2_equivalentes', 0)
                                 valor_orig = resultado.get('valor_propiedad_usd', 0)

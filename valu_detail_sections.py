@@ -348,19 +348,24 @@ def render_tabla_comparables(res, prop_name=None):
         excluded_ids = [cid for cid in all_ids if cid not in selected_ids]
         is_applied = set(res.get('_comp_excluded', [])) == set(excluded_ids)
 
-        percentil, label = seleccionar_percentil_por_edad(True, n_sel)
-        if percentil == 50:
+        # n<3: usar MEDIA (coincide con motor que usa _calcular_mediana para n<3)
+        if n_sel < 3:
             p33_p50 = _calcular_mediana(precios_sorted)
-            label_short = 'P50'
-        elif percentil == 45:
-            p33_p50 = precios_sorted[max(0, int(n_sel * 0.45) - 1)]
-            label_short = 'P45'
-        elif percentil == 40:
-            p33_p50 = precios_sorted[max(0, int(n_sel * 0.40) - 1)]
-            label_short = 'P40'
+            label_short = 'MEDIA'
         else:
-            p33_p50 = precios_sorted[max(0, int(n_sel * 0.33) - 1)]
-            label_short = 'P33'
+            percentil, label = seleccionar_percentil_por_edad(True, n_sel)
+            if percentil == 50:
+                p33_p50 = _calcular_mediana(precios_sorted)
+                label_short = 'P50'
+            elif percentil == 45:
+                p33_p50 = precios_sorted[max(0, int(n_sel * 0.45) - 1)]
+                label_short = 'P45'
+            elif percentil == 40:
+                p33_p50 = precios_sorted[max(0, int(n_sel * 0.40) - 1)]
+                label_short = 'P40'
+            else:
+                p33_p50 = precios_sorted[max(0, int(n_sel * 0.33) - 1)]
+                label_short = 'P33'
         
         col_a, col_b, col_c = st.columns([1, 2, 1.2])
         with col_a:
