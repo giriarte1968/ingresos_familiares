@@ -563,7 +563,6 @@ def mostrar_dashboard():
 
                     # ── Aplicar exclusión de comparables seleccionada por el usuario ──
                     comp_excluded_key = f'comp_excluded_{prop_name}'
-                    sel_key = f'comp_selection_{prop_name}'
                     comps_orig = resultado.get('comparables_venta')
                     if not comps_orig:
                         pass
@@ -571,13 +570,19 @@ def mostrar_dashboard():
                         excluded_ids = None
                         if comp_excluded_key in st.session_state:
                             excluded_ids = st.session_state.pop(comp_excluded_key)
-                        elif sel_key in st.session_state:
-                            # Live preview desde el estado de checkboxes
+                        else:
+                            # Leer desde widget keys (estado ACTUAL del checkbox, no stale sel_key)
                             comp_ids = [_get_comp_id(c) for c in comps_orig]
-                            selected_ids = st.session_state[sel_key]
-                            excluded_ids = [cid for cid in comp_ids if cid not in selected_ids]
-                        elif resultado.get('_comp_excluded') is not None:
-                            excluded_ids = resultado['_comp_excluded']
+                            primero = f'sel_comp_{prop_name}_{comp_ids[0]}' if comp_ids else None
+                            if primero and primero in st.session_state:
+                                selected_ids = set()
+                                for cid in comp_ids:
+                                    wk = f'sel_comp_{prop_name}_{cid}'
+                                    if st.session_state.get(wk, True):
+                                        selected_ids.add(cid)
+                                excluded_ids = [cid for cid in comp_ids if cid not in selected_ids]
+                            elif resultado.get('_comp_excluded') is not None:
+                                excluded_ids = resultado['_comp_excluded']
                         if excluded_ids is not None:
                             # Guardar originales para delta del preview
                             resultado['_original_m2_base'] = resultado.get('m2_base_venta', 0)

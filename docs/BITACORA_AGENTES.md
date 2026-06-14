@@ -2612,3 +2612,23 @@ else:
 
 ### Commit:
 `fd63547` — main
+
+---
+
+## TAREA-062: Live header update on checkbox change
+
+### Problema:
+Al deseleccionar un comparable en la tabla, el monto total (header) no se actualizaba. Solo se reflejaba en el delta de m² de la seccion preview.
+
+### Causa:
+El Apply block en `valu.py` solo leia `comp_excluded` (seteado por boton "Aplicar seleccion"). El estado de los checkboxes (`comp_selection`) quedaba en `render_tabla_comparables` sin afectar el resultado.
+
+### Solucion:
+1. Apply block ahora lee de `comp_selection` en CADA rerun (live preview)
+2. Prioridad: `comp_excluded` (Apply button) > `comp_selection` (checkbox) > `_comp_excluded` (cache)
+3. `comp_excluded` se hace `pop` tras leerlo para permitir cambios posteriores de checkbox
+4. Se guardan `_original_m2_base` y `_original_valor_usd` antes de modificar
+5. Delta del preview usa `_original_m2_base` en vez de `m2_base_venta`
+
+### Commit:
+`dbd432b` — main
