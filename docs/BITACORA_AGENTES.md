@@ -2792,5 +2792,37 @@ El motor usa `P33_age_blend` para 5-7 comps (blend entre pool filtrado por edad 
 
 ### Tests: auto_validate + regression — OK
 
+---
+
+## 📅 2026-06-14 — TAREA-069b: Ghost State — Limpieza de Widget Keys en Session State
+
+### Problema:
+La inconsistencia persistía después de TAREA-069. Aunque `forzar_recalculo` se limpiaba correctamente, las **claves de widgets de Streamlit** (`retro_btn_{name}`, `flex_btn_{name}`) sobrevivían entre sesiones porque nunca eran renderizadas en el Portfolio.
+
+### Mecanismo del leak:
+1. Usuario hace clic en Retro → Streamlit setea `st.session_state['retro_btn_X'] = True`.
+2. Usuario navega al Portfolio → el botón Retro no se renderiza → la clave **persiste**.
+3. Usuario re-ingresa a la propiedad → `st.session_state.get('retro_btn_X')` devuelve `True`.
+4. `retro_btn_clicked = True` salta el bloque Pendiente que muestra el estado vacío.
+5. La valuación se ejecuta y la preview stale se muestra inmediatamente.
+
+### Solución:
+1. **Función `_limpiar_estado_propiedad(nombre)`** en `valu.py`: limpia **todas** las claves de sesión asociadas a una propiedad (prefijos fijos + `sel_comp_{name}_*` dinámicos). 27 prefijos conocidos.
+2. **Aplicación en todos los entry points**:
+   - `main()` query param handler (`?prop=xxx`)
+   - `_ir_a_detalle` en `valu_portfolio2.py`
+   - Sidebar navigation handler
+3. **Limpieza específica en Pendiente block**: se limpian `retro_btn_` y `flex_btn_` antes de leerlos para detectar clics activos.
+4. **Ambos botones Volver** (inline + `render_actions`): usan `_limpiar_estado_propiedad` completo.
+5. **Clean flow**: reemplaza pops manuales por `_limpiar_estado_propiedad`.
+
+### Archivos modificados:
+- `valu.py`: función `_limpiar_estado_propiedad`, Pendiente block, entry points, Volver, Clean
+- `valu_portfolio2.py`: `_ir_a_detalle` usa `_limpiar_estado_propiedad`
+- `valu_detail_sections.py`: `render_actions` Volver usa función local equivalente
+- `.opencode/plans/TAREA-069b.md`: plan de la tarea
+
+### Tests: auto_validate + 39/39 regression — OK
+
 ### Commit:
-`1439df2` — main
+...
