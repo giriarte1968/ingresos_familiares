@@ -2506,3 +2506,57 @@ En `valu.py`, el bloque Apply Selection ahora también setea `resultado['m2_base
 ### Validacion:
 - python scripts/auto_validate.py -> OK
 - Tests de regresion -> OK
+
+---
+
+## TAREA-057: Sincronizacion Total Motor <-> UI (Formulas Premium, Barreras, n<3)
+
+### Problemas:
+1. Premium recalculation en Apply Selection no preservaba `mult_factores` ni `valor_activos`.
+2. `precio_m2_ajustado` en UI no reflejaba barrier_penalty.
+3. Badge BARRERA no se mostraba en UI.
+4. n<3 usaba P33 en lugar de MEDIA en UI.
+5. Carga Natural fallaba con `_penalizacion_barrier` en comp con barrier = duro (seteaba 1.0 en vez de 0.97).
+
+### Solucion:
+- Formula premium: `nuevo_valor = (m2_eq * nuevo_vm2 * mult_factores) + valor_activos` donde `mult_factores = (valor_orig - valor_activos) / (m2_eq * m2_base_orig)`
+- `precio_m2_ajustado` ahora incluye `_penalizacion_barrier` en motor
+- UI muestra badge `BARRERA(3%)` si `barrier_penalty < 1.0`
+- Preview y Apply Selection replican guard `n<3 → _calcular_mediana`
+- Carga Natural: barrier logic corrige penalizacion para excluded_hard en zonas blandas
+
+### Archivos:
+- `mercado_inmobiliario.py`: barrier_penalty en comparables_reales (fallback path), n<3 guard, Carga Natural fix
+- `valu.py`: premium formula, n<3 guard
+- `valu_detail_sections.py`: BARRERA badge, dynamic price, n<3 guard
+
+---
+
+## TAREA-058: Dynamic adjusted price in UI (no cache dependency)
+
+### Problema:
+Preview precio usaba `precio_m2_ajustado` del cache (valores sin barrier_penalty).
+
+### Solucion:
+UI calcula dinamicamente: `precio_m2 * time_adjustment * barrier_penalty` en vez de leer `precio_m2_ajustado` del cache.
+
+### Archivos:
+- `valu_detail_sections.py`: formula dinamica en preview
+- `valu.py`: formula dinamica en Apply Selection
+
+---
+
+## TAREA-059: barrier_penalty missing from main path comparables_reales
+
+### Problema:
+La ruta principal (n>=2) de `obtener_mediana_cluster_v2` construia `comparables_reales` SIN `barrier_penalty` y con `precio_m2_ajustado` que excluia `_penalizacion_barrier`. La ruta fallback (n<2) si lo incluia, creando inconsistencia.
+
+El cache quedaba con comps sin `barrier_penalty`, por lo que ni el badge BARRERA ni la formula dinamica funcionaban (default 1.0).
+
+### Solucion:
+- Linea 1293 (insertado): `'barrier_penalty': round(p.get('_penalizacion_barrier', 1.0), 4),`
+- Linea 1294 (modificado): `'precio_m2_ajustado'` ahora incluye `* p.get('_penalizacion_barrier', 1.0)`
+- Cache eliminado para forzar regeneracion
+
+### Commit:
+`2257b0f` — main

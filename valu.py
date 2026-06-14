@@ -417,7 +417,7 @@ def mostrar_dashboard():
             _cl.mark("start")
             propiedades = cargar_propiedades()
             _cl.mark("after_cargar_propiedades")
-            from parsers.valuacion_cache import cargar_cache_valuaciones, CACHE_VERSION
+            from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones, CACHE_VERSION
             _cl.mark("after_import_valuacion_cache")
             _cl.close()
 
@@ -496,7 +496,14 @@ def mostrar_dashboard():
                 entrada_cache = cache_existente.get(p_obj['nombre'], {})
                 resultado_cacheado = entrada_cache.get('resultado_completo', {}) or {}
                 if resultado_cacheado:
-                    print(f"[DEBUG-DASH] {p_obj['nombre']}: Pendiente con cache, usando resultado cacheado ({len(resultado_cacheado.get('comparables_venta',[]))} comps)")
+                    print(f"[DEBUG-DASH] {p_obj['nombre']}: Pendiente re-entry, limpiando preview para empezar desde 0")
+                    del cache_existente[p_obj['nombre']]
+                    guardar_cache_valuaciones(cache_existente)
+                    st.info(f"**{p_obj['nombre']}** está pendiente de valuación. "
+                            "Usa los controles Retro/Flex para generar una previsualización.")
+                    mostrar_detalle_valu(p_obj, {}, actualizar_propiedad)
+                    profile_end(_routing_ctx)
+                    return
                 else:
                     # Carga Natural: si es Pendiente y no hay cache, forzar valuación preview
                     print(f"[DEBUG-DASH] {p_obj['nombre']}: Pendiente sin cache, disparando Carga Natural (preview)")
