@@ -4,6 +4,47 @@ Este documento es el "diario de trabajo". Cada agente de IA que trabaje en este 
 
 ---
 
+## 📅 2026-06-14 — TAREA-067: Propagar _m2_puro y barrier_pct a resolution_metadata
+
+### Problema:
+Header mostraba formato legacy (`m²/USD en Puerto Norte: $2,968 (8 comp.)`) en propiedades
+con comps que cruzan barrera. `barrier_pct` era 0 según la UI → sin badge de barrera.
+
+### Causa raíz:
+`ensamblar_metadata_resolucion()` en `valuacion_helpers.py:211` crea un **nuevo dict**
+copiando solo un subconjunto de `meta_venta`. Las claves `_m2_puro` y `barrier_pct`
+(seteadas en `obtener_mediana_cluster_v2`) **no estaban incluidas**.
+
+### Fix (`valuacion_helpers.py:227-228`):
+Agregar `_m2_puro` y `barrier_pct` al dict de retorno de `ensamblar_metadata_resolucion`.
+
+### Archivos modificados:
+- `parsers/valuacion_helpers.py` (+2 lines)
+
+---
+
+## 📅 2026-06-14 — TAREA-066: Fix Retro first-press showing 0 comps
+
+### Problema:
+Al entrar a una propiedad Pendiente y presionar Retro, la primera vez mostraba 0 comparables. Recién al segundo presionar aparecía la lista.
+
+### Causa raíz:
+El `if st.button()` del Retro corre INLINE durante el body. Cuando el usuario presiona Retro:
+1. **Run #N**: body corre → `forzar=False` → Pendiente block → Carga Natural → `st.rerun()`, return
+2. `mostrar_detalle_valu` NUNCA se llama → `if st.button()` del Retro nunca se evalúa
+3. El click se pierde → próxima ejecución usa `retro_dias=0` en vez de retro
+
+### Fix (`valu.py:492-498`):
+Antes del Pendiente block, detectar el click vía `st.session_state.get(f'retro_btn_{nombre}', False)`. Si `retro_btn_clicked=True`:
+- Setear `preview_mode=True` inmediatamente
+- `and not retro_btn_clicked` en la condición → **skips Pendiente block**
+- Valuation corre, y el callback inline del botón (en `mostrar_detalle_valu`) propaga `forzar_recalculo` + `retro_active`
+
+### Archivos modificados:
+- `valu.py` (+5 lines)
+
+---
+
 ## 📅 2026-06-11 — TAREA-040: Preview valuation — toggles Retro/Flex sin persistir
 
 ### Problema:

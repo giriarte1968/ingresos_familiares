@@ -226,4 +226,6 @@ def ensamblar_metadata_resolucion(
         'n_age_filtered': meta_venta.get('n_age_filtered', 0),
         'rango_anio_usado': meta_venta.get('rango_anio_usado', ''),
         'comparables_reales': meta_venta.get('comparables_reales', []),
+        '_m2_puro': meta_venta.get('_m2_puro'),
+        'barrier_pct': meta_venta.get('barrier_pct', 0),
     }
