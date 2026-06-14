@@ -4,21 +4,24 @@ Este documento es el "diario de trabajo". Cada agente de IA que trabaje en este 
 
 ---
 
-## 📅 2026-06-14 — TAREA-068: Limpiar preview_mode al navegar para evitar stale preview en re-entry
+## 📅 2026-06-14 — TAREA-068 (v2): Eliminar Carga Natural, limpiar siempre en Pendiente re-entry
 
-### Problema:
-Al hacer preview en Pendiente, navegar al Portfolio vía sidebar y re-entrar,
-se mostraba el preview stale en vez de Pendiente.
+### Problema persistente:
+El fix anterior seguía mostrando el preview stale en re-entry. La lógica de
+Carga Natural (auto-trigger de preview en first-time Pendiente) causaba que
+en re-entry sin cache se disparara un nuevo preview automático.
 
-### Causa raíz:
-`preview_mode_{name}` nunca se limpia al navegar vía sidebar (línea 1243).
-Al re-entrar, el Pendiente block (línea 506) chequeaba `preview_mode` como
-guardián del cleanup: al estar `True` (leaked), salteaba la limpieza.
+### Fix definitivo:
+**Eliminar Carga Natural.** El Pendiente block ahora siempre muestra estado
+vacío, sin importar si hay cache o no. El preview solo se activa cuando el
+usuario hace clic explícito en Retro/Flex (que setean `forzar_recalculo=True`,
+saltando el Pendiente block).
 
-### Fixes:
-1. `valu.py:505`: Eliminar guard `if not preview_mode` — siempre limpiar cache en Pendiente re-entry
-2. `valu.py:1243`: Sidebar nav: limpiar `preview_mode_{old_prop}` al navegar a otra página
-3. `valu_portfolio2.py:381`: `_ir_a_detalle`: limpiar `preview_mode_{nombre}` al navegar desde Portfolio
+### Cambios:
+1. `valu.py:500-512`: Pendiente block simplificado — siempre limpiar cache y
+   mostrar `mostrar_detalle_valu({})`. Sin bifurcación cache/no-cache.
+2. `valu.py:1243-1247`: Sidebar nav: limpiar `preview_mode_{old_prop}`
+3. `valu_portfolio2.py:381`: `_ir_a_detalle`: limpiar `preview_mode_{nombre}`
 
 ### Archivos modificados:
 - `valu.py`

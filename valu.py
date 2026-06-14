@@ -489,7 +489,7 @@ def mostrar_dashboard():
                 except Exception:
                     pass
 
-            # ── Si nunca fue valuado (Pendiente): mostrar detalle con 0 comps, salvo que haya cache ──
+            # ── Si nunca fue valuado (Pendiente): mostrar detalle con 0 comps ──
             uv = p_obj.get('_ultima_valuacion', {})
             ya_valuado = bool(uv.get('valor_usd') or uv.get('fuente'))
             # Detectar si el boton Retro fue clickeado (el `if st.button()` inline aun no evaluo)
@@ -498,29 +498,18 @@ def mostrar_dashboard():
             if retro_btn_clicked:
                 st.session_state[f'preview_mode_{p_obj["nombre"]}'] = True
             if not ya_valuado and not forzar and not retro_btn_clicked:
-                # Verificar si hay resultado cacheado con comparables
+                # Pendiente re-entry: limpiar todo y mostrar estado vacio
+                st.session_state.pop(f'preview_mode_{p_obj["nombre"]}', None)
                 cache_existente = cargar_cache_valuaciones()
-                entrada_cache = cache_existente.get(p_obj['nombre'], {})
-                resultado_cacheado = entrada_cache.get('resultado_completo', {}) or {}
-                if resultado_cacheado:
-                    # Re-entry Pendiente: siempre limpiar cache de preview previa
-                    st.session_state.pop(f'preview_mode_{p_obj["nombre"]}', None)
-                    print(f"[DEBUG-DASH] {p_obj['nombre']}: Pendiente re-entry, limpiando preview para empezar desde 0")
+                if p_obj['nombre'] in cache_existente:
                     del cache_existente[p_obj['nombre']]
                     guardar_cache_valuaciones(cache_existente)
-                    st.info(f"**{p_obj['nombre']}** está pendiente de valuación. "
-                            "Usa los controles Retro/Flex para generar una previsualización.")
-                    mostrar_detalle_valu(p_obj, {}, actualizar_propiedad)
-                    profile_end(_routing_ctx)
-                    return
-                else:
-                    # Carga Natural: si es Pendiente y no hay cache, forzar valuación preview
-                    print(f"[DEBUG-DASH] {p_obj['nombre']}: Pendiente sin cache, disparando Carga Natural (preview)")
-                    st.session_state[f'forzar_recalculo_{p_obj["nombre"]}'] = True
-                    st.session_state[f'preview_mode_{p_obj["nombre"]}'] = True
-                    st.rerun()
-                    # El return es redundante por el rerun, pero se mantiene por flujo
-                    return
+                print(f"[DEBUG-DASH] {p_obj['nombre']}: Pendiente, mostrando estado vacio")
+                st.info(f"**{p_obj['nombre']}** está pendiente de valuación. "
+                        "Usa los controles Retro/Flex para generar una previsualización.")
+                mostrar_detalle_valu(p_obj, {}, actualizar_propiedad)
+                profile_end(_routing_ctx)
+                return
 
             _loader = st.empty()
             _loader.markdown("""
