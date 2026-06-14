@@ -492,7 +492,12 @@ def mostrar_dashboard():
             # ── Si nunca fue valuado (Pendiente): mostrar detalle con 0 comps, salvo que haya cache ──
             uv = p_obj.get('_ultima_valuacion', {})
             ya_valuado = bool(uv.get('valor_usd') or uv.get('fuente'))
-            if not ya_valuado and not forzar:
+            # Detectar si el boton Retro fue clickeado (el `if st.button()` inline aun no evaluo)
+            retro_btn_key = f'retro_btn_{p_obj["nombre"]}'
+            retro_btn_clicked = st.session_state.get(retro_btn_key, False)
+            if retro_btn_clicked:
+                st.session_state[f'preview_mode_{p_obj["nombre"]}'] = True
+            if not ya_valuado and not forzar and not retro_btn_clicked:
                 # Verificar si hay resultado cacheado con comparables
                 cache_existente = cargar_cache_valuaciones()
                 entrada_cache = cache_existente.get(p_obj['nombre'], {})
