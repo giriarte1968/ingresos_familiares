@@ -500,6 +500,9 @@ def mostrar_dashboard():
             if not ya_valuado and not forzar and not retro_btn_clicked:
                 # Pendiente re-entry: limpiar todo y mostrar estado vacio
                 st.session_state.pop(f'preview_mode_{p_obj["nombre"]}', None)
+                st.session_state.pop(f'retro_active_{p_obj["nombre"]}', None)
+                st.session_state.pop(f'flex_active_{p_obj["nombre"]}', None)
+                st.session_state.pop(f'manual_preview_{p_obj["nombre"]}', None)
                 cache_existente = cargar_cache_valuaciones()
                 if p_obj['nombre'] in cache_existente:
                     del cache_existente[p_obj['nombre']]
@@ -1164,7 +1167,13 @@ def main():
 
     # ─── Interceptar ?prop=xxx antes de cualquier check de landing ───
     if 'prop' in st.query_params:
-        st.session_state.prop_sel = st.query_params['prop']
+        prop_name = st.query_params['prop']
+        # Limpiar cualquier estado de preview previo para esta propiedad
+        st.session_state.pop(f'preview_mode_{prop_name}', None)
+        st.session_state.pop(f'retro_active_{prop_name}', None)
+        st.session_state.pop(f'flex_active_{prop_name}', None)
+        st.session_state.pop(f'manual_preview_{prop_name}', None)
+        st.session_state.prop_sel = prop_name
         st.session_state.vista_actual = 'dashboard'
         st.query_params.clear()
         st.rerun()
@@ -1232,6 +1241,9 @@ def main():
             old_prop = st.session_state.prop_sel
             if old_prop:
                 st.session_state.pop(f'preview_mode_{old_prop}', None)
+                st.session_state.pop(f'retro_active_{old_prop}', None)
+                st.session_state.pop(f'flex_active_{old_prop}', None)
+                st.session_state.pop(f'manual_preview_{old_prop}', None)
             st.session_state.prop_sel = None
         st.session_state.page = new_page
         

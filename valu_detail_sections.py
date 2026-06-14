@@ -19,6 +19,9 @@ def render_actions(prop, guardar_fn):
     col_back, col_edit, col_recalc, col_clean, col_delete = st.columns([1, 1, 1.5, 1.5, 1])
     with col_back:
         if st.button("<- Volver", type="primary", use_container_width=True):
+            st.session_state.pop(f'preview_mode_{nombre}', None)
+            st.session_state.pop(f'retro_active_{nombre}', None)
+            st.session_state.pop(f'flex_active_{nombre}', None)
             st.session_state.prop_sel = None
             st.rerun()
     with col_edit:
