@@ -2560,3 +2560,25 @@ El cache quedaba con comps sin `barrier_penalty`, por lo que ni el badge BARRERA
 
 ### Commit:
 `2257b0f` — main
+
+---
+
+## TAREA-060: Pendiente re-entry limpia (empezar desde $0)
+
+### Problema:
+Al re-entrar a una propiedad Pendiente que tenia preview cacheado, se mostraba el valor viejo del cache en lugar de empezar desde $0. El usuario debia ver el formulario limpio, no el preview anterior.
+
+### Solucion:
+En `valu.py`, el bloque `if resultado_cacheado` para Pendiente ahora:
+1. Elimina la entrada del cache de valuacion (`del cache_existente[nombre]`)
+2. Muestra `st.info()` con mensaje de pendiente
+3. Renderiza `mostrar_detalle_valu(p_obj, {}, ...)` con resultado vacio ($0)
+4. Retorna temprano, evitando que `valuar_con_cache` cargue el preview viejo
+
+Se agrego `guardar_cache_valuaciones` al import de linea 420 para que este disponible.
+
+### Archivos:
+- `valu.py`: linea 498-506 (nuevo flujo de re-entry), linea 420 (import)
+
+### Commit:
+`22464ff` — main

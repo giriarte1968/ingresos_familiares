@@ -49,4 +49,4 @@
 | TAREA-057 | Sincronización Total Motor <-> UI (Fórmulas Premium y Barreras) | _in_progress_ | 2026-06-13 |
 | TAREA-058 | Calcular precio ajustado dinámicamente en UI (sin depender del cache) | _completada_ | 2026-06-13 |
 | TAREA-059 | barrier_penalty faltante en ruta principal comparables_reales | `2257b0f` | 2026-06-13 |
-| TAREA-060 | Pendiente re-entry limpia (empezar desde $0) | _(pending)_ | 2026-06-13 |
+| TAREA-060 | Pendiente re-entry limpia (empezar desde $0) | `22464ff` | 2026-06-13 |
