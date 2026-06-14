@@ -381,13 +381,15 @@ def render_tabla_comparables(res, prop_name=None):
         # Si todos seleccionados, usar el m² puro del motor (sin barrera) en vez de simple P33
         if not excluded_ids:
             meta = res.get('resolution_metadata', {})
-            p33_p50 = meta.get('_m2_puro', p33_p50)
+            _m2_puro = meta.get('_m2_puro')
+            if _m2_puro is not None:
+                p33_p50 = _m2_puro
 
         col_a, col_b, col_c = st.columns([1, 2, 1.2])
         with col_a:
             original_puro = res.get('_original_m2_puro')
             if original_puro is None:
-                original_puro = res.get('resolution_metadata', {}).get('_m2_puro', 0)
+                original_puro = res.get('resolution_metadata', {}).get('_m2_puro') or 0
             st.metric("Valor/m² por selección", f"${p33_p50:,.0f}",
                       delta=f"{'${:,.0f}'.format(p33_p50 - original_puro)} vs original")
         with col_b:
