@@ -57,4 +57,5 @@
 | TAREA-065 | Separar barrera del m² de comparables (solo afecta al sujeto) | `ca5a8c0` | 2026-06-14 |
 | TAREA-066 | Fix Retro first-press showing 0 comparables | `959279b` | 2026-06-14 |
 | TAREA-067 | Propagar _m2_puro y barrier_pct a resolution_metadata del header | `7d8f4dc` + `f095432` | 2026-06-14 |
-| TAREA-068 | Limpiar preview_mode al navegar para evitar stale preview en re-entry | _(current)_ | 2026-06-14 |
+| TAREA-068 | Limpiar preview_mode al navegar para evitar stale preview en re-entry | `7cb5031` + `af07957` + `2042411` | 2026-06-14 |
+| TAREA-069 | Sincronización Absoluta — Cache Inspection (preview flag) | _(current)_ | 2026-06-14 |

@@ -4,7 +4,34 @@ Este documento es el "diario de trabajo". Cada agente de IA que trabaje en este 
 
 ---
 
-## 📅 2026-06-14 — TAREA-068 (v2): Eliminar Carga Natural, limpiar siempre en Pendiente re-entry
+## 📅 2026-06-14 — TAREA-069: Sincronización Absoluta — Cache Inspection (preview flag)
+
+### Problema:
+Preview stale persistía en re-entry a Pendiente a pesar de limpiar flags de
+sesión en todos los entry points. Los intentos previos (TAREA-068 v1/v2/v3)
+fallaron porque la raíz del leak era `forzar_recalculo` filtrándose entre
+sesiones, saltando el bloque Pendiente.
+
+### Solución Definitiva:
+**Cache Inspection.** En lugar de depender de flags de sesión, se inspecciona
+DIRECTAMENTE el archivo `valuaciones_cache.json` para leer el flag
+`_cache.preview`. Regla:
+
+- `_cache.preview == True` → resultado NO comprometido (nunca se llamó
+  `persistir_valuacion(commit=True)`) → **limpiar siempre**
+- `_cache.preview == False` → resultado comprometido → conservar
+
+Esta limpieza es incondicional: ocurre independientemente del valor de
+`forzar` o `retro_btn_clicked`. Solo el re-entry pasivo (`not forzar and
+not retro_btn_clicked`) muestra vacío; los casos activos (Retro/Flex click)
+caen en el flujo de recalculación después de la limpieza.
+
+### Cambios:
+- `valu.py:500-522`: Pendiente block verifica `_cache.preview` directamente
+- `valu.py:645-651`: Volver button limpia `retro_active`, `flex_active`, `manual_preview`
+
+### Archivos modificados:
+- `valu.py`
 
 ### Problema persistente:
 El fix anterior seguía mostrando el preview stale en re-entry. La lógica de

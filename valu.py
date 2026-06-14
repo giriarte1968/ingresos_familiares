@@ -497,22 +497,29 @@ def mostrar_dashboard():
             retro_btn_clicked = st.session_state.get(retro_btn_key, False)
             if retro_btn_clicked:
                 st.session_state[f'preview_mode_{p_obj["nombre"]}'] = True
-            if not ya_valuado and not forzar and not retro_btn_clicked:
-                # Pendiente re-entry: limpiar todo y mostrar estado vacio
-                st.session_state.pop(f'preview_mode_{p_obj["nombre"]}', None)
-                st.session_state.pop(f'retro_active_{p_obj["nombre"]}', None)
-                st.session_state.pop(f'flex_active_{p_obj["nombre"]}', None)
-                st.session_state.pop(f'manual_preview_{p_obj["nombre"]}', None)
+            if not ya_valuado:
+                # Pendiente: limpiar cache de preview (no comprometido) si existe
                 cache_existente = cargar_cache_valuaciones()
-                if p_obj['nombre'] in cache_existente:
+                entrada_cache = cache_existente.get(p_obj['nombre'], {})
+                resultado_cacheado = entrada_cache.get('resultado_completo', {}) or {}
+                cache_preview = resultado_cacheado.get('_cache', {}).get('preview', True)
+                if resultado_cacheado and cache_preview:
+                    # Cache de preview no comprometido: siempre limpiar al entrar
+                    st.session_state.pop(f'preview_mode_{p_obj["nombre"]}', None)
+                    st.session_state.pop(f'retro_active_{p_obj["nombre"]}', None)
+                    st.session_state.pop(f'flex_active_{p_obj["nombre"]}', None)
+                    st.session_state.pop(f'manual_preview_{p_obj["nombre"]}', None)
                     del cache_existente[p_obj['nombre']]
                     guardar_cache_valuaciones(cache_existente)
-                print(f"[DEBUG-DASH] {p_obj['nombre']}: Pendiente, mostrando estado vacio")
-                st.info(f"**{p_obj['nombre']}** está pendiente de valuación. "
-                        "Usa los controles Retro/Flex para generar una previsualización.")
-                mostrar_detalle_valu(p_obj, {}, actualizar_propiedad)
-                profile_end(_routing_ctx)
-                return
+                    print(f"[DEBUG-DASH] {p_obj['nombre']}: Limpiado cache de preview sin comprometer (preview=True)")
+                # Si es re-entry pasivo (sin recalculación forzada), mostrar vacío
+                if not forzar and not retro_btn_clicked:
+                    print(f"[DEBUG-DASH] {p_obj['nombre']}: Pendiente re-entry pasivo, mostrando vacío")
+                    st.info(f"**{p_obj['nombre']}** está pendiente de valuación. "
+                            "Usa los controles Retro/Flex para generar una previsualización.")
+                    mostrar_detalle_valu(p_obj, {}, actualizar_propiedad)
+                    profile_end(_routing_ctx)
+                    return
 
             _loader = st.empty()
             _loader.markdown("""
@@ -644,6 +651,9 @@ def mostrar_dashboard():
                 with profile_block("detalle_volver_btn", None):
                     if st.button("← Volver al Portafolio"):
                         st.session_state.pop(f'preview_mode_{p_obj.get("nombre","")}', None)
+                        st.session_state.pop(f'retro_active_{p_obj.get("nombre","")}', None)
+                        st.session_state.pop(f'flex_active_{p_obj.get("nombre","")}', None)
+                        st.session_state.pop(f'manual_preview_{p_obj.get("nombre","")}', None)
                         st.session_state.prop_sel = None
                         st.session_state['_force_nav_page'] = 'Portfolio'
                         if 'prop' in st.query_params:
