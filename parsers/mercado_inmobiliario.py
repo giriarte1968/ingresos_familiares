@@ -1139,8 +1139,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                     'm2': p.get('m2'),
                     'precio_m2': p.get('valor_m2'),
                     'time_adjustment': round(p.get('_time_adjustment', 1.0), 4),
-                    'barrier_penalty': round(p.get('_penalizacion_barrier', 1.0), 4),
-                    'precio_m2_ajustado': round(p.get('valor_m2', 0) * p.get('_time_adjustment', 1.0) * p.get('_penalizacion_barrier', 1.0), 2),
+                    'precio_m2_ajustado': round(p.get('valor_m2', 0) * p.get('_time_adjustment', 1.0), 2),
                     'dormitorios': p.get('dormitorios'),
                     'direccion': (p.get('direccion_limpia') or p.get('direccion', ''))[:60],
                     'direccion_limpia': _formatear_direccion_limpia(p),
@@ -1281,7 +1280,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         else:
             logger.info(f"[AGE_FILTER] No aplicado: solo {n_age_filtered} post-filtro (mín 5 en ±15/±30)")
 
-        precios = [p['valor_m2'] * p.get('_penalizacion_barrier', 1.0) * p.get('_time_adjustment', 1.0) for p in pool_final]
+        precios = [p['valor_m2'] * p.get('_time_adjustment', 1.0) for p in pool_final]
         n_raw = len(precios)
         
         # Build comparables_reales early so all return paths include them
@@ -1291,8 +1290,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 'm2': p.get('m2'),
                 'precio_m2': p.get('valor_m2'),
                 'time_adjustment': round(p.get('_time_adjustment', 1.0), 4),
-                'barrier_penalty': round(p.get('_penalizacion_barrier', 1.0), 4),
-                'precio_m2_ajustado': round(p.get('valor_m2', 0) * p.get('_time_adjustment', 1.0) * p.get('_penalizacion_barrier', 1.0), 2),
+                'precio_m2_ajustado': round(p.get('valor_m2', 0) * p.get('_time_adjustment', 1.0), 2),
                 'dormitorios': p.get('dormitorios'),
                 'direccion': (p.get('direccion_limpia') or p.get('direccion', ''))[:60],
                 'direccion_limpia': _formatear_direccion_limpia(p),
@@ -1379,9 +1377,8 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         precios_cross = []
         
         for p in pool_final:
-            penalty = p.get('_penalizacion_barrier', 1.0)
             ta = p.get('_time_adjustment', 1.0)
-            val = p.get('valor_m2', 0) * penalty * ta
+            val = p.get('valor_m2', 0) * ta
             if val <= 0:
                 continue
             if p.get('_cross_soft', False):
@@ -1538,7 +1535,18 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             percentil_usado = 'P50_alquiler'
         
         n_filtradas = len(precios_filtrados)
-        
+
+        # M² puro (sin barrera en comparables) para display en header
+        m2_puro = valor
+        # Barrera del sujeto: ajuste proporcional según ratio de comps que cruzan
+        n_cross = len(precios_cross)
+        n_total = len(precios_cross) + len(precios_same)
+        if n_total > 0 and n_cross > 0:
+            barrier_pct = round((n_cross / n_total) * 0.03, 4)
+            valor = round(m2_puro * (1 - barrier_pct), 2)
+        else:
+            barrier_pct = 0.0
+
         meta = {
             'percentil_usado': percentil_usado,
             'n_raw': n_raw,
@@ -1586,6 +1594,9 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             'base_all': round(base_all_val, 2) if base_all_val is not None else None,
             # Comparables reales (muestra de hasta 30/60)
             'comparables_reales': comparables_reales,
+            # M² puro sin barrera (para display en header)
+            '_m2_puro': round(m2_puro, 2),
+            'barrier_pct': barrier_pct,
             # Retro
             'retro_activo': bool(retro_dias),
             'total_dias_ventana': window_dias_usado,

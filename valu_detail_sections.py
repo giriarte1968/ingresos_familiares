@@ -108,6 +108,8 @@ def render_header(prop, res):
     valor_usd = res.get('valor_propiedad_usd', 0)
     dolar = res.get('usdt_ars', 1480)
     m2_base = res.get('m2_base_venta', 0)
+    m2_puro = res.get('_m2_puro', m2_base)
+    barrier_pct = res.get('barrier_pct', 0)
     n_comps = res.get('resolution_metadata', {}).get('n_propiedades', 0)
 
     c_h1, c_h2 = st.columns([3, 2])
@@ -140,7 +142,8 @@ def render_header(prop, res):
             </div>
             """, unsafe_allow_html=True)
         else:
-            st.markdown(hero_price(valor_usd, valor_usd*dolar, dolar, m2_base, n_comps, zona), unsafe_allow_html=True)
+            st.markdown(hero_price(valor_usd, valor_usd*dolar, dolar, m2_base, n_comps, zona,
+                                  m2_puro=m2_puro, barrier_pct=barrier_pct), unsafe_allow_html=True)
 
 
 def render_rango(res, valor_usd):
@@ -324,12 +327,10 @@ def render_tabla_comparables(res, prop_name=None):
         ta = c.get('time_adjustment', 1.0)
         bp = c.get('barrier_penalty', 1.0)
         vm2_orig = c.get('precio_m2', 0)
-        vm2_ajust = c.get('precio_m2_ajustado', vm2_orig * ta * bp)
+        vm2_ajust = c.get('precio_m2_ajustado', vm2_orig * ta)
         badges = ""
         if ta != 1.0:
             badges += " <span style='background:#ff6b35;color:white;font-size:9px;padding:1px 4px;border-radius:6px;font-weight:bold;'>RETRO</span>"
-        if bp != 1.0:
-            badges += f" <span style='background:#e74c3c;color:white;font-size:9px;padding:1px 4px;border-radius:6px;font-weight:bold;'>BARRERA ({int(round((1-bp)*100))})%</span>"
         if flex_dormitorios and sujeto_dorms is not None and c.get('dormitorios') != sujeto_dorms:
             badges += " <span style='background:#9b59b6;color:white;font-size:9px;padding:1px 4px;border-radius:6px;font-weight:bold;'>FLEX</span>"
         if badges:
@@ -348,7 +349,7 @@ def render_tabla_comparables(res, prop_name=None):
     # Recálculo automático P33/P50 desde los seleccionados
     if selected_ids:
         selected_comps = [c for c in comparables if _get_comp_id(c) in selected_ids]
-        precios = [c.get('precio_m2', 0) * c.get('time_adjustment', 1.0) * c.get('barrier_penalty', 1.0) for c in selected_comps]
+        precios = [c.get('precio_m2', 0) * c.get('time_adjustment', 1.0) for c in selected_comps]
         precios_sorted = sorted(precios)
         n_sel = len(precios_sorted)
         
@@ -376,14 +377,14 @@ def render_tabla_comparables(res, prop_name=None):
                 p33_p50 = precios_sorted[max(0, int(n_sel * 0.33) - 1)]
                 label_short = 'P33'
 
-        # Si todos seleccionados, usar el valor del motor (P33_age_blend) en vez de simple P33
+        # Si todos seleccionados, usar el m² puro del motor (sin barrera) en vez de simple P33
         if not excluded_ids:
-            p33_p50 = res.get('m2_base_venta', p33_p50)
-        
+            p33_p50 = res.get('_m2_puro', p33_p50)
+
         col_a, col_b, col_c = st.columns([1, 2, 1.2])
         with col_a:
             st.metric("Valor/m² por selección", f"${p33_p50:,.0f}",
-                      delta=f"{'${:,.0f}'.format(p33_p50 - res.get('_original_m2_base', res.get('m2_base_venta', 0)))} vs original")
+                      delta=f"{'${:,.0f}'.format(p33_p50 - res.get('_original_m2_puro', res.get('_m2_puro', 0)))} vs original")
         with col_b:
             st.caption(f"{label_short} sobre {n_sel} comps seleccionados de {len(comparables)} totales")
         with col_c:

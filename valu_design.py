@@ -303,13 +303,16 @@ def property_card(nombre, zona, m2, dorms, tipo, valor_usd, cap_rate, alq_ars, n
             + f'<div style="color:#9CA3AF;font-size:12px;">Cap Rate: {cap_rate*100:.1f}% · Alq: {alq_text} ARS</div>'
             + '</div>')
 
-def hero_price(valor_usd, valor_ars, dolar, m2_base, n_comps, zona):
+def hero_price(valor_usd, valor_ars, dolar, m2_base, n_comps, zona, m2_puro=None, barrier_pct=0):
+    m2_line = f"m²/USD en {zona}: ${m2_base:,.0f} ({n_comps} comp.)"
+    if m2_puro is not None and barrier_pct > 0:
+        m2_line = f"m² puro: ${m2_puro:,.0f} | Barrera: -{barrier_pct*100:.1f}% → m² ajustado: ${m2_base:,.0f} ({n_comps} comp.)"
     return f"""
     <div style="background:linear-gradient(135deg,#006AFF 0%,#004FC4 100%);border-radius:16px;padding:28px;color:white;font-family:'Inter',sans-serif;">
         <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;opacity:0.8;margin-bottom:8px;">VALUACIÓN VPP</div>
         <div style="font-size:38px;font-weight:800;line-height:1.1;">$ {valor_usd:,.0f} <span style="font-size:18px;font-weight:500;">USD</span></div>
         <div style="font-size:16px;opacity:0.85;margin-top:4px;">${valor_ars:,.0f} ARS</div>
-        <div style="font-size:12px;opacity:0.6;margin-top:12px;">Dólar ${dolar:,.0f} · m²/USD en {zona}: ${m2_base:,.0f} ({n_comps} comp.)</div>
+        <div style="font-size:12px;opacity:0.6;margin-top:12px;">Dólar ${dolar:,.0f} · {m2_line}</div>
     </div>
     """
 

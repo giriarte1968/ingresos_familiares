@@ -2666,5 +2666,38 @@ El motor usa `P33_age_blend` para 5-7 comps (blend entre pool filtrado por edad 
 
 ### Tests: auto_validate + regression — OK
 
+---
+
+## TAREA-065: Separar barrera del m² de comparables (solo afecta al sujeto)
+
+### Problema conceptual:
+`barrier_penalty` (×0.97) se aplicaba al precio de cada comparable que cruza una barrera geográfica, afectando su `precio_m2_ajustado` y por ende el P33/blend. Esto es incorrecto: el precio de un comparable ya refleja su propia ubicación en el mercado. La barrera debe afectar solo al sujeto en el cálculo final.
+
+### Solución:
+
+**1. Motor (`mercado_inmobiliario.py`):**
+- Quitar `_penalizacion_barrier` de `precio_m2_ajustado` en ambos paths (normal + fallback)
+- Quitar `_penalizacion_barrier` de la lista `precios` que alimenta P33/blend
+- Quitar `_penalizacion_barrier` del split same/cross (líneas 1381-1390)
+- Agregar ajuste de barrera al SUJETO: `barrier_pct = (n_cross / n_total) * 0.03`, aplicado como `valor = m2_puro * (1 - barrier_pct)`
+- Agregar `_m2_puro` y `barrier_pct` al meta dict
+
+**2. UI (`valu_detail_sections.py`):**
+- Eliminar badge `BARRERA (3)%` de la tabla de comparables
+- Preview: quitar `barrier_penalty` del cálculo, usar `_m2_puro` cuando todos seleccionados
+- Header: muestra `m² puro: $X | Barrera: -Y% → m² ajustado: $Z`
+
+**3. `valu_design.py`:** `hero_price` con parámetros `m2_puro`/`barrier_pct`
+
+**4. `valu.py`:** Quitar `barrier_penalty` del Apply block, guardar `_original_m2_puro`
+
+### Archivos:
+- `parsers/mercado_inmobiliario.py`: líneas 1143, 1284, 1295, 1382-1384, 1539-1546, 1596
+- `valu_detail_sections.py`: líneas 331-332, 349, 377-379, 385-386, 104-143
+- `valu_design.py`: hero_price signature
+- `valu.py`: líneas 590-596
+
+### Tests: auto_validate + regression — OK
+
 ### Commit:
 `1439df2` — main
