@@ -56,4 +56,5 @@
 | TAREA-064 | Fix preview/motor m² mismatch for n=5-7 when all comps selected | `c2aa127` + `4b0d951` | 2026-06-13 |
 | TAREA-065 | Separar barrera del m² de comparables (solo afecta al sujeto) | `ca5a8c0` | 2026-06-14 |
 | TAREA-066 | Fix Retro first-press showing 0 comparables | `959279b` | 2026-06-14 |
-| TAREA-067 | Propagar _m2_puro y barrier_pct a resolution_metadata del header | _(current)_ | 2026-06-14 |
+| TAREA-067 | Propagar _m2_puro y barrier_pct a resolution_metadata del header | `7d8f4dc` + `f095432` | 2026-06-14 |
+| TAREA-068 | Limpiar preview_mode al navegar para evitar stale preview en re-entry | _(current)_ | 2026-06-14 |

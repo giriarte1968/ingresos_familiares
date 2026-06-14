@@ -4,6 +4,28 @@ Este documento es el "diario de trabajo". Cada agente de IA que trabaje en este 
 
 ---
 
+## 📅 2026-06-14 — TAREA-068: Limpiar preview_mode al navegar para evitar stale preview en re-entry
+
+### Problema:
+Al hacer preview en Pendiente, navegar al Portfolio vía sidebar y re-entrar,
+se mostraba el preview stale en vez de Pendiente.
+
+### Causa raíz:
+`preview_mode_{name}` nunca se limpia al navegar vía sidebar (línea 1243).
+Al re-entrar, el Pendiente block (línea 506) chequeaba `preview_mode` como
+guardián del cleanup: al estar `True` (leaked), salteaba la limpieza.
+
+### Fixes:
+1. `valu.py:505`: Eliminar guard `if not preview_mode` — siempre limpiar cache en Pendiente re-entry
+2. `valu.py:1243`: Sidebar nav: limpiar `preview_mode_{old_prop}` al navegar a otra página
+3. `valu_portfolio2.py:381`: `_ir_a_detalle`: limpiar `preview_mode_{nombre}` al navegar desde Portfolio
+
+### Archivos modificados:
+- `valu.py`
+- `valu_portfolio2.py`
+
+---
+
 ## 📅 2026-06-14 — TAREA-067: Propagar _m2_puro y barrier_pct a resolution_metadata
 
 ### Problema:
