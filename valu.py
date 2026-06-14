@@ -588,8 +588,9 @@ def mostrar_dashboard():
                         if excluded_ids is not None:
                             # Guardar originales para delta del preview
                             resultado['_original_m2_base'] = resultado.get('m2_base_venta', 0)
-                            resultado['_original_m2_puro'] = resultado.get('_m2_puro', 0)
                             resultado['_original_valor_usd'] = resultado.get('valor_propiedad_usd', 0)
+                            _meta = resultado.get('resolution_metadata', {})
+                            resultado['_original_m2_puro'] = _meta.get('_m2_puro', 0)
                             if excluded_ids:
                                 # Solo recalcular cuando hay exclusiones reales
                                 comps_filtrados = [c for c in comps_orig if _get_comp_id(c) not in excluded_ids]

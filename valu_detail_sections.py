@@ -107,10 +107,11 @@ def render_header(prop, res):
     zona = prop.get('zona', 'Oeste')
     valor_usd = res.get('valor_propiedad_usd', 0)
     dolar = res.get('usdt_ars', 1480)
+    meta = res.get('resolution_metadata', {})
     m2_base = res.get('m2_base_venta', 0)
-    m2_puro = res.get('_m2_puro', m2_base)
-    barrier_pct = res.get('barrier_pct', 0)
-    n_comps = res.get('resolution_metadata', {}).get('n_propiedades', 0)
+    m2_puro = meta.get('_m2_puro', m2_base)
+    barrier_pct = meta.get('barrier_pct', 0)
+    n_comps = meta.get('n_propiedades', 0)
 
     c_h1, c_h2 = st.columns([3, 2])
     with c_h1:
@@ -379,12 +380,16 @@ def render_tabla_comparables(res, prop_name=None):
 
         # Si todos seleccionados, usar el m² puro del motor (sin barrera) en vez de simple P33
         if not excluded_ids:
-            p33_p50 = res.get('_m2_puro', p33_p50)
+            meta = res.get('resolution_metadata', {})
+            p33_p50 = meta.get('_m2_puro', p33_p50)
 
         col_a, col_b, col_c = st.columns([1, 2, 1.2])
         with col_a:
+            original_puro = res.get('_original_m2_puro')
+            if original_puro is None:
+                original_puro = res.get('resolution_metadata', {}).get('_m2_puro', 0)
             st.metric("Valor/m² por selección", f"${p33_p50:,.0f}",
-                      delta=f"{'${:,.0f}'.format(p33_p50 - res.get('_original_m2_puro', res.get('_m2_puro', 0)))} vs original")
+                      delta=f"{'${:,.0f}'.format(p33_p50 - original_puro)} vs original")
         with col_b:
             st.caption(f"{label_short} sobre {n_sel} comps seleccionados de {len(comparables)} totales")
         with col_c:
