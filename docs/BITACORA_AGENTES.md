@@ -2582,3 +2582,33 @@ Se agrego `guardar_cache_valuaciones` al import de linea 420 para que este dispo
 
 ### Commit:
 `22464ff` — main
+
+---
+
+## TAREA-061: Fix Pendiente re-entry detection (check preview_mode flag)
+
+### Problema:
+El fix de TAREA-060 limpiaba el cache en CADA rerun de un Pendiente, incluso cuando el usuario estaba interactuando con widgets (checkbox, slider). Al deseleccionar un comparable, el cache se borraba y la tabla de comparables desaparecia.
+
+### Solucion:
+Agregar guard `preview_mode` al condicional de limpieza:
+
+```python
+if resultado_cacheado:
+    if not st.session_state.get(f'preview_mode_{p_obj["nombre"]}', False):
+        # RE-ENTRY real: limpiar cache, mostrar $0
+        ...
+    # preview_mode activo (widget interaction): mantener cache
+else:
+    # Carga Natural
+```
+
+### Tabla de comportamientos:
+| Escenario | preview_mode | Cache | Accion |
+|---|---|---|---|
+| 1ra entrada (Carga Natural) | True | no existe | valuar preview |
+| Widget interaction (checkbox) | True | existe | mantener cache |
+| Click Volver -> re-entry | False | existe | limpiar -> $0 |
+
+### Commit:
+`fd63547` — main

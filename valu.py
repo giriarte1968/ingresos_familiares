@@ -563,16 +563,25 @@ def mostrar_dashboard():
 
                     # ── Aplicar exclusión de comparables seleccionada por el usuario ──
                     comp_excluded_key = f'comp_excluded_{prop_name}'
+                    sel_key = f'comp_selection_{prop_name}'
                     comps_orig = resultado.get('comparables_venta')
                     if not comps_orig:
                         pass
                     else:
                         excluded_ids = None
                         if comp_excluded_key in st.session_state:
-                            excluded_ids = st.session_state[comp_excluded_key]
+                            excluded_ids = st.session_state.pop(comp_excluded_key)
+                        elif sel_key in st.session_state:
+                            # Live preview desde el estado de checkboxes
+                            comp_ids = [_get_comp_id(c) for c in comps_orig]
+                            selected_ids = st.session_state[sel_key]
+                            excluded_ids = [cid for cid in comp_ids if cid not in selected_ids]
                         elif resultado.get('_comp_excluded') is not None:
                             excluded_ids = resultado['_comp_excluded']
                         if excluded_ids is not None:
+                            # Guardar originales para delta del preview
+                            resultado['_original_m2_base'] = resultado.get('m2_base_venta', 0)
+                            resultado['_original_valor_usd'] = resultado.get('valor_propiedad_usd', 0)
                             comps_filtrados = [c for c in comps_orig if _get_comp_id(c) not in excluded_ids]
                             if len(comps_filtrados) >= 2:
                                 precios = [c.get('precio_m2', 0) * c.get('time_adjustment', 1.0) * c.get('barrier_penalty', 1.0) for c in comps_filtrados]

@@ -370,7 +370,7 @@ def render_tabla_comparables(res, prop_name=None):
         col_a, col_b, col_c = st.columns([1, 2, 1.2])
         with col_a:
             st.metric("Valor/m² por selección", f"${p33_p50:,.0f}",
-                      delta=f"{'${:,.0f}'.format(p33_p50 - res.get('m2_base_venta', 0))} vs original")
+                      delta=f"{'${:,.0f}'.format(p33_p50 - res.get('_original_m2_base', res.get('m2_base_venta', 0)))} vs original")
         with col_b:
             st.caption(f"{label_short} sobre {n_sel} comps seleccionados de {len(comparables)} totales")
         with col_c:
