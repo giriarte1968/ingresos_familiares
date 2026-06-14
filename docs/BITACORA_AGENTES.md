@@ -2632,3 +2632,39 @@ El Apply block en `valu.py` solo leia `comp_excluded` (seteado por boton "Aplica
 
 ### Commit:
 `dbd432b` — main
+
+---
+
+## TAREA-063: Read widget keys directly for instant header sync on checkbox
+
+### Problema:
+El header se actualizaba 1 rerun atrasado porque el Apply block leia `sel_key` de `st.session_state`, pero `render_tabla_comparables` lo actualiza DESPUES del Apply block.
+
+### Solucion:
+Leer el estado ACTUAL de cada checkbox desde su widget key (`sel_comp_{prop_name}_{comp_id}`), que Streamlit actualiza antes del rerun. Esto elimina el delay de 1 rerun y sincroniza el header instantaneamente con cada click.
+
+### Archivos:
+- `valu.py`: lineas 573-585
+
+---
+
+## TAREA-064: Fix preview/motor m² mismatch for n=5-7 when all comps selected
+
+### Problema:
+El preview y Apply block mostraban m² distinto al header cuando todos los comps estaban seleccionados (n=7): header $3,106 (P33_age_blend del motor) vs preview $2,557 (P33 simple).
+
+### Causa:
+El motor usa `P33_age_blend` para 5-7 comps (blend entre pool filtrado por edad y pool completo), pero la UI calculaba P33 simple en preview y Apply block, produciendo valores diferentes incluso con la misma selección.
+
+### Solución:
+- **`valu.py`**: Envolver recálculo del Apply block dentro de `if excluded_ids:` (saltar cuando todos seleccionados = `[]`), conservando el valor del motor.
+- **`render_tabla_comparables.py`**: Después de calcular P33/P40/P45/P50 simple, si `not excluded_ids`, sobreescribir `p33_p50` con `res.get('m2_base_venta', p33_p50)` (valor del motor).
+
+### Archivos:
+- `valu.py`: Líneas 590-631
+- `valu_detail_sections.py`: Líneas 369-370
+
+### Tests: auto_validate + regression — OK
+
+### Commit:
+`1439df2` — main

@@ -52,3 +52,5 @@
 | TAREA-060 | Pendiente re-entry limpia (empezar desde $0) | `22464ff` | 2026-06-13 |
 | TAREA-061 | Fix Pendiente re-entry detection (check preview_mode flag) | `fd63547` | 2026-06-13 |
 | TAREA-062 | Live header update on checkbox change (read from sel_key) | `dbd432b` | 2026-06-13 |
+| TAREA-063 | Read widget keys directly for instant header sync on checkbox | `1439df2` | 2026-06-13 |
+| TAREA-064 | Fix preview/motor m² mismatch for n=5-7 when all comps selected | _(current)_ | 2026-06-13 |

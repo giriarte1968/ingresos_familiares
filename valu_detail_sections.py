@@ -366,6 +366,10 @@ def render_tabla_comparables(res, prop_name=None):
             else:
                 p33_p50 = precios_sorted[max(0, int(n_sel * 0.33) - 1)]
                 label_short = 'P33'
+
+        # Si todos seleccionados, usar el valor del motor (P33_age_blend) en vez de simple P33
+        if not excluded_ids:
+            p33_p50 = res.get('m2_base_venta', p33_p50)
         
         col_a, col_b, col_c = st.columns([1, 2, 1.2])
         with col_a:

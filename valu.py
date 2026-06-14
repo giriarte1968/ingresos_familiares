@@ -587,46 +587,48 @@ def mostrar_dashboard():
                             # Guardar originales para delta del preview
                             resultado['_original_m2_base'] = resultado.get('m2_base_venta', 0)
                             resultado['_original_valor_usd'] = resultado.get('valor_propiedad_usd', 0)
-                            comps_filtrados = [c for c in comps_orig if _get_comp_id(c) not in excluded_ids]
-                            if len(comps_filtrados) >= 2:
-                                precios = [c.get('precio_m2', 0) * c.get('time_adjustment', 1.0) * c.get('barrier_penalty', 1.0) for c in comps_filtrados]
-                                precios_sorted = sorted(precios)
-                                n_sel = len(precios_sorted)
-                                from parsers.cluster_filters import seleccionar_percentil_por_edad
-                                if n_sel < 3:
-                                    nuevo_vm2 = _calcular_mediana(precios_sorted)
-                                else:
-                                    percentil, _ = seleccionar_percentil_por_edad(True, n_sel)
-                                    if percentil == 50:
+                            if excluded_ids:
+                                # Solo recalcular cuando hay exclusiones reales
+                                comps_filtrados = [c for c in comps_orig if _get_comp_id(c) not in excluded_ids]
+                                if len(comps_filtrados) >= 2:
+                                    precios = [c.get('precio_m2', 0) * c.get('time_adjustment', 1.0) * c.get('barrier_penalty', 1.0) for c in comps_filtrados]
+                                    precios_sorted = sorted(precios)
+                                    n_sel = len(precios_sorted)
+                                    from parsers.cluster_filters import seleccionar_percentil_por_edad
+                                    if n_sel < 3:
                                         nuevo_vm2 = _calcular_mediana(precios_sorted)
-                                    elif percentil == 45:
-                                        nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.45) - 1)]
-                                    elif percentil == 40:
-                                        nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.40) - 1)]
                                     else:
-                                        nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.33) - 1)]
-                                
-                                m2_eq = resultado.get('m2_equivalentes', 0)
-                                valor_orig = resultado.get('valor_propiedad_usd', 0)
-                                valor_activos = resultado.get('valor_activos', {}).get('total', 0)
-                                m2_base_orig = resultado.get('m2_base_venta', 1.0)
-                                
-                                if m2_eq > 0 and m2_base_orig > 0:
-                                    # Extraer multiplicador implícito de factores y NLP
-                                    mult_factores = (valor_orig - valor_activos) / (m2_eq * m2_base_orig)
-                                    nuevo_valor = (m2_eq * nuevo_vm2 * mult_factores) + valor_activos
-                                    v_cons = nuevo_valor * 0.93
-                                    v_opt = nuevo_valor * 1.07
-                                    resultado = dict(resultado)
-                                    resultado['valor_propiedad_usd'] = round(nuevo_valor, 0)
-                                    resultado['valor_m2'] = nuevo_vm2
-                                    resultado['m2_base_venta'] = nuevo_vm2
-                                    resultado['valor_m2_actual_usd'] = round(nuevo_valor / m2_eq, 2)
-                                    resultado['valor_venta_conservador'] = v_cons
-                                    resultado['valor_venta_optimista'] = v_opt
-                                    resultado['_comp_excluded'] = excluded_ids
-                                    resultado['_n_excluidos'] = len(excluded_ids)
-                                    logger.info(f"[APPLY] {prop_name}: {n_sel} comps, valor=${nuevo_valor:,.0f}")
+                                        percentil, _ = seleccionar_percentil_por_edad(True, n_sel)
+                                        if percentil == 50:
+                                            nuevo_vm2 = _calcular_mediana(precios_sorted)
+                                        elif percentil == 45:
+                                            nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.45) - 1)]
+                                        elif percentil == 40:
+                                            nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.40) - 1)]
+                                        else:
+                                            nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.33) - 1)]
+
+                                    m2_eq = resultado.get('m2_equivalentes', 0)
+                                    valor_orig = resultado.get('valor_propiedad_usd', 0)
+                                    valor_activos = resultado.get('valor_activos', {}).get('total', 0)
+                                    m2_base_orig = resultado.get('m2_base_venta', 1.0)
+
+                                    if m2_eq > 0 and m2_base_orig > 0:
+                                        # Extraer multiplicador implícito de factores y NLP
+                                        mult_factores = (valor_orig - valor_activos) / (m2_eq * m2_base_orig)
+                                        nuevo_valor = (m2_eq * nuevo_vm2 * mult_factores) + valor_activos
+                                        v_cons = nuevo_valor * 0.93
+                                        v_opt = nuevo_valor * 1.07
+                                        resultado = dict(resultado)
+                                        resultado['valor_propiedad_usd'] = round(nuevo_valor, 0)
+                                        resultado['valor_m2'] = nuevo_vm2
+                                        resultado['m2_base_venta'] = nuevo_vm2
+                                        resultado['valor_m2_actual_usd'] = round(nuevo_valor / m2_eq, 2)
+                                        resultado['valor_venta_conservador'] = v_cons
+                                        resultado['valor_venta_optimista'] = v_opt
+                                        resultado['_comp_excluded'] = excluded_ids
+                                        resultado['_n_excluidos'] = len(excluded_ids)
+                                        logger.info(f"[APPLY] {prop_name}: {n_sel} comps, valor=${nuevo_valor:,.0f}")
 
                 with profile_block("detalle_volver_btn", None):
                     if st.button("← Volver al Portafolio"):
