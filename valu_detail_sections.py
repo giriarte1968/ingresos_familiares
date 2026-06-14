@@ -131,7 +131,16 @@ def render_header(prop, res):
         </div>
         """, unsafe_allow_html=True)
     with c_h2:
-        st.markdown(hero_price(valor_usd, valor_usd*dolar, dolar, m2_base, n_comps, zona), unsafe_allow_html=True)
+        if m2_base == 0:
+            st.markdown("""
+            <div style="background:#F4F6FB;border-radius:16px;padding:28px;text-align:center;height:100%;display:flex;flex-direction:column;justify-content:center;font-family:'Inter',sans-serif;">
+                <div style="font-size:14px;color:#6B7280;margin-bottom:8px;">VALUACIÓN VPP</div>
+                <div style="font-size:24px;font-weight:700;color:#9CA3AF;">Sin selección</div>
+                <div style="font-size:13px;color:#9CA3AF;margin-top:8px;">Seleccioná al menos 2 comparables</div>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown(hero_price(valor_usd, valor_usd*dolar, dolar, m2_base, n_comps, zona), unsafe_allow_html=True)
 
 
 def render_rango(res, valor_usd):

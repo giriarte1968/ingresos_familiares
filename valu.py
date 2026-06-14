@@ -246,10 +246,11 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     _dl.mark("after_render_header")
 
     st.markdown("<br>", unsafe_allow_html=True)
-    with profile_block("render_rango", prop):
-        render_rango(res, valor_usd)
-    _dl.mark("after_render_rango")
-    st.markdown("<br>", unsafe_allow_html=True)
+    if valor_usd > 0:
+        with profile_block("render_rango", prop):
+            render_rango(res, valor_usd)
+        _dl.mark("after_render_rango")
+        st.markdown("<br>", unsafe_allow_html=True)
 
     if insuficientes:
         st.warning(
@@ -259,10 +260,11 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
             "para definir el valor manualmente."
         )
 
-    with profile_block("render_metricas", prop):
-        render_metricas(prop, res, valor_usd, dolar)
-    _dl.mark("after_render_metricas")
-    st.markdown("<br>", unsafe_allow_html=True)
+    if valor_usd > 0:
+        with profile_block("render_metricas", prop):
+            render_metricas(prop, res, valor_usd, dolar)
+        _dl.mark("after_render_metricas")
+        st.markdown("<br>", unsafe_allow_html=True)
 
     # ─── 📊 Comparables ───
     prop_name = prop.get('nombre', '')
@@ -614,7 +616,6 @@ def mostrar_dashboard():
                                     m2_base_orig = resultado.get('m2_base_venta', 1.0)
 
                                     if m2_eq > 0 and m2_base_orig > 0:
-                                        # Extraer multiplicador implícito de factores y NLP
                                         mult_factores = (valor_orig - valor_activos) / (m2_eq * m2_base_orig)
                                         nuevo_valor = (m2_eq * nuevo_vm2 * mult_factores) + valor_activos
                                         v_cons = nuevo_valor * 0.93
@@ -629,6 +630,18 @@ def mostrar_dashboard():
                                         resultado['_comp_excluded'] = excluded_ids
                                         resultado['_n_excluidos'] = len(excluded_ids)
                                         logger.info(f"[APPLY] {prop_name}: {n_sel} comps, valor=${nuevo_valor:,.0f}")
+                                else:
+                                    # Menos de 2 comps seleccionados → limpiar header
+                                    resultado = dict(resultado)
+                                    resultado['valor_propiedad_usd'] = 0
+                                    resultado['valor_m2'] = 0
+                                    resultado['m2_base_venta'] = 0
+                                    resultado['valor_m2_actual_usd'] = 0
+                                    resultado['valor_venta_conservador'] = 0
+                                    resultado['valor_venta_optimista'] = 0
+                                    resultado['_comp_excluded'] = excluded_ids
+                                    resultado['_n_excluidos'] = len(excluded_ids)
+                                    logger.info(f"[APPLY] {prop_name}: <2 comps, header limpiado")
 
                 with profile_block("detalle_volver_btn", None):
                     if st.button("← Volver al Portafolio"):
