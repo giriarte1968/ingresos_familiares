@@ -2824,5 +2824,9 @@ La inconsistencia persistía después de TAREA-069. Aunque `forzar_recalculo` se
 
 ### Tests: auto_validate + 39/39 regression — OK
 
+### Corrección (Hotfix):
+Se detectó que la limpieza agresiva de `retro_active`/`flex_active` en el bloque Pendiente rompía la funcionalidad de los botones Retro/Flex al entrar en modo recalculo (`forzar=True`).
+**Solución**: El pop de `retro_active` y `flex_active` en el bloque Pendiente ahora está condicionado a `if not forzar:`.
+
 ### Commit:
 ...

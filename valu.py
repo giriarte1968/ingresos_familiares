@@ -524,11 +524,12 @@ def mostrar_dashboard():
                 resultado_cacheado = entrada_cache.get('resultado_completo', {}) or {}
                 cache_preview = resultado_cacheado.get('_cache', {}).get('preview', True)
                 if resultado_cacheado and cache_preview:
-                    # Cache de preview no comprometido: siempre limpiar al entrar
-                    st.session_state.pop(f'preview_mode_{p_obj["nombre"]}', None)
-                    st.session_state.pop(f'retro_active_{p_obj["nombre"]}', None)
-                    st.session_state.pop(f'flex_active_{p_obj["nombre"]}', None)
-                    st.session_state.pop(f'manual_preview_{p_obj["nombre"]}', None)
+                    # Cache de preview no comprometido: limpiar al entrar solo si no hay recalculo activo
+                    if not forzar:
+                        st.session_state.pop(f'preview_mode_{p_obj["nombre"]}', None)
+                        st.session_state.pop(f'retro_active_{p_obj["nombre"]}', None)
+                        st.session_state.pop(f'flex_active_{p_obj["nombre"]}', None)
+                        st.session_state.pop(f'manual_preview_{p_obj["nombre"]}', None)
                     del cache_existente[p_obj['nombre']]
                     guardar_cache_valuaciones(cache_existente)
                     print(f"[DEBUG-DASH] {p_obj['nombre']}: Limpiado cache de preview sin comprometer (preview=True)")
