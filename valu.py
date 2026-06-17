@@ -498,15 +498,16 @@ def mostrar_dashboard():
             if retro_btn_clicked:
                 st.session_state[f'preview_mode_{p_obj["nombre"]}'] = True
             if not ya_valuado and not forzar and not retro_btn_clicked:
-                # Pendiente re-entry: siempre limpiar preview previo
+                # Pendiente re-entry: limpiar todo y mostrar estado vacio
+                st.session_state.pop(f'preview_mode_{p_obj["nombre"]}', None)
+                st.session_state.pop(f'retro_active_{p_obj["nombre"]}', None)
+                st.session_state.pop(f'flex_active_{p_obj["nombre"]}', None)
+                st.session_state.pop(f'manual_preview_{p_obj["nombre"]}', None)
                 cache_existente = cargar_cache_valuaciones()
-                entrada_cache = cache_existente.get(p_obj['nombre'], {})
-                resultado_cacheado = entrada_cache.get('resultado_completo', {}) or {}
-                if resultado_cacheado:
-                    st.session_state.pop(f'preview_mode_{p_obj["nombre"]}', None)
-                    print(f"[DEBUG-DASH] {p_obj['nombre']}: Pendiente re-entry, limpiando preview para empezar desde 0")
+                if p_obj['nombre'] in cache_existente:
                     del cache_existente[p_obj['nombre']]
                     guardar_cache_valuaciones(cache_existente)
+                print(f"[DEBUG-DASH] {p_obj['nombre']}: Pendiente, mostrando estado vacio")
                 st.info(f"**{p_obj['nombre']}** está pendiente de valuación. "
                         "Usa los controles Retro/Flex para generar una previsualización.")
                 mostrar_detalle_valu(p_obj, {}, actualizar_propiedad)
@@ -642,7 +643,11 @@ def mostrar_dashboard():
 
                 with profile_block("detalle_volver_btn", None):
                     if st.button("← Volver al Portafolio"):
-                        st.session_state.pop(f'preview_mode_{p_obj.get("nombre","")}', None)
+                        nombre = p_obj.get("nombre", "")
+                        st.session_state.pop(f'preview_mode_{nombre}', None)
+                        st.session_state.pop(f'retro_active_{nombre}', None)
+                        st.session_state.pop(f'flex_active_{nombre}', None)
+                        st.session_state.pop(f'manual_preview_{nombre}', None)
                         st.session_state.prop_sel = None
                         st.session_state['_force_nav_page'] = 'Portfolio'
                         if 'prop' in st.query_params:
@@ -1166,7 +1171,12 @@ def main():
 
     # ─── Interceptar ?prop=xxx antes de cualquier check de landing ───
     if 'prop' in st.query_params:
-        st.session_state.prop_sel = st.query_params['prop']
+        prop_name = st.query_params['prop']
+        st.session_state.pop(f'preview_mode_{prop_name}', None)
+        st.session_state.pop(f'retro_active_{prop_name}', None)
+        st.session_state.pop(f'flex_active_{prop_name}', None)
+        st.session_state.pop(f'manual_preview_{prop_name}', None)
+        st.session_state.prop_sel = prop_name
         st.session_state.vista_actual = 'dashboard'
         st.query_params.clear()
         st.rerun()
@@ -1234,6 +1244,9 @@ def main():
             old_prop = st.session_state.prop_sel
             if old_prop:
                 st.session_state.pop(f'preview_mode_{old_prop}', None)
+                st.session_state.pop(f'retro_active_{old_prop}', None)
+                st.session_state.pop(f'flex_active_{old_prop}', None)
+                st.session_state.pop(f'manual_preview_{old_prop}', None)
             st.session_state.prop_sel = None
         st.session_state.page = new_page
         
