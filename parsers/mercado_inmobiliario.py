@@ -3680,6 +3680,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
     resultado = {
         'valor_propiedad_usd': round(valor_venta, 0),
         '_comp_excluded': comp_excluded or [],
+        '_comp_exclusion_applied': False,
         'valor_realizable_usd': round(valor_realizable, 0),
         'valor_m2_actual_usd': round(valor_venta / m2_equiv, 2) if m2_equiv > 0 else 0,
         'm2_base_venta': round(m2_base_venta, 2),

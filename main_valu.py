@@ -1,4 +1,4 @@
-import streamlit as st
+﻿import streamlit as st
 import os
 import json
 import pandas as pd
@@ -11,12 +11,13 @@ from valu_design import VALU_CSS, kpi_card, property_card, hero_price, metric_ca
 from valu_forms import ui_formulario_propiedad
 from landing import mostrar_landing
 from valu_detail_sections import _get_comp_id
-from parsers.mercado_inmobiliario import _calcular_mediana, _generar_html_mapa
+from valu_detail_sections import _get_comp_id
+from parsers.mercado_inmobiliario import _calcular_mediana
 from parsers.profiler import profile_block, profile_start, profile_end, StepLedger
 logger = logging.getLogger(__name__)
 
-# --- CONFIGURACIÓN ---
-st.set_page_config(page_title="Valu — Valuador de Propiedades", page_icon="🏠", layout="wide")
+# --- CONFIGURACI├ôN ---
+st.set_page_config(page_title="Valu ΓÇö Valuador de Propiedades", page_icon="≡ƒÅá", layout="wide")
 st.markdown(VALU_CSS, unsafe_allow_html=True)
 
 DATOS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'datos.json')
@@ -66,7 +67,7 @@ def obtener_precios_historicos(fecha=None):
     return 950.0, obtener_usdt_ars_binance()
 
 def _limpiar_estado_propiedad(nombre: str) -> None:
-    """Limpia TODO el estado de sesion asociado a una propiedad."""
+    """Limpia TODO el estado de sesi├│n asociado a una propiedad, incluyendo claves de widgets persistidas."""
     if not nombre:
         return
     _PREFIJOS = [
@@ -80,30 +81,16 @@ def _limpiar_estado_propiedad(nombre: str) -> None:
     ]
     for p in _PREFIJOS:
         st.session_state.pop(f'{p}{nombre}', None)
+    # Escanear claves con doble sufijo din├ímico (sel_comp_{name}_{id})
     sufixo = f'sel_comp_{nombre}_'
     claves_a_borrar = [k for k in st.session_state.keys() if k.startswith(sufixo)]
     for k in claves_a_borrar:
         del st.session_state[k]
 
-def _limpiar_y_borrar_cache_si_hay_manuales(nombre: str) -> None:
-    """Soportar la logica de 'Limpiar Valuacion' al navegar fuera si hay cambios manuales."""
-    if not nombre:
-        return
-    manual_keys = [f"manual_usd_m2_{nombre}", f"manual_fh_{nombre}", f"manual_aj_{nombre}", f"manual_inc_{nombre}"]
-    if any(k in st.session_state for k in manual_keys):
-        from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
-        cache = cargar_cache_valuaciones()
-        if nombre in cache:
-            del cache[nombre]
-            guardar_cache_valuaciones(cache)
-            logger.info(f"[CLEAN-NAV] {nombre}: Limpiando cache por cambios manuales no aplicados")
-    _limpiar_estado_propiedad(nombre)
-
-
 # --- UI COMPONENTS ---
 
 def mostrar_dashboard_valu(propiedades, resultados):
-    st.markdown('<div class="page-header"><div><h1 style="margin:0;color:#1A2B5C;">🏘️ Portfolio</h1><p style="margin:0;color:#6B7280;">Rosario, Argentina</p></div></div>', unsafe_allow_html=True)
+    st.markdown('<div class="page-header"><div><h1 style="margin:0;color:#1A2B5C;">≡ƒÅÿ∩╕Å Portfolio</h1><p style="margin:0;color:#6B7280;">Rosario, Argentina</p></div></div>', unsafe_allow_html=True)
     
     # === FILTROS ===
     zonas = sorted(set(p.get('zona', '') for p in propiedades))
@@ -114,7 +101,7 @@ def mostrar_dashboard_valu(propiedades, resultados):
     with col_f1: f_zona = st.multiselect("Zona", zonas, key="filtro_zona")
     with col_f2: f_tipo = st.multiselect("Tipo", tipos, key="filtro_tipo")
     with col_f3: f_dorms = st.multiselect("Dorm.", dorms_op, key="filtro_dorms")
-    with col_f4: f_busq = st.text_input("🔍 Buscar", placeholder="Nombre o dirección", key="filtro_busq")
+    with col_f4: f_busq = st.text_input("≡ƒöì Buscar", placeholder="Nombre o direcci├│n", key="filtro_busq")
 
     col_s1, col_s2, col_s3 = st.columns(3)
     max_valor = max((r.get('valor_propiedad_usd', 0) for r in resultados.values()), default=500000)
@@ -122,10 +109,10 @@ def mostrar_dashboard_valu(propiedades, resultados):
     with col_s2: f_cap_min = st.slider("Cap Rate min.", 0.0, 10.0, 0.0, 0.5, key="filtro_cap", format="%.1f%%")
     with col_s3:
         orden = st.selectbox("Ordenar", [
-            "Valor USD ↓", "Valor USD ↑",
-            "Cap Rate ↓", "Cap Rate ↑",
-            "Alquiler ↓", "Alquiler ↑",
-            "Nombre A→Z", "Nombre Z→A",
+            "Valor USD Γåô", "Valor USD Γåæ",
+            "Cap Rate Γåô", "Cap Rate Γåæ",
+            "Alquiler Γåô", "Alquiler Γåæ",
+            "Nombre AΓåÆZ", "Nombre ZΓåÆA",
         ], key="filtro_orden")
 
     # === FILTRAR ===
@@ -151,7 +138,7 @@ def mostrar_dashboard_valu(propiedades, resultados):
         props_filtradas.append(p)
 
     if not props_filtradas:
-        st.info("😶 Ninguna propiedad coincide con los filtros.")
+        st.info("≡ƒÿ╢ Ninguna propiedad coincide con los filtros.")
         return
 
     # === AGRUPAR POR ZONA ===
@@ -173,7 +160,7 @@ def mostrar_dashboard_valu(propiedades, resultados):
     # === ORDENAR GRUPOS ===
     zonas_ordenadas = sorted(grupos.keys())
 
-    # ─── TABLA PAGINADA ───
+    # ΓöÇΓöÇΓöÇ TABLA PAGINADA ΓöÇΓöÇΓöÇ
     POR_PAGINA = 25
     total_pag = max(1, (len(props_filtradas) + POR_PAGINA - 1) // POR_PAGINA)
     pagina = st.selectbox(
@@ -189,7 +176,7 @@ def mostrar_dashboard_valu(propiedades, resultados):
     def _fmt(v, fmt=None):
         """Convierte a string manejando None y '' sin romper Arrow."""
         if v is None or v == '':
-            return '—'
+            return 'ΓÇö'
         if fmt:
             return fmt(v)
         return str(v)
@@ -205,30 +192,30 @@ def mostrar_dashboard_valu(propiedades, resultados):
             'Zona': _fmt(p.get('zona')),
             'Tipo': _fmt(p.get('tipo_inmueble')),
             'Dorms': _fmt(dorms),
-            'm2': f"{m2_val:.1f}" if isinstance(m2_val, (int, float)) and m2_val else '—',
+            'm2': f"{m2_val:.1f}" if isinstance(m2_val, (int, float)) and m2_val else 'ΓÇö',
             'Valor USD': (
                 f"${res.get('valor_propiedad_usd', 0):,.0f}"
-                if res and res.get('valor_propiedad_usd') else '— Pendiente —'
+                if res and res.get('valor_propiedad_usd') else 'ΓÇö Pendiente ΓÇö'
             ),
             'Cap Rate': (
                 f"{res.get('cap_rate', 0)*100:.1f}%"
-                if res and res.get('cap_rate') else '—'
+                if res and res.get('cap_rate') else 'ΓÇö'
             ),
             'Alquiler': (
                 f"${res.get('alquiler_estimado_ars', 0):,.0f}"
-                if res and res.get('alquiler_estimado_ars') else '—'
+                if res and res.get('alquiler_estimado_ars') else 'ΓÇö'
             ),
         })
 
     df = pd.DataFrame(rows)
 
     orden_map = {
-        "Valor USD ↓": ("Valor USD", False),
-        "Valor USD ↑": ("Valor USD", True),
-        "Cap Rate ↓": ("Cap Rate", False),
-        "Cap Rate ↑": ("Cap Rate", True),
-        "Alquiler ↓": ("Alquiler", False),
-        "Alquiler ↑": ("Alquiler", True),
+        "Valor USD Γåô": ("Valor USD", False),
+        "Valor USD Γåæ": ("Valor USD", True),
+        "Cap Rate Γåô": ("Cap Rate", False),
+        "Cap Rate Γåæ": ("Cap Rate", True),
+        "Alquiler Γåô": ("Alquiler", False),
+        "Alquiler Γåæ": ("Alquiler", True),
         "Nombre A-Z": ("Nombre", True),
         "Nombre Z-A": ("Nombre", False),
     }
@@ -240,13 +227,13 @@ def mostrar_dashboard_valu(propiedades, resultados):
     df = df.astype(str)
     st.dataframe(df, width='stretch', hide_index=True)
 
-    st.markdown(f"**{len(props_filtradas)}** propiedades · **{len(grupos)}** zonas · Pagina {pagina}/{total_pag}")
+    st.markdown(f"**{len(props_filtradas)}** propiedades ┬╖ **{len(grupos)}** zonas ┬╖ Pagina {pagina}/{total_pag}")
 
     # Boton Ver detalle por fila
     for i, row in df.iterrows():
         c1, c2 = st.columns([4, 1])
         with c1:
-            st.write(f"**{row['Nombre']}** — {row['Zona']}")
+            st.write(f"**{row['Nombre']}** ΓÇö {row['Zona']}")
         with c2:
             if st.button("Ver detalle", key=f"det_{pagina}_{i}"):
                 st.session_state.prop_sel = row['Nombre']
@@ -289,8 +276,8 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     if insuficientes:
         st.warning(
             "**No se encontraron suficientes comparables** "
-            "(mínimo 2). "
-            "Usá la sección **📐 Valuación Manual** debajo "
+            "(m├¡nimo 2). "
+            "Us├í la secci├│n **≡ƒôÉ Valuaci├│n Manual** debajo "
             "para definir el valor manualmente."
         )
 
@@ -300,22 +287,22 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         _dl.mark("after_render_metricas")
         st.markdown("<br>", unsafe_allow_html=True)
 
-    # ─── 📊 Comparables ───
+    # ΓöÇΓöÇΓöÇ ≡ƒôè Comparables ΓöÇΓöÇΓöÇ
     prop_name = prop.get('nombre', '')
-    with st.expander("📊 Comparables", expanded=False):
+    with st.expander("≡ƒôè Comparables", expanded=False):
         retro_key = f'retro_active_{prop_name}'
         flex_key = f'flex_active_{prop_name}'
         retro_active = st.session_state.get(retro_key, False)
         col_btn, col_status, col_slider = st.columns([1.5, 1.5, 2])
         with col_btn:
-            label = "🔙 Retro Activado" if retro_active else "🔙 Retro"
+            label = "≡ƒöÖ Retro Activado" if retro_active else "≡ƒöÖ Retro"
             if st.button(label, type="primary" if retro_active else "secondary", use_container_width=True, key=f'retro_btn_{prop_name}'):
                 nuevo_valor = not retro_active
                 st.session_state[retro_key] = nuevo_valor
                 if not nuevo_valor:
                     st.session_state.pop(f'flex_active_{prop_name}', None)
                     st.session_state.pop(f'comp_excluded_{prop_name}', None)
-                # Resetear selección de comparables al cambiar modo retro
+                # Resetear selecci├│n de comparables al cambiar modo retro
                 st.session_state.pop(f'comp_selection_{prop_name}', None)
                 st.session_state[f'forzar_recalculo_{prop_name}'] = True
                 st.session_state[f'preview_mode_{prop_name}'] = True
@@ -324,39 +311,39 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         with col_status:
             if retro_active:
                 meses = st.session_state.get(f'retro_meses_{prop_name}', 36)
-                st.caption(f"📆 +{meses} meses")
+                st.caption(f"≡ƒôå +{meses} meses")
         with col_slider:
             if retro_active:
                 def _on_retro_slider_change(prop_name=prop_name):
-                    # Marcar para recalculo; Streamlit ya hace rerun después del on_change
+                    # Marcar para recalculo; Streamlit ya hace rerun despu├⌐s del on_change
                     st.session_state[f'forzar_recalculo_{prop_name}'] = True
                     st.session_state[f'preview_mode_{prop_name}'] = True
-                    # Resetear selección de comparables al cambiar la ventana temporal
+                    # Resetear selecci├│n de comparables al cambiar la ventana temporal
                     st.session_state.pop(f'comp_selection_{prop_name}', None)
                     st.session_state.pop(f'comp_excluded_{prop_name}', None)
-                st.slider("Meses atrás", 12, 60, st.session_state.get(f'retro_meses_{prop_name}', 36),
+                st.slider("Meses atr├ís", 12, 60, st.session_state.get(f'retro_meses_{prop_name}', 36),
                           key=f'retro_meses_{prop_name}', on_change=_on_retro_slider_change)
 
         # Retro: checkbox para incluir todos los dormitorios
         if retro_active:
             col_cb, col_fs = st.columns([1.5, 3.5])
             with col_cb:
-                flex_label = "🔍 Todos los dormitorios"
+                flex_label = "≡ƒöì Todos los dormitorios"
                 flex_activo_ahora = st.session_state.get(flex_key, False)
                 if st.button(flex_label, type="primary" if flex_activo_ahora else "secondary", use_container_width=True, key=f"flex_btn_{prop_name}"):
                     nuevo_flex = not flex_activo_ahora
                     st.session_state[flex_key] = nuevo_flex
                     st.session_state[f'forzar_recalculo_{prop_name}'] = True
                     st.session_state[f'preview_mode_{prop_name}'] = True
-                    # Resetear selección de comparables al cambiar dormitorios
+                    # Resetear selecci├│n de comparables al cambiar dormitorios
                     st.session_state.pop(f'comp_selection_{prop_name}', None)
                     st.session_state.pop(f'comp_excluded_{prop_name}', None)
                     print(f"[DEBUG-DETALLE] Toggle Flex {prop_name}: ahora={nuevo_flex}, forzar=True, preview=True")
                     st.rerun()
 
-        # Botón Aplicar: único trigger de commit
+        # Bot├│n Aplicar: ├║nico trigger de commit
         if retro_active:
-            if st.button("✅ Aplicar cambios", type="primary", use_container_width=True,
+            if st.button("Γ£à Aplicar cambios", type="primary", use_container_width=True,
                          key=f'aplicar_cambios_{prop_name}'):
                 retro = st.session_state.get(retro_key, False)
                 flex = st.session_state.get(flex_key, False)
@@ -365,7 +352,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                 st.session_state.pop(f'preview_mode_{prop_name}', None)
                 st.rerun()
 
-        with st.expander("🗺️ Mapa", expanded=False):
+        with st.expander("≡ƒù║∩╕Å Mapa", expanded=False):
             with profile_block("render_mapa_propiedad", prop):
                 render_mapa_propiedad(res)
         _dl.mark("after_render_mapa")
@@ -378,14 +365,14 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         _dl.mark("after_render_tabla_comparables")
     _dl.mark("after_section_comparables")
 
-    # ─── 📐 Valuación Manual ───
-    with st.expander("📐 Valuacion Manual", expanded=insuficientes):
+    # ΓöÇΓöÇΓöÇ ≡ƒôÉ Valuaci├│n Manual ΓöÇΓöÇΓöÇ
+    with st.expander("≡ƒôÉ Valuacion Manual", expanded=insuficientes):
         with profile_block("render_valuacion_manual", prop):
             render_valuacion_manual(prop, res)
     _dl.mark("after_section_manual")
 
-    # ─── 📋 Valuaciones ───
-    with st.expander("📋 Valuaciones", expanded=False):
+    # ΓöÇΓöÇΓöÇ ≡ƒôï Valuaciones ΓöÇΓöÇΓöÇ
+    with st.expander("≡ƒôï Valuaciones", expanded=False):
         with profile_block("render_razonamiento", prop):
             render_razonamiento(prop, res)
         _dl.mark("after_render_razonamiento")
@@ -395,8 +382,8 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         _dl.mark("after_render_historial")
     _dl.mark("after_section_valuaciones")
 
-    # ─── ⚡ Acciones ───
-    with st.expander("⚡ Acciones", expanded=False):
+    # ΓöÇΓöÇΓöÇ ΓÜí Acciones ΓöÇΓöÇΓöÇ
+    with st.expander("ΓÜí Acciones", expanded=False):
         with profile_block("generar_reporte_pdf", prop):
             pdf_bytes = generar_reporte_pdf(prop, res)
 
@@ -445,7 +432,7 @@ def mostrar_dashboard():
             st.session_state['_cleanup'] = True
     st.session_state.prev_page = page
     
-    # ─── FLUJO DETALLE: funciona desde cualquier página (Portfolio, Portfolio2, etc.) ───
+    # ΓöÇΓöÇΓöÇ FLUJO DETALLE: funciona desde cualquier p├ígina (Portfolio, Portfolio2, etc.) ΓöÇΓöÇΓöÇ
     _routing_ctx = profile_start("ROUTING_TOTAL")
     if st.session_state.prop_sel:
         with profile_block("detalle_cargar_propiedades", None):
@@ -461,7 +448,7 @@ def mostrar_dashboard():
             p_obj = next((p for p in propiedades if p['nombre'] == st.session_state.prop_sel), None)
         if p_obj:
             prop_name = p_obj.get('nombre', '')
-            # Limpiar Valuación: borrar cache, _ultima_valuacion y manual staging
+            # Limpiar Valuaci├│n: borrar cache, _ultima_valuacion y manual staging
             if st.session_state.get(f"clean_valuacion_{prop_name}", False):
                 _limpiar_estado_propiedad(prop_name)
                 try:
@@ -485,7 +472,7 @@ def mostrar_dashboard():
                     st.query_params.clear()
                 st.rerun()
 
-            # Mezclar datos de previsualización manual si existen
+            # Mezclar datos de previsualizaci├│n manual si existen
             manual_preview = st.session_state.get(f'manual_preview_{prop_name}', {})
             if manual_preview:
                 p_obj.update(manual_preview)
@@ -501,8 +488,8 @@ def mostrar_dashboard():
                 cache_existente = cargar_cache_valuaciones()
                 entrada_antigua = cache_existente.get(p_obj['nombre'], {})
                 if entrada_antigua.get('cache_version', '') != CACHE_VERSION and not forzar:
-                    st.info(f"🔄 Actualizando valuación de **{p_obj['nombre']}** "
-                            f"a la nueva versión del motor ({CACHE_VERSION})...")
+                    st.info(f"≡ƒöä Actualizando valuaci├│n de **{p_obj['nombre']}** "
+                            f"a la nueva versi├│n del motor ({CACHE_VERSION})...")
 
             def actualizar_propiedad(nueva_data):
                 prop_name = p_obj.get('nombre', '')
@@ -510,7 +497,7 @@ def mostrar_dashboard():
                 st.session_state[f'manual_preview_{prop_name}'] = nueva_data
                 # Actualizar objeto local para que la UI refleje los cambios inmediatamente
                 p_obj.update(nueva_data)
-                # Invalidar cache de valuación para que refleje los cambios en el próximo recálculo
+                # Invalidar cache de valuaci├│n para que refleje los cambios en el pr├│ximo rec├ílculo
                 try:
                     from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
                     cache_v = cargar_cache_valuaciones()
@@ -519,9 +506,12 @@ def mostrar_dashboard():
                 except Exception:
                     pass
 
-            # ── Si nunca fue valuado (Pendiente): mostrar detalle con 0 comps ──
+            # ΓöÇΓöÇ Si nunca fue valuado (Pendiente): mostrar detalle con 0 comps ΓöÇΓöÇ
             uv = p_obj.get('_ultima_valuacion', {})
             ya_valuado = bool(uv.get('valor_usd') or uv.get('fuente'))
+            # Limpiar claves de widgets que pudieron persistir de sesiones previas (evita ghost state)
+            st.session_state.pop(f'retro_btn_{p_obj["nombre"]}', None)
+            st.session_state.pop(f'flex_btn_{p_obj["nombre"]}', None)
             # Detectar si el boton Retro fue clickeado (el `if st.button()` inline aun no evaluo)
             retro_btn_key = f'retro_btn_{p_obj["nombre"]}'
             retro_btn_clicked = st.session_state.get(retro_btn_key, False)
@@ -543,19 +533,12 @@ def mostrar_dashboard():
                     del cache_existente[p_obj['nombre']]
                     guardar_cache_valuaciones(cache_existente)
                     print(f"[DEBUG-DASH] {p_obj['nombre']}: Limpiado cache de preview sin comprometer (preview=True)")
-                # Si es re-entry pasivo (sin recalculación forzada), mostrar vacío
+                # Si es re-entry pasivo (sin recalculaci├│n forzada), mostrar vac├¡o
                 if not forzar and not retro_btn_clicked:
-                    print(f"[DEBUG-DASH] {p_obj['nombre']}: Pendiente re-entry pasivo, mostrando vacío con mapa sujeto")
-                    st.info(f"**{p_obj['nombre']}** está pendiente de valuación. "
-                            "Usa los controles Retro/Flex para generar una previsualización.")
-                    
-                    # Generar mapa básico solo con el sujeto para que el usuario vea la ubicación
-                    mapa_sujeto = _generar_html_mapa(p_obj, {
-                        'comparables_venta': [],
-                        'valor_propiedad_usd': 0,
-                        'resolution_metadata': {'radio_usado': 300}
-                    })
-                    mostrar_detalle_valu(p_obj, {'mapa_html': mapa_sujeto}, actualizar_propiedad)
+                    print(f"[DEBUG-DASH] {p_obj['nombre']}: Pendiente re-entry pasivo, mostrando vac├¡o")
+                    st.info(f"**{p_obj['nombre']}** est├í pendiente de valuaci├│n. "
+                            "Usa los controles Retro/Flex para generar una previsualizaci├│n.")
+                    mostrar_detalle_valu(p_obj, {}, actualizar_propiedad)
                     profile_end(_routing_ctx)
                     return
 
@@ -566,7 +549,7 @@ def mostrar_dashboard():
     background: #000; z-index: 99999;
     display: flex; align-items: center; justify-content: center;
 ">
-    <div style="font-size:28px">⏳</div>
+    <div style="font-size:28px">ΓÅ│</div>
 </div>
 """, unsafe_allow_html=True)
             try:
@@ -592,7 +575,7 @@ def mostrar_dashboard():
                     resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios, preview=preview_mode, manual_data=st.session_state.get(f'manual_preview_{prop_name}', None))
                     _sl.mark("after_valuar_con_cache")
 
-                    # Override con valuación manual si está persistida
+                    # Override con valuaci├│n manual si est├í persistida
                     uv = p_obj.get('_ultima_valuacion', {})
                     if uv.get('fuente') == 'manual' and uv.get('manual_params'):
                         from parsers.mercado_inmobiliario import generar_resultado_manual
@@ -604,7 +587,7 @@ def mostrar_dashboard():
                         resultado = manual_result
                     _sl.mark("after_manual_override")
 
-                    # ── Aplicar exclusión de comparables seleccionada por el usuario ──
+                    # ΓöÇΓöÇ Aplicar exclusi├│n de comparables seleccionada por el usuario ΓöÇΓöÇ
                     comp_excluded_key = f'comp_excluded_{prop_name}'
                     comps_orig = resultado.get('comparables_venta')
                     if not comps_orig:
@@ -673,7 +656,7 @@ def mostrar_dashboard():
                                         resultado['_n_excluidos'] = len(excluded_ids)
                                         logger.info(f"[APPLY] {prop_name}: {n_sel} comps, valor=${nuevo_valor:,.0f}")
                                 else:
-                                    # Menos de 2 comps seleccionados → limpiar header
+                                    # Menos de 2 comps seleccionados ΓåÆ limpiar header
                                     resultado = dict(resultado)
                                     resultado['valor_propiedad_usd'] = 0
                                     resultado['valor_m2'] = 0
@@ -685,10 +668,9 @@ def mostrar_dashboard():
                                     logger.info(f"[APPLY] {prop_name}: <2 comps, header limpiado")
                             resultado['_comp_exclusion_applied'] = True
 
-                with profile_block("detalle_volver_btn", None):
-                    if st.button("← Volver al Portafolio"):
-                        nombre = p_obj.get("nombre", "")
-                        _limpiar_y_borrar_cache_si_hay_manuales(nombre)
+                    with profile_block("detalle_volver_btn", None):
+                    if st.button("ΓåÉ Volver al Portafolio"):
+                        _limpiar_estado_propiedad(p_obj.get("nombre",""))
                         st.session_state.prop_sel = None
                         st.session_state['_force_nav_page'] = 'Portfolio'
                         if 'prop' in st.query_params:
@@ -707,7 +689,7 @@ def mostrar_dashboard():
         profile_end(_routing_ctx)
         return
 
-    # ─── PÁGINAS ───
+    # ΓöÇΓöÇΓöÇ P├üGINAS ΓöÇΓöÇΓöÇ
     if page == "Portfolio":
         import logging
         logging.warning(f"[ROUTING_MARKER] Entrando a Portfolio (prop_sel={st.session_state.get('prop_sel')})")
@@ -722,40 +704,40 @@ def mostrar_dashboard():
         if not st.session_state.get("_mercado_unlocked", False):
             st.markdown("""
             <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:1rem;">
-                <div style="font-size:64px;">🔒</div>
+                <div style="font-size:64px;">≡ƒöÆ</div>
                 <h2 style="margin:0;">Acceso restringido</h2>
-                <p style="color:rgba(255,255,255,0.6);">Ingresá la contraseña en la barra lateral para acceder al mercado de propiedades.</p>
+                <p style="color:rgba(255,255,255,0.6);">Ingres├í la contrase├▒a en la barra lateral para acceder al mercado de propiedades.</p>
             </div>
             """, unsafe_allow_html=True)
         else:
             st.header("Mercado de propiedades")
             st.caption("Ejecutar solo cuando sea necesario.")
 
-            # ─── Actualizar base de mercado ───
+            # ΓöÇΓöÇΓöÇ Actualizar base de mercado ΓöÇΓöÇΓöÇ
             with st.container(border=True):
                 st.subheader("Actualizar la base de datos de mercado")
                 if st.button("Actualizar base de mercado", type="primary", use_container_width=True):
-                    barra = st.progress(0.0, text="Preparando actualización...")
+                    barra = st.progress(0.0, text="Preparando actualizaci├│n...")
                     estado = st.empty()
                     inicio = time.time()
                     try:
-                        barra.progress(0.10, text="Iniciando actualización de mercado...")
-                        estado.info("Actualizando datos de mercado. Esta operación puede demorar varios minutos.")
+                        barra.progress(0.10, text="Iniciando actualizaci├│n de mercado...")
+                        estado.info("Actualizando datos de mercado. Esta operaci├│n puede demorar varios minutos.")
                         from parsers.motor_vpp_core import actualizar_mercado_vpp_full
                         ok = actualizar_mercado_vpp_full()
-                        barra.progress(1.0, text="Actualización finalizada")
+                        barra.progress(1.0, text="Actualizaci├│n finalizada")
                         duracion = time.time() - inicio
                         if ok:
                             estado.success(f"Base de mercado actualizada. Tiempo total: {duracion/60:.1f} min.")
                         else:
-                            estado.error("La actualización terminó con errores. Revisá los logs.")
+                            estado.error("La actualizaci├│n termin├│ con errores. Revis├í los logs.")
                     except Exception as e:
-                        barra.progress(1.0, text="Actualización interrumpida")
+                        barra.progress(1.0, text="Actualizaci├│n interrumpida")
                         estado.error(f"No se pudo actualizar la base de mercado: {e}")
 
             st.markdown("---")
 
-            # ─── Recalcular todo ───
+            # ΓöÇΓöÇΓöÇ Recalcular todo ΓöÇΓöÇΓöÇ
             with st.container(border=True):
                 props = cargar_propiedades()
                 n = len(props)
@@ -782,17 +764,17 @@ def mostrar_dashboard():
                             barra.progress(
                                 avance,
                                 text=(
-                                    f"{i+1}/{n} valuaciones completadas · "
+                                    f"{i+1}/{n} valuaciones completadas ┬╖ "
                                     f"restan ~{restante/60:.1f} min"
                                 ),
                             )
                         duracion = time.time() - inicio
                         estado.success(f"{n} propiedades recalculadas. Tiempo total: {duracion/60:.1f} min.")
 
-    elif st.session_state.page == "Configuración":
-        st.header("⚙️ Configuración")
+    elif st.session_state.page == "Configuraci├│n":
+        st.header("ΓÜÖ∩╕Å Configuraci├│n")
 
-        # ─── Constructoras ───
+        # ΓöÇΓöÇΓöÇ Constructoras ΓöÇΓöÇΓöÇ
         CONSTR_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "constructoras_rosario.json")
         def _cargar_constructoras():
             try:
@@ -805,7 +787,7 @@ def mostrar_dashboard():
                 json.dump(data, f, ensure_ascii=False, indent=2)
 
         st.markdown("---")
-        with st.expander("🏗️ Administrar Constructoras", expanded=False):
+        with st.expander("≡ƒÅù∩╕Å Administrar Constructoras", expanded=False):
             constr_data = _cargar_constructoras()
 
             if not isinstance(constr_data, list):
@@ -822,7 +804,7 @@ def mostrar_dashboard():
                 with cols[2]:
                     st.write("")
                     st.write("")
-                    submitted = st.form_submit_button("➕ Agregar", use_container_width=True)
+                    submitted = st.form_submit_button("Γ₧ò Agregar", use_container_width=True)
                 if submitted and nueva_desc.strip():
                     constr_data.append({"descripcion": nueva_desc.strip(), "porcentaje": nuevo_pct})
                     _guardar_constructoras(constr_data)
@@ -843,15 +825,15 @@ def mostrar_dashboard():
                         st.markdown(f":{color}[{pct:+.2f}%]")
                     with cols[2]:
                         edit_key = f"edit_{i}"
-                        if st.button("✏️", key=edit_key):
+                        if st.button("Γ£Å∩╕Å", key=edit_key):
                             st.session_state[f"editando_constr_{i}"] = True
                     with cols[3]:
-                        if st.button("🗑️", key=f"del_{i}"):
+                        if st.button("≡ƒùæ∩╕Å", key=f"del_{i}"):
                             constr_data.pop(i)
                             _guardar_constructoras(constr_data)
                             st.rerun()
 
-                    # Edición inline
+                    # Edici├│n inline
                     if st.session_state.get(f"editando_constr_{i}", False):
                         with st.form(f"edit_constr_{i}", clear_on_submit=True):
                             ec = st.columns([3, 1, 1])
@@ -862,7 +844,7 @@ def mostrar_dashboard():
                             with ec[2]:
                                 st.write("")
                                 st.write("")
-                                if st.form_submit_button("💾 Guardar", use_container_width=True):
+                                if st.form_submit_button("≡ƒÆ╛ Guardar", use_container_width=True):
                                     constr_data[i] = {"descripcion": edit_desc.strip(), "porcentaje": edit_pct}
                                     _guardar_constructoras(constr_data)
                                     st.session_state[f"editando_constr_{i}"] = False
@@ -873,7 +855,7 @@ def mostrar_dashboard():
             else:
                 st.info("No hay constructoras registradas. Agregue una usando el formulario de arriba.")
 
-        # ─── Zonas / Anclas ───
+        # ΓöÇΓöÇΓöÇ Zonas / Anclas ΓöÇΓöÇΓöÇ
         from parsers.motor_vpp_core import (
             _get_anclas_file, cargar_anclas_cached, load_anclas_config,
             save_anclas_config, bump_cache_version, set_active_anchor_file
@@ -891,18 +873,18 @@ def mostrar_dashboard():
                 json.dump(data, f, ensure_ascii=False, indent=2)
 
         st.markdown("---")
-        st.markdown("### ⚙️ Pipeline de Anclas")
+        st.markdown("### ΓÜÖ∩╕Å Pipeline de Anclas")
 
-        # ─── Listar archivos de anclas disponibles ───
+        # ΓöÇΓöÇΓöÇ Listar archivos de anclas disponibles ΓöÇΓöÇΓöÇ
         DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
         config = load_anclas_config()
         active_file_rel = config.get('runtime', {}).get('active_anchor_file', '')
         active_file_name = os.path.basename(active_file_rel) if active_file_rel else ''
         anchor_files = sorted([f for f in os.listdir(DATA_DIR) if f.endswith('.json') and ('anclas_v7_' in f or 'anclas_rosario_v5' in f)])
 
-        tab1, tab2, tab3, tab4 = st.tabs(["📂 Archivos", "⚡ Generar", "✏️ Editor Manual", "📈 Ct / Ajuste Temporal"])
+        tab1, tab2, tab3, tab4 = st.tabs(["≡ƒôé Archivos", "ΓÜí Generar", "Γ£Å∩╕Å Editor Manual", "≡ƒôê Ct / Ajuste Temporal"])
 
-        # ─── TAB 1: Archivos Disponibles ───
+        # ΓöÇΓöÇΓöÇ TAB 1: Archivos Disponibles ΓöÇΓöÇΓöÇ
         with tab1:
             st.caption("Archivos de anclas disponibles. El archivo activo se usa en todas las valuaciones.")
             for fname in anchor_files:
@@ -919,7 +901,7 @@ def mostrar_dashboard():
                         set_active_anchor_file(fpath)
                         bump_cache_version()
                         cargar_anclas_cached(force_reload=True)
-                        st.success(f"Activado: {fname}. Caché invalidada.")
+                        st.success(f"Activado: {fname}. Cach├⌐ invalidada.")
                         st.rerun()
                 try:
                     with open(os.path.join(DATA_DIR, fname), encoding='utf-8') as f:
@@ -929,21 +911,21 @@ def mostrar_dashboard():
                 except:
                     col4.caption("?")
 
-        # ─── TAB 2: Generar Nuevas Anclas ───
+        # ΓöÇΓöÇΓöÇ TAB 2: Generar Nuevas Anclas ΓöÇΓöÇΓöÇ
         with tab2:
-            st.caption("Regenerar anclas desde el cache actual. Cada generación produce un archivo timestamped.")
+            st.caption("Regenerar anclas desde el cache actual. Cada generaci├│n produce un archivo timestamped.")
             gen_cfg = config.get('generator', {})
             grid_size = st.number_input("Grid size (m)", min_value=100, max_value=2000, value=gen_cfg.get('grid_size_m', 400), step=50)
             min_props = st.number_input("Min props por celda", min_value=2, max_value=50, value=gen_cfg.get('min_props_per_cell', 5), step=1)
 
-            if st.button("🚀 Generar Nuevas Anclas", type="primary", use_container_width=True):
+            if st.button("≡ƒÜÇ Generar Nuevas Anclas", type="primary", use_container_width=True):
                 import subprocess, sys
                 result = subprocess.run(
                     [sys.executable, "scripts/generar_anclas_grid.py", "--grid-size", str(grid_size), "--min-props", str(min_props)],
                     capture_output=True, text=True, cwd=os.path.dirname(os.path.abspath(__file__))
                 )
                 if result.returncode == 0:
-                    st.success("Generación completada!")
+                    st.success("Generaci├│n completada!")
                     # Parse output for summary
                     lines = result.stdout.split('\n')
                     for line in lines:
@@ -960,28 +942,28 @@ def mostrar_dashboard():
                             out_path = line.split('Output:')[1].strip()
                             break
                     if out_path and os.path.exists(out_path):
-                        with st.expander("📊 Vista previa", expanded=True):
+                        with st.expander("≡ƒôè Vista previa", expanded=True):
                             st.text(result.stdout)
                         fname = os.path.basename(out_path)
-                        if st.button(f"✅ Activar {fname}", use_container_width=True):
+                        if st.button(f"Γ£à Activar {fname}", use_container_width=True):
                             rel_path = os.path.join("data", fname)
                             set_active_anchor_file(rel_path)
                             bump_cache_version()
                             cargar_anclas_cached(force_reload=True)
-                            st.success(f"Activado: {fname}. Caché invalidada.")
+                            st.success(f"Activado: {fname}. Cach├⌐ invalidada.")
                             st.rerun()
                 else:
-                    st.error("Error en generación:")
+                    st.error("Error en generaci├│n:")
                     st.code(result.stderr)
 
-        # ─── TAB 3: Editor Manual de Anclas (existente) ───
+        # ΓöÇΓöÇΓöÇ TAB 3: Editor Manual de Anclas (existente) ΓöÇΓöÇΓöÇ
         with tab3:
             anclas_data = _cargar_anclas_completo()
             anclas = anclas_data.get("anclas", [])
             if not isinstance(anclas, list):
                 anclas = []
 
-            # Link cada propiedad al ancla más cercana por distancia Haversine
+            # Link cada propiedad al ancla m├ís cercana por distancia Haversine
             todos_props = cargar_propiedades()
             ancla_props = {}
             import math
@@ -1009,13 +991,13 @@ def mostrar_dashboard():
                 if best_id:
                     ancla_props[best_id].append(p.get('nombre', '?'))
 
-            st.caption(f"{len(anclas)} anclas en el archivo activo · editá el USD/m² directo en la tabla")
-            st.info("Los cambios se guardan en el archivo activo actual. Para cambiar de archivo, usá la pestaña Archivos.")
+            st.caption(f"{len(anclas)} anclas en el archivo activo ┬╖ edit├í el USD/m┬▓ directo en la tabla")
+            st.info("Los cambios se guardan en el archivo activo actual. Para cambiar de archivo, us├í la pesta├▒a Archivos.")
             df_anclas = []
             for a in anclas:
                 df_anclas.append({
                     "id": a.get('id', ''),
-                    "USD/m²": a.get('usd_m2', 0),
+                    "USD/m┬▓": a.get('usd_m2', 0),
                     "lat": a.get('lat', 0),
                     "lon": a.get('lon', 0),
                     "fecha": a.get('fecha_calibracion', '')[:10],
@@ -1023,10 +1005,10 @@ def mostrar_dashboard():
             df_a = pd.DataFrame(df_anclas)
 
             edited = st.data_editor(
-                df_a[["id", "USD/m²", "lat", "lon", "fecha"]],
+                df_a[["id", "USD/m┬▓", "lat", "lon", "fecha"]],
                 column_config={
                     "id": st.column_config.TextColumn("Ancla ID", disabled=True, width="medium"),
-                    "USD/m²": st.column_config.NumberColumn("USD/m²", min_value=0, step=50.0, format="$%.0f", width="small"),
+                    "USD/m┬▓": st.column_config.NumberColumn("USD/m┬▓", min_value=0, step=50.0, format="$%.0f", width="small"),
                     "lat": st.column_config.NumberColumn("Lat", disabled=True, format="%.4f", width="small"),
                     "lon": st.column_config.NumberColumn("Lon", disabled=True, format="%.4f", width="small"),
                     "fecha": st.column_config.TextColumn("Fecha", disabled=True, width="small"),
@@ -1036,11 +1018,11 @@ def mostrar_dashboard():
                 key="anclas_editor"
             )
 
-            if st.button("💾 Guardar cambios", type="primary", use_container_width=True):
+            if st.button("≡ƒÆ╛ Guardar cambios", type="primary", use_container_width=True):
                 cambios = 0
                 for _, row in edited.iterrows():
                     a_id = row["id"]
-                    nuevo_usd = row["USD/m²"]
+                    nuevo_usd = row["USD/m┬▓"]
                     for a in anclas:
                         if a["id"] == a_id and abs(a.get("usd_m2", 0) - nuevo_usd) > 0.5:
                             a["usd_m2"] = nuevo_usd
@@ -1050,42 +1032,42 @@ def mostrar_dashboard():
                     anclas_data["anclas"] = anclas
                     _guardar_anclas_completo(anclas_data)
                     cargar_anclas_cached(force_reload=True)
-                    st.success(f"{cambios} ancla(s) actualizadas. Caché invalidada.")
+                    st.success(f"{cambios} ancla(s) actualizadas. Cach├⌐ invalidada.")
                     st.rerun()
                 else:
                     st.info("Sin cambios detectados.")
 
             # Link propiedades
-            with st.expander("🔗 Propiedades por ancla", expanded=False):
+            with st.expander("≡ƒöù Propiedades por ancla", expanded=False):
                 for a in anclas:
                     linked = ancla_props.get(a['id'], [])
                     if linked:
                         st.markdown(f"**{a['id']}** (${a.get('usd_m2',0):.0f}): {', '.join(linked)}")
 
-        # ─── TAB 4: Ct / Ajuste Temporal ───
+        # ΓöÇΓöÇΓöÇ TAB 4: Ct / Ajuste Temporal ΓöÇΓöÇΓöÇ
         with tab4:
             st.caption("Curva de Ajuste Temporal (Ct) y Factores COCIR")
             st.markdown("---")
 
             # ct_table editor
-            st.markdown("**Tabla Ct (mes → factor)**")
+            st.markdown("**Tabla Ct (mes ΓåÆ factor)**")
             ct_table = gen_cfg.get('ct_table', [[0, 1.0]])
             ct_df = pd.DataFrame(ct_table, columns=["meses", "Ct"])
             edited_ct = st.data_editor(
                 ct_df, num_rows="dynamic", use_container_width=True,
                 key="ct_table_editor"
             )
-            if st.button("💾 Guardar Tabla Ct", key="save_ct_table", use_container_width=True):
+            if st.button("≡ƒÆ╛ Guardar Tabla Ct", key="save_ct_table", use_container_width=True):
                 new_ct = [[int(r.meses), float(r.Ct)] for _, r in edited_ct.iterrows()]
                 cfg = load_anclas_config(force_reload=True)
                 cfg['generator']['ct_table'] = new_ct
                 save_anclas_config(cfg)
                 load_anclas_config(force_reload=True)
                 bump_cache_version()
-                st.success("Tabla Ct guardada. Caché invalidada.")
+                st.success("Tabla Ct guardada. Cach├⌐ invalidada.")
                 st.rerun()
 
-            # Gráfico Plotly de Ct
+            # Gr├ífico Plotly de Ct
             try:
                 import plotly.graph_objects as go
                 ct_sorted = sorted(ct_table, key=lambda x: x[0])
@@ -1098,15 +1080,15 @@ def mostrar_dashboard():
                     line=dict(color='#ff6b35', width=3),
                     marker=dict(size=8)
                 ))
-                # Línea vertical en ventana natural (180d = 6 meses)
+                # L├¡nea vertical en ventana natural (180d = 6 meses)
                 fig.add_vline(x=6, line_dash="dash", line_color="green",
                               annotation_text="ventana natural (6m)")
-                # Línea horizontal en 1.0
+                # L├¡nea horizontal en 1.0
                 fig.add_hline(y=1.0, line_dash="dot", line_color="gray",
                               annotation_text="Ct=1.0 (sin ajuste)")
                 fig.update_layout(
                     title="Curva Ct - Ajuste Temporal",
-                    xaxis_title="Meses desde publicación",
+                    xaxis_title="Meses desde publicaci├│n",
                     yaxis_title="Factor Ct",
                     template="plotly_dark"
                 )
@@ -1127,7 +1109,7 @@ def mostrar_dashboard():
             with col_f3:
                 fv = st.text_input("Fecha vigencia (YYYY-MM)", value=cf.get('fecha_vigencia', '2026-01'), key="ct_fv")
 
-            if st.button("💾 Guardar Factores nuevo-usado", key="save_ct_factors", use_container_width=True):
+            if st.button("≡ƒÆ╛ Guardar Factores nuevo-usado", key="save_ct_factors", use_container_width=True):
                 cfg = load_anclas_config(force_reload=True)
                 cfg['generator']['ct_factors'] = {
                     'usado': usado_factor,
@@ -1137,10 +1119,10 @@ def mostrar_dashboard():
                 save_anclas_config(cfg)
                 load_anclas_config(force_reload=True)
                 bump_cache_version()
-                st.success("Factores nuevo-usado guardados. Caché invalidada.")
+                st.success("Factores nuevo-usado guardados. Cach├⌐ invalidada.")
                 st.rerun()
 
-            # Histórico de cambios de factores
+            # Hist├│rico de cambios de factores
             try:
                 hist_path = os.path.join(CONFIG_DIR, "ct_factors_history.json")
                 if os.path.exists(hist_path):
@@ -1153,9 +1135,9 @@ def mostrar_dashboard():
             except:
                 pass
 
-        # ─── Profiling de rendimiento ───
+        # ΓöÇΓöÇΓöÇ Profiling de rendimiento ΓöÇΓöÇΓöÇ
         st.markdown("---")
-        with st.expander("⏱️ Perfilado de Rendimiento", expanded=False):
+        with st.expander("ΓÅ▒∩╕Å Perfilado de Rendimiento", expanded=False):
             from parsers.profiler import dump_results, save_results, PROFILING_ENABLED
             if not PROFILING_ENABLED:
                 st.info("Profiling desactivado. Activarlo con `PROFILING_ENABLED=true` (env var en DO Console).")
@@ -1163,7 +1145,7 @@ def mostrar_dashboard():
                 data = dump_results()
                 blocks = data.get("blocks", {})
                 if not blocks:
-                    st.info("Aún no hay datos de profiling. Ejecute una valuación primero.")
+                    st.info("A├║n no hay datos de profiling. Ejecute una valuaci├│n primero.")
                 else:
                     rows = []
                     for key, info in blocks.items():
@@ -1177,17 +1159,17 @@ def mostrar_dashboard():
                         })
                     rows.sort(key=lambda r: r["Total (ms)"], reverse=True)
                     st.dataframe(rows, use_container_width=True, hide_index=True)
-                    if st.button("📥 Descargar perfilado JSON", key="dl_profile"):
+                    if st.button("≡ƒôÑ Descargar perfilado JSON", key="dl_profile"):
                         path = save_results()
                         st.success(f"Guardado en `{path}`")
-                    if st.button("🔄 Resetear perfilado", key="reset_profile"):
+                    if st.button("≡ƒöä Resetear perfilado", key="reset_profile"):
                         from parsers.profiler import reset
                         reset()
                         st.rerun()
 
-        # ─── Agregar Nueva Propiedad (último, porque ui_formulario_propiedad hace st.stop()) ───
+        # ΓöÇΓöÇΓöÇ Agregar Nueva Propiedad (├║ltimo, porque ui_formulario_propiedad hace st.stop()) ΓöÇΓöÇΓöÇ
         st.markdown("---")
-        with st.expander("➕ Agregar Nueva Propiedad", expanded=False):
+        with st.expander("Γ₧ò Agregar Nueva Propiedad", expanded=False):
             new_prop = ui_formulario_propiedad(key_suffix="new")
             if st.button("Guardar Propiedad", type="primary"):
                 props = cargar_propiedades()
@@ -1207,16 +1189,11 @@ def git_pull_once_per_process():
         return False
 
 def main():
-    # Sincronizar propiedades.json una vez por proceso (no una vez por sesión/pestaña)
+    # Sincronizar propiedades.json una vez por proceso (no una vez por sesi├│n/pesta├▒a)
     git_pull_once_per_process()
 
-    # ─── Interceptar ?prop=xxx antes de cualquier check de landing ───
+    # ΓöÇΓöÇΓöÇ Interceptar ?prop=xxx antes de cualquier check de landing ΓöÇΓöÇΓöÇ
     if 'prop' in st.query_params:
-        # Limpiar la propiedad que estamos dejando antes de entrar a la nueva
-        old_prop = st.session_state.get('prop_sel')
-        if old_prop:
-            _limpiar_y_borrar_cache_si_hay_manuales(old_prop)
-            
         prop_name = st.query_params['prop']
         _limpiar_estado_propiedad(prop_name)
         st.session_state.prop_sel = prop_name
@@ -1236,7 +1213,7 @@ def main():
     if 'page' not in st.session_state: st.session_state.page = "Portfolio"
     if 'prop_sel' not in st.session_state: st.session_state.prop_sel = None
 
-    # ─── Overlay para transición landing → dashboard ───
+    # ΓöÇΓöÇΓöÇ Overlay para transici├│n landing ΓåÆ dashboard ΓöÇΓöÇΓöÇ
     _loader = None
     if st.session_state.pop('_loading_overlay', False):
         _loader = st.empty()
@@ -1246,14 +1223,14 @@ def main():
     background: #000; z-index: 99999;
     display: flex; align-items: center; justify-content: center;
 ">
-    <div style="font-size:28px">⏳</div>
+    <div style="font-size:28px">ΓÅ│</div>
 </div>
 """, unsafe_allow_html=True)
 
     _main_ctx = profile_start("MAIN_TOTAL")
 
     with st.sidebar:
-        st.markdown('<div style="padding:10px 0;"><h2 style="color:white;margin:0;">🏠 Valu</h2><p style="color:#006AFF;font-size:11px;margin:0;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Valuador de Propiedades</p></div>', unsafe_allow_html=True)
+        st.markdown('<div style="padding:10px 0;"><h2 style="color:white;margin:0;">≡ƒÅá Valu</h2><p style="color:#006AFF;font-size:11px;margin:0;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Valuador de Propiedades</p></div>', unsafe_allow_html=True)
         
         def ir_al_inicio():
             st.session_state.vista_actual = 'landing'
@@ -1262,38 +1239,38 @@ def main():
             if 'nav_page_radio' in st.session_state:
                 del st.session_state['nav_page_radio']
 
-        # ─── Password gate (solo para Mercado) ───
-        pwd = st.text_input("🔑 Acceso a Mercado", type="password", placeholder="••••••", key="_nav_pwd")
+        # ΓöÇΓöÇΓöÇ Password gate (solo para Mercado) ΓöÇΓöÇΓöÇ
+        pwd = st.text_input("≡ƒöæ Acceso a Mercado", type="password", placeholder="ΓÇóΓÇóΓÇóΓÇóΓÇóΓÇó", key="_nav_pwd")
         mercado_unlocked = (pwd == "001122")
         st.session_state._mercado_unlocked = mercado_unlocked
         if mercado_unlocked:
-            st.success("✅ Mercado desbloqueado")
+            st.success("Γ£à Mercado desbloqueado")
         else:
-            st.caption("Ingresá la contraseña para acceder al Mercado")
+            st.caption("Ingres├í la contrase├▒a para acceder al Mercado")
 
-        st.button("← Volver al Inicio", width='stretch', on_click=ir_al_inicio)
+        st.button("ΓåÉ Volver al Inicio", width='stretch', on_click=ir_al_inicio)
         st.markdown("---")
 
-        nav_options = ["Portfolio", "Mercado de propiedades", "Configuración"]
+        nav_options = ["Portfolio", "Mercado de propiedades", "Configuraci├│n"]
         forced_nav = st.session_state.pop("_force_nav_page", None)
         if forced_nav in nav_options:
             st.session_state["nav_page_radio"] = forced_nav
         if "nav_page_radio" not in st.session_state:
             st.session_state["nav_page_radio"] = st.session_state.page if st.session_state.page in nav_options else "Portfolio"
         with profile_block("MAIN_sidebar_nav", None):
-            st.radio("NAVEGACIÓN", nav_options, key="nav_page_radio")
+            st.radio("NAVEGACI├ôN", nav_options, key="nav_page_radio")
         new_page = st.session_state["nav_page_radio"]
         if st.session_state.page != new_page:
             old_prop = st.session_state.prop_sel
             if old_prop:
-                _limpiar_y_borrar_cache_si_hay_manuales(old_prop)
+                _limpiar_estado_propiedad(old_prop)
             st.session_state.prop_sel = None
         st.session_state.page = new_page
         
         st.markdown("---")
         with profile_block("MAIN_sidebar_cargar_datos", None):
             datos = cargar_datos()
-        # Derivar fecha automáticamente del campo 'fecha' dentro del JSON
+        # Derivar fecha autom├íticamente del campo 'fecha' dentro del JSON
         with profile_block("MAIN_sidebar_cache_mtime", None):
             cache_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache_scraping.json")
             if os.path.exists(cache_file):
@@ -1307,28 +1284,28 @@ def main():
                     fecha_cache = datetime.now().strftime('%Y-%m')
             else:
                 fecha_cache = datetime.now().strftime('%Y-%m')
-            st.caption(f"📅 Datos de mercado: {fecha_cache}")
+            st.caption(f"≡ƒôà Datos de mercado: {fecha_cache}")
         
         # Usar la fecha del cache como referencia (ya no es un selectbox)
         mes_sel = fecha_cache
         
         st.markdown("---")
         with profile_block("MAIN_sidebar_snapshots", None):
-            with st.expander("🗄️ Historial de Scrapings"):
+            with st.expander("≡ƒùä∩╕Å Historial de Scrapings"):
                 from parsers.valuacion_historial import listar_snapshots_scraping
                 snapshots = listar_snapshots_scraping()
 
                 if not snapshots:
-                    st.info("Sin snapshots guardados aún.")
+                    st.info("Sin snapshots guardados a├║n.")
                 else:
                     st.caption(f"{len(snapshots)} scrapings archivados")
                     for s in snapshots[:10]:
-                        st.text(f"📦 {s['fecha']} — {s['tamanio_kb']} KB")
+                        st.text(f"≡ƒôª {s['fecha']} ΓÇö {s['tamanio_kb']} KB")
                     if len(snapshots) > 10:
-                        st.caption(f"... y {len(snapshots) - 10} más")
+                        st.caption(f"... y {len(snapshots) - 10} m├ís")
         
         st.markdown("<br><br><br>", unsafe_allow_html=True)
-        st.markdown('<p style="color:rgba(255,255,255,0.3);font-size:10px;text-align:center;">v2.5 · Powered by VPP Engine</p>', unsafe_allow_html=True)
+        st.markdown('<p style="color:rgba(255,255,255,0.3);font-size:10px;text-align:center;">v2.5 ┬╖ Powered by VPP Engine</p>', unsafe_allow_html=True)
 
     _r_prop = "detalle" if st.session_state.get("prop_sel") else st.session_state.get("page", "?")
     with profile_block(f"MAIN_routing_{_r_prop}", None):

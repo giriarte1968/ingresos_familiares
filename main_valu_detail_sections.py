@@ -1,4 +1,4 @@
-"""
+﻿"""
 Secciones del detalle de propiedad. Funciones de renderizado UI puras.
 Cada funcion recibe datos y renderiza una seccion especifica.
 Son llamadas desde mostrar_detalle_valu() en valu.py.
@@ -14,7 +14,7 @@ from streamlit.components.v1 import html
 
 
 def _limpiar_estado_propiedad_local(nombre: str) -> None:
-    """Limpia TODO el estado de sesion asociado a una propiedad."""
+    """Limpia TODO el estado de sesi├│n asociado a una propiedad."""
     if not nombre:
         return
     _PREFIJOS = [
@@ -33,14 +33,15 @@ def _limpiar_estado_propiedad_local(nombre: str) -> None:
     for k in claves_a_borrar:
         del st.session_state[k]
 
-
 def render_actions(prop, guardar_fn):
     """Barra de acciones: Volver, Editar, Revaluar, Limpiar, Eliminar."""
     nombre = prop.get('nombre', '')
     col_back, col_edit, col_recalc, col_clean, col_delete = st.columns([1, 1, 1.5, 1.5, 1])
     with col_back:
-        # Boton Volver eliminado para evitar redundancia con Volver al Portfolio
-        pass
+        if st.button("<- Volver", type="primary", use_container_width=True):
+            _limpiar_estado_propiedad_local(nombre)
+            st.session_state.prop_sel = None
+            st.rerun()
     with col_edit:
         if st.button("Editar", type="primary", use_container_width=True):
             st.session_state[f"edit_{prop['id']}"] = True
@@ -49,7 +50,7 @@ def render_actions(prop, guardar_fn):
             st.session_state[f'forzar_recalculo_{nombre}'] = True
             st.rerun()
     with col_clean:
-        if st.button("🗑️ Limpiar Valuación", type="secondary", use_container_width=True):
+        if st.button("≡ƒùæ∩╕Å Limpiar Valuaci├│n", type="secondary", use_container_width=True):
             st.session_state[f"clean_valuacion_{nombre}"] = True
             st.rerun()
     with col_delete:
@@ -65,7 +66,7 @@ def render_actions(prop, guardar_fn):
                 props = cargar_propiedades()
                 props = [p for p in props if p.get('id') != prop['id']]
                 guardar_propiedades(props)
-                # Invalidar cache de valuación
+                # Invalidar cache de valuaci├│n
                 try:
                     from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
                     cache_v = cargar_cache_valuaciones()
@@ -83,13 +84,13 @@ def render_actions(prop, guardar_fn):
 
     if st.session_state.get(f"edit_{prop['id']}", False):
         from valu_forms import ui_formulario_propiedad
-        # Usamos un key_suffix único para evitar colisiones y habilitamos el geocoding automático reactivo
+        # Usamos un key_suffix ├║nico para evitar colisiones y habilitamos el geocoding autom├ítico reactivo
         new_data = ui_formulario_propiedad(prop_inicial=prop, key_suffix=f"edit_{prop['id']}", show_geocode=True)
         
         col_b1, col_b2 = st.columns(2)
         with col_b1:
             if st.button("Guardar Cambios", type="primary", key=f"save_edit_{prop['id']}", use_container_width=True):
-                # Por seguridad, si la dirección cambió y no se disparó el callback (ej: clic directo), geocodificamos antes de guardar
+                # Por seguridad, si la direcci├│n cambi├│ y no se dispar├│ el callback (ej: clic directo), geocodificamos antes de guardar
                 nueva_dir = (new_data.get('direccion') or '').strip()
                 vieja_dir = (prop.get('direccion') or '').strip()
                 if nueva_dir and nueva_dir != vieja_dir:
@@ -104,7 +105,7 @@ def render_actions(prop, guardar_fn):
                 
                 guardar_fn(new_data)
                 
-                # Limpiar el estado de edición
+                # Limpiar el estado de edici├│n
                 keys_to_clear = [k for k in st.session_state.keys() if k.endswith(f"_edit_{prop['id']}")]
                 for k in keys_to_clear:
                     st.session_state.pop(k, None)
@@ -113,7 +114,7 @@ def render_actions(prop, guardar_fn):
                 
         with col_b2:
             if st.button("Cancelar", key=f"cancel_edit_{prop['id']}", use_container_width=True):
-                # Limpiar el estado de edición al cancelar
+                # Limpiar el estado de edici├│n al cancelar
                 keys_to_clear = [k for k in st.session_state.keys() if k.endswith(f"_edit_{prop['id']}")]
                 for k in keys_to_clear:
                     st.session_state.pop(k, None)
@@ -157,9 +158,9 @@ def render_header(prop, res):
         if m2_base == 0:
             st.markdown("""
             <div style="background:#F4F6FB;border-radius:16px;padding:28px;text-align:center;height:100%;display:flex;flex-direction:column;justify-content:center;font-family:'Inter',sans-serif;">
-                <div style="font-size:14px;color:#6B7280;margin-bottom:8px;">VALUACIÓN VPP</div>
-                <div style="font-size:24px;font-weight:700;color:#9CA3AF;">Sin selección</div>
-                <div style="font-size:13px;color:#9CA3AF;margin-top:8px;">Seleccioná al menos 2 comparables</div>
+                <div style="font-size:14px;color:#6B7280;margin-bottom:8px;">VALUACI├ôN VPP</div>
+                <div style="font-size:24px;font-weight:700;color:#9CA3AF;">Sin selecci├│n</div>
+                <div style="font-size:13px;color:#9CA3AF;margin-top:8px;">Seleccion├í al menos 2 comparables</div>
             </div>
             """, unsafe_allow_html=True)
         else:
@@ -219,7 +220,7 @@ def render_razonamiento(prop, res):
         except:
             pass
 
-    # FASE 3: Age blend info en detalle técnico
+    # FASE 3: Age blend info en detalle t├⌐cnico
     meta = res.get('resolution_metadata', {})
     if meta.get('age_blend_applied'):
         n_age = meta.get('n_age_filtered', 0)
@@ -228,7 +229,7 @@ def render_razonamiento(prop, res):
         base_all = meta.get('base_all', 0)
         st.info(
             f"**Cluster con edad similar insuficiente (n={n_age}).**  "
-            f"Se aplicó blend entre pool etario y pool completo.  "
+            f"Se aplic├│ blend entre pool etario y pool completo.  "
             f"Alpha edad = {alpha:.2f}.  "
             f"Base edad: ${base_age:.0f}, Base pool completo: ${base_all:.0f}"
         )
@@ -267,24 +268,24 @@ def render_mapa_propiedad(res):
 
 
 def _get_comp_id(c):
-    """Genera un ID único y estable para un comparable basado en sus datos."""
+    """Genera un ID ├║nico y estable para un comparable basado en sus datos."""
     import hashlib
     # Usamos datos que no cambian entre renders para crear un hash estable
     seed = f"{c.get('precio')}_{c.get('m2')}_{c.get('direccion_limpia') or c.get('direccion')}_{c.get('lat')}_{c.get('lon')}"
     return hashlib.md5(seed.encode()).hexdigest()[:12]
 
 def render_tabla_comparables(res, prop_name=None):
-    """Tabla de propiedades comparables utilizadas con checkbox de selección.
-    Muestra el recálculo P33/P50 según los comps seleccionados.
+    """Tabla de propiedades comparables utilizadas con checkbox de selecci├│n.
+    Muestra el rec├ílculo P33/P50 seg├║n los comps seleccionados.
     """
     if not prop_name:
         prop_name = 'default'
     if res.get('retro_activo'):
-        st.caption(f"🔙 Retro activo: ventana de {res.get('total_dias_ventana', 180)} días")
+        st.caption(f"≡ƒöÖ Retro activo: ventana de {res.get('total_dias_ventana', 180)} d├¡as")
     flex_dormitorios = res.get('flex_dormitorios', None)
     sujeto_dorms = res.get('sujeto_dormitorios', None)
     if flex_dormitorios and sujeto_dorms is not None:
-        st.caption(f"🔍 Retro: incluye {flex_dormitorios} dorm. (sujeto: {sujeto_dorms})")
+        st.caption(f"≡ƒöì Retro: incluye {flex_dormitorios} dorm. (sujeto: {sujeto_dorms})")
     comparables = res.get('comparables_venta', [])
     if not comparables:
         st.caption("Sin comparables disponibles")
@@ -295,9 +296,9 @@ def render_tabla_comparables(res, prop_name=None):
     if n_excluidos:
         col_info, col_reset = st.columns([3, 1])
         with col_info:
-            st.info(f"⚡ Valuación calculada con {len(comparables)} comparables seleccionados ({n_excluidos} excluidos por el usuario).")
+            st.info(f"ΓÜí Valuaci├│n calculada con {len(comparables)} comparables seleccionados ({n_excluidos} excluidos por el usuario).")
         with col_reset:
-            if st.button("↩️ Restablecer todos", key=f'reset_comp_sel_{prop_name}', use_container_width=True):
+            if st.button("Γå⌐∩╕Å Restablecer todos", key=f'reset_comp_sel_{prop_name}', use_container_width=True):
                 st.session_state.pop(f'comp_selection_{prop_name}', None)
                 st.session_state.pop(f'comp_excluded_{prop_name}', None)
                 st.session_state[f'forzar_recalculo_{prop_name}'] = True
@@ -305,7 +306,7 @@ def render_tabla_comparables(res, prop_name=None):
 
     # Cabecera de la tabla
     hdr = st.columns([0.4, 0.5, 1.5, 0.8, 1.5, 0.6, 1, 2, 0.7, 0.6])
-    hdr_labels = ['', '#', 'Precio USD', 'm²', 'Precio/m²', 'Dorm', 'Tipo', 'Dirección', 'Año', 'Dist']
+    hdr_labels = ['', '#', 'Precio USD', 'm┬▓', 'Precio/m┬▓', 'Dorm', 'Tipo', 'Direcci├│n', 'A├▒o', 'Dist']
     for col, label in zip(hdr, hdr_labels):
         col.markdown(f"**{label}**")
 
@@ -315,7 +316,7 @@ def render_tabla_comparables(res, prop_name=None):
     # 1. Generar IDs estables para todos los comparables actuales
     comp_ids = [_get_comp_id(c) for c in comparables]
     
-    # 2. Manejar el estado de selección basado en IDs (no índices)
+    # 2. Manejar el estado de selecci├│n basado en IDs (no ├¡ndices)
     stored_sel = st.session_state.get(sel_key, None)
     if stored_sel is None:
         # Inicialmente todos seleccionados
@@ -331,7 +332,7 @@ def render_tabla_comparables(res, prop_name=None):
         comp_id = comp_ids[i]
         cols = st.columns([0.4, 0.5, 1.5, 0.8, 1.5, 0.6, 1, 2, 0.7, 0.6])
         
-        # El valor del checkbox depende de si el ID está en el set de seleccionados
+        # El valor del checkbox depende de si el ID est├í en el set de seleccionados
         checked = cols[0].checkbox("", value=comp_id in stored_sel, key=f'sel_comp_{prop_name}_{comp_id}')
         
         if checked:
@@ -364,10 +365,10 @@ def render_tabla_comparables(res, prop_name=None):
         cols[8].write(str(c.get('anio_estimado', '')) if c.get('anio_estimado') else '')
         cols[9].write(f"{c.get('distancia_m', 0):.0f}m" if c.get('distancia_m') else '')
 
-    # Guardar selección actual
+    # Guardar selecci├│n actual
     st.session_state[sel_key] = selected_ids
 
-    # Recálculo automático P33/P50 desde los seleccionados
+    # Rec├ílculo autom├ítico P33/P50 desde los seleccionados
     if selected_ids:
         selected_comps = [c for c in comparables if _get_comp_id(c) in selected_ids]
         precios = [c.get('precio_m2', 0) * c.get('time_adjustment', 1.0) for c in selected_comps]
@@ -398,32 +399,34 @@ def render_tabla_comparables(res, prop_name=None):
                 p33_p50 = precios_sorted[max(0, int(n_sel * 0.33) - 1)]
                 label_short = 'P33'
 
-        # Si todos seleccionados, usar el m² puro del motor (sin barrera) en vez de simple P33
+        # Si todos seleccionados, usar el m┬▓ puro del motor (sin barrera) en vez de simple P33
         if not excluded_ids:
             meta = res.get('resolution_metadata', {})
-            p33_p50 = meta.get('_m2_puro', p33_p50)
+            _m2_puro = meta.get('_m2_puro')
+            if _m2_puro is not None:
+                p33_p50 = _m2_puro
 
         col_a, col_b, col_c = st.columns([1, 2, 1.2])
         with col_a:
             original_puro = res.get('_original_m2_puro')
             if original_puro is None:
-                original_puro = res.get('resolution_metadata', {}).get('_m2_puro', 0)
-            st.metric("Valor/m² por selección", f"${p33_p50:,.0f}",
+                original_puro = res.get('resolution_metadata', {}).get('_m2_puro') or 0
+            st.metric("Valor/m┬▓ por selecci├│n", f"${p33_p50:,.0f}",
                       delta=f"{'${:,.0f}'.format(p33_p50 - original_puro)} vs original")
         with col_b:
             st.caption(f"{label_short} sobre {n_sel} comps seleccionados de {len(comparables)} totales")
         with col_c:
-            # Botón para re-valuar usando solo los comparables seleccionados
+            # Bot├│n para re-valuar usando solo los comparables seleccionados
             excluded = [cid for cid in all_ids if cid not in selected_ids]
             
             if n_sel < 2:
-                st.button("Mínimo 2 comparables", disabled=True, use_container_width=True)
+                st.button("M├¡nimo 2 comparables", disabled=True, use_container_width=True)
             elif is_applied:
-                st.button("✅ Selección Aplicada", type="secondary", disabled=True, use_container_width=True)
+                st.button("Γ£à Selecci├│n Aplicada", type="secondary", disabled=True, use_container_width=True)
             else:
-                # Botón visible incluso si no hay exclusiones (todos seleccionados)
+                # Bot├│n visible incluso si no hay exclusiones (todos seleccionados)
                 if st.button(
-                    f"✅ Aplicar selección ({n_sel}/{len(comparables)})",
+                    f"Γ£à Aplicar selecci├│n ({n_sel}/{len(comparables)})",
                     key=f'apply_comp_sel_{prop_name}',
                     type='primary',
                     use_container_width=True,
@@ -432,17 +435,17 @@ def render_tabla_comparables(res, prop_name=None):
                     st.session_state[f'forzar_recalculo_{prop_name}'] = True
                     st.rerun()
     elif not selected_ids:
-        st.warning("⚠️ Seleccioná al menos un comparable para calcular el valor.")
+        st.warning("ΓÜá∩╕Å Seleccion├í al menos un comparable para calcular el valor.")
         if st.button("Seleccionar todos", key=f'sel_all_{prop_name}'):
             st.session_state[sel_key] = set([_get_comp_id(c) for c in comparables])
-            # Limpiar exclusión previa
+            # Limpiar exclusi├│n previa
             st.session_state.pop(f'comp_excluded_{prop_name}', None)
             st.rerun()
 
 
 def render_catastro(prop, res, compact=False):
     """Datos catastrales con seleccion de PH y boton de plano.
-    compact=True: solo boton toggle (🔍/✕), retorna True si hay datos cargados.
+    compact=True: solo boton toggle (≡ƒöì/Γ£ò), retorna True si hay datos cargados.
     compact=False: detalle completo (selectbox, columnas, planos).
     """
     nombre = prop.get('nombre', '')
@@ -486,7 +489,7 @@ def render_catastro(prop, res, compact=False):
 
     if not candidatos:
         key_btn = f"infomapa_catastro_{nombre}"
-        if st.button("🔍 Consultar datos catastrales / plano", key=key_btn, use_container_width=True):
+        if st.button("≡ƒöì Consultar datos catastrales / plano", key=key_btn, use_container_width=True):
             _cargar_catastro()
         return
 
@@ -504,17 +507,17 @@ def render_catastro(prop, res, compact=False):
         ph_options = {c['ph']: c for c in candidatos}
         
         with col_data:
-            # Selector nativo mucho más limpio que N botones apilados
+            # Selector nativo mucho m├ís limpio que N botones apilados
             def _fmt_candidato(ph):
                 c = ph_options[ph]
                 dir_ = c.get('direccion_nominatim', f'PH {ph}')
                 dist = float(c.get('distancia', 0))*111000
                 cm = c.get('centena_match', '')
-                badge = {"exacta": "📍 Misma cuadra", "coordenadas": "📍 Coordenadas"}.get(cm, '')
-                rec = " ⭐ Recomendado" if c.get('recomendado') else ""
-                return f"{dir_} — {dist:.0f}m {badge}{rec}"
+                badge = {"exacta": "≡ƒôì Misma cuadra", "coordenadas": "≡ƒôì Coordenadas"}.get(cm, '')
+                rec = " Γ¡É Recomendado" if c.get('recomendado') else ""
+                return f"{dir_} ΓÇö {dist:.0f}m {badge}{rec}"
             ph_sel = st.selectbox(
-                "📍 Coincidencia Catastral", 
+                "≡ƒôì Coincidencia Catastral", 
                 options=[c['ph'] for c in candidatos],
                 format_func=_fmt_candidato
             )
@@ -525,7 +528,7 @@ def render_catastro(prop, res, compact=False):
             mza = int(float(sel_data['manzana'])) if sel_data.get('manzana') else '-'
             graf = int(float(sel_data['grafico'])) if sel_data.get('grafico') else '-'
             
-            # Distribución limpia de los datos con texto grande
+            # Distribuci├│n limpia de los datos con texto grande
             c1, c2, c3 = st.columns(3)
             c1.markdown(f"""
                 <div style="background:#f8fafc;border-radius:10px;padding:12px;text-align:center;">
@@ -535,14 +538,14 @@ def render_catastro(prop, res, compact=False):
             """, unsafe_allow_html=True)
             c2.markdown(f"""
                 <div style="background:#f8fafc;border-radius:10px;padding:12px;text-align:center;">
-                    <div style="color:#64748b;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Año Const.</div>
+                    <div style="color:#64748b;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">A├▒o Const.</div>
                     <div style="color:#0f172a;font-size:1.3rem;font-weight:700;">{anio}</div>
                 </div>
             """, unsafe_allow_html=True)
             c3.markdown(f"""
                 <div style="background:#f8fafc;border-radius:10px;padding:12px;text-align:center;">
-                    <div style="color:#64748b;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Ubicación</div>
-                    <div style="color:#0f172a;font-size:1.3rem;font-weight:700;">S {secc} · M {mza} · G {graf}</div>
+                    <div style="color:#64748b;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Ubicaci├│n</div>
+                    <div style="color:#0f172a;font-size:1.3rem;font-weight:700;">S {secc} ┬╖ M {mza} ┬╖ G {graf}</div>
                 </div>
             """, unsafe_allow_html=True)
 
@@ -577,7 +580,7 @@ def render_street_view(prop, compact=True):
         return
     c1, c2 = st.columns([3, 1])
     with c1:
-        st.markdown("<p style='color:#64748b; font-size:0.95rem; margin-top:4px;'>Explorá la calle, el barrio y la fachada de la propiedad interactuando en 360° desde Google Street View.</p>", unsafe_allow_html=True)
+        st.markdown("<p style='color:#64748b; font-size:0.95rem; margin-top:4px;'>Explor├í la calle, el barrio y la fachada de la propiedad interactuando en 360┬░ desde Google Street View.</p>", unsafe_allow_html=True)
     with c2:
         st.markdown(f'<a href="{url}" target="_blank" class="detail-btn">Abrir Street View</a>', unsafe_allow_html=True)
 
@@ -666,7 +669,7 @@ def render_historial(nombre):
                                  f"${vals['antes']:,.0f} -> ${vals['despues']:,.0f} ({pct:+.1f}%)")
 
 
-# ─── REPORTE PDF ───
+# ΓöÇΓöÇΓöÇ REPORTE PDF ΓöÇΓöÇΓöÇ
 from io import BytesIO
 from fpdf import FPDF
 
@@ -893,7 +896,7 @@ def generar_reporte_pdf(prop: dict, res: dict) -> bytes:
     return bytes(pdf.output())
 
 
-# ─── HELPERS PARA ELIMINACION ───
+# ΓöÇΓöÇΓöÇ HELPERS PARA ELIMINACION ΓöÇΓöÇΓöÇ
 def _propiedades_path():
     return os.path.join(os.path.dirname(os.path.abspath(__file__)), "propiedades.json")
 
@@ -935,7 +938,7 @@ def render_valuacion_manual(prop, res):
         with c1:
             st.metric("Ancla", mp.get('ancla_id', 'Sin ancla'))
         with c2:
-            st.metric("USD/m²", f"${mp.get('usd_m2', 0):,.0f}")
+            st.metric("USD/m┬▓", f"${mp.get('usd_m2', 0):,.0f}")
         with c3:
             constr = res.get('constructora', '')
             if constr:
@@ -943,7 +946,7 @@ def render_valuacion_manual(prop, res):
                 lp = f"({(fconst - 1) * 100:+.0f}%)" if fconst != 1.0 else ""
                 st.metric("Constructora", f"{constr} {lp}".strip())
             else:
-                st.metric("Constructora", "—")
+                st.metric("Constructora", "ΓÇö")
 
         c1, c2, c3 = st.columns(3)
         fh_valor = res.get('factor_hedonico_efectivo', mp.get('factor_hedonico', 1.0))
@@ -952,9 +955,9 @@ def render_valuacion_manual(prop, res):
         with c2:
             st.metric("Ajuste %", f"{mp.get('ajuste_pct', 0):+.1f}%")
         with c3:
-            st.metric("Incertidumbre %", f"±{mp.get('incertidumbre_pct', 10):.1f}%")
+            st.metric("Incertidumbre %", f"┬▒{mp.get('incertidumbre_pct', 10):.1f}%")
 
-        # Sub-factors breakdown grouped (misma fórmula que calcular_factores)
+        # Sub-factors breakdown grouped (misma f├│rmula que calcular_factores)
         sb = res.get('sub_factors_breakdown', {})
         if sb:
             st.markdown("#### Desglose del Factor Hedonico")
@@ -970,8 +973,8 @@ def render_valuacion_manual(prop, res):
 
             sc1, sc2, sc3, sc4 = st.columns(4)
             with sc1:
-                st.metric("Edificación", f"{de:+.4f}")
-                st.caption("estado+calidad+piso+vista+balcón+vent+ubic+gas+func+disp")
+                st.metric("Edificaci├│n", f"{de:+.4f}")
+                st.caption("estado+calidad+piso+vista+balc├│n+vent+ubic+gas+func+disp")
             with sc2:
                 label_am = f"Amenities ({det_str[:30]})" if det_str else "Amenities"
                 st.metric(label_am, f"{da:+.4f}")
@@ -979,9 +982,9 @@ def render_valuacion_manual(prop, res):
                 st.metric("NLP", f"{dn:+.4f}")
                 st.caption("cocina+preinst AA")
             with sc4:
-                st.metric("Depreciación", f"{danti:+.4f}")
-                st.caption("antigüedad")
-            st.caption(f"Σ cruda = {sc:+.4f} → clamp(±0.40) = {scl:+.4f} → +1 + anti = 1{scl:+.4f}{danti:+.4f} = {1+scl+danti:.4f} → total = {stot:.4f} [{0.70}, {1.35}]")
+                st.metric("Depreciaci├│n", f"{danti:+.4f}")
+                st.caption("antig├╝edad")
+            st.caption(f"╬ú cruda = {sc:+.4f} ΓåÆ clamp(┬▒0.40) = {scl:+.4f} ΓåÆ +1 + anti = 1{scl:+.4f}{danti:+.4f} = {1+scl+danti:.4f} ΓåÆ total = {stot:.4f} [{0.70}, {1.35}]")
 
         # Activos: cocheras y baulera como metricas grandes
         val_act = res.get('valor_activos', {})
@@ -1023,7 +1026,7 @@ def render_valuacion_manual(prop, res):
                 st.rerun()
         return
 
-    # ─── CREATE MODE ───
+    # ΓöÇΓöÇΓöÇ CREATE MODE ΓöÇΓöÇΓöÇ
     from parsers.location_engine import cargar_anclas, get_ancla_mas_cercana
     anclas = cargar_anclas()
     ancla_options = {a.get('id', a.get('nombre', '')): a for a in anclas}
@@ -1162,7 +1165,7 @@ def render_valuacion_manual(prop, res):
             dn = sb_pre.get('delta_nlp', 0.0)
             danti = sb_pre.get('delta_anti', 0.0)
             stot = sb_pre.get('total', 1.0)
-            st.caption(f"Subfactores: Edif {de:+.4f} · Amen {da:+.4f} · NLP {dn:+.4f} · Anti {danti:+.4f} → Total {stot:.4f}")
+            st.caption(f"Subfactores: Edif {de:+.4f} ┬╖ Amen {da:+.4f} ┬╖ NLP {dn:+.4f} ┬╖ Anti {danti:+.4f} ΓåÆ Total {stot:.4f}")
     except Exception:
         pass
 
@@ -1185,7 +1188,7 @@ def render_valuacion_manual(prop, res):
         )
     with col_e:
         inc = st.number_input(
-            "Incertidumbre (±%)",
+            "Incertidumbre (┬▒%)",
             min_value=0.0, max_value=100.0,
             value=float(saved['incertidumbre_pct']),
             step=1.0, format="%.0f",
