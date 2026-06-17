@@ -11,7 +11,7 @@ from valu_design import VALU_CSS, kpi_card, property_card, hero_price, metric_ca
 from valu_forms import ui_formulario_propiedad
 from landing import mostrar_landing
 from valu_detail_sections import _get_comp_id
-from parsers.mercado_inmobiliario import _calcular_mediana
+from parsers.mercado_inmobiliario import _calcular_mediana, _generar_html_mapa
 from parsers.profiler import profile_block, profile_start, profile_end, StepLedger
 logger = logging.getLogger(__name__)
 
@@ -530,10 +530,17 @@ def mostrar_dashboard():
                     print(f"[DEBUG-DASH] {p_obj['nombre']}: Limpiado cache de preview sin comprometer (preview=True)")
                 # Si es re-entry pasivo (sin recalculación forzada), mostrar vacío
                 if not forzar and not retro_btn_clicked:
-                    print(f"[DEBUG-DASH] {p_obj['nombre']}: Pendiente re-entry pasivo, mostrando vacío")
+                    print(f"[DEBUG-DASH] {p_obj['nombre']}: Pendiente re-entry pasivo, mostrando vacío con mapa sujeto")
                     st.info(f"**{p_obj['nombre']}** está pendiente de valuación. "
                             "Usa los controles Retro/Flex para generar una previsualización.")
-                    mostrar_detalle_valu(p_obj, {}, actualizar_propiedad)
+                    
+                    # Generar mapa básico solo con el sujeto para que el usuario vea la ubicación
+                    mapa_sujeto = _generar_html_mapa(p_obj, {
+                        'comparables_venta': [],
+                        'valor_propiedad_usd': 0,
+                        'resolution_metadata': {'radio_usado': 300}
+                    })
+                    mostrar_detalle_valu(p_obj, {'mapa_html': mapa_sujeto}, actualizar_propiedad)
                     profile_end(_routing_ctx)
                     return
 
