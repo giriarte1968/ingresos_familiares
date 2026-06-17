@@ -40,6 +40,7 @@ def render_actions(prop, guardar_fn):
     col_back, col_edit, col_recalc, col_clean, col_delete = st.columns([1, 1, 1.5, 1.5, 1])
     with col_back:
         # Boton Volver eliminado para evitar redundancia con Volver al Portfolio
+        pass
     with col_edit:
         if st.button("Editar", type="primary", use_container_width=True):
             st.session_state[f"edit_{prop['id']}"] = True
