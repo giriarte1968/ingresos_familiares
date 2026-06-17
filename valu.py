@@ -498,30 +498,20 @@ def mostrar_dashboard():
             if retro_btn_clicked:
                 st.session_state[f'preview_mode_{p_obj["nombre"]}'] = True
             if not ya_valuado and not forzar and not retro_btn_clicked:
-                # Verificar si hay resultado cacheado con comparables
+                # Pendiente re-entry: siempre limpiar preview previo
                 cache_existente = cargar_cache_valuaciones()
                 entrada_cache = cache_existente.get(p_obj['nombre'], {})
                 resultado_cacheado = entrada_cache.get('resultado_completo', {}) or {}
                 if resultado_cacheado:
-                    if not st.session_state.get(f'preview_mode_{p_obj["nombre"]}', False):
-                        # Re-entry real (no hay preview activo): limpiar cache y mostrar $0
-                        print(f"[DEBUG-DASH] {p_obj['nombre']}: Pendiente re-entry, limpiando preview para empezar desde 0")
-                        del cache_existente[p_obj['nombre']]
-                        guardar_cache_valuaciones(cache_existente)
-                        st.info(f"**{p_obj['nombre']}** está pendiente de valuación. "
-                                "Usa los controles Retro/Flex para generar una previsualización.")
-                        mostrar_detalle_valu(p_obj, {}, actualizar_propiedad)
-                        profile_end(_routing_ctx)
-                        return
-                    # Si preview_mode está activo: keep cache, fall through
-                else:
-                    # Carga Natural: si es Pendiente y no hay cache, forzar valuación preview
-                    print(f"[DEBUG-DASH] {p_obj['nombre']}: Pendiente sin cache, disparando Carga Natural (preview)")
-                    st.session_state[f'forzar_recalculo_{p_obj["nombre"]}'] = True
-                    st.session_state[f'preview_mode_{p_obj["nombre"]}'] = True
-                    st.rerun()
-                    # El return es redundante por el rerun, pero se mantiene por flujo
-                    return
+                    st.session_state.pop(f'preview_mode_{p_obj["nombre"]}', None)
+                    print(f"[DEBUG-DASH] {p_obj['nombre']}: Pendiente re-entry, limpiando preview para empezar desde 0")
+                    del cache_existente[p_obj['nombre']]
+                    guardar_cache_valuaciones(cache_existente)
+                st.info(f"**{p_obj['nombre']}** está pendiente de valuación. "
+                        "Usa los controles Retro/Flex para generar una previsualización.")
+                mostrar_detalle_valu(p_obj, {}, actualizar_propiedad)
+                profile_end(_routing_ctx)
+                return
 
             _loader = st.empty()
             _loader.markdown("""
@@ -1241,6 +1231,9 @@ def main():
             st.radio("NAVEGACIÓN", nav_options, key="nav_page_radio")
         new_page = st.session_state["nav_page_radio"]
         if st.session_state.page != new_page:
+            old_prop = st.session_state.prop_sel
+            if old_prop:
+                st.session_state.pop(f'preview_mode_{old_prop}', None)
             st.session_state.prop_sel = None
         st.session_state.page = new_page
         
