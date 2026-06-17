@@ -3104,7 +3104,13 @@ def obtener_nodos_dinamicos(lat, lon, tipo, operacion, dorms=2, fecha_ref=None):
         return {"error": str(e)}
 
 
-def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retro_dias=0, flex_dormitorios=None):
+def _get_comp_id(c):
+    """Genera un ID único y estable para un comparable basado en sus datos."""
+    import hashlib
+    seed = f"{c.get('precio')}_{c.get('m2')}_{c.get('direccion_limpia') or c.get('direccion')}_{c.get('lat')}_{c.get('lon')}"
+    return hashlib.md5(seed.encode()).hexdigest()[:12]
+
+def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retro_dias=0, flex_dormitorios=None, comp_excluded=None):
     """
     🚀 Modelo v7.0 - Evolución Híbrida PROFESIONAL
     Fusiona el Motor VPP (Clusters/Market) con Factores Físicos (Legacy).
@@ -3312,6 +3318,11 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
     
     # Comparables reales para el mapa y tabla (NO sintéticos)
     comparables_venta = meta_venta.get('comparables_reales', [])
+    
+    # Filtrar comparables excluidos por el usuario (Sincronización UI -> Motor)
+    if comp_excluded:
+        comparables_venta = [c for c in comparables_venta if _get_comp_id(c) not in comp_excluded]
+        logger.info(f"[FILTER] Excluidos {len(comp_excluded)} comparables")
     
     logger.info(f"--- RESOLUTION ---")
     logger.info(f"resolution: {resolution}, confidence: {confidence}")
@@ -3668,6 +3679,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
     
     resultado = {
         'valor_propiedad_usd': round(valor_venta, 0),
+        '_comp_excluded': comp_excluded or [],
         'valor_realizable_usd': round(valor_realizable, 0),
         'valor_m2_actual_usd': round(valor_venta / m2_equiv, 2) if m2_equiv > 0 else 0,
         'm2_base_venta': round(m2_base_venta, 2),
