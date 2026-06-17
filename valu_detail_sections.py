@@ -13,15 +13,34 @@ from parsers.cluster_filters import seleccionar_percentil_por_edad
 from streamlit.components.v1 import html
 
 
+def _limpiar_estado_propiedad_local(nombre: str) -> None:
+    """Limpia TODO el estado de sesion asociado a una propiedad."""
+    if not nombre:
+        return
+    _PREFIJOS = [
+        'preview_mode_', 'retro_active_', 'flex_active_',
+        'forzar_recalculo_', 'manual_preview_', 'comp_excluded_',
+        'comp_selection_', 'vista_valuacion_', 'retro_meses_',
+        'manual_params_', 'retro_btn_', 'flex_btn_', 'aplicar_cambios_',
+        'infomapa_catastro_', 'ph_sel_', 'comp1_', 'comp2_',
+        'manual_ancla_', 'manual_usd_m2_', 'manual_fh_',
+        'manual_aj_', 'manual_inc_', 'clean_valuacion_',
+    ]
+    for p in _PREFIJOS:
+        st.session_state.pop(f'{p}{nombre}', None)
+    sufixo = f'sel_comp_{nombre}_'
+    claves_a_borrar = [k for k in st.session_state.keys() if k.startswith(sufixo)]
+    for k in claves_a_borrar:
+        del st.session_state[k]
+
+
 def render_actions(prop, guardar_fn):
     """Barra de acciones: Volver, Editar, Revaluar, Limpiar, Eliminar."""
     nombre = prop.get('nombre', '')
     col_back, col_edit, col_recalc, col_clean, col_delete = st.columns([1, 1, 1.5, 1.5, 1])
     with col_back:
         if st.button("<- Volver", type="primary", use_container_width=True):
-            st.session_state.pop(f'preview_mode_{nombre}', None)
-            st.session_state.pop(f'retro_active_{nombre}', None)
-            st.session_state.pop(f'flex_active_{nombre}', None)
+            _limpiar_estado_propiedad_local(nombre)
             st.session_state.prop_sel = None
             st.rerun()
     with col_edit:

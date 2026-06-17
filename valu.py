@@ -11,7 +11,6 @@ from valu_design import VALU_CSS, kpi_card, property_card, hero_price, metric_ca
 from valu_forms import ui_formulario_propiedad
 from landing import mostrar_landing
 from valu_detail_sections import _get_comp_id
-from valu_detail_sections import _get_comp_id
 from parsers.mercado_inmobiliario import _calcular_mediana
 from parsers.profiler import profile_block, profile_start, profile_end, StepLedger
 logger = logging.getLogger(__name__)
@@ -65,6 +64,26 @@ def obtener_usdt_ars_binance(fecha=None):
 def obtener_precios_historicos(fecha=None):
     # Simplificado para Valu
     return 950.0, obtener_usdt_ars_binance()
+
+def _limpiar_estado_propiedad(nombre: str) -> None:
+    """Limpia TODO el estado de sesion asociado a una propiedad, incluyendo claves de widgets persistidas."""
+    if not nombre:
+        return
+    _PREFIJOS = [
+        'preview_mode_', 'retro_active_', 'flex_active_',
+        'forzar_recalculo_', 'manual_preview_', 'comp_excluded_',
+        'comp_selection_', 'vista_valuacion_', 'retro_meses_',
+        'manual_params_', 'retro_btn_', 'flex_btn_', 'aplicar_cambios_',
+        'infomapa_catastro_', 'ph_sel_', 'comp1_', 'comp2_',
+        'manual_ancla_', 'manual_usd_m2_', 'manual_fh_',
+        'manual_aj_', 'manual_inc_', 'clean_valuacion_',
+    ]
+    for p in _PREFIJOS:
+        st.session_state.pop(f'{p}{nombre}', None)
+    sufixo = f'sel_comp_{nombre}_'
+    claves_a_borrar = [k for k in st.session_state.keys() if k.startswith(sufixo)]
+    for k in claves_a_borrar:
+        del st.session_state[k]
 
 # --- UI COMPONENTS ---
 
@@ -429,11 +448,7 @@ def mostrar_dashboard():
             prop_name = p_obj.get('nombre', '')
             # Limpiar Valuación: borrar cache, _ultima_valuacion y manual staging
             if st.session_state.get(f"clean_valuacion_{prop_name}", False):
-                st.session_state.pop(f"clean_valuacion_{prop_name}", None)
-                st.session_state.pop(f"manual_preview_{prop_name}", None)
-                st.session_state.pop(f"preview_mode_{prop_name}", None)
-                st.session_state.pop(f"retro_active_{prop_name}", None)
-                st.session_state.pop(f"flex_active_{prop_name}", None)
+                _limpiar_estado_propiedad(prop_name)
                 try:
                     from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
                     cache_v = cargar_cache_valuaciones()
@@ -489,30 +504,41 @@ def mostrar_dashboard():
                 except Exception:
                     pass
 
-            # ── Si nunca fue valuado (Pendiente): mostrar detalle con 0 comps, salvo que haya cache ──
+            # ── Si nunca fue valuado (Pendiente): mostrar detalle con 0 comps ──
             uv = p_obj.get('_ultima_valuacion', {})
             ya_valuado = bool(uv.get('valor_usd') or uv.get('fuente'))
+            # Limpiar claves de widgets que pudieron persistir de sesiones previas (evita ghost state)
+            st.session_state.pop(f'retro_btn_{p_obj["nombre"]}', None)
+            st.session_state.pop(f'flex_btn_{p_obj["nombre"]}', None)
             # Detectar si el boton Retro fue clickeado (el `if st.button()` inline aun no evaluo)
             retro_btn_key = f'retro_btn_{p_obj["nombre"]}'
             retro_btn_clicked = st.session_state.get(retro_btn_key, False)
             if retro_btn_clicked:
                 st.session_state[f'preview_mode_{p_obj["nombre"]}'] = True
-            if not ya_valuado and not forzar and not retro_btn_clicked:
-                # Pendiente re-entry: limpiar todo y mostrar estado vacio
-                st.session_state.pop(f'preview_mode_{p_obj["nombre"]}', None)
-                st.session_state.pop(f'retro_active_{p_obj["nombre"]}', None)
-                st.session_state.pop(f'flex_active_{p_obj["nombre"]}', None)
-                st.session_state.pop(f'manual_preview_{p_obj["nombre"]}', None)
+            if not ya_valuado:
+                # Pendiente: limpiar cache de preview (no comprometido) si existe
                 cache_existente = cargar_cache_valuaciones()
-                if p_obj['nombre'] in cache_existente:
+                entrada_cache = cache_existente.get(p_obj['nombre'], {})
+                resultado_cacheado = entrada_cache.get('resultado_completo', {}) or {}
+                cache_preview = resultado_cacheado.get('_cache', {}).get('preview', True)
+                if resultado_cacheado and cache_preview:
+                    # Cache de preview no comprometido: limpiar al entrar solo si no hay recalculo activo
+                    if not forzar:
+                        st.session_state.pop(f'preview_mode_{p_obj["nombre"]}', None)
+                        st.session_state.pop(f'retro_active_{p_obj["nombre"]}', None)
+                        st.session_state.pop(f'flex_active_{p_obj["nombre"]}', None)
+                        st.session_state.pop(f'manual_preview_{p_obj["nombre"]}', None)
                     del cache_existente[p_obj['nombre']]
                     guardar_cache_valuaciones(cache_existente)
-                print(f"[DEBUG-DASH] {p_obj['nombre']}: Pendiente, mostrando estado vacio")
-                st.info(f"**{p_obj['nombre']}** está pendiente de valuación. "
-                        "Usa los controles Retro/Flex para generar una previsualización.")
-                mostrar_detalle_valu(p_obj, {}, actualizar_propiedad)
-                profile_end(_routing_ctx)
-                return
+                    print(f"[DEBUG-DASH] {p_obj['nombre']}: Limpiado cache de preview sin comprometer (preview=True)")
+                # Si es re-entry pasivo (sin recalculación forzada), mostrar vacío
+                if not forzar and not retro_btn_clicked:
+                    print(f"[DEBUG-DASH] {p_obj['nombre']}: Pendiente re-entry pasivo, mostrando vacío")
+                    st.info(f"**{p_obj['nombre']}** está pendiente de valuación. "
+                            "Usa los controles Retro/Flex para generar una previsualización.")
+                    mostrar_detalle_valu(p_obj, {}, actualizar_propiedad)
+                    profile_end(_routing_ctx)
+                    return
 
             _loader = st.empty()
             _loader.markdown("""
@@ -643,11 +669,7 @@ def mostrar_dashboard():
 
                 with profile_block("detalle_volver_btn", None):
                     if st.button("← Volver al Portafolio"):
-                        nombre = p_obj.get("nombre", "")
-                        st.session_state.pop(f'preview_mode_{nombre}', None)
-                        st.session_state.pop(f'retro_active_{nombre}', None)
-                        st.session_state.pop(f'flex_active_{nombre}', None)
-                        st.session_state.pop(f'manual_preview_{nombre}', None)
+                        _limpiar_estado_propiedad(p_obj.get("nombre",""))
                         st.session_state.prop_sel = None
                         st.session_state['_force_nav_page'] = 'Portfolio'
                         if 'prop' in st.query_params:
@@ -1172,10 +1194,7 @@ def main():
     # ─── Interceptar ?prop=xxx antes de cualquier check de landing ───
     if 'prop' in st.query_params:
         prop_name = st.query_params['prop']
-        st.session_state.pop(f'preview_mode_{prop_name}', None)
-        st.session_state.pop(f'retro_active_{prop_name}', None)
-        st.session_state.pop(f'flex_active_{prop_name}', None)
-        st.session_state.pop(f'manual_preview_{prop_name}', None)
+        _limpiar_estado_propiedad(prop_name)
         st.session_state.prop_sel = prop_name
         st.session_state.vista_actual = 'dashboard'
         st.query_params.clear()
@@ -1243,10 +1262,7 @@ def main():
         if st.session_state.page != new_page:
             old_prop = st.session_state.prop_sel
             if old_prop:
-                st.session_state.pop(f'preview_mode_{old_prop}', None)
-                st.session_state.pop(f'retro_active_{old_prop}', None)
-                st.session_state.pop(f'flex_active_{old_prop}', None)
-                st.session_state.pop(f'manual_preview_{old_prop}', None)
+                _limpiar_estado_propiedad(old_prop)
             st.session_state.prop_sel = None
         st.session_state.page = new_page
         
