@@ -186,7 +186,7 @@ def _fmt_usd(value: Any) -> str:
     try:
         v = float(value or 0)
         if v <= 0:
-            return "Pendiente"
+            return "—"
         return f"USD {v:,.0f}"
     except Exception:
         return "—"
@@ -258,7 +258,8 @@ def _cargar_resultados_cache(propiedades: list[dict[str, Any]]) -> tuple[dict[st
                 processed = True
             else:
                 resultado = entrada.get("resultado_completo", {}) or {}
-                if not resultado.get('_cache', {}).get('preview', False):
+                is_preview = resultado.get('_cache', {}).get('preview', False)
+                if not is_preview:
                     # Cache oficial (no preview)
                     resultados[nombre] = resultado
                     processed = True
@@ -276,6 +277,16 @@ def _cargar_resultados_cache(propiedades: list[dict[str, Any]]) -> tuple[dict[st
                             "badge": "green",
                             "detalle": entrada.get("fecha_legible", ""),
                         }
+                else:
+                    # Cache de previsualización: mostrar pero con badge diferente
+                    resultados[nombre] = resultado
+                    processed = True
+                    estados[nombre] = {
+                        "estado": "preview",
+                        "label": "Previsualización",
+                        "badge": "amber",
+                        "detalle": "Cambio no aplicado",
+                    }
 
         if not processed:
             if ultima:

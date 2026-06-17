@@ -509,9 +509,8 @@ def mostrar_dashboard():
             # ── Si nunca fue valuado (Pendiente): mostrar detalle con 0 comps ──
             uv = p_obj.get('_ultima_valuacion', {})
             ya_valuado = bool(uv.get('valor_usd') or uv.get('fuente'))
-            # Limpiar claves de widgets que pudieron persistir de sesiones previas (evita ghost state)
-            st.session_state.pop(f'retro_btn_{p_obj["nombre"]}', None)
-            st.session_state.pop(f'flex_btn_{p_obj["nombre"]}', None)
+            # No limpiar widget keys aquí: _limpiar_estado_propiedad ya las limpia
+            # al navegar. Hacer pop aquí impide que Streamlit detecte el click.
             # Detectar si el boton Retro fue clickeado (el `if st.button()` inline aun no evaluo)
             retro_btn_key = f'retro_btn_{p_obj["nombre"]}'
             retro_btn_clicked = st.session_state.get(retro_btn_key, False)
