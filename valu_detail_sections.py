@@ -39,10 +39,7 @@ def render_actions(prop, guardar_fn):
     nombre = prop.get('nombre', '')
     col_back, col_edit, col_recalc, col_clean, col_delete = st.columns([1, 1, 1.5, 1.5, 1])
     with col_back:
-        if st.button("<- Volver", type="primary", use_container_width=True):
-            _limpiar_estado_propiedad_local(nombre)
-            st.session_state.prop_sel = None
-            st.rerun()
+        # Boton Volver eliminado para evitar redundancia con Volver al Portfolio
     with col_edit:
         if st.button("Editar", type="primary", use_container_width=True):
             st.session_state[f"edit_{prop['id']}"] = True

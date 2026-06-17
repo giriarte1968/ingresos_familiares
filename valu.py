@@ -66,7 +66,7 @@ def obtener_precios_historicos(fecha=None):
     return 950.0, obtener_usdt_ars_binance()
 
 def _limpiar_estado_propiedad(nombre: str) -> None:
-    """Limpia TODO el estado de sesion asociado a una propiedad, incluyendo claves de widgets persistidas."""
+    """Limpia TODO el estado de sesion asociado a una propiedad."""
     if not nombre:
         return
     _PREFIJOS = [
@@ -84,6 +84,21 @@ def _limpiar_estado_propiedad(nombre: str) -> None:
     claves_a_borrar = [k for k in st.session_state.keys() if k.startswith(sufixo)]
     for k in claves_a_borrar:
         del st.session_state[k]
+
+def _limpiar_y_borrar_cache_si_hay_manuales(nombre: str) -> None:
+    """Soportar la logica de 'Limpiar Valuacion' al navegar fuera si hay cambios manuales."""
+    if not nombre:
+        return
+    manual_keys = [f"manual_usd_m2_{nombre}", f"manual_fh_{nombre}", f"manual_aj_{nombre}", f"manual_inc_{nombre}"]
+    if any(k in st.session_state for k in manual_keys):
+        from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
+        cache = cargar_cache_valuaciones()
+        if nombre in cache:
+            del cache[nombre]
+            guardar_cache_valuaciones(cache)
+            logger.info(f"[CLEAN-NAV] {nombre}: Limpiando cache por cambios manuales no aplicados")
+    _limpiar_estado_propiedad(nombre)
+
 
 # --- UI COMPONENTS ---
 
@@ -673,7 +688,8 @@ def mostrar_dashboard():
 
                 with profile_block("detalle_volver_btn", None):
                     if st.button("← Volver al Portafolio"):
-                        _limpiar_estado_propiedad(p_obj.get("nombre",""))
+                        nombre = p_obj.get("nombre", "")
+                        _limpiar_y_borrar_cache_si_hay_manuales(nombre)
                         st.session_state.prop_sel = None
                         st.session_state['_force_nav_page'] = 'Portfolio'
                         if 'prop' in st.query_params:
@@ -1197,6 +1213,11 @@ def main():
 
     # ─── Interceptar ?prop=xxx antes de cualquier check de landing ───
     if 'prop' in st.query_params:
+        # Limpiar la propiedad que estamos dejando antes de entrar a la nueva
+        old_prop = st.session_state.get('prop_sel')
+        if old_prop:
+            _limpiar_y_borrar_cache_si_hay_manuales(old_prop)
+            
         prop_name = st.query_params['prop']
         _limpiar_estado_propiedad(prop_name)
         st.session_state.prop_sel = prop_name
@@ -1266,7 +1287,7 @@ def main():
         if st.session_state.page != new_page:
             old_prop = st.session_state.prop_sel
             if old_prop:
-                _limpiar_estado_propiedad(old_prop)
+                _limpiar_y_borrar_cache_si_hay_manuales(old_prop)
             st.session_state.prop_sel = None
         st.session_state.page = new_page
         
