@@ -670,7 +670,6 @@ def mostrar_dashboard():
                                         resultado['valor_m2_actual_usd'] = round(nuevo_valor / m2_eq, 2)
                                         resultado['valor_venta_conservador'] = v_cons
                                         resultado['valor_venta_optimista'] = v_opt
-                                        resultado['_comp_excluded'] = excluded_ids
                                         resultado['_n_excluidos'] = len(excluded_ids)
                                         logger.info(f"[APPLY] {prop_name}: {n_sel} comps, valor=${nuevo_valor:,.0f}")
                                 else:
@@ -682,7 +681,6 @@ def mostrar_dashboard():
                                     resultado['valor_m2_actual_usd'] = 0
                                     resultado['valor_venta_conservador'] = 0
                                     resultado['valor_venta_optimista'] = 0
-                                    resultado['_comp_excluded'] = excluded_ids
                                     resultado['_n_excluidos'] = len(excluded_ids)
                                     logger.info(f"[APPLY] {prop_name}: <2 comps, header limpiado")
 
