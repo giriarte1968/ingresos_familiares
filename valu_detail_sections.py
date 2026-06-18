@@ -301,7 +301,7 @@ def render_tabla_comparables(res, prop_name=None):
         with col_reset:
             if st.button("↩️ Restablecer todos", key=f'reset_comp_sel_{prop_name}', use_container_width=True):
                 st.session_state.pop(f'comp_selection_{prop_name}', None)
-                st.session_state.pop(f'comp_excluded_{prop_name}', None)
+                st.session_state[f'comp_excluded_{prop_name}'] = []
                 st.session_state[f'forzar_recalculo_{prop_name}'] = True
                 st.rerun()
 
