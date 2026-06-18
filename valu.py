@@ -633,73 +633,88 @@ def mostrar_dashboard():
                             elif resultado.get('_comp_excluded') is not None:
                                 excluded_ids = resultado['_comp_excluded']
                         if excluded_ids is not None:
-                            # Guardar originales para delta del preview
-                            resultado['_original_m2_base'] = resultado.get('m2_base_venta', 0)
-                            resultado['_original_valor_usd'] = resultado.get('valor_propiedad_usd', 0)
-                            _meta = resultado.get('resolution_metadata', {})
-                            resultado['_original_m2_puro'] = _meta.get('_m2_puro', 0)
-                            if excluded_ids:
-                                # Solo recalcular cuando hay exclusiones reales
-                                comps_filtrados = [c for c in comps_orig if _get_comp_id(c) not in excluded_ids]
-                                if len(comps_filtrados) >= 2:
-                                    precios = [c.get('precio_m2', 0) * c.get('time_adjustment', 1.0) for c in comps_filtrados]
-                                    precios_sorted = sorted(precios)
-                                    n_sel = len(precios_sorted)
-                                    from parsers.cluster_filters import seleccionar_percentil_por_edad
-                                    if n_sel < 3:
-                                        nuevo_vm2 = _calcular_mediana(precios_sorted)
-                                    else:
-                                        percentil, _ = seleccionar_percentil_por_edad(True, n_sel)
-                                        if percentil == 50:
-                                            nuevo_vm2 = _calcular_mediana(precios_sorted)
-                                        elif percentil == 45:
-                                            nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.45) - 1)]
-                                        elif percentil == 40:
-                                            nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.40) - 1)]
-                                        else:
-                                            nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.33) - 1)]
-
-                                    m2_eq = resultado.get('m2_equivalentes', 0)
-                                    valor_orig = resultado.get('valor_propiedad_usd', 0)
-                                    valor_activos = resultado.get('valor_activos', {}).get('total', 0)
-                                    m2_base_orig = resultado.get('m2_base_venta', 1.0)
-
-                                    if m2_eq > 0 and m2_base_orig > 0:
-                                        mult_factores = (valor_orig - valor_activos) / (m2_eq * m2_base_orig)
-                                        nuevo_valor = (m2_eq * nuevo_vm2 * mult_factores) + valor_activos
-                                        v_cons = nuevo_valor * 0.93
-                                        v_opt = nuevo_valor * 1.07
-                                        resultado = dict(resultado)
-                                        resultado['valor_propiedad_usd'] = round(nuevo_valor, 0)
-                                        resultado['valor_m2'] = nuevo_vm2
-                                        resultado['m2_base_venta'] = nuevo_vm2
-                                        resultado['valor_m2_actual_usd'] = round(nuevo_valor / m2_eq, 2)
-                                        resultado['valor_venta_conservador'] = v_cons
-                                        resultado['valor_venta_optimista'] = v_opt
-                                        resultado['_n_excluidos'] = len(excluded_ids)
-                                        logger.info(f"[APPLY] {prop_name}: {n_sel} comps, valor=${nuevo_valor:,.0f}")
-                                else:
-                                    # Menos de 2 comps seleccionados → limpiar header
-                                    resultado = dict(resultado)
-                                    resultado['valor_propiedad_usd'] = 0
-                                    resultado['valor_m2'] = 0
-                                    resultado['m2_base_venta'] = 0
-                                    resultado['valor_m2_actual_usd'] = 0
-                                    resultado['valor_venta_conservador'] = 0
-                                    resultado['valor_venta_optimista'] = 0
-                                    resultado['_n_excluidos'] = len(excluded_ids)
-                                    logger.info(f"[APPLY] {prop_name}: <2 comps, header limpiado")
-                            resultado['_comp_excluded'] = excluded_ids
-                            if from_apply:
-                                resultado['_comp_exclusion_applied'] = True
+                            # Verificar si la selección actual ya coincide con una exclusión aplicada y persistida
+                            # Para evitar recálculos redundantes y pérdida de estado en re-entry
+                            is_already_applied = (
+                                resultado.get('_comp_exclusion_applied') is True and 
+                                set(resultado.get('_comp_excluded', [])) == set(excluded_ids)
+                            )
+                            
+                            if is_already_applied and not from_apply:
+                                # Ya está aplicada y coincide: mantenemos el valor y el estado
+                                logger.info(f"[APPLY] {prop_name}: Selección ya aplicada y coincide. Saltando recálculo.")
+                            else:
+                                # Guardar originales para delta del preview
+                                resultado['_original_m2_base'] = resultado.get('m2_base_venta', 0)
+                                resultado['_original_valor_usd'] = resultado.get('valor_propiedad_usd', 0)
+                                _meta = resultado.get('resolution_metadata', {})
+                                resultado['_original_m2_puro'] = _meta.get('_m2_puro', 0)
                                 if excluded_ids:
-                                    try:
-                                        from parsers.valuacion_cache import cargar_cache_valuaciones, persistir_valuacion
-                                        _cache_v = cargar_cache_valuaciones()
-                                        persistir_valuacion(prop_name, p_obj, resultado, _cache_v, commit=True)
-                                        logger.info(f"[APPLY] {prop_name}: Persistida exclusión de {len(excluded_ids)} comps a cache+propiedades")
-                                    except Exception as e:
-                                        logger.warning(f"[APPLY] {prop_name}: No se pudo persistir exclusión: {e}")
+                                    # Solo recalcular cuando hay exclusiones reales
+                                    comps_filtrados = [c for c in comps_orig if _get_comp_id(c) not in excluded_ids]
+                                    if len(comps_filtrados) >= 2:
+                                        precios = [c.get('precio_m2', 0) * c.get('time_adjustment', 1.0) for c in comps_filtrados]
+                                        precios_sorted = sorted(precios)
+                                        n_sel = len(precios_sorted)
+                                        from parsers.cluster_filters import seleccionar_percentil_por_edad
+                                        if n_sel < 3:
+                                            nuevo_vm2 = _calcular_mediana(precios_sorted)
+                                        else:
+                                            percentil, _ = seleccionar_percentil_por_edad(True, n_sel)
+                                            if percentil == 50:
+                                                nuevo_vm2 = _calcular_mediana(precios_sorted)
+                                            elif percentil == 45:
+                                                nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.45) - 1)]
+                                            elif percentil == 40:
+                                                nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.40) - 1)]
+                                            else:
+                                                nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.33) - 1)]
+                                        
+                                        m2_eq = resultado.get('m2_equivalentes', 0)
+                                        valor_orig = resultado.get('valor_propiedad_usd', 0)
+                                        valor_activos = resultado.get('valor_activos', {}).get('total', 0)
+                                        m2_base_orig = resultado.get('m2_base_venta', 1.0)
+                                        
+                                        if m2_eq > 0 and m2_base_orig > 0:
+                                            mult_factores = (valor_orig - valor_activos) / (m2_eq * m2_base_orig)
+                                            nuevo_valor = (m2_eq * nuevo_vm2 * mult_factores) + valor_activos
+                                            v_cons = nuevo_valor * 0.93
+                                            v_opt = nuevo_valor * 1.07
+                                            resultado = dict(resultado)
+                                            resultado['valor_propiedad_usd'] = round(nuevo_valor, 0)
+                                            resultado['valor_m2'] = nuevo_vm2
+                                            resultado['m2_base_venta'] = nuevo_vm2
+                                            resultado['valor_m2_actual_usd'] = round(nuevo_valor / m2_eq, 2)
+                                            resultado['valor_venta_conservador'] = v_cons
+                                            resultado['valor_venta_optimista'] = v_opt
+                                            resultado['_n_excluidos'] = len(excluded_ids)
+                                            logger.info(f"[APPLY] {prop_name}: {n_sel} comps, valor=${nuevo_valor:,.0f}")
+                                    else:
+                                        # Menos de 2 comps seleccionados → limpiar header
+                                        resultado = dict(resultado)
+                                        resultado['valor_propiedad_usd'] = 0
+                                        resultado['valor_m2'] = 0
+                                        resultado['m2_base_venta'] = 0
+                                        resultado['valor_m2_actual_usd'] = 0
+                                        resultado['valor_venta_conservador'] = 0
+                                        resultado['valor_venta_optimista'] = 0
+                                        resultado['_n_excluidos'] = len(excluded_ids)
+                                        logger.info(f"[APPLY] {prop_name}: <2 comps, header limpiado")
+                                
+                                resultado['_comp_excluded'] = excluded_ids
+                                if from_apply:
+                                    resultado['_comp_exclusion_applied'] = True
+                                    if excluded_ids:
+                                        try:
+                                            from parsers.valuacion_cache import cargar_cache_valuaciones, persistir_valuacion
+                                            _cache_v = cargar_cache_valuaciones()
+                                            # FORZAR preview=False para que el Portfolio lo vea como oficial
+                                            if '_cache' in resultado:
+                                                resultado['_cache']['preview'] = False
+                                            persistir_valuacion(prop_name, p_obj, resultado, _cache_v, commit=True)
+                                            logger.info(f"[APPLY] {prop_name}: Persistida exclusión de {len(excluded_ids)} comps a cache+propiedades")
+                                        except Exception as e:
+                                            logger.warning(f"[APPLY] {prop_name}: No se pudo persistir exclusión: {e}")
 
                 with profile_block("detalle_volver_btn", None):
                     if st.button("← Volver al Portafolio"):

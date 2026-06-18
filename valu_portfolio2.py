@@ -290,19 +290,29 @@ def _cargar_resultados_cache(propiedades: list[dict[str, Any]]) -> tuple[dict[st
         if not processed:
             if ultima:
                 # Fallback: usar resumen guardado en propiedades.json
-                resultados[nombre] = {
-                    "valor_propiedad_usd": ultima.get("valor_usd"),
-                    "alquiler_estimado_ars": ultima.get("alquiler_ars"),
-                    "cap_rate": ultima.get("cap_rate"),
-                    "m2_equivalentes": ultima.get("m2_equivalentes"),
-                    "resolution_metadata": {"n_propiedades": ultima.get("comps", 0)},
-                }
-                estados[nombre] = {
-                    "estado": "ok",
-                    "label": "Actualizada",
-                    "badge": "green",
-                    "detalle": ultima.get("fecha", ""),
-                }
+                # Consideramos que si tiene valor_usd, es una valuación válida aunque no esté en caché
+                valor_usd = ultima.get("valor_usd")
+                if valor_usd and valor_usd > 0:
+                    resultados[nombre] = {
+                        "valor_propiedad_usd": valor_usd,
+                        "alquiler_estimado_ars": ultima.get("alquiler_ars"),
+                        "cap_rate": ultima.get("cap_rate"),
+                        "m2_equivalentes": ultima.get("m2_equivalentes"),
+                        "resolution_metadata": {"n_propiedades": ultima.get("comps", 0)},
+                    }
+                    estados[nombre] = {
+                        "estado": "ok",
+                        "label": "Actualizada",
+                        "badge": "green",
+                        "detalle": ultima.get("fecha", "") + " (JSON)",
+                    }
+                else:
+                    estados[nombre] = {
+                        "estado": "pendiente",
+                        "label": "Pendiente",
+                        "badge": "amber",
+                        "detalle": "Sin valuación válida",
+                    }
             else:
                 estados[nombre] = {
                     "estado": "pendiente",
