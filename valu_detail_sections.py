@@ -20,7 +20,7 @@ def _limpiar_estado_propiedad_local(nombre: str) -> None:
     _PREFIJOS = [
         'preview_mode_', 'retro_active_', 'flex_active_',
         'forzar_recalculo_', 'manual_preview_', 'comp_excluded_',
-        'comp_selection_', 'vista_valuacion_', 'retro_meses_',
+        'comp_selection_', 'vista_valuacion_', 'retro_meses_', 'retro_meses_slider_',
         'manual_params_', 'retro_btn_', 'flex_btn_', 'aplicar_cambios_',
         'infomapa_catastro_', 'ph_sel_', 'comp1_', 'comp2_',
         'manual_ancla_', 'manual_usd_m2_', 'manual_fh_',

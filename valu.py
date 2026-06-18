@@ -72,7 +72,7 @@ def _limpiar_estado_propiedad(nombre: str) -> None:
     _PREFIJOS = [
         'preview_mode_', 'retro_active_', 'flex_active_',
         'forzar_recalculo_', 'manual_preview_', 'comp_excluded_',
-        'comp_selection_', 'vista_valuacion_', 'retro_meses_',
+        'comp_selection_', 'vista_valuacion_', 'retro_meses_', 'retro_meses_slider_',
         'manual_params_', 'retro_btn_', 'flex_btn_', 'aplicar_cambios_',
         'infomapa_catastro_', 'ph_sel_', 'comp1_', 'comp2_',
         'manual_ancla_', 'manual_usd_m2_', 'manual_fh_',
@@ -305,9 +305,14 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
             if st.button(label, type="primary" if retro_active else "secondary", use_container_width=True, key=f'retro_btn_{prop_name}'):
                 nuevo_valor = not retro_active
                 st.session_state[retro_key] = nuevo_valor
+                if nuevo_valor:
+                    sv = st.session_state.get(f'retro_meses_slider_{prop_name}', 36)
+                    st.session_state[f'retro_meses_{prop_name}'] = sv
                 if not nuevo_valor:
                     st.session_state.pop(f'flex_active_{prop_name}', None)
                     st.session_state.pop(f'comp_excluded_{prop_name}', None)
+                    st.session_state.pop(f'retro_meses_{prop_name}', None)
+                    st.session_state.pop(f'retro_meses_slider_{prop_name}', None)
                 # Resetear selección de comparables al cambiar modo retro
                 st.session_state.pop(f'comp_selection_{prop_name}', None)
                 st.session_state[f'forzar_recalculo_{prop_name}'] = True
@@ -316,19 +321,17 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                 st.rerun()
         with col_status:
             if retro_active:
-                meses = st.session_state.get(f'retro_meses_{prop_name}', 36)
+                meses = st.session_state.get(f'retro_meses_slider_{prop_name}',
+                        st.session_state.get(f'retro_meses_{prop_name}', 36))
                 st.caption(f"📆 +{meses} meses")
         with col_slider:
             if retro_active:
                 def _on_retro_slider_change(prop_name=prop_name):
-                    # Marcar para recalculo; Streamlit ya hace rerun después del on_change
-                    st.session_state[f'forzar_recalculo_{prop_name}'] = True
-                    st.session_state[f'preview_mode_{prop_name}'] = True
-                    # Resetear selección de comparables al cambiar la ventana temporal
-                    st.session_state.pop(f'comp_selection_{prop_name}', None)
-                    st.session_state.pop(f'comp_excluded_{prop_name}', None)
-                st.slider("Meses atrás", 12, 60, st.session_state.get(f'retro_meses_{prop_name}', 36),
-                          key=f'retro_meses_{prop_name}', on_change=_on_retro_slider_change)
+                    pass
+                _slider_def = st.session_state.get(f'retro_meses_slider_{prop_name}',
+                              st.session_state.get(f'retro_meses_{prop_name}', 36))
+                st.slider("Meses atrás", 12, 60, _slider_def,
+                          key=f'retro_meses_slider_{prop_name}', on_change=_on_retro_slider_change)
 
         # Retro: checkbox para incluir todos los dormitorios
         if retro_active:
@@ -353,7 +356,10 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                          key=f'aplicar_cambios_{prop_name}'):
                 retro = st.session_state.get(retro_key, False)
                 flex = st.session_state.get(flex_key, False)
-                print(f"[DEBUG-DETALLE] Aplicar cambios {prop_name}: retro={retro}, flex={flex}, preview_mode=CLEARED")
+                slider_val = st.session_state.get(f'retro_meses_slider_{prop_name}', 36)
+                st.session_state[f'retro_meses_{prop_name}'] = slider_val
+                st.session_state.pop(f'comp_selection_{prop_name}', None)
+                print(f"[DEBUG-DETALLE] Aplicar cambios {prop_name}: retro={retro}, flex={flex}, slider={slider_val}, preview_mode=CLEARED")
                 st.session_state[f'forzar_recalculo_{prop_name}'] = True
                 st.session_state.pop(f'preview_mode_{prop_name}', None)
                 st.rerun()
@@ -576,6 +582,7 @@ def mostrar_dashboard():
                         st.session_state[f'retro_active_{prop_name}'] = retro_dias > 0
                         if retro_dias > 0:
                             st.session_state[f'retro_meses_{prop_name}'] = retro_dias
+                            st.session_state[f'retro_meses_slider_{prop_name}'] = retro_dias
                         st.session_state[f'flex_active_{prop_name}'] = flex_dormitorios is not None
                         st.session_state[vista_key] = True
                     else:
