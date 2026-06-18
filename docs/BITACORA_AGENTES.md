@@ -2717,3 +2717,27 @@ Remover la lectura de `comp_excluded` en `valuar_con_cache` (`motor_vpp_core.py`
 ### Tests: 39/39 regression OK
 ### Commit: `acdfdd5`
 `1439df2` — main
+
+---
+
+## 📅 2026-06-18 — TAREA-041: Apply persistence — exclusion y valuación sobreviven navegación a Portfolio
+
+### Problema:
+Al hacer "Aplicar Selección" y navegar al Portfolio, al volver la exclusión y la valuación aplicada se perdían completamente (propiedad aparecía "sin valuación").
+
+### Causa raíz:
+1. Aunque se llamaba `persistir_valuacion(commit=True)` en el Apply handler (commit `a27c706`), el `_cache.preview` quedaba en `True`, y el Portfolio ignoraba valuaciones con `preview=True`.
+2. Al re-entrar a la propiedad, el recálculo Preview/P33 detectaba que `_comp_excluded` no estaba en session state y recalculaba desde cero, perdiendo `_comp_exclusion_applied`.
+3. Portfolio en `_cargar_resultados_cache` marcaba como "Pendiente" propiedades cuyo caché expiró, incluso si `_ultima_valuacion` tenía `valor_usd` ≥ 0.
+
+### Solución:
+1. **`valu.py`**: Forzar `resultado['_cache']['preview'] = False` antes de persistir en Apply.
+2. **`valu.py`**: Agregar `is_already_applied` guard: si `_comp_exclusion_applied` es True y los IDs excluidos coinciden con los widgets, saltar el recálculo en re-entry. Esto preserva el estado aplicado.
+3. **`valu_portfolio2.py`**: En `_cargar_resultados_cache`, el fallback a `_ultima_valuacion` ahora verifica que `valor_usd > 0` antes de marcar como "Actualizada". Si es 0/None, marca "Pendiente".
+
+### Archivos:
+- `valu.py`: `is_already_applied` guard, `preview=False` forzado, persistencia condicional
+- `valu_portfolio2.py`: fallback robusto con verificación `valor_usd > 0`
+
+### Tests: 39/39 regression OK
+### Commits: `a27c706`, `fcf34a0` (branch `estabilizar`)
