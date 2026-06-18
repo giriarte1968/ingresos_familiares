@@ -2700,4 +2700,20 @@ El motor usa `P33_age_blend` para 5-7 comps (blend entre pool filtrado por edad 
 ### Tests: auto_validate + regression — OK
 
 ### Commit:
+
+---
+
+## 📅 2026-06-17 — Bug: bucle infinito botón Aplicar Selección
+
+### Problema:
+El botón "Aplicar Selección" entraba en un ciclo: al clickear mostraba 4/7, al volver a clickear mostraba 7/7, etc. Ocurría porque `motor_vpp_core.py` leía `comp_excluded` de session state y lo pasaba al motor, que filtraba `comparables_venta` a un subconjunto. Luego `render_tabla_comparables` comparaba los IDs actuales contra `_comp_excluded` y como los IDs excluidos no estaban en el subconjunto, `is_applied` siempre era `False`, manteniendo el botón activo. Clickear con `excluded=[]` hacía que el motor devolviera los 7 comps originales → ciclo.
+
+### Solución:
+Remover la lectura de `comp_excluded` en `valuar_con_cache` (`motor_vpp_core.py`). El motor ahora siempre devuelve TODOS los comparables. El Apply handler en `valu.py:642` ya recalcula P33/P50 correctamente sobre el subset seleccionado y las flags `_comp_excluded`/`_comp_exclusion_applied` se sincronizan correctamente → botón muestra "✅ Selección Aplicada".
+
+### Archivos:
+- `parsers/motor_vpp_core.py`: removido `import streamlit`, lectura de `comp_excluded`, y paso del parámetro al motor
+
+### Tests: 39/39 regression OK
+### Commit: `acdfdd5`
 `1439df2` — main

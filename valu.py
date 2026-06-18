@@ -692,6 +692,14 @@ def mostrar_dashboard():
                             resultado['_comp_excluded'] = excluded_ids
                             if from_apply:
                                 resultado['_comp_exclusion_applied'] = True
+                                if excluded_ids:
+                                    try:
+                                        from parsers.valuacion_cache import cargar_cache_valuaciones, persistir_valuacion
+                                        _cache_v = cargar_cache_valuaciones()
+                                        persistir_valuacion(prop_name, p_obj, resultado, _cache_v, commit=True)
+                                        logger.info(f"[APPLY] {prop_name}: Persistida exclusión de {len(excluded_ids)} comps a cache+propiedades")
+                                    except Exception as e:
+                                        logger.warning(f"[APPLY] {prop_name}: No se pudo persistir exclusión: {e}")
 
                 with profile_block("detalle_volver_btn", None):
                     if st.button("← Volver al Portafolio"):
