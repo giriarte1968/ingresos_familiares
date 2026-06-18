@@ -77,6 +77,7 @@ def _limpiar_estado_propiedad(nombre: str) -> None:
         'infomapa_catastro_', 'ph_sel_', 'comp1_', 'comp2_',
         'manual_ancla_', 'manual_usd_m2_', 'manual_fh_',
         'manual_aj_', 'manual_inc_', 'clean_valuacion_',
+        'comp_interacted_',
     ]
     for p in _PREFIJOS:
         st.session_state.pop(f'{p}{nombre}', None)
@@ -622,10 +623,10 @@ def mostrar_dashboard():
                                     if st.session_state.get(wk, True):
                                         selected_ids.add(cid)
                                 excluded_ids = [cid for cid in comp_ids if cid not in selected_ids]
-                                if not excluded_ids and p_obj.get('_ultima_valuacion', {}).get('_comp_exclusion_applied'):
+                                if excluded_ids:
+                                    st.session_state[f'_comp_interacted_{prop_name}'] = True
+                                elif not st.session_state.get(f'_comp_interacted_{prop_name}', False):
                                     excluded_ids = None
-                                else:
-                                    from_apply = True
                             elif resultado.get('_comp_excluded') is not None:
                                 excluded_ids = resultado['_comp_excluded']
                             elif p_obj.get('_ultima_valuacion', {}).get('_comp_exclusion_applied'):
