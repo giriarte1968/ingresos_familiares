@@ -562,11 +562,8 @@ def _render_cards(rows: list[dict[str, Any]], page_size: int) -> None:
         cols = st.columns(3)
         for col, row in zip(cols, page_rows[idx:idx + 3]):
             with col:
-                import urllib.parse
-                nombre_encoded = urllib.parse.quote(row['nombre'])
                 badges = _badge(row["estado_label"], row["estado_badge"]) + _badge(f"Confianza {row['conf_label']}", row["conf_badge"])
                 st.markdown(f"""
-                <a href="?prop={nombre_encoded}" style="text-decoration:none;color:inherit;display:block;">
                 <div class="p2-property-card">
                     <div>{badges}</div>
                     <div class="p2-property-title">{row['nombre']}</div>
@@ -580,8 +577,9 @@ def _render_cards(rows: list[dict[str, Any]], page_size: int) -> None:
                         <div class="p2-mini-metric"><div class="p2-mini-label">m² eq.</div><div class="p2-mini-value">{float(row['m2'] or 0):.1f}</div></div>
                     </div>
                 </div>
-                </a>
                 """, unsafe_allow_html=True)
+                if st.button("Ver detalle", key=f"p2_card_{row.get('id', idx)}", use_container_width=True):
+                    _ir_a_detalle(row['nombre'])
 
 
 def _marker_color(row: dict[str, Any]) -> str:
