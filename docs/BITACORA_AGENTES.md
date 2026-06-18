@@ -2741,3 +2741,34 @@ Al hacer "Aplicar Selección" y navegar al Portfolio, al volver la exclusión y 
 
 ### Tests: 39/39 regression OK
 ### Commits: `a27c706`, `fcf34a0` (branch `estabilizar`)
+
+---
+
+## 📅 2026-06-18 — TAREA-042: Persistir _comp_excluded en _ultima_valuacion para sobrevivir cache miss
+
+### Problema:
+Al navegar a Portfolio y volver, la exclusión de comparables se perdía completamente. La valuación volvía a mostrar el valor original (sin exclusión).
+
+### Causa raíz:
+`_limpiar_y_borrar_cache_si_hay_manuales()` en `valu.py:88-100` borra el caché en CADA navegación porque Streamlit SIEMPRE crea las keys `manual_usd_m2_`, `manual_fh_`, `manual_aj_`, `manual_inc_` al renderizar el expander "Valuación Manual" (incluso colapsado). La condición `any(k in st.session_state for k in manual_keys)` siempre es True, causando:
+1. `del cache[nombre]` en cada Volver al Portafolio
+2. Re-entry → cache miss → motor recalcula desde cero
+3. `persistir_valuacion` NO guardaba `_comp_excluded` en `_ultima_valuacion` → exclusión irrecuperable
+
+### Solución (2 partes):
+1. **`parsers/valuacion_cache.py`**: Agregar `_comp_excluded` y `_comp_exclusion_applied` a `_ultima_valuacion` en `persistir_valuacion()`.
+2. **`valu.py`**: Agregar 4º fallback en el bloque de exclusión: si no hay session state, ni widget keys, ni `resultado['_comp_excluded']` (cache miss), leer desde `p_obj['_ultima_valuacion']['_comp_excluded']`.
+
+### Flujo post-fix:
+1. Apply → `persistir_valuacion(commit=True)` guarda `_comp_excluded` en `valuaciones_cache.json` Y en `propiedades.json` (`_ultima_valuacion`)
+2. Nav a Portfolio → `_limpiar_y_borrar_cache_si_hay_manuales` borra cache (comportamiento existente, no se modifica)
+3. Re-entry → cache miss → motor recalcula → resultado fresco sin exclusión
+4. Exclusion block → fallback lee `_ultima_valuacion._comp_exclusion_applied` → restaura exclusión
+5. `from_apply=True` → persiste al nuevo cache con `preview=False`
+
+### Archivos:
+- `parsers/valuacion_cache.py`: 2 campos nuevos en `_ultima_valuacion`
+- `valu.py`: 4º fallback `elif` en exclusión block
+
+### Tests: 39/39 regression OK + simulación manual con Brown 2750
+### Commits: `d153c73`
