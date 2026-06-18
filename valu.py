@@ -641,7 +641,7 @@ def mostrar_dashboard():
                                 set(resultado.get('_comp_excluded', [])) == set(excluded_ids)
                             )
                             
-                            if is_already_applied and not from_apply:
+                            if is_already_applied and not from_apply and not resultado.get('_cache', {}).get('recalculado'):
                                 # Ya está aplicada y coincide: mantenemos el valor y el estado
                                 logger.info(f"[APPLY] {prop_name}: Selección ya aplicada y coincide. Saltando recálculo.")
                             else:
