@@ -598,8 +598,10 @@ def mostrar_dashboard():
                         pass
                     else:
                         excluded_ids = None
+                        from_apply = False
                         if comp_excluded_key in st.session_state:
                             excluded_ids = st.session_state.pop(comp_excluded_key)
+                            from_apply = True
                         else:
                             # Leer desde widget keys (estado ACTUAL del checkbox, no stale sel_key)
                             comp_ids = [_get_comp_id(c) for c in comps_orig]
@@ -671,7 +673,8 @@ def mostrar_dashboard():
                                     resultado['_n_excluidos'] = len(excluded_ids)
                                     logger.info(f"[APPLY] {prop_name}: <2 comps, header limpiado")
                             resultado['_comp_excluded'] = excluded_ids
-                            resultado['_comp_exclusion_applied'] = True
+                            if from_apply:
+                                resultado['_comp_exclusion_applied'] = True
 
                     with profile_block("detalle_volver_btn", None):
                     if st.button("ΓåÉ Volver al Portafolio"):
