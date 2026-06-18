@@ -683,6 +683,7 @@ def mostrar_dashboard():
                                     resultado['valor_venta_optimista'] = 0
                                     resultado['_n_excluidos'] = len(excluded_ids)
                                     logger.info(f"[APPLY] {prop_name}: <2 comps, header limpiado")
+                            resultado['_comp_excluded'] = excluded_ids
                             resultado['_comp_exclusion_applied'] = True
 
                 with profile_block("detalle_volver_btn", None):
