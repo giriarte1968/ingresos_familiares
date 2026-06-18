@@ -1,0 +1,138 @@
+{
+  "projectId": "eac03bad-b832-4e2e-984b-3853c3dc5162",
+  "type": "frontend",
+  "name": "Exclusión de comparable persiste tras navegación",
+  "description": "Verifica que al excluir un comparable y navegar fuera y volver, la exclusión se mantiene.",
+  "targetUrl": "https://5b83b315ddb969be-181-97-141-146.serveousercontent.com",
+  "planSteps": [
+    {
+      "type": "action",
+      "action": "navigate",
+      "url": "/?prop=Brown%202750",
+      "description": "Navegar directamente a Brown 2750"
+    },
+    {
+      "type": "action",
+      "action": "wait",
+      "ms": 5000,
+      "description": "Esperar carga de Streamlit"
+    },
+    {
+      "type": "action",
+      "action": "click",
+      "selector": "summary",
+      "text": "Comparables",
+      "description": "Abrir expander de Comparables"
+    },
+    {
+      "type": "action",
+      "action": "wait",
+      "ms": 1500,
+      "description": "Esperar animación del expander"
+    },
+    {
+      "type": "action",
+      "action": "click",
+      "selector": "summary",
+      "text": "Propiedades Comparables",
+      "description": "Abrir expander de Propiedades Comparables"
+    },
+    {
+      "type": "action",
+      "action": "wait",
+      "ms": 1500,
+      "description": "Esperar animación del expander"
+    },
+    {
+      "type": "assertion",
+      "action": "assertElementCount",
+      "selector": "div[data-testid='stCheckbox']",
+      "operator": ">=",
+      "value": 2,
+      "description": "Verificar que hay al menos 2 comparables"
+    },
+    {
+      "type": "action",
+      "action": "click",
+      "selector": "div[data-testid='stCheckbox']:nth-child(3)",
+      "description": "Desmarcar el tercer comparable"
+    },
+    {
+      "type": "action",
+      "action": "wait",
+      "ms": 1000,
+      "description": "Esperar actualización del estado"
+    },
+    {
+      "type": "action",
+      "action": "click",
+      "selector": "button",
+      "text": "Aplicar selección",
+      "description": "Aplicar la selección de comparables"
+    },
+    {
+      "type": "action",
+      "action": "wait",
+      "ms": 3000,
+      "description": "Esperar recálculo"
+    },
+    {
+      "type": "action",
+      "action": "click",
+      "selector": "button",
+      "text": "Volver al Portafolio",
+      "description": "Navegar de vuelta al portafolio"
+    },
+    {
+      "type": "action",
+      "action": "wait",
+      "ms": 3000,
+      "description": "Esperar carga del portafolio"
+    },
+    {
+      "type": "action",
+      "action": "navigate",
+      "url": "/?prop=Brown%202750",
+      "description": "Volver a Brown 2750"
+    },
+    {
+      "type": "action",
+      "action": "wait",
+      "ms": 5000,
+      "description": "Esperar recarga"
+    },
+    {
+      "type": "action",
+      "action": "click",
+      "selector": "summary",
+      "text": "Comparables",
+      "description": "Abrir expander de Comparables nuevamente"
+    },
+    {
+      "type": "action",
+      "action": "wait",
+      "ms": 1500,
+      "description": "Esperar animación"
+    },
+    {
+      "type": "action",
+      "action": "click",
+      "selector": "summary",
+      "text": "Propiedades Comparables",
+      "description": "Abrir expander de Propiedades Comparables"
+    },
+    {
+      "type": "action",
+      "action": "wait",
+      "ms": 1500,
+      "description": "Esperar animación"
+    },
+    {
+      "type": "assertion",
+      "action": "assertElementState",
+      "selector": "div[data-testid='stCheckbox']:nth-child(3) input",
+      "state": "unchecked",
+      "description": "Verificar que el tercer comparable sigue desmarcado"
+    }
+  ]
+}

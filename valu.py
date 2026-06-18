@@ -716,6 +716,8 @@ def mostrar_dashboard():
                                             logger.info(f"[APPLY] {prop_name}: Persistida exclusión de {len(excluded_ids)} comps a cache+propiedades")
                                         except Exception as e:
                                             logger.warning(f"[APPLY] {prop_name}: No se pudo persistir exclusión: {e}")
+                                else:
+                                    resultado['_comp_exclusion_applied'] = False
 
                 with profile_block("mostrar_detalle_valu_total", p_obj):
                     mostrar_detalle_valu(p_obj, resultado, actualizar_propiedad)

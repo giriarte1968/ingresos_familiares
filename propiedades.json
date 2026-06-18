@@ -435,16 +435,20 @@
       "expensas_ars": 0,
       "id": "prop_de9ad3e4",
       "_ultima_valuacion": {
-        "valor_usd": null,
-        "alquiler_ars": null,
-        "cap_rate": null,
-        "m2_equivalentes": null,
-        "comps": 0,
-        "fecha": "17/06/2026 17:36",
+        "valor_usd": 624494.0,
+        "alquiler_ars": 4651033.0,
+        "cap_rate": 0.0677,
+        "m2_equivalentes": 160.0,
+        "comps": 7,
+        "fecha": "18/06/2026 13:14",
         "cache_version": "v7_retro_cache_fix",
-        "timestamp": "2026-06-17T17:36:54.571525",
-        "fuente": "insuficiente",
-        "manual_params": null
+        "timestamp": "2026-06-18T13:14:48.496947",
+        "fuente": "auto",
+        "manual_params": null,
+        "_comp_excluded": [
+          "96db28b86645"
+        ],
+        "_comp_exclusion_applied": false
       }
     }
   ]
