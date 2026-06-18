@@ -174,6 +174,8 @@ def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict, c
                             'timestamp': datetime.now().isoformat(),
                             'fuente': resultado.get('fuente', 'auto'),
                             'manual_params': resultado.get('manual_params'),
+                            '_comp_excluded': resultado.get('_comp_excluded'),
+                            '_comp_exclusion_applied': resultado.get('_comp_exclusion_applied', False),
                         }
                         break
 

@@ -632,6 +632,10 @@ def mostrar_dashboard():
                                 excluded_ids = [cid for cid in comp_ids if cid not in selected_ids]
                             elif resultado.get('_comp_excluded') is not None:
                                 excluded_ids = resultado['_comp_excluded']
+                            elif p_obj.get('_ultima_valuacion', {}).get('_comp_exclusion_applied'):
+                                excluded_ids = p_obj['_ultima_valuacion'].get('_comp_excluded', [])
+                                from_apply = True
+                                logger.info(f"[APPLY] {prop_name}: Restaurando exclusión desde _ultima_valuacion, {len(excluded_ids)} comps excluidos")
                         if excluded_ids is not None:
                             # Verificar si la selección actual ya coincide con una exclusión aplicada y persistida
                             # Para evitar recálculos redundantes y pérdida de estado en re-entry
