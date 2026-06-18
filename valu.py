@@ -89,14 +89,6 @@ def _limpiar_y_borrar_cache_si_hay_manuales(nombre: str) -> None:
     """Soportar la logica de 'Limpiar Valuacion' al navegar fuera si hay cambios manuales."""
     if not nombre:
         return
-    manual_keys = [f"manual_usd_m2_{nombre}", f"manual_fh_{nombre}", f"manual_aj_{nombre}", f"manual_inc_{nombre}"]
-    if any(k in st.session_state for k in manual_keys):
-        from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
-        cache = cargar_cache_valuaciones()
-        if nombre in cache:
-            del cache[nombre]
-            guardar_cache_valuaciones(cache)
-            logger.info(f"[CLEAN-NAV] {nombre}: Limpiando cache por cambios manuales no aplicados")
     _limpiar_estado_propiedad(nombre)
 
 
@@ -630,6 +622,10 @@ def mostrar_dashboard():
                                     if st.session_state.get(wk, True):
                                         selected_ids.add(cid)
                                 excluded_ids = [cid for cid in comp_ids if cid not in selected_ids]
+                                if not excluded_ids and p_obj.get('_ultima_valuacion', {}).get('_comp_exclusion_applied'):
+                                    excluded_ids = None
+                                else:
+                                    from_apply = True
                             elif resultado.get('_comp_excluded') is not None:
                                 excluded_ids = resultado['_comp_excluded']
                             elif p_obj.get('_ultima_valuacion', {}).get('_comp_exclusion_applied'):

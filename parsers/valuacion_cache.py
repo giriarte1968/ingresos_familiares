@@ -163,6 +163,10 @@ def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict, c
                         if manual_data:
                             p.update(manual_data)
                         
+                        old_uv = p.get('_ultima_valuacion', {})
+                        new_excluded = resultado.get('_comp_excluded')
+                        if new_excluded is None and old_uv.get('_comp_exclusion_applied'):
+                            new_excluded = old_uv.get('_comp_excluded')
                         p['_ultima_valuacion'] = {
                             'valor_usd': resultado.get('valor_propiedad_usd'),
                             'alquiler_ars': resultado.get('alquiler_estimado_ars'),
@@ -174,8 +178,8 @@ def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict, c
                             'timestamp': datetime.now().isoformat(),
                             'fuente': resultado.get('fuente', 'auto'),
                             'manual_params': resultado.get('manual_params'),
-                            '_comp_excluded': resultado.get('_comp_excluded'),
-                            '_comp_exclusion_applied': resultado.get('_comp_exclusion_applied', False),
+                            '_comp_excluded': new_excluded,
+                            '_comp_exclusion_applied': old_uv.get('_comp_exclusion_applied', False) if new_excluded else resultado.get('_comp_exclusion_applied', False),
                         }
                         break
 
