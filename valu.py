@@ -580,6 +580,10 @@ def mostrar_dashboard():
                         cache_params = entrada_antigua.get('resultado_completo', {}).get('_cache', {})
                         retro_dias = cache_params.get('retro_dias', 0)
                         flex_dormitorios = cache_params.get('flex_dormitorios', None)
+                        st.session_state[f'retro_active_{prop_name}'] = retro_dias > 0
+                        if retro_dias > 0:
+                            st.session_state[f'retro_meses_{prop_name}'] = retro_dias
+                        st.session_state[f'flex_active_{prop_name}'] = flex_dormitorios is not None
                         st.session_state[vista_key] = True
                     else:
                         st.session_state[vista_key] = True
