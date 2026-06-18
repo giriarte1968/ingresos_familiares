@@ -25,6 +25,7 @@ def _limpiar_estado_propiedad_local(nombre: str) -> None:
         'infomapa_catastro_', 'ph_sel_', 'comp1_', 'comp2_',
         'manual_ancla_', 'manual_usd_m2_', 'manual_fh_',
         'manual_aj_', 'manual_inc_', 'clean_valuacion_',
+        'comp_interacted_',
     ]
     for p in _PREFIJOS:
         st.session_state.pop(f'{p}{nombre}', None)
@@ -35,19 +36,20 @@ def _limpiar_estado_propiedad_local(nombre: str) -> None:
 
 
 def render_actions(prop, guardar_fn):
-    """Barra de acciones: Volver, Editar, Revaluar, Limpiar, Eliminar."""
+    """Barra de acciones: Volver, Editar, Limpiar, Eliminar."""
     nombre = prop.get('nombre', '')
-    col_back, col_edit, col_recalc, col_clean, col_delete = st.columns([1, 1, 1.5, 1.5, 1])
+    col_back, col_edit, col_clean, col_delete = st.columns([1.5, 1, 1.5, 1])
     with col_back:
-        # Boton Volver eliminado para evitar redundancia con Volver al Portfolio
-        pass
+        if st.button("← Volver al Portafolio", type="primary", use_container_width=True):
+            _limpiar_estado_propiedad_local(nombre)
+            st.session_state.prop_sel = None
+            st.session_state['_force_nav_page'] = 'Portfolio'
+            if 'prop' in st.query_params:
+                st.query_params.clear()
+            st.rerun()
     with col_edit:
         if st.button("Editar", type="primary", use_container_width=True):
             st.session_state[f"edit_{prop['id']}"] = True
-    with col_recalc:
-        if st.button("Revaluar con comparables", type="primary", use_container_width=True):
-            st.session_state[f'forzar_recalculo_{nombre}'] = True
-            st.rerun()
     with col_clean:
         if st.button("🗑️ Limpiar Valuación", type="secondary", use_container_width=True):
             st.session_state[f"clean_valuacion_{nombre}"] = True
@@ -318,8 +320,11 @@ def render_tabla_comparables(res, prop_name=None):
     # 2. Manejar el estado de selección basado en IDs (no índices)
     stored_sel = st.session_state.get(sel_key, None)
     if stored_sel is None:
-        # Inicialmente todos seleccionados
-        stored_sel = set(comp_ids)
+        excluded = res.get('_comp_excluded')
+        if excluded:
+            stored_sel = set(cid for cid in comp_ids if cid not in excluded)
+        else:
+            stored_sel = set(comp_ids)
         st.session_state[sel_key] = stored_sel
     
     # Asegurar que stored_sel sea un set (por compatibilidad con versiones viejas)

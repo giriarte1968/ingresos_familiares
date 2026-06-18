@@ -717,16 +717,6 @@ def mostrar_dashboard():
                                         except Exception as e:
                                             logger.warning(f"[APPLY] {prop_name}: No se pudo persistir exclusión: {e}")
 
-                with profile_block("detalle_volver_btn", None):
-                    if st.button("← Volver al Portafolio"):
-                        nombre = p_obj.get("nombre", "")
-                        _limpiar_y_borrar_cache_si_hay_manuales(nombre)
-                        st.session_state.prop_sel = None
-                        st.session_state['_force_nav_page'] = 'Portfolio'
-                        if 'prop' in st.query_params:
-                            st.query_params.clear()
-                        st.rerun()
-
                 with profile_block("mostrar_detalle_valu_total", p_obj):
                     mostrar_detalle_valu(p_obj, resultado, actualizar_propiedad)
 
