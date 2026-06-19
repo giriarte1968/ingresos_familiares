@@ -327,7 +327,12 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         with col_slider:
             if retro_active:
                 def _on_retro_slider_change(prop_name=prop_name):
-                    pass
+                    sv = st.session_state.get(f'retro_meses_slider_{prop_name}', 36)
+                    st.session_state[f'retro_meses_{prop_name}'] = sv
+                    st.session_state[f'forzar_recalculo_{prop_name}'] = True
+                    st.session_state[f'preview_mode_{prop_name}'] = True
+                    st.session_state.pop(f'comp_selection_{prop_name}', None)
+                    st.session_state.pop(f'comp_excluded_{prop_name}', None)
                 st.slider("Meses atrás", 12, 60,
                           key=f'retro_meses_slider_{prop_name}', on_change=_on_retro_slider_change)
 
