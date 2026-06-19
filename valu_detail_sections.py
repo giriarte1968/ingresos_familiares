@@ -300,12 +300,15 @@ def render_tabla_comparables(res, prop_name=None):
             st.info(f"⚡ Valuación calculada con {len(comparables)} comparables seleccionados ({n_excluidos} excluidos por el usuario).")
         with col_reset:
                 if st.button("↩️ Restablecer todos", key=f'reset_comp_sel_{prop_name}', use_container_width=True):
-                    st.session_state.pop(f'comp_selection_{prop_name}', None)
-                    # Limpiar claves individuales de widgets para forzar el valor default (True)
-                    sufixo = f'sel_comp_{prop_name}_'
-                    claves_a_borrar = [k for k in st.session_state.keys() if k.startswith(sufixo)]
-                    for k in claves_a_borrar:
-                        del st.session_state[k]
+                    # 1. Set all individual checkbox keys to True
+                    comp_ids = [_get_comp_id(c) for c in comparables]
+                    for cid in comp_ids:
+                        st.session_state[f'sel_comp_{prop_name}_{cid}'] = True
+                    
+                    # 2. Sync high-level selection state
+                    st.session_state[f'comp_selection_{prop_name}'] = set(comp_ids)
+                    
+                    # 3. Force empty exclusion and recalculation
                     st.session_state[f'comp_excluded_{prop_name}'] = []
                     st.session_state[f'forzar_recalculo_{prop_name}'] = True
                     st.rerun()
