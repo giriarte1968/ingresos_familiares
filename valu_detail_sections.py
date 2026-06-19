@@ -299,11 +299,16 @@ def render_tabla_comparables(res, prop_name=None):
         with col_info:
             st.info(f"⚡ Valuación calculada con {len(comparables)} comparables seleccionados ({n_excluidos} excluidos por el usuario).")
         with col_reset:
-            if st.button("↩️ Restablecer todos", key=f'reset_comp_sel_{prop_name}', use_container_width=True):
-                st.session_state.pop(f'comp_selection_{prop_name}', None)
-                st.session_state[f'comp_excluded_{prop_name}'] = []
-                st.session_state[f'forzar_recalculo_{prop_name}'] = True
-                st.rerun()
+                if st.button("↩️ Restablecer todos", key=f'reset_comp_sel_{prop_name}', use_container_width=True):
+                    st.session_state.pop(f'comp_selection_{prop_name}', None)
+                    # Limpiar claves individuales de widgets para forzar el valor default (True)
+                    sufixo = f'sel_comp_{prop_name}_'
+                    claves_a_borrar = [k for k in st.session_state.keys() if k.startswith(sufixo)]
+                    for k in claves_a_borrar:
+                        del st.session_state[k]
+                    st.session_state[f'comp_excluded_{prop_name}'] = []
+                    st.session_state[f'forzar_recalculo_{prop_name}'] = True
+                    st.rerun()
 
     # Cabecera de la tabla
     hdr = st.columns([0.4, 0.5, 1.5, 0.8, 1.5, 0.6, 1, 2, 0.7, 0.6])
