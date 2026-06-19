@@ -295,7 +295,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
 
     # ─── 📊 Comparables ───
     prop_name = prop.get('nombre', '')
-    with st.expander("📊 Comparables", expanded=False):
+    with st.expander(f"📊 Comparables — {prop_name}", expanded=False):
         retro_key = f'retro_active_{prop_name}'
         flex_key = f'flex_active_{prop_name}'
         retro_active = st.session_state.get(retro_key, False)
@@ -328,9 +328,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
             if retro_active:
                 def _on_retro_slider_change(prop_name=prop_name):
                     pass
-                _slider_def = st.session_state.get(f'retro_meses_slider_{prop_name}',
-                              st.session_state.get(f'retro_meses_{prop_name}', 36))
-                st.slider("Meses atrás", 12, 60, _slider_def,
+                st.slider("Meses atrás", 12, 60,
                           key=f'retro_meses_slider_{prop_name}', on_change=_on_retro_slider_change)
 
         # Retro: checkbox para incluir todos los dormitorios
@@ -364,27 +362,27 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                 st.session_state.pop(f'preview_mode_{prop_name}', None)
                 st.rerun()
 
-        with st.expander("🗺️ Mapa", expanded=False):
+        with st.expander(f"🗺️ Mapa — {prop_name}", expanded=False):
             with profile_block("render_mapa_propiedad", prop):
                 render_mapa_propiedad(res)
         _dl.mark("after_render_mapa")
 
         comparables = res.get('comparables_venta', [])
         n_comps = len(comparables)
-        with st.expander("Propiedades Comparables", expanded=False):
+        with st.expander(f"Comparables — {prop_name}", expanded=False):
             st.caption(f"{n_comps} propiedades comparables")
             render_tabla_comparables({**res, 'comparables_venta': comparables}, prop_name=prop_name)
         _dl.mark("after_render_tabla_comparables")
     _dl.mark("after_section_comparables")
 
     # ─── 📐 Valuación Manual ───
-    with st.expander("📐 Valuacion Manual", expanded=insuficientes):
+    with st.expander(f"📐 Valuacion Manual — {prop_name}", expanded=insuficientes):
         with profile_block("render_valuacion_manual", prop):
             render_valuacion_manual(prop, res)
     _dl.mark("after_section_manual")
 
     # ─── 📋 Valuaciones ───
-    with st.expander("📋 Valuaciones", expanded=False):
+    with st.expander(f"📋 Valuaciones — {prop_name}", expanded=False):
         with profile_block("render_razonamiento", prop):
             render_razonamiento(prop, res)
         _dl.mark("after_render_razonamiento")
@@ -395,7 +393,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     _dl.mark("after_section_valuaciones")
 
     # ─── ⚡ Acciones ───
-    with st.expander("⚡ Acciones", expanded=False):
+    with st.expander(f"⚡ Acciones — {prop_name}", expanded=False):
         with profile_block("generar_reporte_pdf", prop):
             pdf_bytes = generar_reporte_pdf(prop, res)
 
@@ -593,6 +591,7 @@ def mostrar_dashboard():
                         flex_active = st.session_state.get(f'flex_active_{prop_name}', False)
                         flex_dormitorios = [1, 2, 3, 4, 5] if flex_active else None
                     print(f"[DEBUG-DASH] {p_obj['nombre']}: retro_dias={retro_dias}, flex_dormitorios={flex_dormitorios}, preview={preview_mode}")
+                    print(f"[DEBUG-SLIDER] {p_obj['nombre']}: retro_meses_={st.session_state.get(f'retro_meses_{prop_name}')}, retro_meses_slider_={st.session_state.get(f'retro_meses_slider_{prop_name}')}, retro_active_={st.session_state.get(f'retro_active_{prop_name}')}")
                     resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios, preview=preview_mode, manual_data=st.session_state.get(f'manual_preview_{prop_name}', None))
                     _sl.mark("after_valuar_con_cache")
 

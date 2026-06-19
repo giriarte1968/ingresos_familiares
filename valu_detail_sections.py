@@ -308,13 +308,10 @@ def render_tabla_comparables(res, prop_name=None):
                     # 2. Sync high-level selection state
                     st.session_state[f'comp_selection_{prop_name}'] = set(comp_ids)
                     
-                    # 3. Reset slider to default (36)
-                    st.session_state[f'retro_meses_{prop_name}'] = 36
-                    st.session_state[f'retro_meses_slider_{prop_name}'] = 36
-                    
-                    # 4. Force empty exclusion and recalculation
+                    # 3. Force empty exclusion and recalculation
                     st.session_state[f'comp_excluded_{prop_name}'] = []
                     st.session_state[f'forzar_recalculo_{prop_name}'] = True
+                    print(f"[DEBUG-SLIDER] Restablecer todos {prop_name}: mantiene retro_meses={st.session_state.get(f'retro_meses_{prop_name}')}, slider={st.session_state.get(f'retro_meses_slider_{prop_name}')}")
                     st.rerun()
 
     # Cabecera de la tabla
@@ -448,6 +445,7 @@ def render_tabla_comparables(res, prop_name=None):
                     # Sync slider value before applying selection
                     slider_val = st.session_state.get(f'retro_meses_slider_{prop_name}', 36)
                     st.session_state[f'retro_meses_{prop_name}'] = slider_val
+                    print(f"[DEBUG-SLIDER] Aplicar seleccion {prop_name}: slider={slider_val}, retro_meses={st.session_state.get(f'retro_meses_{prop_name}')}")
                     
                     st.session_state[f'comp_excluded_{prop_name}'] = excluded
                     st.session_state[f'forzar_recalculo_{prop_name}'] = True
