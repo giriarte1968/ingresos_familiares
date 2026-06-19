@@ -308,7 +308,11 @@ def render_tabla_comparables(res, prop_name=None):
                     # 2. Sync high-level selection state
                     st.session_state[f'comp_selection_{prop_name}'] = set(comp_ids)
                     
-                    # 3. Force empty exclusion and recalculation
+                    # 3. Reset slider to default (36)
+                    st.session_state[f'retro_meses_{prop_name}'] = 36
+                    st.session_state[f'retro_meses_slider_{prop_name}'] = 36
+                    
+                    # 4. Force empty exclusion and recalculation
                     st.session_state[f'comp_excluded_{prop_name}'] = []
                     st.session_state[f'forzar_recalculo_{prop_name}'] = True
                     st.rerun()
@@ -441,6 +445,10 @@ def render_tabla_comparables(res, prop_name=None):
                     type='primary',
                     use_container_width=True,
                 ):
+                    # Sync slider value before applying selection
+                    slider_val = st.session_state.get(f'retro_meses_slider_{prop_name}', 36)
+                    st.session_state[f'retro_meses_{prop_name}'] = slider_val
+                    
                     st.session_state[f'comp_excluded_{prop_name}'] = excluded
                     st.session_state[f'forzar_recalculo_{prop_name}'] = True
                     st.rerun()
