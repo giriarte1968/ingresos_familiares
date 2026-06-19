@@ -299,7 +299,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         retro_key = f'retro_active_{prop_name}'
         flex_key = f'flex_active_{prop_name}'
         retro_active = st.session_state.get(retro_key, False)
-        col_btn, col_status, col_slider = st.columns([1.5, 1.5, 2])
+        col_btn, col_cb, col_status, col_slider = st.columns([1.5, 1.5, 0.8, 2.2])
         with col_btn:
             label = "🔙 Retro Activado" if retro_active else "🔙 Retro"
             if st.button(label, type="primary" if retro_active else "secondary", use_container_width=True, key=f'retro_btn_{prop_name}'):
@@ -319,6 +319,15 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                 st.session_state[f'preview_mode_{prop_name}'] = True
                 print(f"[DEBUG-DETALLE] Toggle Retro {prop_name}: ahora={nuevo_valor}, forzar=True, preview=True, flex_reset={not nuevo_valor}")
                 st.rerun()
+        with col_cb:
+            if retro_active:
+                def _on_flex_change(prop_name=prop_name):
+                    st.session_state[f'forzar_recalculo_{prop_name}'] = True
+                    st.session_state[f'preview_mode_{prop_name}'] = True
+                    st.session_state.pop(f'comp_selection_{prop_name}', None)
+                    st.session_state.pop(f'comp_excluded_{prop_name}', None)
+                    print(f"[DEBUG-DETALLE] Flex Checkbox {prop_name}: ahora={st.session_state.get(f'flex_active_{prop_name}', False)}, forzar=True, preview=True")
+                st.checkbox("🔍 Todos los dormitorios", key=flex_key, on_change=_on_flex_change)
         with col_status:
             if retro_active:
                 meses = st.session_state.get(f'retro_meses_slider_{prop_name}',
@@ -335,37 +344,6 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                     st.session_state.pop(f'comp_excluded_{prop_name}', None)
                 st.slider("Meses atrás", 12, 60,
                           key=f'retro_meses_slider_{prop_name}', on_change=_on_retro_slider_change)
-
-        # Retro: checkbox para incluir todos los dormitorios
-        if retro_active:
-            col_cb, col_fs = st.columns([1.5, 3.5])
-            with col_cb:
-                flex_label = "🔍 Todos los dormitorios"
-                flex_activo_ahora = st.session_state.get(flex_key, False)
-                if st.button(flex_label, type="primary" if flex_activo_ahora else "secondary", use_container_width=True, key=f"flex_btn_{prop_name}"):
-                    nuevo_flex = not flex_activo_ahora
-                    st.session_state[flex_key] = nuevo_flex
-                    st.session_state[f'forzar_recalculo_{prop_name}'] = True
-                    st.session_state[f'preview_mode_{prop_name}'] = True
-                    # Resetear selección de comparables al cambiar dormitorios
-                    st.session_state.pop(f'comp_selection_{prop_name}', None)
-                    st.session_state.pop(f'comp_excluded_{prop_name}', None)
-                    print(f"[DEBUG-DETALLE] Toggle Flex {prop_name}: ahora={nuevo_flex}, forzar=True, preview=True")
-                    st.rerun()
-
-        # Botón Aplicar: único trigger de commit
-        if retro_active:
-            if st.button("✅ Aplicar cambios", type="primary", use_container_width=True,
-                         key=f'aplicar_cambios_{prop_name}'):
-                retro = st.session_state.get(retro_key, False)
-                flex = st.session_state.get(flex_key, False)
-                slider_val = st.session_state.get(f'retro_meses_slider_{prop_name}', 36)
-                st.session_state[f'retro_meses_{prop_name}'] = slider_val
-                st.session_state.pop(f'comp_selection_{prop_name}', None)
-                print(f"[DEBUG-DETALLE] Aplicar cambios {prop_name}: retro={retro}, flex={flex}, slider={slider_val}, preview_mode=CLEARED")
-                st.session_state[f'forzar_recalculo_{prop_name}'] = True
-                st.session_state.pop(f'preview_mode_{prop_name}', None)
-                st.rerun()
 
         with st.expander(f"🗺️ Mapa — {prop_name}", expanded=False):
             with profile_block("render_mapa_propiedad", prop):
