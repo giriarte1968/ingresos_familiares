@@ -140,50 +140,50 @@ def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict, c
     print(f"[DEBUG-CACHE] persistir_valuacion({nombre}): commit={commit}, valor_usd={resultado.get('valor_propiedad_usd')}, n_comps={resultado.get('resolution_metadata',{}).get('n_propiedades',0)}")
     with profile_block("persistir_valuacion", None):
         try:
-            # 1. Actualizar cache en memoria
-            cache[nombre] = {
-                "timestamp": datetime.now().isoformat(),
-                "hash_prop": _calcular_hash_propiedad(prop),
-                "hash_scraping": _calcular_hash_scraping(),
-                "cache_version": get_cache_version(),
-                "resultado_completo": resultado,
-                "fecha_legible": datetime.now().strftime("%d/%m/%Y %H:%M"),
-            }
+            if commit:
+                # 1. Actualizar cache en memoria
+                cache[nombre] = {
+                    "timestamp": datetime.now().isoformat(),
+                    "hash_prop": _calcular_hash_propiedad(prop),
+                    "hash_scraping": _calcular_hash_scraping(),
+                    "cache_version": get_cache_version(),
+                    "resultado_completo": resultado,
+                    "fecha_legible": datetime.now().strftime("%d/%m/%Y %H:%M"),
+                }
 
-            # 2. Escribir valuaciones_cache.json a disco
-            atomic_write_json(CACHE_PATH, cache)
+                # 2. Escribir valuaciones_cache.json a disco
+                atomic_write_json(CACHE_PATH, cache)
 
-            # 3-4: Actualizar propiedades.json con _ultima_valuacion solo si es commit
-            if commit and os.path.exists(PROPIEDADES_PATH):
-                with open(PROPIEDADES_PATH, 'r', encoding='utf-8') as f:
-                    props_data = json.load(f)
-                for p in props_data.get('propiedades', []):
-                    if p.get('nombre') == nombre:
-                        # PERSISTIR MANUAL PREVIEW: si hay datos manuales, los escribimos definitivamente
-                        if manual_data:
-                            p.update(manual_data)
-                        
-                        old_uv = p.get('_ultima_valuacion', {})
-                        new_excluded = resultado.get('_comp_excluded')
-                        if new_excluded is None and old_uv.get('_comp_exclusion_applied'):
-                            new_excluded = old_uv.get('_comp_excluded')
-                        p['_ultima_valuacion'] = {
-                            'valor_usd': resultado.get('valor_propiedad_usd'),
-                            'alquiler_ars': resultado.get('alquiler_estimado_ars'),
-                            'cap_rate': resultado.get('cap_rate'),
-                            'm2_equivalentes': resultado.get('m2_equivalentes'),
-                            'comps': resultado.get('resolution_metadata', {}).get('n_propiedades', 0),
-                            'fecha': datetime.now().strftime("%d/%m/%Y %H:%M"),
-                            'cache_version': get_cache_version(),
-                            'timestamp': datetime.now().isoformat(),
-                            'fuente': resultado.get('fuente', 'auto'),
-                            'manual_params': resultado.get('manual_params'),
-                            '_comp_excluded': new_excluded,
-                            '_comp_exclusion_applied': old_uv.get('_comp_exclusion_applied', False) if new_excluded else resultado.get('_comp_exclusion_applied', False),
-                        }
-                        break
+                # 3-4: Actualizar propiedades.json con _ultima_valuacion
+                if os.path.exists(PROPIEDADES_PATH):
+                    with open(PROPIEDADES_PATH, 'r', encoding='utf-8') as f:
+                        props_data = json.load(f)
+                    for p in props_data.get('propiedades', []):
+                        if p.get('nombre') == nombre:
+                            if manual_data:
+                                p.update(manual_data)
+                            
+                            old_uv = p.get('_ultima_valuacion', {})
+                            new_excluded = resultado.get('_comp_excluded')
+                            if new_excluded is None and old_uv.get('_comp_exclusion_applied'):
+                                new_excluded = old_uv.get('_comp_excluded')
+                            p['_ultima_valuacion'] = {
+                                'valor_usd': resultado.get('valor_propiedad_usd'),
+                                'alquiler_ars': resultado.get('alquiler_estimado_ars'),
+                                'cap_rate': resultado.get('cap_rate'),
+                                'm2_equivalentes': resultado.get('m2_equivalentes'),
+                                'comps': resultado.get('resolution_metadata', {}).get('n_propiedades', 0),
+                                'fecha': datetime.now().strftime("%d/%m/%Y %H:%M"),
+                                'cache_version': get_cache_version(),
+                                'timestamp': datetime.now().isoformat(),
+                                'fuente': resultado.get('fuente', 'auto'),
+                                'manual_params': resultado.get('manual_params'),
+                                '_comp_excluded': new_excluded,
+                                '_comp_exclusion_applied': old_uv.get('_comp_exclusion_applied', False) if new_excluded else resultado.get('_comp_exclusion_applied', False),
+                            }
+                            break
 
-                atomic_write_json(PROPIEDADES_PATH, props_data)
+                    atomic_write_json(PROPIEDADES_PATH, props_data)
 
             return True
 
