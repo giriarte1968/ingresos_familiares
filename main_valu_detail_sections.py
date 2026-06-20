@@ -963,28 +963,25 @@ def render_valuacion_manual(prop, res):
             st.markdown("#### Desglose del Factor Hedonico")
             de = sb.get('delta_edificacion', 0.0)
             da = sb.get('delta_amenities', 0.0)
-            dn = sb.get('delta_nlp', 0.0)
-            danti = sb.get('delta_anti', 0.0)
+            dn = sb.get('delta_otros', 0.0)
             sc = sb.get('suma_cruda', 0.0)
             scl = sb.get('suma_clamped', 0.0)
             stot = sb.get('total', 1.0)
             det_amen = sb.get('detalle_amenities', {})
             det_str = ", ".join(det_amen.keys()) if isinstance(det_amen, dict) else str(det_amen)[:30]
+            det_otros = sb.get('detalle_otros', '')
 
-            sc1, sc2, sc3, sc4 = st.columns(4)
+            sc1, sc2, sc3 = st.columns(3)
             with sc1:
-                st.metric("Edificaci├│n", f"{de:+.4f}")
-                st.caption("estado+calidad+piso+vista+balc├│n+vent+ubic+gas+func+disp")
+                st.metric("Edificación", f"{de:+.4f}")
+                st.caption("estado+calidad")
             with sc2:
                 label_am = f"Amenities ({det_str[:30]})" if det_str else "Amenities"
                 st.metric(label_am, f"{da:+.4f}")
             with sc3:
-                st.metric("NLP", f"{dn:+.4f}")
-                st.caption("cocina+preinst AA")
-            with sc4:
-                st.metric("Depreciaci├│n", f"{danti:+.4f}")
-                st.caption("antig├╝edad")
-            st.caption(f"╬ú cruda = {sc:+.4f} ΓåÆ clamp(┬▒0.40) = {scl:+.4f} ΓåÆ +1 + anti = 1{scl:+.4f}{danti:+.4f} = {1+scl+danti:.4f} ΓåÆ total = {stot:.4f} [{0.70}, {1.35}]")
+                ot_label = f"Otros ({det_otros})" if det_otros else "Otros"
+                st.metric(ot_label, f"{dn:+.4f}")
+            st.caption(f"Σ cruda = {sc:+.4f} → clamp(±0.40) = {scl:+.4f} → +1 = {1+scl:.4f} → total = {stot:.4f} [{0.70}, {1.35}]")
 
         # Activos: cocheras y baulera como metricas grandes
         val_act = res.get('valor_activos', {})
@@ -1176,8 +1173,8 @@ def render_valuacion_manual(prop, res):
                 am_list = list(fd['detalle_amenities'].keys())[:3]
                 st.metric("Amenities", ", ".join(am_list) if am_list else "—", f"{pct:+.1f}%")
             with c4:
-                pct = fd['delta_nlp'] * 100
-                st.metric("NLP", "Cocina/AA", f"{pct:+.1f}%")
+                pct = fd['delta_otros'] * 100
+                st.metric("Otros factores", "cocina+preinst AA", f"{pct:+.1f}%")
             st.caption(f"Factor combinado de referencia: **{fd['total']:.4f}**")
     except Exception:
         pass

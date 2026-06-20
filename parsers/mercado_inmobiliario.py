@@ -2083,13 +2083,16 @@ def calcular_factores_display(prop):
         amenities_list = []
     delta_amenities, detalle_amenities = calcular_delta_amenities(amenities_list)
 
-    delta_nlp = 0.0
+    delta_otros = 0.0
+    detalle_otros_parts = []
     if prop.get('terminaciones_cocina') == 'silestone':
-        delta_nlp += 0.003
+        delta_otros += 0.003
+        detalle_otros_parts.append('cocina')
     if prop.get('preinstalacion_aa'):
-        delta_nlp += 0.002
+        delta_otros += 0.002
+        detalle_otros_parts.append('preinst AA')
 
-    suma_cruda = (factor_estado - 1.0) + (factor_calidad - 1.0) + delta_amenities + delta_nlp
+    suma_cruda = (factor_estado - 1.0) + (factor_calidad - 1.0) + delta_amenities + delta_otros
     suma_clamped = max(-0.40, min(0.40, suma_cruda))
     total = max(0.70, min(1.35, 1.0 + suma_clamped))
 
@@ -2100,7 +2103,8 @@ def calcular_factores_display(prop):
         'calidad_label': calidad_norm,
         'delta_amenities': delta_amenities,
         'detalle_amenities': detalle_amenities,
-        'delta_nlp': delta_nlp,
+        'delta_otros': delta_otros,
+        'detalle_otros': '+'.join(detalle_otros_parts) if detalle_otros_parts else '',
         'suma_cruda': round(suma_cruda, 4),
         'suma_clamped': round(suma_clamped, 4),
         'total': round(total, 4),
@@ -3844,50 +3848,34 @@ def _generar_html_mapa(prop, resultado):
 
 def _calcular_sub_factors_breakdown(prop):
     """
-    Desglose del factor hedonico.
-    Sigue la fórmula real: total = clamp(1 + clamp(suma_deltas, ±0.40) + (anti-1), 0.70, 1.35)
-    Cada grupo muestra su delta bruto (sin clamp individual).
+    Desglose del factor hedonico para VIEW MODE.
+    Usa calcular_factores_display() para valores reales de estado,calidad,amenities,otros.
+    Depreciación no se incluye (TAREA-076): análisis ML demostró que la edad
+    es confounding effect con ubicación — no existe como factor de mercado en Rosario.
     """
-    from parsers.mercado_inmobiliario import calcular_factores
-    f_dict = calcular_factores(prop)
-    
-    # Deltas de edificación/construcción (sin anti, sin amenities, sin NLP)
-    d_estado = f_dict['factor_estado'] - 1.0
-    d_calidad = f_dict['factor_calidad'] - 1.0
-    d_piso = f_dict.get('factor_piso', 1.0) - 1.0
-    d_vista = f_dict.get('factor_vista', 1.0) - 1.0
-    d_balcon = f_dict.get('factor_balcon', 1.0) - 1.0
-    d_vent = f_dict.get('factor_vent', 1.0) - 1.0
-    d_ubica = f_dict.get('factor_ubica', 1.0) - 1.0
-    d_gas = f_dict.get('factor_gas', 1.0) - 1.0
-    d_funcional = f_dict.get('f_funcional', 1.0) - 1.0
-    d_disposicion = f_dict.get('factor_disposicion', 1.0) - 1.0
-    delta_edif = d_estado + d_calidad + d_piso + d_vista + d_balcon + d_vent + d_ubica + d_gas + d_funcional + d_disposicion
+    from parsers.mercado_inmobiliario import calcular_factores_display
+    fd = calcular_factores_display(prop)
 
-    delta_amenities = f_dict.get('delta_amenities', 0.0)
-    
-    delta_nlp = 0.0
-    if prop.get('terminaciones_cocina') == 'silestone':
-        delta_nlp += 0.003
-    if prop.get('preinstalacion_aa'):
-        delta_nlp += 0.002
-    
-    delta_anti = f_dict.get('anti', 1.0) - 1.0
-    
-    # Misma fórmula que calcular_factores
-    suma_cruda = delta_edif + delta_amenities + delta_nlp
+    d_estado = fd['factor_estado'] - 1.0
+    d_calidad = fd['factor_calidad'] - 1.0
+    delta_edif = d_estado + d_calidad
+
+    delta_amenities = fd.get('delta_amenities', 0.0)
+    delta_otros = fd.get('delta_otros', 0.0)
+
+    suma_cruda = delta_edif + delta_amenities + delta_otros
     suma_clamped = max(-0.40, min(0.40, suma_cruda))
-    total = max(0.70, min(1.35, 1.0 + suma_clamped + delta_anti))
-    
+    total = max(0.70, min(1.35, 1.0 + suma_clamped))
+
     return {
         'delta_edificacion': round(delta_edif, 4),
         'delta_amenities': round(delta_amenities, 4),
-        'delta_nlp': round(delta_nlp, 4),
-        'delta_anti': round(delta_anti, 4),
+        'delta_otros': round(delta_otros, 4),
         'suma_cruda': round(suma_cruda, 4),
         'suma_clamped': round(suma_clamped, 4),
         'total': round(total, 4),
-        'detalle_amenities': f_dict.get('detalle_amenities', ''),
+        'detalle_amenities': fd.get('detalle_amenities', ''),
+        'detalle_otros': fd.get('detalle_otros', ''),
     }
 
 def generar_resultado_manual(prop, manual_params):
