@@ -2047,6 +2047,91 @@ def calcular_factores(prop, ventana_usada=None):
     }
 
 
+def calcular_factores_display(prop):
+    """
+    Calcula subfactores para display en UI de Valuación Manual.
+    NO modifica el cálculo automático — solo referencia visual.
+    Replica la lógica pre-TAREA-073 para que el analista vea los factores.
+    Retorna dict con valores descriptivos para cada subfactor.
+    """
+    from parsers.mercado_inmobiliario import calcular_delta_amenities, AMENITY_TOTAL_CAP
+
+    estado_raw = (prop.get('estado_detalle') or 'bueno').lower().replace(' ', '_')
+    calidad_raw = (prop.get('calidad_edificio') or 'media').lower()
+    if estado_raw == 'premium':
+        estado_norm = 'excelente'
+        calidad_norm = 'premium' if calidad_raw in (None, '', 'media') else calidad_raw
+    else:
+        estado_norm = estado_raw
+        calidad_norm = calidad_raw or 'media'
+
+    anio_const = normalize_year(prop.get('anio_construccion'))
+    if anio_const is None:
+        anio_const = normalize_year(ANIO_ACTUAL - prop.get('antiguedad', 0))
+    if anio_const is None:
+        anio_const = 2000
+    antiguedad = ANIO_ACTUAL - anio_const
+
+    try:
+        from parsers.zonas_manager import obtener_tasa_depreciacion_macrozona
+        _tasa_zonal, _meta_mz = obtener_tasa_depreciacion_macrozona(prop)
+    except Exception:
+        _tasa_zonal = 0.006
+        _meta_mz = None
+
+    delta_anti_raw = max(-0.60, -(antiguedad * _tasa_zonal))
+    UMBRAL_PENALIZACION_SEVERA = -0.18
+    FACTOR_ATENUACION = 0.35
+    if delta_anti_raw < UMBRAL_PENALIZACION_SEVERA:
+        exceso = delta_anti_raw - UMBRAL_PENALIZACION_SEVERA
+        delta_anti_efectivo = UMBRAL_PENALIZACION_SEVERA + (exceso * FACTOR_ATENUACION)
+    else:
+        delta_anti_efectivo = delta_anti_raw
+
+    factor_estado = {
+        'a_estrenar': 1.08, 'excelente': 1.05, 'muy_bueno': 1.03,
+        'bueno': 1.0, 'regular': 0.92, 'malo': 0.85, 'a_refaccionar': 0.70
+    }.get(estado_norm, 1.0)
+
+    factor_calidad = {
+        'premium': 1.08, 'excelente': 1.06, 'alta': 1.04, 'media': 1.0,
+        'baja': 0.95, 'economica': 0.90
+    }.get(calidad_norm, 1.0)
+
+    factor_anti = max(0.40, 1.0 + delta_anti_efectivo)
+
+    amenities_list = prop.get('detalles_categoria', [])
+    if not isinstance(amenities_list, list):
+        amenities_list = []
+    delta_amenities, detalle_amenities = calcular_delta_amenities(amenities_list)
+
+    delta_nlp = 0.0
+    if prop.get('terminaciones_cocina') == 'silestone':
+        delta_nlp += 0.003
+    if prop.get('preinstalacion_aa'):
+        delta_nlp += 0.002
+
+    suma_cruda = (factor_estado - 1.0) + (factor_calidad - 1.0) + delta_amenities + delta_nlp
+    suma_clamped = max(-0.40, min(0.40, suma_cruda))
+    total = max(0.70, min(1.35, 1.0 + suma_clamped + (factor_anti - 1.0)))
+
+    return {
+        'factor_estado': factor_estado,
+        'estado_label': estado_norm,
+        'factor_calidad': factor_calidad,
+        'calidad_label': calidad_norm,
+        'depreciacion': factor_anti,
+        'antiguedad': antiguedad,
+        'tasa_zonal': _tasa_zonal,
+        'delta_amenities': delta_amenities,
+        'detalle_amenities': detalle_amenities,
+        'delta_nlp': delta_nlp,
+        'suma_cruda': suma_cruda,
+        'suma_clamped': suma_clamped,
+        'total': round(total, 4),
+    }
+
+
 def _calcular_factores_rental(prop):
     """Factores para alquiler — mantiene lógica original (TAREA-073).
     Venta ya no usa factores hedónicos, pero alquiler conserva estado/calidad/anti.

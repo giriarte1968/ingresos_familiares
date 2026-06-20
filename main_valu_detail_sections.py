@@ -1155,17 +1155,31 @@ def render_valuacion_manual(prop, res):
     if cant_cocheras == 0 and valor_baulera == 0:
         st.caption("Sin activos adicionales (cocheras / baulera)")
 
-    # Sub-factors breakdown (letra chica, referencia)
+    # Subfactores de Referencia — display only, no afectan el cálculo automático
     try:
-        from parsers.mercado_inmobiliario import _calcular_sub_factors_breakdown
-        sb_pre = _calcular_sub_factors_breakdown(prop)
-        if sb_pre:
-            de = sb_pre.get('delta_edificacion', 0.0)
-            da = sb_pre.get('delta_amenities', 0.0)
-            dn = sb_pre.get('delta_nlp', 0.0)
-            danti = sb_pre.get('delta_anti', 0.0)
-            stot = sb_pre.get('total', 1.0)
-            st.caption(f"Subfactores: Edif {de:+.4f} ┬╖ Amen {da:+.4f} ┬╖ NLP {dn:+.4f} ┬╖ Anti {danti:+.4f} ΓåÆ Total {stot:.4f}")
+        from parsers.mercado_inmobiliario import calcular_factores_display
+        fd = calcular_factores_display(prop)
+        if fd:
+            st.markdown("##### Subfactores de Referencia")
+            st.caption("Valores calculados por el motor — NO aplicados automáticamente en esta sección")
+            c1, c2, c3, c4, c5 = st.columns(5)
+            with c1:
+                pct = (fd['factor_estado'] - 1.0) * 100
+                st.metric("Estado", f"{fd['estado_label'].title()}", f"{pct:+.1f}%")
+            with c2:
+                pct = (fd['factor_calidad'] - 1.0) * 100
+                st.metric("Calidad", f"{fd['calidad_label'].title()}", f"{pct:+.1f}%")
+            with c3:
+                pct = (fd['depreciacion'] - 1.0) * 100
+                st.metric("Depreciación", f"{fd['antiguedad']} años", f"{pct:+.1f}%")
+            with c4:
+                pct = fd['delta_amenities'] * 100
+                am_list = list(fd['detalle_amenities'].keys())[:3]
+                st.metric("Amenities", ", ".join(am_list) if am_list else "—", f"{pct:+.1f}%")
+            with c5:
+                pct = fd['delta_nlp'] * 100
+                st.metric("NLP", "Cocina/AA", f"{pct:+.1f}%")
+            st.caption(f"Factor combinado de referencia: **{fd['total']:.4f}**")
     except Exception:
         pass
 

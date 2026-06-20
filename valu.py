@@ -295,7 +295,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
 
     # ─── 📊 Comparables ───
     prop_name = prop.get('nombre', '')
-    with st.expander(f"📊 Comparables — {prop_name}", expanded=False):
+    with st.expander(f"📊 Valuación por Comparables — {prop_name}", expanded=False):
         retro_key = f'retro_active_{prop_name}'
         flex_key = f'flex_active_{prop_name}'
         retro_active = st.session_state.get(retro_key, False)
@@ -329,10 +329,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                     print(f"[DEBUG-DETALLE] Flex Checkbox {prop_name}: ahora={st.session_state.get(f'flex_active_{prop_name}', False)}, forzar=True, preview=True")
                 st.checkbox("🔍 Todos los dormitorios", key=flex_key, on_change=_on_flex_change)
         with col_status:
-            if retro_active:
-                meses = st.session_state.get(f'retro_meses_slider_{prop_name}',
-                        st.session_state.get(f'retro_meses_{prop_name}', 36))
-                st.caption(f"📆 +{meses} meses")
+            pass  # reservado (caption +meses eliminado TAREA-075)
         with col_slider:
             if retro_active:
                 def _on_retro_slider_change(prop_name=prop_name):
@@ -352,7 +349,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
 
         comparables = res.get('comparables_venta', [])
         n_comps = len(comparables)
-        with st.expander(f"Comparables — {prop_name}", expanded=False):
+        with st.expander(f"Detalle de Comparables — {prop_name}", expanded=False):
             st.caption(f"{n_comps} propiedades comparables")
             render_tabla_comparables({**res, 'comparables_venta': comparables}, prop_name=prop_name)
         _dl.mark("after_render_tabla_comparables")
