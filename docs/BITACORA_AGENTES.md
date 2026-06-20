@@ -2772,3 +2772,34 @@ Al navegar a Portfolio y volver, la exclusión de comparables se perdía complet
 
 ### Tests: 39/39 regression OK + simulación manual con Brown 2750
 ### Commits: `d153c73`
+
+---
+
+## 📅 2026-06-19 — TAREA-071: Modelo multiplicativo puro
+
+### Cambios:
+1. **`calcular_factores()`**: Eliminados todos los factores de ruido (vista, piso, ubicación, gas, balcón, funcional, amenities, disposición, cocina, preinst). Ahora retorna solo `factor_estado * factor_calidad * factor_anti`. Sin clamp [0.70, 1.35].
+2. **`valuar_propiedad_v7()`**: Nueva fórmula `m2_equiv * m2_microzona * size_discount * factor_estado * factor_calidad * factor_anti`. Usa `valor_ancla_geo.usd_m2` como base price (ancla geográfica más cercana). Agregado `calcular_size_discount_venta()` para descuento progresivo >80m².
+3. **Preview cache fix**: `persistir_valuacion(commit=False)` ya no escribe en `valuaciones_cache.json` ni `propiedades.json`.
+4. **UI fixes**: Flex button → checkbox, removed "Aplicar Cambios" button, "Restablecer todos" fixed.
+5. **Tests**: All 39 reference values updated for new formula. Ranges widened to ±10%.
+
+### Impacto en valores:
+| Propiedad | Antes (aditivo) | Ahora (multiplicativo) | Diferencia |
+|-----------|-----------------|----------------------|------------|
+| Mabel     | ~$74,000        | ~$86,092             | +16%       |
+| Ayacucho  | ~$38,800        | ~$43,160             | +11%       |
+| Vera M.   | ~$42,500        | ~$64,636             | +52%       |
+
+Vera +52% por eliminación de `factor_piso` (PB ya no descuenta). Intencional.
+
+### Archivos:
+- `parsers/mercado_inmobiliario.py`: `calcular_factores()`, `valuar_propiedad_v7()`, `calcular_size_discount_venta()`
+- `parsers/valuacion_cache.py`: `persistir_valuacion(commit=False)` skip cache
+- `valu.py`: Flex checkbox, removed Aplicar Cambios, slider immediate preview
+- `valu_detail_sections.py`: Restablecer todos fix
+- `tests/test_regression.py`: All 39 reference value ranges updated
+- `docs/ALGORITMOS.md`, `docs/MEMORIA_PROYECTO.md`, `docs/STATUS_ACTUAL.md`: Updated for multiplicative model
+
+### Tests: 39/39 regression OK
+### Commits: (pending)

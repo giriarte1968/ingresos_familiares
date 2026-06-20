@@ -26,37 +26,35 @@ El motor utiliza diferentes percentiles del cluster limpio (post-IQR) para deter
 
 Referencia: `parsers/mercado_inmobiliario.py`, función `obtener_mediana_cluster` (v12.3).
 
-## 3. Fórmula Unificada de Factores (v11.2)
- 
+## 3. Fórmula de Factores — Modelo Multiplicativo Puro (TAREA-071)
+
 Lógica de base: El valor de mercado es sensible al tiempo. Para comparativas de regresión y tasaciones actuales, el parámetro `fecha_ref` debe coincidir con el mes de ejecución para evitar desviaciones por inflación o tendencia de mercado.
- 
-La fórmula final del valor de lista unifica factores físicos, NLP (análisis de descripción) y antigüedad:
- 
-$$Factor_{raw} = (1 + SumaCruda_{clamped} + DeltaAnti_{efectiva}) \times (1 + NLPCapped)$$
-$$Factor_{total} = \text{clamp}(Factor_{raw}, 0.70, 1.35)$$
- 
+
+A partir de TAREA-071, se eliminó el modelo aditivo (suma de deltas) y se reemplazó por un modelo **multiplicativo puro**:
+
+$$Factor_{total} = factor_{estado} \times factor_{calidad} \times factor_{anti}$$
+
 Donde:
-- **SumaCruda**: Suma de deltas de estado, calidad, vista, piso, balcón, etc. Se acota al rango $[-0.40, +0.40]$ para evitar premios o castigos estructurales excesivos.
-- **NLPCapped**: Ajuste por palabras clave en la descripción (limitado al 15%).
-- **DeltaAntiEfectivo**: Depreciación por antigüedad (0.6% anual). En Venta (base P33), se aplica una Atenuación Dinámica No Lineal para evitar la doble penalización en propiedades antiguas (ver sección 3.x).
+- **factor_estado**: Tabla lookup según `estado_detalle` (malo→0.85, regular→0.92, bueno→1.00, muy bueno→1.03, excelente→1.05, a_estrenar→1.08)
+- **factor_calidad**: Tabla lookup según `calidad_edificio` (baja→0.95, media→1.00, alta→1.04, excelente→1.06, premium→1.08)
+- **factor_anti**: Depreciación por antigüedad (0.6% anual, cap mínimo 0.40)
+- **Sin clamp final**: El producto de factores no se acota a [0.70, 1.35]
 
-### Control de Volatilidad (Guardrails V13.0)
+### Factores eliminados (ruido)
 
-Se eliminó la raíz cuadrada (`sqrt`) que anteriormente comprimía el factor, sustituyéndola por clamps explícitos. Esto proporciona un control lineal y predecible:
-- **SumaCruda Clamped**: Evita que la acumulación de muchos factores positivos o negativos distorsione la base.
-- **Factor Total Clamped**: Garantiza que el multiplicador final esté estrictamente entre $0.70$ (-30%) y $1.35$ (+35%).
+Ya no forman parte de la fórmula:
+- vista (frente/contrafrente)
+- piso (altura, PB)
+- ubicación_tipo (calle/avenida)
+- gas_ok
+- tipo_balcon / balcón
+- funcional (lavadero/placares)
+- amenities (seguridad, pileta, parrilla, etc.)
+- disposicion
+- cocina
+- preinst (preinstalación de aire)
 
-### Cap Dinámico por Cluster (TAREA-022)
-
-Después de calcular `f_dict['total']` en `calcular_factores()`, se aplica un cap dinámico según la calidad del cluster en `valuar_propiedad_v7()`:
-
-| Cluster | Condición | Cap [min, max] |
-|---------|-----------|:--------------:|
-| ALTA | radio≤300m y n≥15 | [0.85, 1.15] |
-| MEDIA | n≥8 | [0.78, 1.25] |
-| BAJA | fallback | [0.70, 1.35] |
-
-Esto reemplaza el soft cap `MAX_BONUS_ATRIBUTOS` que era código muerto. La metadata se guarda en `f_dict['cap_dinamico']` para trazabilidad.
+Estos factores eran ruido estadístico: no correlacionaban significativamente con el precio de venta en el mercado de Rosario. Su eliminación simplifica el modelo y reduce la varianza.
 
 
 
@@ -65,25 +63,7 @@ Esto reemplaza el soft cap `MAX_BONUS_ATRIBUTOS` que era código muerto. La meta
 Para evitar la "doble penalización" en propiedades antiguas valuadas con la base conservadora (P33), se aplica una función de atenuación por tramos (piecewise) al $\Delta \text{Antigüedad}$.
 
 ### Justificación
-El percentil P33 ya actúa como un proxy de stock usado/antiguo. Aplicar un castigo lineal severo adicional sobre una base ya baja destruye el valor de mercado de propiedades premium antiguas (ej. pisos altos céntricos de los 70s).
-
-### Lógica Matemática
-Si $\text{operación} = \text{'venta'}$ y $\text{percentil} = \text{'P33'}$ y $\Delta \text{anti} < 0$:
-
-1. **Castigo Normal ($\Delta \text{anti} \ge \text{UMBRAL\_PENALIZACION}$):**
-   $$\Delta \text{efectivo} = \Delta \text{anti} \times \text{ATENUACION\_BASE}$$
-2. **Castigo Severo ($\Delta \text{anti} < \text{UMBRAL\_PENALIZACION}$):**
-   $$\text{Exceso} = \Delta \text{anti} - \text{UMBRAL\_PENALIZACION}$$
-   $$\Delta \text{efectivo} = (\text{UMBRAL\_PENALIZACION} \times \text{ATENUACION\_BASE}) + (\text{Exceso} \times \text{FACTOR\_EXCESO})$$
-
-### Lógica Matemática
-Si $\text{operación} = \text{'venta'}$ y $\text{percentil} = \text{'P33'}$ y $\Delta \text{anti} < 0$:
-
-1. **Castigo Normal ($\Delta \text{anti} \ge \text{UMBRAL\_PENALIZACION}$):**
-   $$\Delta \text{efectivo} = \Delta \text{anti} \times \text{ATENUACION\_BASE}$$
-2. **Castigo Severo ($\Delta \text{anti} < \text{UMBRAL\_PENALIZACION}$):**
-   $$\text{Exceso} = \Delta \text{anti} - \text{UMBRAL\_PENALIZACION}$$
-   $$\Delta \text{efectivo} = (\text{UMBRAL\_PENALIZACION} \times \text{ATENUACION\_BASE}) + (\text{Exceso} \times \text{FACTOR\_EXCESO})$$
+El percentil P33 ya actúa como un proxy de stock usado/antiguo. Aplicar un castigo lineal severo adicional sobre una base ya baja destruye el valor de mercado de propiedades premium antiguas (ej. pisos altos céntricos de los 70s).$$
 
 **Configuración Actual:**
 - `UMBRAL_PENALIZACION`: -0.15
@@ -144,36 +124,27 @@ Para propiedades en Planta Baja (piso=0) con patio grande:
 
 ---
 
-## Leyes del Motor VPP - Calibración Rosario 2026
+## Leyes del Motor VPP - Calibración Rosario 2026 (TAREA-071)
 
-### 1. Fórmula de Venta
+### 1. Fórmula de Venta — Modelo Multiplicativo Puro
 La valuación de venta para departamentos/PH usa:
 
 ```
-valor_venta = m2_equiv × m2_base_venta × (1 + suma_cruda_clamped + delta_anti_efectivo) × (1 + ajuste_nlp)
+valor_venta = m2_equiv × m2_microzona × size_discount × factor_estado × factor_calidad × factor_anti × (1 + ajuste_nlp)
 ```
 
 Aclaraciones:
-- `m2_base_venta` proviene del cluster geolocalizado v2.
-- `venta` usa **P33** como base conservadora.
-- `alquiler` usa **P50/mediana**.
-- `suma_cruda_clamped` es la suma de ajustes de atributos físicos/comerciales, con clamp.
-- `delta_anti_efectivo` se aplica de forma lineal dentro del bloque estructural.
-- `ajuste_nlp` se aplica como multiplicador externo.
+- `m2_microzona` proviene del ancla geográfica más cercana (`valor_ancla_geo.usd_m2`). Si no hay ancla, fallback al cluster P33/P50.
+- `size_discount` = `calcular_size_discount_venta()`: descuento progresivo para unidades >80m².
+- `factor_estado`, `factor_calidad`, `factor_anti` son multiplicativos puros.
+- `ajuste_nlp` caps: 3% para 1 dorm, 5% para 2+ dorm.
+- No hay clamp del factor total. No hay "suma cruda". No hay factores de ruido (vista, piso, balcón, gas, etc.)
 
-### 2. Clamp de Suma Cruda
-- `SUMA_CRUDA_MIN = -0.40`
-- `SUMA_CRUDA_MAX = +0.40`
-
-Evita explosión por acumulación de atributos positivos y negativos.
-
-### 3. NLP cap por tipología
+### 2. NLP cap por tipología
 - Propiedades de **1 dormitorio**: NLP máximo = **+3%**
 - Propiedades de **2 o más dormitorios**: NLP máximo = **+5%**
 
-En Rosario, la descripción comercial no debería mover más de 3% en unidades chicas. En unidades mayores, el mercado tolera hasta 5% de premio por percepción/comercialización.
-
-### 4. Atenuación dinámica de antigüedad
+### 3. Atenuación dinámica de antigüedad
 Se activa solo si `delta_anti_raw < -0.18`:
 - `UMBRAL_PENALIZACION_SEVERA = -0.18`
 - `FACTOR_ATENUACION = 0.35`
@@ -278,36 +249,27 @@ Para propiedades en Planta Baja (piso=0) con patio grande:
 
 ---
 
-## Leyes del Motor VPP - Calibración Rosario 2026
+## Leyes del Motor VPP - Calibración Rosario 2026 (TAREA-071)
 
-### 1. Fórmula de Venta
+### 1. Fórmula de Venta — Modelo Multiplicativo Puro
 La valuación de venta para departamentos/PH usa:
 
 ```
-valor_venta = m2_equiv × m2_base_venta × (1 + suma_cruda_clamped + delta_anti_efectivo) × (1 + ajuste_nlp)
+valor_venta = m2_equiv × m2_microzona × size_discount × factor_estado × factor_calidad × factor_anti × (1 + ajuste_nlp)
 ```
 
 Aclaraciones:
-- `m2_base_venta` proviene del cluster geolocalizado v2.
-- `venta` usa **P33** como base conservadora.
-- `alquiler` usa **P50/mediana**.
-- `suma_cruda_clamped` es la suma de ajustes de atributos físicos/comerciales, con clamp.
-- `delta_anti_efectivo` se aplica de forma lineal dentro del bloque estructural.
-- `ajuste_nlp` se aplica como multiplicador externo.
+- `m2_microzona` proviene del ancla geográfica más cercana (`valor_ancla_geo.usd_m2`). Si no hay ancla, fallback al cluster P33/P50.
+- `size_discount` = `calcular_size_discount_venta()`: descuento progresivo para unidades >80m².
+- `factor_estado`, `factor_calidad`, `factor_anti` son multiplicativos puros.
+- `ajuste_nlp` caps: 3% para 1 dorm, 5% para 2+ dorm.
+- No hay clamp del factor total. No hay "suma cruda". No hay factores de ruido (vista, piso, balcón, gas, etc.)
 
-### 2. Clamp de Suma Cruda
-- `SUMA_CRUDA_MIN = -0.40`
-- `SUMA_CRUDA_MAX = +0.40`
-
-Evita explosión por acumulación de atributos positivos y negativos.
-
-### 3. NLP cap por tipología
+### 2. NLP cap por tipología
 - Propiedades de **1 dormitorio**: NLP máximo = **+3%**
 - Propiedades de **2 o más dormitorios**: NLP máximo = **+5%**
 
-En Rosario, la descripción comercial no debería mover más de 3% en unidades chicas. En unidades mayores, el mercado tolera hasta 5% de premio por percepción/comercialización.
-
-### 4. Atenuación dinámica de antigüedad
+### 3. Atenuación dinámica de antigüedad
 Se activa solo si `delta_anti_raw < -0.18`:
 - `UMBRAL_PENALIZACION_SEVERA = -0.18`
 - `FACTOR_ATENUACION = 0.35`
@@ -469,17 +431,19 @@ El umbral es ≥5 porque el selector `seleccionar_percentil_por_edad()` ya discr
 
 Esto evita que propiedades modernas en zonas con edificios viejos (ej. Centro) se vean contaminadas por comparables 25+ años más antiguos, manteniendo estabilidad en propiedades donde ±15 ya captura suficientes comparables de edad similar.
 
-## 12. Valores de Referencia (Fase 2 — Age-Aware)
+## 12. Valores de Referencia (TAREA-071 — Modelo Multiplicativo)
 
-Estos son los valores definitivos con filtro de edad activo.
-Reemplazan los valores de calibración previos.
+Estos son los valores definitivos con el nuevo modelo multiplicativo puro.
+Reemplazan todos los valores de calibración previos.
 
-| Propiedad   | Año  | Pool total | n_age | %ile usado | Valor ref  |
-|-------------|------|-----------|-------|------------|------------|
-| Mabel       | 1998 | 46        | 25    | P50        | $79,069    |
-| Ayacucho    | 2002 | 46        | 16    | P45        | $46,430    |
-| Vera Mujica | 2009 | 27        | 8     | P40        | $52,062    |
-| P1200       | 1977 | 36        | 12    | P45        | $137,888   |
+| Propiedad   | Año  | Pool total | n_age | %ile usado | Valor ref  | Cambio vs aditivo |
+|-------------|------|-----------|-------|------------|------------|-------------------|
+| Mabel       | 1998 | 46        | 25    | P50        | ~$86,092   | +16%              |
+| Ayacucho    | 2002 | 46        | 16    | P45        | ~$43,160   | +11%              |
+| Vera Mujica | 2009 | 27        | 8     | P40        | ~$64,636   | +52% (sin desc PB)|
+| P1200       | 1977 | 36        | 12    | P45        | ~$190,957  | (sin cambios)     |
+
+**Nota**: El incremento en Vera se debe a la eliminación del factor_piso (PB con patio ya no recibe descuento). Es intencional según TAREA-071 — los factores de ruido (vista, piso, balcón, etc.) fueron eliminados del modelo.
 
 **Regla de percentil dinámico:**
 - Si hay filtro de edad (age_filter_applied):

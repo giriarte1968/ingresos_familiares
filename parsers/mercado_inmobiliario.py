@@ -1869,6 +1869,20 @@ def calcular_m2_equivalentes(prop):
     return min(m2_equiv, max_m2)
 
 
+def calcular_size_discount_venta(m2_equiv):
+    """
+    Descuento por tamaño para venta.
+    En el mercado, unidades muy grandes tienden a tener un precio/m² ligeramente menor.
+    """
+    if m2_equiv <= 100:
+        return 1.00
+    elif m2_equiv <= 150:
+        return 1.00 - (m2_equiv - 100) / 50 * 0.05
+    elif m2_equiv <= 200:
+        return 0.95 - (m2_equiv - 150) / 50 * 0.05
+    else:
+        return 0.85
+
 def calcular_size_discount_alquiler(m2_equiv):
     """
     Descuento por tamaño para alquiler.
@@ -1977,18 +1991,14 @@ def calcular_valor_activos(prop, m2_base_zona):
 def calcular_factores(prop, ventana_usada=None):
     """
     Calcula factores de propiedad.
-    v8.0: Retorna un diccionario separado para evitar doble conteo de antigüedad.
+    v12.0 (TAREA-071): Modelo multiplicativo puro.
+    Retorna solo multiplicadores de Edad (factor_anti), Estado y Calidad.
     
     Args:
         propiedad: dict con datos de la propiedad
         ventana_usada: opcional, ventana temporal a usar.
                        3 o "ventana3" → RO-03: no aplicar depreciacion por edad
-                       (la base P33 ya incorpora edad implicitamente)
-                       None o V1/V2 → aplicar depreciacion normal
     """
-    import json
-    import os
-    
     # RO-03: Si la base viene de Ventana 3 (P33), NO aplicar depreciacion
     es_ventana3 = ventana_usada in (3, "3", "ventana3")
     
@@ -2007,22 +2017,16 @@ def calcular_factores(prop, ventana_usada=None):
             calidad_norm = calidad_raw or 'media'
         return estado_norm, calidad_norm
     estado, calidad = normalizar_estado_y_calidad(prop)
-    piso = prop.get('piso', 0)
     
-    # FIX BUG 1: Leer anio_construccion con normalización
+    # Normalizar año de construcción
     anio_const = normalize_year(prop.get('anio_construccion'))
-    anio_missing = anio_const is None
-    
     if anio_const is None:
-        anio_const = ANIO_ACTUAL - prop.get('antiguedad', 0)
-        anio_const = normalize_year(anio_const)
-    
+        anio_const = normalize_year(ANIO_ACTUAL - prop.get('antiguedad', 0))
     if anio_const is None:
         anio_const = 2000  # default conservador
-    
     antiguedad = ANIO_ACTUAL - anio_const
     
-    # FASE 7B: Obtener tasa zonificada segun macrozona
+    # Tasa zonificada de depreciación
     try:
         from parsers.zonas_manager import obtener_tasa_depreciacion_macrozona
         _tasa_zonal, _meta_mz = obtener_tasa_depreciacion_macrozona(prop)
@@ -2034,23 +2038,15 @@ def calcular_factores(prop, ventana_usada=None):
     if es_ventana3:
         delta_anti_efectivo = 0.0
     else:
-        # Depreciación por Antigüedad (Year 0 -> Target)
-        # 1. Calcular depreciación lineal normal con tasa zonificada
         delta_anti_raw = max(-0.60, -(antiguedad * _tasa_zonal))
-        
-        # 2. Atenuación dinámica para propiedades viejas (>30 años)
         UMBRAL_PENALIZACION_SEVERA = -0.18
         FACTOR_ATENUACION = 0.35
-        
         if delta_anti_raw < UMBRAL_PENALIZACION_SEVERA:
-            # Castigo severo: atenuamos el exceso
             exceso = delta_anti_raw - UMBRAL_PENALIZACION_SEVERA
             delta_anti_efectivo = UMBRAL_PENALIZACION_SEVERA + (exceso * FACTOR_ATENUACION)
         else:
-            # Propiedades jóvenes: sin cambios
             delta_anti_efectivo = delta_anti_raw
     
-    # Factor anti final
     factor_anti = max(0.40, 1.0 + delta_anti_efectivo)
     
     factor_estado = {
@@ -2063,209 +2059,21 @@ def calcular_factores(prop, ventana_usada=None):
         'baja': 0.95, 'economica': 0.90
     }.get(calidad, 1.0)
     
-    # 1. Factor Vista v9.5
-    vista = prop.get('vista', 'frente').lower()
-    factor_vista = {
-        'rio': 1.25, 'despejada': 1.12, 'frente': 1.0, 
-        'pulmon': 0.95, 'interna': 0.90
-    }.get(vista, 1.0)
-    
-    # 2. Factor Altura v10.0 (Tabla coef: piso alto >70% = +5%)
-    total_pisos = max(1, prop.get('total_pisos', 1))
-    ratio_altura = piso / total_pisos
-    m2_desc = prop.get('m2_descubiertos', 0) or 0
-    m2_desc_ce = prop.get('m2_descubiertos_comun_exclusivo', 0) or 0
-    m2_desc_p = prop.get('m2_descubiertos_propios', 0) or 0
-    m2_patio_total = m2_desc + m2_desc_ce + m2_desc_p
-    
-    if piso == 0:
-        # --- AJUSTE: Patio compensa planta baja ---
-        # PB con patio >=10m²: patio compensa PB totalmente
-        if m2_patio_total >= 10:
-            factor_piso = 1.00  # neutro (patio compensa)
-        elif m2_patio_total >= 5:
-            factor_piso = 0.95  # patio pequeño: -5%
-        else:
-            factor_piso = 0.88  # -12% estándar (sin patio)
-    elif ratio_altura >= 0.70:
-        factor_piso = 1.05  # piso alto >70%
-    else:
-        factor_piso = 1.0 + (ratio_altura * 0.10)
-    
-    # 3. Factor Ubicación v9.5
-    u_tipo = prop.get('ubicacion_tipo', 'calle').lower()
-    factor_ubica = {
-        'avenida': 1.07, 'esquina': 1.03, 'calle': 1.0, 'pasaje': 0.94
-    }.get(u_tipo, 1.0)
-    
-    # 4. Factor Gas v9.5
-    gas = prop.get('gas_ok', 'si').lower()
-    factor_gas = {'si': 1.0, 'en_proceso': 0.96, 'no': 0.92}.get(gas, 1.0)
-    
-    # 5. Factor Constructora (Carga desde JSON plano)
-    factor_const = 1.0
-    try:
-        constr_path = "C:/Users/Gustavo/ingresos_familiares_st/constructoras_rosario.json"
-        if os.path.exists(constr_path):
-            with open(constr_path, "r", encoding="utf-8") as f:
-                constr_list = json.load(f)
-                constr = prop.get('constructora', '').lower().strip()
-                if constr and isinstance(constr_list, list):
-                    for entry in constr_list:
-                        if constr == entry.get('descripcion', '').lower().strip():
-                            pct = entry.get('porcentaje', 0)
-                            factor_const = 1.0 + pct / 100.0
-                            break
-    except:
-        pass
-    
-    # 6. Factor Balcón/Terraza v10.1 (TAREA-029: sin bonus_m2)
-    t_balcon = prop.get('tipo_balcon', 'ninguno').lower()
-    factor_balcon = {
-        'L': 1.07,          # balcón en L: +7%
-        'corrido': 1.035,   # balcón corrido: +3.5%
-        'frances': 0.98,    # balcón francés: -2%
-        'terraza': 1.09,    # terraza privada: +9%
-        'ninguno': 1.0
-    }.get(t_balcon, 1.0)
-    
-    ventilacion = prop.get('ventilacion', 'simple').lower()
-    factor_vent = 1.05 if 'cruzada' in ventilacion else 1.0 if 'doble' in ventilacion else 0.95
-    
-    # 6b. Factor Disposición (TAREA-028): solo penalizaciones, sin premio a pasante
-    disposicion_raw = prop.get('disposicion')
-    if disposicion_raw is None:
-        delta_disposicion = 0.0  # propiedades legacy sin cambios
-    else:
-        disp = disposicion_raw.lower()
-        vista = prop.get('vista', 'frente').lower()
-        penalizaciones = {
-            'contrafrente': -0.005,
-            'interna': -0.01,
-        }
-        delta_disposicion = penalizaciones.get(disp, 0.0)
-        # Evitar doble castigo si vista ya es interna/pulmon
-        if delta_disposicion < 0 and vista in ('interna', 'pulmon'):
-            delta_disposicion = max(delta_disposicion, -0.005)
-    factor_disposicion = 1.0 + delta_disposicion
-    
-    # 7. Detalles Funcionales v10.0
-    f_funcional = 1.0
-    if prop.get('doble_ingreso'): f_funcional *= 1.03
-    if prop.get('lavadero_independiente'): f_funcional *= 1.015  # AJUSTE 1: 0.02->0.015
-    if prop.get('toilet'): f_funcional *= 1.035
-    if prop.get('baño_servicio'): f_funcional *= 1.01
-    if prop.get('layout_flexible'): f_funcional *= 1.04
-    if prop.get('placares_completos'): f_funcional *= 1.015  # AJUSTE 1: 0.02->0.015
-    if prop.get('despensa'): f_funcional *= 1.015
-    
-    # Reciclado v10.0 (parcial +4%, total +8%)
-    rec_tipo = prop.get('reciclado_tipo', 'ninguno').lower()
-    if rec_tipo == 'parcial':
-        f_funcional *= 1.04
-    elif rec_tipo == 'total':
-        f_funcional *= 1.08
-    
-    # Ascensores del edificio
-    ascensores = prop.get('ascensores_edificio', 2)
-    if ascensores > 1:
-        f_funcional *= 1.01
-    
-    # Ventilación baño
-    vent_bano = prop.get('ventilacion_bano', 'natural').lower()
-    if vent_bano == 'natural':
-        f_funcional *= 1.02
-    
-    # Amenities centralizados (v10.0 — reemplaza seguridad aditiva v9.6)
-    f_seguridad = 1.0  # ya no se usa directamente, se suma vía delta_amenities
-    detalles = prop.get('detalles_categoria', [])
-    if not isinstance(detalles, list): detalles = []
-    delta_amenities, detalle_amenities = calcular_delta_amenities(detalles)
-    
-    # Factores estructurales (Sin antigüedad)
-    f_estructural = (factor_estado * factor_calidad * factor_piso * factor_vent * 
-                     factor_vista * factor_ubica * factor_gas * factor_const * 
-                     factor_balcon * f_funcional * f_seguridad)
-    
-    # Factor Pasillo v9.3 (Castigo SOLO para casas/pasos, NO para deptos)
-    tipo = (prop.get('tipo_inmueble') or prop.get('tipo') or '').lower()
-    es_depto = 'departamento' in tipo or 'depto' in tipo or 'ph' in tipo
-    
-    # Factor estructural BRUTO (sin anti, sin pasillo para deptos)
-    f_estructural_raw = f_estructural
-    
-    # APLICAR FACTOR_PASILLO SOLO PARA NO-DEPTOS
-    if es_depto:
-        factor_pasillo = 1.0  # Deptos no tienen factor pasillo
-    else:
-        desc = (prop.get('descripcion_libre', '') + prop.get('nombre', '') + prop.get('direccion', '')).lower()
-        es_pasillo = any(x in desc for x in ['pasillo', 'interna', 'interno', 'fondo'])
-        factor_pasillo = 0.85 if es_pasillo else 1.0
-        f_estructural_raw = f_estructural * factor_pasillo
-    
-    # FIX BUG 3: FÓRMULA HÍBRIDA ADITIVA CLAMP
-    # Convertir producto a suma clamp según DICCIONARIO_DATOS.md
-    # SUMA_CRUDA: [-0.40, +0.40], FACTOR: [0.70, 1.35]
-    
-    # Calcular delta desdes 1.0 por cada factor
-    delta_estado = factor_estado - 1.0  # +0.03 para muy_bueno
-    delta_calidad = factor_calidad - 1.0
-    delta_vent = factor_vent - 1.0
-    delta_vista = factor_vista - 1.0
-    delta_piso = factor_piso - 1.0
-    delta_ubica = factor_ubica - 1.0
-    delta_gas = factor_gas - 1.0
-    delta_balcon = factor_balcon - 1.0
-    delta_funcional = f_funcional - 1.0
-    
-    # Nuevos deltas específicos
-    delta_cocina = 0.003 if prop.get('terminaciones_cocina') == 'silestone' else 0.0
-    delta_preinst = 0.002 if prop.get('preinstalacion_aa') else 0.0
-
-    # delta_seguridad reemplazado por delta_amenities (v10.0)
-    
-    # Sumar todos los deltas
-    suma_cruda = (delta_estado + delta_calidad + delta_vent + delta_vista + 
-                     delta_piso + delta_ubica + delta_gas + delta_balcon + 
-                     delta_funcional + delta_cocina + delta_preinst + delta_amenities +
-                     delta_disposicion)
-    
-    # Clamp suma_cruda
-    suma_cruda_clamped = max(-0.40, min(0.40, suma_cruda))
-    
-    # Factor estructural aditivo final con depreciación
-    f_estructural_final = max(0.70, min(1.35, 1.0 + suma_cruda_clamped + (factor_anti - 1.0)))
-    
-    # BOOST: PB (piso=0) con estado excelente → subir a 0.80 mínimo
-    estado = prop.get('estado_detalle', '')
-    piso = prop.get('piso', 0)
-    if estado == 'excelente' and piso == 0:
-        f_estructural_final = max(0.80, f_estructural_final)
+    # TOTAL MULTIPLICATIVO PURO
+    total = factor_estado * factor_calidad * factor_anti
     
     return {
-        'total': f_estructural_final,  # Ya incluye anti si clampeado
-        'estructural_puro': f_estructural_raw,
-        'depreciacion': factor_anti,
-        'delta_anti': factor_anti,  # Alias for compatibility
+        'total': total,
         'factor_estado': factor_estado,
         'factor_calidad': factor_calidad,
-        'factor_pasillo': factor_pasillo,
-        # Nuevos campos para fórmula híbrida
-        'suma_cruda': suma_cruda_clamped,
-        'suma_cruda_raw': suma_cruda,
-        'f_estructural': f_estructural_final,
+        'depreciacion': factor_anti,
+        'anti': factor_anti,
         'detalles': {
             'anti': factor_anti,
-            'estrato_activo': 'Base',
+            'estrato_activo': 'Multiplicativo',
             'ventana': ventana_usada
         },
-        'anti': factor_anti,  # Direct access for compatibility
         'ventana': ventana_usada,
-        'delta_amenities': delta_amenities,
-        'detalle_amenities': detalle_amenities,
-        'factor_disposicion': factor_disposicion,
-        'delta_disposicion': delta_disposicion,
-        # FASE 7B: tasa zonificada de depreciacion (siempre mostrar la real)
         'tasa_zonal': _tasa_zonal,
         'meta_mz': _meta_mz,
     }
@@ -3340,34 +3148,30 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
     # Ajustar para entrar en rango:
     m2_base_alquiler = m2_base_alq_raw if m2_base_alq_raw > 0 else (11500 if dorms >= 2 else 13500)
     
-    # 2. Factores Físicos Propios v10.1 (Con CAP)
-    # RO-03: detectar si estamos en Ventana 3 (P33 sin age filter)
+    # 2. Factores Físicos Propios v12.0 (Multiplicativo Puro, TAREA-071)
     es_ventana3 = not meta_venta.get("age_filter_applied") and meta_venta.get("percentil_usado") == "P33"
     f_dict = calcular_factores(prop, ventana_usada=3 if es_ventana3 else None)
     factores_base = f_dict['total']
     
-    logger.info(f"--- FACTORES ---")
+    logger.info(f"--- FACTORES MULTIPLICATIVOS ---")
     logger.info(f"factor_estado: {f_dict.get('factor_estado')}, factor_calidad: {f_dict.get('factor_calidad')}")
     logger.info(f"factor_anti (deprec): {f_dict.get('depreciacion')}")
-    logger.info(f"f_estructural: {f_dict.get('estructural_puro')}")
     logger.info(f"factores_base (total): {factores_base}")
-    
-    # CAP dinámico según calidad del cluster (TAREA-022)
-    f_dict = aplicar_cap_dinamico_factor(f_dict, meta_venta, n_v)
-    factores_finales = f_dict['total']
     
     # 3. Metros Específicos para Alquiler (Prioriza Cubiertos)
     m2_cub = prop.get('m2_cubiertos', m2_equiv)
     m2_desc = prop.get('m2_descubiertos', 0)
-    # En alquiler el patio vale mucho menos que en venta (coef 0.1)
     m2_equiv_alquiler = m2_cub + (m2_desc * 0.1)
     
-    # 3. Valores Base (Asking Price / Precio de Lista v9.0)
-    # Venta: Impacto Total de Factores
-    valor_venta = m2_equiv * m2_base_venta * f_dict['total']
+    # 3. Fórmula Multiplicativa (TAREA-071)
+    # m2_microzona = precio del anchor más cercano (o cluster como fallback)
+    m2_microzona = valor_ancla_geo if ancla_seleccionada is not None else m2_base_venta
+    size_discount = calcular_size_discount_venta(m2_equiv)
+    valor_venta = m2_equiv * m2_microzona * size_discount * f_dict['total']
     
-    logger.info(f"--- CALCULO ---")
-    logger.info(f"m2_equiv: {m2_equiv}, m2_base_venta: {m2_base_venta}")
+    logger.info(f"--- CALCULO MULTIPLICATIVO ---")
+    logger.info(f"m2_equiv: {m2_equiv}, m2_microzona: {m2_microzona}, size_discount: {size_discount}")
+    logger.info(f"factor_estado: {f_dict['factor_estado']}, factor_calidad: {f_dict['factor_calidad']}, factor_anti: {f_dict['depreciacion']}")
     logger.info(f"valor_venta (before NLP): {valor_venta}")
     
     # Alquiler: v9.1 Sensibilidad Atenuada de Calidad (Buenas Prácticas)

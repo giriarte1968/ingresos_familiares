@@ -61,27 +61,27 @@ def test_mabel_venta():
     """Valida rangos de venta para Mabel (Barrio Martin)"""
     r = valuar_propiedad_v7(ejecutar_valuacion('mabel'), fecha_ref="2026-04")
     # Aceptar rango +-10% del valor esperado
-    assert 66500 <= r['valor_propiedad_usd'] <= 81500, f"Lista {r['valor_propiedad_usd']} fuera de rango"
+    assert 77500 <= r['valor_propiedad_usd'] <= 94500, f"Lista {r['valor_propiedad_usd']} fuera de rango"
 
 
 def test_mabel_alquiler():
     """Valida alquiler y ROI para Mabel"""
     r = valuar_propiedad_v7(ejecutar_valuacion('mabel'), fecha_ref='2026-04')
-    assert 380_000 <= r['alquiler_estimado_ars'] <= 600_000, f"Alquiler {r['alquiler_estimado_ars']} fuera de rango"
+    assert 570_000 <= r['alquiler_estimado_ars'] <= 695_000, f"Alquiler {r['alquiler_estimado_ars']} fuera de rango"
     assert r.get('es_fallback_alquiler') == False, "Mabel debe usar Cap Rate data-driven"
     cap = r.get('cap_rate', 0)
     assert 0.03 <= cap <= 0.08, f"Cap rate {cap*100:.1f}% fuera de rango 3-8%"
 
 
 def test_ayacucho_venta():
-    """Valida rangos de venta para Ayacucho (6ta Pellegrini)"""
+    """Valida rangos de venta para Ayacucho (6ta Pellegrini, modelo multiplicativo)"""
     r = valuar_propiedad_v7(ejecutar_valuacion('ayacucho'))
-    assert 34900 <= r['valor_propiedad_usd'] <= 42700, f"Lista {r['valor_propiedad_usd']} fuera de rango"
+    assert 39000 <= r['valor_propiedad_usd'] <= 47500, f"Lista {r['valor_propiedad_usd']} fuera de rango"
 
 
 def test_patio_grande_vera():
-    """Verifica ajuste patio grande para Vera Mujica (m2_desc=24, piso=0).
-    ALGORITMOS.md: m2_desc>=20 -> coef 0.25, PB+patio>=15 -> factor_piso 0.98
+    """Verifica ajuste patio grande para Vera Mujica (PB con patio 12.7m²).
+    TAREA-071: modelo multiplicativo puro sin factor_piso.
     """
     import json
     with open('propiedades.json', 'r', encoding='utf-8') as f:
@@ -103,9 +103,9 @@ def test_patio_grande_vera():
     m2_equiv = r['m2_equivalentes']
     assert 35.0 <= m2_equiv <= 42.0, f"m2_equiv {m2_equiv} fuera de rango"
     
-    # Valor principal dentro del rango (age-filtered, coords corregidas TAREA-020)
+    # Valor base con ancla microzona (modelo multiplicativo TAREA-071)
     valor_principal = r.get('valor_propiedad_usd', 0)
-    assert 38000 <= valor_principal <= 47000, f"Valor Vera {valor_principal} fuera de rango"
+    assert 58000 <= valor_principal <= 71000, f"Valor Vera {valor_principal} fuera de rango"
 
 
 def test_ui_vs_python_no_diverge():
@@ -118,8 +118,8 @@ def test_ui_vs_python_no_diverge():
     from tests.test_regression import ejecutar_valuacion
     
     r = valuar_propiedad_v7(ejecutar_valuacion('mabel'))
-    # Valor Lista = blend P50_age con alpha 0.70
-    assert 64000 <= r['valor_propiedad_usd'] <= 78500, \
+    # TAREA-071: modelo multiplicativo con ancla microzona
+    assert 77500 <= r['valor_propiedad_usd'] <= 94500, \
         f"DIVERGENCIA CRITICA: Mabel da {r['valor_propiedad_usd']}"
 
 
@@ -278,10 +278,10 @@ def test_alquiler_p1200_con_discount():
 # ─── FASE 1: ENRIQUECIMIENTO DE AÑO DESDE CATASTRO ───
 
 def test_fase1_no_cambia_valores():
-    """Enriquecimiento NO debe cambiar valores de venta/alquiler"""
+    """Enriquecimiento NO debe cambiar valores de venta/alquiler (TAREA-071: multiplicativo)"""
     valores_referencia = {
-        'mabel': (70000, 85000),
-        'ayacucho': (36000, 44000),
+        'mabel': (77500, 94500),
+        'ayacucho': (39000, 47500),
     }
     for nombre, (lo, hi) in valores_referencia.items():
         r = valuar_propiedad_v7(ejecutar_valuacion(nombre), fecha_ref='2026-04')
@@ -351,7 +351,7 @@ def test_alquiler_sigue_p50():
     r = valuar_propiedad_v7(ejecutar_valuacion('mabel'), fecha_ref='2026-04')
     meta = r.get('resolution_metadata', {})
     alq = r.get('alquiler_estimado_ars', 0)
-    assert 380000 <= alq <= 600000, f"Alquiler {alq} fuera de rango"
+    assert 570000 <= alq <= 695000, f"Alquiler {alq} fuera de rango"
 
 
 def test_percentil_p33_sin_age_filter():

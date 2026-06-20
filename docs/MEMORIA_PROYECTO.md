@@ -49,8 +49,8 @@ El modelo es Data-Driven: los precios emergen del mercado real
 **RO-03:** NO aplicar depreciación por antigüedad cuando la base viene de Ventana 3 (P33). 
 *RAZÓN: La estratificación P33 ya incorpora implícitamente la edad.*
 
-**RO-04:** NLP entra DENTRO del sqrt, no como multiplicador externo. 
-*RAZÓN: Evita doble amortiguación.*
+**RO-04:** NLP entra como multiplicador externo del producto de factores.
+*RAZÓN: NLP ajusta percepción comercial sobre el valor base, no es un factor estructural.*
 
 **RO-05:** En alquiler, usar MEDIANA COMPLETA (no P33). 
 *RAZÓN: El inquilino no descuenta antigüedad igual que el comprador.*
@@ -70,55 +70,36 @@ El modelo es Data-Driven: los precios emergen del mercado real
 
 **RO-14:** (Espacio reservado)
 
-**RO-15:** La fórmula de `factor_total` tiene `delta_anti` DENTRO del `sqrt`. NUNCA mover `delta_anti` fuera del `sqrt` sin aprobación humana. Razón: BUG-05 estableció que todos los factores estructurales (estado, calidad, antigüedad, NLP) se amortiguan juntos.
+**RO-15:** (OBSOLETO por TAREA-071) La fórmula es ahora multiplicativa pura: `factor_total = factor_estado × factor_calidad × factor_anti`. No hay sqrt ni suma_cruda.
 
 **RO-16:** Jerarquía de Verdad: Si dos documentos se contradicen, `MEMORIA_PROYECTO.md` siempre tiene la prioridad absoluta. `ALGORITMOS.md` y otros documentos son secundarios. Si hay contradicción, reportar al usuario, no decidir solo.
 
 ---
 
-## 3. ARQUITECTURA DE LA FÓRMULA DE VENTA
-`valor_lista = m2_equiv × m2_base × factor_total`
+## 3. ARQUITECTURA DE LA FÓRMULA DE VENTA (TAREA-071 — Multiplicativa Pura)
+`valor_lista = m2_equiv × m2_microzona × size_discount × factor_estado × factor_calidad × factor_anti × (1 + nlp_capped)`
 
 donde:
-- `m2_equiv = m2_cubiertos + (m2_semi × 0.30) + (m2_desc × 0.10)`
-- `m2_base = mediana del cluster geoespacial (ver Sección 5)`
-- `factor_total = sqrt( (1 + suma_cruda + delta_anti) × (1 + nlp_capped) )`
-- `suma_cruda = delta_estado + delta_calidad + delta_vista + delta_piso + delta_ventilacion + delta_ubicacion`
+- `m2_equiv = m2_cubiertos + (m2_semi × 0.45) + (m2_desc_propios × 0.25) + (m2_desc_comun_exclusivo × 0.15)`  (coeficientes varían según contexto PB/patio grande)
+- `m2_microzona = valor_ancla_geo.usd_m2` (ancla más cercana por coordenadas, fallback a cluster P33/P50)
+- `size_discount = calcular_size_discount_venta()` (descuento progresivo para >80m²)
+- `factor_estado`: lookup table (malo→0.85, regular→0.92, bueno→1.00, muy_bueno→1.03, excelente→1.05, a_estrenar→1.08)
+- `factor_calidad`: lookup table (baja→0.95, media→1.00, alta→1.04, excelente→1.06, premium→1.08)
+- `factor_anti`: depreciación por antigüedad con atenuación dinámica (ver sección 3.x)
+- `nlp_capped`: `min(ajuste_nlp, 0.03)` para 1 dorm, `min(ajuste_nlp, 0.05)` para 2+ dorm
 
-**delta_anti (Tramos v12.0):**
-- Si `ventana_usada == 3` → `delta_anti = 0.0` (implícito en P33)
-- Si `ventana_usada == 1 o 2` → Tramos:
-  - 0-5 años: 0.0%/año
-  - 5-10 años: 0.7%/año
-  - 10-20 años: 0.9%/año
-  - 20-30 años: 1.1%/año (Tramo Mabel)
-  - 30-50 años: 0.6%/año
-  - 50+ años: 0.3%/año
-  - **CAP:** max castigo 40% (Factor min 0.60)
-- `nlp_capped = min(ajuste_nlp, 0.15)`
-
-**GAP venta:**
-- Antigüedad > 20 años → `gap = 0.90`
-- Antigüedad <= 20 años → `gap = 0.92`
-- `valor_cierre = valor_lista × gap`
-
-### Tabla de deltas estructurales
-- **ESTADO:** excelente → +0.15, muy_bueno → +0.10, bueno → 0.00, regular → -0.15, malo → -0.30
-- **CALIDAD EDIFICIO:** premium → +0.20, alta → +0.10, media → 0.00, baja → -0.15
-- **VENTILACIÓN:** cruzada → +0.10, simple → 0.00
-- **PISO:** planta_baja → -0.05, piso 1-3 → 0.00, piso 4+ → +0.05, piso 8+ → +0.10
+**Factores eliminados (ruido estadístico):** vista, piso, ubicación_tipo, gas_ok, tipo_balcon, funcional, amenities, disposición, cocina, preinst. No correlacionan significativamente con precio en Rosario.
 
 ---
 
-## 4. ARQUITECTURA DE LA FÓRMULA DE ALQUILER
+## 4. ARQUITECTURA DE LA FÓRMULA DE ALQUILER (TAREA-071)
 `alquiler_mensual_ars = m2_equiv_alq × m2_base_alq × factores_alq × gap_alq`
 
-- `m2_equiv_alq = m2_cubiertos + (m2_semi × 0.30) + (m2_desc × 0.10)` ← INCLUYE semicubiertos al 30%
+- `m2_equiv_alq = m2_cubiertos + (m2_semi × 0.45) + (m2_desc_propios × 0.25) + (m2_desc_comun_exclusivo × 0.15)`
 - `m2_base_alq`: 
   - **PRIMARIO:** mediana completa del cluster de alquiler (progresión geo)
   - **FALLBACK:** `(m2_base_venta_zona × 0.0045) × usdt_ars` (usa mediana COMPLETA de venta, NO P33)
-- `factores_alq = sqrt(1 + suma_cruda_alq)`
-- `suma_cruda_alq = (delta_estado × 0.50) + (delta_calidad × 0.50) + (delta_nlp × 0.70) + delta_ventilacion + delta_piso`
+- `factores_alq = factor_estado × factor_calidad × (1 + ajuste_nlp × 0.70)` (factores atenuados al 50% vs venta)
 - `delta_anti` en alquiler = 0.0 SIEMPRE.
 - **GAP alquiler** = 0.96 (mercado más rígido que venta)
 - **ROI** = (alquiler_mensual × 12) / (valor_cierre_usd × usdt_ars)
@@ -283,11 +264,11 @@ Por qué se tomaron — para no revertirlas accidentalmente
 - **Razón:** Con lambda=0.005, un nodo a 28m tenía peso 0.87 → dominaba. Con lambda=0.012 el mismo nodo tiene peso 0.71.
 - **Impacto:** `location_engine.py`, `calcular_precio_m2()`.
 
-### DEC-06: NLP dentro del sqrt
+### DEC-06: NLP como multiplicador externo (TAREA-071)
 
-- **Fecha:** Abril 2026
-- **Razón:** NLP como multiplicador externo causaba doble amortiguación.
-- **Impacto:** factor = sqrt((1+suma_cruda+delta_anti) × (1+nlp))
+- **Fecha:** Junio 2026
+- **Razón:** Con el modelo multiplicativo puro, NLP ya no está dentro de sqrt. Ajusta percepción comercial sobre el valor base.
+- **Impacto:** factor = factor_estado × factor_calidad × factor_anti × (1 + nlp)
 
 ### DEC-07: MAD solo con N >= 8
 
@@ -325,11 +306,12 @@ Para no reintroducirlos
 - **Causa:** Radio 1km sin barreras cruzaba Bv. 27
 - **Fix:** Progresión 300m→... + barreras activas en `obtener_mediana_cluster`
 
-### BUG-05: ✅ RESUELTO — NLP fuera del sqrt
+### BUG-05: ✅ SUPERSEDED by TAREA-071 — NLP fuera del sqrt
 
-- **Síntoma:** Factor inflado, valor lista ~$82k para Mabel
-- **Causa:** valor = base × sqrt(factores) × 1.05 (NLP afuera)
-- **Fix:** valor = base × sqrt(factores × (1+nlp))
+- **Síntoma:** Factor inflado, valor lista ~$82k para Mabel (modelo aditivo anterior)
+- **Causa:** valor = base × sqrt(factores) × 1.05 (NLP afuera del sqrt)
+- **Fix original:** valor = base × sqrt(factores × (1+nlp))
+- **Nota TAREA-071:** El modelo multiplicativo puro no usa sqrt. NLP es multiplicador externo: `(1 + nlp)`. Este bug queda obsoleto.
 
 ### BUG-06: ✅ RESUELTO — ROI incorrecto en UI
 
@@ -359,15 +341,16 @@ Para no reintroducirlos
 - **Causa:** Constante GAP_ALQUILER seteada en 0.93.
 - **Fix:** Cambiar a 0.96 según Sección 4 de la Memoria.
 
-### BUG-11: ✅ RESUELTO — Fórmula factores alquiler incorrecta
-- **Síntoma:** Los factores de estado/calidad se multiplicaban linealmente, inflando o deflactando de más.
-- **Causa:** No se seguía la fórmula sqrt(1 + suma_cruda_alq).
-- **Fix:** Implementar fórmula exacta de la Memoria y unificar el factor NLP dentro del sqrt.
+### BUG-11: ✅ SUPERSEDED by TAREA-071 — Fórmula factores alquiler incorrecta
+- **Síntoma:** Los factores de estado/calidad se multiplicaban linealmente.
+- **Causa:** No se seguía la fórmula sqrt(1 + suma_cruda_alq) del modelo aditivo anterior.
+- **Nota TAREA-071:** El alquiler ahora usa `factor_estado × factor_calidad × (1 + nlp_atenuado)`. Sin sqrt, sin suma_cruda.
 
-### BUG-14: ✅ RESUELTO — Intento de mover delta_anti fuera del sqrt
+### BUG-14: ✅ SUPERSEDED by TAREA-071 — Intento de mover delta_anti fuera del sqrt
 - **Síntoma:** Mabel y Ayacucho quedaron fuera de rango (subvaluados $\approx 1\%$).
 - **Causa:** Error de interpretación de ALGORITMOS.md moviendo la depreciación fuera de la raíz.
-- **Fix:** Revertir inmediatamente. La fórmula correcta mantiene `delta_anti` dentro del `sqrt` para amortiguar el impacto, coherente con BUG-05.
+- **Fix original:** Revertir inmediatamente. La fórmula correcta mantiene `delta_anti` dentro del `sqrt`.
+- **Nota TAREA-071:** El modelo multiplicativo puro no usa sqrt. `factor_anti` es un multiplicador independiente. Este bug queda obsoleto.
 
 
 ---
@@ -376,11 +359,11 @@ Para no reintroducirlos
 
 | test_id | Dirección | Operación | Rango esperado |
 |--------|-----------|-----------|---------------|
-| mabel | Mabel 1400 | valor_lista | $65,000 - $73,000 USD |
-| mabel | Mabel 1400 | valor_cierre | $62,000 - $70,000 USD |
-| mabel | Mabel 1400 | alquiler | $380,000 - $460,000 ARS |
-| ayacucho | Ayacucho 1800 | valor_lista | $42,000 - $52,000 USD |
-| ayacucho | Ayacucho 1800 | valor_cierre | $38,000 - $48,000 USD |
+| mabel | Mabel 1400 | valor_lista | $77,500 - $94,500 USD |
+| mabel | Mabel 1400 | valor_cierre | $75,000 - $90,000 USD |
+| mabel | Mabel 1400 | alquiler | $570,000 - $695,000 ARS |
+| ayacucho | Ayacucho 1800 | valor_lista | $39,000 - $47,500 USD |
+| ayacucho | Ayacucho 1800 | valor_cierre | $37,000 - $45,000 USD |
 | ayacucho | Ayacucho 1800 | alquiler | $270,000 - $350,000 ARS |
 
 ### Contexto de ejecución
@@ -460,12 +443,12 @@ def test_barrera_bv27_ayacucho():
     )
     assert mediana >= 1300, f"Base baja ({mediana}): comparables del sur filtrándose"
 
-def test_nlp_dentro_sqrt():
-    """El factor NLP debe estar dentro del sqrt"""
+def test_nlp_multiplicador_externo():
+    """TAREA-071: NLP es multiplicador externo del producto de factores"""
     r_sin = ejecutar_valuacion('mabel_sin_nlp')
     r_con = ejecutar_valuacion('mabel')
-    ratio = r_con['valor_lista'] / r_sin['valor_lista']
-    assert ratio < 1.05, f"NLP no está dentro del sqrt (ratio={ratio})"
+    ratio = r_con['valor_propiedad_usd'] / r_sin['valor_propiedad_usd']
+    assert 1.01 <= ratio <= 1.04, f"NLP ratio={ratio} fuera de rango esperado (1.01-1.04)"
 
 def test_ventana3_sin_depreciacion():
     """Con Ventana 3, delta_anti debe ser 0.0"""
@@ -485,10 +468,10 @@ def test_amueblados_excluidos():
 
 | Test | Archivo actual | Spec MEMORIA | Notas |
 |------|-------------|------------|-----------|
-| Mabel venta lista | $62k-$78k | $62k-$70k | **Spec es más estricto** |
-| Mabel venta cierre | $57k-$73k | $57k-$65k | **Spec es más estricto** |
+| Mabel venta lista | $77,500-$94,500 | $77,500-$94,500 | OK (TAREA-071) |
+| Mabel venta cierre | $70,000-$90,000 | $70,000-$90,000 | OK (TAREA-071) |
 | test_barrera_bv27_ayacucho | ❌ No existe | ✅ REQUERIDO | FALTA |
-| test_nlp_dentro_sqrt | ❌ No existe | ✅ REQUERIDO | FALTA |
+| test_nlp_multiplicador_externo | ❌ No existe | ✅ REQUERIDO | FALTA |
 | test_ventana3_sin_depreciacion | ❌ No existe | ✅ REQUERIDO | FALTA |
 | test_amueblados_excluidos | ⚠️ Parcial (línea 278) | ✅ Completo | Mejora Needed |
 
@@ -526,7 +509,7 @@ Leer esto antes de cada sesión de código
 - ❌ Reintroducir ancla física en el cálculo base
 - ❌ Filtrar comparables por string de zona
 - ❌ Aplicar `delta_anti` cuando `ventana_usada == 3`
-- ❌ Poner NLP fuera del sqrt
+- ❌ Poner NLP fuera del sqrt (OBSOLETO por TAREA-071 — el modelo multiplicativo no usa sqrt)
 - ❌ Subir `lambda_val` por encima de 0.012 sin aprobación
 
 ---
