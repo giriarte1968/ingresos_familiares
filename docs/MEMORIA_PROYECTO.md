@@ -76,19 +76,18 @@ El modelo es Data-Driven: los precios emergen del mercado real
 
 ---
 
-## 3. ARQUITECTURA DE LA FÓRMULA DE VENTA (TAREA-071 — Multiplicativa Pura)
-`valor_lista = m2_equiv × m2_microzona × size_discount × factor_estado × factor_calidad × factor_anti × (1 + nlp_capped)`
+## 3. ARQUITECTURA DE LA FÓRMULA DE VENTA (TAREA-073 — Modelo Base Puro)
+`valor_venta = (m2_equiv × m2_microzona × size_discount) + cocheras + baulera`
 
 donde:
 - `m2_equiv = m2_cubiertos + (m2_semi × 0.45) + (m2_desc_propios × 0.25) + (m2_desc_comun_exclusivo × 0.15)`  (coeficientes varían según contexto PB/patio grande)
 - `m2_microzona = valor_ancla_geo.usd_m2` (ancla más cercana por coordenadas, fallback a cluster P33/P50)
 - `size_discount = calcular_size_discount_venta()` (descuento progresivo para >80m²)
-- `factor_estado`: lookup table (malo→0.85, regular→0.92, bueno→1.00, muy_bueno→1.03, excelente→1.05, a_estrenar→1.08)
-- `factor_calidad`: lookup table (baja→0.95, media→1.00, alta→1.04, excelente→1.06, premium→1.08)
-- `factor_anti`: depreciación por antigüedad con atenuación dinámica (ver sección 3.x)
-- `nlp_capped`: `min(ajuste_nlp, 0.03)` para 1 dorm, `min(ajuste_nlp, 0.05)` para 2+ dorm
+- `cocheras + baulera`: valor aditivo de activos vía `calcular_valor_activos()`
+- **No hay factores hedónicos** (estado, calidad, antigüedad, NLP). Análisis ML demostró que ubicación explica ~80% del precio (XGBoost). Edad es confounding effect. Estado/calidad son double premiums sobre el anchor.
 
-**Factores eliminados (ruido estadístico):** vista, piso, ubicación_tipo, gas_ok, tipo_balcon, funcional, amenities, disposición, cocina, preinst. No correlacionan significativamente con precio en Rosario.
+### RO-18: Factores hedónicos eliminados en venta (TAREA-073)
+`calcular_factores()` retorna 1.0 para todos los factores (estado, calidad, anti). La fórmula de venta NO multiplica por factores de propiedad. NLP NO se aplica en venta. Alquiler conserva su lógica original (con NLP, estado, calidad, anti, f_puros).
 
 ---
 

@@ -2803,3 +2803,29 @@ Vera +52% por eliminación de `factor_piso` (PB ya no descuenta). Intencional.
 
 ### Tests: 39/39 regression OK
 ### Commits: (pending)
+
+
+## 📅 2026-06-20 — TAREA-073: Eliminación de factores hedónicos (Modelo Base Puro)
+
+### Decisión ML:
+- XGBoost: ubicación (lat+lon) = 80% del precio, m² = 16%
+- Grid RF por celda: Mabel +0.2% en 55 años (depreciación ~cero)
+- Edad = confounding effect con ubicación
+- Estado/calidad = double premiums sobre el anchor
+- **Fórmula final:** `valor_venta = (m2_equiv × m2_microzona × size_discount) + cocheras + baulera`
+
+### Cambios:
+1. `calcular_factores()` → neutro (retorna 1.0 en todos los factores)
+2. `valuar_propiedad_v7()` sin NLP en venta, sin factor_total. Alquiler conserva lógica original.
+3. `obtener_mediana_cluster_v2()` y `calcular_valor_comparable_historico()`: factor_total eliminado
+4. NLP solo en alquiler (con `_calcular_factores_rental()` como función separada)
+5. Tests recallibrados: Mabel $81.5k-$100k, Ayacucho $42k-$51.5k, Vera $58.5k-$72k
+6. `test_ventana3_con_depreciacion_si_no_v3` eliminado
+
+### Archivos:
+- `parsers/mercado_inmobiliario.py`: `calcular_factores()`, `_calcular_factores_rental()` (nueva), `valuar_propiedad_v7()`, `obtener_mediana_cluster_v2()`, `calcular_valor_comparable_historico()`
+- `tests/test_regression.py`: Ranges actualizados, test obsoleto eliminado
+- `docs/ALGORITMOS.md`, `docs/MEMORIA_PROYECTO.md`, `docs/STATUS_ACTUAL.md`: Fórmula actualizada
+
+### Tests: 38/38 regression OK (1 eliminado)
+### Commit: (pendiente)

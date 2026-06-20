@@ -124,94 +124,41 @@ Para propiedades en Planta Baja (piso=0) con patio grande:
 
 ---
 
-## Leyes del Motor VPP - Calibración Rosario 2026 (TAREA-071)
+## Leyes del Motor VPP - Calibración Rosario 2026 (TAREA-073)
 
-### 1. Fórmula de Venta — Modelo Multiplicativo Puro
+### 1. Fórmula de Venta — Modelo Base Puro
 La valuación de venta para departamentos/PH usa:
 
 ```
-valor_venta = m2_equiv × m2_microzona × size_discount × factor_estado × factor_calidad × factor_anti × (1 + ajuste_nlp)
+valor_venta = (m2_equiv × m2_microzona × size_discount) + cocheras + baulera
 ```
 
 Aclaraciones:
 - `m2_microzona` proviene del ancla geográfica más cercana (`valor_ancla_geo.usd_m2`). Si no hay ancla, fallback al cluster P33/P50.
 - `size_discount` = `calcular_size_discount_venta()`: descuento progresivo para unidades >80m².
-- `factor_estado`, `factor_calidad`, `factor_anti` son multiplicativos puros.
-- `ajuste_nlp` caps: 3% para 1 dorm, 5% para 2+ dorm.
-- No hay clamp del factor total. No hay "suma cruda". No hay factores de ruido (vista, piso, balcón, gas, etc.)
+- **No hay factores hedónicos** (estado, calidad, antigüedad, NLP). El análisis ML demostró que:
+  - Ubicación explica ~80% del precio (XGBoost: lat=44%, lon=36%)
+  - m² explica ~16%
+  - Edad es **confounding effect** con ubicación (grid RF por celda: Mabel +0.2% en 55 años)
+  - Estado/calidad = double premiums sobre el anchor
+- Activos aditivos (cocheras + baulera) se suman vía `calcular_valor_activos()`.
 
-### 2. NLP cap por tipología
-- Propiedades de **1 dormitorio**: NLP máximo = **+3%**
-- Propiedades de **2 o más dormitorios**: NLP máximo = **+5%**
+### 2. Fórmula de Alquiler (mantiene lógica original)
+```
+alquiler_mensual_ars = m2_equiv_alq × m2_base_alq × factores_alq × gap_alq × (1 + nlp_capped)
+```
 
-### 3. Atenuación dinámica de antigüedad
-Se activa solo si `delta_anti_raw < -0.18`:
-- `UMBRAL_PENALIZACION_SEVERA = -0.18`
-- `FACTOR_ATENUACION = 0.35`
+- `factores_alq = factor_estado × factor_calidad × factor_anti × f_puros` (atenuación 50% en estado/calidad)
+- `nlp_capped`: 3% para 1 dorm, 5% para 2+ dorm
+- NLP y factores hedónicos se conservan en alquiler (decisión TAREA-073)
 
-Fórmula exacta:
-- Si `delta_anti_raw >= -0.18`, entonces: `delta_anti_efectivo = delta_anti_raw`
-- Si `delta_anti_raw < -0.18`, entonces:
-  - `exceso = delta_anti_raw - (-0.18)`
-  - `delta_anti_efectivo = -0.18 + (exceso × 0.35)`
-
-**Ejemplo con P1200:**
-- 49 años → delta raw ≈ -0.294
-- exceso ≈ -0.114
-- delta efectivo ≈ -0.220
-- Propósito: evitar sobrecastigar propiedades antiguas cuando la base P33 ya es conservadora.
-
-### 5. Ajustes finos aplicados
-- Funcional (lavadero/placares): reducida de 0.02 → 0.015
-- Balcón corrido: reducido de 0.04 → 0.02
-
-Fueron calibraciones para bajar Mabel a rango realista sin romper Ayacucho ni Vera.
-
-### 6. Ajustes finos v2 — Recalibración de Factores Constructivos (TAREA 2026-05-20)
-
-Corrección semántica: `premium` NO es un estado de conservación sino una categoría de calidad.
-
-#### factor_estado (nueva tabla)
-
-Solo estados de conservación, `premium` eliminado:
-
-| Estado | Factor | Variación vs 1.0 |
-|--------|--------|-------------------|
-| malo | 0.85 | -15% |
-| regular | 0.92 | -8% |
-| bueno | 1.00 | 0% |
-| muy_bueno | 1.03 | +3% |
-| excelente | 1.05 | +5% |
-| a_estrenar | 1.08 | +8% |
-
-#### factor_calidad (nueva tabla)
-
-`premium` agregado como categoría de calidad:
-
-| Calidad | Factor | Variación vs 1.0 |
-|---------|--------|-------------------|
-| baja | 0.95 | -5% |
-| media | 1.00 | 0% |
-| alta | 1.04 | +4% |
-| excelente | 1.06 | +6% |
-| premium | 1.08 | +8% |
-
-#### Normalización defensiva
-
-Cuando `estado_detalle = "premium"`:
-- `estado_norm = "excelente"` (factor 1.05)
-- Si `calidad_edificio` está vacío o `"media"` → promueve a `"premium"` (factor 1.08)
-- Nunca aplica doble premio
-
-#### Ventilación suavizada
-
-| Tipo | Antes | Ahora |
-|------|-------|-------|
-| simple | 0.90 | 0.95 |
-| doble | 1.00 | 1.00 |
-| cruzada | 1.10 | 1.05 |
-
-Swing total reducido de 20% a 10%.
+### HISTÓRICO: Factores eliminados en TAREA-073
+Los siguientes factores se usaban en TAREA-071 y fueron eliminados por decisión ML:
+- `factor_estado`: lookup (malo→0.85 ... a_estrenar→1.08)
+- `factor_calidad`: lookup (baja→0.95 ... premium→1.08)
+- `factor_anti`: depreciación 0.6% anual con atenuación dinámica
+- `ajuste_nlp`: NLP cap 3% / 5%
+- `f_puros` (ventilación, piso): solo en alquiler
 
 ### 7. Exclusión de factor_pasillo
 - `factor_pasillo` NO forma parte de la fórmula general de departamentos/PH.
@@ -249,94 +196,41 @@ Para propiedades en Planta Baja (piso=0) con patio grande:
 
 ---
 
-## Leyes del Motor VPP - Calibración Rosario 2026 (TAREA-071)
+## Leyes del Motor VPP - Calibración Rosario 2026 (TAREA-073)
 
-### 1. Fórmula de Venta — Modelo Multiplicativo Puro
+### 1. Fórmula de Venta — Modelo Base Puro
 La valuación de venta para departamentos/PH usa:
 
 ```
-valor_venta = m2_equiv × m2_microzona × size_discount × factor_estado × factor_calidad × factor_anti × (1 + ajuste_nlp)
+valor_venta = (m2_equiv × m2_microzona × size_discount) + cocheras + baulera
 ```
 
 Aclaraciones:
 - `m2_microzona` proviene del ancla geográfica más cercana (`valor_ancla_geo.usd_m2`). Si no hay ancla, fallback al cluster P33/P50.
 - `size_discount` = `calcular_size_discount_venta()`: descuento progresivo para unidades >80m².
-- `factor_estado`, `factor_calidad`, `factor_anti` son multiplicativos puros.
-- `ajuste_nlp` caps: 3% para 1 dorm, 5% para 2+ dorm.
-- No hay clamp del factor total. No hay "suma cruda". No hay factores de ruido (vista, piso, balcón, gas, etc.)
+- **No hay factores hedónicos** (estado, calidad, antigüedad, NLP). El análisis ML demostró que:
+  - Ubicación explica ~80% del precio (XGBoost: lat=44%, lon=36%)
+  - m² explica ~16%
+  - Edad es **confounding effect** con ubicación (grid RF por celda: Mabel +0.2% en 55 años)
+  - Estado/calidad = double premiums sobre el anchor
+- Activos aditivos (cocheras + baulera) se suman vía `calcular_valor_activos()`.
 
-### 2. NLP cap por tipología
-- Propiedades de **1 dormitorio**: NLP máximo = **+3%**
-- Propiedades de **2 o más dormitorios**: NLP máximo = **+5%**
+### 2. Fórmula de Alquiler (mantiene lógica original)
+```
+alquiler_mensual_ars = m2_equiv_alq × m2_base_alq × factores_alq × gap_alq × (1 + nlp_capped)
+```
 
-### 3. Atenuación dinámica de antigüedad
-Se activa solo si `delta_anti_raw < -0.18`:
-- `UMBRAL_PENALIZACION_SEVERA = -0.18`
-- `FACTOR_ATENUACION = 0.35`
+- `factores_alq = factor_estado × factor_calidad × factor_anti × f_puros` (atenuación 50% en estado/calidad)
+- `nlp_capped`: 3% para 1 dorm, 5% para 2+ dorm
+- NLP y factores hedónicos se conservan en alquiler (decisión TAREA-073)
 
-Fórmula exacta:
-- Si `delta_anti_raw >= -0.18`, entonces: `delta_anti_efectivo = delta_anti_raw`
-- Si `delta_anti_raw < -0.18`, entonces:
-  - `exceso = delta_anti_raw - (-0.18)`
-  - `delta_anti_efectivo = -0.18 + (exceso × 0.35)`
-
-**Ejemplo con P1200:**
-- 49 años → delta raw ≈ -0.294
-- exceso ≈ -0.114
-- delta efectivo ≈ -0.220
-- Propósito: evitar sobrecastigar propiedades antiguas cuando la base P33 ya es conservadora.
-
-### 5. Ajustes finos aplicados
-- Funcional (lavadero/placares): reducida de 0.02 → 0.015
-- Balcón corrido: reducido de 0.04 → 0.02
-
-Fueron calibraciones para bajar Mabel a rango realista sin romper Ayacucho ni Vera.
-
-### 6. Ajustes finos v2 — Recalibración de Factores Constructivos (TAREA 2026-05-20)
-
-Corrección semántica: `premium` NO es un estado de conservación sino una categoría de calidad.
-
-#### factor_estado (nueva tabla)
-
-Solo estados de conservación, `premium` eliminado:
-
-| Estado | Factor | Variación vs 1.0 |
-|--------|--------|-------------------|
-| malo | 0.85 | -15% |
-| regular | 0.92 | -8% |
-| bueno | 1.00 | 0% |
-| muy_bueno | 1.03 | +3% |
-| excelente | 1.05 | +5% |
-| a_estrenar | 1.08 | +8% |
-
-#### factor_calidad (nueva tabla)
-
-`premium` agregado como categoría de calidad:
-
-| Calidad | Factor | Variación vs 1.0 |
-|---------|--------|-------------------|
-| baja | 0.95 | -5% |
-| media | 1.00 | 0% |
-| alta | 1.04 | +4% |
-| excelente | 1.06 | +6% |
-| premium | 1.08 | +8% |
-
-#### Normalización defensiva
-
-Cuando `estado_detalle = "premium"`:
-- `estado_norm = "excelente"` (factor 1.05)
-- Si `calidad_edificio` está vacío o `"media"` → promueve a `"premium"` (factor 1.08)
-- Nunca aplica doble premio
-
-#### Ventilación suavizada
-
-| Tipo | Antes | Ahora |
-|------|-------|-------|
-| simple | 0.90 | 0.95 |
-| doble | 1.00 | 1.00 |
-| cruzada | 1.10 | 1.05 |
-
-Swing total reducido de 20% a 10%.
+### HISTÓRICO: Factores eliminados en TAREA-073
+Los siguientes factores se usaban en TAREA-071 y fueron eliminados por decisión ML:
+- `factor_estado`: lookup (malo→0.85 ... a_estrenar→1.08)
+- `factor_calidad`: lookup (baja→0.95 ... premium→1.08)
+- `factor_anti`: depreciación 0.6% anual con atenuación dinámica
+- `ajuste_nlp`: NLP cap 3% / 5%
+- `f_puros` (ventilación, piso): solo en alquiler
 
 ### 7. Exclusión de factor_pasillo
 - `factor_pasillo` NO forma parte de la fórmula general de departamentos/PH.

@@ -1,6 +1,6 @@
 ﻿# 🏠 STATUS ACTUAL DEL PROYECTO — AVM Rosario
 
-*Actualizado: 19/06/2026 (TAREA-071: Modelo multiplicativo puro)*
+*Actualizado: 20/06/2026 (TAREA-073: Modelo base puro sin factores hedónicos)*
 
 ---
 
@@ -8,14 +8,14 @@
 
 | Dimensión | Estado |
 |-----------|--------|
-| Motor valuación v7 | ✅ Multiplicativo puro (TAREA-071) |
+| Motor valuación v7 | ✅ Base puro sin factores hedónicos (TAREA-073) |
 | Coordenadas cache scraping | ✅ Corregidas vía centroide catastral (TAREA-020+021+024) |
 | Enriquecimiento años | ✅ 3-pasos (exacta ≤200m / token+bloque ≤30m / nearest+token+bloque ≤60m) |
 | Extracción calle+num | ✅ Mejorada: limpia basura descriptiva, trailing garbage, provincia, "bis" (TAREA-021+024) |
 | Matching catastral (acentos/ñ) | ✅ Normalización NFKD en `_token_contenido` (TAREA-024) |
 | Persistencia DO | ✅ Atómica + branch `do-state` |
 | Landing page | ✅ Navegación por teclado (PageDown/PageUp/Home/End) |
-| Tests regresión | ✅ 39/39 (recallibrados para TAREA-071) |
+| Tests regresión | ✅ 38/38 (recallibrados para TAREA-073) |
 | Tests persistencia | ✅ 16/16 |
 | Despliegue DO | Sin redeploy loop |
 | Anclas grilla 400m | 322 microzonas, 96% cobertura (TAREA-036) |

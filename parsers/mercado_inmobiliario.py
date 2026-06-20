@@ -344,19 +344,15 @@ def valuar_entrada(propiedad, fecha_ref=None):
         m2_base = valor_ancla * factor_deprec
         metodo = f"Ancla ({n_muestras} muestras)"
     
-    # 4. Factores - usar el total directamente (ya incluye todo)
-    factores = calcular_factores(propiedad)
-    factor_total = factores.get('total', 1.0)
-    
-    # 5. Valor final (misma fórmula que v7)
-    valor_venta = m2_equiv * m2_base * factor_total
+    # 4. Valor final (TAREA-073: sin factores hedónicos)
+    valor_venta = m2_equiv * m2_base
     
     return {
         'm2_equiv': m2_equiv,
         'm2_base': m2_base,
         'percentil_usado': meta_cluster.get('percentil_usado', 'P33'),
         'n_muestras': n_muestras,
-        'factor_final': factor_total,
+        'factor_final': 1.0,
         'valor_venta': valor_venta,
         'debug_info': {
             'zona': zona,
@@ -1991,92 +1987,76 @@ def calcular_valor_activos(prop, m2_base_zona):
 def calcular_factores(prop, ventana_usada=None):
     """
     Calcula factores de propiedad.
-    v12.0 (TAREA-071): Modelo multiplicativo puro.
-    Retorna solo multiplicadores de Edad (factor_anti), Estado y Calidad.
-    
-    Args:
-        propiedad: dict con datos de la propiedad
-        ventana_usada: opcional, ventana temporal a usar.
-                       3 o "ventana3" → RO-03: no aplicar depreciacion por edad
+    v13.0 (TAREA-073): Todos los factores hedónicos eliminados por decisión ML.
+    La ubicación (m2_microzona) ya captura ~80% de la varianza del precio.
+    Retorna factores neutros (1.0) para compatibilidad con callers existentes.
     """
-    # RO-03: Si la base viene de Ventana 3 (P33), NO aplicar depreciacion
-    es_ventana3 = ventana_usada in (3, "3", "ventana3")
-    
-    # Normalización defensiva: premium no es estado, es calidad
-    def normalizar_estado_y_calidad(prop):
-        estado_raw = (prop.get('estado_detalle') or 'bueno').lower().replace(' ', '_')
-        calidad_raw = (prop.get('calidad_edificio') or 'media').lower()
-        if estado_raw == 'premium':
-            estado_norm = 'excelente'
-            if calidad_raw in (None, '', 'media'):
-                calidad_norm = 'premium'
-            else:
-                calidad_norm = calidad_raw
-        else:
-            estado_norm = estado_raw
-            calidad_norm = calidad_raw or 'media'
-        return estado_norm, calidad_norm
-    estado, calidad = normalizar_estado_y_calidad(prop)
-    
-    # Normalizar año de construcción
+    return {
+        'total': 1.0,
+        'factor_estado': 1.0,
+        'factor_calidad': 1.0,
+        'depreciacion': 1.0,
+        'anti': 1.0,
+        'detalles': {'ventana': ventana_usada},
+        'ventana': ventana_usada,
+        'tasa_zonal': 0.0,
+        'meta_mz': None,
+    }
+
+
+def _calcular_factores_rental(prop):
+    """Factores para alquiler — mantiene lógica original (TAREA-073).
+    Venta ya no usa factores hedónicos, pero alquiler conserva estado/calidad/anti.
+    """
+    estado_raw = (prop.get('estado_detalle') or 'bueno').lower().replace(' ', '_')
+    calidad_raw = (prop.get('calidad_edificio') or 'media').lower()
+    if estado_raw == 'premium':
+        estado_norm = 'excelente'
+        calidad_norm = 'premium' if calidad_raw in (None, '', 'media') else calidad_raw
+    else:
+        estado_norm = estado_raw
+        calidad_norm = calidad_raw or 'media'
+
     anio_const = normalize_year(prop.get('anio_construccion'))
     if anio_const is None:
         anio_const = normalize_year(ANIO_ACTUAL - prop.get('antiguedad', 0))
     if anio_const is None:
-        anio_const = 2000  # default conservador
+        anio_const = 2000
     antiguedad = ANIO_ACTUAL - anio_const
-    
-    # Tasa zonificada de depreciación
+
     try:
         from parsers.zonas_manager import obtener_tasa_depreciacion_macrozona
-        _tasa_zonal, _meta_mz = obtener_tasa_depreciacion_macrozona(prop)
+        _tasa_zonal, _ = obtener_tasa_depreciacion_macrozona(prop)
     except Exception:
         _tasa_zonal = 0.006
-        _meta_mz = None
-    
-    # RO-03: delta_anti = 0 cuando la base viene de P33 sin age filter
-    if es_ventana3:
-        delta_anti_efectivo = 0.0
+
+    delta_anti_raw = max(-0.60, -(antiguedad * _tasa_zonal))
+    UMBRAL_PENALIZACION_SEVERA = -0.18
+    FACTOR_ATENUACION = 0.35
+    if delta_anti_raw < UMBRAL_PENALIZACION_SEVERA:
+        exceso = delta_anti_raw - UMBRAL_PENALIZACION_SEVERA
+        delta_anti_efectivo = UMBRAL_PENALIZACION_SEVERA + (exceso * FACTOR_ATENUACION)
     else:
-        delta_anti_raw = max(-0.60, -(antiguedad * _tasa_zonal))
-        UMBRAL_PENALIZACION_SEVERA = -0.18
-        FACTOR_ATENUACION = 0.35
-        if delta_anti_raw < UMBRAL_PENALIZACION_SEVERA:
-            exceso = delta_anti_raw - UMBRAL_PENALIZACION_SEVERA
-            delta_anti_efectivo = UMBRAL_PENALIZACION_SEVERA + (exceso * FACTOR_ATENUACION)
-        else:
-            delta_anti_efectivo = delta_anti_raw
-    
-    factor_anti = max(0.40, 1.0 + delta_anti_efectivo)
-    
+        delta_anti_efectivo = delta_anti_raw
+
     factor_estado = {
         'a_estrenar': 1.08, 'excelente': 1.05, 'muy_bueno': 1.03,
         'bueno': 1.0, 'regular': 0.92, 'malo': 0.85, 'a_refaccionar': 0.70
-    }.get(estado, 1.0)
-    
+    }.get(estado_norm, 1.0)
+
     factor_calidad = {
         'premium': 1.08, 'excelente': 1.06, 'alta': 1.04, 'media': 1.0,
         'baja': 0.95, 'economica': 0.90
-    }.get(calidad, 1.0)
-    
-    # TOTAL MULTIPLICATIVO PURO
-    total = factor_estado * factor_calidad * factor_anti
-    
+    }.get(calidad_norm, 1.0)
+
+    factor_anti = max(0.40, 1.0 + delta_anti_efectivo)
+
     return {
-        'total': total,
         'factor_estado': factor_estado,
         'factor_calidad': factor_calidad,
         'depreciacion': factor_anti,
-        'anti': factor_anti,
-        'detalles': {
-            'anti': factor_anti,
-            'estrato_activo': 'Multiplicativo',
-            'ventana': ventana_usada
-        },
-        'ventana': ventana_usada,
-        'tasa_zonal': _tasa_zonal,
-        'meta_mz': _meta_mz,
     }
+
 
 def scrapear_m2_argenprop():
     """ Obtenemos la media en venta en la calle de Rosario """
@@ -2787,9 +2767,7 @@ def valuar_propiedad_v6(propiedad, fecha_ref=None):
         liquidez_default = zona.get('liquidez', 1.0)
     
     m2_equiv = calcular_m2_equivalentes(prop)
-    factores = calcular_factores(prop)
-    factor_total = factores.get('total', 1.0)
-    valor_comp_actual = m2_equiv * m2_base * factor_total
+    valor_comp_actual = m2_equiv * m2_base
     
     valor_comp_hist = valor_comp_actual * (indice_ref / indice_base) if indice_base > 0 else valor_comp_actual
     
@@ -2850,7 +2828,7 @@ def valuar_propiedad_v6(propiedad, fecha_ref=None):
     
     justificacion = (
         f"AVM v6.0: Indice ciudad {indice_ref:.2f} vs base {indice_base:.2f}, "
-        f"m2_base={m2_base:.0f}, m2_equiv={m2_equiv:.1f}, factores={factor_total:.2f}, "
+        f"m2_base={m2_base:.0f}, m2_equiv={m2_equiv:.1f}, "
         f"pesos: hist={pesos['hist']:.2f}/comp={pesos['comp']:.2f}, "
         f"confianza={confianza}, desviacion={desviacion*100:.1f}%"
     )
@@ -3148,79 +3126,56 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
     # Ajustar para entrar en rango:
     m2_base_alquiler = m2_base_alq_raw if m2_base_alq_raw > 0 else (11500 if dorms >= 2 else 13500)
     
-    # 2. Factores Físicos Propios v12.0 (Multiplicativo Puro, TAREA-071)
-    es_ventana3 = not meta_venta.get("age_filter_applied") and meta_venta.get("percentil_usado") == "P33"
-    f_dict = calcular_factores(prop, ventana_usada=3 if es_ventana3 else None)
-    factores_base = f_dict['total']
-    
-    logger.info(f"--- FACTORES MULTIPLICATIVOS ---")
-    logger.info(f"factor_estado: {f_dict.get('factor_estado')}, factor_calidad: {f_dict.get('factor_calidad')}")
-    logger.info(f"factor_anti (deprec): {f_dict.get('depreciacion')}")
-    logger.info(f"factores_base (total): {factores_base}")
-    
-    # 3. Metros Específicos para Alquiler (Prioriza Cubiertos)
+    # 2. Metros Específicos para Alquiler (Prioriza Cubiertos)
     m2_cub = prop.get('m2_cubiertos', m2_equiv)
     m2_desc = prop.get('m2_descubiertos', 0)
     m2_equiv_alquiler = m2_cub + (m2_desc * 0.1)
     
-    # 3. Fórmula Multiplicativa (TAREA-071)
+    # 3. Fórmula Base (TAREA-073: sin factores hedónicos)
     # m2_microzona = precio del anchor más cercano (o cluster como fallback)
     m2_microzona = valor_ancla_geo if ancla_seleccionada is not None else m2_base_venta
     size_discount = calcular_size_discount_venta(m2_equiv)
-    valor_venta = m2_equiv * m2_microzona * size_discount * f_dict['total']
+    valor_venta = m2_equiv * m2_microzona * size_discount
     
-    logger.info(f"--- CALCULO MULTIPLICATIVO ---")
+    logger.info(f"--- CALCULO BASE (TAREA-073) ---")
     logger.info(f"m2_equiv: {m2_equiv}, m2_microzona: {m2_microzona}, size_discount: {size_discount}")
-    logger.info(f"factor_estado: {f_dict['factor_estado']}, factor_calidad: {f_dict['factor_calidad']}, factor_anti: {f_dict['depreciacion']}")
-    logger.info(f"valor_venta (before NLP): {valor_venta}")
+    logger.info(f"valor_venta: {valor_venta}")
     
-    # Alquiler: v9.1 Sensibilidad Atenuada de Calidad (Buenas Prácticas)
+    # === ALQUILER: mantener lógica actual (con NLP y factores) ===
+    from parsers.mercado_inmobiliario import _calcular_factores_rental
+    f_rental = _calcular_factores_rental(prop)
     f_puros = (0.95 if prop.get('piso') == 0 else 1.0) * (1.10 if 'cruzada' in prop.get('ventilacion','') else 1.0)
-    fact_ec = f_dict['factor_estado'] * f_dict['factor_calidad']
-    # Aplicamos sensibilidad del 50% al premio por estado/calidad
-    factores_alquiler = f_dict['depreciacion'] * f_puros * (1.0 + (fact_ec - 1.0) * 0.50)
+    fact_ec = f_rental['factor_estado'] * f_rental['factor_calidad']
+    factores_alquiler = f_rental['depreciacion'] * f_puros * (1.0 + (fact_ec - 1.0) * 0.50)
     
     # Regional Rental Buffer v9.4: Sinceramiento Periferia (Standard vs Profunda)
     tipo_det = (prop.get('tipo_inmueble') or prop.get('tipo') or '').lower()
     if 'casa' in tipo_det and any(x in zona_txt.lower() for x in ['oeste', 'sur', 'norte']):
-        # Detección de Periferia Profunda (Humble areas)
         direccion = prop.get('direccion', '')
         desc = prop.get('descripcion_libre', '').lower()
         barrios_humildes = ['triangulo', 'godoy', 'moderno', 'ludueña', 'flores', 'empalme', 'industrial']
-        
-        # Extraer altura de calle si existe
         altura = 0
         match_altura = re.search(r'\d+', direccion)
         if match_altura:
             altura = int(match_altura.group())
-        
         es_profunda = altura > 4000 or any(b in desc for b in barrios_humildes) or any(b in direccion.lower() for b in barrios_humildes)
-        
         buffer_regional = 0.55 if es_profunda else 0.75
         m2_base_alquiler *= buffer_regional
     
-    # GAP_ALQUILER: 0.85 -> 0.92 (post-desregulación Rosario 2024+)
     GAP_ALQUILER = 0.92
     alquiler_mensual_ars = m2_equiv_alquiler * m2_base_alquiler * factores_alquiler * GAP_ALQUILER
     
-    # 4. Ajustes Extra (NLP y Moneda)
+    # NLP para alquiler solamente (TAREA-073: venta sin NLP)
     usdt_ars = get_binance_usdt_ars()
     from parsers.nlp_inmobiliario import calcular_ajuste_nlp_detallado
-    desc = prop.get('descripcion_libre', '')
+    desc_nlp = prop.get('descripcion_libre', '')
     amenities_present = prop.get('detalles_categoria', [])
     if not isinstance(amenities_present, list):
         amenities_present = []
-    ajuste_nlp, detecciones_nlp = calcular_ajuste_nlp_detallado(
-        desc, amenities_present=amenities_present
-    )
-    
-    # AJUSTE 3: Cap NLP diferenciado por dormitorios
+    ajuste_nlp, _ = calcular_ajuste_nlp_detallado(desc_nlp, amenities_present=amenities_present)
     dorms = prop.get('dormitorios', 2)
-    nlp_cap = 0.03 if dorms == 1 else 0.05  # 1 dorm: 3%, 2+: 5%
+    nlp_cap = 0.03 if dorms == 1 else 0.05
     ajuste_nlp_capped = min(ajuste_nlp, nlp_cap)
-    
-    # Aplicar NLP al Precio de Lista
-    valor_venta = valor_venta * (1 + ajuste_nlp_capped)
     alquiler_mensual_ars = alquiler_mensual_ars * (1 + ajuste_nlp_capped)
     
     # Asset values aditivos (cocheras + baulera)
@@ -3310,7 +3265,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
         alq_max_ars = alq_max_ars * size_factor
     
     logger.info(f"NLP: {ajuste_nlp}")
-    logger.info(f"valor_venta (after NLP): {valor_venta}")
+    logger.info(f"valor_venta (TAREA-073 sin NLP): {valor_venta}")
     
     # ══════════════════════════════════════════════
     # SECCIÓN 3: Rango de venta (3 escenarios)
@@ -3383,7 +3338,6 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
 
     justificacion = (
         f"VPP v8.0: Modelo Híbrido Dinámico ({n_v} comps). "
-        f"Ajuste NLP: {ajuste_nlp*100:+.1f}%. "
         f"Cap Rate Neto: {cap_rate_neto:.2f}% (Cap Bruto: {roi_bruto_anual:.1f}%). "
         f"Plusvalia {tipo_plusvalia}: {plusvalia_ciclo_pct:+.1f}%."
     )
@@ -3442,9 +3396,9 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
             'alquiler_estimado_ars': alquiler_mensual_ars,
             'usdt_ars': usdt_ars,
             'rango_venta': rango_venta,
-            'f_dict': f_dict,
-            'nlp_detecciones': detecciones_nlp,
-            'nlp_ajuste_pct': round(ajuste_nlp * 100, 2),
+            'f_dict': calcular_factores(prop),
+            'nlp_detecciones': [],
+            'nlp_ajuste_pct': 0.0,
             'n_comps': n_v,
             'meta_venta': meta_venta,
             'macrozona_info': macrozona_info,
@@ -3467,7 +3421,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
             'depreciacion_zonificada': {
                 'macrozona': macrozona_info.get('macrozona_nombre', 'Resto de Rosario'),
                 'macrozona_id': macrozona_info.get('macrozona_id', 'resto_rosario'),
-                'tasa_anual': f_dict.get('tasa_zonal', 0.006),
+                'tasa_anual': 0.0,
                 'metodo_match': macrozona_info.get('metodo_match', 'default'),
                 'confianza': macrozona_info.get('confianza_macrozona', 'BAJA'),
             },
@@ -3516,8 +3470,8 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
         'justificacion': justificacion,
         'rango_m2': f"USD {rango_venta['min']:,} - {rango_venta['max']:,}",
         'confianza': 'alta' if n_v > 10 else 'media',
-        'nlp_detecciones': detecciones_nlp,
-        'nlp_ajuste_pct': round(ajuste_nlp * 100, 2),
+        'nlp_detecciones': [],
+        'nlp_ajuste_pct': 0.0,
         'plusvalia_ciclo_usd': round(plusvalia_ciclo_usd, 0),
         'plusvalia_ciclo_pct': round(plusvalia_ciclo_pct, 2),
         'plusvalia_tipo': tipo_plusvalia,
@@ -3540,11 +3494,11 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
         'depreciacion_zonificada': {
             'macrozona': macrozona_info.get('macrozona_nombre', 'Resto de Rosario'),
             'macrozona_id': macrozona_info.get('macrozona_id', 'resto_rosario'),
-            'tasa_anual': f_dict.get('tasa_zonal', 0.006),
+            'tasa_anual': 0.0,
             'metodo_match': macrozona_info.get('metodo_match', 'default'),
             'confianza': macrozona_info.get('confianza_macrozona', 'BAJA'),
         },
-        'f_dict': f_dict,
+        'f_dict': calcular_factores(prop),
         'n_comps': n_v,
         'valor_activos': valor_activos,
         'tiene_barreras': bool(meta_venta.get('n_same_side', 0) > 0 and meta_venta.get('n_cross_soft', 0) > 0),
@@ -3556,13 +3510,13 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
     from parsers.audit_logger import generar_audit_log, guardar_audit_log
     audit_log = generar_audit_log(
         propiedad=prop, resultado=resultado,
-        f_dict=f_dict, meta_venta=meta_venta, n_v=n_v,
+        f_dict=calcular_factores(prop), meta_venta=meta_venta, n_v=n_v,
         m2_base_venta_raw=m2_base_venta_raw,
-        meta_alq=meta_alq, n_a=n_a, es_ventana3=es_ventana3,
+        meta_alq=meta_alq, n_a=n_a, es_ventana3=False,
         m2_equiv_alquiler=m2_equiv_alquiler,
         factores_alquiler=factores_alquiler,
         m2_base_alquiler=m2_base_alquiler,
-        ajuste_nlp=ajuste_nlp, nlp_cap=nlp_cap,
+        ajuste_nlp=0.0, nlp_cap=0.0,
         resolution_metadata=resolution_metadata,
         rango_venta=rango_venta,
         comparables_venta=comparables_venta,
