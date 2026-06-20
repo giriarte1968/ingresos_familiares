@@ -3890,7 +3890,6 @@ def generar_resultado_manual(prop, manual_params):
     usd_m2 = manual_params.get('usd_m2', 0)
     fh_raw = manual_params.get('factor_hedonico', 1.0)
     factor_hedonico = fh_raw if fh_raw != 0 else 1.0
-    ajuste_pct = manual_params.get('ajuste_pct', 0.0)
     incertidumbre_pct = manual_params.get('incertidumbre_pct', 10.0)
 
     # Size adjustment por macrozona (TAREA-077)
@@ -3932,6 +3931,7 @@ def generar_resultado_manual(prop, manual_params):
 
     valor_activos = calcular_valor_activos(prop, usd_m2)
 
+    ajuste_pct = manual_params.get('ajuste_pct', 0.0)
     subtotal = (m2_equiv * usd_m2 * size_adj * factor_hedonico * factor_const) + valor_activos['total']
     valor_venta = subtotal * (1 + ajuste_pct / 100.0)
 

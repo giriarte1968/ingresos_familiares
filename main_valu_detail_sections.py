@@ -948,13 +948,11 @@ def render_valuacion_manual(prop, res):
             else:
                 st.metric("Constructora", "ΓÇö")
 
-        c1, c2, c3 = st.columns(3)
+        c1, c2 = st.columns(2)
         fh_valor = res.get('factor_hedonico_efectivo', mp.get('factor_hedonico', 1.0))
         with c1:
             st.metric("Factor Hedonico", f"{fh_valor:.4f}")
         with c2:
-            st.metric("Ajuste %", f"{mp.get('ajuste_pct', 0):+.1f}%")
-        with c3:
             st.metric("Incertidumbre %", f"┬▒{mp.get('incertidumbre_pct', 10):.1f}%")
 
         # Sub-factors breakdown grouped (misma f├│rmula que calcular_factores)
@@ -1193,7 +1191,7 @@ def render_valuacion_manual(prop, res):
     except Exception:
         pass
 
-    col_c, col_d, col_e = st.columns(3)
+    col_c, col_d = st.columns(2)
     with col_c:
         fh = st.number_input(
             "Factor Hedonico",
@@ -1203,14 +1201,6 @@ def render_valuacion_manual(prop, res):
             key=f"manual_fh_{nombre}",
         )
     with col_d:
-        aj = st.number_input(
-            "Ajuste %",
-            min_value=-100.0, max_value=500.0,
-            value=float(saved['ajuste_pct']),
-            step=1.0, format="%.1f",
-            key=f"manual_aj_{nombre}",
-        )
-    with col_e:
         inc = st.number_input(
             "Incertidumbre (┬▒%)",
             min_value=0.0, max_value=100.0,
@@ -1232,8 +1222,7 @@ def render_valuacion_manual(prop, res):
             fu = 1.0 if i == 1 else 0.7 if i == 2 else 0.5
             pre_act += vbc * coef_tipo * fu
     pre_act += valor_baulera
-    pre_total = pre_sub + pre_act
-    pre_final = pre_total * (1 + aj / 100.0)
+    pre_final = pre_sub + pre_act
 
     if st.button("Calcular y Guardar Valuacion Manual", type="primary", use_container_width=True):
         if usd_m2_input <= 0:
@@ -1243,7 +1232,6 @@ def render_valuacion_manual(prop, res):
             'ancla_id': ancla_sel,
             'usd_m2': usd_m2_input,
             'factor_hedonico': fh,
-            'ajuste_pct': aj,
             'incertidumbre_pct': inc,
         }
         from parsers.mercado_inmobiliario import generar_resultado_manual
