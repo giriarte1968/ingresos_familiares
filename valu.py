@@ -1164,6 +1164,103 @@ def mostrar_dashboard():
             except:
                 pass
 
+
+
+        # --- Ajuste por Tamano (TAREA-074) ---
+        st.markdown("---")
+        with st.expander("📐 Ajuste por Tamano (size_adjustment)", expanded=False):
+            _ruta_zonas = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "zonas_depreciacion.json")
+            try:
+                with open(_ruta_zonas, "r", encoding="utf-8") as _f:
+                    _zonas_data = json.load(_f)
+            except:
+                _zonas_data = {"macrozonas": []}
+            
+            for _mz in _zonas_data.get("macrozonas", []):
+                _sa = _mz.get("size_adjustment")
+                if not _sa:
+                    continue
+                _pts = _sa.get("points", [])
+                if not _pts:
+                    continue
+                
+                st.markdown("**{}** ({})".format(_mz.get('nombre', _mz['id']), _mz['id']))
+                
+                _df = pd.DataFrame(_pts)
+                
+                _edited = st.data_editor(
+                    _df,
+                    column_config={
+                        "m2": st.column_config.NumberColumn("m²", min_value=0, max_value=500, step=10, format="%.0f"),
+                        "factor": st.column_config.NumberColumn("Factor", min_value=0.0, max_value=3.0, step=0.01, format="%.2f"),
+                    },
+                    hide_index=True,
+                    use_container_width=True,
+                    key="sa_{}".format(_mz['id']),
+                    num_rows="fixed"
+                )
+                
+                try:
+                    _x = [r["m2"] for _, r in _edited.iterrows()]
+                    _y = [r["factor"] for _, r in _edited.iterrows()]
+                    _fig = go.Figure()
+                    _fig.add_trace(go.Scatter(x=_x, y=_y, mode="lines+markers", name=_mz.get("nombre", _mz["id"])))
+                    _fig.update_layout(height=200, margin=dict(l=0, r=0, t=0, b=0), xaxis_title="m²", yaxis_title="Factor", showlegend=False)
+                    st.plotly_chart(_fig, use_container_width=True, key="chart_{}".format(_mz['id']))
+                except:
+                    pass
+                
+                for _sub_id, _sub in _sa.get("subzonas", {}).items():
+                    st.markdown("&nbsp;&nbsp; └ Subzona: **{}**".format(_sub_id))
+                    _sub_pts = _sub.get("points", [])
+                    if _sub_pts:
+                        _sub_df = pd.DataFrame(_sub_pts)
+                        _sub_edited = st.data_editor(
+                            _sub_df,
+                            column_config={
+                                "m2": st.column_config.NumberColumn("m²", min_value=0, max_value=500, step=10, format="%.0f"),
+                                "factor": st.column_config.NumberColumn("Factor", min_value=0.0, max_value=3.0, step=0.01, format="%.2f"),
+                            },
+                            hide_index=True,
+                            use_container_width=True,
+                            key="sa_{}_{}".format(_mz['id'], _sub_id),
+                            num_rows="fixed"
+                        )
+                        try:
+                            _sx = [r["m2"] for _, r in _sub_edited.iterrows()]
+                            _sy = [r["factor"] for _, r in _sub_edited.iterrows()]
+                            _sfig = go.Figure()
+                            _sfig.add_trace(go.Scatter(x=_sx, y=_sy, mode="lines+markers", name=_sub_id))
+                            _sfig.update_layout(height=150, margin=dict(l=0, r=0, t=0, b=0), xaxis_title="m²", yaxis_title="Factor", showlegend=False)
+                            st.plotly_chart(_sfig, use_container_width=True, key="chart_{}_{}".format(_mz['id'], _sub_id))
+                        except:
+                            pass
+                
+                st.markdown("---")
+            
+            if st.button("💾 Guardar curvas size_adjustment", type="primary", use_container_width=True):
+                for _mz in _zonas_data.get("macrozonas", []):
+                    _sa = _mz.get("size_adjustment")
+                    if not _sa:
+                        continue
+                    _pts = _sa.get("points", [])
+                    if not _pts:
+                        continue
+                    _edited = st.session_state.get("sa_{}".format(_mz['id']))
+                    if _edited is not None:
+                        _sa["points"] = [{"m2": int(r["m2"]), "factor": round(float(r["factor"]), 4)} for _, r in _edited.iterrows()]
+                    for _sub_id in _sa.get("subzonas", {}):
+                        _sub_edited = st.session_state.get("sa_{}_{}".format(_mz['id'], _sub_id))
+                        if _sub_edited is not None:
+                            _sa["subzonas"][_sub_id]["points"] = [{"m2": int(r["m2"]), "factor": round(float(r["factor"]), 4)} for _, r in _sub_edited.iterrows()]
+                with open(_ruta_zonas, "w", encoding="utf-8") as _f:
+                    json.dump(_zonas_data, _f, ensure_ascii=False, indent=2)
+                import parsers.mercado_inmobiliario as _mi
+                _mi._SIZE_ADJ_CONFIG = None
+                st.success("Curvas guardadas. Cache invalidada.")
+                st.rerun()
+
+
         # ─── Profiling de rendimiento ───
         st.markdown("---")
         with st.expander("⏱️ Perfilado de Rendimiento", expanded=False):
