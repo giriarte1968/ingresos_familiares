@@ -1000,6 +1000,20 @@ def render_valuacion_manual(prop, res):
                 st.metric(ot_label, f"{dn:+.4f}")
             st.caption(f"Σ cruda = {sc:+.4f} → clamp(±0.40) = {scl:+.4f} → +1 = {1+scl:.4f} → total = {stot:.4f} [{0.70}, {1.35}]")
 
+        # Size adjustment y constructora en VIEW MODE
+        size_adj = res.get('size_adjustment', 1.0)
+        _mz_name = res.get('macrozona_nombre', '')
+        extra_factors = []
+        if mp.get('incluir_size_adj', True) and size_adj != 1.0:
+            extra_factors.append(f"tamaño ({_mz_name}): {size_adj:.2f}×")
+        if mp.get('incluir_prima_const', True) and res.get('factor_const', 1.0) != 1.0:
+            constr_pct = (res.get('factor_const', 1.0) - 1.0) * 100
+            extra_factors.append(f"constructora: +{constr_pct:.0f}%")
+        if extra_factors:
+            st.caption("Factores aplicados: " + " | ".join(extra_factors))
+        elif mp.get('incluir_size_adj', False) is False or mp.get('incluir_prima_const', False) is False:
+            st.caption("Factores excluidos por el analista")
+
         # Activos: cocheras y baulera como metricas grandes
         val_act = res.get('valor_activos', {})
         if val_act.get('cocheras', 0) > 0 or val_act.get('baulera', 0) > 0:
@@ -1109,6 +1123,8 @@ def render_valuacion_manual(prop, res):
             'factor_hedonico': default_factor_hedonico,
             'ajuste_pct': 0.0,
             'incertidumbre_pct': 10.0,
+            'incluir_prima_const': True,
+            'incluir_size_adj': True,
         }
 
     saved = st.session_state[ss_key]
@@ -1149,7 +1165,22 @@ def render_valuacion_manual(prop, res):
             st.caption("Valor determinado por el ancla seleccionada. Deseleccione el ancla para editar manualmente.")
 
     if constr_label:
-        st.caption(f"Constructora: {constr_label} (aplicado automaticamente)")
+        st.caption(f"Constructora: {constr_label}")
+        saved['incluir_prima_const'] = st.checkbox(
+            "Incluir prima de constructora",
+            value=saved.get('incluir_prima_const', True),
+            key=f"manual_incluir_const_{nombre}",
+        )
+
+    # Size adjustment checkbox
+    from parsers.zonas_manager import resolver_macrozona
+    _mz_info = resolver_macrozona(prop)
+    _mz_name = _mz_info.get('macrozona', '')
+    saved['incluir_size_adj'] = st.checkbox(
+        f"Incluir ajuste por tamaño ({_mz_name})",
+        value=saved.get('incluir_size_adj', True),
+        key=f"manual_incluir_size_{nombre}",
+    )
 
     cant_cocheras = prop.get('cocheras_cantidad', 0)
     tipo_cochera = prop.get('cocheras_tipo', 'cubierta')

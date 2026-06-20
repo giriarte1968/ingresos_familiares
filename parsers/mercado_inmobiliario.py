@@ -3893,26 +3893,46 @@ def generar_resultado_manual(prop, manual_params):
     ajuste_pct = manual_params.get('ajuste_pct', 0.0)
     incertidumbre_pct = manual_params.get('incertidumbre_pct', 10.0)
 
+    # Size adjustment por macrozona (TAREA-077)
+    size_adj = 1.0
+    mz_nombre = ""
+    try:
+        from parsers.zonas_manager import resolver_macrozona
+        _mz_info = resolver_macrozona(prop)
+        mz_nombre = _mz_info.get('macrozona', '')
+        if manual_params.get('incluir_size_adj', True):
+            ancla_id_input = manual_params.get('ancla_id', None)
+            size_adj = calcular_size_adjustment(
+                m2_equiv,
+                macrozona_id=_mz_info.get('macrozona_id'),
+                ancla_id=ancla_id_input,
+            )
+    except:
+        pass
+
     # Factor constructora desde JSON
     factor_const = 1.0
+    pct_const = 0
+    constr_nombre = prop.get('constructora', '')
     try:
         constr_path = "C:/Users/Gustavo/ingresos_familiares_st/constructoras_rosario.json"
         if os.path.exists(constr_path):
             with open(constr_path, "r", encoding="utf-8") as f:
                 constr_list = json.load(f)
-                constr = prop.get('constructora', '').lower().strip()
+                constr = constr_nombre.lower().strip()
                 if constr and isinstance(constr_list, list):
                     for entry in constr_list:
                         if constr == entry.get('descripcion', '').lower().strip():
-                            pct = entry.get('porcentaje', 0)
-                            factor_const = 1.0 + pct / 100.0
+                            pct_const = entry.get('porcentaje', 0)
+                            if manual_params.get('incluir_prima_const', True):
+                                factor_const = 1.0 + pct_const / 100.0
                             break
     except:
         pass
 
     valor_activos = calcular_valor_activos(prop, usd_m2)
 
-    subtotal = (m2_equiv * usd_m2 * factor_hedonico * factor_const) + valor_activos['total']
+    subtotal = (m2_equiv * usd_m2 * size_adj * factor_hedonico * factor_const) + valor_activos['total']
     valor_venta = subtotal * (1 + ajuste_pct / 100.0)
 
     v_cons = valor_venta * (1 - incertidumbre_pct / 100.0)
@@ -3967,10 +3987,12 @@ def generar_resultado_manual(prop, manual_params):
             'fuente': 'manual',
             'zona': prop.get('zona', ''),
         },
+        'size_adjustment': round(size_adj, 4),
+        'macrozona_nombre': mz_nombre,
         'factor_total': factor_hedonico * factor_const,
         'factor_hedonico_efectivo': factor_hedonico,
         'factor_const': factor_const,
-        'constructora': prop.get('constructora', ''),
+        'constructora': constr_nombre,
         'delta_anti': 1.0,
         'nlp_ajuste': 0,
         'sub_factors_breakdown': _calcular_sub_factors_breakdown(prop),
