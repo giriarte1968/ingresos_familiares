@@ -1,12 +1,30 @@
 
-## 2026-06-20 - TAREA-074: Size adjustment por macrozona
-- Se reemplazo size_discount global por curvas piecewise por macrozona en zonas_depreciacion.json
-- Puerto Norte: subzona con factor >1.0 (premio por tamanio grande)
-- Formula: valor = m2 * anchor * size_adjustment(m2, macrozona, ancla_id) + activos
-- 38/38 tests pasan
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
 Este documento es el "diario de trabajo". Cada agente de IA que trabaje en este proyecto debe registrar aquí el progreso para que el siguiente sepa exactamente dónde retomar.
+
+## 2026-06-20 — TAREA-074: Size adjustment por macrozona
+- Se reemplazó size_discount global por curvas piecewise por macrozona en zonas_depreciacion.json
+- Puerto Norte: subzona con factor >1.0 (premio por tamaño grande)
+- Fórmula: valor = m2 * anchor * size_adjustment(m2, macrozona, ancla_id) + activos
+- 38/38 tests pasan
+
+## 2026-06-20 — TAREA-075: Subfactores display + UI refinements
+
+### Cambios:
+1. **Nueva función `calcular_factores_display(prop)`**: Replica lógica pre-TAREA-073 (estado, calidad, depreciación, amenities, NLP) para display en UI. NO toca `calcular_factores()` (sigue retornando 1.0 para venta).
+2. **Subfactores en Valuación Manual**: 5 columnas con st.metric (Estado, Calidad, Depreciación, Amenities, NLP) + factor combinado de referencia. Reemplaza `_calcular_sub_factors_breakdown` que retornaba todo 0.
+3. **Renombrado**: "Comparables" → "Valuación por Comparables", inner → "Detalle de Comparables"
+4. **Eliminado**: caption "+xx meses" en sección Retro
+
+### Archivos modificados:
+- `parsers/mercado_inmobiliario.py`: `calcular_factores_display()` agregada
+- `valu_detail_sections.py`: subfactores en render_valuacion_manual
+- `main_valu_detail_sections.py`: idem
+- `valu.py`: títulos y caption
+
+### Tests: 38/38 OK, auto_validate OK
+### Commit: `0f4cb67`
 
 ---
 
