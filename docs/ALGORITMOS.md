@@ -130,12 +130,12 @@ Para propiedades en Planta Baja (piso=0) con patio grande:
 La valuación de venta para departamentos/PH usa:
 
 ```
-valor_venta = (m2_equiv × m2_microzona × size_discount) + cocheras + baulera
+valor_venta = (m2_equiv × m2_microzona × size_adjustment(m2, macrozona)) + cocheras + baulera
 ```
 
 Aclaraciones:
 - `m2_microzona` proviene del ancla geográfica más cercana (`valor_ancla_geo.usd_m2`). Si no hay ancla, fallback al cluster P33/P50.
-- `size_discount` = `calcular_size_discount_venta()`: descuento progresivo para unidades >80m².
+- `size_adjustment(m2, macrozona)` = `calcular_size_adjustment(m2, macrozona)_venta()`: descuento progresivo para unidades >80m².
 - **No hay factores hedónicos** (estado, calidad, antigüedad, NLP). El análisis ML demostró que:
   - Ubicación explica ~80% del precio (XGBoost: lat=44%, lon=36%)
   - m² explica ~16%
@@ -202,12 +202,12 @@ Para propiedades en Planta Baja (piso=0) con patio grande:
 La valuación de venta para departamentos/PH usa:
 
 ```
-valor_venta = (m2_equiv × m2_microzona × size_discount) + cocheras + baulera
+valor_venta = (m2_equiv × m2_microzona × size_adjustment(m2, macrozona)) + cocheras + baulera
 ```
 
 Aclaraciones:
 - `m2_microzona` proviene del ancla geográfica más cercana (`valor_ancla_geo.usd_m2`). Si no hay ancla, fallback al cluster P33/P50.
-- `size_discount` = `calcular_size_discount_venta()`: descuento progresivo para unidades >80m².
+- `size_adjustment(m2, macrozona)` = `calcular_size_adjustment(m2, macrozona)_venta()`: descuento progresivo para unidades >80m².
 - **No hay factores hedónicos** (estado, calidad, antigüedad, NLP). El análisis ML demostró que:
   - Ubicación explica ~80% del precio (XGBoost: lat=44%, lon=36%)
   - m² explica ~16%

@@ -609,3 +609,10 @@ El campo `direccion_nominatim` en `rosario_avm_full.csv` tiene **dos fuentes his
 - **Archivos afectados:** `data/rosario_avm_full.csv`
 
 ---
+### RO-19: Size adjustment configurable por macrozona (TAREA-074)
+El ajuste por tamano (`calcular_size_adjustment()`) se define por macrozona en `zonas_depreciacion.json`.
+Cada macrozona tiene su curva piecewise linear. Puerto Norte tiene curva separada (subzona) porque
+el $/m² AUMENTA con el tamano (contrario al resto de la ciudad). Las curvas se calibran desde
+cache_scraping y son editables desde la UI.
+
+

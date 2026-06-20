@@ -19,10 +19,67 @@
         "parque espaa"
       ],
       "bbox": {
-        "lat_min": -32.9600,
-        "lat_max": -32.9200,
-        "lon_min": -60.6700,
-        "lon_max": -60.6200
+        "lat_min": -32.96,
+        "lat_max": -32.92,
+        "lon_min": -60.67,
+        "lon_max": -60.62
+      },
+      "size_adjustment": {
+        "type": "piecewise_linear",
+        "points": [
+          {
+            "m2": 0,
+            "factor": 0.95
+          },
+          {
+            "m2": 60,
+            "factor": 0.98
+          },
+          {
+            "m2": 100,
+            "factor": 1.0
+          },
+          {
+            "m2": 150,
+            "factor": 1.09
+          },
+          {
+            "m2": 250,
+            "factor": 0.77
+          }
+        ],
+        "subzonas": {
+          "puerto_norte": {
+            "match_anchor_ids": [
+              "central_argentino_puerto_norte",
+              "carballo_puerto_norte",
+              "french_puerto_norte",
+              "junin_puerto_norte"
+            ],
+            "points": [
+              {
+                "m2": 0,
+                "factor": 0.92
+              },
+              {
+                "m2": 60,
+                "factor": 0.96
+              },
+              {
+                "m2": 100,
+                "factor": 1.04
+              },
+              {
+                "m2": 150,
+                "factor": 1.29
+              },
+              {
+                "m2": 250,
+                "factor": 1.38
+              }
+            ]
+          }
+        }
       }
     },
     {
@@ -41,10 +98,35 @@
         "repblica de la sexta"
       ],
       "bbox": {
-        "lat_min": -32.9750,
-        "lat_max": -32.9200,
-        "lon_min": -60.6900,
-        "lon_max": -60.6250
+        "lat_min": -32.975,
+        "lat_max": -32.92,
+        "lon_min": -60.69,
+        "lon_max": -60.625
+      },
+      "size_adjustment": {
+        "type": "piecewise_linear",
+        "points": [
+          {
+            "m2": 0,
+            "factor": 1.4
+          },
+          {
+            "m2": 60,
+            "factor": 1.2
+          },
+          {
+            "m2": 100,
+            "factor": 1.0
+          },
+          {
+            "m2": 150,
+            "factor": 0.87
+          },
+          {
+            "m2": 250,
+            "factor": 0.87
+          }
+        ]
       }
     },
     {
@@ -59,10 +141,35 @@
         "fisherton"
       ],
       "bbox": {
-        "lat_min": -32.9300,
-        "lat_max": -32.8500,
-        "lon_min": -60.7800,
-        "lon_max": -60.6000
+        "lat_min": -32.93,
+        "lat_max": -32.85,
+        "lon_min": -60.78,
+        "lon_max": -60.6
+      },
+      "size_adjustment": {
+        "type": "piecewise_linear",
+        "points": [
+          {
+            "m2": 0,
+            "factor": 1.5
+          },
+          {
+            "m2": 60,
+            "factor": 1.46
+          },
+          {
+            "m2": 100,
+            "factor": 1.49
+          },
+          {
+            "m2": 150,
+            "factor": 1.0
+          },
+          {
+            "m2": 250,
+            "factor": 1.25
+          }
+        ]
       }
     },
     {
@@ -83,10 +190,35 @@
         "felipe mor"
       ],
       "bbox": {
-        "lat_min": -32.9750,
-        "lat_max": -32.9000,
-        "lon_min": -60.7800,
-        "lon_max": -60.6700
+        "lat_min": -32.975,
+        "lat_max": -32.9,
+        "lon_min": -60.78,
+        "lon_max": -60.67
+      },
+      "size_adjustment": {
+        "type": "piecewise_linear",
+        "points": [
+          {
+            "m2": 0,
+            "factor": 1.4
+          },
+          {
+            "m2": 60,
+            "factor": 1.25
+          },
+          {
+            "m2": 100,
+            "factor": 1.0
+          },
+          {
+            "m2": 150,
+            "factor": 0.87
+          },
+          {
+            "m2": 250,
+            "factor": 0.87
+          }
+        ]
       }
     },
     {
@@ -104,10 +236,35 @@
         "grandoli"
       ],
       "bbox": {
-        "lat_min": -33.0500,
-        "lat_max": -32.9750,
-        "lon_min": -60.7600,
-        "lon_max": -60.6000
+        "lat_min": -33.05,
+        "lat_max": -32.975,
+        "lon_min": -60.76,
+        "lon_max": -60.6
+      },
+      "size_adjustment": {
+        "type": "piecewise_linear",
+        "points": [
+          {
+            "m2": 0,
+            "factor": 1.2
+          },
+          {
+            "m2": 60,
+            "factor": 1.1
+          },
+          {
+            "m2": 100,
+            "factor": 1.0
+          },
+          {
+            "m2": 150,
+            "factor": 0.93
+          },
+          {
+            "m2": 250,
+            "factor": 0.9
+          }
+        ]
       }
     },
     {
@@ -115,7 +272,32 @@
       "nombre": "Resto de Rosario",
       "descripcion": "Fallback para zonas no clasificadas",
       "zonas_match_textual": [],
-      "bbox": null
+      "bbox": null,
+      "size_adjustment": {
+        "type": "piecewise_linear",
+        "points": [
+          {
+            "m2": 0,
+            "factor": 1.1
+          },
+          {
+            "m2": 60,
+            "factor": 1.05
+          },
+          {
+            "m2": 100,
+            "factor": 1.0
+          },
+          {
+            "m2": 150,
+            "factor": 0.95
+          },
+          {
+            "m2": 250,
+            "factor": 0.9
+          }
+        ]
+      }
     }
   ]
 }

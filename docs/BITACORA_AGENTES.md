@@ -1,3 +1,9 @@
+
+## 2026-06-20 - TAREA-074: Size adjustment por macrozona
+- Se reemplazo size_discount global por curvas piecewise por macrozona en zonas_depreciacion.json
+- Puerto Norte: subzona con factor >1.0 (premio por tamanio grande)
+- Formula: valor = m2 * anchor * size_adjustment(m2, macrozona, ancla_id) + activos
+- 38/38 tests pasan
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
 Este documento es el "diario de trabajo". Cada agente de IA que trabaje en este proyecto debe registrar aquí el progreso para que el siguiente sepa exactamente dónde retomar.
@@ -1904,7 +1910,8 @@ Investigar y corregir por que "Francia 250 bis, Puerto Norte" (160m2, real ~) se
 **Bug 1 (ROOT CAUSE) - "bis" rompe geocoding:**
 - geocoder.py:62: "Francia 250 bis" enviado a Nominatim structured query
 - Nominatim no puede matchear numero 250 con sufijo "bis", cae a centroide de calle 8.3 km al sur (Alvear)
-- Fix: strip "bis" antes de la query con e.sub(r"\bbis\b", "", calle)
+- Fix: strip "bis" antes de la query con 
+e.sub(r"\bbis\b", "", calle)
 
 **Bug 2 - Puerto Norte centroid erroneo:**
 - mercado_inmobiliario.py:266: centroide en (-32.959, -60.625) � 4.8 km del PN real (-32.928, -60.661)
@@ -2296,7 +2303,8 @@ Dar al usuario flexibilidad para: (1) relajar el filtro de dormitorios y obtener
 1. **lex_bedrooms parameter** en obtener_mediana_cluster_v2 (def 0). Cuando >0, usa bs(dorm - target) <= flex_bedrooms en vez de igualdad exacta.
 2. **Propagación completa**: aluar_propiedad_v7 y aluar_con_cache ahora aceptan y pasan lex_bedrooms.
 3. **UI Toggle "Flexible"**: Nuevo botón en la sección Retro (valu.py). Al activarlo, aparecen un selectbox con tolerancia 0-3 dormitorios. Si Retro no está activo, se activa automáticamente.
-4. **FLEX badge**: En ender_tabla_comparables, los comps con dormitorios diferentes al sujeto muestran badge púrpura FLEX.
+4. **FLEX badge**: En 
+ender_tabla_comparables, los comps con dormitorios diferentes al sujeto muestran badge púrpura FLEX.
 5. **Select/deselect popover**: Cada comp tiene checkbox individual. Botón "Aplicar selección" recalcula P33/P50 localmente desde los precios/m2 ajustados de los comps seleccionados.
 6. **Stored metadata**: lex_bedrooms y sujeto_dormitorios en meta de resultado para render condicional.
 7. **Commit 8d0c1a3 + push a origin main.

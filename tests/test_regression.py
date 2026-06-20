@@ -76,7 +76,7 @@ def test_mabel_alquiler():
 def test_ayacucho_venta():
     """Valida rangos de venta para Ayacucho (6ta Pellegrini, modelo multiplicativo)"""
     r = valuar_propiedad_v7(ejecutar_valuacion('ayacucho'))
-    assert 42000 <= r['valor_propiedad_usd'] <= 51500, f"Lista {r['valor_propiedad_usd']} fuera de rango"
+    assert 58000 <= r['valor_propiedad_usd'] <= 72000, f"Ayacucho {r['valor_propiedad_usd']} fuera de rango"
 
 
 def test_patio_grande_vera():
@@ -105,7 +105,7 @@ def test_patio_grande_vera():
     
     # Valor base con ancla microzona (modelo multiplicativo TAREA-071)
     valor_principal = r.get('valor_propiedad_usd', 0)
-    assert 58500 <= valor_principal <= 72000, f"Valor Vera {valor_principal} fuera de rango"
+    assert 74000 <= valor_principal <= 90000, f"Valor Vera {valor_principal} fuera de rango"
 
 
 def test_ui_vs_python_no_diverge():
@@ -281,7 +281,7 @@ def test_fase1_no_cambia_valores():
     """Enriquecimiento NO debe cambiar valores de venta/alquiler (TAREA-071: multiplicativo)"""
     valores_referencia = {
         'mabel': (81500, 100000),
-        'ayacucho': (42000, 51500),
+        'ayacucho': (58000, 72000),
     }
     for nombre, (lo, hi) in valores_referencia.items():
         r = valuar_propiedad_v7(ejecutar_valuacion(nombre), fecha_ref='2026-04')

@@ -1865,19 +1865,62 @@ def calcular_m2_equivalentes(prop):
     return min(m2_equiv, max_m2)
 
 
-def calcular_size_discount_venta(m2_equiv):
+def _interpolar_piecewise(m2, points):
+    """Interpolación lineal entre puntos [{"m2": x, "factor": y}, ...]"""
+    if not points:
+        return 1.0
+    if m2 <= points[0]["m2"]:
+        return points[0]["factor"]
+    if m2 >= points[-1]["m2"]:
+        return points[-1]["factor"]
+    for i in range(len(points) - 1):
+        x1, y1 = points[i]["m2"], points[i]["factor"]
+        x2, y2 = points[i + 1]["m2"], points[i + 1]["factor"]
+        if x1 <= m2 <= x2:
+            if x2 == x1:
+                return y1
+            return y1 + (y2 - y1) * (m2 - x1) / (x2 - x1)
+    return 1.0
+
+def _cargar_size_adjustment_config():
+    """Carga la config de size_adjustment desde zonas_depreciacion.json"""
+    ruta = os.path.join(os.path.dirname(__file__), "..", "data", "zonas_depreciacion.json")
+    ruta = os.path.normpath(ruta)
+    if not os.path.exists(ruta):
+        return {}
+    import json
+    with open(ruta) as f:
+        cfg = json.load(f)
+    result = {}
+    for mz in cfg.get("macrozonas", []):
+        if "size_adjustment" in mz:
+            result[mz["id"]] = mz["size_adjustment"]
+    return result
+
+_SIZE_ADJ_CONFIG = None
+
+def calcular_size_adjustment(m2_equiv, macrozona_id=None, ancla_id=None):
     """
-    Descuento por tamaño para venta.
-    En el mercado, unidades muy grandes tienden a tener un precio/m² ligeramente menor.
+    Ajuste por tamaño configurable por macrozona (TAREA-074).
+    Lee curvas piecewise desde zonas_depreciacion.json.
+    Retorna 1.0 si no hay config (sin ajuste).
     """
-    if m2_equiv <= 100:
-        return 1.00
-    elif m2_equiv <= 150:
-        return 1.00 - (m2_equiv - 100) / 50 * 0.05
-    elif m2_equiv <= 200:
-        return 0.95 - (m2_equiv - 150) / 50 * 0.05
-    else:
-        return 0.85
+    global _SIZE_ADJ_CONFIG
+    if _SIZE_ADJ_CONFIG is None:
+        _SIZE_ADJ_CONFIG = _cargar_size_adjustment_config()
+    
+    config = _SIZE_ADJ_CONFIG.get(macrozona_id) if macrozona_id else None
+    if not config:
+        return 1.0
+    
+    # Check subzona by anchor_id
+    if ancla_id and "subzonas" in config:
+        for sub_id, sub in config["subzonas"].items():
+            if any(mid in ancla_id for mid in sub.get("match_anchor_ids", [])):
+                return _interpolar_piecewise(m2_equiv, sub.get("points", []))
+    
+    # Default curve for this macrozona
+    return _interpolar_piecewise(m2_equiv, config.get("points", []))
 
 def calcular_size_discount_alquiler(m2_equiv):
     """
@@ -3134,7 +3177,10 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
     # 3. Fórmula Base (TAREA-073: sin factores hedónicos)
     # m2_microzona = precio del anchor más cercano (o cluster como fallback)
     m2_microzona = valor_ancla_geo if ancla_seleccionada is not None else m2_base_venta
-    size_discount = calcular_size_discount_venta(m2_equiv)
+    from parsers.zonas_manager import resolver_macrozona
+    _mz_info = resolver_macrozona(prop)
+    _ancla_id = str(ancla_seleccionada) if ancla_seleccionada is not None else None
+    size_discount = calcular_size_adjustment(m2_equiv, macrozona_id=_mz_info.get('macrozona_id'), ancla_id=_ancla_id)
     valor_venta = m2_equiv * m2_microzona * size_discount
     
     logger.info(f"--- CALCULO BASE (TAREA-073) ---")
