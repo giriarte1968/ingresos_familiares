@@ -3,6 +3,33 @@
 
 Este documento es el "diario de trabajo". Cada agente de IA que trabaje en este proyecto debe registrar aquí el progreso para que el siguiente sepa exactamente dónde retomar.
 
+## 2026-06-20 — TAREA-076: Eliminar depreciación de Subfactores Display + Documentar evidencia ML
+
+### Decisión
+La depreciación por antigüedad NO existe como factor de mercado independiente en Rosario.
+Se elimina del display de Subfactores de Referencia en Valuación Manual.
+
+### Evidencia ML que respalda (TAREA-073 + TAREA-076)
+- XGBoost (R²=0.839): lat+lon=80%. Edad no fue feature relevante.
+- RF por macrozona: centro_premium -0.18%/año, norte +0.06%/año (aprecia)
+- Grid RF 40×40: Mabel +0.2% en 55 años controlando ubicación
+- **Conclusión:** Edad es confounding effect con ubicación, no factor causal
+
+### Diferencia clave
+- Estado, Calidad, Amenities, NLP → observables de propiedad → SÍ se muestran
+- Depreciación → factor de mercado → NO se muestra (no existe en Rosario)
+
+### Archivos
+- `docs/ALGORITMOS.md`: Nueva sección 17 con evidencia completa
+- `docs/MEMORIA_PROYECTO.md`: RO-20 agregada
+- `parsers/mercado_inmobiliario.py`: `calcular_factores_display()` sin depreciación
+- `valu_detail_sections.py`: 4 columnas en subfactores (sin Depreciación)
+- `main_valu_detail_sections.py`: idem
+- `.opencode/plans/TAREA-076.md`: Plan de tarea
+
+### Tests: 38/38 OK
+### Commit: _(pendiente)_
+
 ## 2026-06-20 — TAREA-074: Size adjustment por macrozona
 - Se reemplazó size_discount global por curvas piecewise por macrozona en zonas_depreciacion.json
 - Puerto Norte: subzona con factor >1.0 (premio por tamaño grande)

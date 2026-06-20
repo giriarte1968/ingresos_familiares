@@ -57,3 +57,4 @@
 | TAREA-065 | Separar barrera del m² de comparables (solo afecta al sujeto) | _(current)_ | 2026-06-14 |
 | TAREA-073 | Eliminar factores hedonicos (estado, calidad, anti, NLP) de venta. Conservar en alquiler. | _completada_ | 2026-06-20 |
 | TAREA-074 | Size adjustment por macrozona. PN subzona premium. Curvas piecewise. | _completada_ | 2026-06-20 |
+| TAREA-076 | Eliminar depreciación de Subfactores Display + Documentar evidencia ML | _completada_ | 2026-06-20 |

@@ -615,4 +615,17 @@ Cada macrozona tiene su curva piecewise linear. Puerto Norte tiene curva separad
 el $/m² AUMENTA con el tamano (contrario al resto de la ciudad). Las curvas se calibran desde
 cache_scraping y son editables desde la UI.
 
+### RO-20: Depreciación no es factor de mercado en Rosario (TAREA-076)
+La depreciación por antigüedad NO existe como factor de mercado independiente en Rosario.
+NO se incluye en el display de subfactores de Valuación Manual.
+
+**Evidencia ML (confirmada en TAREA-073):**
+- XGBoost (R²=0.839): ubicación (lat+lon) = 80% del precio. Edad no es feature relevante.
+- RandomForest por macrozona: centro_premium -0.18%/año, norte +0.06%/año (aprecia).
+  Solo oeste muestra -0.85%/año (pero con solo 112 muestras).
+- Grid RF 40×40 controlando ubicación exacta: Mabel +0.2% en 55 años.
+- **Conclusión:** Edad es confounding effect con ubicación (las propiedades viejas están en
+  zonas céntricas, no porque envejecer baje el precio). Estado, calidad, amenities y NLP
+  son observables de propiedad que SÍ se muestran como referencia en la UI.
+
 

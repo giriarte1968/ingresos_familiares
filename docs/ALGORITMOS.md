@@ -803,5 +803,66 @@ Runtime (motor_vpp_core.py, location_engine.py, valuacion_cache.py, valu.py)
 
 ---
 
+## 17. Depreciación en Rosario: Evidencia ML (TAREA-073 + TAREA-076)
+
+### Decisión
+
+La depreciación por antigüedad NO existe como factor de mercado independiente en Rosario.
+**NO se muestra como referencia en la UI de Valuación Manual** (TAREA-076).
+La fórmula genérica `-0.6%/año × antigüedad` (standard contable internacional) no tiene sustento empírico en el mercado local.
+
+### Evidencia del Análisis ML
+
+**XGBoost (R²=0.839) sobre 8,368 ventas:**
+
+| Feature | Importancia | SHAP mean |
+|---------|-------------|-----------|
+| lat | 44.3% | $317 |
+| lon | 36.1% | $369 |
+| m² | 15.5% | $136 |
+| dormitorios | 2.8% | $43 |
+| Etiquetas de zona | <0.5% | <$7 |
+
+`antigüedad` no fue un feature relevante — ni siquiera se incluyó en el modelo final porque no aportaba poder predictivo.
+
+**RandomForest por macrozona (scripts/explorar_depreciacion_rf.py):**
+
+| Macrozona | n | R² | Importancia edad | Pendiente/año | Clase |
+|-----------|---|----|------------------|---------------|-------|
+| centro_premium | 3,950 | 0.796 | 8.4% | **-0.18%** | Baja (≈cero) |
+| macrocentro | 819 | 0.933 | 6.3% | **-0.28%** | Media-baja |
+| norte | 1,554 | 0.903 | 5.7% | **+0.06%** | Baja (aprecia) |
+| oeste | 112 | 0.948 | 13.5% | **-0.85%** | Alta (muestra chica) |
+
+**Grid RF por celda (40×40, controlando ubicación exacta):**
+- Evaluando el mismo RF en coordenadas fijas: Mabel +0.2% en 55 años (2025→1970)
+- Muchas celdas muestran pendiente **positiva** (propiedades más viejas valen más en ciertas ubicaciones premium)
+
+### Conclusión
+
+La edad aparenta correlacionar con precio porque las propiedades viejas están en zonas más céntricas (edificios años 50-70 en Centro), mientras que las nuevas están en la periferia en expansión (norte, oeste). Al controlar por ubicación exacta (misma cuadra), el efecto edad desaparece. Es **confounding effect**, no causalidad.
+
+### Diferencia clave: factores de propiedad vs factores de mercado
+
+| Factor | Tipo | ¿Existe en Rosario? | ¿Se muestra en UI? |
+|--------|------|---------------------|-------------------|
+| **Estado** (a_estrenar/excelente/regular) | Observable de propiedad | Sí, la condición física es real | ✅ Referencia |
+| **Calidad** (premium/alta/media/baja) | Observable de propiedad | Sí, la calidad constructiva es real | ✅ Referencia |
+| **Amenities** (pileta, SUM, seguridad) | Observable de propiedad | Sí, son características listadas | ✅ Referencia |
+| **NLP** (cocina silestone, preinst AA) | Observable de propiedad | Sí, son terminaciones específicas | ✅ Referencia |
+| **Depreciación por edad** | Factor de mercado | **NO** — confounding effect con ubicación | ❌ Eliminado |
+
+### Referencias
+
+- `reports/ml_insights.md` — Reporte completo de ML (XGBoost, DBSCAN, Hedonic)
+- `reports/ml_xgb_importance.csv` — Feature importance XGBoost
+- `reports/rf_depreciacion_macrozonas.csv` — RF por macrozona
+- `reports/rf_depreciacion_grid.csv` — Grid RF 40×40 (1,600 celdas)
+- `scripts/explorar_depreciacion_rf.py` — Script completo de análisis RF
+- `parsers/mercado_inmobiliario.py:2048` — `calcular_factores_display()` sin depreciación
+- TAREA-073: Eliminación de factores hedónicos del motor automático
+- TAREA-076: Eliminación de depreciación del display de subfactores
+
+
 **Generado por**: OpenCode
 **Fecha**: 2026-05-16

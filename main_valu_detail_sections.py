@@ -1156,13 +1156,15 @@ def render_valuacion_manual(prop, res):
         st.caption("Sin activos adicionales (cocheras / baulera)")
 
     # Subfactores de Referencia — display only, no afectan el cálculo automático
+    # Depreciación NO se incluye (TAREA-076): ML demostró que edad es confounding effect,
+    # no existe como factor de mercado independiente en Rosario.
     try:
         from parsers.mercado_inmobiliario import calcular_factores_display
         fd = calcular_factores_display(prop)
         if fd:
             st.markdown("##### Subfactores de Referencia")
             st.caption("Valores calculados por el motor — NO aplicados automáticamente en esta sección")
-            c1, c2, c3, c4, c5 = st.columns(5)
+            c1, c2, c3, c4 = st.columns(4)
             with c1:
                 pct = (fd['factor_estado'] - 1.0) * 100
                 st.metric("Estado", f"{fd['estado_label'].title()}", f"{pct:+.1f}%")
@@ -1170,13 +1172,10 @@ def render_valuacion_manual(prop, res):
                 pct = (fd['factor_calidad'] - 1.0) * 100
                 st.metric("Calidad", f"{fd['calidad_label'].title()}", f"{pct:+.1f}%")
             with c3:
-                pct = (fd['depreciacion'] - 1.0) * 100
-                st.metric("Depreciación", f"{fd['antiguedad']} años", f"{pct:+.1f}%")
-            with c4:
                 pct = fd['delta_amenities'] * 100
                 am_list = list(fd['detalle_amenities'].keys())[:3]
                 st.metric("Amenities", ", ".join(am_list) if am_list else "—", f"{pct:+.1f}%")
-            with c5:
+            with c4:
                 pct = fd['delta_nlp'] * 100
                 st.metric("NLP", "Cocina/AA", f"{pct:+.1f}%")
             st.caption(f"Factor combinado de referencia: **{fd['total']:.4f}**")
