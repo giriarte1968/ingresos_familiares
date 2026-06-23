@@ -394,12 +394,15 @@ def render_tabla_comparables(res, prop_name=None):
         excluded_ids = [cid for cid in all_ids if cid not in selected_ids]
         is_applied = set(res.get('_comp_excluded', [])) == set(excluded_ids) and res.get('_comp_exclusion_applied', False)
 
+        meta = res.get('resolution_metadata', {})
+        _cv_approx = meta.get('cv_pool', 0.25)
+
         # n<3: usar MEDIA (coincide con motor que usa _calcular_mediana para n<3)
         if n_sel < 3:
             p33_p50 = _calcular_mediana(precios_sorted)
             label_short = 'MEDIA'
         else:
-            percentil, label = seleccionar_percentil_por_calidad_pool(n_sel, 0.25)
+            percentil, label = seleccionar_percentil_por_calidad_pool(n_sel, _cv_approx)
             if percentil == 50:
                 p33_p50 = _calcular_mediana(precios_sorted)
                 label_short = 'P50'
@@ -415,7 +418,6 @@ def render_tabla_comparables(res, prop_name=None):
 
         # Si todos seleccionados, usar el m² puro del motor (sin barrera) en vez de simple P33
         if not excluded_ids:
-            meta = res.get('resolution_metadata', {})
             p33_p50 = meta.get('_m2_puro', p33_p50)
 
         col_a, col_b, col_c = st.columns([1, 2, 1.2])
