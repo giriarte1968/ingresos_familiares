@@ -1341,11 +1341,12 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 'operacion': operacion,
                 'zona_original': zona_original,
                 'zona_resolucion': zona_resol,
-                'comparables_reales': comparables_reales
+                'comparables_reales': comparables_reales,
             }
         
         if len(precios) < 3:
             logger.info(f"[N<3] Solo {len(precios)} comparables, forzando fallback a ancla")
+            _m2_puro_n3 = round(sum(p.get('precio', 0) for p in pool_final) / sum(p.get('m2', 0) for p in pool_final), 2) if sum(p.get('m2', 0) for p in pool_final) > 0 else None
             return 0.0, len(precios), {
                 'percentil_usado': percentil_usado,
                 'n_raw': n_raw,
@@ -1357,6 +1358,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 'zona_resolucion': zona_resol,
                 'comparables_reales': comparables_reales,
                 'n_insuficiente': True,
+                '_m2_puro': _m2_puro_n3,
             }
         
         # FILTRO PRE-IQR robusto
