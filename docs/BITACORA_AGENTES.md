@@ -2898,3 +2898,19 @@ Para propiedades con zona Puerto Norte donde el motor no encuentra suficientes c
 - `docs/BITACORA_AGENTES.md`: Este registro
 
 ### Tests: 32/32 regression OK
+
+## 2026-06-23 — Fix final: _m2_puro en early return n<3 (Francia 250b PN)
+
+### Contexto
+`obtener_mediana_cluster_v2` tiene tres early returns: (1) cuando no hay comps (linea 1177), (2) cuando `not precios` (linea 1334), (3) cuando `len(precios) < 3` (linea 1347). Parcheé solo el #1 y el #2, pero el #3 era el que se ejecutaba para Francia 250b (2 PN comps → n<3).
+
+El return #3 retornaba `(0.0, len(precios), meta)` sin `_m2_puro` y sin `insuficientes_comparables`. `valuar_propiedad_v7` caía al Ancla fallback sin que `_m2_puro` llegara al `resolution_metadata`. La UI mostraba MEDIA cruda ($4,397) en vez del size-weighted ($3,773).
+
+### Cambios
+1. `parsers/mercado_inmobiliario.py:1349`: Computar `_m2_puro_n3 = total_precio / total_m2` desde `pool_final` en el early return n<3.
+2. `parsers/valuacion_helpers.py:225-226`: `ensamblar_metadata_resolucion` ya incluye `_m2_puro` y `size_adj_factor` (commit anterior).
+
+### Files modificados
+- `parsers/mercado_inmobiliario.py`: Agregado `_m2_puro_n3` al meta del return n<3
+
+### Tests: 32/32 regression OK
