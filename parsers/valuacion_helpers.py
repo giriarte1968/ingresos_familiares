@@ -222,5 +222,7 @@ def ensamblar_metadata_resolucion(
         'n_con_anio_media': meta_venta.get('n_con_anio_media', 0),
         'pct_con_anio': meta_venta.get('pct_con_anio', 0),
         'cv_pool': meta_venta.get('cv_pool'),
+        '_m2_puro': meta_venta.get('_m2_puro'),
+        'size_adj_factor': meta_venta.get('size_adj_factor'),
         'comparables_reales': meta_venta.get('comparables_reales', []),
     }

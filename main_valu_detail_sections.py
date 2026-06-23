@@ -403,20 +403,23 @@ def render_tabla_comparables(res, prop_name=None):
                 label_short = 'P33'
 
         # Si todos seleccionados, usar el m² puro del motor (sin barrera) en vez de simple P33
-        if not excluded_ids:
-            _m2_puro = meta.get('_m2_puro')
-            if _m2_puro is not None:
-                p33_p50 = _m2_puro
+        raw_promedio = _calcular_mediana(precios_sorted)
+        _m2_puro_val = meta.get('_m2_puro') if not excluded_ids else None
+        if _m2_puro_val is not None:
+            p33_p50 = _m2_puro_val
 
         col_a, col_b, col_c = st.columns([1, 2, 1.2])
         with col_a:
             original_puro = res.get('_original_m2_puro')
             if original_puro is None:
                 original_puro = res.get('resolution_metadata', {}).get('_m2_puro') or 0
-            st.metric("Valor/m┬▓ por selecci├│n", f"${p33_p50:,.0f}",
+            st.metric("Valor/m² por selección", f"${p33_p50:,.0f}",
                       delta=f"{'${:,.0f}'.format(p33_p50 - original_puro)} vs original")
         with col_b:
             st.caption(f"{label_short} sobre {n_sel} comps seleccionados de {len(comparables)} totales")
+            if _m2_puro_val is not None and raw_promedio != p33_p50:
+                size_factor = p33_p50 / raw_promedio if raw_promedio else 1
+                st.caption(f"⚖️ Ajustado por tamaño: ${raw_promedio:,.0f} → ${p33_p50:,.0f} (x{size_factor:.2f})")
         with col_c:
             # Bot├│n para re-valuar usando solo los comparables seleccionados
             excluded = [cid for cid in all_ids if cid not in selected_ids]
