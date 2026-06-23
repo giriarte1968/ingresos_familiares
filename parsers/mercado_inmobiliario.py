@@ -1171,6 +1171,9 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 }
                 for p in props
             ] if props else []
+            _total_precio = sum((p.get('precio') or 0) for p in (props or []))
+            _total_m2 = sum((p.get('m2') or 0) for p in (props or []))
+            _m2_puro_early = round(_total_precio / _total_m2, 2) if _total_m2 > 0 else None
             return 0, 0, {
                 'percentil_usado': percentil_usado, 
                 'n_raw': 0, 
@@ -1186,7 +1189,8 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 'retro_activo': bool(retro_dias),
                 'total_dias_ventana': get_natural_window_dias() + retro_dias * 30,
                 'debug': f'Solo {n_available} comparables encontrados. '
-                          'Se requiere mínimo 2 para valuación automática.'
+                          'Se requiere mínimo 2 para valuación automática.',
+                '_m2_puro': _m2_puro_early,
             }
 
         
@@ -3162,13 +3166,12 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
                 'n_comps': meta_venta.get('n_comparables', 0),
                 'comparables_venta': comparables_venta,
                 'mapa_html': mapa_html,
-                'resolution_metadata': {
-                    'zona_original': meta_venta.get('zona_original'),
-                    'zona_resolucion': meta_venta.get('zona_resolucion'),
-                    'n_disponibles': meta_venta.get('n_comparables', 0),
-                    'metodo': 'insuficiente',
-                    'confidence': 'INSUFICIENTE',
-                },
+                'resolution_metadata': ensamblar_metadata_resolucion(
+                    meta_venta=meta_venta,
+                    n_v=meta_venta.get('n_comparables', 0),
+                    zona_txt='',
+                    m2_base_source='insuficiente'
+                ),
                 'fuente': 'insuficiente',
             }
         # Fallback a ancla

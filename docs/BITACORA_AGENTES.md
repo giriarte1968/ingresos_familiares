@@ -2882,3 +2882,19 @@ Vera +52% por eliminación de `factor_piso` (PB ya no descuenta). Intencional.
 
 ### Tests: 38/38 regression OK (1 eliminado)
 ### Commit: (pendiente)
+
+## 2026-06-23 — Desync header vs "Valor/m² por selección" en Francia 250b PN
+
+### Contexto
+Para propiedades con zona Puerto Norte donde el motor no encuentra suficientes comparables en ventana temporal, el engine retornaba `insuficientes_comparables` con un `resolution_metadata` hardcodeado que NO incluía `_m2_puro`. La UI entonces mostraba la MEDIA cruda ($4,397) en vez del valor ajustado por tamaño ($2,914).
+
+### Cambios
+1. `parsers/mercado_inmobiliario.py:1174-1193`: Early return de `obtener_mediana_cluster_v2` ahora calcula `_m2_puro` desde `props` aunque haya <2 comps después de filtro fecha.
+2. `parsers/mercado_inmobiliario.py:3169-3175`: Hardcoded `resolution_metadata` reemplazado por `ensamblar_metadata_resolucion()`, unificando el pipeline con el path normal.
+3. `parsers/valuacion_helpers.py:225-226`: `ensamblar_metadata_resolucion` ya incluía `_m2_puro` y `size_adj_factor` (commit anterior).
+
+### Files modificados
+- `parsers/mercado_inmobiliario.py`: Early return + reemplazo hardcoded dict
+- `docs/BITACORA_AGENTES.md`: Este registro
+
+### Tests: 32/32 regression OK
