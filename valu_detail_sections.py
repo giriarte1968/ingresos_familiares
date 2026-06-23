@@ -9,7 +9,7 @@ import json, os
 from datetime import datetime
 from valu_design import kpi_card, metric_card, hero_price, range_bar, insights_card, property_card
 from parsers.mercado_inmobiliario import _calcular_mediana
-from parsers.cluster_filters import seleccionar_percentil_por_edad
+from parsers.cluster_filters import seleccionar_percentil_por_calidad_pool
 from streamlit.components.v1 import html
 
 
@@ -399,7 +399,7 @@ def render_tabla_comparables(res, prop_name=None):
             p33_p50 = _calcular_mediana(precios_sorted)
             label_short = 'MEDIA'
         else:
-            percentil, label = seleccionar_percentil_por_edad(True, n_sel)
+            percentil, label = seleccionar_percentil_por_calidad_pool(n_sel, 0.25)
             if percentil == 50:
                 p33_p50 = _calcular_mediana(precios_sorted)
                 label_short = 'P50'

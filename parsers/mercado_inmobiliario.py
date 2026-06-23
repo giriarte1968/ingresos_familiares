@@ -13,6 +13,8 @@ from parsers.cluster_filters import (
     calcular_percentil,
     calcular_blend_p33,
     seleccionar_percentil_por_edad,
+    seleccionar_percentil_por_calidad_pool,
+    _calcular_cv,
 )
 from parsers.valuacion_helpers import calcular_rango_venta, ensamblar_metadata_resolucion
 
@@ -882,7 +884,28 @@ def _filtrar_por_ventana_edad(pool, anio_sujeto, ventana=15, min_con_anio=5):
     return pool, False, len(pool_con_anio), 0, 0
 
 
-def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=None, lon_ref=None, fecha_ref=None, anio_sujeto=None, tipo_inmueble=None, cache_scraping=None, retro_dias=0, flex_dormitorios=None):
+def _aplicar_size_adj_a_comparables(pool, subject_m2, macrozona_id=None):
+    """
+    Aplica size adjustment relativo a cada comparable.
+    Normaliza el precio/m² de cada comp al tamaño del sujeto.
+    """
+    subject_adj = calcular_size_adjustment(subject_m2, macrozona_id=macrozona_id)
+    result = []
+    for p in pool:
+        comp_m2 = p.get('m2', 0) or p.get('m2_cubiertos', 0) or 0
+        if comp_m2 <= 0:
+            continue
+        comp_adj = calcular_size_adjustment(comp_m2, macrozona_id=macrozona_id)
+        if comp_adj <= 0:
+            continue
+        val = p.get('valor_m2', 0) * p.get('_time_adjustment', 1.0)
+        if val <= 0:
+            continue
+        result.append(val * (subject_adj / comp_adj))
+    return result
+
+
+def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=None, lon_ref=None, fecha_ref=None, anio_sujeto=None, tipo_inmueble=None, cache_scraping=None, retro_dias=0, flex_dormitorios=None, m2_equiv=None):
     """
     Obtiene la mediana del cluster desde cache_scraping.json.
     Versión v2 con metadata extendida Y radios progresivos.
@@ -1264,17 +1287,21 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         n_enriq_total = n_enriquecidos_alta + n_enriquecidos_media
         pct_enriq = (n_enriq_total / total_pool * 100) if total_pool else 0
 
-        # FASE 2: Filtrar por ventana de edad (±15 → ±20)
-        pool_final, age_filter_applied, n_age_filtered, anio_min, anio_max = _filtrar_por_ventana_edad(
-            unicos, anio_sujeto
-        )
-        ventana_real = anio_max - anio_sujeto if age_filter_applied else 0
-        age_window = f"\u00b1{ventana_real} a\u00f1os" if age_filter_applied else ''
-        rango_anio_usado = f"{anio_min}-{anio_max}" if age_filter_applied else ''
-        if age_filter_applied:
-            logger.info(f"[AGE_FILTER] Aplicado: {n_age_filtered} en rango {anio_min}-{anio_max}")
-        else:
-            logger.info(f"[AGE_FILTER] No aplicado: solo {n_age_filtered} post-filtro (mín 5 en ±15/±30)")
+        # Sin filtro de edad (ML evidence: edad no es factor causal en Rosario)
+        pool_final = unicos
+        n_age_filtered = 0
+        age_filter_applied = False
+
+        # Resolver macrozona para size adjustment
+        macrozona_id = None
+        try:
+            if lat_ref is not None and lon_ref is not None:
+                from parsers.zonas_manager import resolver_macrozona
+                _pseudo_prop = {'zona': zona or '', 'lat': lat_ref, 'lon': lon_ref}
+                _mz_info = resolver_macrozona(_pseudo_prop)
+                macrozona_id = _mz_info.get('macrozona_id')
+        except Exception:
+            pass
 
         precios = [p['valor_m2'] * p.get('_time_adjustment', 1.0) for p in pool_final]
         n_raw = len(precios)
@@ -1314,7 +1341,8 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             }
         
         if len(precios) < 3:
-            return float(_calcular_mediana(precios)), len(precios), {
+            logger.info(f"[N<3] Solo {len(precios)} comparables, forzando fallback a ancla")
+            return 0.0, len(precios), {
                 'percentil_usado': percentil_usado,
                 'n_raw': n_raw,
                 'n_filtradas': len(precios),
@@ -1323,7 +1351,8 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 'operacion': operacion,
                 'zona_original': zona_original,
                 'zona_resolucion': zona_resol,
-                'comparables_reales': comparables_reales
+                'comparables_reales': comparables_reales,
+                'n_insuficiente': True,
             }
         
         # FILTRO PRE-IQR robusto
@@ -1383,14 +1412,19 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 precios_same.append(val)
         
         # Calcular percentil según operación
+        _cv_pool = None
         if operacion == 'alquiler':
             percentil_venta = 50
             percentil_usado = 'P50_alquiler'
         else:
-            percentil_venta, percentil_usado = seleccionar_percentil_por_edad(
-                age_filter_applied=age_filter_applied,
-                n_age_filtered=n_age_filtered
-            )
+            # Percentil por calidad del pool (CV post-size_adj)
+            if m2_equiv and macrozona_id and len(precios) >= 3:
+                _size_adj_prices = _aplicar_size_adj_a_comparables(pool_final, m2_equiv, macrozona_id)
+                _cv_pool = _calcular_cv(_size_adj_prices) if len(_size_adj_prices) >= 3 else 1.0
+            else:
+                _cv_pool = _calcular_cv(precios) if len(precios) >= 3 else 1.0
+            percentil_venta, percentil_usado = seleccionar_percentil_por_calidad_pool(len(precios), _cv_pool)
+            logger.info(f"[CV_POOL] n={len(precios)}, cv={_cv_pool:.4f}, percentil={percentil_venta} ({percentil_usado})")
 
         pct_same = calcular_percentil(precios_same, percentil_venta)
         pct_cross = calcular_percentil(precios_cross, percentil_venta)
@@ -1484,46 +1518,6 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         # Valor principal = BLEND PURO con alpha 0.70 (para Venta Lista)
         # Las otras bases quedan disponibles para el rango
         
-        # FASE 3: Si hay 5-7 comparables de edad similar, blend entre pool etario y pool completo
-        if percentil_usado == 'P33_age_blend':
-            base_age = valor_principal
-            precios_same_all = []
-            precios_cross_all = []
-            for p in unicos:
-                val = p.get('valor_m2', 0)
-                if val <= 0:
-                    continue
-                if p.get('_cross_soft', False):
-                    precios_cross_all.append(val)
-                else:
-                    precios_same_all.append(val)
-            p33_same_all = calcular_percentil(precios_same_all, 33)
-            p33_cross_all = calcular_percentil(precios_cross_all, 33)
-            base_all = calcular_blend_p33(p33_same_all, p33_cross_all, alpha=0.70)
-            if base_all is not None:
-                n = n_age_filtered
-                if n >= 7:
-                    alpha_age = 0.75
-                elif n == 6:
-                    alpha_age = 0.60
-                else:
-                    alpha_age = 0.45
-                valor_principal = alpha_age * base_age + (1 - alpha_age) * base_all
-                age_blend_applied = True
-                alpha_age_blend = alpha_age
-                base_age_val = base_age
-                base_all_val = base_all
-            else:
-                age_blend_applied = False
-                alpha_age_blend = None
-                base_age_val = None
-                base_all_val = None
-        else:
-            age_blend_applied = False
-            alpha_age_blend = None
-            base_age_val = None
-            base_all_val = None
-        
         if operacion == 'venta':
             valor = valor_principal
         else:
@@ -1578,16 +1572,8 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             'n_con_anio_alta': n_enriquecidos_alta,
             'n_con_anio_media': n_enriquecidos_media,
             'pct_con_anio': round(pct_enriq, 1),
-            # Fase 2: Filtro de edad
-            'age_filter_applied': age_filter_applied,
-            'age_window': age_window,
-            'n_age_filtered': n_age_filtered,
-            'rango_anio_usado': rango_anio_usado,
-            # Fase 3: Age blend (solo aplica si 5 <= n_age_filtered < 8)
-            'age_blend_applied': age_blend_applied,
-            'alpha_age_blend': alpha_age_blend,
-            'base_age': round(base_age_val, 2) if base_age_val is not None else None,
-            'base_all': round(base_all_val, 2) if base_all_val is not None else None,
+            # CV del pool (calidad de comparables)
+            'cv_pool': round(_cv_pool, 4) if _cv_pool is not None else None,
             # Comparables reales (muestra de hasta 30/60)
             'comparables_reales': comparables_reales,
             # M² puro sin barrera (para display en header)
@@ -1638,13 +1624,15 @@ def calcular_base_calibrada(valor_ancla, prop_data):
     from datetime import datetime
     fecha_ref = datetime.now().strftime('%Y-%m-%d')
     # Usar v2 con coordenadas (IGUAL que valuar_propiedad_v7)
+    _m2_equiv = calcular_m2_equivalentes(prop_data)
     valor_cluster, muestras, meta = obtener_mediana_cluster_v2(
         zona=normalizar_zona(zona),
         dormitorios=dorms,
         operacion='venta',
         lat_ref=lat,
         lon_ref=lon,
-        fecha_ref=fecha_ref
+        fecha_ref=fecha_ref,
+        m2_equiv=_m2_equiv
     )
 
     # Handle None returns
@@ -3150,7 +3138,8 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
             tipo_inmueble=prop.get('tipo_inmueble') or prop.get('tipo') or 'departamento',
             cache_scraping=cache_scraping_compartido,
             retro_dias=retro_dias,
-            flex_dormitorios=flex_dormitorios
+            flex_dormitorios=flex_dormitorios,
+            m2_equiv=m2_equiv
         )
 
     # Si v2 tiene valor, usarlo; si no, fallback a ancla
@@ -4115,14 +4104,6 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
             "acotado, lo que garantiza que pertenecen al mismo entorno urbano."
         )
 
-    age_blend = meta.get('age_blend_applied', False)
-    if age_blend:
-        texto_mercado += (
-            " Para propiedades de esta antigüedad, se combinaron referencias "
-            "de edades similares y del conjunto general del cluster, "
-            "dado que la muestra específica por edad era reducida."
-        )
-
     lineas.append(texto_mercado)
 
     # ─── PÁRRAFO 3: Factores estructurales (cualitativo) ───
@@ -4322,21 +4303,6 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
             texto_anti = (
                 f"Con {antiguedad} años de antigüedad, la depreciación es significativa "
                 f"y el valor se ve moderado sustancialmente por la edad."
-            )
-
-        age_blend = meta.get('age_blend_applied', False)
-        if age_blend:
-            n_age = meta.get('n_age_filtered', 0)
-            texto_anti += (
-                f" Para esta antigüedad, la cantidad de propiedades comparables "
-                f"directas era reducida, por lo que se complementó la referencia "
-                f"con el conjunto general del cluster."
-            )
-
-        window = meta.get('age_window', '')
-        if window:
-            texto_anti += (
-                f" Se utilizó una ventana de edades similares de {window}."
             )
 
         lineas.append(texto_anti)

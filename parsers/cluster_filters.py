@@ -217,21 +217,8 @@ def seleccionar_percentil_por_edad(age_filter_applied: bool,
                                     n_age_filtered: int) -> Tuple[int, str]:
     """
     Selecciona el percentil a usar según el filtro de edad.
-    
-    Regla actual:
-    - Sin filtro de edad → P33
-    - n_age >= 20 → P50
-    - 10 <= n_age < 20 → P45
-    - 8 <= n_age < 10 → P40
-    - 5 <= n_age < 8 → P33_age_blend (blend entre pool etario y pool completo)
-    - n_age < 5 → P33 (fallback total al pool completo)
-    
-    Args:
-        age_filter_applied: Si el filtro de edad está activo
-        n_age_filtered: Cantidad de propiedades post-filtro de edad
-    
-    Returns:
-        (percentil_numero, etiqueta)  ej: (45, 'P45_age')
+    DEPRECATED en favor de seleccionar_percentil_por_calidad_pool.
+    Mantenido para scripts de diagnóstico legacy.
     """
     if not age_filter_applied:
         return 33, 'P33'
@@ -244,5 +231,41 @@ def seleccionar_percentil_por_edad(age_filter_applied: bool,
         return 40, 'P40_age'
     elif n_age_filtered >= 5:
         return 33, 'P33_age_blend'
+    else:
+        return 33, 'P33'
+
+
+def _calcular_cv(precios: List[float]) -> float:
+    """Coeficiente de variación (std/mean). Retorna 1.0 si < 2 precios."""
+    if len(precios) < 2:
+        return 1.0
+    import statistics
+    media = statistics.mean(precios)
+    return statistics.stdev(precios) / media if media > 0 else 1.0
+
+
+def seleccionar_percentil_por_calidad_pool(n: int, cv: float) -> Tuple[int, str]:
+    """
+    Selecciona percentil según calidad del pool (CV post-size_adj).
+    
+    Tabla:
+    - n>=10 y CV<25%  → P50 (pool grande y homogéneo)
+    - n>=8  y CV<35%  → P45 (pool mediano, homogeneidad aceptable)
+    - n>=5  y CV<45%  → P40 (pool chico pero coherente)
+    - <5 o CV>=45%    → P33 (fallback conservador)
+    
+    Args:
+        n: Cantidad de comparables en el pool
+        cv: Coeficiente de variación (0.0 = homogéneo, 1.0+ = muy disperso)
+    
+    Returns:
+        (percentil_numero, etiqueta)  ej: (45, 'P45')
+    """
+    if n >= 10 and cv < 0.25:
+        return 50, 'P50'
+    elif n >= 8 and cv < 0.35:
+        return 45, 'P45'
+    elif n >= 5 and cv < 0.45:
+        return 40, 'P40'
     else:
         return 33, 'P33'

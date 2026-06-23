@@ -221,9 +221,6 @@ def ensamblar_metadata_resolucion(
         'n_con_anio_alta': meta_venta.get('n_con_anio_alta', 0),
         'n_con_anio_media': meta_venta.get('n_con_anio_media', 0),
         'pct_con_anio': meta_venta.get('pct_con_anio', 0),
-        'age_filter_applied': meta_venta.get('age_filter_applied', False),
-        'age_window': meta_venta.get('age_window', ''),
-        'n_age_filtered': meta_venta.get('n_age_filtered', 0),
-        'rango_anio_usado': meta_venta.get('rango_anio_usado', ''),
+        'cv_pool': meta_venta.get('cv_pool'),
         'comparables_reales': meta_venta.get('comparables_reales', []),
     }

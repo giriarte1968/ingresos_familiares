@@ -1,10 +1,9 @@
 """Tests para TAREA-009: conectar P33_age_blend para 5-7 comparables."""
 
 
-def test_filtrar_por_ventana_edad_activa_blend_con_6_comparables():
-    """6 comparables dentro de +/-30 activan age_filter y devuelven P33_age_blend."""
+def test_filtrar_por_ventana_edad_filtra_correctamente():
+    """6 comparables dentro de +/-30 activan age_filter."""
     from parsers.mercado_inmobiliario import _filtrar_por_ventana_edad
-    from parsers.cluster_filters import seleccionar_percentil_por_edad
 
     pool = [
         {'anio_estimado': 2011, 'valor_m2': 1000},
@@ -30,15 +29,10 @@ def test_filtrar_por_ventana_edad_activa_blend_con_6_comparables():
     assert 1975 not in years
     assert 1968 not in years
 
-    percentil, label = seleccionar_percentil_por_edad(applied, n_age)
-    assert percentil == 33
-    assert label == 'P33_age_blend'
-
 
 def test_filtrar_por_ventana_edad_5_en_ventana_15():
     """5 comparables dentro de +/-15 activan directamente."""
     from parsers.mercado_inmobiliario import _filtrar_por_ventana_edad
-    from parsers.cluster_filters import seleccionar_percentil_por_edad
 
     pool = [
         {'anio_estimado': 2005, 'valor_m2': 1000},
@@ -57,10 +51,6 @@ def test_filtrar_por_ventana_edad_5_en_ventana_15():
     assert n_age == 5
     assert a_min == 1995
     assert a_max == 2025
-
-    percentil, label = seleccionar_percentil_por_edad(applied, n_age)
-    assert percentil == 33
-    assert label == 'P33_age_blend'
 
 
 def test_filtrar_por_ventana_edad_sin_anio_sujeto():

@@ -325,42 +325,23 @@ def test_anio_no_hardcodeado():
     print(f"\n[ANIO_DINAMICO] Año actual={datetime.datetime.now().year}, valor=${r.get('valor_propiedad_usd', 0):,.0f}")
 
 
-# ─── FASE 3: PERCENTIL AJUSTADO POR EDAD ───
-
-def test_percentil_p50_con_age_filter():
-    """Mabel (n=27 >=20) debe usar P50_age"""
-    r = valuar_propiedad_v7(ejecutar_valuacion('mabel'), fecha_ref='2026-04')
-    meta = r.get('resolution_metadata', {})
-    if meta.get('age_filter_applied') and meta.get('n_age_filtered', 0) >= 20:
-        assert meta.get('percentil_usado') == 'P50_age', \
-            f"Esperaba P50_age, obtuvo {meta.get('percentil_usado')}"
-
-
-def test_percentil_p45_con_age_filter():
-    """Si n entre 10 y 19, debe usar P45_age"""
-    r = valuar_propiedad_v7(ejecutar_valuacion('ayacucho'), fecha_ref='2026-04')
-    meta = r.get('resolution_metadata', {})
-    n = meta.get('n_age_filtered', 0)
-    if meta.get('age_filter_applied') and 10 <= n < 20:
-        assert meta.get('percentil_usado') == 'P45_age', \
-            f"n={n} esperaba P45_age, obtuvo {meta.get('percentil_usado')}"
-
+# ─── PERCENTIL POR CALIDAD DEL POOL ───
 
 def test_alquiler_sigue_p50():
-    """Alquiler siempre usa P50 aunque haya age_filter"""
+    """Alquiler siempre usa P50"""
     r = valuar_propiedad_v7(ejecutar_valuacion('mabel'), fecha_ref='2026-04')
-    meta = r.get('resolution_metadata', {})
     alq = r.get('alquiler_estimado_ars', 0)
     assert 570000 <= alq <= 695000, f"Alquiler {alq} fuera de rango"
 
 
-def test_percentil_p33_sin_age_filter():
-    """Sin age filter, venta debe usar P33"""
-    r = valuar_propiedad_v7(ejecutar_valuacion('ayacucho'), fecha_ref='2026-04')
+def test_percentil_por_calidad_en_meta():
+    """Metadata incluye cv_pool y percentil válido"""
+    r = valuar_propiedad_v7(ejecutar_valuacion('mabel'), fecha_ref='2026-04')
     meta = r.get('resolution_metadata', {})
-    if not meta.get('age_filter_applied'):
-        assert meta.get('percentil_usado') == 'P33', \
-            f"Sin filtro esperaba P33, obtuvo {meta.get('percentil_usado')}"
+    percentil = meta.get('percentil_usado', '')
+    assert percentil in ('P50', 'P45', 'P40', 'P33'), f"percentil inesperado: {percentil}"
+    assert meta.get('cv_pool') is not None, "cv_pool debe estar en metadata"
+    assert r.get('valor_propiedad_usd', 0) > 0
 
 
 # ─── VALIDACIÓN DE ANCLAS V5.1 ───
@@ -433,62 +414,17 @@ def test_ventana3_no_afecta_anclas():
         assert r.get('valor_propiedad_usd', 0) > 0
 
 
-# ─── FASE 3: AGE BLEND (5-7 comparables de edad similar) ───
+# ─── PERCENTIL POR CALIDAD (UNITARIOS CON DATOS SINTÉTICOS) ───
 
-def test_age_blend_n7_alpha():
-    """n_age=7 debe dar alpha=0.75 en la fórmula de blend."""
-    from parsers.cluster_filters import seleccionar_percentil_por_edad
-    percentil, label = seleccionar_percentil_por_edad(True, 7)
-    assert label == 'P33_age_blend', f"Esperaba P33_age_blend, obtuvo {label}"
-    assert percentil == 33
-
-
-def test_age_blend_n6_alpha():
-    """n_age=6 debe dar alpha=0.60 en la fórmula de blend."""
-    from parsers.cluster_filters import seleccionar_percentil_por_edad
-    percentil, label = seleccionar_percentil_por_edad(True, 6)
-    assert label == 'P33_age_blend'
-    assert percentil == 33
+def test_percentil_calidad_p50():
+    """n>=10, cv<0.25 → P50"""
+    from parsers.cluster_filters import seleccionar_percentil_por_calidad_pool
+    assert seleccionar_percentil_por_calidad_pool(12, 0.20) == (50, 'P50')
+    assert seleccionar_percentil_por_calidad_pool(15, 0.15) == (50, 'P50')
 
 
-def test_age_blend_n5_alpha():
-    """n_age=5 debe dar alpha=0.45 en la fórmula de blend."""
-    from parsers.cluster_filters import seleccionar_percentil_por_edad
-    percentil, label = seleccionar_percentil_por_edad(True, 5)
-    assert label == 'P33_age_blend'
-    assert percentil == 33
-
-
-def test_age_blend_n4_fallback():
-    """n_age=4 < 5 debe caer a P33 (fallback completo)."""
-    from parsers.cluster_filters import seleccionar_percentil_por_edad
-    percentil, label = seleccionar_percentil_por_edad(True, 4)
-    assert label == 'P33', f"Esperaba P33, obtuvo {label}"
-    assert percentil == 33
-
-
-def test_age_blend_anclas_no_regresion():
-    """Las 4 anclas no deben cambiar con el nuevo blend (ninguna usa n_age 5-7)."""
-    from parsers.mercado_inmobiliario import valuar_propiedad_v7
-    from tests.test_regression import ejecutar_valuacion
-    for nombre in ['mabel', 'ayacucho']:
-        r = valuar_propiedad_v7(ejecutar_valuacion(nombre), fecha_ref='2026-04')
-        meta = r.get('resolution_metadata', {})
-        assert meta.get('age_blend_applied', False) == False, \
-            f"{nombre}: age_blend_applied debería ser False (n={meta.get('n_age_filtered', '?')})"
-        assert r.get('valor_propiedad_usd', 0) > 0
-
-
-def test_age_blend_metadata_solo_cuando_corresponde():
-    """age_blend_applied debe ser True solo cuando el label es P33_age_blend."""
-    from parsers.cluster_filters import seleccionar_percentil_por_edad
-    # Casos que NO deberían tener blend
-    assert seleccionar_percentil_por_edad(False, 0)[1] != 'P33_age_blend'
-    assert seleccionar_percentil_por_edad(True, 20)[1] != 'P33_age_blend'
-    assert seleccionar_percentil_por_edad(True, 10)[1] != 'P33_age_blend'
-    assert seleccionar_percentil_por_edad(True, 8)[1] != 'P33_age_blend'
-    assert seleccionar_percentil_por_edad(True, 4)[1] != 'P33_age_blend'
-    # Casos que SÍ deberían tener blend
-    assert seleccionar_percentil_por_edad(True, 7)[1] == 'P33_age_blend'
-    assert seleccionar_percentil_por_edad(True, 6)[1] == 'P33_age_blend'
-    assert seleccionar_percentil_por_edad(True, 5)[1] == 'P33_age_blend'
+def test_percentil_calidad_p33():
+    """n<5 → P33"""
+    from parsers.cluster_filters import seleccionar_percentil_por_calidad_pool
+    assert seleccionar_percentil_por_calidad_pool(3, 0.20) == (33, 'P33')
+    assert seleccionar_percentil_por_calidad_pool(4, 0.10) == (33, 'P33')

@@ -11,6 +11,8 @@ from parsers.cluster_filters import (
     calcular_percentil,
     calcular_blend_p33,
     seleccionar_percentil_por_edad,
+    seleccionar_percentil_por_calidad_pool,
+    _calcular_cv,
 )
 
 
@@ -246,43 +248,47 @@ def test_blend_alpha_personalizado():
     assert res == 1500.0
 
 
-# ─── TESTS seleccionar_percentil_por_edad ───
+# ─── TESTS seleccionar_percentil_por_calidad_pool ───
 
-def test_edad_sin_filtro():
-    """Sin age_filter → P33."""
-    assert seleccionar_percentil_por_edad(False, 0) == (33, 'P33')
-
-
-def test_edad_n20():
-    """n=25 >= 20 → P50."""
-    assert seleccionar_percentil_por_edad(True, 25) == (50, 'P50_age')
+def test_calidad_p50():
+    """n>=10, cv<0.25 → P50."""
+    assert seleccionar_percentil_por_calidad_pool(10, 0.20) == (50, 'P50')
+    assert seleccionar_percentil_por_calidad_pool(15, 0.24) == (50, 'P50')
 
 
-def test_edad_n15():
-    """n=15 entre 10 y 20 → P45."""
-    assert seleccionar_percentil_por_edad(True, 15) == (45, 'P45_age')
+def test_calidad_p45():
+    """n>=8, cv<0.35 → P45."""
+    assert seleccionar_percentil_por_calidad_pool(8, 0.30) == (45, 'P45')
+    assert seleccionar_percentil_por_calidad_pool(9, 0.34) == (45, 'P45')
 
 
-def test_edad_n8():
-    """n=8 entre 8 y 10 → P40."""
-    assert seleccionar_percentil_por_edad(True, 8) == (40, 'P40_age')
+def test_calidad_p40():
+    """n>=5, cv<0.45 → P40."""
+    assert seleccionar_percentil_por_calidad_pool(5, 0.40) == (40, 'P40')
+    assert seleccionar_percentil_por_calidad_pool(7, 0.44) == (40, 'P40')
 
 
-def test_edad_n7():
-    """n=7 entre 5 y 8 → P33_age_blend."""
-    assert seleccionar_percentil_por_edad(True, 7) == (33, 'P33_age_blend')
+def test_calidad_p33():
+    """n<5 o cv>=0.45 → P33."""
+    assert seleccionar_percentil_por_calidad_pool(3, 0.20) == (33, 'P33')
+    assert seleccionar_percentil_por_calidad_pool(5, 0.50) == (33, 'P33')
+    assert seleccionar_percentil_por_calidad_pool(2, 0.10) == (33, 'P33')
 
 
-def test_edad_n6():
-    """n=6 entre 5 y 8 → P33_age_blend."""
-    assert seleccionar_percentil_por_edad(True, 6) == (33, 'P33_age_blend')
+def test_calidad_cv_fronteras():
+    """Valores en los umbrales de la tabla."""
+    assert seleccionar_percentil_por_calidad_pool(10, 0.2499) == (50, 'P50')
+    assert seleccionar_percentil_por_calidad_pool(8, 0.3499) == (45, 'P45')
+    assert seleccionar_percentil_por_calidad_pool(5, 0.4499) == (40, 'P40')
 
 
-def test_edad_n5():
-    """n=5 entre 5 y 8 → P33_age_blend."""
-    assert seleccionar_percentil_por_edad(True, 5) == (33, 'P33_age_blend')
+# ─── TESTS _calcular_cv ───
 
-
-def test_edad_n4_fallback():
-    """n=4 < 5 → P33 (fallback total)."""
-    assert seleccionar_percentil_por_edad(True, 4) == (33, 'P33')
+def test_calcular_cv():
+    """Coeficiente de variación."""
+    assert _calcular_cv([100, 100, 100]) == 0.0
+    assert _calcular_cv([100]) == 1.0
+    assert _calcular_cv([]) == 1.0
+    cv = _calcular_cv([100, 200])
+    assert cv > 0.0
+    assert cv < 1.0

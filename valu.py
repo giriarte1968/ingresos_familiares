@@ -643,11 +643,12 @@ def mostrar_dashboard():
                                         precios = [c.get('precio_m2', 0) * c.get('time_adjustment', 1.0) for c in comps_filtrados]
                                         precios_sorted = sorted(precios)
                                         n_sel = len(precios_sorted)
-                                        from parsers.cluster_filters import seleccionar_percentil_por_edad
+                                        from parsers.cluster_filters import seleccionar_percentil_por_calidad_pool, _calcular_cv
                                         if n_sel < 3:
                                             nuevo_vm2 = _calcular_mediana(precios_sorted)
                                         else:
-                                            percentil, _ = seleccionar_percentil_por_edad(True, n_sel)
+                                            _cv_approx = _calcular_cv(precios_sorted)
+                                            percentil, _ = seleccionar_percentil_por_calidad_pool(n_sel, _cv_approx)
                                             if percentil == 50:
                                                 nuevo_vm2 = _calcular_mediana(precios_sorted)
                                             elif percentil == 45:
