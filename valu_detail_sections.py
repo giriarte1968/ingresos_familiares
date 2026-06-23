@@ -426,7 +426,7 @@ def render_tabla_comparables(res, prop_name=None):
         with col_a:
             original_puro = res.get('_original_m2_puro')
             if original_puro is None:
-                original_puro = res.get('resolution_metadata', {}).get('_m2_puro', 0)
+                original_puro = res.get('resolution_metadata', {}).get('_m2_puro') or 0
             st.metric("Valor/m² por selección", f"${p33_p50:,.0f}",
                       delta=f"{'${:,.0f}'.format(p33_p50 - original_puro)} vs original")
         with col_b:
