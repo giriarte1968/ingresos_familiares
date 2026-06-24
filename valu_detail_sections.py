@@ -344,8 +344,10 @@ def render_tabla_comparables(res, prop_name=None):
         comp_id = comp_ids[i]
         cols = st.columns([0.4, 0.5, 1.5, 0.8, 1.5, 0.6, 1, 2, 0.7, 0.6])
         
-        # El valor del checkbox depende de si el ID está en el set de seleccionados
-        checked = cols[0].checkbox("", value=comp_id in stored_sel, key=f'sel_comp_{prop_name}_{comp_id}')
+        # Sincronizar checkbox con stored_sel antes de crear widget
+        chk_key = f'sel_comp_{prop_name}_{comp_id}'
+        st.session_state[chk_key] = comp_id in stored_sel
+        checked = cols[0].checkbox("", key=chk_key)
         
         if checked:
             selected_ids.add(comp_id)
