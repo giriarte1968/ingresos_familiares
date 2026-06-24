@@ -1369,18 +1369,26 @@ def render_valuacion_manual(prop, res):
     delta_pct = ((pre_final - motor_valor) / motor_valor * 100) if motor_valor > 0 else 0
 
     # Badge color
-    if abs(delta_pct) > 20:
+    if motor_valor == 0:
+        badge_bg = "#F3F4F6"
+        badge_fg = "#4B5563"
+        badge_label = "Sin referencia del motor"
+        badge_display = badge_label
+    elif abs(delta_pct) > 20:
         badge_bg = "#FEE2E2"
         badge_fg = "#DC2626"
-        badge_label = f"Diferencia significativa"
+        badge_label = "Diferencia significativa"
+        badge_display = f"D {delta_pct:+.1f}% vs. motor · {badge_label}"
     elif abs(delta_pct) > 10:
         badge_bg = "#FEF3C7"
         badge_fg = "#D97706"
-        badge_label = f"Diferencia moderada"
+        badge_label = "Diferencia moderada"
+        badge_display = f"D {delta_pct:+.1f}% vs. motor · {badge_label}"
     else:
         badge_bg = "#D1FAE5"
         badge_fg = "#059669"
-        badge_label = f"Diferencia aceptable"
+        badge_label = "Diferencia aceptable"
+        badge_display = f"D {delta_pct:+.1f}% vs. motor · {badge_label}"
 
     pre_cons = pre_final * (1 - inc / 100.0)
     pre_opt = pre_final * (1 + inc / 100.0)
@@ -1390,37 +1398,37 @@ def render_valuacion_manual(prop, res):
     size_adj_str = f"{size_adj:.4f}" if saved.get('incluir_size_adj', True) else "1.0 (desactivado)"
 
     preview_html = f"""
-    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:20px;margin:16px 0;">
+    <div style="background:#ffffff;border:1px solid #d1d5db;border-radius:10px;padding:20px;margin:16px 0;">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
         <div>
-          <div style="color:#64748b;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">
+          <div style="color:#000000;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">
             Valor Manual Estimado
           </div>
-          <div style="font-size:30px;font-weight:700;color:#0f172a;margin:4px 0;font-family:system-ui,-apple-system,sans-serif;">
+          <div style="font-size:30px;font-weight:700;color:#000000;margin:4px 0;font-family:system-ui,-apple-system,sans-serif;">
             ${pre_final:,.0f} USD
           </div>
-          <div style="color:#64748b;font-size:13px;">
+          <div style="color:#333333;font-size:13px;">
             Rango: ${pre_cons:,.0f} – ${pre_opt:,.0f} USD (±{inc:.0f}%)
           </div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
           <span style="background:{badge_bg};color:{badge_fg};padding:4px 12px;border-radius:14px;font-size:13px;font-weight:600;white-space:nowrap;">
-            D {delta_pct:+.1f}% vs. motor · {badge_label}
+            {badge_display}
           </span>
         </div>
       </div>
-      <hr style="margin:14px 0;border:none;border-top:1px solid #e2e8f0;">
+      <hr style="margin:14px 0;border:none;border-top:1px solid #d1d5db;">
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px 16px;font-size:13px;">
-        <div><span style="color:#64748b;">m² eq.:</span> {m2_eq:,.0f}</div>
-        <div><span style="color:#64748b;">USD/m²:</span> ${usd_m2_input:,.0f}</div>
-        <div><span style="color:#64748b;">Size adj.:</span> {size_adj_str}</div>
-        <div><span style="color:#64748b;">FH:</span> {fh_eff:.4f}</div>
-        <div><span style="color:#64748b;">Constructora:</span> {constr_pct_str}</div>
-        <div><span style="color:#64748b;">Ajuste %:</span> {ajuste_pct:+.1f}%</div>
-        <div><span style="color:#64748b;">Incertidumbre:</span> ±{inc:.0f}%</div>
-        <div><span style="color:#64748b;">Activos:</span> ${pre_act:,.0f}</div>
+        <div><span style="color:#333333;">m² eq.:</span> {m2_eq:,.0f}</div>
+        <div><span style="color:#333333;">USD/m²:</span> ${usd_m2_input:,.0f}</div>
+        <div><span style="color:#333333;">Size adj.:</span> {size_adj_str}</div>
+        <div><span style="color:#333333;">FH:</span> {fh_eff:.4f}</div>
+        <div><span style="color:#333333;">Constructora:</span> {constr_pct_str}</div>
+        <div><span style="color:#333333;">Ajuste %:</span> {ajuste_pct:+.1f}%</div>
+        <div><span style="color:#333333;">Incertidumbre:</span> ±{inc:.0f}%</div>
+        <div><span style="color:#333333;">Activos:</span> ${pre_act:,.0f}</div>
       </div>
-      <div style="color:#94a3b8;font-size:11px;margin-top:10px;padding-top:10px;border-top:1px solid #e2e8f0;">
+      <div style="color:#666666;font-size:11px;margin-top:10px;padding-top:10px;border-top:1px solid #d1d5db;">
         m2_eq x USD/m2 x size_adj x FH x constr + activos x (1 + ajuste)
       </div>
     </div>
@@ -1487,6 +1495,7 @@ def render_valuacion_manual(prop, res):
             for i, p in enumerate(props):
                 if p.get('nombre') == nombre:
                     uv = p.setdefault('_ultima_valuacion', {})
+                    uv['valor_usd'] = resultado_manual['valor_propiedad_usd']
                     uv['fuente'] = 'manual'
                     uv['fuente_activa'] = 'manual'
                     uv['manual_params'] = manual_params

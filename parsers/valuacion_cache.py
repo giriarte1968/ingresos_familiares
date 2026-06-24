@@ -181,6 +181,11 @@ def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict, c
                                 '_comp_excluded': new_excluded,
                                 '_comp_exclusion_applied': old_uv.get('_comp_exclusion_applied', False) if new_excluded else resultado.get('_comp_exclusion_applied', False),
                             }
+                            if old_uv.get('manual_params'):
+                                p['_ultima_valuacion']['valor_usd'] = old_uv.get('valor_usd', p['_ultima_valuacion']['valor_usd'])
+                                p['_ultima_valuacion']['fuente'] = old_uv.get('fuente', 'manual')
+                                p['_ultima_valuacion']['fuente_activa'] = old_uv.get('fuente_activa', 'manual')
+                                p['_ultima_valuacion']['manual_params'] = old_uv.get('manual_params')
                             break
 
                     atomic_write_json(PROPIEDADES_PATH, props_data)

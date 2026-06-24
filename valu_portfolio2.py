@@ -263,6 +263,11 @@ def _cargar_resultados_cache(propiedades: list[dict[str, Any]]) -> tuple[dict[st
                     # Cache oficial (no preview)
                     resultados[nombre] = resultado
                     processed = True
+                    # Si hay valuacion manual activa, usar su valor en vez del auto cacheado
+                    if ultima and ultima.get('fuente_activa') == 'manual' and ultima.get('manual_params'):
+                        manual_valor = ultima.get('valor_usd', 0)
+                        if manual_valor > 0:
+                            resultados[nombre]['valor_propiedad_usd'] = manual_valor
                     if resultado.get("error"):
                         estados[nombre] = {
                             "estado": "error",
