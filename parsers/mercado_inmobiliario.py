@@ -1167,6 +1167,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                     'zona': p.get('zona'),
                     'tipo': p.get('tipo'),
                     'anio_estimado': p.get('anio_estimado'),
+                    'date_created': p.get('date_created', ''),
                     'distancia_m': round(calcular_distancia_km(lat_ref, lon_ref, float(p['lat']), float(p['lon'])) * 1000, 0) if lat_ref and lon_ref and p.get('lat') and p.get('lon') else None,
                 }
                 for p in props
@@ -1326,6 +1327,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 'zona': p.get('zona'),
                 'tipo': p.get('tipo'),
                 'anio_estimado': p.get('anio_estimado'),
+                'date_created': p.get('date_created', ''),
                 'distancia_m': round(calcular_distancia_km(lat_ref, lon_ref, float(p['lat']), float(p['lon'])) * 1000, 0) if lat_ref and lon_ref and p.get('lat') and p.get('lon') else None,
             }
             for p in pool_final[:60 if retro_dias > 0 else 30]
