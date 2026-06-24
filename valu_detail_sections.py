@@ -281,10 +281,6 @@ def render_tabla_comparables(res, prop_name=None):
         prop_name = 'default'
     if res.get('retro_activo'):
         st.caption(f"🔙 Retro activo: ventana de {res.get('total_dias_ventana', 180)} días")
-    flex_dormitorios = res.get('flex_dormitorios', None)
-    sujeto_dorms = res.get('sujeto_dormitorios', None)
-    if flex_dormitorios and sujeto_dorms is not None:
-        st.caption(f"🔍 Retro: incluye {flex_dormitorios} dorm. (sujeto: {sujeto_dorms})")
     comparables = res.get('comparables_venta', [])
     if not comparables:
         st.caption("Sin comparables disponibles")
@@ -314,8 +310,8 @@ def render_tabla_comparables(res, prop_name=None):
                     st.rerun()
 
     # Cabecera de la tabla
-    hdr = st.columns([0.4, 0.5, 1.5, 0.8, 1.5, 0.6, 1, 2, 0.7, 0.6])
-    hdr_labels = ['', '#', 'Precio USD', 'm²', 'Precio/m²', 'Dorm', 'Tipo', 'Dirección', 'Año', 'Dist']
+    hdr = st.columns([0.4, 0.5, 1.5, 0.8, 1.5, 0.6, 0.9, 2, 0.7, 0.6])
+    hdr_labels = ['', '#', 'Precio USD', 'm²', 'Precio/m²', 'Dorm', 'Publicado', 'Dirección', 'Año', 'Dist']
     for col, label in zip(hdr, hdr_labels):
         col.markdown(f"**{label}**")
 
@@ -342,7 +338,7 @@ def render_tabla_comparables(res, prop_name=None):
     selected_ids = set()
     for i, c in enumerate(comparables):
         comp_id = comp_ids[i]
-        cols = st.columns([0.4, 0.5, 1.5, 0.8, 1.5, 0.6, 1, 2, 0.7, 0.6])
+        cols = st.columns([0.4, 0.5, 1.5, 0.8, 1.5, 0.6, 0.9, 2, 0.7, 0.6])
         
         # Sincronizar checkbox con stored_sel antes de crear widget
         chk_key = f'sel_comp_{prop_name}_{comp_id}'
@@ -367,14 +363,12 @@ def render_tabla_comparables(res, prop_name=None):
         badges = ""
         if ta != 1.0:
             badges += " <span style='background:#ff6b35;color:white;font-size:9px;padding:1px 4px;border-radius:6px;font-weight:bold;'>RETRO</span>"
-        if flex_dormitorios and sujeto_dorms is not None and c.get('dormitorios') != sujeto_dorms:
-            badges += " <span style='background:#9b59b6;color:white;font-size:9px;padding:1px 4px;border-radius:6px;font-weight:bold;'>FLEX</span>"
         if badges:
             cols[4].markdown(f"<span style='font-weight:bold'>${vm2_ajust:,.0f}</span>{badges}", unsafe_allow_html=True)
         else:
             cols[4].markdown(f"<span style='color:#2ecc71;font-weight:bold'>${vm2_orig:,.0f}</span>", unsafe_allow_html=True)
         cols[5].write(str(c.get('dormitorios', '?')))
-        cols[6].write(str((c.get('tipo') or '')[:12]) if c.get('tipo') else '')
+        cols[6].write(str((c.get('date_created') or '')[:10]) if c.get('date_created') else '')
         cols[7].write(((c.get('direccion_limpia') or c.get('direccion','')) or '')[:35])
         cols[8].write(str(c.get('anio_estimado', '')) if c.get('anio_estimado') else '')
         cols[9].write(f"{c.get('distancia_m', 0):.0f}m" if c.get('distancia_m') else '')
