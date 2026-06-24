@@ -248,11 +248,21 @@ def mostrar_dashboard_valu(propiedades, resultados):
 
 
 def mostrar_detalle_valu(prop, res, guardar_fn):
-    insuficientes = res.get('error') == 'insuficientes_comparables'
+    # Determinar si hay valuación manual paralela y qué fuente mostrar
+    auto_result = res.get('_auto_result', res)
+    manual_result = res.get('_manual_result')
+    fuente_activa = res.get('_fuente_activa', 'auto')
+
+    if fuente_activa == 'manual' and manual_result:
+        display_result = manual_result
+    else:
+        display_result = auto_result
+
+    insuficientes = auto_result.get('error') == 'insuficientes_comparables'
 
     nombre = prop.get('nombre', '')
-    dolar = res.get('usdt_ars', 1480)
-    valor_usd = res.get('valor_propiedad_usd', 0)
+    dolar = display_result.get('usdt_ars', 1480)
+    valor_usd = display_result.get('valor_propiedad_usd', 0)
 
     _dl = StepLedger("mostrar_detalle_valu_ledger", nombre)
     _dl.mark("start")
@@ -275,7 +285,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     st.markdown("<br>", unsafe_allow_html=True)
     if valor_usd > 0:
         with profile_block("render_rango", prop):
-            render_rango(res, valor_usd)
+            render_rango(display_result, valor_usd)
         _dl.mark("after_render_rango")
         st.markdown("<br>", unsafe_allow_html=True)
 
@@ -289,7 +299,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
 
     if valor_usd > 0:
         with profile_block("render_metricas", prop):
-            render_metricas(prop, res, valor_usd, dolar)
+            render_metricas(prop, display_result, valor_usd, dolar)
         _dl.mark("after_render_metricas")
         st.markdown("<br>", unsafe_allow_html=True)
 
@@ -375,7 +385,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     # ─── ⚡ Acciones ───
     with st.expander(f"⚡ Acciones — {prop_name}", expanded=False):
         with profile_block("generar_reporte_pdf", prop):
-            pdf_bytes = generar_reporte_pdf(prop, res)
+            pdf_bytes = generar_reporte_pdf(prop, display_result, auto_result=auto_result)
 
         col1, col2, col3 = st.columns(3)
         with col1:
@@ -575,17 +585,30 @@ def mostrar_dashboard():
                     resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios, preview=preview_mode, manual_data=st.session_state.get(f'manual_preview_{prop_name}', None))
                     _sl.mark("after_valuar_con_cache")
 
-                    # Override con valuación manual si está persistida
+                    # ── Valuación manual paralela (siempre computada, nunca sobreescribe) ──
                     uv = p_obj.get('_ultima_valuacion', {})
-                    if uv.get('fuente') == 'manual' and uv.get('manual_params'):
-                        from parsers.mercado_inmobiliario import generar_resultado_manual
-                        manual_result = generar_resultado_manual(p_obj, uv['manual_params'])
-                        # Preservar comparables y retro del resultado original
-                        manual_result['comparables_venta'] = resultado.get('comparables_venta', [])
-                        manual_result['retro_activo'] = resultado.get('retro_activo', False)
-                        manual_result['total_dias_ventana'] = resultado.get('total_dias_ventana', 180)
-                        resultado = manual_result
-                    _sl.mark("after_manual_override")
+                    manual_params_saved = uv.get('manual_params')
+                    resultado_manual = None
+                    if manual_params_saved:
+                        try:
+                            from parsers.mercado_inmobiliario import generar_resultado_manual
+                            resultado_manual = generar_resultado_manual(p_obj, manual_params_saved, auto_result=resultado)
+                        except Exception as e:
+                            logger.error(f"[MANUAL] Error generando resultado manual para {prop_name}: {e}")
+                            resultado_manual = None
+                    _sl.mark("after_manual_parallel")
+
+                    # Determinar fuente activa (default 'auto' si no hay manual)
+                    fuente_activa = uv.get('fuente_activa', 'auto')
+                    if not manual_params_saved:
+                        fuente_activa = 'auto'
+
+                    # Inyectar datos paralelos para que la UI elija qué mostrar
+                    resultado['_auto_result'] = resultado
+                    resultado['_manual_result'] = resultado_manual
+                    resultado['_manual_params'] = manual_params_saved
+                    resultado['_fuente_activa'] = fuente_activa
+                    _sl.mark("after_inject_parallel")
 
                     # ── Aplicar exclusión de comparables seleccionada por el usuario ──
                     comp_excluded_key = f'comp_excluded_{prop_name}'

@@ -1,6 +1,18 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-06-24 — TAREA-080: UI columna Tipo → Publicado + eliminar tag FLEX
+
+### Cambios
+1. **`parsers/mercado_inmobiliario.py`**: Agregado `'date_created': p.get('date_created', '')` a `comparables_reales` en ambos sitios (early return línea ~1155, main path línea ~1314)
+2. **`valu_detail_sections.py`**:
+   - Reemplazada columna "Tipo" por "Publicado" (muestra `date_created` YYYY-MM-DD)
+   - Eliminado caption y badge FLEX (dormitorios flexibles)
+   - Ajustado ancho de columna de 1.0 → 0.9
+
+### Tests: 32/32 OK
+### Commits: `43a5748` (engine), `c4f7259` (UI)
+
 Este documento es el "diario de trabajo". Cada agente de IA que trabaje en este proyecto debe registrar aquí el progreso para que el siguiente sepa exactamente dónde retomar.
 
 ## 2026-06-20 — TAREA-076: Eliminar depreciación de Subfactores Display + Documentar evidencia ML
@@ -2914,5 +2926,19 @@ El return #3 retornaba `(0.0, len(precios), meta)` sin `_m2_puro` y sin `insufic
 ### Files modificados
 - `parsers/mercado_inmobiliario.py`: Agregado `_m2_puro_n3` al meta del return n<3
 - `valu_detail_sections.py`: Simplificación — ~45 líneas → 4 líneas
+
+### Tests: 32/32 regression OK
+
+## 2026-06-24 — TAREA-081: Rediseño layout render_valuacion_manual (3 bloques)
+
+### Cambios
+1. **`valu_detail_sections.py`**: Reemplazado `render_valuacion_manual` completo con diseño de 3 bloques:
+   - **Bloque 1 — Configuracion** (`st.container(border=True)`): Ancla, USD/m2, FH, Incertidumbre, Ajuste %, Size Adj, Constructora, Activos, Subfactores de Referencia
+   - **Bloque 2 — Preview Calculator** (custom HTML profesional): valor final, rango, badge de divergencia con color (verde/amarillo/rojo), desglose completo con m2 eq, USD/m2, size_adj, FH, constructora, ajuste %, activos
+   - **Bloque 3 — Accion**: motivo textarea con validacion + boton guardar/eliminar
+2. **`valu_detail_sections.py`**: Agregado `size_adj` en preview computation — ahora coincide con `generar_resultado_manual` (usa `calcular_size_adjustment`)
+3. **`valu_detail_sections.py`**: Agregado campo `ajuste_pct` (Ajuste porcentual) al formulario
+4. **`valu_detail_sections.py`**: Preview ahora incluye el paso `(1 + ajuste_pct/100)` igual que el motor
+5. **`valu.py`**: Corregida indentacion en bloque de valuacion manual paralela (SyntaxError fix)
 
 ### Tests: 32/32 regression OK
