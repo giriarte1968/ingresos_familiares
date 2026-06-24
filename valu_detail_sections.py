@@ -8,8 +8,6 @@ import pandas as pd
 import json, os
 from datetime import datetime
 from valu_design import kpi_card, metric_card, hero_price, range_bar, insights_card, property_card
-from parsers.mercado_inmobiliario import _calcular_mediana
-from parsers.cluster_filters import seleccionar_percentil_por_calidad_pool
 from streamlit.components.v1 import html
 
 
@@ -382,58 +380,19 @@ def render_tabla_comparables(res, prop_name=None):
     # Guardar selección actual
     st.session_state[sel_key] = selected_ids
 
-    # Recálculo automático P33/P50 desde los seleccionados
+    # Mostrar m² base del motor (mismo valor que header)
     if selected_ids:
-        selected_comps = [c for c in comparables if _get_comp_id(c) in selected_ids]
-        precios = [c.get('precio_m2', 0) * c.get('time_adjustment', 1.0) for c in selected_comps]
-        precios_sorted = sorted(precios)
-        n_sel = len(precios_sorted)
-        
-        # Comparamos los IDs excluidos actuales con los guardados en el resultado
+        n_sel = len(selected_ids)
         all_ids = [_get_comp_id(c) for c in comparables]
         excluded_ids = [cid for cid in all_ids if cid not in selected_ids]
         is_applied = set(res.get('_comp_excluded', [])) == set(excluded_ids) and res.get('_comp_exclusion_applied', False)
-
-        meta = res.get('resolution_metadata', {})
-        _cv_approx = meta.get('cv_pool', 0.25)
-
-        # n<3: usar MEDIA (coincide con motor que usa _calcular_mediana para n<3)
-        if n_sel < 3:
-            p33_p50 = _calcular_mediana(precios_sorted)
-            label_short = 'MEDIA'
-        else:
-            percentil, label = seleccionar_percentil_por_calidad_pool(n_sel, _cv_approx)
-            if percentil == 50:
-                p33_p50 = _calcular_mediana(precios_sorted)
-                label_short = 'P50'
-            elif percentil == 45:
-                p33_p50 = precios_sorted[max(0, int(n_sel * 0.45) - 1)]
-                label_short = 'P45'
-            elif percentil == 40:
-                p33_p50 = precios_sorted[max(0, int(n_sel * 0.40) - 1)]
-                label_short = 'P40'
-            else:
-                p33_p50 = precios_sorted[max(0, int(n_sel * 0.33) - 1)]
-                label_short = 'P33'
-
-        # Si todos seleccionados, usar el m² puro del motor (sin barrera) en vez de simple P33
-        raw_promedio = _calcular_mediana(precios_sorted)
-        _m2_puro_val = meta.get('_m2_puro') if not excluded_ids else None
-        if _m2_puro_val is not None:
-            p33_p50 = _m2_puro_val
+        m2_base = res.get('m2_base_venta', 0)
 
         col_a, col_b, col_c = st.columns([1, 2, 1.2])
         with col_a:
-            original_puro = res.get('_original_m2_puro')
-            if original_puro is None:
-                original_puro = res.get('resolution_metadata', {}).get('_m2_puro') or 0
-            st.metric("Valor/m² por selección", f"${p33_p50:,.0f}",
-                      delta=f"{'${:,.0f}'.format(p33_p50 - original_puro)} vs original")
+            st.metric("Valor/m² por selección", f"${m2_base:,.0f}")
         with col_b:
-            st.caption(f"{label_short} sobre {n_sel} comps seleccionados de {len(comparables)} totales")
-            if _m2_puro_val is not None and raw_promedio != p33_p50:
-                size_factor = p33_p50 / raw_promedio if raw_promedio else 1
-                st.caption(f"⚖️ Ajustado por tamaño: ${raw_promedio:,.0f} → ${p33_p50:,.0f} (x{size_factor:.2f})")
+            st.caption(f"Valor del motor • {n_sel} comps seleccionados de {len(comparables)} totales")
         with col_c:
             # Botón para re-valuar usando solo los comparables seleccionados
             excluded = [cid for cid in all_ids if cid not in selected_ids]

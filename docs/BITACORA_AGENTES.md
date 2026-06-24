@@ -2909,8 +2909,10 @@ El return #3 retornaba `(0.0, len(precios), meta)` sin `_m2_puro` y sin `insufic
 ### Cambios
 1. `parsers/mercado_inmobiliario.py:1349`: Computar `_m2_puro_n3 = total_precio / total_m2` desde `pool_final` en el early return n<3.
 2. `parsers/valuacion_helpers.py:225-226`: `ensamblar_metadata_resolucion` ya incluye `_m2_puro` y `size_adj_factor` (commit anterior).
+3. `valu_detail_sections.py`: Eliminado cálculo independiente P33/P50. "Valor/m² por selección" usa `m2_base_venta` del motor.
 
 ### Files modificados
 - `parsers/mercado_inmobiliario.py`: Agregado `_m2_puro_n3` al meta del return n<3
+- `valu_detail_sections.py`: Simplificación — ~45 líneas → 4 líneas
 
 ### Tests: 32/32 regression OK
