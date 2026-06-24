@@ -1190,7 +1190,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 'retro_activo': bool(retro_dias),
                 'total_dias_ventana': get_natural_window_dias() + retro_dias * 30,
                 'debug': f'Solo {n_available} comparables encontrados. '
-                          'Se requiere mínimo 2 para valuación automática.',
+                          'Se requiere mínimo 2 para valuación por comparables.',
                 '_m2_puro': _m2_puro_early,
             }
 
@@ -3874,10 +3874,12 @@ def _calcular_sub_factors_breakdown(prop):
         'detalle_otros': fd.get('detalle_otros', ''),
     }
 
-def generar_resultado_manual(prop, manual_params):
+def generar_resultado_manual(prop, manual_params, auto_result=None):
     """
     Genera resultado de valuacion completo a partir de parametros manuales.
     Estructura compatible con valuar_propiedad_v7() para UI.
+    Si auto_result se provee, copia comparables, mapa y retro para preservar
+    el contexto de mercado en la UI.
     """
     from parsers.motor_vpp_core import get_binance_usdt_ars
     usdt_ars = get_binance_usdt_ars()
@@ -3973,13 +3975,15 @@ def generar_resultado_manual(prop, manual_params):
         'confianza': 'media',
         'justificacion': 'Valuacion manual — parametros especificados por el analista.',
         'razonamiento': 'Valuacion manual — parametros especificados por el analista.',
-        'comparables_venta': [],
-        'mapa_html': None,
-        'catastro_detalle': None,
+        'comparables_venta': (auto_result or {}).get('comparables_venta', []),
+        'mapa_html': (auto_result or {}).get('mapa_html'),
+        'catastro_detalle': (auto_result or {}).get('catastro_detalle'),
         'fuente': 'manual',
         'manual_params': manual_params,
+        'retro_activo': (auto_result or {}).get('retro_activo', False),
+        'total_dias_ventana': (auto_result or {}).get('total_dias_ventana', 180),
         'resolution_metadata': {
-            'n_propiedades': 0,
+            'n_propiedades': (auto_result or {}).get('resolution_metadata', {}).get('n_propiedades', 0),
             'fuente': 'manual',
             'zona': prop.get('zona', ''),
         },

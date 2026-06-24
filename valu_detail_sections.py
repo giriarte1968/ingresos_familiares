@@ -36,7 +36,7 @@ def _limpiar_estado_propiedad_local(nombre: str) -> None:
 def render_actions(prop, guardar_fn):
     """Barra de acciones: Volver, Editar, Limpiar, Eliminar."""
     nombre = prop.get('nombre', '')
-    col_back, col_edit, col_clean, col_delete = st.columns([1.5, 1, 1.5, 1])
+    col_back, col_edit, col_delete = st.columns([1.5, 1, 1.5])
     with col_back:
         if st.button("← Volver al Portafolio", type="primary", use_container_width=True):
             _limpiar_estado_propiedad_local(nombre)
@@ -48,10 +48,6 @@ def render_actions(prop, guardar_fn):
     with col_edit:
         if st.button("Editar", type="primary", use_container_width=True):
             st.session_state[f"edit_{prop['id']}"] = True
-    with col_clean:
-        if st.button("🗑️ Limpiar Valuación", type="secondary", use_container_width=True):
-            st.session_state[f"clean_valuacion_{nombre}"] = True
-            st.rerun()
     with col_delete:
         if st.button("Eliminar", type="primary", use_container_width=True):
             st.session_state[f"delete_confirm_{prop['id']}"] = True
@@ -193,7 +189,7 @@ def render_header(prop, res):
     pill_key = f'fuente_activa_{nombre}'
     col_toggle = st.columns([1, 1, 4])
     with col_toggle[0]:
-        if st.button("● Automática", type="primary" if not es_manual else "secondary",
+        if st.button("● Por Comparables", type="primary" if not es_manual else "secondary",
                      use_container_width=True, disabled=not tiene_auto,
                      key=f"{pill_key}_auto"):
             _set_fuente_activa(nombre, 'auto')
@@ -211,7 +207,7 @@ def render_header(prop, res):
         color = "#DC2626" if abs(delta_pct) > 20 else "#D97706"
         st.markdown(
             f"<span style='color:{color};font-size:13px;font-weight:600;'>"
-            f"{severity} Tu valuación manual difiere {abs(delta_pct):.0f}% del motor automático."
+            f"{severity} Tu valuación manual difiere {abs(delta_pct):.0f}% del motor por comparables."
             f"</span>",
             unsafe_allow_html=True
         )
@@ -222,12 +218,12 @@ def render_header(prop, res):
 
     # ─── Hero card ───
     c_h1, c_h2 = st.columns([3, 2])
+    # Label de fuente activa
+    fuente_label = "MANUAL" if es_manual else "POR COMPARABLES"
+    fuente_color = "#7C3AED" if es_manual else "#16A34A"
+    fuente_badge_color = "#7C3AED15" if es_manual else "#16A34A15"
     with c_h1:
-        # Badge de fuente activa
-        if es_manual:
-            fuente_badge = "<span class='badge' style='background:#7C3AED15;color:#7C3AED;margin-left:5px;'>MANUAL</span>"
-        else:
-            fuente_badge = "<span class='badge' style='background:#16A34A15;color:#16A34A;margin-left:5px;'>AUTOMÁTICA</span>"
+        fuente_badge = f"<span class='badge' style='background:{fuente_badge_color};color:{fuente_color};margin-left:5px;'>{fuente_label}</span>"
 
         dot = '#16A34A' if n_comps >= 15 else '#F59E0B' if n_comps >= 8 else '#DC2626'
         conf = 'Alta confianza' if n_comps >= 15 else 'Confianza media' if n_comps >= 8 else 'Confianza baja'
@@ -248,18 +244,19 @@ def render_header(prop, res):
             </div>
         </div>
         """, unsafe_allow_html=True)
+    fuente_subtitle = "VALUACIÓN MANUAL" if es_manual else "VALUACIÓN POR COMPARABLES"
     with c_h2:
         if m2_base == 0:
             st.markdown("""
             <div style="background:#F4F6FB;border-radius:16px;padding:28px;text-align:center;height:100%;display:flex;flex-direction:column;justify-content:center;font-family:'Inter',sans-serif;">
-                <div style="font-size:14px;color:#6B7280;margin-bottom:8px;">VALUACIÓN VPP</div>
+                <div style="font-size:14px;color:#6B7280;margin-bottom:8px;">""" + fuente_subtitle + """</div>
                 <div style="font-size:24px;font-weight:700;color:#9CA3AF;">Sin selección</div>
                 <div style="font-size:13px;color:#9CA3AF;margin-top:8px;">Seleccioná al menos 2 comparables</div>
             </div>
             """, unsafe_allow_html=True)
         else:
             st.markdown(hero_price(valor_usd, valor_usd*dolar, dolar, m2_base, n_comps, zona,
-                                  m2_puro=m2_puro, barrier_pct=barrier_pct), unsafe_allow_html=True)
+                                  m2_puro=m2_puro, barrier_pct=barrier_pct, fuente_label=fuente_subtitle), unsafe_allow_html=True)
 
 
 def render_rango(res, valor_usd):
@@ -1109,7 +1106,7 @@ def render_valuacion_manual(prop, res):
             f"{motor_m2_eq:.0f} m² eq."
         )
     else:
-        st.caption("Motor sin suficientes comparables automaticos. Defini los parametros manualmente.")
+        st.caption("Motor sin suficientes comparables. Defini los parametros manualmente.")
 
     # ─── Carga de anclas ───
     anclas = cargar_anclas()
@@ -1266,47 +1263,44 @@ def render_valuacion_manual(prop, res):
                 key=f"manual_inc_{nombre}",
             )
 
-        # Fila 3: Ajuste % + Size Adj
-        col_e, col_f = st.columns(2)
-        with col_e:
-            ajuste_pct = st.number_input(
-                "Ajuste porcentual (%)",
-                min_value=-50.0, max_value=100.0,
-                value=float(saved.get('ajuste_pct', 0.0)),
-                step=1.0, format="%.1f",
-                key=f"manual_aj_{nombre}",
-            )
+        # Fila 3: Ajuste %
+        ajuste_pct = st.number_input(
+            "Ajuste porcentual (%)",
+            min_value=-50.0, max_value=100.0,
+            value=float(saved.get('ajuste_pct', 0.0)),
+            step=1.0, format="%.1f",
+            key=f"manual_aj_{nombre}",
+        )
+
+        # Fila 4: checkboxes lado a lado
+        col_f, col_g = st.columns(2)
         with col_f:
             saved['incluir_size_adj'] = st.checkbox(
                 f"Incluir ajuste por tamano ({_mz_name})",
                 value=saved.get('incluir_size_adj', True),
                 key=f"manual_incluir_size_{nombre}",
             )
-
-        # Constructora
-        if constr_label:
-            saved['incluir_prima_const'] = st.checkbox(
-                f"Incluir prima de constructora ({constr_label})",
-                value=saved.get('incluir_prima_const', True),
-                key=f"manual_incluir_const_{nombre}",
-            )
+        with col_g:
+            if constr_label:
+                saved['incluir_prima_const'] = st.checkbox(
+                    f"Incluir prima de constructora ({constr_label})",
+                    value=saved.get('incluir_prima_const', True),
+                    key=f"manual_incluir_const_{nombre}",
+                )
 
         # Activos (solo lectura)
         st.markdown("##### Activos adicionales")
-        activos_detalle = []
         if cant_cocheras > 0:
             coef_tipo_act = {'cubierta': 1.0, 'semicubierta': 0.7, 'descubierta': 0.4}.get(tipo_cochera, 1.0)
             vbc = prop.get('valor_cochera_base', usd_m2_input * 12)
             for i in range(1, cant_cocheras + 1):
                 fu = 1.0 if i == 1 else 0.7 if i == 2 else 0.5
                 v = vbc * coef_tipo_act * fu
-                activos_detalle.append(f"Cochera {i}: ${v:,.0f} (utilidad {fu*100:.0f}%)")
+                st.markdown(f"&nbsp;&nbsp;Cochera {i}: **${v:,.0f} USD** (utilidad {fu*100:.0f}%)")
         if valor_baulera > 0:
-            activos_detalle.append(f"Baulera: ${valor_baulera:,.0f}")
-        if not activos_detalle:
-            activos_detalle.append("Sin activos adicionales (cocheras / baulera)")
-        for det in activos_detalle:
-            st.caption(det)
+            st.markdown(f"&nbsp;&nbsp;Baulera: **${valor_baulera:,.0f} USD**")
+        if cant_cocheras == 0 and valor_baulera == 0:
+            st.markdown("&nbsp;&nbsp;Sin activos adicionales (cocheras / baulera)")
 
         # Subfactores de Referencia (display only)
         try:
@@ -1418,17 +1412,17 @@ def render_valuacion_manual(prop, res):
         </div>
       </div>
       <hr style="margin:14px 0;border:none;border-top:1px solid #d1d5db;">
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px 16px;font-size:13px;">
-        <div><span style="color:#333333;">m² eq.:</span> {m2_eq:,.0f}</div>
-        <div><span style="color:#333333;">USD/m²:</span> ${usd_m2_input:,.0f}</div>
-        <div><span style="color:#333333;">Size adj.:</span> {size_adj_str}</div>
-        <div><span style="color:#333333;">FH:</span> {fh_eff:.4f}</div>
-        <div><span style="color:#333333;">Constructora:</span> {constr_pct_str}</div>
-        <div><span style="color:#333333;">Ajuste %:</span> {ajuste_pct:+.1f}%</div>
-        <div><span style="color:#333333;">Incertidumbre:</span> ±{inc:.0f}%</div>
-        <div><span style="color:#333333;">Activos:</span> ${pre_act:,.0f}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px 16px;font-size:13px;color:#333333;">
+        <div><span style="color:#000000;font-weight:600;">m² eq.:</span> {m2_eq:,.0f}</div>
+        <div><span style="color:#000000;font-weight:600;">USD/m²:</span> ${usd_m2_input:,.0f}</div>
+        <div><span style="color:#000000;font-weight:600;">Size adj.:</span> {size_adj_str}</div>
+        <div><span style="color:#000000;font-weight:600;">FH:</span> {fh_eff:.4f}</div>
+        <div><span style="color:#000000;font-weight:600;">Constructora:</span> {constr_pct_str}</div>
+        <div><span style="color:#000000;font-weight:600;">Ajuste %:</span> {ajuste_pct:+.1f}%</div>
+        <div><span style="color:#000000;font-weight:600;">Incertidumbre:</span> ±{inc:.0f}%</div>
+        <div><span style="color:#000000;font-weight:600;">Activos:</span> ${pre_act:,.0f}</div>
       </div>
-      <div style="color:#666666;font-size:11px;margin-top:10px;padding-top:10px;border-top:1px solid #d1d5db;">
+      <div style="color:#333333;font-size:11px;margin-top:10px;padding-top:10px;border-top:1px solid #d1d5db;">
         m2_eq x USD/m2 x size_adj x FH x constr + activos x (1 + ajuste)
       </div>
     </div>

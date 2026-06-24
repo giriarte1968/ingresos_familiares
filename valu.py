@@ -357,6 +357,11 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                 render_mapa_propiedad(res)
         _dl.mark("after_render_mapa")
 
+        st.markdown("---")
+        if st.button("🗑️ Limpiar Valuacion", type="secondary", use_container_width=True, key=f"cln_{prop_name}"):
+            st.session_state[f"clean_valuacion_{prop_name}"] = True
+            st.rerun()
+
         comparables = res.get('comparables_venta', [])
         n_comps = len(comparables)
         with st.expander(f"Detalle de Comparables — {prop_name}", expanded=False):
