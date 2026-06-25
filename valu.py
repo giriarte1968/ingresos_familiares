@@ -654,7 +654,18 @@ def mostrar_dashboard():
                     else:
                         excluded_ids = None
                         from_apply = False
-                        if comp_excluded_key in st.session_state:
+
+                        reset_key = f'_reset_all_{prop_name}'
+                        if st.session_state.pop(reset_key, False):
+                            try:
+                                from parsers.valuacion_cache import cargar_cache_valuaciones, persistir_valuacion
+                                _cv = cargar_cache_valuaciones()
+                                persistir_valuacion(prop_name, p_obj, resultado, _cv, commit=True)
+                                logger.info(f"[RESET] {prop_name}: Exclusión limpiada y persistida")
+                            except Exception as e:
+                                logger.warning(f"[RESET] {prop_name}: persist error: {e}")
+                                st.session_state[f'forzar_recalculo_{prop_name}'] = True
+                        elif comp_excluded_key in st.session_state:
                             excluded_ids = st.session_state.pop(comp_excluded_key)
                             from_apply = True
                         else:
