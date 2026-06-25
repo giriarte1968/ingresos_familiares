@@ -23,7 +23,7 @@ def _limpiar_estado_propiedad_local(nombre: str) -> None:
         'infomapa_catastro_', 'ph_sel_', 'comp1_', 'comp2_',
         'manual_ancla_', 'manual_usd_m2_', 'manual_fh_',
         'manual_aj_', 'manual_inc_', 'clean_valuacion_',
-        'comp_interacted_',
+        'clean_comparables_', 'comp_interacted_',
     ]
     for p in _PREFIJOS:
         st.session_state.pop(f'{p}{nombre}', None)
@@ -36,7 +36,7 @@ def _limpiar_estado_propiedad_local(nombre: str) -> None:
 def render_actions(prop, guardar_fn):
     """Barra de acciones: Volver, Editar, Limpiar, Eliminar."""
     nombre = prop.get('nombre', '')
-    col_back, col_edit, col_delete = st.columns([1.5, 1, 1.5])
+    col_back, col_edit, col_clean, col_delete = st.columns([1.5, 1, 1.5, 1])
     with col_back:
         if st.button("← Volver al Portafolio", type="primary", use_container_width=True):
             _limpiar_estado_propiedad_local(nombre)
@@ -48,6 +48,10 @@ def render_actions(prop, guardar_fn):
     with col_edit:
         if st.button("Editar", type="primary", use_container_width=True):
             st.session_state[f"edit_{prop['id']}"] = True
+    with col_clean:
+        if st.button("🗑️ Limpiar Valuación", type="secondary", use_container_width=True):
+            st.session_state[f"clean_valuacion_{nombre}"] = True
+            st.rerun()
     with col_delete:
         if st.button("Eliminar", type="primary", use_container_width=True):
             st.session_state[f"delete_confirm_{prop['id']}"] = True

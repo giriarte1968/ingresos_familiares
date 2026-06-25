@@ -77,7 +77,7 @@ def _limpiar_estado_propiedad(nombre: str) -> None:
         'infomapa_catastro_', 'ph_sel_', 'comp1_', 'comp2_',
         'manual_ancla_', 'manual_usd_m2_', 'manual_fh_',
         'manual_aj_', 'manual_inc_', 'clean_valuacion_',
-        'comp_interacted_',
+        'clean_comparables_', 'comp_interacted_',
     ]
     for p in _PREFIJOS:
         st.session_state.pop(f'{p}{nombre}', None)
@@ -358,8 +358,8 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         _dl.mark("after_render_mapa")
 
         st.markdown("---")
-        if st.button("🗑️ Limpiar Valuacion", type="secondary", use_container_width=True, key=f"cln_{prop_name}"):
-            st.session_state[f"clean_valuacion_{prop_name}"] = True
+        if st.button("🔄 Limpiar Comparables", type="secondary", use_container_width=True, key=f"cln_comps_{prop_name}"):
+            st.session_state[f"clean_comparables_{prop_name}"] = True
             st.rerun()
 
         comparables = res.get('comparables_venta', [])
@@ -475,6 +475,37 @@ def mostrar_dashboard():
                 st.session_state['_force_nav_page'] = 'Portfolio'
                 if 'prop' in st.query_params:
                     st.query_params.clear()
+                st.rerun()
+
+            # Limpiar solo comparables: borra cache, conserva manual si existe
+            if st.session_state.pop(f"clean_comparables_{prop_name}", False):
+                try:
+                    from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
+                    cache_v = cargar_cache_valuaciones()
+                    cache_v.pop(prop_name, None)
+                    guardar_cache_valuaciones(cache_v)
+                    props = cargar_propiedades()
+                    for p in props:
+                        if p.get('nombre') == prop_name:
+                            uv = p.get('_ultima_valuacion', {})
+                            if uv.get('manual_params'):
+                                uv['fuente'] = 'manual'
+                                uv['fuente_activa'] = 'manual'
+                            else:
+                                p.pop('_ultima_valuacion', None)
+                            break
+                    guardar_propiedades(props)
+                except Exception as e:
+                    print(f"Error limpiando comparables: {e}")
+                st.session_state.pop(f'preview_mode_{prop_name}', None)
+                st.session_state.pop(f'retro_active_{prop_name}', None)
+                st.session_state.pop(f'flex_active_{prop_name}', None)
+                st.session_state.pop(f'comp_excluded_{prop_name}', None)
+                st.session_state.pop(f'comp_selection_{prop_name}', None)
+                st.session_state.pop(f'retro_meses_{prop_name}', None)
+                st.session_state.pop(f'retro_meses_slider_{prop_name}', None)
+                st.session_state.pop(f'retro_btn_{prop_name}', None)
+                st.session_state.pop(f'flex_btn_{prop_name}', None)
                 st.rerun()
 
             # Mezclar datos de previsualización manual si existen
