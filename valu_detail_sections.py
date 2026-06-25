@@ -1289,40 +1289,40 @@ def render_valuacion_manual(prop, res):
                 )
 
         # Activos (solo lectura)
-        st.markdown("##### Activos adicionales")
-        if cant_cocheras > 0:
-            coef_tipo_act = {'cubierta': 1.0, 'semicubierta': 0.7, 'descubierta': 0.4}.get(tipo_cochera, 1.0)
-            vbc = prop.get('valor_cochera_base', usd_m2_input * 12)
-            for i in range(1, cant_cocheras + 1):
-                fu = 1.0 if i == 1 else 0.7 if i == 2 else 0.5
-                v = vbc * coef_tipo_act * fu
-                st.markdown(f"&nbsp;&nbsp;Cochera {i}: **${v:,.0f} USD** (utilidad {fu*100:.0f}%)")
-        if valor_baulera > 0:
-            st.markdown(f"&nbsp;&nbsp;Baulera: **${valor_baulera:,.0f} USD**")
-        if cant_cocheras == 0 and valor_baulera == 0:
-            st.markdown("&nbsp;&nbsp;Sin activos adicionales (cocheras / baulera)")
+        with st.container(border=True):
+            st.markdown("**Activos adicionales**")
+            if cant_cocheras > 0:
+                coef_tipo_act = {'cubierta': 1.0, 'semicubierta': 0.7, 'descubierta': 0.4}.get(tipo_cochera, 1.0)
+                vbc = prop.get('valor_cochera_base', usd_m2_input * 12)
+                for i in range(1, cant_cocheras + 1):
+                    fu = 1.0 if i == 1 else 0.7 if i == 2 else 0.5
+                    v = vbc * coef_tipo_act * fu
+                    st.markdown(f"Cochera {i}: ${v:,.0f} USD (utilidad {fu*100:.0f}%)")
+            if valor_baulera > 0:
+                st.markdown(f"Baulera: ${valor_baulera:,.0f} USD")
+            if cant_cocheras == 0 and valor_baulera == 0:
+                st.markdown("Sin activos adicionales (cocheras / baulera)")
 
         # Subfactores de Referencia (display only)
         try:
             fd = calcular_factores_display(prop)
             if fd:
-                st.markdown("##### Subfactores de Referencia")
-                st.caption("Valores calculados por el motor — NO aplicados automaticamente")
-                c1, c2, c3, c4 = st.columns(4)
-                with c1:
-                    pct = (fd['factor_estado'] - 1.0) * 100
-                    st.metric("Estado", f"{fd['estado_label'].title()}", f"{pct:+.1f}%")
-                with c2:
-                    pct = (fd['factor_calidad'] - 1.0) * 100
-                    st.metric("Calidad", f"{fd['calidad_label'].title()}", f"{pct:+.1f}%")
-                with c3:
-                    pct = fd['delta_amenities'] * 100
-                    am_list = list(fd['detalle_amenities'].keys())[:3]
-                    st.metric("Amenities", ", ".join(am_list) if am_list else "—", f"{pct:+.1f}%")
-                with c4:
-                    pct = fd['delta_otros'] * 100
-                    st.metric("Otros factores", "cocina+preinst AA", f"{pct:+.1f}%")
-                st.caption(f"Factor combinado de referencia: **{fd['total']:.4f}**")
+                sub_pct_estado = (fd['factor_estado'] - 1.0) * 100
+                sub_pct_calidad = (fd['factor_calidad'] - 1.0) * 100
+                sub_pct_amenities = fd['delta_amenities'] * 100
+                sub_pct_otros = fd['delta_otros'] * 100
+                with st.container(border=True):
+                    st.markdown("**Subfactores de Referencia**")
+                    col_a, col_b, col_c, col_d = st.columns(4)
+                    with col_a:
+                        st.markdown(f"Estado: **{sub_pct_estado:+.1f}%**")
+                    with col_b:
+                        st.markdown(f"Calidad: **{sub_pct_calidad:+.1f}%**")
+                    with col_c:
+                        st.markdown(f"Amenities: **{sub_pct_amenities:+.1f}%**")
+                    with col_d:
+                        st.markdown(f"Otros: **{sub_pct_otros:+.1f}%**")
+                    st.caption(f"Factor combinado de referencia: **{fd['total']:.4f}**")
         except Exception:
             pass
 
