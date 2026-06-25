@@ -47,6 +47,59 @@ def _calcular_percentil_linear(precios, q):
     return float(s[lo] * (1 - frac) + s[hi] * frac)
 
 
+def calcular_vm2_por_seleccion(comparables, resultado_original):
+    """
+    Calcula valor/m² y valor total para un subconjunto de comparables
+    usando percentil por CV (misma lógica que el motor de valuación).
+    Retorna None si < 2 comparables.
+    """
+    from parsers.cluster_filters import seleccionar_percentil_por_calidad_pool, _calcular_cv
+
+    precios = [c.get('precio_m2', 0) * c.get('time_adjustment', 1.0) for c in comparables]
+    precios_sorted = sorted(precios)
+    n_sel = len(precios_sorted)
+
+    if n_sel < 2:
+        return None
+
+    if n_sel < 3:
+        nuevo_vm2 = _calcular_mediana(precios_sorted)
+        percentil = 50
+        percentil_label = 'P50'
+        cv = 0.0
+    else:
+        cv = _calcular_cv(precios_sorted)
+        percentil, percentil_label = seleccionar_percentil_por_calidad_pool(n_sel, cv)
+        if percentil == 50:
+            nuevo_vm2 = _calcular_mediana(precios_sorted)
+        elif percentil == 45:
+            nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.45) - 1)]
+        elif percentil == 40:
+            nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.40) - 1)]
+        else:
+            nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.33) - 1)]
+
+    m2_eq = resultado_original.get('m2_equivalentes', 0)
+    valor_orig = resultado_original.get('valor_propiedad_usd', 0)
+    valor_activos = resultado_original.get('valor_activos', {}).get('total', 0)
+    m2_base_orig = resultado_original.get('m2_base_venta', 1.0)
+
+    if m2_eq > 0 and m2_base_orig > 0:
+        mult_factores = (valor_orig - valor_activos) / (m2_eq * m2_base_orig)
+        nuevo_valor = (m2_eq * nuevo_vm2 * mult_factores) + valor_activos
+    else:
+        nuevo_valor = 0
+
+    return {
+        'vm2': round(nuevo_vm2, 2),
+        'valor_total': round(nuevo_valor, 0),
+        'percentil': percentil,
+        'percentil_label': percentil_label,
+        'cv': round(cv, 4) if n_sel >= 3 else 0,
+        'n_sel': n_sel
+    }
+
+
 logger = logging.getLogger(__name__)
 ANIO_ACTUAL = datetime.now().year
 

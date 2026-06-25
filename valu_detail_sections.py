@@ -9,6 +9,7 @@ import json, os
 from datetime import datetime
 from valu_design import kpi_card, metric_card, hero_price, range_bar, insights_card, property_card
 from streamlit.components.v1 import html
+from parsers.mercado_inmobiliario import calcular_vm2_por_seleccion
 
 
 def render_actions(prop, guardar_fn):
@@ -450,34 +451,27 @@ def render_tabla_comparables(res, prop_name=None):
     # Guardar selección actual
     st.session_state[sel_key] = selected_ids
 
-    # Calcular mediana local de precio/m² de los comparables seleccionados (vista previa en vivo)
+    # Vista previa en vivo usando misma lógica que "Aplicar selección" (percentil por CV)
     if selected_ids:
         n_sel = len(selected_ids)
+        selected_comps = [c for c in comparables if _get_comp_id(c) in selected_ids]
+        preview = calcular_vm2_por_seleccion(selected_comps, res) if len(selected_comps) >= 2 else None
+
         all_ids = [_get_comp_id(c) for c in comparables]
         excluded_ids = [cid for cid in all_ids if cid not in selected_ids]
         is_applied = set(res.get('_comp_excluded', [])) == set(excluded_ids) and res.get('_comp_exclusion_applied', False)
 
-        m2_vals = []
-        for c in comparables:
-            if _get_comp_id(c) in selected_ids:
-                ta = c.get('time_adjustment', 1.0)
-                vm2 = c.get('precio_m2_ajustado', c.get('precio_m2', 0) * ta)
-                m2_vals.append(vm2)
-        if m2_vals:
-            sorted_vals = sorted(m2_vals)
-            n = len(sorted_vals)
-            if n % 2 == 1:
-                m2_median = sorted_vals[n // 2]
-            else:
-                m2_median = (sorted_vals[n // 2 - 1] + sorted_vals[n // 2]) / 2
-        else:
-            m2_median = 0
-
         col_a, col_b, col_c = st.columns([1, 2, 1.2])
         with col_a:
-            st.metric("Valor/m² por selección", f"${m2_median:,.0f}")
+            if preview:
+                st.metric("Valor/m² por selección", f"${preview['vm2']:,.0f}")
+            else:
+                st.metric("Valor/m² por selección", "—")
         with col_b:
-            st.caption(f"Mediana de selección • {n_sel} comps seleccionados de {len(comparables)} totales")
+            if preview:
+                st.caption(f"{preview['percentil_label']} de selección • CV={preview['cv']:.2f} • {preview['n_sel']} comps selec. de {len(comparables)} totales")
+            else:
+                st.caption(f"Mínimo 2 comps • {n_sel} selec. de {len(comparables)} totales")
         with col_c:
             # Botón para re-valuar usando solo los comparables seleccionados
             excluded = [cid for cid in all_ids if cid not in selected_ids]
