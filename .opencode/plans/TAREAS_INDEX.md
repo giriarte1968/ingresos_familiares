@@ -62,3 +62,4 @@
 | TAREA-079 | UI: "Valor/m² por selección" refleja m2_base_venta del motor | `c470361` | 2026-06-23 |
 | TAREA-080 | UI: columna Tipo → Publicado + eliminar tag FLEX | `c4f7259` | 2026-06-24 |
 | TAREA-083 | Fix colisión checkboxes ↔ motor exclusión automática | `670f804` + _(current)_ | 2026-06-25 |
+| TAREA-084 | Revertir fuente única en "Valor/m² por selección" (display_source sync) | `14dfd88` | 2026-06-25 |
