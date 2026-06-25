@@ -14,9 +14,11 @@ from streamlit.components.v1 import html
 def render_actions(prop, guardar_fn):
     """Barra de acciones: Volver, Editar, Limpiar, Eliminar."""
     nombre = prop.get('nombre', '')
+    prop_id = prop.get('id', nombre)
     col_back, col_edit, col_clean, col_delete = st.columns([1.5, 1, 1.5, 1])
     with col_back:
-        if st.button("← Volver al Portafolio", type="primary", use_container_width=True):
+        if st.button("← Volver al Portafolio", type="primary", use_container_width=True,
+                     key=f"action_volver_{prop_id}"):
             from valu import _limpiar_estado_propiedad
             _limpiar_estado_propiedad(nombre)
             st.session_state.prop_sel = None
@@ -25,24 +27,28 @@ def render_actions(prop, guardar_fn):
                 st.query_params.clear()
             st.rerun()
     with col_edit:
-        if st.button("Editar", type="primary", use_container_width=True):
-            st.session_state[f"edit_{prop['id']}"] = True
+        if st.button("Editar", type="primary", use_container_width=True,
+                     key=f"action_editar_{prop_id}"):
+            st.session_state[f"edit_{prop_id}"] = True
     with col_clean:
-        if st.button("🗑️ Limpiar Valuación", type="secondary", use_container_width=True):
+        if st.button("🗑️ Limpiar Valuación", type="secondary", use_container_width=True,
+                     key=f"action_limpiar_{prop_id}"):
             st.session_state[f"clean_valuacion_{nombre}"] = True
             st.rerun()
     with col_delete:
-        if st.button("Eliminar", type="primary", use_container_width=True):
-            st.session_state[f"delete_confirm_{prop['id']}"] = True
+        if st.button("Eliminar", type="primary", use_container_width=True,
+                     key=f"action_eliminar_{prop_id}"):
+            st.session_state[f"delete_confirm_{prop_id}"] = True
 
     # Confirmacion de eliminacion
-    if st.session_state.get(f"delete_confirm_{prop['id']}", False):
+    if st.session_state.get(f"delete_confirm_{prop_id}", False):
         st.warning(f"Confirma que desea eliminar la propiedad **{nombre}**?")
         c1, c2 = st.columns(2)
         with c1:
-            if st.button("Si, eliminar", type="primary", use_container_width=True):
+            if st.button("Si, eliminar", type="primary", use_container_width=True,
+                         key=f"action_confirm_delete_{prop_id}"):
                 props = cargar_propiedades()
-                props = [p for p in props if p.get('id') != prop['id']]
+                props = [p for p in props if p.get('id') != prop_id]
                 guardar_propiedades(props)
                 # Invalidar cache de valuación
                 try:
@@ -52,22 +58,23 @@ def render_actions(prop, guardar_fn):
                     guardar_cache_valuaciones(cache_v)
                 except Exception:
                     pass
-                st.session_state.pop(f"delete_confirm_{prop['id']}", None)
+                st.session_state.pop(f"delete_confirm_{prop_id}", None)
                 st.session_state.prop_sel = None
                 st.rerun()
         with c2:
-            if st.button("Cancelar", use_container_width=True):
-                st.session_state.pop(f"delete_confirm_{prop['id']}", None)
+            if st.button("Cancelar", use_container_width=True,
+                         key=f"action_cancel_delete_{prop_id}"):
+                st.session_state.pop(f"delete_confirm_{prop_id}", None)
                 st.rerun()
 
-    if st.session_state.get(f"edit_{prop['id']}", False):
+    if st.session_state.get(f"edit_{prop_id}", False):
         from valu_forms import ui_formulario_propiedad
         # Usamos un key_suffix único para evitar colisiones y habilitamos el geocoding automático reactivo
-        new_data = ui_formulario_propiedad(prop_inicial=prop, key_suffix=f"edit_{prop['id']}", show_geocode=True)
+        new_data = ui_formulario_propiedad(prop_inicial=prop, key_suffix=f"edit_{prop_id}", show_geocode=True)
         
         col_b1, col_b2 = st.columns(2)
         with col_b1:
-            if st.button("Guardar Cambios", type="primary", key=f"save_edit_{prop['id']}", use_container_width=True):
+            if st.button("Guardar Cambios", type="primary", key=f"save_edit_{prop_id}", use_container_width=True):
                 # Por seguridad, si la dirección cambió y no se disparó el callback (ej: clic directo), geocodificamos antes de guardar
                 nueva_dir = (new_data.get('direccion') or '').strip()
                 vieja_dir = (prop.get('direccion') or '').strip()
@@ -84,19 +91,19 @@ def render_actions(prop, guardar_fn):
                 guardar_fn(new_data)
                 
                 # Limpiar el estado de edición
-                keys_to_clear = [k for k in st.session_state.keys() if k.endswith(f"_edit_{prop['id']}")]
+                keys_to_clear = [k for k in st.session_state.keys() if k.endswith(f"_edit_{prop_id}")]
                 for k in keys_to_clear:
                     st.session_state.pop(k, None)
-                st.session_state[f"edit_{prop['id']}"] = False
+                st.session_state[f"edit_{prop_id}"] = False
                 st.rerun()
                 
         with col_b2:
-            if st.button("Cancelar", key=f"cancel_edit_{prop['id']}", use_container_width=True):
+            if st.button("Cancelar", key=f"cancel_edit_{prop_id}", use_container_width=True):
                 # Limpiar el estado de edición al cancelar
-                keys_to_clear = [k for k in st.session_state.keys() if k.endswith(f"_edit_{prop['id']}")]
+                keys_to_clear = [k for k in st.session_state.keys() if k.endswith(f"_edit_{prop_id}")]
                 for k in keys_to_clear:
                     st.session_state.pop(k, None)
-                st.session_state[f"edit_{prop['id']}"] = False
+                st.session_state[f"edit_{prop_id}"] = False
                 st.rerun()
 
 
@@ -375,30 +382,24 @@ def render_tabla_comparables(res, prop_name=None):
     if not isinstance(stored_sel, set):
         stored_sel = set(stored_sel)
 
-    # Calcular selección actual (lo que el usuario ve en pantalla)
-    selected_ids = set()
-    for cid in comp_ids:
-        chk_key = f'sel_comp_{prop_name}_{cid}'
-        if st.session_state.get(chk_key, cid in stored_sel):
-            selected_ids.add(cid)
-
-    # Mostrar info si hay comparables excluidos aplicados o desmarcados en UI
+    # Banner de info + bot\u00f3n Restablecer (solo cuando hay exclusiones aplicadas por el motor)
     n_excluidos = res.get('_n_excluidos', 0)
-    if n_excluidos or len(selected_ids) < len(comparables):
+    if n_excluidos:
         col_info, col_reset = st.columns([3, 1])
         with col_info:
-            if n_excluidos:
-                st.info(f"⚡ Valuación calculada con {len(comparables)} comparables seleccionados ({n_excluidos} excluidos por el usuario).")
-            else:
-                st.info(f"ℹ️ Hay {len(comparables) - len(selected_ids)} comparables desmarcados. Aplica la selección para recalcular.")
+            st.info(f"⚡ Valuación calculada con {len(comparables)} comparables seleccionados ({n_excluidos} excluidos por el usuario).")
         with col_reset:
-                if st.button("↩️ Restablecer todos", key=f'reset_comp_sel_{prop_name}', use_container_width=True):
-                    for k in list(st.session_state.keys()):
-                        if k.startswith(f'sel_comp_{prop_name}_') or k == f'comp_selection_{prop_name}':
-                            del st.session_state[k]
-                    st.session_state[f'_reset_all_{prop_name}'] = True
-                    st.session_state[f'forzar_recalculo_{prop_name}'] = True
-                    st.rerun()
+            if st.button("↩️ Restablecer todos", key=f'reset_comp_sel_{prop_name}', use_container_width=True):
+                # 1. Setear todas las keys de checkbox a True
+                for cid in comp_ids:
+                    st.session_state[f'sel_comp_{prop_name}_{cid}'] = True
+                # 2. Sincronizar estado global de selecci\u00f3n
+                st.session_state[f'comp_selection_{prop_name}'] = set(comp_ids)
+                # 3. Limpiar exclusi\u00f3n y forzar rec\u00e1lculo
+                st.session_state.pop(f'comp_excluded_{prop_name}', None)
+                st.session_state.pop(f'_comp_interacted_{prop_name}', None)
+                st.session_state[f'forzar_recalculo_{prop_name}'] = True
+                st.rerun()
 
     # Cabecera de la tabla
     hdr = st.columns([0.4, 0.5, 1.5, 0.8, 1.5, 0.6, 0.9, 2, 0.7, 0.6])
@@ -406,22 +407,23 @@ def render_tabla_comparables(res, prop_name=None):
     for col, label in zip(hdr, hdr_labels):
         col.markdown(f"**{label}**")
 
-    # Filas con checkbox a la izquierda
+    selected_ids = set()
     for i, c in enumerate(comparables):
         comp_id = comp_ids[i]
         cols = st.columns([0.4, 0.5, 1.5, 0.8, 1.5, 0.6, 0.9, 2, 0.7, 0.6])
-        
+
+        # Sincronizar checkbox con stored_sel antes de crear widget
         chk_key = f'sel_comp_{prop_name}_{comp_id}'
-        if chk_key not in st.session_state:
-            st.session_state[chk_key] = comp_id in stored_sel
+        st.session_state[chk_key] = comp_id in stored_sel
         checked = cols[0].checkbox("", key=chk_key)
-        
+
         if checked:
             selected_ids.add(comp_id)
         else:
+            # Si el usuario desmarca, removemos el ID del set en session_state inmediatamente
             if comp_id in stored_sel:
                 stored_sel.remove(comp_id)
-        
+
         cols[1].write(str(i+1))
         cols[2].write(f"${c.get('precio', 0):,.0f}")
         cols[3].write(f"{c.get('m2', 0):.0f}")
@@ -1449,7 +1451,8 @@ def render_valuacion_manual(prop, res):
             can_save = False
             st.warning("El motivo es obligatorio cuando la divergencia supera el 10%.")
 
-        if st.button("Guardar Valuacion Manual", type="primary", use_container_width=True, disabled=not can_save):
+        if st.button("Guardar Valuacion Manual", type="primary", use_container_width=True,
+                     disabled=not can_save, key=f"manual_guardar_{nombre}"):
             if usd_m2_input <= 0:
                 st.error("Ingrese un valor de USD/m² valido.")
                 st.rerun()
@@ -1490,7 +1493,8 @@ def render_valuacion_manual(prop, res):
 
     with col_btn2:
         if saved_params:
-            if st.button("Eliminar Valuacion Manual", use_container_width=True):
+            if st.button("Eliminar Valuacion Manual", use_container_width=True,
+                         key=f"manual_eliminar_{nombre}"):
                 props = cargar_propiedades()
                 for i, p in enumerate(props):
                     if p.get('nombre') == nombre:
