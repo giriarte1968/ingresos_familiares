@@ -658,21 +658,9 @@ def mostrar_dashboard():
                             excluded_ids = st.session_state.pop(comp_excluded_key)
                             from_apply = True
                         else:
-                            # Leer desde widget keys (estado ACTUAL del checkbox, no stale sel_key)
-                            comp_ids = [_get_comp_id(c) for c in comps_orig]
-                            primero = f'sel_comp_{prop_name}_{comp_ids[0]}' if comp_ids else None
-                            if primero and primero in st.session_state:
-                                selected_ids = set()
-                                for cid in comp_ids:
-                                    wk = f'sel_comp_{prop_name}_{cid}'
-                                    if st.session_state.get(wk, True):
-                                        selected_ids.add(cid)
-                                excluded_ids = [cid for cid in comp_ids if cid not in selected_ids]
-                                if excluded_ids:
-                                    st.session_state[f'_comp_interacted_{prop_name}'] = True
-                                elif not st.session_state.get(f'_comp_interacted_{prop_name}', False):
-                                    excluded_ids = None
-                            elif resultado.get('_comp_excluded') is not None:
+                            # Solo restaurar exclusiones ya persistidas.
+                            # NO leer widget state (checkboxes) — eso es solo visual.
+                            if resultado.get('_comp_excluded') is not None:
                                 excluded_ids = resultado['_comp_excluded']
                             elif p_obj.get('_ultima_valuacion', {}).get('_comp_exclusion_applied'):
                                 excluded_ids = p_obj['_ultima_valuacion'].get('_comp_excluded', [])

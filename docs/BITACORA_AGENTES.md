@@ -2943,11 +2943,21 @@ El return #3 retornaba `(0.0, len(precios), meta)` sin `_m2_puro` y sin `insufic
 
 ### Tests: 32/32 regression OK
 
-## 2026-06-25 - TAREA-083: Fix checkboxes comparables + dedup _limpiar_estado_propiedad
+## 2026-06-25 - TAREA-083: Fix colisión checkboxes ↔ motor de exclusión automática
+
+### Problema
+El fix condicional init (`if chk_key not in st.session_state`) desbloqueó los checkboxes visualmente, pero activó el camino automático de exclusión en `valu.py:664-674` que lee widget state en cada rerun. Causas:
+
+1. **Valor cae a 0**: Al desmarcar 1 de 2 comps, el motor detecta < 2 comps y setea `valor_propiedad_usd = 0`.
+2. **Comparables desaparecen**: El motor devuelve resultado de insuficientes_comparables, alterando la lista.
+3. **Botón "Restablecer todas" desaparece**: Metadata de exclusión se pierde en el recálculo erróneo.
 
 ### Cambios
-1. **alu_detail_sections.py:441**: Bugfix checkboxes de comparables no respondian al click. Causa: st.session_state[chk_key] = comp_id in stored_sel se ejecutaba antes del widget, sobreescribiendo el click. Fix: inicializacion condicional if chk_key not in st.session_state:.
-2. **alu_detail_sections.py**: Eliminada copia local de _limpiar_estado_propiedad_local (duplicada de alu.py:68). Lazy import en ender_actions() para evitar circular import.
-3. **docs/BITACORA_AGENTES.md**: Esta entrada.
+1. **`valu_detail_sections.py:441`**: Bugfix checkboxes — inicialización condicional `if chk_key not in st.session_state:` (no sobrescribe click del usuario).
+2. **`valu_detail_sections.py`**: Eliminada copia local de `_limpiar_estado_propiedad_local`. Lazy import desde `valu.py`.
+3. **`valu.py:660-674`**: Eliminado el bloque de lectura automática de widget keys (`sel_comp_*`). Los checkboxes ahora son PURO VISUAL — solo "Aplicar selección" dispara el recálculo. Se mantiene la restauración de exclusiones persistidas (`resultado['_comp_excluded']` / `_ultima_valuacion`).
+4. **`docs/BITACORA_AGENTES.md`**: Esta entrada.
+5. **`.opencode/plans/TAREA-083.md`**: Plan de tarea.
+6. **`.opencode/plans/TAREAS_INDEX.md`**: Índice actualizado.
 
-### Tests: (pendiente ejecucion)
+### Tests: 32/32 regression OK, auto_validate OK

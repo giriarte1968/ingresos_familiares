@@ -59,4 +59,6 @@
 | TAREA-074 | Size adjustment por macrozona. PN subzona premium. Curvas piecewise. | _completada_ | 2026-06-20 |
 | TAREA-076 | Eliminar depreciación de Subfactores Display + Documentar evidencia ML | _completada_ | 2026-06-20 |
 | TAREA-078 | Percentil por calidad del pool (CV) + Eliminación edad | _(current)_ | 2026-06-22 |
-| TAREA-079 | UI: "Valor/m² por selección" refleja m2_base_venta del motor | _(current)_ | 2026-06-23 |
+| TAREA-079 | UI: "Valor/m² por selección" refleja m2_base_venta del motor | `c470361` | 2026-06-23 |
+| TAREA-080 | UI: columna Tipo → Publicado + eliminar tag FLEX | `c4f7259` | 2026-06-24 |
+| TAREA-083 | Fix colisión checkboxes ↔ motor exclusión automática | `670f804` + _(current)_ | 2026-06-25 |
