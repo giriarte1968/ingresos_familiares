@@ -414,7 +414,8 @@ def render_tabla_comparables(res, prop_name=None):
 
         # Sincronizar checkbox con stored_sel antes de crear widget
         chk_key = f'sel_comp_{prop_name}_{comp_id}'
-        st.session_state[chk_key] = comp_id in stored_sel
+        if chk_key not in st.session_state:
+            st.session_state[chk_key] = comp_id in stored_sel
         checked = cols[0].checkbox("", key=chk_key)
 
         if checked:
@@ -449,29 +450,34 @@ def render_tabla_comparables(res, prop_name=None):
     # Guardar selección actual
     st.session_state[sel_key] = selected_ids
 
-    # Leer m² desde el mismo display_source que render_header
+    # Calcular mediana local de precio/m² de los comparables seleccionados (vista previa en vivo)
     if selected_ids:
         n_sel = len(selected_ids)
         all_ids = [_get_comp_id(c) for c in comparables]
         excluded_ids = [cid for cid in all_ids if cid not in selected_ids]
         is_applied = set(res.get('_comp_excluded', [])) == set(excluded_ids) and res.get('_comp_exclusion_applied', False)
 
-        auto_result = res.get('_auto_result', res)
-        manual_result = res.get('_manual_result')
-        fuente_activa = res.get('_fuente_activa', 'auto')
-
-        if fuente_activa == 'manual' and manual_result:
-            display_source = manual_result
+        m2_vals = []
+        for c in comparables:
+            if _get_comp_id(c) in selected_ids:
+                ta = c.get('time_adjustment', 1.0)
+                vm2 = c.get('precio_m2_ajustado', c.get('precio_m2', 0) * ta)
+                m2_vals.append(vm2)
+        if m2_vals:
+            sorted_vals = sorted(m2_vals)
+            n = len(sorted_vals)
+            if n % 2 == 1:
+                m2_median = sorted_vals[n // 2]
+            else:
+                m2_median = (sorted_vals[n // 2 - 1] + sorted_vals[n // 2]) / 2
         else:
-            display_source = auto_result
-
-        m2_base = display_source.get('m2_base_venta', 0)
+            m2_median = 0
 
         col_a, col_b, col_c = st.columns([1, 2, 1.2])
         with col_a:
-            st.metric("Valor/m² por selección", f"${m2_base:,.0f}")
+            st.metric("Valor/m² por selección", f"${m2_median:,.0f}")
         with col_b:
-            st.caption(f"Valor activo • {n_sel} comps seleccionados de {len(comparables)} totales")
+            st.caption(f"Mediana de selección • {n_sel} comps seleccionados de {len(comparables)} totales")
         with col_c:
             # Botón para re-valuar usando solo los comparables seleccionados
             excluded = [cid for cid in all_ids if cid not in selected_ids]
