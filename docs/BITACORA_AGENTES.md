@@ -2942,3 +2942,12 @@ El return #3 retornaba `(0.0, len(precios), meta)` sin `_m2_puro` y sin `insufic
 5. **`valu.py`**: Corregida indentacion en bloque de valuacion manual paralela (SyntaxError fix)
 
 ### Tests: 32/32 regression OK
+
+## 2026-06-25 - TAREA-083: Fix checkboxes comparables + dedup _limpiar_estado_propiedad
+
+### Cambios
+1. **alu_detail_sections.py:441**: Bugfix checkboxes de comparables no respondian al click. Causa: st.session_state[chk_key] = comp_id in stored_sel se ejecutaba antes del widget, sobreescribiendo el click. Fix: inicializacion condicional if chk_key not in st.session_state:.
+2. **alu_detail_sections.py**: Eliminada copia local de _limpiar_estado_propiedad_local (duplicada de alu.py:68). Lazy import en ender_actions() para evitar circular import.
+3. **docs/BITACORA_AGENTES.md**: Esta entrada.
+
+### Tests: (pendiente ejecucion)

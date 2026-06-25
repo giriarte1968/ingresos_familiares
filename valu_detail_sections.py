@@ -11,35 +11,14 @@ from valu_design import kpi_card, metric_card, hero_price, range_bar, insights_c
 from streamlit.components.v1 import html
 
 
-def _limpiar_estado_propiedad_local(nombre: str) -> None:
-    """Limpia TODO el estado de sesion asociado a una propiedad."""
-    if not nombre:
-        return
-    _PREFIJOS = [
-        'preview_mode_', 'retro_active_', 'flex_active_',
-        'forzar_recalculo_', 'manual_preview_', 'comp_excluded_',
-        'comp_selection_', 'vista_valuacion_', 'retro_meses_', 'retro_meses_slider_',
-        'manual_params_', 'retro_btn_', 'flex_btn_', 'aplicar_cambios_',
-        'infomapa_catastro_', 'ph_sel_', 'comp1_', 'comp2_',
-        'manual_ancla_', 'manual_usd_m2_', 'manual_fh_',
-        'manual_aj_', 'manual_inc_', 'clean_valuacion_',
-        'clean_comparables_', 'comp_interacted_',
-    ]
-    for p in _PREFIJOS:
-        st.session_state.pop(f'{p}{nombre}', None)
-    sufixo = f'sel_comp_{nombre}_'
-    claves_a_borrar = [k for k in st.session_state.keys() if k.startswith(sufixo)]
-    for k in claves_a_borrar:
-        del st.session_state[k]
-
-
 def render_actions(prop, guardar_fn):
     """Barra de acciones: Volver, Editar, Limpiar, Eliminar."""
     nombre = prop.get('nombre', '')
     col_back, col_edit, col_clean, col_delete = st.columns([1.5, 1, 1.5, 1])
     with col_back:
         if st.button("← Volver al Portafolio", type="primary", use_container_width=True):
-            _limpiar_estado_propiedad_local(nombre)
+            from valu import _limpiar_estado_propiedad
+            _limpiar_estado_propiedad(nombre)
             st.session_state.prop_sel = None
             st.session_state['_force_nav_page'] = 'Portfolio'
             if 'prop' in st.query_params:
@@ -436,9 +415,9 @@ def render_tabla_comparables(res, prop_name=None):
         comp_id = comp_ids[i]
         cols = st.columns([0.4, 0.5, 1.5, 0.8, 1.5, 0.6, 0.9, 2, 0.7, 0.6])
         
-        # Sincronizar checkbox con stored_sel antes de crear widget
         chk_key = f'sel_comp_{prop_name}_{comp_id}'
-        st.session_state[chk_key] = comp_id in stored_sel
+        if chk_key not in st.session_state:
+            st.session_state[chk_key] = comp_id in stored_sel
         checked = cols[0].checkbox("", key=chk_key)
         
         if checked:
