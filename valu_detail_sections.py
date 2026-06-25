@@ -361,12 +361,36 @@ def render_tabla_comparables(res, prop_name=None):
         st.caption("Sin comparables disponibles")
         return
 
-    # Mostrar info si hay comparables excluidos aplicados
+    # 1. Determinar estado de selección actual para controlar visibilidad de botones
+    sel_key = f'comp_selection_{prop_name}'
+    comp_ids = [_get_comp_id(c) for c in comparables]
+    stored_sel = st.session_state.get(sel_key, None)
+    if stored_sel is None:
+        excluded = res.get('_comp_excluded')
+        if excluded:
+            stored_sel = set(cid for cid in comp_ids if cid not in excluded)
+        else:
+            stored_sel = set(comp_ids)
+        st.session_state[sel_key] = stored_sel
+    if not isinstance(stored_sel, set):
+        stored_sel = set(stored_sel)
+
+    # Calcular selección actual (lo que el usuario ve en pantalla)
+    selected_ids = set()
+    for cid in comp_ids:
+        chk_key = f'sel_comp_{prop_name}_{cid}'
+        if st.session_state.get(chk_key, cid in stored_sel):
+            selected_ids.add(cid)
+
+    # Mostrar info si hay comparables excluidos aplicados o desmarcados en UI
     n_excluidos = res.get('_n_excluidos', 0)
-    if n_excluidos:
+    if n_excluidos or len(selected_ids) < len(comparables):
         col_info, col_reset = st.columns([3, 1])
         with col_info:
-            st.info(f"⚡ Valuación calculada con {len(comparables)} comparables seleccionados ({n_excluidos} excluidos por el usuario).")
+            if n_excluidos:
+                st.info(f"⚡ Valuación calculada con {len(comparables)} comparables seleccionados ({n_excluidos} excluidos por el usuario).")
+            else:
+                st.info(f"ℹ️ Hay {len(comparables) - len(selected_ids)} comparables desmarcados. Aplica la selección para recalcular.")
         with col_reset:
                 if st.button("↩️ Restablecer todos", key=f'reset_comp_sel_{prop_name}', use_container_width=True):
                     for k in list(st.session_state.keys()):
@@ -383,26 +407,6 @@ def render_tabla_comparables(res, prop_name=None):
         col.markdown(f"**{label}**")
 
     # Filas con checkbox a la izquierda
-    sel_key = f'comp_selection_{prop_name}'
-    
-    # 1. Generar IDs estables para todos los comparables actuales
-    comp_ids = [_get_comp_id(c) for c in comparables]
-    
-    # 2. Manejar el estado de selección basado en IDs (no índices)
-    stored_sel = st.session_state.get(sel_key, None)
-    if stored_sel is None:
-        excluded = res.get('_comp_excluded')
-        if excluded:
-            stored_sel = set(cid for cid in comp_ids if cid not in excluded)
-        else:
-            stored_sel = set(comp_ids)
-        st.session_state[sel_key] = stored_sel
-    
-    # Asegurar que stored_sel sea un set (por compatibilidad con versiones viejas)
-    if not isinstance(stored_sel, set):
-        stored_sel = set(stored_sel)
-
-    selected_ids = set()
     for i, c in enumerate(comparables):
         comp_id = comp_ids[i]
         cols = st.columns([0.4, 0.5, 1.5, 0.8, 1.5, 0.6, 0.9, 2, 0.7, 0.6])
@@ -415,7 +419,6 @@ def render_tabla_comparables(res, prop_name=None):
         if checked:
             selected_ids.add(comp_id)
         else:
-            # Si el usuario desmarca, removemos el ID del set en session_state inmediatamente
             if comp_id in stored_sel:
                 stored_sel.remove(comp_id)
         
@@ -439,6 +442,7 @@ def render_tabla_comparables(res, prop_name=None):
         cols[7].write(((c.get('direccion_limpia') or c.get('direccion','')) or '')[:35])
         cols[8].write(str(c.get('anio_estimado', '')) if c.get('anio_estimado') else '')
         cols[9].write(f"{c.get('distancia_m', 0):.0f}m" if c.get('distancia_m') else '')
+
 
     # Guardar selección actual
     st.session_state[sel_key] = selected_ids
