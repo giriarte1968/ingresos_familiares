@@ -716,6 +716,7 @@ def mostrar_dashboard():
                                             v_cons = nuevo_valor * 0.93
                                             v_opt = nuevo_valor * 1.07
                                             resultado = dict(resultado)
+                                            resultado['_auto_result'] = resultado
                                             resultado['valor_propiedad_usd'] = round(nuevo_valor, 0)
                                             resultado['valor_m2'] = nuevo_vm2
                                             resultado['m2_base_venta'] = nuevo_vm2
@@ -727,6 +728,7 @@ def mostrar_dashboard():
                                     else:
                                         # Menos de 2 comps seleccionados → limpiar header
                                         resultado = dict(resultado)
+                                        resultado['_auto_result'] = resultado
                                         resultado['valor_propiedad_usd'] = 0
                                         resultado['valor_m2'] = 0
                                         resultado['m2_base_venta'] = 0
