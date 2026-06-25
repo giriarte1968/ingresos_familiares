@@ -63,3 +63,4 @@
 | TAREA-080 | UI: columna Tipo → Publicado + eliminar tag FLEX | `c4f7259` | 2026-06-24 |
 | TAREA-083 | Fix colisión checkboxes ↔ motor exclusión automática | `670f804` + _(current)_ | 2026-06-25 |
 | TAREA-084 | Revertir fuente única en "Valor/m² por selección" (display_source sync) | `14dfd88` | 2026-06-25 |
+| TAREA-085 | Fix "Restablecer todos" no resetea exclusión persistida | `ff6e743` | 2026-06-25 |
