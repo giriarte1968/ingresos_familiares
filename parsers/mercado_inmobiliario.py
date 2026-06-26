@@ -996,7 +996,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 'cache_scraping.json'
             )
             if not os.path.exists(cache_path):
-                return 0, 0, {'percentil_usado': 'P50' if operacion == 'alquiler' else 'P33', 'n_raw': 0, 'n_filtradas': 0,                 'retro_activo': bool(retro_dias), 'total_dias_ventana': get_natural_window_dias() + retro_dias * 30, 'flex_dormitorios': flex_dormitorios}
+                return 0, 0, {'percentil_usado': 'P50' if operacion == 'alquiler' else 'P33', 'n_raw': 0, 'n_filtradas': 0,                 'retro_activo': bool(retro_dias), 'total_dias_ventana': retro_dias * 30 if retro_dias > 0 else get_natural_window_dias(), 'flex_dormitorios': flex_dormitorios}
             from parsers.profiler import profile_block
             with profile_block("load_cache_scraping"):
                 with open(cache_path, 'r', encoding='utf-8') as f:
@@ -1017,7 +1017,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         MIN_COMPARABLES = 10
         MIN_COMPARABLES_FALLBACK = 5
         from parsers.time_adjustment import get_natural_window_dias
-        window_dias_usado = get_natural_window_dias() + retro_dias * 30
+        window_dias_usado = retro_dias * 30 if retro_dias > 0 else get_natural_window_dias()
         
         # Puerto Norte: time-expansion en vez de radius-expansion
         TASA_AJUSTE_PN = -0.045
@@ -1088,7 +1088,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 return props
             if dias is None:
                 from parsers.time_adjustment import get_natural_window_dias
-                dias = get_natural_window_dias() + retro_dias * 30
+                dias = retro_dias * 30 if retro_dias > 0 else get_natural_window_dias()
             return filtrar_por_fecha(props, fecha_filtro, dias=dias)
         
         # Estrategia: Radio progresivo + fallback de zona
@@ -1141,10 +1141,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             if zona_normalizada == 'Puerto Norte':
                 # PN: No expande radio para no contaminar con Pichincha. 
                 # Ventana gobernada 100% por el slider (Suelo Natural: 180d)
-                if retro_dias == 0:
-                    dias_ventana = get_natural_window_dias()
-                else:
-                    dias_ventana = get_natural_window_dias() + retro_dias * 30
+                dias_ventana = retro_dias * 30 if retro_dias > 0 else get_natural_window_dias()
                 
                 props = buscar_en_zona(zona_normalizada, dormitorios, operacion, lat_ref, lon_ref, 1500)
                 props = filtrar_por_fecha(props, fecha_ref, dias=dias_ventana)
@@ -1249,7 +1246,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 'n_comparables': n_available,
                 'comparables_reales': comparables_reales,
                 'retro_activo': bool(retro_dias),
-                'total_dias_ventana': get_natural_window_dias() + retro_dias * 30,
+                'total_dias_ventana': retro_dias * 30 if retro_dias > 0 else get_natural_window_dias(),
                 'debug': f'Solo {n_available} comparables encontrados. '
                           'Se requiere mínimo 2 para valuación por comparables.',
                 '_m2_puro': _m2_puro_early,

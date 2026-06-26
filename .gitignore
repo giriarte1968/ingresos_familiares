@@ -19,3 +19,9 @@ data/infomapa_cache.json
 
 # Geometría catastral (shapefiles grandes, regenerable desde Infomapa)
 data/geometry/
+
+# Audit logs generados automáticamente por valuación
+data/history/audit_logs/
+
+# Profile dumps de profiling
+data/profile_*.json

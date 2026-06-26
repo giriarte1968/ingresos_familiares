@@ -1,6 +1,24 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-06-26 — Fix: slider "Meses atrás" ahora reemplaza ventana en vez de añadir
+
+### Problema
+Slider en 20 meses mostraba "ventana de 780 días" (26 meses) en vez de 600 días (20 meses).
+La fórmula del motor sumaba `retro_dias * 30` a la ventana natural de 180 días:
+`window = 180 + 20*30 = 780`. El slider decía "Meses atrás" pero era "meses adicionales."
+
+### Fix
+En `parsers/mercado_inmobiliario.py` (5 lugares): `get_natural_window_dias() + retro_dias * 30`
+→ `retro_dias * 30 if retro_dias > 0 else get_natural_window_dias()`
+
+### Resultado
+- Slider=20 → window=600 días (20 meses) ✅
+- Slider=0 (retro inactivo) → natural window (180 días) sin cambios
+- Comparable de May 2024 ahora queda fuera con slider=20 (25 meses atrás > 20)
+
+### Tests: 32/32 regression pasando, auto_validate OK
+
 ## 2026-06-24 — TAREA-080: UI columna Tipo → Publicado + eliminar tag FLEX
 
 ### Cambios
