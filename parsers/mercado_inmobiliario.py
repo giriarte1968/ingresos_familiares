@@ -47,28 +47,45 @@ def _calcular_percentil_linear(precios, q):
     return float(s[lo] * (1 - frac) + s[hi] * frac)
 
 
-def calcular_vm2_por_seleccion(comparables, resultado_original):
+def _calcular_vm2_base(comparables, percentil):
     """
-    Calcula valor/m² y valor total para un subconjunto de comparables
-    usando la misma lógica que el motor de valuación:
-    1. Separa same-side / cross-soft según `_cross_soft`
-    2. Determina percentil por CV (calidad del pool)
-    3. Calcula percentil en cada grupo (usa cluster_filters.calcular_percentil)
-    4. Aplica blend 0.70*same + 0.30*cross (o el grupo disponible)
-    Si n_sel < 3, retorna fallback con valor original del pool completo.
-    Retorna None si < 2 comparables.
+    Núcleo compartido: separa same/cross, calcula percentiles por grupo, aplica blend alpha=0.70.
+    Usado por el motor y la UI (preview + aplicar selección).
+    comparables: lista con 'precio_m2', 'time_adjustment', '_cross_soft'.
+    Retorna (vm2, n_same, n_cross, pct_same, pct_cross).
     """
-    from parsers.cluster_filters import (
-        seleccionar_percentil_por_calidad_pool, _calcular_cv,
-        calcular_percentil, calcular_blend_p33
-    )
+    from parsers.cluster_filters import calcular_percentil, calcular_blend_p33
 
-    ALPHA_MERCADO = 0.70
+    ALPHA_BASE = 0.70
 
     def _precio_ajustado(c):
         return c.get('precio_m2', 0) * c.get('time_adjustment', 1.0)
 
-    precios = [_precio_ajustado(c) for c in comparables]
+    same = [c for c in comparables if not c.get('_cross_soft', False)]
+    cross = [c for c in comparables if c.get('_cross_soft', False)]
+
+    precios_same = sorted([_precio_ajustado(c) for c in same])
+    precios_cross = sorted([_precio_ajustado(c) for c in cross])
+
+    pct_same = calcular_percentil(precios_same, percentil) if precios_same else None
+    pct_cross = calcular_percentil(precios_cross, percentil) if precios_cross else None
+
+    nuevo_vm2 = calcular_blend_p33(pct_same, pct_cross, alpha=ALPHA_BASE)
+    if nuevo_vm2 is None:
+        nuevo_vm2 = 0.0
+
+    return nuevo_vm2, len(precios_same), len(precios_cross), pct_same, pct_cross
+
+
+def calcular_vm2_por_seleccion(comparables, resultado_original):
+    """
+    Wrapper de UI sobre _calcular_vm2_base.
+    Determina percentil por CV, delega el cálculo del blend.
+    Retorna None si < 2, fallback si < 3, dict completo si OK.
+    """
+    from parsers.cluster_filters import seleccionar_percentil_por_calidad_pool, _calcular_cv
+
+    precios = [c.get('precio_m2', 0) * c.get('time_adjustment', 1.0) for c in comparables]
     n_sel = len(precios)
 
     if n_sel < 2:
@@ -88,23 +105,12 @@ def calcular_vm2_por_seleccion(comparables, resultado_original):
     cv = _calcular_cv(precios)
     percentil, percentil_label = seleccionar_percentil_por_calidad_pool(n_sel, cv)
 
-    same = [c for c in comparables if not c.get('_cross_soft', False)]
-    cross = [c for c in comparables if c.get('_cross_soft', False)]
-
-    precios_same = sorted([_precio_ajustado(c) for c in same])
-    precios_cross = sorted([_precio_ajustado(c) for c in cross])
-
-    pct_same = calcular_percentil(precios_same, percentil) if precios_same else None
-    pct_cross = calcular_percentil(precios_cross, percentil) if precios_cross else None
-
-    nuevo_vm2 = calcular_blend_p33(pct_same, pct_cross, alpha=ALPHA_MERCADO)
-    if nuevo_vm2 is None:
-        nuevo_vm2 = 0.0
-
     m2_eq = resultado_original.get('m2_equivalentes', 0)
-    valor_orig = resultado_original.get('valor_propiedad_usd', 0)
     valor_activos = resultado_original.get('valor_activos', {}).get('total', 0)
     m2_base_orig = resultado_original.get('m2_base_venta', 1.0)
+    valor_orig = resultado_original.get('valor_propiedad_usd', 0)
+
+    nuevo_vm2, n_same, n_cross, _, _ = _calcular_vm2_base(comparables, percentil)
 
     if m2_eq > 0 and m2_base_orig > 0:
         mult_factores = (valor_orig - valor_activos) / (m2_eq * m2_base_orig)
@@ -119,8 +125,8 @@ def calcular_vm2_por_seleccion(comparables, resultado_original):
         'percentil_label': percentil_label,
         'cv': round(cv, 4),
         'n_sel': n_sel,
-        'n_same': len(precios_same),
-        'n_cross': len(precios_cross),
+        'n_same': n_same,
+        'n_cross': n_cross,
         'fallback': False
     }
 
@@ -1404,6 +1410,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 'anio_estimado': p.get('anio_estimado'),
                 'date_created': p.get('date_created', ''),
                 'distancia_m': round(calcular_distancia_km(lat_ref, lon_ref, float(p['lat']), float(p['lon'])) * 1000, 0) if lat_ref and lon_ref and p.get('lat') and p.get('lon') else None,
+                '_cross_soft': p.get('_cross_soft', False),
             }
             for p in pool_final[:60 if retro_dias > 0 else 30]
         ] if pool_final else []
