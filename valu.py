@@ -512,6 +512,9 @@ def mostrar_dashboard():
                 
             forzar = st.session_state.pop(f'forzar_recalculo_{p_obj["nombre"]}', False)
             preview_mode = st.session_state.get(f'preview_mode_{p_obj["nombre"]}', False)
+            debug_bug7 = st.session_state.pop(f'debug_bug7_{p_obj["nombre"]}', 'not set')
+            _pname = p_obj['nombre']
+            print(f"[DEBUG-BUG7] {_pname}: forzar={forzar}, preview_mode={preview_mode}, forzar_session_key={st.session_state.get(f'forzar_recalculo_{_pname}', 'N/A')}, debug_bug7={debug_bug7}")
             print(f"[DEBUG-DASH] {p_obj['nombre']}: forzar={forzar}, preview_mode={preview_mode}, ya_valuado={bool(p_obj.get('_ultima_valuacion',{}).get('valor_usd') or p_obj.get('_ultima_valuacion',{}).get('fuente'))}")
             retro_active_ss = st.session_state.get(f'retro_active_{p_obj["nombre"]}', False)
             flex_active_ss = st.session_state.get(f'flex_active_{p_obj["nombre"]}', False)
@@ -634,6 +637,7 @@ def mostrar_dashboard():
                         fuente_activa = 'auto'
 
                     # Inyectar datos paralelos para que la UI elija qué mostrar
+                    print(f"[DEBUG-BUG7] {p_obj['nombre']}: resultado m2_base_venta={resultado.get('m2_base_venta')}, n_prop={resultado.get('resolution_metadata', {}).get('n_propiedades')}, valor={resultado.get('valor_propiedad_usd')}, error={resultado.get('error')}")
                     resultado['_auto_result'] = resultado
                     resultado['_manual_result'] = resultado_manual
                     resultado['_manual_params'] = manual_params_saved
