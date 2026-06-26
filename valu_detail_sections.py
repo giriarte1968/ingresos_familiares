@@ -1102,6 +1102,7 @@ def render_valuacion_manual(prop, res):
     nombre = prop.get('nombre', '')
     auto_result = res.get('_auto_result', res)
     saved_params = res.get('_manual_params') or {}
+    motor_valor = auto_result.get('valor_propiedad_usd', 0)
 
     # ─── Carga de anclas ───
     anclas = cargar_anclas()
