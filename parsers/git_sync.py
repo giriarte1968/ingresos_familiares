@@ -64,7 +64,7 @@ def try_pull():
     _ensure_branch()
     url = _auth_url()
     if not url:
-        logger.warning("[GIT_SYNC] try_pull: sin token, salteando")
+        logger.debug("[GIT_SYNC] try_pull: sin token, salteando")
         return False
     if not _working_tree_clean():
         logger.warning("[GIT_SYNC] try_pull: working tree sucio, salteando")

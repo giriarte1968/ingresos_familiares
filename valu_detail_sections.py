@@ -1103,21 +1103,6 @@ def render_valuacion_manual(prop, res):
     auto_result = res.get('_auto_result', res)
     saved_params = res.get('_manual_params') or {}
 
-    # ─── Linea de base del motor ───
-    motor_valor = auto_result.get('valor_propiedad_usd', 0)
-    motor_m2 = auto_result.get('m2_base_venta', 0)
-    motor_n = auto_result.get('resolution_metadata', {}).get('n_propiedades', 0)
-    motor_m2_eq = auto_result.get('m2_equivalentes', 0)
-
-    if motor_m2 > 0:
-        st.caption(
-            f"Linea de base del motor: **${motor_valor:,.0f} USD**  ·  "
-            f"**${motor_m2:,.0f}/m²**  ·  {motor_n} comparables  ·  "
-            f"{motor_m2_eq:.0f} m² eq."
-        )
-    else:
-        st.caption("Motor sin suficientes comparables. Defini los parametros manualmente.")
-
     # ─── Carga de anclas ───
     anclas = cargar_anclas()
     ancla_options = {a.get('id', a.get('nombre', '')): a for a in anclas}

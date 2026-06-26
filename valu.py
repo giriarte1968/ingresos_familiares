@@ -371,7 +371,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     _dl.mark("after_section_comparables")
 
     # ─── 📐 Valuación Manual ───
-    with st.expander(f"📐 Valuacion Manual — {prop_name}", expanded=insuficientes):
+    with st.expander(f"📐 Valuacion Manual — {prop_name}", expanded=False):
         with profile_block("render_valuacion_manual", prop):
             render_valuacion_manual(prop, res)
     _dl.mark("after_section_manual")
