@@ -180,13 +180,13 @@ def render_header(prop, res):
     pill_key = f'fuente_activa_{nombre}'
     col_toggle = st.columns([1, 1, 4])
     with col_toggle[0]:
-        if st.button("● Por Comparables", type="primary" if not es_manual else "secondary",
+        if st.button("● Por Comparables", type="primary",
                      use_container_width=True, disabled=not tiene_auto,
                      key=f"{pill_key}_auto"):
             _set_fuente_activa(nombre, 'auto')
             st.rerun()
     with col_toggle[1]:
-        if st.button("○ Manual", type="primary" if es_manual else "secondary",
+        if st.button("○ Manual", type="primary",
                      use_container_width=True, disabled=not tiene_manual,
                      key=f"{pill_key}_manual"):
             _set_fuente_activa(nombre, 'manual')

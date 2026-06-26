@@ -26,8 +26,8 @@ header[data-testid="stHeader"] { background: #0F1629 !important; }
 
 /* Botones premium */
 .stButton > button, .stLinkButton > a { border-radius: 12px !important; font-weight: 600 !important; transition: all 0.2s ease !important; }
-.stButton > button:hover, .stLinkButton > a:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(16, 185, 129, 0.25) !important; }
-.stButton > button[kind="primary"], .stLinkButton > a[kind="primary"] { background: #10b981 !important; border: none !important; color: white !important; }
+.stButton > button:hover, .stLinkButton > a:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(5, 150, 105, 0.25) !important; }
+.stButton > button[kind="primary"], .stLinkButton > a[kind="primary"] { background: #059669 !important; border: none !important; color: white !important; }
 
 /* Boton oscuro generico para detalle (reutilizable con clase) */
 .detail-btn {
