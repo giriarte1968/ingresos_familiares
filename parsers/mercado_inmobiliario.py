@@ -51,6 +51,7 @@ def calcular_vm2_por_seleccion(comparables, resultado_original):
     """
     Calcula valor/m² y valor total para un subconjunto de comparables
     usando percentil por CV (misma lógica que el motor de valuación).
+    Si n_sel < 3, retorna fallback con valor original del pool completo.
     Retorna None si < 2 comparables.
     """
     from parsers.cluster_filters import seleccionar_percentil_por_calidad_pool, _calcular_cv
@@ -63,21 +64,27 @@ def calcular_vm2_por_seleccion(comparables, resultado_original):
         return None
 
     if n_sel < 3:
+        # Fallback: devolver valor original del pool completo
+        return {
+            'vm2': resultado_original.get('m2_base_venta', 0),
+            'valor_total': resultado_original.get('valor_propiedad_usd', 0),
+            'percentil': resultado_original.get('resolution_metadata', {}).get('percentil_usado', 50),
+            'percentil_label': resultado_original.get('resolution_metadata', {}).get('percentil_label', 'Fallback'),
+            'cv': resultado_original.get('resolution_metadata', {}).get('cv_pool', 0),
+            'n_sel': n_sel,
+            'fallback': True
+        }
+
+    cv = _calcular_cv(precios_sorted)
+    percentil, percentil_label = seleccionar_percentil_por_calidad_pool(n_sel, cv)
+    if percentil == 50:
         nuevo_vm2 = _calcular_mediana(precios_sorted)
-        percentil = 50
-        percentil_label = 'P50'
-        cv = 0.0
+    elif percentil == 45:
+        nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.45) - 1)]
+    elif percentil == 40:
+        nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.40) - 1)]
     else:
-        cv = _calcular_cv(precios_sorted)
-        percentil, percentil_label = seleccionar_percentil_por_calidad_pool(n_sel, cv)
-        if percentil == 50:
-            nuevo_vm2 = _calcular_mediana(precios_sorted)
-        elif percentil == 45:
-            nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.45) - 1)]
-        elif percentil == 40:
-            nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.40) - 1)]
-        else:
-            nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.33) - 1)]
+        nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.33) - 1)]
 
     m2_eq = resultado_original.get('m2_equivalentes', 0)
     valor_orig = resultado_original.get('valor_propiedad_usd', 0)
@@ -95,8 +102,9 @@ def calcular_vm2_por_seleccion(comparables, resultado_original):
         'valor_total': round(nuevo_valor, 0),
         'percentil': percentil,
         'percentil_label': percentil_label,
-        'cv': round(cv, 4) if n_sel >= 3 else 0,
-        'n_sel': n_sel
+        'cv': round(cv, 4),
+        'n_sel': n_sel,
+        'fallback': False
     }
 
 

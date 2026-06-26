@@ -469,15 +469,18 @@ def render_tabla_comparables(res, prop_name=None):
                 st.metric("Valor/m² por selección", "—")
         with col_b:
             if preview:
-                st.caption(f"{preview['percentil_label']} de selección • CV={preview['cv']:.2f} • {preview['n_sel']} comps selec. de {len(comparables)} totales")
+                if preview.get('fallback'):
+                    st.caption(f"Valor original del pool • {preview['n_sel']} comps (mín. 3 req.)")
+                else:
+                    st.caption(f"{preview['percentil_label']} de selección • CV={preview['cv']:.2f} • {preview['n_sel']} comps selec. de {len(comparables)} totales")
             else:
                 st.caption(f"Mínimo 2 comps • {n_sel} selec. de {len(comparables)} totales")
         with col_c:
             # Botón para re-valuar usando solo los comparables seleccionados
             excluded = [cid for cid in all_ids if cid not in selected_ids]
             
-            if n_sel < 2:
-                st.button("Mínimo 2 comparables", disabled=True, use_container_width=True)
+            if n_sel < 3:
+                st.button("Mínimo 3 comparables", disabled=True, use_container_width=True)
             elif is_applied:
                 st.button("✅ Selección Aplicada", type="secondary", disabled=True, use_container_width=True)
             else:

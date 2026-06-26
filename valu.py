@@ -695,36 +695,42 @@ def mostrar_dashboard():
                                 _meta = resultado.get('resolution_metadata', {})
                                 resultado['_original_m2_puro'] = _meta.get('_m2_puro', 0)
                                 if excluded_ids:
-                                    # Solo recalcular cuando hay exclusiones reales
-                                    comps_filtrados = [c for c in comps_orig if _get_comp_id(c) not in excluded_ids]
-                                    preview = calcular_vm2_por_seleccion(comps_filtrados, resultado)
-                                    if preview is not None:
-                                        nuevo_vm2 = preview['vm2']
-                                        nuevo_valor = preview['valor_total']
-                                        v_cons = nuevo_valor * 0.93
-                                        v_opt = nuevo_valor * 1.07
-                                        resultado = dict(resultado)
-                                        resultado['_auto_result'] = resultado
-                                        resultado['valor_propiedad_usd'] = round(nuevo_valor, 0)
-                                        resultado['valor_m2'] = nuevo_vm2
-                                        resultado['m2_base_venta'] = nuevo_vm2
-                                        resultado['valor_m2_actual_usd'] = round(nuevo_valor / resultado.get('m2_equivalentes', 1), 2)
-                                        resultado['valor_venta_conservador'] = v_cons
-                                        resultado['valor_venta_optimista'] = v_opt
-                                        resultado['_n_excluidos'] = len(excluded_ids)
-                                        logger.info(f"[APPLY] {prop_name}: {preview['n_sel']} comps, P{preview['percentil']}, valor=${nuevo_valor:,.0f}")
-                                    else:
-                                        # Menos de 2 comps seleccionados → limpiar header
-                                        resultado = dict(resultado)
-                                        resultado['_auto_result'] = resultado
-                                        resultado['valor_propiedad_usd'] = 0
-                                        resultado['valor_m2'] = 0
-                                        resultado['m2_base_venta'] = 0
-                                        resultado['valor_m2_actual_usd'] = 0
-                                        resultado['valor_venta_conservador'] = 0
-                                        resultado['valor_venta_optimista'] = 0
-                                        resultado['_n_excluidos'] = len(excluded_ids)
-                                        logger.info(f"[APPLY] {prop_name}: <2 comps, header limpiado")
+                                        # Solo recalcular cuando hay exclusiones reales
+                                        comps_filtrados = [c for c in comps_orig if _get_comp_id(c) not in excluded_ids]
+                                        preview = calcular_vm2_por_seleccion(comps_filtrados, resultado)
+                                        if preview is not None and not preview.get('fallback'):
+                                            nuevo_vm2 = preview['vm2']
+                                            nuevo_valor = preview['valor_total']
+                                            v_cons = nuevo_valor * 0.93
+                                            v_opt = nuevo_valor * 1.07
+                                            resultado = dict(resultado)
+                                            resultado['_auto_result'] = resultado
+                                            resultado['valor_propiedad_usd'] = round(nuevo_valor, 0)
+                                            resultado['valor_m2'] = nuevo_vm2
+                                            resultado['m2_base_venta'] = nuevo_vm2
+                                            resultado['valor_m2_actual_usd'] = round(nuevo_valor / resultado.get('m2_equivalentes', 1), 2)
+                                            resultado['valor_venta_conservador'] = v_cons
+                                            resultado['valor_venta_optimista'] = v_opt
+                                            resultado['_n_excluidos'] = len(excluded_ids)
+                                            logger.info(f"[APPLY] {prop_name}: {preview['n_sel']} comps, P{preview['percentil']}, valor=${nuevo_valor:,.0f}")
+                                        elif preview is not None and preview.get('fallback'):
+                                            # < 3 comps: mantener valor original del pool
+                                            resultado = dict(resultado)
+                                            resultado['_auto_result'] = resultado
+                                            resultado['_n_excluidos'] = len(excluded_ids)
+                                            logger.info(f"[APPLY] {prop_name}: {preview['n_sel']} comps (fallback), valor original=${resultado.get('valor_propiedad_usd', 0):,.0f}")
+                                        else:
+                                            # Menos de 2 comps seleccionados → limpiar header
+                                            resultado = dict(resultado)
+                                            resultado['_auto_result'] = resultado
+                                            resultado['valor_propiedad_usd'] = 0
+                                            resultado['valor_m2'] = 0
+                                            resultado['m2_base_venta'] = 0
+                                            resultado['valor_m2_actual_usd'] = 0
+                                            resultado['valor_venta_conservador'] = 0
+                                            resultado['valor_venta_optimista'] = 0
+                                            resultado['_n_excluidos'] = len(excluded_ids)
+                                            logger.info(f"[APPLY] {prop_name}: <2 comps, header limpiado")
                                 
                                 resultado['_comp_excluded'] = excluded_ids
                                 if from_apply:
