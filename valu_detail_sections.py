@@ -1283,20 +1283,21 @@ def render_valuacion_manual(prop, res):
                     key=f"manual_incluir_const_{nombre}",
                 )
 
-        # Activos (solo lectura)
-        with st.container(border=True):
-            st.markdown("**Activos adicionales**")
-            if cant_cocheras > 0:
-                coef_tipo_act = {'cubierta': 1.0, 'semicubierta': 0.7, 'descubierta': 0.4}.get(tipo_cochera, 1.0)
-                vbc = prop.get('valor_cochera_base', usd_m2_input * 12)
-                for i in range(1, cant_cocheras + 1):
-                    fu = 1.0 if i == 1 else 0.7 if i == 2 else 0.5
-                    v = vbc * coef_tipo_act * fu
-                    st.markdown(f"Cochera {i}: ${v:,.0f} USD (utilidad {fu*100:.0f}%)")
-            if valor_baulera > 0:
-                st.markdown(f"Baulera: ${valor_baulera:,.0f} USD")
-            if cant_cocheras == 0 and valor_baulera == 0:
-                st.markdown("Sin activos adicionales (cocheras / baulera)")
+        # Activos (solo lectura, inline)
+        activos_parts = []
+        if cant_cocheras > 0:
+            coef_tipo_act = {'cubierta': 1.0, 'semicubierta': 0.7, 'descubierta': 0.4}.get(tipo_cochera, 1.0)
+            vbc = prop.get('valor_cochera_base', usd_m2_input * 12)
+            for i in range(1, cant_cocheras + 1):
+                fu = 1.0 if i == 1 else 0.7 if i == 2 else 0.5
+                v = vbc * coef_tipo_act * fu
+                activos_parts.append(f"Cochera {i}: ${v:,.0f} USD")
+        if valor_baulera > 0:
+            activos_parts.append(f"Baulera: ${valor_baulera:,.0f} USD")
+        if activos_parts:
+            st.caption(f"**Activos adicionales:** {' · '.join(activos_parts)}")
+        else:
+            st.caption("Sin activos adicionales")
 
         # Subfactores de Referencia (display only)
         try:
