@@ -50,21 +50,31 @@ def _calcular_percentil_linear(precios, q):
 def calcular_vm2_por_seleccion(comparables, resultado_original):
     """
     Calcula valor/m² y valor total para un subconjunto de comparables
-    usando percentil por CV (misma lógica que el motor de valuación).
+    usando la misma lógica que el motor de valuación:
+    1. Separa same-side / cross-soft según `_cross_soft`
+    2. Determina percentil por CV (calidad del pool)
+    3. Calcula percentil en cada grupo (usa cluster_filters.calcular_percentil)
+    4. Aplica blend 0.70*same + 0.30*cross (o el grupo disponible)
     Si n_sel < 3, retorna fallback con valor original del pool completo.
     Retorna None si < 2 comparables.
     """
-    from parsers.cluster_filters import seleccionar_percentil_por_calidad_pool, _calcular_cv
+    from parsers.cluster_filters import (
+        seleccionar_percentil_por_calidad_pool, _calcular_cv,
+        calcular_percentil, calcular_blend_p33
+    )
 
-    precios = [c.get('precio_m2', 0) * c.get('time_adjustment', 1.0) for c in comparables]
-    precios_sorted = sorted(precios)
-    n_sel = len(precios_sorted)
+    ALPHA_MERCADO = 0.70
+
+    def _precio_ajustado(c):
+        return c.get('precio_m2', 0) * c.get('time_adjustment', 1.0)
+
+    precios = [_precio_ajustado(c) for c in comparables]
+    n_sel = len(precios)
 
     if n_sel < 2:
         return None
 
     if n_sel < 3:
-        # Fallback: devolver valor original del pool completo
         return {
             'vm2': resultado_original.get('m2_base_venta', 0),
             'valor_total': resultado_original.get('valor_propiedad_usd', 0),
@@ -75,16 +85,21 @@ def calcular_vm2_por_seleccion(comparables, resultado_original):
             'fallback': True
         }
 
-    cv = _calcular_cv(precios_sorted)
+    cv = _calcular_cv(precios)
     percentil, percentil_label = seleccionar_percentil_por_calidad_pool(n_sel, cv)
-    if percentil == 50:
-        nuevo_vm2 = _calcular_mediana(precios_sorted)
-    elif percentil == 45:
-        nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.45) - 1)]
-    elif percentil == 40:
-        nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.40) - 1)]
-    else:
-        nuevo_vm2 = precios_sorted[max(0, int(n_sel * 0.33) - 1)]
+
+    same = [c for c in comparables if not c.get('_cross_soft', False)]
+    cross = [c for c in comparables if c.get('_cross_soft', False)]
+
+    precios_same = sorted([_precio_ajustado(c) for c in same])
+    precios_cross = sorted([_precio_ajustado(c) for c in cross])
+
+    pct_same = calcular_percentil(precios_same, percentil) if precios_same else None
+    pct_cross = calcular_percentil(precios_cross, percentil) if precios_cross else None
+
+    nuevo_vm2 = calcular_blend_p33(pct_same, pct_cross, alpha=ALPHA_MERCADO)
+    if nuevo_vm2 is None:
+        nuevo_vm2 = 0.0
 
     m2_eq = resultado_original.get('m2_equivalentes', 0)
     valor_orig = resultado_original.get('valor_propiedad_usd', 0)
@@ -104,6 +119,8 @@ def calcular_vm2_por_seleccion(comparables, resultado_original):
         'percentil_label': percentil_label,
         'cv': round(cv, 4),
         'n_sel': n_sel,
+        'n_same': len(precios_same),
+        'n_cross': len(precios_cross),
         'fallback': False
     }
 
