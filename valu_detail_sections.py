@@ -394,9 +394,11 @@ def render_tabla_comparables(res, prop_name=None):
                 # 1. Setear todas las keys de checkbox a True
                 for cid in comp_ids:
                     st.session_state[f'sel_comp_{prop_name}_{cid}'] = True
-                # 2. Sincronizar estado global de selecci\u00f3n
+                # 2. Sincronizar estado global de selección
                 st.session_state[f'comp_selection_{prop_name}'] = set(comp_ids)
-                # 3. Limpiar exclusi\u00f3n y forzar rec\u00e1lculo
+                # 3. Setear flag _reset_all para que valu.py persista estado limpio
+                st.session_state[f'_reset_all_{prop_name}'] = True
+                # 4. Limpiar exclusión y forzar recálculo
                 st.session_state.pop(f'comp_excluded_{prop_name}', None)
                 st.session_state.pop(f'_comp_interacted_{prop_name}', None)
                 st.session_state[f'forzar_recalculo_{prop_name}'] = True
