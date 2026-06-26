@@ -598,23 +598,20 @@
     "fecha_legible": "19/06/2026 14:35"
   },
   "Francia 250b": {
-    "timestamp": "2026-06-26T10:21:03.608670",
+    "timestamp": "2026-06-26T10:43:46.991341",
     "hash_prop": "81040a68c17b",
     "hash_scraping": "97d5090a9e39",
     "cache_version": "v7_retro_cache_fix",
     "resultado_completo": {
-      "valor_propiedad_usd": 686515.0,
-      "_comp_excluded": [
-        "9e1b01f684a6",
-        "18021c6efa61"
-      ],
+      "valor_propiedad_usd": 665387.0,
+      "_comp_excluded": [],
       "_comp_exclusion_applied": true,
       "valor_realizable_usd": 612156.0,
-      "valor_m2_actual_usd": 4290.72,
-      "m2_base_venta": 3233.24,
-      "valor_venta_conservador": 638458.9500000001,
+      "valor_m2_actual_usd": 4158.67,
+      "m2_base_venta": 2568.6,
+      "valor_venta_conservador": 598848,
       "valor_venta_mercado": 665386,
-      "valor_venta_optimista": 734571.05,
+      "valor_venta_optimista": 731925,
       "valor_cierre_conservador": 550940,
       "valor_cierre_mercado": 612155,
       "valor_cierre_optimista": 673371,
@@ -624,22 +621,22 @@
         "max": 731925,
         "spread_pct": 20.0,
         "margen_error": 0.1,
-        "p25_cluster": 2940.69,
-        "p50_cluster": 3429.92,
-        "p75_cluster": 3792.53,
+        "p25_cluster": 2646.16,
+        "p50_cluster": 2940.69,
+        "p75_cluster": 3329.15,
         "metodo_rango": "valor_estimado_mas_margen_estadistico"
       },
-      "alquiler_estimado_ars": 4042231.0,
+      "alquiler_estimado_ars": 4039564.0,
       "alquiler_rango": {
-        "min": 3558992,
-        "mid": 4042231,
-        "max": 4525470
+        "min": 3554039,
+        "mid": 4039564,
+        "max": 4525088
       },
-      "cap_rate": 0.0619,
+      "cap_rate": 0.0624,
       "cap_rate_info": {
-        "cap_rate": 0.0619,
-        "cap_rate_min": 0.0545,
-        "cap_rate_max": 0.0693,
+        "cap_rate": 0.0624,
+        "cap_rate_min": 0.0549,
+        "cap_rate_max": 0.0699,
         "n_venta": 10,
         "n_alquiler": 8,
         "venta_m2_base": 1822.0,
@@ -652,12 +649,12 @@
       "es_fallback_alquiler": false,
       "confianza_alquiler": "MEDIA",
       "size_discount_alquiler": 0.75,
-      "cap_rate_anual": 4.5,
-      "cap_rate_bruto": 5.05,
-      "usdt_ars": 1570.2768,
+      "cap_rate_anual": 4.54,
+      "cap_rate_bruto": 5.09,
+      "usdt_ars": 1556.6666,
       "fecha_mercado": "2026-04-26T10:55:12.658994",
       "m2_equivalentes": 160.0,
-      "justificacion": "VPP v8.0: Modelo Híbrido Dinámico (7 comps). Cap Rate Neto: 4.50% (Cap Bruto: 5.0%). Plusvalia Estimada (Mercado): +0.0%.",
+      "justificacion": "VPP v8.0: Modelo Híbrido Dinámico (4 comps). Cap Rate Neto: 4.54% (Cap Bruto: 5.1%). Plusvalia Estimada (Mercado): +0.0%.",
       "rango_m2": "USD 598,848 - 731,925",
       "confianza": "media",
       "nlp_detecciones": [],
@@ -668,23 +665,23 @@
       "plusvalia_12m_usd": -119770.0,
       "plusvalia_12m_pct": -15.25,
       "expensas_ars": 0.0,
-      "mantenimiento_mensual_ars": 435351.0,
+      "mantenimiento_mensual_ars": 431577.0,
       "serie_mensual_m2": [],
       "resolution_metadata": {
         "resolution": "GEO",
         "confidence": "BAJA",
         "method": "cluster_v2",
-        "n_propiedades": 7,
+        "n_propiedades": 4,
         "radio_usado": 1500,
-        "percentil_usado": "P40",
+        "percentil_usado": "P33",
         "zona_resol": "Puerto Norte",
-        "m2_base_source": "cluster_v2 (PP40, 7 props)",
-        "n_comparables_total": 7,
+        "m2_base_source": "cluster_v2 (PP33, 4 props)",
+        "n_comparables_total": 4,
         "n_con_anio_alta": 0,
         "n_con_anio_media": 0,
         "pct_con_anio": 0.0,
-        "cv_pool": 0.2497,
-        "_m2_puro": 3221.55,
+        "cv_pool": 0.1573,
+        "_m2_puro": 2648.05,
         "size_adj_factor": null,
         "comparables_reales": [
           {
@@ -722,23 +719,6 @@
             "distancia_m": 1441.0
           },
           {
-            "precio": 170000.0,
-            "m2": 43.0,
-            "precio_m2": 3953.49,
-            "time_adjustment": 1.2716,
-            "precio_m2_ajustado": 5027.29,
-            "dormitorios": 1,
-            "direccion": "Forum Puerto Norte - Loft con vista al rio + Cochera y Baule",
-            "direccion_limpia": "Forum Puerto Norte - Loft con vista al rio + Cochera y Baule",
-            "lat": -32.92228,
-            "lon": -60.66527,
-            "zona": "Puerto Norte",
-            "tipo": "Departamento",
-            "anio_estimado": null,
-            "date_created": "2023-05-16T01:01:38.000Z",
-            "distancia_m": 952.0
-          },
-          {
             "precio": 130000.0,
             "m2": 55.0,
             "precio_m2": 2363.64,
@@ -771,40 +751,6 @@
             "anio_estimado": null,
             "date_created": "2024-12-20T00:06:21.000Z",
             "distancia_m": 1342.0
-          },
-          {
-            "precio": 425000.0,
-            "m2": 154.0,
-            "precio_m2": 2759.74,
-            "time_adjustment": 1.2428,
-            "precio_m2_ajustado": 3429.92,
-            "dormitorios": 2,
-            "direccion": "Torre Barranca - Puerto Norte-Av. Carballo 112 1",
-            "direccion_limpia": "Barranca Puerto Norte Carballo 112",
-            "lat": -32.92335,
-            "lon": -60.66297,
-            "zona": "Puerto Norte",
-            "tipo": "Departamento",
-            "anio_estimado": null,
-            "date_created": "2024-10-22T01:04:00.000Z",
-            "distancia_m": 790.0
-          },
-          {
-            "precio": 266000.0,
-            "m2": 85.05,
-            "precio_m2": 3127.57,
-            "time_adjustment": 1.2688,
-            "precio_m2_ajustado": 3968.2,
-            "dormitorios": 1,
-            "direccion": "Thedy y y Vélez Sarsfield - Distrito Puerto Norte",
-            "direccion_limpia": "Thedy y y Vélez Sarsfield - Distrito Puerto Norte",
-            "lat": -32.92529,
-            "lon": -60.66475,
-            "zona": "Puerto Norte",
-            "tipo": "Departamento",
-            "anio_estimado": null,
-            "date_created": "2024-05-28T23:00:14.000Z",
-            "distancia_m": 622.0
           }
         ]
       },
@@ -844,23 +790,6 @@
           "distancia_m": 1441.0
         },
         {
-          "precio": 170000.0,
-          "m2": 43.0,
-          "precio_m2": 3953.49,
-          "time_adjustment": 1.2716,
-          "precio_m2_ajustado": 5027.29,
-          "dormitorios": 1,
-          "direccion": "Forum Puerto Norte - Loft con vista al rio + Cochera y Baule",
-          "direccion_limpia": "Forum Puerto Norte - Loft con vista al rio + Cochera y Baule",
-          "lat": -32.92228,
-          "lon": -60.66527,
-          "zona": "Puerto Norte",
-          "tipo": "Departamento",
-          "anio_estimado": null,
-          "date_created": "2023-05-16T01:01:38.000Z",
-          "distancia_m": 952.0
-        },
-        {
           "precio": 130000.0,
           "m2": 55.0,
           "precio_m2": 2363.64,
@@ -893,44 +822,10 @@
           "anio_estimado": null,
           "date_created": "2024-12-20T00:06:21.000Z",
           "distancia_m": 1342.0
-        },
-        {
-          "precio": 425000.0,
-          "m2": 154.0,
-          "precio_m2": 2759.74,
-          "time_adjustment": 1.2428,
-          "precio_m2_ajustado": 3429.92,
-          "dormitorios": 2,
-          "direccion": "Torre Barranca - Puerto Norte-Av. Carballo 112 1",
-          "direccion_limpia": "Barranca Puerto Norte Carballo 112",
-          "lat": -32.92335,
-          "lon": -60.66297,
-          "zona": "Puerto Norte",
-          "tipo": "Departamento",
-          "anio_estimado": null,
-          "date_created": "2024-10-22T01:04:00.000Z",
-          "distancia_m": 790.0
-        },
-        {
-          "precio": 266000.0,
-          "m2": 85.05,
-          "precio_m2": 3127.57,
-          "time_adjustment": 1.2688,
-          "precio_m2_ajustado": 3968.2,
-          "dormitorios": 1,
-          "direccion": "Thedy y y Vélez Sarsfield - Distrito Puerto Norte",
-          "direccion_limpia": "Thedy y y Vélez Sarsfield - Distrito Puerto Norte",
-          "lat": -32.92529,
-          "lon": -60.66475,
-          "zona": "Puerto Norte",
-          "tipo": "Departamento",
-          "anio_estimado": null,
-          "date_created": "2024-05-28T23:00:14.000Z",
-          "distancia_m": 622.0
         }
       ],
       "retro_activo": true,
-      "total_dias_ventana": 1140,
+      "total_dias_ventana": 600,
       "flex_dormitorios": [
         1,
         2,
@@ -939,8 +834,8 @@
         5
       ],
       "sujeto_dormitorios": 3,
-      "mapa_html": "<div style=\"width:100%;\"><div style=\"position:relative;width:100%;height:0;padding-bottom:60%;\"><span style=\"color:#565656\">Make this Notebook Trusted to load map: File -> Trust Notebook</span><iframe srcdoc=\"&lt;!DOCTYPE html&gt;\n&lt;html&gt;\n&lt;head&gt;\n    \n    &lt;meta http-equiv=&quot;content-type&quot; content=&quot;text/html; charset=UTF-8&quot; /&gt;\n    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js&quot;&gt;&lt;/script&gt;\n    &lt;script src=&quot;https://code.jquery.com/jquery-3.7.1.min.js&quot;&gt;&lt;/script&gt;\n    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js&quot;&gt;&lt;/script&gt;\n    &lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js&quot;&gt;&lt;/script&gt;\n    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css&quot;/&gt;\n    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css&quot;/&gt;\n    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css&quot;/&gt;\n    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css&quot;/&gt;\n    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css&quot;/&gt;\n    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css&quot;/&gt;\n    \n            &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,\n                initial-scale=1.0, maximum-scale=1.0, user-scalable=no&quot; /&gt;\n            &lt;style&gt;\n                #map_238e94ec9ff8fe9ddcd930dcc06e0551 {\n                    position: relative;\n                    width: 100.0%;\n                    height: 100.0%;\n                    left: 0.0%;\n                    top: 0.0%;\n                }\n                .leaflet-container { font-size: 1rem; }\n            &lt;/style&gt;\n\n            &lt;style&gt;html, body {\n                width: 100%;\n                height: 100%;\n                margin: 0;\n                padding: 0;\n            }\n            &lt;/style&gt;\n\n            &lt;style&gt;#map {\n                position:absolute;\n                top:0;\n                bottom:0;\n                right:0;\n                left:0;\n                }\n            &lt;/style&gt;\n\n            &lt;script&gt;\n                L_NO_TOUCH = false;\n                L_DISABLE_3D = false;\n            &lt;/script&gt;\n\n        \n&lt;/head&gt;\n&lt;body&gt;\n    \n    \n            &lt;div class=&quot;folium-map&quot; id=&quot;map_238e94ec9ff8fe9ddcd930dcc06e0551&quot; &gt;&lt;/div&gt;\n        \n&lt;/body&gt;\n&lt;script&gt;\n    \n    \n            var map_238e94ec9ff8fe9ddcd930dcc06e0551 = L.map(\n                &quot;map_238e94ec9ff8fe9ddcd930dcc06e0551&quot;,\n                {\n                    center: [-32.9304159, -60.6620818],\n                    crs: L.CRS.EPSG3857,\n                    ...{\n  &quot;zoom&quot;: 12,\n  &quot;zoomControl&quot;: true,\n  &quot;preferCanvas&quot;: false,\n}\n\n                }\n            );\n\n            \n\n        \n    \n            var tile_layer_0ef6a5d9fbde5e2246625bf43e7f4603 = L.tileLayer(\n                &quot;https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png&quot;,\n                {\n  &quot;minZoom&quot;: 0,\n  &quot;maxZoom&quot;: 20,\n  &quot;maxNativeZoom&quot;: 20,\n  &quot;noWrap&quot;: false,\n  &quot;attribution&quot;: &quot;\\u0026copy; \\u003ca href=\\&quot;https://www.openstreetmap.org/copyright\\&quot;\\u003eOpenStreetMap\\u003c/a\\u003e contributors \\u0026copy; \\u003ca href=\\&quot;https://carto.com/attributions\\&quot;\\u003eCARTO\\u003c/a\\u003e&quot;,\n  &quot;subdomains&quot;: &quot;abcd&quot;,\n  &quot;detectRetina&quot;: false,\n  &quot;tms&quot;: false,\n  &quot;opacity&quot;: 1,\n}\n\n            );\n        \n    \n            tile_layer_0ef6a5d9fbde5e2246625bf43e7f4603.addTo(map_238e94ec9ff8fe9ddcd930dcc06e0551);\n        \n    \n            var marker_c2eb13a180d01152fa69561c2b0eb115 = L.marker(\n                [-32.9304159, -60.6620818],\n                {\n}\n            ).addTo(map_238e94ec9ff8fe9ddcd930dcc06e0551);\n        \n    \n            var icon_08ec914d96ea4abd908e39c1eb573a7f = L.AwesomeMarkers.icon(\n                {\n  &quot;markerColor&quot;: &quot;red&quot;,\n  &quot;iconColor&quot;: &quot;white&quot;,\n  &quot;icon&quot;: &quot;home&quot;,\n  &quot;prefix&quot;: &quot;glyphicon&quot;,\n  &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,\n}\n            );\n        \n    \n        var popup_e9dd5d10bce41b4504a97f0258bc08d9 = L.popup({\n  &quot;maxWidth&quot;: &quot;100%&quot;,\n});\n\n        \n            \n                var html_3239fd8b6fc4b4c9d3ebbb68b6d5c9e5 = $(`&lt;div id=&quot;html_3239fd8b6fc4b4c9d3ebbb68b6d5c9e5&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;📍 Propiedad - $665,387&lt;/div&gt;`)[0];\n                popup_e9dd5d10bce41b4504a97f0258bc08d9.setContent(html_3239fd8b6fc4b4c9d3ebbb68b6d5c9e5);\n            \n        \n\n        marker_c2eb13a180d01152fa69561c2b0eb115.bindPopup(popup_e9dd5d10bce41b4504a97f0258bc08d9)\n        ;\n\n        \n    \n    \n                marker_c2eb13a180d01152fa69561c2b0eb115.setIcon(icon_08ec914d96ea4abd908e39c1eb573a7f);\n            \n    \n            var circle_6037368764950af757bebac0d44126ff = L.circle(\n                [-32.9304159, -60.6620818],\n                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;gray&quot;, &quot;dashArray&quot;: &quot;5&quot;, &quot;dashOffset&quot;: null, &quot;fill&quot;: false, &quot;fillColor&quot;: &quot;gray&quot;, &quot;fillOpacity&quot;: 0.2, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;opacity&quot;: 1.0, &quot;radius&quot;: 1500, &quot;stroke&quot;: true, &quot;weight&quot;: 3}\n            ).addTo(map_238e94ec9ff8fe9ddcd930dcc06e0551);\n        \n    \n            var circle_marker_061750d96b719993e9722800070465b6 = L.circleMarker(\n                [-32.92891, -60.66469],\n                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;blue&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: true, &quot;fillColor&quot;: &quot;blue&quot;, &quot;fillOpacity&quot;: 0.6, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;opacity&quot;: 1.0, &quot;radius&quot;: 4, &quot;stroke&quot;: true, &quot;weight&quot;: 3}\n            ).addTo(map_238e94ec9ff8fe9ddcd930dcc06e0551);\n        \n    \n        var popup_677b1cc5883ef8dab992ba735f5637c3 = L.popup({\n  &quot;maxWidth&quot;: &quot;100%&quot;,\n});\n\n        \n            \n                var html_552a1e61a8ff7dbab4179a18169a4091 = $(`&lt;div id=&quot;html_552a1e61a8ff7dbab4179a18169a4091&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;$2,882/m²&lt;/div&gt;`)[0];\n                popup_677b1cc5883ef8dab992ba735f5637c3.setContent(html_552a1e61a8ff7dbab4179a18169a4091);\n            \n        \n\n        circle_marker_061750d96b719993e9722800070465b6.bindPopup(popup_677b1cc5883ef8dab992ba735f5637c3)\n        ;\n\n        \n    \n    \n            var circle_marker_07d815d4679712f8588ecad0660f45be = L.circleMarker(\n                [-32.921875, -60.67369],\n                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;blue&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: true, &quot;fillColor&quot;: &quot;blue&quot;, &quot;fillOpacity&quot;: 0.6, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;opacity&quot;: 1.0, &quot;radius&quot;: 4, &quot;stroke&quot;: true, &quot;weight&quot;: 3}\n            ).addTo(map_238e94ec9ff8fe9ddcd930dcc06e0551);\n        \n    \n        var popup_917b56348687371cc9cc6890f866dea0 = L.popup({\n  &quot;maxWidth&quot;: &quot;100%&quot;,\n});\n\n        \n            \n                var html_a1e6fe9abab5a268772a34fc446d8990 = $(`&lt;div id=&quot;html_a1e6fe9abab5a268772a34fc446d8990&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;$3,000/m²&lt;/div&gt;`)[0];\n                popup_917b56348687371cc9cc6890f866dea0.setContent(html_a1e6fe9abab5a268772a34fc446d8990);\n            \n        \n\n        circle_marker_07d815d4679712f8588ecad0660f45be.bindPopup(popup_917b56348687371cc9cc6890f866dea0)\n        ;\n\n        \n    \n    \n            var circle_marker_ec2564d957021aa3fd58798b856bb9b6 = L.circleMarker(\n                [-32.92228, -60.66527],\n                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;blue&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: true, &quot;fillColor&quot;: &quot;blue&quot;, &quot;fillOpacity&quot;: 0.6, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;opacity&quot;: 1.0, &quot;radius&quot;: 4, &quot;stroke&quot;: true, &quot;weight&quot;: 3}\n            ).addTo(map_238e94ec9ff8fe9ddcd930dcc06e0551);\n        \n    \n        var popup_27b8a7dac14e358318f95c5e86b91705 = L.popup({\n  &quot;maxWidth&quot;: &quot;100%&quot;,\n});\n\n        \n            \n                var html_366984b5b714b548ea06da2db0e85ad4 = $(`&lt;div id=&quot;html_366984b5b714b548ea06da2db0e85ad4&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;$3,953/m²&lt;/div&gt;`)[0];\n                popup_27b8a7dac14e358318f95c5e86b91705.setContent(html_366984b5b714b548ea06da2db0e85ad4);\n            \n        \n\n        circle_marker_ec2564d957021aa3fd58798b856bb9b6.bindPopup(popup_27b8a7dac14e358318f95c5e86b91705)\n        ;\n\n        \n    \n    \n            var circle_marker_04b5d33d8b662a221695b524cf2e4157 = L.circleMarker(\n                [-32.92881, -60.66323],\n                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;blue&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: true, &quot;fillColor&quot;: &quot;blue&quot;, &quot;fillOpacity&quot;: 0.6, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;opacity&quot;: 1.0, &quot;radius&quot;: 4, &quot;stroke&quot;: true, &quot;weight&quot;: 3}\n            ).addTo(map_238e94ec9ff8fe9ddcd930dcc06e0551);\n        \n    \n        var popup_17930bd132641d42c861c39e30311d54 = L.popup({\n  &quot;maxWidth&quot;: &quot;100%&quot;,\n});\n\n        \n            \n                var html_6bd87bcca6c6019e20d5f754356df24e = $(`&lt;div id=&quot;html_6bd87bcca6c6019e20d5f754356df24e&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;$2,364/m²&lt;/div&gt;`)[0];\n                popup_17930bd132641d42c861c39e30311d54.setContent(html_6bd87bcca6c6019e20d5f754356df24e);\n            \n        \n\n        circle_marker_04b5d33d8b662a221695b524cf2e4157.bindPopup(popup_17930bd132641d42c861c39e30311d54)\n        ;\n\n        \n    \n    \n            var circle_marker_96817dc77f337187a405374586395052 = L.circleMarker(\n                [-32.921684, -60.672],\n                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;blue&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: true, &quot;fillColor&quot;: &quot;blue&quot;, &quot;fillOpacity&quot;: 0.6, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;opacity&quot;: 1.0, &quot;radius&quot;: 4, &quot;stroke&quot;: true, &quot;weight&quot;: 3}\n            ).addTo(map_238e94ec9ff8fe9ddcd930dcc06e0551);\n        \n    \n        var popup_59cf842b0bddebfa145f9253936639b9 = L.popup({\n  &quot;maxWidth&quot;: &quot;100%&quot;,\n});\n\n        \n            \n                var html_798569d0aeb5fde8189061eac1ccf77e = $(`&lt;div id=&quot;html_798569d0aeb5fde8189061eac1ccf77e&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;$2,148/m²&lt;/div&gt;`)[0];\n                popup_59cf842b0bddebfa145f9253936639b9.setContent(html_798569d0aeb5fde8189061eac1ccf77e);\n            \n        \n\n        circle_marker_96817dc77f337187a405374586395052.bindPopup(popup_59cf842b0bddebfa145f9253936639b9)\n        ;\n\n        \n    \n    \n            var circle_marker_1e6c0fe8054c6a2ac604c8d712656f24 = L.circleMarker(\n                [-32.92335, -60.66297],\n                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;blue&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: true, &quot;fillColor&quot;: &quot;blue&quot;, &quot;fillOpacity&quot;: 0.6, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;opacity&quot;: 1.0, &quot;radius&quot;: 4, &quot;stroke&quot;: true, &quot;weight&quot;: 3}\n            ).addTo(map_238e94ec9ff8fe9ddcd930dcc06e0551);\n        \n    \n        var popup_09f2709e4508d5c3188bf07563197944 = L.popup({\n  &quot;maxWidth&quot;: &quot;100%&quot;,\n});\n\n        \n            \n                var html_50944ef633c9614fc85ae7875218d140 = $(`&lt;div id=&quot;html_50944ef633c9614fc85ae7875218d140&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;$2,760/m²&lt;/div&gt;`)[0];\n                popup_09f2709e4508d5c3188bf07563197944.setContent(html_50944ef633c9614fc85ae7875218d140);\n            \n        \n\n        circle_marker_1e6c0fe8054c6a2ac604c8d712656f24.bindPopup(popup_09f2709e4508d5c3188bf07563197944)\n        ;\n\n        \n    \n    \n            var circle_marker_7e9030a0fc434e45248f3890699eaf23 = L.circleMarker(\n                [-32.92529, -60.66475],\n                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;blue&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: true, &quot;fillColor&quot;: &quot;blue&quot;, &quot;fillOpacity&quot;: 0.6, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;opacity&quot;: 1.0, &quot;radius&quot;: 4, &quot;stroke&quot;: true, &quot;weight&quot;: 3}\n            ).addTo(map_238e94ec9ff8fe9ddcd930dcc06e0551);\n        \n    \n        var popup_57b543d600137dc8f5bffd14796e569f = L.popup({\n  &quot;maxWidth&quot;: &quot;100%&quot;,\n});\n\n        \n            \n                var html_2f835b15dfdc8a9e84e236b5027fa4ad = $(`&lt;div id=&quot;html_2f835b15dfdc8a9e84e236b5027fa4ad&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;$3,128/m²&lt;/div&gt;`)[0];\n                popup_57b543d600137dc8f5bffd14796e569f.setContent(html_2f835b15dfdc8a9e84e236b5027fa4ad);\n            \n        \n\n        circle_marker_7e9030a0fc434e45248f3890699eaf23.bindPopup(popup_57b543d600137dc8f5bffd14796e569f)\n        ;\n\n        \n    \n&lt;/script&gt;\n&lt;/html&gt;\" style=\"position:absolute;width:100%;height:100%;left:0;top:0;border:none !important;\" allowfullscreen webkitallowfullscreen mozallowfullscreen></iframe></div></div>",
-      "razonamiento": "Francia 250b es un departamento de 5 ambientes de 3 dormitorios ubicado en Puerto Norte, Rosario, en el piso 6 de 10 con orientación noreste, muy valorada por su buena luz. Con 160 m2 cubiertos, fue construido en 2025 y tiene 1 años de antigüedad.\n\nLa oferta de propiedades comparables en la zona es limitada, lo que introduce un grado de incertidumbre mayor en la estimación.\n\nEntre los atributos que contribuyen positivamente al valor se destaca que la vista al río es un atributo excepcional y escaso, que marca una diferencia fundamental en el mercado, la calidad constructiva premium es un factor distintivo que la posiciona por encima del estándar de la zona, se encuentra a estrenar, lo que representa un diferencial importante en el mercado, la ventilación cruzada es muy valorada en Rosario porque mantiene los ambientes frescos sin necesidad de aire acondicionado, la terraza exclusiva funciona como una extensión del living y es un diferencial importante y cuenta con doble ingreso, lavadero independiente, toilet de recepción, distribución flexible, placares completos y despensa, detalles funcionales que suman atractivo.\n\nCon pocos años de antigüedad, el desgaste por edad es mínimo y la propiedad se encuentra en su etapa óptima de valor.\n\nEl valor de publicación estimado es de USD 665,387. El rango de mercado es amplio, reflejando la heterogeneidad de la oferta en la zona: desde USD 598,848 en un escenario conservador hasta USD 731,925 en uno optimista. Para una venta rápida, considerando los gastos de cierre habituales, el valor realizable se ubica en USD 612,156. Se consideraron activos adicionales por USD 56,000 (2 cocheras cubierta ($51,000) + baulera ($5,000)).\n\nEn términos de renta, la propiedad genera un alquiler estimado de ARS 4,042,231 mensuales (USD 2,574), lo que representa un rendimiento atractivo para inversores, por encima del promedio de la ciudad. El análisis de alquiler se realizó sobre datos directos del mercado de la zona, lo que otorga confianza en la estimación.",
+      "mapa_html": "<div style=\"width:100%;\"><div style=\"position:relative;width:100%;height:0;padding-bottom:60%;\"><span style=\"color:#565656\">Make this Notebook Trusted to load map: File -> Trust Notebook</span><iframe srcdoc=\"&lt;!DOCTYPE html&gt;\n&lt;html&gt;\n&lt;head&gt;\n    \n    &lt;meta http-equiv=&quot;content-type&quot; content=&quot;text/html; charset=UTF-8&quot; /&gt;\n    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js&quot;&gt;&lt;/script&gt;\n    &lt;script src=&quot;https://code.jquery.com/jquery-3.7.1.min.js&quot;&gt;&lt;/script&gt;\n    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js&quot;&gt;&lt;/script&gt;\n    &lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js&quot;&gt;&lt;/script&gt;\n    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css&quot;/&gt;\n    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css&quot;/&gt;\n    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css&quot;/&gt;\n    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css&quot;/&gt;\n    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css&quot;/&gt;\n    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css&quot;/&gt;\n    \n            &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,\n                initial-scale=1.0, maximum-scale=1.0, user-scalable=no&quot; /&gt;\n            &lt;style&gt;\n                #map_c8a10b51df967abca2cd03286af05fbd {\n                    position: relative;\n                    width: 100.0%;\n                    height: 100.0%;\n                    left: 0.0%;\n                    top: 0.0%;\n                }\n                .leaflet-container { font-size: 1rem; }\n            &lt;/style&gt;\n\n            &lt;style&gt;html, body {\n                width: 100%;\n                height: 100%;\n                margin: 0;\n                padding: 0;\n            }\n            &lt;/style&gt;\n\n            &lt;style&gt;#map {\n                position:absolute;\n                top:0;\n                bottom:0;\n                right:0;\n                left:0;\n                }\n            &lt;/style&gt;\n\n            &lt;script&gt;\n                L_NO_TOUCH = false;\n                L_DISABLE_3D = false;\n            &lt;/script&gt;\n\n        \n&lt;/head&gt;\n&lt;body&gt;\n    \n    \n            &lt;div class=&quot;folium-map&quot; id=&quot;map_c8a10b51df967abca2cd03286af05fbd&quot; &gt;&lt;/div&gt;\n        \n&lt;/body&gt;\n&lt;script&gt;\n    \n    \n            var map_c8a10b51df967abca2cd03286af05fbd = L.map(\n                &quot;map_c8a10b51df967abca2cd03286af05fbd&quot;,\n                {\n                    center: [-32.9304159, -60.6620818],\n                    crs: L.CRS.EPSG3857,\n                    ...{\n  &quot;zoom&quot;: 12,\n  &quot;zoomControl&quot;: true,\n  &quot;preferCanvas&quot;: false,\n}\n\n                }\n            );\n\n            \n\n        \n    \n            var tile_layer_b48264dab6b7ee67b30ae66446e315fa = L.tileLayer(\n                &quot;https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png&quot;,\n                {\n  &quot;minZoom&quot;: 0,\n  &quot;maxZoom&quot;: 20,\n  &quot;maxNativeZoom&quot;: 20,\n  &quot;noWrap&quot;: false,\n  &quot;attribution&quot;: &quot;\\u0026copy; \\u003ca href=\\&quot;https://www.openstreetmap.org/copyright\\&quot;\\u003eOpenStreetMap\\u003c/a\\u003e contributors \\u0026copy; \\u003ca href=\\&quot;https://carto.com/attributions\\&quot;\\u003eCARTO\\u003c/a\\u003e&quot;,\n  &quot;subdomains&quot;: &quot;abcd&quot;,\n  &quot;detectRetina&quot;: false,\n  &quot;tms&quot;: false,\n  &quot;opacity&quot;: 1,\n}\n\n            );\n        \n    \n            tile_layer_b48264dab6b7ee67b30ae66446e315fa.addTo(map_c8a10b51df967abca2cd03286af05fbd);\n        \n    \n            var marker_95d2a6799bd4579fc3f9eb41b386a37a = L.marker(\n                [-32.9304159, -60.6620818],\n                {\n}\n            ).addTo(map_c8a10b51df967abca2cd03286af05fbd);\n        \n    \n            var icon_016fca98360372f3836760eb20870323 = L.AwesomeMarkers.icon(\n                {\n  &quot;markerColor&quot;: &quot;red&quot;,\n  &quot;iconColor&quot;: &quot;white&quot;,\n  &quot;icon&quot;: &quot;home&quot;,\n  &quot;prefix&quot;: &quot;glyphicon&quot;,\n  &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,\n}\n            );\n        \n    \n        var popup_c6078b3d5523ba3e55d115dc89f36163 = L.popup({\n  &quot;maxWidth&quot;: &quot;100%&quot;,\n});\n\n        \n            \n                var html_34d86354e85d1fcd0e05905fafe9268a = $(`&lt;div id=&quot;html_34d86354e85d1fcd0e05905fafe9268a&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;📍 Propiedad - $665,387&lt;/div&gt;`)[0];\n                popup_c6078b3d5523ba3e55d115dc89f36163.setContent(html_34d86354e85d1fcd0e05905fafe9268a);\n            \n        \n\n        marker_95d2a6799bd4579fc3f9eb41b386a37a.bindPopup(popup_c6078b3d5523ba3e55d115dc89f36163)\n        ;\n\n        \n    \n    \n                marker_95d2a6799bd4579fc3f9eb41b386a37a.setIcon(icon_016fca98360372f3836760eb20870323);\n            \n    \n            var circle_59be9d0021b8081e3576331a8fbe15d4 = L.circle(\n                [-32.9304159, -60.6620818],\n                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;gray&quot;, &quot;dashArray&quot;: &quot;5&quot;, &quot;dashOffset&quot;: null, &quot;fill&quot;: false, &quot;fillColor&quot;: &quot;gray&quot;, &quot;fillOpacity&quot;: 0.2, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;opacity&quot;: 1.0, &quot;radius&quot;: 1500, &quot;stroke&quot;: true, &quot;weight&quot;: 3}\n            ).addTo(map_c8a10b51df967abca2cd03286af05fbd);\n        \n    \n            var circle_marker_facefd66c193c12a612eed069f65f58b = L.circleMarker(\n                [-32.92891, -60.66469],\n                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;blue&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: true, &quot;fillColor&quot;: &quot;blue&quot;, &quot;fillOpacity&quot;: 0.6, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;opacity&quot;: 1.0, &quot;radius&quot;: 4, &quot;stroke&quot;: true, &quot;weight&quot;: 3}\n            ).addTo(map_c8a10b51df967abca2cd03286af05fbd);\n        \n    \n        var popup_8ac62851745302fe9b8ff1d99d24547a = L.popup({\n  &quot;maxWidth&quot;: &quot;100%&quot;,\n});\n\n        \n            \n                var html_5e4953fe7d37842ff7d1fdf301634d2e = $(`&lt;div id=&quot;html_5e4953fe7d37842ff7d1fdf301634d2e&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;$2,882/m²&lt;/div&gt;`)[0];\n                popup_8ac62851745302fe9b8ff1d99d24547a.setContent(html_5e4953fe7d37842ff7d1fdf301634d2e);\n            \n        \n\n        circle_marker_facefd66c193c12a612eed069f65f58b.bindPopup(popup_8ac62851745302fe9b8ff1d99d24547a)\n        ;\n\n        \n    \n    \n            var circle_marker_f68808da3d0f43e042b9893747259a1d = L.circleMarker(\n                [-32.921875, -60.67369],\n                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;blue&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: true, &quot;fillColor&quot;: &quot;blue&quot;, &quot;fillOpacity&quot;: 0.6, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;opacity&quot;: 1.0, &quot;radius&quot;: 4, &quot;stroke&quot;: true, &quot;weight&quot;: 3}\n            ).addTo(map_c8a10b51df967abca2cd03286af05fbd);\n        \n    \n        var popup_a974490baa1c0fa8a4c52a3a8b02bc23 = L.popup({\n  &quot;maxWidth&quot;: &quot;100%&quot;,\n});\n\n        \n            \n                var html_c98e1f1503a0bd8974d6484d57d73dbc = $(`&lt;div id=&quot;html_c98e1f1503a0bd8974d6484d57d73dbc&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;$3,000/m²&lt;/div&gt;`)[0];\n                popup_a974490baa1c0fa8a4c52a3a8b02bc23.setContent(html_c98e1f1503a0bd8974d6484d57d73dbc);\n            \n        \n\n        circle_marker_f68808da3d0f43e042b9893747259a1d.bindPopup(popup_a974490baa1c0fa8a4c52a3a8b02bc23)\n        ;\n\n        \n    \n    \n            var circle_marker_c402f362b20d4b5674b109ad6f1ae208 = L.circleMarker(\n                [-32.92881, -60.66323],\n                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;blue&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: true, &quot;fillColor&quot;: &quot;blue&quot;, &quot;fillOpacity&quot;: 0.6, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;opacity&quot;: 1.0, &quot;radius&quot;: 4, &quot;stroke&quot;: true, &quot;weight&quot;: 3}\n            ).addTo(map_c8a10b51df967abca2cd03286af05fbd);\n        \n    \n        var popup_88769ddba93174599d61a954de4661cf = L.popup({\n  &quot;maxWidth&quot;: &quot;100%&quot;,\n});\n\n        \n            \n                var html_e676d8dcdc3a74ab2c948f65e0c4be14 = $(`&lt;div id=&quot;html_e676d8dcdc3a74ab2c948f65e0c4be14&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;$2,364/m²&lt;/div&gt;`)[0];\n                popup_88769ddba93174599d61a954de4661cf.setContent(html_e676d8dcdc3a74ab2c948f65e0c4be14);\n            \n        \n\n        circle_marker_c402f362b20d4b5674b109ad6f1ae208.bindPopup(popup_88769ddba93174599d61a954de4661cf)\n        ;\n\n        \n    \n    \n            var circle_marker_25ea38b96a4ecfac8609ee8d97f615c8 = L.circleMarker(\n                [-32.921684, -60.672],\n                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;blue&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: true, &quot;fillColor&quot;: &quot;blue&quot;, &quot;fillOpacity&quot;: 0.6, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;opacity&quot;: 1.0, &quot;radius&quot;: 4, &quot;stroke&quot;: true, &quot;weight&quot;: 3}\n            ).addTo(map_c8a10b51df967abca2cd03286af05fbd);\n        \n    \n        var popup_2a7e35cc0235c5c693466829348fe2ad = L.popup({\n  &quot;maxWidth&quot;: &quot;100%&quot;,\n});\n\n        \n            \n                var html_1d2bcdb8141b7999d208b3e4989b8b09 = $(`&lt;div id=&quot;html_1d2bcdb8141b7999d208b3e4989b8b09&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;$2,148/m²&lt;/div&gt;`)[0];\n                popup_2a7e35cc0235c5c693466829348fe2ad.setContent(html_1d2bcdb8141b7999d208b3e4989b8b09);\n            \n        \n\n        circle_marker_25ea38b96a4ecfac8609ee8d97f615c8.bindPopup(popup_2a7e35cc0235c5c693466829348fe2ad)\n        ;\n\n        \n    \n&lt;/script&gt;\n&lt;/html&gt;\" style=\"position:absolute;width:100%;height:100%;left:0;top:0;border:none !important;\" allowfullscreen webkitallowfullscreen mozallowfullscreen></iframe></div></div>",
+      "razonamiento": "Francia 250b es un departamento de 5 ambientes de 3 dormitorios ubicado en Puerto Norte, Rosario, en el piso 6 de 10 con orientación noreste, muy valorada por su buena luz. Con 160 m2 cubiertos, fue construido en 2025 y tiene 1 años de antigüedad.\n\nLa oferta de propiedades comparables en la zona es muy reducida, por lo que el valor estimado debe tomarse con mayor precaución.\n\nEntre los atributos que contribuyen positivamente al valor se destaca que la vista al río es un atributo excepcional y escaso, que marca una diferencia fundamental en el mercado, la calidad constructiva premium es un factor distintivo que la posiciona por encima del estándar de la zona, se encuentra a estrenar, lo que representa un diferencial importante en el mercado, la ventilación cruzada es muy valorada en Rosario porque mantiene los ambientes frescos sin necesidad de aire acondicionado, la terraza exclusiva funciona como una extensión del living y es un diferencial importante y cuenta con doble ingreso, lavadero independiente, toilet de recepción, distribución flexible, placares completos y despensa, detalles funcionales que suman atractivo.\n\nCon pocos años de antigüedad, el desgaste por edad es mínimo y la propiedad se encuentra en su etapa óptima de valor.\n\nEl valor de publicación estimado es de USD 665,387. El rango de mercado es amplio, reflejando la heterogeneidad de la oferta en la zona: desde USD 598,848 en un escenario conservador hasta USD 731,925 en uno optimista. Para una venta rápida, considerando los gastos de cierre habituales, el valor realizable se ubica en USD 612,156. Se consideraron activos adicionales por USD 56,000 (2 cocheras cubierta ($51,000) + baulera ($5,000)).\n\nEn términos de renta, la propiedad genera un alquiler estimado de ARS 4,039,564 mensuales (USD 2,595), lo que representa un rendimiento atractivo para inversores, por encima del promedio de la ciudad. El análisis de alquiler se realizó sobre datos directos del mercado de la zona, lo que otorga confianza en la estimación.",
       "catastro_detalle": null,
       "macrozona_depreciacion": {
         "macrozona_id": "centro_premium",
@@ -969,7 +864,7 @@
         "tasa_zonal": 0.0,
         "meta_mz": null
       },
-      "n_comps": 7,
+      "n_comps": 4,
       "valor_activos": {
         "total": 56000.0,
         "cocheras": 51000.0,
@@ -979,10 +874,10 @@
       "tiene_barreras": false,
       "meta_venta": {
         "n_same_side": 0,
-        "n_cross_soft": 7
+        "n_cross_soft": 4
       },
       "audit_log": {
-        "timestamp": "2026-06-26T10:21:03.549159",
+        "timestamp": "2026-06-26T10:43:46.922846",
         "motor_version": "v7.0",
         "nombre": "Francia 250b",
         "propiedad": {
@@ -1015,26 +910,26 @@
           "m2_equiv": 160.0
         },
         "cluster_venta": {
-          "n_total_cluster": 7,
+          "n_total_cluster": 4,
           "n_con_anio": 0,
           "pct_con_anio": 0.0,
           "age_filter_applied": false,
           "n_age_filtered": null,
           "rango_anio_usado": "",
-          "percentil_usado": "P40",
+          "percentil_usado": "P33",
           "p33_same": null,
           "p33_cross": null,
-          "base_principal": 3124.9,
-          "base_conservadora": 2940.69,
-          "base_mercado": 3429.92,
-          "base_optimista": 3792.53,
+          "base_principal": 2568.6,
+          "base_conservadora": 2646.16,
+          "base_mercado": 2940.69,
+          "base_optimista": 3329.15,
           "alpha_principal": null,
           "alpha_optimista": 0.7,
           "age_blend_applied": false,
           "alpha_age_blend": null,
           "barrier_mode": "blending",
           "n_same_side": 0,
-          "n_cross_soft": 7,
+          "n_cross_soft": 4,
           "radio_usado": 1500,
           "comparables_usados": [
             {
@@ -1056,15 +951,6 @@
               "grupo": ""
             },
             {
-              "direccion": "Forum Puerto Norte - Loft con vista al rio + Cochera y Baule",
-              "lat": -32.92228,
-              "lon": -60.66527,
-              "precio_m2": 3953.49,
-              "anio_estimado": null,
-              "dist_m": null,
-              "grupo": ""
-            },
-            {
               "direccion": "Torre Arealis, Puerto Norte",
               "lat": -32.92881,
               "lon": -60.66323,
@@ -1078,24 +964,6 @@
               "lat": -32.921684,
               "lon": -60.672,
               "precio_m2": 2148.21,
-              "anio_estimado": null,
-              "dist_m": null,
-              "grupo": ""
-            },
-            {
-              "direccion": "Torre Barranca - Puerto Norte-Av. Carballo 112 1",
-              "lat": -32.92335,
-              "lon": -60.66297,
-              "precio_m2": 2759.74,
-              "anio_estimado": null,
-              "dist_m": null,
-              "grupo": ""
-            },
-            {
-              "direccion": "Thedy y y Vélez Sarsfield - Distrito Puerto Norte",
-              "lat": -32.92529,
-              "lon": -60.66475,
-              "precio_m2": 3127.57,
               "anio_estimado": null,
               "dist_m": null,
               "grupo": ""
@@ -1124,53 +992,53 @@
           "metodo_rango": "valor_estimado_mas_margen_estadistico",
           "margen_error": 0.1,
           "valor_realizable": 612156.0,
-          "m2_base_venta": 3124.9,
-          "m2_base_source": "cluster_v2 (PP40, 7 props)"
+          "m2_base_venta": 2568.6,
+          "m2_base_source": "cluster_v2 (PP33, 4 props)"
         },
         "alquiler": {
           "metodo_alquiler": "mercado_local",
-          "cap_rate": 0.0619,
-          "cap_rate_min": 0.0545,
-          "cap_rate_max": 0.0693,
-          "alq_mensual_ars": 4042231.0,
-          "alq_rango_min": 3558992,
-          "alq_rango_max": 4525470,
+          "cap_rate": 0.0624,
+          "cap_rate_min": 0.0549,
+          "cap_rate_max": 0.0699,
+          "alq_mensual_ars": 4039564.0,
+          "alq_rango_min": 3554039,
+          "alq_rango_max": 4525088,
           "size_discount_alquiler": 0.75,
           "es_fallback_alquiler": false,
           "n_alquiler": 8,
           "alq_m2_base": 21555.55,
           "m2_equiv_alquiler": 160.0,
           "factores_alquiler": 1.1867539200000004,
-          "gasto_mantenimiento_mensual": 435351.0,
+          "gasto_mantenimiento_mensual": 431577.0,
           "expensas_ars": 0.0,
           "confianza": "MEDIA"
         },
         "final": {
           "valor_venta": 665387.0,
           "valor_realizable": 612156.0,
-          "alquiler_mensual_ars": 4042231.0,
+          "alquiler_mensual_ars": 4039564.0,
           "plusvalia_usd": 0.0,
           "plusvalia_pct": 0.0,
           "plusvalia_tipo": "Estimada (Mercado)",
-          "cap_rate_neto_anual": 4.5,
-          "cap_rate_bruto_anual": 5.05,
-          "dolar_usdt_ars": 1570.2768
+          "cap_rate_neto_anual": 4.54,
+          "cap_rate_bruto_anual": 5.09,
+          "dolar_usdt_ars": 1556.6666
         },
         "resolution_metadata": {
           "resolution": "GEO",
           "confidence": "BAJA",
           "method": "cluster_v2",
-          "n_propiedades": 7,
+          "n_propiedades": 4,
           "radio_usado": 1500,
-          "percentil_usado": "P40",
+          "percentil_usado": "P33",
           "zona_resol": "Puerto Norte",
-          "m2_base_source": "cluster_v2 (PP40, 7 props)",
-          "n_comparables_total": 7,
+          "m2_base_source": "cluster_v2 (PP33, 4 props)",
+          "n_comparables_total": 4,
           "n_con_anio_alta": 0,
           "n_con_anio_media": 0,
           "pct_con_anio": 0.0,
-          "cv_pool": 0.2497,
-          "_m2_puro": 3221.55,
+          "cv_pool": 0.1573,
+          "_m2_puro": 2648.05,
           "size_adj_factor": null,
           "comparables_reales": [
             {
@@ -1208,23 +1076,6 @@
               "distancia_m": 1441.0
             },
             {
-              "precio": 170000.0,
-              "m2": 43.0,
-              "precio_m2": 3953.49,
-              "time_adjustment": 1.2716,
-              "precio_m2_ajustado": 5027.29,
-              "dormitorios": 1,
-              "direccion": "Forum Puerto Norte - Loft con vista al rio + Cochera y Baule",
-              "direccion_limpia": "Forum Puerto Norte - Loft con vista al rio + Cochera y Baule",
-              "lat": -32.92228,
-              "lon": -60.66527,
-              "zona": "Puerto Norte",
-              "tipo": "Departamento",
-              "anio_estimado": null,
-              "date_created": "2023-05-16T01:01:38.000Z",
-              "distancia_m": 952.0
-            },
-            {
               "precio": 130000.0,
               "m2": 55.0,
               "precio_m2": 2363.64,
@@ -1257,40 +1108,6 @@
               "anio_estimado": null,
               "date_created": "2024-12-20T00:06:21.000Z",
               "distancia_m": 1342.0
-            },
-            {
-              "precio": 425000.0,
-              "m2": 154.0,
-              "precio_m2": 2759.74,
-              "time_adjustment": 1.2428,
-              "precio_m2_ajustado": 3429.92,
-              "dormitorios": 2,
-              "direccion": "Torre Barranca - Puerto Norte-Av. Carballo 112 1",
-              "direccion_limpia": "Barranca Puerto Norte Carballo 112",
-              "lat": -32.92335,
-              "lon": -60.66297,
-              "zona": "Puerto Norte",
-              "tipo": "Departamento",
-              "anio_estimado": null,
-              "date_created": "2024-10-22T01:04:00.000Z",
-              "distancia_m": 790.0
-            },
-            {
-              "precio": 266000.0,
-              "m2": 85.05,
-              "precio_m2": 3127.57,
-              "time_adjustment": 1.2688,
-              "precio_m2_ajustado": 3968.2,
-              "dormitorios": 1,
-              "direccion": "Thedy y y Vélez Sarsfield - Distrito Puerto Norte",
-              "direccion_limpia": "Thedy y y Vélez Sarsfield - Distrito Puerto Norte",
-              "lat": -32.92529,
-              "lon": -60.66475,
-              "zona": "Puerto Norte",
-              "tipo": "Departamento",
-              "anio_estimado": null,
-              "date_created": "2024-05-28T23:00:14.000Z",
-              "distancia_m": 622.0
             }
           ]
         }
@@ -1298,7 +1115,7 @@
       "_cache": {
         "recalculado": true,
         "razon": "forzado_por_usuario",
-        "retro_dias": 32,
+        "retro_dias": 20,
         "flex_dormitorios": [
           1,
           2,
@@ -1307,6 +1124,6 @@
           5
         ],
         "preview": false,
-        "timestamp": "2026-06-26T10:21:03.572237"
+        "timestamp": "2026-06-26T10:43:46.955745"
       },
       "_auto_result": 

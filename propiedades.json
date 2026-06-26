@@ -447,19 +447,7 @@
         "fecha": "26/06/2026 09:43",
         "cache_version": "v7_retro_cache_fix",
         "timestamp": "2026-06-26T09:43:50.733401",
-        "fuente": "manual",
-        "manual_params": {
-          "ancla_id": "central_argentino_puerto_norte",
-          "usd_m2": 2932.0,
-          "factor_hedonico": 1.0,
-          "incertidumbre_pct": 10.0,
-          "ajuste_pct": 0.0,
-          "incluir_prima_const": true,
-          "incluir_size_adj": true,
-          "motivo": "",
-          "fecha_guardado": "2026-06-26T09:30:34.139098",
-          "valor_auto_snapshot": 665387.0
-        },
+        "fuente": "auto",
         "_comp_excluded": null,
         "_comp_exclusion_applied": false,
         "fuente_activa": "auto"
