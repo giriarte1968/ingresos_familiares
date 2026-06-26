@@ -383,10 +383,15 @@ def render_tabla_comparables(res, prop_name=None):
     if not isinstance(stored_sel, set):
         stored_sel = set(stored_sel)
 
-    # Obtener selección actual desde session_state (actualizada en render previo)
-    current_sel = st.session_state.get(sel_key, stored_sel)
-    if not isinstance(current_sel, set):
-        current_sel = set(current_sel)
+    # Obtener selección actual desde los checkboxes en session_state (en vivo)
+    current_sel = set()
+    for cid in comp_ids:
+        chk_key = f'sel_comp_{prop_name}_{cid}'
+        if chk_key in st.session_state:
+            if st.session_state[chk_key]:
+                current_sel.add(cid)
+        elif cid in stored_sel:
+            current_sel.add(cid)
 
     # Banner de info + botón Restablecer (también visible si hay comps desmarcados en UI)
     n_excluidos = res.get('_n_excluidos', 0)
