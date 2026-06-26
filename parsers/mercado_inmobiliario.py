@@ -3266,13 +3266,12 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
         m2_base_source=metodo_origen
     )
     
-    # Comparables reales para el mapa y tabla (NO sintéticos)
+    # Comparables reales para el mapa y tabla (NO sintéticos) — lista completa
     comparables_venta = meta_venta.get('comparables_reales', [])
-    
-    # Filtrar comparables excluidos por el usuario (Sincronización UI -> Motor)
-    if comp_excluded:
-        comparables_venta = [c for c in comparables_venta if _get_comp_id(c) not in comp_excluded]
-        logger.info(f"[FILTER] Excluidos {len(comp_excluded)} comparables")
+    # NOTA: El filtrado de excluidos se maneja en la UI (valu_detail_sections.py)
+    #       via el estado de checkboxes + _comp_excluded. El motor siempre
+    #       devuelve la lista completa para que la UI pueda mostrar todos los
+    #       comparables y marcar los excluidos visualmente.
     
     logger.info(f"--- RESOLUTION ---")
     logger.info(f"resolution: {resolution}, confidence: {confidence}")

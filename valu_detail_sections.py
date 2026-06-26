@@ -383,12 +383,21 @@ def render_tabla_comparables(res, prop_name=None):
     if not isinstance(stored_sel, set):
         stored_sel = set(stored_sel)
 
-    # Banner de info + bot\u00f3n Restablecer (solo cuando hay exclusiones aplicadas por el motor)
+    # Obtener selección actual desde session_state (actualizada en render previo)
+    current_sel = st.session_state.get(sel_key, stored_sel)
+    if not isinstance(current_sel, set):
+        current_sel = set(current_sel)
+
+    # Banner de info + botón Restablecer (también visible si hay comps desmarcados en UI)
     n_excluidos = res.get('_n_excluidos', 0)
-    if n_excluidos:
+    if n_excluidos or len(current_sel) < len(comparables):
         col_info, col_reset = st.columns([3, 1])
         with col_info:
-            st.info(f"⚡ Valuación calculada con {len(comparables)} comparables seleccionados ({n_excluidos} excluidos por el usuario).")
+            n_desel = len(comparables) - len(current_sel)
+            if n_excluidos:
+                st.info(f"⚡ {len(current_sel)}/{len(comparables)} comparables activos ({n_excluidos} excluidos por el usuario).")
+            else:
+                st.info(f"⚡ {n_desel} comparable(s) desmarcado(s) — Aplicar selección para recalcular.")
         with col_reset:
             if st.button("↩️ Restablecer todos", key=f'reset_comp_sel_{prop_name}', use_container_width=True):
                 # 1. Setear todas las keys de checkbox a True
