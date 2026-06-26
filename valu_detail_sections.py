@@ -1182,7 +1182,6 @@ def render_valuacion_manual(prop, res):
                 'incertidumbre_pct': 10.0,
                 'incluir_prima_const': True,
                 'incluir_size_adj': True,
-                'motivo': '',
             }
 
     saved = st.session_state[ss_key]
@@ -1433,28 +1432,9 @@ def render_valuacion_manual(prop, res):
     # ========================================================================
     # BLOQUE 3: ACCION
     # ========================================================================
-    st.markdown("##### Motivo del Ajuste Manual")
-    motivo_required = abs(delta_pct) > 10
-    if motivo_required:
-        st.caption("Obligatorio: la divergencia supera el 10%.")
-    motivo = st.text_area(
-        "¿Por que elegiste este valor?" if not motivo_required else "¿Por que elegiste este valor? (obligatorio si divergencia > 10%)",
-        value=saved.get('motivo', ''),
-        placeholder="Ej: Reforma integral 2024, no reflejada en comparables del pool...",
-        key=f"manual_motivo_{nombre}",
-    )
-
-    if abs(delta_pct) > 20:
-        st.error(f"Diferencia significativa ({delta_pct:+.1f}%). Revisa los parametros.")
-        if not motivo.strip():
-            st.error("Completa el motivo del ajuste para poder guardar.")
-
     col_btn1, col_btn2 = st.columns(2)
     with col_btn1:
         can_save = usd_m2_input > 0
-        if abs(delta_pct) > 10 and not motivo.strip():
-            can_save = False
-            st.warning("El motivo es obligatorio cuando la divergencia supera el 10%.")
 
         if st.button("Guardar Valuacion Manual", type="primary", use_container_width=True,
                      disabled=not can_save, key=f"manual_guardar_{nombre}"):
@@ -1470,7 +1450,6 @@ def render_valuacion_manual(prop, res):
                 'ajuste_pct': ajuste_pct,
                 'incluir_prima_const': saved.get('incluir_prima_const', True),
                 'incluir_size_adj': saved.get('incluir_size_adj', True),
-                'motivo': motivo,
                 'fecha_guardado': datetime.now().isoformat(),
                 'valor_auto_snapshot': motor_valor,
             }
