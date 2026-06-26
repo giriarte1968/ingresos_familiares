@@ -487,9 +487,6 @@ def mostrar_dashboard():
             with profile_block("detalle_cache_check", p_obj):
                 cache_existente = cargar_cache_valuaciones()
                 entrada_antigua = cache_existente.get(p_obj['nombre'], {})
-                if entrada_antigua.get('cache_version', '') != CACHE_VERSION and not forzar:
-                    st.info(f"≡ƒöä Actualizando valuaci├│n de **{p_obj['nombre']}** "
-                            f"a la nueva versi├│n del motor ({CACHE_VERSION})...")
 
             def actualizar_propiedad(nueva_data):
                 prop_name = p_obj.get('nombre', '')
