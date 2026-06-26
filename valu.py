@@ -309,7 +309,11 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         retro_key = f'retro_active_{prop_name}'
         flex_key = f'flex_active_{prop_name}'
         retro_active = st.session_state.get(retro_key, False)
-        col_btn, col_cb, col_status, col_slider = st.columns([1.5, 1.5, 0.8, 2.2])
+        col_limpiar, col_btn, col_cb, col_slider = st.columns([1.2, 1.2, 1.0, 2.6])
+        with col_limpiar:
+            if st.button("🔄 Limpiar", type="secondary", use_container_width=True, key=f"cln_comps_{prop_name}"):
+                st.session_state[f"clean_comparables_{prop_name}"] = True
+                st.rerun()
         with col_btn:
             label = "🔙 Retro Activado" if retro_active else "🔙 Retro"
             if st.button(label, type="primary" if retro_active else "secondary", use_container_width=True, key=f'retro_btn_{prop_name}'):
@@ -338,8 +342,6 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                     st.session_state.pop(f'comp_excluded_{prop_name}', None)
                     print(f"[DEBUG-DETALLE] Flex Checkbox {prop_name}: ahora={st.session_state.get(f'flex_active_{prop_name}', False)}, forzar=True, preview=True")
                 st.checkbox("🔍 Todos los dormitorios", key=flex_key, on_change=_on_flex_change)
-        with col_status:
-            pass  # reservado (caption +meses eliminado TAREA-075)
         with col_slider:
             if retro_active:
                 def _on_retro_slider_change(prop_name=prop_name):
@@ -356,11 +358,6 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
             with profile_block("render_mapa_propiedad", prop):
                 render_mapa_propiedad(res)
         _dl.mark("after_render_mapa")
-
-        st.markdown("---")
-        if st.button("🔄 Limpiar Comparables", type="secondary", use_container_width=True, key=f"cln_comps_{prop_name}"):
-            st.session_state[f"clean_comparables_{prop_name}"] = True
-            st.rerun()
 
         comparables = res.get('comparables_venta', [])
         n_comps = len(comparables)
