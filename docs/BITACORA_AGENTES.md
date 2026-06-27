@@ -2979,3 +2979,24 @@ El fix condicional init (`if chk_key not in st.session_state`) desbloqueó los c
 6. **`.opencode/plans/TAREAS_INDEX.md`**: Índice actualizado.
 
 ### Tests: 32/32 regression OK, auto_validate OK
+
+## 2026-06-27 — TAREA-086 (v2): Fix cambio Manual→Comparable: carga desde cache físico
+
+### Problema
+Al valuar por Comparables, aplicar, presionar "Manual" y luego volver a "Por Comparables", la cantidad de comparables mostrada no coincidía con la aplicada originalmente. Además, al ir al Portfolio y volver, se perdía la valuación auto.
+
+### Causas raíz
+1. **`manual_preview` contaminaba `p_obj`**: se aplicaba siempre, incluso al cambiar a Comparable.
+2. **`valuar_con_cache` recalculaba en vez de devolver lo grabado**: al volver a Comparable sin forzar, producía otra cantidad de comparables.
+3. **`_ultima_valuacion` no se actualizaba al cambiar a `'auto'`**: portfolio cards mostraban el valor manual en vez del auto.
+
+### Cambios
+1. **`valu.py`** — Limpiados todos los prints DEBUG (BUG7, DASH, SLIDER, DETALLE).
+2. **`valu.py`** — `manual_preview` ahora solo se aplica si la fuente guardada en disco es `'manual'`. Si es `'auto'`, se saltea completamente, evitando contaminación de `p_obj`.
+3. **`valu_detail_sections.py:111-121`** — `_set_fuente_activa('auto')` ahora lee `resultado_completo` del cache y actualiza `_ultima_valuacion` con `valor_usd`, `comps`, `fuente`, `_comp_excluded`, `_comp_exclusion_applied` del auto valuation. Esto asegura que portfolio cards muestren el valor correcto.
+4. **`valu.py`** — Nueva condición: si `fuente_activa_saved == 'auto'` y `not forzar` y hay `resultado_completo` en `entrada_antigua`, se usa ese resultado directamente SIN llamar a `valuar_con_cache`. Loggea `[CACHE] ... usando resultado_completo grabado (N comps)`.
+5. **`valu_detail_sections.py`** — Limpiado print DEBUG.
+6. **`valu_portfolio2.py`** — Limpiado print DEBUG.
+7. **`main_valu.py`** — Limpiados prints DEBUG.
+
+### Tests: 32/32 regression OK, auto_validate OK

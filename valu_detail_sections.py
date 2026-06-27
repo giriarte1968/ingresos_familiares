@@ -115,6 +115,17 @@ def _set_fuente_activa(nombre, fuente):
         if p.get('nombre') == nombre:
             uv = p.setdefault('_ultima_valuacion', {})
             uv['fuente_activa'] = fuente
+            if fuente == 'auto':
+                from parsers.valuacion_cache import cargar_cache_valuaciones
+                cache = cargar_cache_valuaciones()
+                entrada = cache.get(nombre, {})
+                cache_result = entrada.get('resultado_completo', {}) or {}
+                if cache_result:
+                    uv['valor_usd'] = cache_result.get('valor_propiedad_usd', uv.get('valor_usd'))
+                    uv['comps'] = cache_result.get('resolution_metadata', {}).get('n_propiedades', uv.get('comps', 0))
+                    uv['fuente'] = 'auto'
+                    uv['_comp_excluded'] = cache_result.get('_comp_excluded')
+                    uv['_comp_exclusion_applied'] = cache_result.get('_comp_exclusion_applied', False)
             break
     guardar_propiedades(props)
     st.session_state[f'fuente_activa_{nombre}'] = fuente
@@ -510,7 +521,6 @@ def render_tabla_comparables(res, prop_name=None):
                     # Sync slider value before applying selection
                     slider_val = st.session_state.get(f'retro_meses_slider_{prop_name}', 36)
                     st.session_state[f'retro_meses_{prop_name}'] = slider_val
-                    print(f"[DEBUG-SLIDER] Aplicar seleccion {prop_name}: slider={slider_val}, retro_meses={st.session_state.get(f'retro_meses_{prop_name}')}")
                     
                     st.session_state[f'comp_excluded_{prop_name}'] = excluded
                     st.session_state[f'forzar_recalculo_{prop_name}'] = True

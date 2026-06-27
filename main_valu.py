@@ -306,7 +306,6 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                 st.session_state.pop(f'comp_selection_{prop_name}', None)
                 st.session_state[f'forzar_recalculo_{prop_name}'] = True
                 st.session_state[f'preview_mode_{prop_name}'] = True
-                print(f"[DEBUG-DETALLE] Toggle Retro {prop_name}: ahora={nuevo_valor}, forzar=True, preview=True, flex_reset={not nuevo_valor}")
                 st.rerun()
         with col_status:
             if retro_active:
@@ -338,7 +337,6 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                     # Resetear selecci├│n de comparables al cambiar dormitorios
                     st.session_state.pop(f'comp_selection_{prop_name}', None)
                     st.session_state.pop(f'comp_excluded_{prop_name}', None)
-                    print(f"[DEBUG-DETALLE] Toggle Flex {prop_name}: ahora={nuevo_flex}, forzar=True, preview=True")
                     st.rerun()
 
         # Bot├│n Aplicar: ├║nico trigger de commit
@@ -347,7 +345,6 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                          key=f'aplicar_cambios_{prop_name}'):
                 retro = st.session_state.get(retro_key, False)
                 flex = st.session_state.get(flex_key, False)
-                print(f"[DEBUG-DETALLE] Aplicar cambios {prop_name}: retro={retro}, flex={flex}, preview_mode=CLEARED")
                 st.session_state[f'forzar_recalculo_{prop_name}'] = True
                 st.session_state.pop(f'preview_mode_{prop_name}', None)
                 st.rerun()
@@ -479,10 +476,8 @@ def mostrar_dashboard():
                 
             forzar = st.session_state.pop(f'forzar_recalculo_{p_obj["nombre"]}', False)
             preview_mode = st.session_state.get(f'preview_mode_{p_obj["nombre"]}', False)
-            print(f"[DEBUG-DASH] {p_obj['nombre']}: forzar={forzar}, preview_mode={preview_mode}, ya_valuado={bool(p_obj.get('_ultima_valuacion',{}).get('valor_usd') or p_obj.get('_ultima_valuacion',{}).get('fuente'))}")
             retro_active_ss = st.session_state.get(f'retro_active_{p_obj["nombre"]}', False)
             flex_active_ss = st.session_state.get(f'flex_active_{p_obj["nombre"]}', False)
-            print(f"[DEBUG-DASH] {p_obj['nombre']}: retro_active={retro_active_ss}, flex_active={flex_active_ss}")
 
             with profile_block("detalle_cache_check", p_obj):
                 cache_existente = cargar_cache_valuaciones()
@@ -529,10 +524,8 @@ def mostrar_dashboard():
                         st.session_state.pop(f'manual_preview_{p_obj["nombre"]}', None)
                     del cache_existente[p_obj['nombre']]
                     guardar_cache_valuaciones(cache_existente)
-                    print(f"[DEBUG-DASH] {p_obj['nombre']}: Limpiado cache de preview sin comprometer (preview=True)")
-                # Si es re-entry pasivo (sin recalculaci├│n forzada), mostrar vac├¡o
+                # Si es re-entry pasivo (sin recalculación forzada), mostrar vacío
                 if not forzar and not retro_btn_clicked:
-                    print(f"[DEBUG-DASH] {p_obj['nombre']}: Pendiente re-entry pasivo, mostrando vac├¡o")
                     st.info(f"**{p_obj['nombre']}** est├í pendiente de valuaci├│n. "
                             "Usa los controles Retro/Flex para generar una previsualizaci├│n.")
                     mostrar_detalle_valu(p_obj, {}, actualizar_propiedad)
@@ -572,7 +565,6 @@ def mostrar_dashboard():
                         retro_dias = retro_meses if retro_active else 0
                         flex_active = st.session_state.get(f'flex_active_{prop_name}', False)
                         flex_dormitorios = [1, 2, 3, 4, 5] if flex_active else None
-                    print(f"[DEBUG-DASH] {p_obj['nombre']}: retro_dias={retro_dias}, flex_dormitorios={flex_dormitorios}, preview={preview_mode}")
                     resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios, preview=preview_mode, manual_data=st.session_state.get(f'manual_preview_{prop_name}', None))
                     _sl.mark("after_valuar_con_cache")
 

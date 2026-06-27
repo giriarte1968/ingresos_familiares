@@ -331,7 +331,6 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                 st.session_state.pop(f'comp_selection_{prop_name}', None)
                 st.session_state[f'forzar_recalculo_{prop_name}'] = True
                 st.session_state[f'preview_mode_{prop_name}'] = True
-                print(f"[DEBUG-DETALLE] Toggle Retro {prop_name}: ahora={nuevo_valor}, forzar=True, preview=True, flex_reset={not nuevo_valor}")
                 st.rerun()
         with col_cb:
             if retro_active:
@@ -340,7 +339,6 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                     st.session_state[f'preview_mode_{prop_name}'] = True
                     st.session_state.pop(f'comp_selection_{prop_name}', None)
                     st.session_state.pop(f'comp_excluded_{prop_name}', None)
-                    print(f"[DEBUG-DETALLE] Flex Checkbox {prop_name}: ahora={st.session_state.get(f'flex_active_{prop_name}', False)}, forzar=True, preview=True")
                 st.checkbox("🔍 Todos los dormitorios", key=flex_key, on_change=_on_flex_change)
         with col_slider:
             if retro_active:
@@ -505,20 +503,18 @@ def mostrar_dashboard():
                 st.session_state.pop(f'flex_btn_{prop_name}', None)
                 st.rerun()
 
-            # Mezclar datos de previsualización manual si existen
-            manual_preview = st.session_state.get(f'manual_preview_{prop_name}', {})
-            if manual_preview:
-                p_obj.update(manual_preview)
-                
+            # Solo aplicar preview manual si la fuente guardada en disco es 'manual'
+            uv_saved = p_obj.get('_ultima_valuacion', {}) or {}
+            fuente_activa_saved = uv_saved.get('fuente_activa', 'auto')
+            if fuente_activa_saved == 'manual':
+                manual_preview = st.session_state.get(f'manual_preview_{prop_name}', {})
+                if manual_preview:
+                    p_obj.update(manual_preview)
+            
             forzar = st.session_state.pop(f'forzar_recalculo_{p_obj["nombre"]}', False)
             preview_mode = st.session_state.get(f'preview_mode_{p_obj["nombre"]}', False)
-            debug_bug7 = st.session_state.pop(f'debug_bug7_{p_obj["nombre"]}', 'not set')
-            _pname = p_obj['nombre']
-            print(f"[DEBUG-BUG7] {_pname}: forzar={forzar}, preview_mode={preview_mode}, forzar_session_key={st.session_state.get(f'forzar_recalculo_{_pname}', 'N/A')}, debug_bug7={debug_bug7}")
-            print(f"[DEBUG-DASH] {p_obj['nombre']}: forzar={forzar}, preview_mode={preview_mode}, ya_valuado={bool(p_obj.get('_ultima_valuacion',{}).get('valor_usd') or p_obj.get('_ultima_valuacion',{}).get('fuente'))}")
             retro_active_ss = st.session_state.get(f'retro_active_{p_obj["nombre"]}', False)
             flex_active_ss = st.session_state.get(f'flex_active_{p_obj["nombre"]}', False)
-            print(f"[DEBUG-DASH] {p_obj['nombre']}: retro_active={retro_active_ss}, flex_active={flex_active_ss}")
 
             with profile_block("detalle_cache_check", p_obj):
                 cache_existente = cargar_cache_valuaciones()
@@ -562,10 +558,8 @@ def mostrar_dashboard():
                         st.session_state.pop(f'manual_preview_{p_obj["nombre"]}', None)
                     del cache_existente[p_obj['nombre']]
                     guardar_cache_valuaciones(cache_existente)
-                    print(f"[DEBUG-DASH] {p_obj['nombre']}: Limpiado cache de preview sin comprometer (preview=True)")
                 # Si es re-entry pasivo (sin recalculación forzada), mostrar vacío
                 if not forzar and not retro_btn_clicked:
-                    print(f"[DEBUG-DASH] {p_obj['nombre']}: Pendiente re-entry pasivo, mostrando vacío con mapa sujeto")
                     st.info(f"**{p_obj['nombre']}** está pendiente de valuación. "
                             "Usa los controles Retro/Flex para generar una previsualización.")
                     
@@ -613,9 +607,11 @@ def mostrar_dashboard():
                         retro_dias = retro_meses if retro_active else 0
                         flex_active = st.session_state.get(f'flex_active_{prop_name}', False)
                         flex_dormitorios = [1, 2, 3, 4, 5] if flex_active else None
-                    print(f"[DEBUG-DASH] {p_obj['nombre']}: retro_dias={retro_dias}, flex_dormitorios={flex_dormitorios}, preview={preview_mode}")
-                    print(f"[DEBUG-SLIDER] {p_obj['nombre']}: retro_meses_={st.session_state.get(f'retro_meses_{prop_name}')}, retro_meses_slider_={st.session_state.get(f'retro_meses_slider_{prop_name}')}, retro_active_={st.session_state.get(f'retro_active_{prop_name}')}")
-                    resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios, preview=preview_mode, manual_data=st.session_state.get(f'manual_preview_{prop_name}', None))
+                    if fuente_activa_saved == 'auto' and not forzar and bool(entrada_antigua.get('resultado_completo')):
+                        resultado = entrada_antigua.get('resultado_completo') or {}
+                        logger.info(f"[CACHE] {prop_name}: usando resultado_completo grabado ({len(resultado.get('comparables_venta',[]))} comps)")
+                    else:
+                        resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios, preview=preview_mode, manual_data=st.session_state.get(f'manual_preview_{prop_name}', None))
                     _sl.mark("after_valuar_con_cache")
 
                     # ── Valuación manual paralela (siempre computada, nunca sobreescribe) ──
@@ -637,7 +633,6 @@ def mostrar_dashboard():
                         fuente_activa = 'auto'
 
                     # Inyectar datos paralelos para que la UI elija qué mostrar
-                    print(f"[DEBUG-BUG7] {p_obj['nombre']}: resultado m2_base_venta={resultado.get('m2_base_venta')}, n_prop={resultado.get('resolution_metadata', {}).get('n_propiedades')}, valor={resultado.get('valor_propiedad_usd')}, error={resultado.get('error')}")
                     resultado['_auto_result'] = resultado
                     resultado['_manual_result'] = resultado_manual
                     resultado['_manual_params'] = manual_params_saved

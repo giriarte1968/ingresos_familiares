@@ -249,7 +249,6 @@ def _cargar_resultados_cache(propiedades: list[dict[str, Any]]) -> tuple[dict[st
 
         if entrada:
             _er = entrada.get("resultado_completo", {}) or {}
-            print(f"[DEBUG-BUG7] {nombre}: cache_entry exists, m2_base_venta={_er.get('m2_base_venta')}, n_prop={_er.get('resolution_metadata', {}).get('n_propiedades')}, preview={_er.get('_cache', {}).get('preview')}, valor={_er.get('valor_propiedad_usd')}")
             if entrada.get("cache_version") != CACHE_VERSION:
                 estados[nombre] = {
                     "estado": "version",
