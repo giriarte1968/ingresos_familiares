@@ -41,9 +41,12 @@ Solo aplicar `manual_preview` si `_ultima_valuacion.fuente_activa` es `'manual'`
 Archivo: `valu_detail_sections.py` (~línea 111-121)
 Al setear `fuente='auto'`, leer `resultado_completo` del cache y actualizar `valor_usd`, `comps`, `fuente`, `_comp_excluded`, `_comp_exclusion_applied` en `_ultima_valuacion`.
 
-### Paso 4: Bypass de `valuar_con_cache` en modo Auto
+### Paso 4: Bypass de `valuar_con_cache` en modo Auto (v3 fix)
 Archivo: `valu.py` (~línea 610)
-Si `fuente_activa_saved == 'auto'` y `not forzar` y hay `resultado_completo` en `entrada_antigua`, usar ese resultado directamente. Loggear `[CACHE] ... usando resultado_completo grabado (N comps)`.
+Si `fuente_activa_saved == 'auto'` y `not forzar` y hay `resultado_completo` en `entrada_antigua`:
+1. Verificar que `resolution_metadata.fecha_ref` del cache coincida con `datetime.now().strftime('%Y-%m-%d')`.
+2. Si coinciden → usar resultado cacheado directamente (log `[CACHE] ... usando resultado_completo grabado`)
+3. Si NO coinciden → cache stale → log `[CACHE] ... cache stale (fecha_ref=..., hoy=...), recalculando` → ejecutar `valuar_con_cache`
 
 ## VALIDACION FINAL
 ```

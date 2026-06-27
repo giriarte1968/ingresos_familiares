@@ -607,10 +607,18 @@ def mostrar_dashboard():
                         retro_dias = retro_meses if retro_active else 0
                         flex_active = st.session_state.get(f'flex_active_{prop_name}', False)
                         flex_dormitorios = [1, 2, 3, 4, 5] if flex_active else None
+                    usar_cache = False
                     if ya_valuado and fuente_activa_saved == 'auto' and not forzar and bool(entrada_antigua.get('resultado_completo')):
-                        resultado = entrada_antigua.get('resultado_completo') or {}
-                        logger.info(f"[CACHE] {prop_name}: usando resultado_completo grabado ({len(resultado.get('comparables_venta',[]))} comps)")
-                    else:
+                        cached_result = entrada_antigua['resultado_completo']
+                        cached_fecha_ref = (cached_result.get('resolution_metadata') or {}).get('fecha_ref', '')
+                        hoy = datetime.now().strftime('%Y-%m-%d')
+                        if cached_fecha_ref == hoy:
+                            resultado = cached_result
+                            usar_cache = True
+                            logger.info(f"[CACHE] {prop_name}: usando resultado_completo grabado ({len(resultado.get('comparables_venta',[]))} comps)")
+                        else:
+                            logger.info(f"[CACHE] {prop_name}: cache stale (fecha_ref={cached_fecha_ref}, hoy={hoy}), recalculando")
+                    if not usar_cache:
                         resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios, preview=preview_mode, manual_data=st.session_state.get(f'manual_preview_{prop_name}', None))
                     _sl.mark("after_valuar_con_cache")
 

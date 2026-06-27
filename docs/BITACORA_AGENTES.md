@@ -1,7 +1,7 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
-## 2026-06-27 — TAREA-086: Fix Manual→Comparable — carga desde cache físico sin recálculo
+## 2026-06-27 — TAREA-086: Fix Manual→Comparable — carga desde cache físico sin recálculo (v3 fix)
 
 ### Problema
 Al valuar por Comparables → aplicar → Manual → volver a "Por Comparables":
@@ -15,6 +15,15 @@ Al valuar por Comparables → aplicar → Manual → volver a "Por Comparables":
 - **valu_detail_sections.py**: `_set_fuente_activa('auto')` ahora escribe `valor_usd`, `comps`, `fuente='auto'`, `_comp_excluded`, `_comp_exclusion_applied` en `_ultima_valuacion` desde el cache
 - Limpiados prints DEBUG (BUG7, DASH, SLIDER, DETALLE)
 - El slider Retro sigue funcionando correctamente: al moverse setea `forzar_recalculo=True`, que salta el bypass y recalcula
+
+### Bug adicional (2026-06-27): Stale fecha_ref en bypass
+**Problema:** El bypass de cache en `valu.py:610` devolvía `resultado_completo` cacheados incluso cuando la `fecha_ref` usada al computarlos era anterior a hoy. Esto causaba que comparables fuera de la ventana del slider (ej: 2025-06-19 con slider 12 meses) aparecieran igual porque eran válidos en la `fecha_ref` original pero no con la fecha actual.
+
+**Fix:** El bypass ahora compara `resolution_metadata.fecha_ref` del cache contra `datetime.now().strftime('%Y-%m-%d')`. Si no coinciden, se salta el cache y fuerza recálculo con `valuar_con_cache`.
+
+**Validación:** 32/32 regression tests pasan, auto_validate OK.
+
+**Archivo:** `valu.py:610-625`
 
 ### Validación
 - 32/32 regression tests pasan
