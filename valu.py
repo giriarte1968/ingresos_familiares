@@ -607,7 +607,7 @@ def mostrar_dashboard():
                         retro_dias = retro_meses if retro_active else 0
                         flex_active = st.session_state.get(f'flex_active_{prop_name}', False)
                         flex_dormitorios = [1, 2, 3, 4, 5] if flex_active else None
-                    if fuente_activa_saved == 'auto' and not forzar and bool(entrada_antigua.get('resultado_completo')):
+                    if ya_valuado and fuente_activa_saved == 'auto' and not forzar and bool(entrada_antigua.get('resultado_completo')):
                         resultado = entrada_antigua.get('resultado_completo') or {}
                         logger.info(f"[CACHE] {prop_name}: usando resultado_completo grabado ({len(resultado.get('comparables_venta',[]))} comps)")
                     else:
