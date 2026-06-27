@@ -313,9 +313,7 @@
         "cache_version": "v7_retro_cache_fix",
         "timestamp": "2026-06-19T14:35:20.375955",
         "fuente": "auto",
-        "manual_params": null,
-        "_comp_excluded": [],
-        "_comp_exclusion_applied": false
+        "manual_params": null
       }
     },
     {
@@ -437,21 +435,7 @@
       "fecha_compra": "2026-06-01",
       "fecha_publicacion": "2026-06-03",
       "expensas_ars": 0,
-      "id": "prop_de9ad3e4",
-      "_ultima_valuacion": {
-        "valor_usd": null,
-        "alquiler_ars": null,
-        "cap_rate": null,
-        "m2_equivalentes": null,
-        "comps": 0,
-        "fecha": "27/06/2026 15:51",
-        "cache_version": "v7_retro_cache_fix",
-        "timestamp": "2026-06-27T15:51:52.523640",
-        "fuente": "insuficiente",
-        "manual_params": null,
-        "_comp_excluded": null,
-        "_comp_exclusion_applied": false
-      }
+      "id": "prop_de9ad3e4"
     }
   ]
 }

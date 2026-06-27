@@ -115,17 +115,6 @@ def _set_fuente_activa(nombre, fuente):
         if p.get('nombre') == nombre:
             uv = p.setdefault('_ultima_valuacion', {})
             uv['fuente_activa'] = fuente
-            if fuente == 'auto':
-                from parsers.valuacion_cache import cargar_cache_valuaciones
-                cache = cargar_cache_valuaciones()
-                entrada = cache.get(nombre, {})
-                cache_result = entrada.get('resultado_completo', {}) or {}
-                if cache_result:
-                    uv['valor_usd'] = cache_result.get('valor_propiedad_usd', uv.get('valor_usd'))
-                    uv['comps'] = cache_result.get('resolution_metadata', {}).get('n_propiedades', uv.get('comps', 0))
-                    uv['fuente'] = 'auto'
-                    uv['_comp_excluded'] = cache_result.get('_comp_excluded')
-                    uv['_comp_exclusion_applied'] = cache_result.get('_comp_exclusion_applied', False)
             break
     guardar_propiedades(props)
     st.session_state[f'fuente_activa_{nombre}'] = fuente
