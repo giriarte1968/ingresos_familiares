@@ -510,19 +510,19 @@ def render_tabla_comparables(res, prop_name=None):
                     use_container_width=True,
                 ):
                     from datetime import datetime
-                    logger.info(f"[DEBUG-APPLY] ===== INICIO Aplicar selección {prop_name} =====")
-                    logger.info(f"[DEBUG-APPLY] {prop_name}: n_sel={n_sel}, n_total={len(comparables)}, n_excluded={len(excluded)}")
-                    logger.info(f"[DEBUG-APPLY] {prop_name}: retro_active={st.session_state.get('retro_active_' + prop_name, False)}, flex_active={st.session_state.get('flex_active_' + prop_name, False)}")
+                    print(f"[DEBUG-APPLY] ===== INICIO Aplicar selección {prop_name} =====")
+                    print(f"[DEBUG-APPLY] {prop_name}: n_sel={n_sel}, n_total={len(comparables)}, n_excluded={len(excluded)}")
+                    print(f"[DEBUG-APPLY] {prop_name}: retro_active={st.session_state.get('retro_active_' + prop_name, False)}, flex_active={st.session_state.get('flex_active_' + prop_name, False)}")
                     
                     # Sync slider value before applying selection
                     slider_val = st.session_state.get(f'retro_meses_slider_{prop_name}', 36)
                     st.session_state[f'retro_meses_{prop_name}'] = slider_val
-                    logger.info(f"[DEBUG-APPLY] {prop_name}: slider_val={slider_val}")
+                    print(f"[DEBUG-APPLY] {prop_name}: slider_val={slider_val}")
                     
                     st.session_state[f'comp_excluded_{prop_name}'] = excluded
                     st.session_state[f'forzar_recalculo_{prop_name}'] = True
-                    logger.info(f"[DEBUG-APPLY] {prop_name}: Set forzar_recalculo=True, excluded={excluded}")
-                    logger.info(f"[DEBUG-APPLY] {prop_name} ===== FIN Aplicar selección =====, calling st.rerun()")
+                    print(f"[DEBUG-APPLY] {prop_name}: Set forzar_recalculo=True, excluded={excluded}")
+                    print(f"[DEBUG-APPLY] {prop_name} ===== FIN Aplicar selección =====, calling st.rerun()")
                     st.rerun()
     elif not selected_ids:
         st.warning("⚠️ Seleccioná al menos un comparable para calcular el valor.")

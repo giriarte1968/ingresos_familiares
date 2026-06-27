@@ -537,7 +537,7 @@ def mostrar_dashboard():
 
             # ── Si nunca fue valuado (Pendiente): mostrar detalle con 0 comps ──
             uv = p_obj.get('_ultima_valuacion', {})
-            ya_valuado = bool(uv.get('valor_usd') or uv.get('fuente'))
+            ya_valuado = bool(uv.get('valor_usd')) or (uv.get('fuente') == 'manual')
             # Detectar si el boton Retro fue clickeado (el `if st.button()` inline aun no evaluo)
             retro_btn_key = f'retro_btn_{p_obj["nombre"]}'
             retro_btn_clicked = st.session_state.get(retro_btn_key, False)
@@ -552,7 +552,7 @@ def mostrar_dashboard():
                 if resultado_cacheado and cache_preview:
                     # Cache de preview no comprometido: limpiar al entrar solo si no hay recalculo activo
                     if not forzar:
-                        logger.info(f"[DEBUG] {p_obj['nombre']}: limpiando cache preview (no forzar)")
+                        print(f"[DEBUG] {p_obj['nombre']}: limpiando cache preview (no forzar)")
                         st.session_state.pop(f'preview_mode_{p_obj["nombre"]}', None)
                         st.session_state.pop(f'retro_active_{p_obj["nombre"]}', None)
                         st.session_state.pop(f'flex_active_{p_obj["nombre"]}', None)
@@ -560,7 +560,7 @@ def mostrar_dashboard():
                         del cache_existente[p_obj['nombre']]
                         guardar_cache_valuaciones(cache_existente)
                     else:
-                        logger.info(f"[DEBUG] {p_obj['nombre']}: conservando cache preview (forzar=True)")
+                        print(f"[DEBUG] {p_obj['nombre']}: conservando cache preview (forzar=True)")
                 # Si es re-entry pasivo (sin recalculación forzada), mostrar vacío
                 if not forzar and not retro_btn_clicked:
                     st.info(f"**{p_obj['nombre']}** está pendiente de valuación. "
@@ -611,11 +611,11 @@ def mostrar_dashboard():
                         flex_active = st.session_state.get(f'flex_active_{prop_name}', False)
                         flex_dormitorios = [1, 2, 3, 4, 5] if flex_active else None
                     usar_cache = False
-                    logger.info(f"[DEBUG] {prop_name}: pre-valuacion params: forzar={forzar}, ya_valuado={ya_valuado}, retro_active={retro_active}, retro_dias={retro_dias}, flex_active={flex_active}, preview_mode={preview_mode}")
+                    print(f"[DEBUG] {prop_name}: pre-valuacion params: forzar={forzar}, ya_valuado={ya_valuado}, retro_active={retro_active}, retro_dias={retro_dias}, flex_active={flex_active}, preview_mode={preview_mode}")
                     if ya_valuado and fuente_activa_saved == 'auto' and not forzar and bool(entrada_antigua.get('resultado_completo')):
                         cached_result = entrada_antigua['resultado_completo']
                         if cached_result.get('error'):
-                            logger.info(f"[CACHE] {prop_name}: saltando resultado con error={cached_result['error']}")
+                            print(f"[CACHE] {prop_name}: saltando resultado con error={cached_result['error']}")
                         else:
                             cached_fecha_ref = (cached_result.get('resolution_metadata') or {}).get('fecha_ref', '')
                             cached_retro = (cached_result.get('_cache') or {}).get('retro_dias', 0)
@@ -623,17 +623,17 @@ def mostrar_dashboard():
                             if cached_fecha_ref == hoy and cached_retro == retro_dias:
                                 resultado = cached_result
                                 usar_cache = True
-                                logger.info(f"[CACHE] {prop_name}: usando resultado_completo grabado ({len(resultado.get('comparables_venta',[]))} comps, retro={cached_retro})")
+                                print(f"[CACHE] {prop_name}: usando resultado_completo grabado ({len(resultado.get('comparables_venta',[]))} comps, retro={cached_retro})")
                             else:
-                                logger.info(f"[CACHE] {prop_name}: cache stale (fecha_ref={cached_fecha_ref}, retro_cache={cached_retro}, retro_actual={retro_dias}, hoy={hoy}), recalculando")
+                                print(f"[CACHE] {prop_name}: cache stale (fecha_ref={cached_fecha_ref}, retro_cache={cached_retro}, retro_actual={retro_dias}, hoy={hoy}), recalculando")
                     if not usar_cache:
                         resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios, preview=preview_mode, manual_data=st.session_state.get(f'manual_preview_{prop_name}', None))
                     _sl.mark("after_valuar_con_cache")
                     if not usar_cache:
                         n_comps = len(resultado.get('comparables_venta', []))
-                        logger.info(f"[DEBUG] {prop_name}: post-valuacion: error={resultado.get('error')}, n_comps={n_comps}, valor_usd={resultado.get('valor_propiedad_usd')}, m2_base={resultado.get('m2_base_venta')}, m2_eq={resultado.get('m2_equivalentes')}")
+                        print(f"[DEBUG] {prop_name}: post-valuacion: error={resultado.get('error')}, n_comps={n_comps}, valor_usd={resultado.get('valor_propiedad_usd')}, m2_base={resultado.get('m2_base_venta')}, m2_eq={resultado.get('m2_equivalentes')}")
                         if resultado.get('error'):
-                            logger.info(f"[DEBUG] {prop_name}: RESULTADO CON ERROR, mensaje={resultado.get('mensaje')}")
+                            print(f"[DEBUG] {prop_name}: RESULTADO CON ERROR, mensaje={resultado.get('mensaje')}")
 
                     # ── Valuación manual paralela (siempre computada, nunca sobreescribe) ──
                     uv = p_obj.get('_ultima_valuacion', {})
@@ -663,7 +663,7 @@ def mostrar_dashboard():
                     # ── Aplicar exclusión de comparables seleccionada por el usuario ──
                     comp_excluded_key = f'comp_excluded_{prop_name}'
                     comps_orig = resultado.get('comparables_venta')
-                    logger.info(f"[DEBUG-EXCL] {prop_name}: inicio exclusion: n_comps_orig={len(comps_orig) if comps_orig else 0}, key_in_session={comp_excluded_key in st.session_state}")
+                    print(f"[DEBUG-EXCL] {prop_name}: inicio exclusion: n_comps_orig={len(comps_orig) if comps_orig else 0}, key_in_session={comp_excluded_key in st.session_state}")
                     
                     # Si el resultado base es error, no aplicar exclusión (no hay valores que modificar)
                     if not resultado.get('error') and comps_orig:
@@ -676,26 +676,26 @@ def mostrar_dashboard():
                                 from parsers.valuacion_cache import cargar_cache_valuaciones, persistir_valuacion
                                 _cv = cargar_cache_valuaciones()
                                 persistir_valuacion(prop_name, p_obj, resultado, _cv, commit=True)
-                                logger.info(f"[RESET] {prop_name}: Exclusión limpiada y persistida")
+                                print(f"[RESET] {prop_name}: Exclusión limpiada y persistida")
                             except Exception as e:
                                 logger.warning(f"[RESET] {prop_name}: persist error: {e}")
                                 st.session_state[f'forzar_recalculo_{prop_name}'] = True
                         elif comp_excluded_key in st.session_state:
                             excluded_ids = st.session_state.pop(comp_excluded_key)
                             from_apply = True
-                            logger.info(f"[DEBUG-EXCL] {prop_name}: desde session_state: {len(excluded_ids)} excluidos, from_apply=True")
+                            print(f"[DEBUG-EXCL] {prop_name}: desde session_state: {len(excluded_ids)} excluidos, from_apply=True")
                         else:
                             # Solo restaurar exclusiones ya persistidas.
                             # NO leer widget state (checkboxes) — eso es solo visual.
                             if resultado.get('_comp_excluded') is not None:
                                 excluded_ids = resultado['_comp_excluded']
-                                logger.info(f"[DEBUG-EXCL] {prop_name}: desde resultado._comp_excluded: {len(excluded_ids)} excluidos")
+                                print(f"[DEBUG-EXCL] {prop_name}: desde resultado._comp_excluded: {len(excluded_ids)} excluidos")
                             elif p_obj.get('_ultima_valuacion', {}).get('_comp_exclusion_applied'):
                                 excluded_ids = p_obj['_ultima_valuacion'].get('_comp_excluded', [])
                                 from_apply = True
-                                logger.info(f"[APPLY] {prop_name}: Restaurando exclusión desde _ultima_valuacion, {len(excluded_ids)} comps excluidos")
+                                print(f"[APPLY] {prop_name}: Restaurando exclusión desde _ultima_valuacion, {len(excluded_ids)} comps excluidos")
                             else:
-                                logger.info(f"[DEBUG-EXCL] {prop_name}: sin exclusion previa, excluded_ids=None")
+                                print(f"[DEBUG-EXCL] {prop_name}: sin exclusion previa, excluded_ids=None")
                         if excluded_ids is not None:
                             # Verificar si la selección actual ya coincide con una exclusión aplicada y persistida
                             # Para evitar recálculos redundantes y pérdida de estado en re-entry
@@ -706,7 +706,7 @@ def mostrar_dashboard():
                             
                             if is_already_applied and not from_apply and not resultado.get('_cache', {}).get('recalculado'):
                                 # Ya está aplicada y coincide: mantenemos el valor y el estado
-                                logger.info(f"[APPLY] {prop_name}: Selección ya aplicada y coincide. Saltando recálculo.")
+                                print(f"[APPLY] {prop_name}: Selección ya aplicada y coincide. Saltando recálculo.")
                             else:
                                 # Guardar originales para delta del preview
                                 resultado['_original_m2_base'] = resultado.get('m2_base_venta', 0)
@@ -716,9 +716,9 @@ def mostrar_dashboard():
                                 if excluded_ids:
                                         # Solo recalcular cuando hay exclusiones reales
                                         comps_filtrados = [c for c in comps_orig if _get_comp_id(c) not in excluded_ids]
-                                        logger.info(f"[DEBUG-EXCL] {prop_name}: calculando preview con {len(comps_filtrados)}/{len(comps_orig)} comps, m2_base_orig={resultado.get('m2_base_venta')}, m2_eq={resultado.get('m2_equivalentes')}")
+                                        print(f"[DEBUG-EXCL] {prop_name}: calculando preview con {len(comps_filtrados)}/{len(comps_orig)} comps, m2_base_orig={resultado.get('m2_base_venta')}, m2_eq={resultado.get('m2_equivalentes')}")
                                         preview = calcular_vm2_por_seleccion(comps_filtrados, resultado)
-                                        logger.info(f"[DEBUG-EXCL] {prop_name}: preview result={preview.get('valor_total','None') if preview else 'None'}, fallback={preview.get('fallback') if preview else 'N/A'}")
+                                        print(f"[DEBUG-EXCL] {prop_name}: preview result={preview.get('valor_total','None') if preview else 'None'}, fallback={preview.get('fallback') if preview else 'N/A'}")
                                         if preview is not None and not preview.get('fallback'):
                                             nuevo_vm2 = preview['vm2']
                                             nuevo_valor = preview['valor_total']
@@ -733,17 +733,17 @@ def mostrar_dashboard():
                                             resultado['valor_venta_conservador'] = v_cons
                                             resultado['valor_venta_optimista'] = v_opt
                                             resultado['_n_excluidos'] = len(excluded_ids)
-                                            logger.info(f"[APPLY] {prop_name}: {preview['n_sel']} comps, P{preview['percentil']}, valor=${nuevo_valor:,.0f}")
+                                            print(f"[APPLY] {prop_name}: {preview['n_sel']} comps, P{preview['percentil']}, valor=${nuevo_valor:,.0f}")
                                         elif preview is not None and preview.get('fallback'):
                                             # < 3 comps: mantener valor original del pool
                                             resultado = dict(resultado)
                                             resultado['_auto_result'] = resultado
                                             resultado['_n_excluidos'] = len(excluded_ids)
-                                            logger.info(f"[APPLY] {prop_name}: {preview['n_sel']} comps (fallback), valor original=${resultado.get('valor_propiedad_usd', 0):,.0f}")
+                                            print(f"[APPLY] {prop_name}: {preview['n_sel']} comps (fallback), valor original=${resultado.get('valor_propiedad_usd', 0):,.0f}")
                                         else:
                                             # Menos de 2 comps seleccionados o preview falló → limpiar header solo si no hay valor original válido
                                             if resultado.get('valor_propiedad_usd') and resultado.get('m2_base_venta'):
-                                                logger.info(f"[APPLY] {prop_name}: <2 comps pero valor original existe, conservando (preview=None, excl={len(excluded_ids)})")
+                                                print(f"[APPLY] {prop_name}: <2 comps pero valor original existe, conservando (preview=None, excl={len(excluded_ids)})")
                                                 resultado['_n_excluidos'] = len(excluded_ids)
                                             else:
                                                 resultado = dict(resultado)
@@ -755,7 +755,7 @@ def mostrar_dashboard():
                                                 resultado['valor_venta_conservador'] = 0
                                                 resultado['valor_venta_optimista'] = 0
                                                 resultado['_n_excluidos'] = len(excluded_ids)
-                                                logger.info(f"[APPLY] {prop_name}: <2 comps y sin valor original, header limpiado")
+                                                print(f"[APPLY] {prop_name}: <2 comps y sin valor original, header limpiado")
                                 
                                 resultado['_comp_excluded'] = excluded_ids
                                 if from_apply:
@@ -766,7 +766,7 @@ def mostrar_dashboard():
                                         if '_cache' in resultado:
                                             resultado['_cache']['preview'] = False
                                         persistir_valuacion(prop_name, p_obj, resultado, _cache_v, commit=True)
-                                        logger.info(f"[APPLY] {prop_name}: Persistida exclusión de {len(excluded_ids)} comps a cache+propiedades")
+                                        print(f"[APPLY] {prop_name}: Persistida exclusión de {len(excluded_ids)} comps a cache+propiedades")
                                     except Exception as e:
                                         logger.warning(f"[APPLY] {prop_name}: No se pudo persistir exclusión: {e}")
                                 else:

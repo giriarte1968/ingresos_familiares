@@ -1389,7 +1389,7 @@ def valuar_con_cache(prop: dict,
 
     if recalcular:
         _vl.mark("before_valuar_propiedad_v7")
-        logger.info(f"[CACHE] {nombre}: recalculando ({razon}), retro_dias={retro_dias}, flex_dormitorios={flex_dormitorios}, preview={preview}")
+        print(f"[CACHE] {nombre}: recalculando ({razon}), retro_dias={retro_dias}, flex_dormitorios={flex_dormitorios}, preview={preview}")
         try:
             with profile_block("valuar_propiedad_v7_total", prop):
                 resultado = valuar_propiedad_v7(prop, fecha_ref=fecha_ref, consultar_infomapa=consultar_infomapa, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios)
@@ -1456,7 +1456,7 @@ def valuar_con_cache(prop: dict,
             'fecha_calculo': meta_cache.get('fecha', '?'),
             'timestamp': meta_cache.get('timestamp', '')
         }
-        logger.info(f"[CACHE] {nombre}: usando caché del {meta_cache.get('fecha', '?')}")
+        print(f"[CACHE] {nombre}: usando caché del {meta_cache.get('fecha', '?')}")
         _vl.mark("after_cache_hit")
 
     _vl.mark("before_return")

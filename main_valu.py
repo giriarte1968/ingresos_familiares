@@ -650,7 +650,7 @@ def mostrar_dashboard():
                                         resultado['valor_venta_conservador'] = v_cons
                                         resultado['valor_venta_optimista'] = v_opt
                                         resultado['_n_excluidos'] = len(excluded_ids)
-                                        logger.info(f"[APPLY] {prop_name}: {n_sel} comps, valor=${nuevo_valor:,.0f}")
+                                        print(f"[APPLY] {prop_name}: {n_sel} comps, valor=${nuevo_valor:,.0f}")
                                 else:
                                     # Menos de 2 comps seleccionados ΓåÆ limpiar header
                                     resultado = dict(resultado)
@@ -661,7 +661,7 @@ def mostrar_dashboard():
                                     resultado['valor_venta_conservador'] = 0
                                     resultado['valor_venta_optimista'] = 0
                                     resultado['_n_excluidos'] = len(excluded_ids)
-                                    logger.info(f"[APPLY] {prop_name}: <2 comps, header limpiado")
+                                    print(f"[APPLY] {prop_name}: <2 comps, header limpiado")
                             resultado['_comp_excluded'] = excluded_ids
                             if from_apply:
                                 resultado['_comp_exclusion_applied'] = True
