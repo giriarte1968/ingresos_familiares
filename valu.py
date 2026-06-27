@@ -349,7 +349,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                     st.session_state[f'preview_mode_{prop_name}'] = True
                     st.session_state.pop(f'comp_selection_{prop_name}', None)
                     st.session_state.pop(f'comp_excluded_{prop_name}', None)
-                st.slider("Meses atrás", 12, 60,
+                st.slider("Meses atrás", 12, 60, value=36,
                           key=f'retro_meses_slider_{prop_name}', on_change=_on_retro_slider_change)
 
         with st.expander(f"🗺️ Mapa — {prop_name}", expanded=False):
@@ -611,13 +611,14 @@ def mostrar_dashboard():
                     if ya_valuado and fuente_activa_saved == 'auto' and not forzar and bool(entrada_antigua.get('resultado_completo')):
                         cached_result = entrada_antigua['resultado_completo']
                         cached_fecha_ref = (cached_result.get('resolution_metadata') or {}).get('fecha_ref', '')
+                        cached_retro = entrada_antigua.get('retro_dias', 0) or 0
                         hoy = datetime.now().strftime('%Y-%m-%d')
-                        if cached_fecha_ref == hoy:
+                        if cached_fecha_ref == hoy and cached_retro == retro_dias:
                             resultado = cached_result
                             usar_cache = True
-                            logger.info(f"[CACHE] {prop_name}: usando resultado_completo grabado ({len(resultado.get('comparables_venta',[]))} comps)")
+                            logger.info(f"[CACHE] {prop_name}: usando resultado_completo grabado ({len(resultado.get('comparables_venta',[]))} comps, retro={cached_retro})")
                         else:
-                            logger.info(f"[CACHE] {prop_name}: cache stale (fecha_ref={cached_fecha_ref}, hoy={hoy}), recalculando")
+                            logger.info(f"[CACHE] {prop_name}: cache stale (fecha_ref={cached_fecha_ref}, retro_cache={cached_retro}, retro_actual={retro_dias}, hoy={hoy}), recalculando")
                     if not usar_cache:
                         resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios, preview=preview_mode, manual_data=st.session_state.get(f'manual_preview_{prop_name}', None))
                     _sl.mark("after_valuar_con_cache")

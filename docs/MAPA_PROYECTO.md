@@ -18,7 +18,7 @@ Ubicación de la lógica principal de valuación y procesamiento.
 
 | Archivo | Responsabilidad |
 |---------|-----------------|
-| `valu.py` | **Punto de entrada principal (Valu).** Aplicación moderna enfocada 100% en propiedades. |
+| `valu.py` | **Punto de entrada principal (Valu).** Aplicación moderna enfocada 100% en propiedades. Retro slider: lineas 319-334 (botón), 345-353 (slider), 611-618 (bypass cache). |
 | `valu_detail_sections.py` | Componentes de UI detallada: tabla de comparables, catastro, mapas, razonamiento. |
 | `valu_design.py` | Sistema de diseño premium, CSS estilo Zillow y componentes HTML. |
 | `valu_forms.py` | Formularios modulares para la carga de datos de propiedades. |

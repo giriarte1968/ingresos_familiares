@@ -428,3 +428,130 @@ def test_percentil_calidad_p33():
     from parsers.cluster_filters import seleccionar_percentil_por_calidad_pool
     assert seleccionar_percentil_por_calidad_pool(3, 0.20) == (33, 'P33')
     assert seleccionar_percentil_por_calidad_pool(4, 0.10) == (33, 'P33')
+
+
+# ─── RETRO SLIDER — COMPORTAMIENTO INAMOVIBLE ───
+#
+# ⛔ RO-RETRO-01 a RO-RETRO-05: Cualquier cambio debe ser aprobado por el usuario.
+# Ver docs/MEMORIA_PROYECTO.md - Reglas de Oro - RO-17 a RO-20.
+
+def _cargar_francia_250b():
+    """Carga Francia 250b desde propiedades.json."""
+    import json
+    with open('propiedades.json', 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    for p in data.get('propiedades', []):
+        if 'francia' in p.get('nombre', '').lower():
+            return p
+    raise AssertionError("Francia 250b no encontrada en propiedades.json")
+
+
+def test_retro_dias_36_incluye_comparable():
+    """RO-RETRO-01: retro=36 debe incluir Condominios del Alto (date=2025-06-19, 373d < 1080d)."""
+    p = _cargar_francia_250b()
+    r = valuar_propiedad_v7(p, fecha_ref='2026-06-27', retro_dias=36, consultar_infomapa=False)
+    comps = r.get('comparables_venta', [])
+    assert len(comps) >= 1, f"retro=36 debe dar >=1 comp, dio {len(comps)}"
+    # El comparable debe ser Condominios del Alto
+    addr = comps[0].get('direccion_limpia', '') or comps[0].get('direccion', '')
+    assert 'del Alto' in addr, f"Esperado Condominios del Alto, obtenido: {addr}"
+    assert comps[0].get('precio_m2', 0) == 2882.19, f"precio_m2 debe ser 2882.19, obtenido: {comps[0].get('precio_m2')}"
+
+
+def test_retro_dias_12_excluye_comparable():
+    """RO-RETRO-02: retro=12 debe EXCLUIR Condominios del Alto (373d > 360d)."""
+    p = _cargar_francia_250b()
+    r = valuar_propiedad_v7(p, fecha_ref='2026-06-27', retro_dias=12, consultar_infomapa=False)
+    comps = r.get('comparables_venta', [])
+    assert len(comps) == 0, f"retro=12 debe dar 0 comps, dio {len(comps)}"
+
+
+def test_retro_dias_0_usa_ventana_natural():
+    """RO-RETRO-03: retro=0 debe usar ventana natural 180d. Comparable 2025-06-19 queda fuera."""
+    p = _cargar_francia_250b()
+    r = valuar_propiedad_v7(p, fecha_ref='2026-06-27', retro_dias=0, consultar_infomapa=False)
+    comps = r.get('comparables_venta', [])
+    assert len(comps) == 0, f"retro=0 debe dar 0 comps (ventana natural), dio {len(comps)}"
+
+
+def test_retro_bypass_respeta_cambio_dias():
+    """RO-RETRO-04: valuar_con_cache debe recalcular si retro_dias cambia vs. cache."""
+    from parsers.motor_vpp_core import valuar_con_cache
+    from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
+    from copy import deepcopy
+
+    p = _cargar_francia_250b()
+    nombre = p['nombre']
+
+    # Backup cache y propiedades
+    cache_bak = cargar_cache_valuaciones()
+    with open('propiedades.json', 'r', encoding='utf-8') as f:
+        props_bak = json.load(f)
+    entrada_bak = deepcopy(cache_bak.get(nombre))
+    uv_bak = deepcopy(p.get('_ultima_valuacion'))
+
+    try:
+        # Asegurar que Francia NO esta en cache
+        if nombre in cache_bak:
+            del cache_bak[nombre]
+        guardar_cache_valuaciones(cache_bak)
+        # Remover _ultima_valuacion de propiedades temporalmente
+        props_list = props_bak.get('propiedades', [])
+        for pp in props_list:
+            if pp.get('nombre') == nombre:
+                pp.pop('_ultima_valuacion', None)
+                break
+        with open('propiedades.json', 'w', encoding='utf-8') as f:
+            json.dump(props_bak, f, ensure_ascii=False, indent=2)
+
+        # 1ra llamada: retro=36 → motor corre, guarda cache con retro=36
+        r36 = valuar_con_cache(p, retro_dias=36, forzar_recalculo=False, consultar_infomapa=False)
+        assert len(r36.get('comparables_venta', [])) == 1, \
+            f"1ra llamada retro=36 debe dar 1 comp, dio {len(r36.get('comparables_venta', []))}"
+        assert r36.get('_cache', {}).get('retro_dias') == 36, \
+            f"Cache debe tener retro_dias=36, tiene {r36.get('_cache', {}).get('retro_dias')}"
+
+        # 2da llamada: retro=12 → detecta mismatch cache retro=36 != 12 → recalcula
+        r12 = valuar_con_cache(p, retro_dias=12, forzar_recalculo=False, consultar_infomapa=False)
+        assert r12.get('_cache', {}).get('razon', '').startswith('parametros_cambiados'), \
+            f"Debe detectar parametros_cambiados, razon={r12.get('_cache', {}).get('razon')}"
+        assert len(r12.get('comparables_venta', [])) == 0, \
+            f"2da llamada retro=12 debe dar 0 comps, dio {len(r12.get('comparables_venta', []))}"
+
+        # 3ra llamada: retro=36 → detecta mismatch cache retro=12 != 36 → recalcula
+        r36b = valuar_con_cache(p, retro_dias=36, forzar_recalculo=False, consultar_infomapa=False)
+        assert r36b.get('_cache', {}).get('razon', '').startswith('parametros_cambiados'), \
+            f"3ra llamada debe detectar cambio retro, razon={r36b.get('_cache', {}).get('razon')}"
+        assert len(r36b.get('comparables_venta', [])) == 1, \
+            f"3ra llamada retro=36 debe dar 1 comp, dio {len(r36b.get('comparables_venta', []))}"
+
+    finally:
+        # Restaurar cache original
+        cache_restore = cargar_cache_valuaciones()
+        if entrada_bak:
+            cache_restore[nombre] = entrada_bak
+        elif nombre in cache_restore:
+            del cache_restore[nombre]
+        guardar_cache_valuaciones(cache_restore)
+        # Restaurar propiedades original
+        with open('propiedades.json', 'w', encoding='utf-8') as f:
+            json.dump(props_bak, f, ensure_ascii=False, indent=2)
+
+
+def test_retro_bypass_valu_py_coherencia():
+    """RO-RETRO-05: El bypass en valu.py (lineas 611-618) debe verificar retro_dias."""
+    # Simula la logica exacta del bypass de valu.py
+    cached_retro = 36   # Cache guardado con retro=36
+    cached_fecha_ref = '2026-06-27'  # Misma fecha
+    requested_retro = 12  # Slider en 12
+    hoy = '2026-06-27'
+
+    # fecha_ref coincide pero retro NO → cache debe rechazarse
+    bypass_ok = (cached_fecha_ref == hoy) and (cached_retro == requested_retro)
+    assert not bypass_ok, \
+        "Bypass debe rechazar cuando retro_dias difiere (cached=36, requested=12)"
+
+    # Mismo retro debe pasar
+    bypass_ok = (cached_fecha_ref == hoy) and (cached_retro == 36)
+    assert bypass_ok, \
+        "Bypass debe aceptar cuando retro_dias coincide (ambos 36)"

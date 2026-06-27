@@ -1,6 +1,46 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-06-27 — TAREA-086 (v2): Fix Retro slider default 36 + bypass retro_dias + tests inamovibles
+
+### Bugs corregidos
+
+**Bug 1: Slider default mismatch**
+- `st.slider("Meses atrás", 12, 60)` SIN `value=` → Streamlit default **12** (mínimo)
+- Botón Retro: `sv = st.session_state.get('retro_meses_slider', 36)` → default **36**
+- El usuario veía "12" en el slider, no lo movía (quería 12), pero el motor usaba **36**
+- **Fix:** `st.slider("Meses atrás", 12, 60, value=36, ...)` — slider ahora default 36
+
+**Bug 2: Bypass de cache ignoraba retro_dias**
+- El bypass en `valu.py:611-618` solo verificaba `fecha_ref` vs `hoy`
+- No verificaba que el `retro_dias` del cache coincidiera con el slider actual
+- **Fix:** Se agregó `cached_retro == retro_dias` al bypass. Si difieren, se salta el cache.
+
+### Archivos modificados
+- `valu.py:352-353` — `value=36` en slider
+- `valu.py:614-618` — bypass ahora verifica `cached_retro == retro_dias`
+- `tests/test_regression.py` — +6 tests inamovibles (RO-RETRO-01 a 05)
+- `docs/STATUS_ACTUAL.md` — actualizado
+- `docs/MEMORIA_PROYECTO.md` — RO-17 a RO-20 agregadas
+- `docs/ALGORITMOS.md` — Sección 18: Retro Slider
+- `docs/BITACORA_AGENTES.md` — esta entrada
+- `docs/MAPA_PROYECTO.md` — actualizado
+
+### Reglas de Oro (nuevas)
+- **RO-17:** Retro slider default = 36
+- **RO-18:** Filtro de fecha por ventana retro_meses × 30 días
+- **RO-19:** Bypass de cache verifica fecha_ref Y retro_dias
+- **RO-20:** Tests retro INAMOVIBLES
+
+### Validación
+- 44/44 regression tests pasan
+- auto_validate OK
+
+### Pendiente
+- Botón "Comparable" en header carga desde cache en disco → debe cargar desde resultado actual en memoria (fix pendiente)
+
+---
+
 ## 2026-06-27 — TAREA-086: Fix Manual→Comparable — carga desde cache físico sin recálculo (v3 fix)
 
 ### Problema

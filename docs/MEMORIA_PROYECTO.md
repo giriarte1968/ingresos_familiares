@@ -74,6 +74,14 @@ El modelo es Data-Driven: los precios emergen del mercado real
 
 **RO-16:** Jerarquía de Verdad: Si dos documentos se contradicen, `MEMORIA_PROYECTO.md` siempre tiene la prioridad absoluta. `ALGORITMOS.md` y otros documentos son secundarios. Si hay contradicción, reportar al usuario, no decidir solo.
 
+**RO-17 (RETRO SLIDER — DEFAULT 36):** Cuando el usuario activa Retro, el slider default es **36 meses**. El valor `retro_meses` que recibe el motor SIEMPRE debe coincidir con el valor mostrado por el slider. Cualquier cambio en este default debe ser aprobado por el usuario. Ver tests `test_retro_dias_36_incluye_comparable`, `test_retro_dias_12_excluye_comparable`.
+
+**RO-18 (RETRO SLIDER — FILTRO DE FECHA):** El Retro slider restringe los comparables por fecha: `ventana = retro_meses × 30 días`. Un comparable con `date_created` anterior a `fecha_ref - ventana` es EXCLUIDO. Con `retro=12` (ventana=360d), el comparable Condominios del Alto (2025-06-19, 373d antes del 2026-06-27) NO debe aparecer. Con `retro=36` (ventana=1080d), SÍ debe aparecer. Ver tests `test_retro_dias_36_incluye_comparable`, `test_retro_dias_12_excluye_comparable`.
+
+**RO-19 (RETRO SLIDER — BYPASS DE CACHE):** El bypass en `valu.py:611-618` solo debe usar el resultado cacheado si TANTO `fecha_ref` como `retro_dias` coinciden con los valores actuales. Si `retro_dias` del cache difiere del slider actual, el bypass debe rechazar el cache y forzar recálculo. Ver tests `test_retro_bypass_respeta_cambio_dias`, `test_retro_bypass_valu_py_coherencia`.
+
+**RO-20 (RETRO SLIDER — TESTS INAMOVIBLES):** Los tests `test_retro_dias_*` y `test_retro_bypass_*` en `tests/test_regression.py` son INAMOVIBLES. Cualquier cambio en el código que los haga fallar debe ser aprobado por el usuario antes de modificarlos. No alterar estos tests sin consulta explícita.
+
 ---
 
 ## 3. ARQUITECTURA DE LA FÓRMULA DE VENTA (TAREA-073 — Modelo Base Puro)

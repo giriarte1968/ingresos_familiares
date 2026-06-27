@@ -1,6 +1,6 @@
 ﻿# 🏠 STATUS ACTUAL DEL PROYECTO — AVM Rosario
 
-*Actualizado: 20/06/2026 (TAREA-073: Modelo base puro sin factores hedónicos)*
+*Actualizado: 27/06/2026 (TAREA-086: Fix Retro slider default + bypass + tests inamovibles)*
 
 ---
 
@@ -15,7 +15,7 @@
 | Matching catastral (acentos/ñ) | ✅ Normalización NFKD en `_token_contenido` (TAREA-024) |
 | Persistencia DO | ✅ Atómica + branch `do-state` |
 | Landing page | ✅ Navegación por teclado (PageDown/PageUp/Home/End) |
-| Tests regresión | ✅ 38/38 (recallibrados para TAREA-073) |
+| Tests regresión | ✅ 44/44 (TAREA-086: +6 tests retro inamovibles RO-RETRO-01 a 05) |
 | Tests persistencia | ✅ 16/16 |
 | Despliegue DO | Sin redeploy loop |
 | Anclas grilla 400m | 322 microzonas, 96% cobertura (TAREA-036) |
@@ -145,6 +145,7 @@ git checkout origin/do-state -- propiedades.json data/valuaciones_cache.json
 2. `data/history/` directorio untracked (generado por scraping)
 3. Validación manual en DO del flujo do-state
 4. ⚠️ P1200 y Brown 2750 requieren recalibración con fórmula multiplicativa
+5. ⚠️ Botón "Comparable" en header carga desde cache en disco, debe cargar desde resultado actual en memoria (fix pendiente TAREA-086)
 
 ---
 

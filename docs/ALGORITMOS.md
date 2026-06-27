@@ -863,6 +863,59 @@ La edad aparenta correlacionar con precio porque las propiedades viejas están e
 - TAREA-073: Eliminación de factores hedónicos del motor automático
 - TAREA-076: Eliminación de depreciación del display de subfactores
 
+---
+
+## 18. Retro Slider — Filtro Temporal de Comparables (TAREA-086)
+
+### Propósito
+Permitir al usuario restringir los comparables a una ventana temporal hacia atrás desde la fecha de referencia, para evitar que propiedades muy antiguas distorsionen la valuación.
+
+### Algoritmo
+
+```
+retro_meses = slider value (default 36, rango 12-60)
+retro_dias = retro_meses (0 si retro está inactivo)
+
+ventana_dias = retro_dias * 30  si retro_dias > 0
+             = get_natural_window_dias() (=180)  si retro_dias == 0
+
+fecha_limite = fecha_ref - ventana_dias
+
+Para cada comparable:
+    if comparable.date_created < fecha_limite:
+        EXCLUIR
+    else:
+        INCLUIR
+```
+
+### Default del slider
+- **36 meses** cuando el usuario activa Retro por primera vez en la sesión
+- El `st.slider` usa `value=36` explícito para que coincida con el valor que recibe el motor
+- Tras togglear Retro off/on, el slider se reinicia a 36 (sesión _state se limpia)
+
+### Bypass de cache (`valu.py:611-618` y `motor_vpp_core.py:1382-1388`)
+El cache se usa solo si coinciden AMBAS condiciones:
+1. `fecha_ref` del cache == `fecha_ref` actual (misma fecha de referencia)
+2. `retro_dias` del cache == `retro_dias` actual (mismo slider)
+
+Si alguna difiere, se fuerza recálculo completo.
+
+### Validación con Francia 250b (Puerto Norte)
+| retro_dias | Ventana | Condominios del Alto (2025-06-19) | Resultado |
+|-----------|---------|-----------------------------------|-----------|
+| 0 | 180d (natural) | 373d > 180d → EXCLUIDO | 0 comps |
+| 12 | 360d | 373d > 360d → EXCLUIDO | 0 comps |
+| 36 | 1080d | 373d < 1080d → INCLUIDO | 1 comp |
+
+### Archivos clave
+- `valu.py:352-353` — `st.slider("Meses atrás", 12, 60, value=36, key=...)` con `on_change=_on_retro_slider_change`
+- `valu.py:345-351` — `_on_retro_slider_change`: actualiza `retro_meses`, `forzar_recalculo`, `preview_mode`
+- `valu.py:319-334` — Botón Retro: al activar setea `retro_meses = sv` (default 36)
+- `valu.py:611-618` — Bypass de cache: verifica `fecha_ref` y `retro_dias`
+- `motor_vpp_core.py:1382-1388` — Verifica `cached_retro != retro_dias` para recálculo
+- `mercado_inmobiliario.py:1043,1114,1167` — `window_dias_usado = retro_dias * 30 if retro_dias > 0 else get_natural_window_dias()`
+- `tests/test_regression.py` — Tests `test_retro_dias_*` y `test_retro_bypass_*` (INAMOVIBLES)
+
 
 **Generado por**: OpenCode
-**Fecha**: 2026-05-16
+**Fecha**: 2026-06-27
