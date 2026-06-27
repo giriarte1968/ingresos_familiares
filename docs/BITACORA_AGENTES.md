@@ -1,6 +1,28 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-06-27 — TAREA-086: Fix Manual→Comparable — carga desde cache físico sin recálculo
+
+### Problema
+Al valuar por Comparables → aplicar → Manual → volver a "Por Comparables":
+1. `manual_preview` contaminaba `p_obj` aunque la fuente guardada fuera `'auto'`
+2. `valuar_con_cache` recalculaba en vez de devolver lo grabado
+3. `_ultima_valuacion` no se actualizaba al cambiar a `'auto'` → portfolio mostraba valor manual
+
+### Fix aplicado
+- **valu.py**: `manual_preview` solo se aplica si `fuente_activa_saved == 'manual'`
+- **valu.py**: bypass de `valuar_con_cache` si `fuente_activa_saved == 'auto'` y hay `resultado_completo` en cache — usa el resultado grabado directamente
+- **valu_detail_sections.py**: `_set_fuente_activa('auto')` ahora escribe `valor_usd`, `comps`, `fuente='auto'`, `_comp_excluded`, `_comp_exclusion_applied` en `_ultima_valuacion` desde el cache
+- Limpiados prints DEBUG (BUG7, DASH, SLIDER, DETALLE)
+- El slider Retro sigue funcionando correctamente: al moverse setea `forzar_recalculo=True`, que salta el bypass y recalcula
+
+### Validación
+- 32/32 regression tests pasan
+- auto_validate OK
+
+### Commits
+- _(por hacer)_
+
 ## 2026-06-26 — Fix: slider "Meses atrás" ahora reemplaza ventana en vez de añadir
 
 ### Problema
