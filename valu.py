@@ -652,7 +652,8 @@ def mostrar_dashboard():
                         if forzar: fallo_por.append("forzar=True")
                         if not entrada_antigua.get('resultado_completo'): fallo_por.append("sin_resultado_completo")
                         print(f"[CACHE-CHECK] {prop_name}: cache NO INTENTADO por: {', '.join(fallo_por)}")
-                    # Solo recalcular si es necesario Y la fuente activa es auto
+                    # Recalcular si cache miss: en Auto usa preview_mode real,
+                    # en Manual fuerza preview=True para no pisar UV ni exclusion
                     if not usar_cache:
                         if fuente_activa_saved == 'auto':
                             print(f"[CACHE-CHECK] {prop_name}: llamando valuar_con_cache (forzar={forzar}, preview={preview_mode}, retro={retro_dias}, flex={flex_dormitorios})")
@@ -660,9 +661,10 @@ def mostrar_dashboard():
                             resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios, preview=preview_mode, manual_data=manual_data_to_pass)
                             print(f"[CACHE-CHECK] {prop_name}: valuar_con_cache retorno: error={resultado.get('error')}, valor={resultado.get('valor_propiedad_usd')}, n_comps={len(resultado.get('comparables_venta',[])) if resultado.get('comparables_venta') else 0}, cache_preview={resultado.get('_cache',{}).get('preview')}")
                         else:
-                            # Fuente manual: usar cache aunque sea viejo, no recargar (preserva exclusion)
-                            print(f"[CACHE-CHECK] {prop_name}: cache miss pero fuente=manual, usando cache viejo para _auto_result (preserva exclusion)")
-                            resultado = entrada_antigua.get('resultado_completo', {'valor_propiedad_usd': 0, 'comparables_venta': [], 'resolution_metadata': {'n_propiedades': 0}, '_cache': {'preview': True}})
+                            # Fuente manual: recargar con preview=True para cachear resultado
+                            # pero sin pisar _ultima_valuacion (preserva exclusion y datos manuales)
+                            print(f"[CACHE-CHECK] {prop_name}: fuente=manual, recargando con preview=True (preserva UV/exclusion)")
+                            resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios, preview=True, manual_data=None)
                     _sl.mark("after_valuar_con_cache")
                     if not usar_cache:
                         n_comps = len(resultado.get('comparables_venta', []))

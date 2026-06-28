@@ -7,8 +7,11 @@
 1. Al cambiar de Auto a Manual y volver a Auto, la exclusión de comparables "Selección aplicada" se perdía y aparecía "Aplicar selección". Causa raíz: el cache check en `valu.py:626` condicionaba el uso de cache a `fuente_activa_saved == 'auto'`. Al switchar a Manual, cache bypass, `valuar_con_cache` recalculaba auto result y persistía con `commit=True`, SOBREESCRIBIENDO el cache que tenía la exclusión.
 2. Los logs de debug (`[DEBUG-FUENTE]`, `[CACHE-CHECK]`, etc.) solo iban a consola (stdout), invisibles post-ejecución.
 
-### Cambios
-1. **`valu.py:624-657`**: Cache check ya NO depende de `fuente_activa`. Se intenta cache siempre. Solo se llama `valuar_con_cache` si cache miss Y fuente_activa_saved == 'auto'. Con fuente Manual y cache miss, se usa cache viejo para `_auto_result`.
+### Cambios (v2 — fix del fix)
+1. **`valu.py:655-671`**: Cache check ya NO depende de `fuente_activa`. Se intenta cache siempre. Si cache miss:
+   - `fuente_activa_saved == 'auto'`: `valuar_con_cache(preview=preview_mode)` (comportamiento normal)
+   - `fuente_activa_saved != 'auto'` (Manual): `valuar_con_cache(preview=True)` para obtener resultado con comparables válidos SIN pisar `_ultima_valuacion` ni la exclusión
+   - ❌ **Antes (v1)**: usaba dict vacío `{'comparables_venta': [], ...}` → 0 comps en Auto card cuando cache estaba vacío (borrado por `actualizar_propiedad` al modificar params manuales)
 2. **`parsers/debug_logger.py`** (nuevo): Logger a disco en `logs/debug_{timestamp}.log`. Guarda todos los mensajes `[DEBUG-*]` y `[CACHE*]` con timestamp.
 3. **`valu.py`**, **`valu_detail_sections.py`**, **`valuacion_cache.py`**, **`motor_vpp_core.py`**: `print` global sobreescrito a nivel módulo para interceptar mensajes `[DEBUG`/`[CACHE` y escribirlos al archivo de log.
 4. **`tests/test_regression.py`**: Nuevo test `test_toggle_fuente_preserva_exclusion` (RO-CACHE-PREVIEW-06): verifica que `persistir_valuacion` con resultado fresco SIN exclusion SOBREESCRIBE cache (prueba que el bypass en valu.py es necesario).
