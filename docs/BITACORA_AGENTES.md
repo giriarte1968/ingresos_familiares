@@ -10,7 +10,7 @@ El botón "🔄 Limpiar" (`valu.py:322`) preservaba `_ultima_valuacion` cuando h
 1. **`valu.py:490-498`**: Eliminado bloque condicional `if uv.get('manual_params'):` — ahora `p.pop('_ultima_valuacion', None)` es incondicional.
 
 ### Commit
-`1666917` — `"fix(TAREA-088): 🔄 Limpiar borra siempre _ultima_valuacion, incluso manual"`
+`617b699` — `"fix(TAREA-088): 🔄 Limpiar borra siempre _ultima_valuacion, incluso manual"`
 
 ## 2026-06-28 — TAREA-075: Fix manual valuation overwrites comparable exclusion
 

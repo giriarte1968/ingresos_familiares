@@ -490,11 +490,13 @@ def mostrar_dashboard():
                     props = cargar_propiedades()
                     for p in props:
                         if p.get('nombre') == prop_name:
+                            uv_old = p.get('_ultima_valuacion', {})
+                            print(f"[DEBUG-CLEAN] {prop_name}: limpiando _ultima_valuacion (tenia fuente={uv_old.get('fuente')}, manual_params={bool(uv_old.get('manual_params'))}, valor_usd={uv_old.get('valor_usd')})")
                             p.pop('_ultima_valuacion', None)
                             break
                     guardar_propiedades(props)
                 except Exception as e:
-                    print(f"Error limpiando comparables: {e}")
+                    print(f"[DEBUG-CLEAN] Error limpiando comparables {prop_name}: {e}")
                 st.session_state.pop(f'preview_mode_{prop_name}', None)
                 st.session_state.pop(f'retro_active_{prop_name}', None)
                 st.session_state.pop(f'flex_active_{prop_name}', None)
