@@ -490,12 +490,7 @@ def mostrar_dashboard():
                     props = cargar_propiedades()
                     for p in props:
                         if p.get('nombre') == prop_name:
-                            uv = p.get('_ultima_valuacion', {})
-                            if uv.get('manual_params'):
-                                uv['fuente'] = 'manual'
-                                uv['fuente_activa'] = 'manual'
-                            else:
-                                p.pop('_ultima_valuacion', None)
+                            p.pop('_ultima_valuacion', None)
                             break
                     guardar_propiedades(props)
                 except Exception as e:

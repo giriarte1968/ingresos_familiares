@@ -1,6 +1,17 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-06-28 — TAREA-088: Fix "🔄 Limpiar" no borra valuación manual
+
+### Problema
+El botón "🔄 Limpiar" (`valu.py:322`) preservaba `_ultima_valuacion` cuando había `manual_params` (solo cambiaba `fuente` a `'manual'`). Al volver al Portfolio, `_cargar_resultados_cache()` no encontraba cache (ya limpiada) pero caía al fallback que lee `ultima.get("valor_usd")` directamente de `propiedades.json`, mostrando el valor manual viejo.
+
+### Cambios
+1. **`valu.py:490-498`**: Eliminado bloque condicional `if uv.get('manual_params'):` — ahora `p.pop('_ultima_valuacion', None)` es incondicional.
+
+### Commit
+`1666917` — `"fix(TAREA-088): 🔄 Limpiar borra siempre _ultima_valuacion, incluso manual"`
+
 ## 2026-06-28 — TAREA-075: Fix manual valuation overwrites comparable exclusion
 
 ### Problema

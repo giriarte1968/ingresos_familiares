@@ -1,6 +1,6 @@
 ﻿# 🏠 STATUS ACTUAL DEL PROYECTO — AVM Rosario
 
-*Actualizado: 28/06/2026 (TAREA-087: Guard preview fallido no debe pisar cache exitoso)*
+*Actualizado: 28/06/2026 (TAREA-088: Fix 🔄 Limpiar no borra valuación manual)*
 
 ---
 
