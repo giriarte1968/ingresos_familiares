@@ -157,10 +157,14 @@ def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict, c
                     stashed[k] = resultado.pop(k)
 
             # Extract scalar auto/manual values for portfolio display
-            auto_valor_usd = stashed.get('_auto_result', {}).get('valor_propiedad_usd', 0) or 0
-            manual_valor_usd = stashed.get('_manual_result', {}).get('valor_propiedad_usd', 0) or 0
+            auto_valor_usd = (stashed.get('_auto_result') or {}).get('valor_propiedad_usd', 0) or 0
+            manual_valor_usd = (stashed.get('_manual_result') or {}).get('valor_propiedad_usd', 0) or 0
             if '_auto_result' not in stashed and not auto_valor_usd:
                 auto_valor_usd = resultado.get('valor_propiedad_usd', 0) or 0
+            
+            # Ensure _cache exists before adding scalar values
+            if '_cache' not in resultado:
+                resultado['_cache'] = {}
             resultado['_cache']['auto_valor_usd'] = auto_valor_usd
             resultado['_cache']['manual_valor_usd'] = manual_valor_usd
 
@@ -189,12 +193,19 @@ def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict, c
                             
                             old_uv = p.get('_ultima_valuacion', {})
                             new_excluded = resultado.get('_comp_excluded')
+                            exclusion_applied = resultado.get('_comp_exclusion_applied', False)
+                            
+                            # Preservar exclusión durante guardado manual si ya estaba aplicada
+                            if manual_data and not exclusion_applied and old_uv.get('_comp_exclusion_applied'):
+                                new_excluded = old_uv.get('_comp_excluded', [])
+                                exclusion_applied = True
+
                             # NOTA: NO carry forward from old UV. If the new resultado
                             # doesn't specify _comp_excluded, the exclusion is intentionally
                             # cleared (fresh calc, reset_all, etc.). Only explicit keys on
                             # resultado are used.
                             p['_ultima_valuacion'] = {
-                                'valor_usd': resultado.get('valor_propiedad_usd'),
+                                'valor_usd': manual_data.get('valor_usd', resultado.get('valor_propiedad_usd')) if manual_data else resultado.get('valor_propiedad_usd'),
                                 'auto_valor_usd': auto_valor_usd,
                                 'manual_valor_usd': manual_valor_usd,
                                 'alquiler_ars': resultado.get('alquiler_estimado_ars'),
@@ -206,9 +217,9 @@ def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict, c
                                 'timestamp': datetime.now().isoformat(),
                                 'fuente': resultado.get('fuente', 'auto'),
                                 'fuente_activa': resultado.get('_fuente_activa', 'auto'),
-                                'manual_params': resultado.get('manual_params'),
+                                'manual_params': resultado.get('manual_params') or manual_data.get('manual_params') if manual_data else None,
                                 '_comp_excluded': new_excluded,
-                                '_comp_exclusion_applied': resultado.get('_comp_exclusion_applied', False),
+                                '_comp_exclusion_applied': exclusion_applied,
                             }
                             if old_uv.get('manual_params'):
                                 p['_ultima_valuacion']['valor_usd'] = old_uv.get('valor_usd', p['_ultima_valuacion']['valor_usd'])

@@ -666,6 +666,72 @@ def test_preview_cache_no_afecta_ultima_valuacion():
         cache_clean.pop(nombre_test, None)
         guardar_cache_valuaciones(cache_clean)
 
+def test_flow_manual_preserva_exclusion():
+    """T_S-07: Flujo completo: Comparables -> Exclusión -> Manual -> Guardar.
+    Verifica que guardar una valuación manual NO limpie la exclusión de comparables
+    previamente aplicada y persistida en UV."""
+    from parsers.valuacion_cache import persistir_valuacion, cargar_cache_valuaciones, guardar_cache_valuaciones, get_cache_version
+    from parsers.motor_vpp_core import valuar_con_cache
+    import json, copy, os
+
+    nombre_test = '__test_flow_manual_excl__'
+    cache_bak = cargar_cache_valuaciones()
+    if nombre_test in cache_bak:
+        del cache_bak[nombre_test]
+        guardar_cache_valuaciones(cache_bak)
+
+    with open('propiedades.json', 'r', encoding='utf-8') as f:
+        props_bak = copy.deepcopy(json.load(f))
+
+    try:
+        # 1. Setup: Propiedad Pendiente
+        props_temp = copy.deepcopy(props_bak)
+        props_temp['propiedades'].append({
+            'nombre': nombre_test, 'm2_cubiertos': 50, 'lat': -32.95, 'lon': -60.63,
+        })
+        with open('propiedades.json', 'w', encoding='utf-8') as f:
+            json.dump(props_temp, f, ensure_ascii=False, indent=2)
+
+        prop = {'nombre': nombre_test, 'm2_cubiertos': 50, 'lat': -32.95, 'lon': -60.63}
+
+        # 2. Valuación por Comparables (Retro 36) -> Preview
+        res_auto = valuar_con_cache(prop, forzar_recalculo=True, retro_dias=36, preview=True)
+        persistir_valuacion(nombre_test, prop, res_auto, cargar_cache_valuaciones(), commit=False)
+
+        # 3. Aplicar Selección (Simula el botón 'Aplicar Selección' que hace commit=True)
+        res_auto['_comp_excluded'] = ['comp_1', 'comp_2']
+        res_auto['_comp_exclusion_applied'] = True
+        persistir_valuacion(nombre_test, prop, res_auto, cargar_cache_valuaciones(), commit=True)
+
+        # Verificar que UV tiene la exclusión
+        with open('propiedades.json', 'r', encoding='utf-8') as f:
+            props_check = json.load(f)
+        uv_pre_manual = next(p['_ultima_valuacion'] for p in props_check['propiedades'] if p['nombre'] == nombre_test)
+        assert uv_pre_manual['_comp_exclusion_applied'] is True, "La exclusión debe estar persistida en UV"
+
+        # 4. Valuación Manual -> Guardar cambios (commit=True)
+        manual_data = {'valor_usd': 120000, 'manual_params': {'fecha_guardado': '2026-06-28T12:00:00'}}
+        res_manual = valuar_con_cache(prop, forzar_recalculo=True, preview=True, manual_data=manual_data)
+        
+        # Guardar cambios (commit=True)
+        persistir_valuacion(nombre_test, prop, res_manual, cargar_cache_valuaciones(), commit=True, manual_data=manual_data)
+
+        # 5. VERIFICACIÓN FINAL: UV debe tener el valor manual Y la exclusión de comparables
+        with open('propiedades.json', 'r', encoding='utf-8') as f:
+            props_final = json.load(f)
+        uv_final = next(p['_ultima_valuacion'] for p in props_final['propiedades'] if p['nombre'] == nombre_test)
+        
+        assert uv_final['valor_usd'] == 120000, f"Debe mantener valor manual 120000, obtuvo {uv_final['valor_usd']}"
+        assert uv_final['_comp_exclusion_applied'] is True, "ERROR: Guardar manual limpió la exclusión de comparables"
+        assert uv_final['_comp_excluded'] == ['comp_1', 'comp_2'], "La lista de excluidos se perdió"
+
+    finally:
+        with open('propiedades.json', 'w', encoding='utf-8') as f:
+            json.dump(props_bak, f, ensure_ascii=False, indent=2)
+        cache_clean = cargar_cache_valuaciones()
+        cache_clean.pop(nombre_test, None)
+        guardar_cache_valuaciones(cache_clean)
+
 
 # RO-CACHE-PREVIEW-07: Pendiente con preview valido NO debe recalc al entrar a Detalle
 

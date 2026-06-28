@@ -1,6 +1,20 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-06-28 — TAREA-075: Fix manual valuation overwrites comparable exclusion
+
+### Problema
+Guardar una valuación manual (`persistir_valuacion(commit=True, manual_data=...)`) limpiaba `_comp_excluded` y `_comp_exclusion_applied` que habían sido previamente persistidos por "Aplicar selección". Causa raíz: `resultado.get('_comp_excluded')` retorna `[]` (nunca `None`) porque `valuar_propiedad_v7` línea 3627 hace `'_comp_excluded': comp_excluded or []`. El fix previo `if new_excluded is None` no detectaba listas vacías.
+
+### Cambios
+1. **`parsers/valuacion_cache.py`**: Preservar exclusión solo en guardados manuales. Si `manual_data` está presente y `not exclusion_applied` y `old_uv` tenía exclusión, se restaura `_comp_excluded` y `_comp_exclusion_applied=True` desde UV.
+2. **`parsers/valuacion_cache.py`**: `valor_usd` ahora usa `manual_data.get('valor_usd', ...)` en vez de `resultado.get('valor_propiedad_usd')` para evitar que el valor automático contamine el manual.
+3. **`parsers/valuacion_cache.py`**: Stash seguro `or {}` para evitar `NoneType.get()` en `_auto_result`/`_manual_result`.
+4. **`parsers/valuacion_cache.py`**: Crear `resultado['_cache'] = {}` si no existe para evitar KeyError.
+5. **`tests/test_regression.py`**: Nuevo test `test_flow_manual_preserva_exclusion` (T_S-07): flujo completo Comparables → Exclusión → Manual → Guardar → verifica valor manual + exclusión intacta.
+
+### Tests: 45/45 regression OK, auto_validate OK
+
 ## 2026-06-28 — RO-CACHE-PREVIEW-07: Pendiente no pisa preview + Dual Cards azules + hero_price cleanup
 
 ### Problema
