@@ -544,15 +544,19 @@ def mostrar_dashboard():
             if retro_btn_clicked:
                 st.session_state[f'preview_mode_{p_obj["nombre"]}'] = True
             if not ya_valuado:
+                print(f"[DEBUG-FLOW] {p_obj['nombre']}: Pendiente block - forzar={forzar}, retro_btn={retro_btn_clicked}")
                 # Pendiente: limpiar cache de preview (no comprometido) si existe
                 cache_existente = cargar_cache_valuaciones()
                 entrada_cache = cache_existente.get(p_obj['nombre'], {})
                 resultado_cacheado = entrada_cache.get('resultado_completo', {}) or {}
                 cache_preview = resultado_cacheado.get('_cache', {}).get('preview', True)
+                cache_valido = resultado_cacheado.get('valor_propiedad_usd') and not resultado_cacheado.get('error')
+                print(f"[DEBUG-FLOW] {p_obj['nombre']}: Pendiente - cache_exists={bool(resultado_cacheado)}, cache_preview={cache_preview}, cache_error={resultado_cacheado.get('error')}, cache_valido={cache_valido}")
                 if resultado_cacheado and cache_preview:
                     # Cache de preview no comprometido: limpiar al entrar solo si no hay recalculo activo
-                    if not forzar:
-                        print(f"[DEBUG] {p_obj['nombre']}: limpiando cache preview (no forzar)")
+                    # Conservar si el preview tiene datos validos (evita perder preview en reruns espurios)
+                    if not forzar and not cache_valido:
+                        print(f"[DEBUG-FLOW] {p_obj['nombre']}: LIMPIANDO cache preview (no forzar, invalido)")
                         st.session_state.pop(f'preview_mode_{p_obj["nombre"]}', None)
                         st.session_state.pop(f'retro_active_{p_obj["nombre"]}', None)
                         st.session_state.pop(f'flex_active_{p_obj["nombre"]}', None)
@@ -560,9 +564,10 @@ def mostrar_dashboard():
                         del cache_existente[p_obj['nombre']]
                         guardar_cache_valuaciones(cache_existente)
                     else:
-                        print(f"[DEBUG] {p_obj['nombre']}: conservando cache preview (forzar=True)")
+                        print(f"[DEBUG-FLOW] {p_obj['nombre']}: CONSERVANDO cache preview (forzar={forzar}, valido={cache_valido})")
                 # Si es re-entry pasivo (sin recalculación forzada), mostrar vacío
-                if not forzar and not retro_btn_clicked:
+                # (no mostrar vacío si hay preview valido en cache)
+                if not forzar and not retro_btn_clicked and not cache_valido:
                     st.info(f"**{p_obj['nombre']}** está pendiente de valuación. "
                             "Usa los controles Retro/Flex para generar una previsualización.")
                     
@@ -664,6 +669,8 @@ def mostrar_dashboard():
                     comp_excluded_key = f'comp_excluded_{prop_name}'
                     comps_orig = resultado.get('comparables_venta')
                     print(f"[DEBUG-EXCL] {prop_name}: inicio exclusion: n_comps_orig={len(comps_orig) if comps_orig else 0}, key_in_session={comp_excluded_key in st.session_state}")
+                    print(f"[DEBUG-STATE] {prop_name}: ya_valuado={ya_valuado}, forzar={forzar}, preview_mode={preview_mode}, retro_active={st.session_state.get('retro_active_' + prop_name, False)}, flex_active={st.session_state.get('flex_active_' + prop_name, False)}")
+                    print(f"[DEBUG-STATE] {prop_name}: keys en session: forzar={f'forzar_recalculo_{prop_name}' in st.session_state}, comp_excluded={f'comp_excluded_{prop_name}' in st.session_state}")
                     
                     # Si el resultado base es error, no aplicar exclusión (no hay valores que modificar)
                     if not resultado.get('error') and comps_orig:
@@ -697,16 +704,18 @@ def mostrar_dashboard():
                             else:
                                 print(f"[DEBUG-EXCL] {prop_name}: sin exclusion previa, excluded_ids=None")
                         if excluded_ids is not None:
+                            print(f"[DEBUG-EXCL] {prop_name}: excluded_ids={excluded_ids}, from_apply={from_apply}, _comp_exclusion_applied={resultado.get('_comp_exclusion_applied')}, _comp_excluded={resultado.get('_comp_excluded')}")
                             # Verificar si la selección actual ya coincide con una exclusión aplicada y persistida
                             # Para evitar recálculos redundantes y pérdida de estado en re-entry
                             is_already_applied = (
                                 resultado.get('_comp_exclusion_applied') is True and 
                                 set(resultado.get('_comp_excluded', [])) == set(excluded_ids)
                             )
+                            print(f"[DEBUG-EXCL] {prop_name}: is_already_applied={is_already_applied}, _cache.recalculado={resultado.get('_cache', {}).get('recalculado')}")
                             
                             if is_already_applied and not from_apply and not resultado.get('_cache', {}).get('recalculado'):
                                 # Ya está aplicada y coincide: mantenemos el valor y el estado
-                                print(f"[APPLY] {prop_name}: Selección ya aplicada y coincide. Saltando recálculo.")
+                                print(f"[DEBUG-EXCL] {prop_name}: SALTANDO recálculo (ya aplicado y coincide)")
                             else:
                                 # Guardar originales para delta del preview
                                 resultado['_original_m2_base'] = resultado.get('m2_base_venta', 0)
@@ -765,10 +774,16 @@ def mostrar_dashboard():
                                         _cache_v = cargar_cache_valuaciones()
                                         if '_cache' in resultado:
                                             resultado['_cache']['preview'] = False
+                                        print(f"[DEBUG-PERSIST] {prop_name}: VALORES a persistir: valor_usd={resultado.get('valor_propiedad_usd')}, valor_m2={resultado.get('valor_m2')}, m2_base={resultado.get('m2_base_venta')}, n_comps={len(resultado.get('comparables_venta',[]))}, excluded={excluded_ids}, preview={resultado.get('_cache',{}).get('preview')}")
                                         persistir_valuacion(prop_name, p_obj, resultado, _cache_v, commit=True)
                                         print(f"[APPLY] {prop_name}: Persistida exclusión de {len(excluded_ids)} comps a cache+propiedades")
                                     except Exception as e:
                                         logger.warning(f"[APPLY] {prop_name}: No se pudo persistir exclusión: {e}")
+                                    finally:
+                                        # Limpiar flag de forzar recalculo para evitar re-ejecuciones infinitas
+                                        if f'forzar_recalculo_{prop_name}' in st.session_state:
+                                            del st.session_state[f'forzar_recalculo_{prop_name}']
+                                            print(f"[DEBUG-FLOW] {prop_name}: forzar_recalculo limpiado post-persist")
                                 else:
                                     resultado['_comp_exclusion_applied'] = False
 

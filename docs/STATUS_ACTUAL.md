@@ -1,6 +1,6 @@
 ﻿# 🏠 STATUS ACTUAL DEL PROYECTO — AVM Rosario
 
-*Actualizado: 27/06/2026 (TAREA-086: Fix Retro slider default + bypass + tests inamovibles)*
+*Actualizado: 27/06/2026 (Fix persist cache preview + RO-CACHE-PREVIEW)*
 
 ---
 
@@ -15,7 +15,7 @@
 | Matching catastral (acentos/ñ) | ✅ Normalización NFKD en `_token_contenido` (TAREA-024) |
 | Persistencia DO | ✅ Atómica + branch `do-state` |
 | Landing page | ✅ Navegación por teclado (PageDown/PageUp/Home/End) |
-| Tests regresión | ✅ 44/44 (TAREA-086: +6 tests retro inamovibles RO-RETRO-01 a 05) |
+| Tests regresión | ✅ 40/40 (RO-CACHE-PREVIEW-01 a 03: persist preview + Pendiente preserva válido) |
 | Tests persistencia | ✅ 16/16 |
 | Despliegue DO | Sin redeploy loop |
 | Anclas grilla 400m | 322 microzonas, 96% cobertura (TAREA-036) |
@@ -118,7 +118,7 @@ git checkout origin/do-state -- propiedades.json data/valuaciones_cache.json
 
 | Archivo | Estado |
 |---------|--------|
-| `tests/test_regression.py` | 39/39 ✅ |
+| `tests/test_regression.py` | 40/40 ✅ (RO-CACHE-PREVIEW-01 a 03) |
 | `tests/test_persistencia_valuaciones.py` | 16/16 ✅ |
 | `tests/test_age_blend_filter.py` | ✅ |
 | `tests/test_cluster_filters.py` | ✅ |

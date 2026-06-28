@@ -125,11 +125,12 @@ def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict, c
     Persiste una valuación completa.
 
     commit=True:  actualiza cache + _ultima_valuacion (valuación oficial)
-    commit=False: solo actualiza cache (preview, no marca como valuada en portfolio)
+    commit=False: actualiza cache en disco con _cache.preview=True (preview,
+                  no marca como valuada en portfolio, pero sobrevive a reruns)
 
     Orden obligatorio:
-    1. Actualizar cache en memoria.
-    2. Escribir data/valuaciones_cache.json a disco.
+    1. Actualizar cache en memoria (siempre).
+    2. Escribir data/valuaciones_cache.json a disco (siempre).
     3. Actualizar propiedades.json con _ultima_valuacion (solo si commit=True).
     4. Escribir propiedades.json a disco (solo si commit=True).
     5. Retornar True/False.
@@ -140,21 +141,21 @@ def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict, c
     print(f"[DEBUG-CACHE] persistir_valuacion({nombre}): commit={commit}, valor_usd={resultado.get('valor_propiedad_usd')}, n_comps={resultado.get('resolution_metadata',{}).get('n_propiedades',0)}")
     with profile_block("persistir_valuacion", None):
         try:
+            # ── 1. Actualizar cache en memoria (siempre) ──
+            cache[nombre] = {
+                "timestamp": datetime.now().isoformat(),
+                "hash_prop": _calcular_hash_propiedad(prop),
+                "hash_scraping": _calcular_hash_scraping(),
+                "cache_version": get_cache_version(),
+                "resultado_completo": resultado,
+                "fecha_legible": datetime.now().strftime("%d/%m/%Y %H:%M"),
+            }
+
+            # ── 2. Escribir valuaciones_cache.json a disco (siempre) ──
+            atomic_write_json(CACHE_PATH, cache)
+
             if commit:
-                # 1. Actualizar cache en memoria
-                cache[nombre] = {
-                    "timestamp": datetime.now().isoformat(),
-                    "hash_prop": _calcular_hash_propiedad(prop),
-                    "hash_scraping": _calcular_hash_scraping(),
-                    "cache_version": get_cache_version(),
-                    "resultado_completo": resultado,
-                    "fecha_legible": datetime.now().strftime("%d/%m/%Y %H:%M"),
-                }
-
-                # 2. Escribir valuaciones_cache.json a disco
-                atomic_write_json(CACHE_PATH, cache)
-
-                # 3-4: Actualizar propiedades.json con _ultima_valuacion
+                # ── 3-4: Actualizar propiedades.json con _ultima_valuacion ──
                 if os.path.exists(PROPIEDADES_PATH):
                     with open(PROPIEDADES_PATH, 'r', encoding='utf-8') as f:
                         props_data = json.load(f)

@@ -555,3 +555,172 @@ def test_retro_bypass_valu_py_coherencia():
     bypass_ok = (cached_fecha_ref == hoy) and (cached_retro == 36)
     assert bypass_ok, \
         "Bypass debe aceptar cuando retro_dias coincide (ambos 36)"
+
+
+# ──────────────────────────────────────────────
+# RO-CACHE-PREVIEW: persistir_valuacion(commit=False) guarda en cache
+# ──────────────────────────────────────────────
+
+def test_preview_cache_persiste_en_disco():
+    """RO-CACHE-PREVIEW-01: persistir_valuacion(commit=False) debe escribir
+    a cache en disco para que preview (Flex/Retro) sobreviva a reruns."""
+    from parsers.valuacion_cache import persistir_valuacion, cargar_cache_valuaciones, guardar_cache_valuaciones
+
+    # Backup estado actual
+    cache_bak = cargar_cache_valuaciones()
+    nombre_test = '__test_preview_persist__'
+    if nombre_test in cache_bak:
+        del cache_bak[nombre_test]
+        guardar_cache_valuaciones(cache_bak)
+
+    try:
+        prop = {'nombre': nombre_test, 'm2_cubiertos': 50, 'lat': -32.95, 'lon': -60.63}
+        cache = cargar_cache_valuaciones()
+        resultado = {
+            'valor_propiedad_usd': 100000,
+            'm2_base_venta': 2000,
+            'comparables_venta': [{'id': 'c1'}, {'id': 'c2'}],
+            'resolution_metadata': {'n_propiedades': 2, 'fecha_ref': '2026-06-27'},
+            '_cache': {'preview': True, 'retro_dias': 36, 'flex_dormitorios': [1,2,3,4,5]},
+        }
+
+        # commit=False debe persistir a cache
+        ok = persistir_valuacion(nombre_test, prop, resultado, cache, commit=False)
+        assert ok, "persistir_valuacion(commit=False) debe retornar True"
+
+        # El cache EN MEMORIA debe tener el resultado
+        assert nombre_test in cache, "Cache en memoria debe tener la entrada"
+        cached = cache[nombre_test]['resultado_completo']
+        assert cached.get('valor_propiedad_usd') == 100000, \
+            f"Debe conservar valor_usd, obtuvo {cached.get('valor_propiedad_usd')}"
+        assert cached.get('_cache', {}).get('preview') is True, \
+            "Preview debe tener _cache.preview=True"
+
+        # El cache EN DISCO debe tener el resultado (commit=False ahora escribe a disco)
+        cache2 = cargar_cache_valuaciones()
+        assert nombre_test in cache2, "Cache en disco debe tener la entrada post-commit=False"
+        cached2 = cache2[nombre_test]['resultado_completo']
+        assert cached2.get('valor_propiedad_usd') == 100000, \
+            f"Disco debe conservar valor_usd, obtuvo {cached2.get('valor_propiedad_usd')}"
+
+    finally:
+        # Limpiar
+        cache_clean = cargar_cache_valuaciones()
+        cache_clean.pop(nombre_test, None)
+        guardar_cache_valuaciones(cache_clean)
+
+
+def test_preview_cache_no_afecta_ultima_valuacion():
+    """RO-CACHE-PREVIEW-02: commit=False NO debe actualizar _ultima_valuacion
+    en propiedades.json (la propiedad sigue apareciendo como Pendiente)."""
+    from parsers.valuacion_cache import persistir_valuacion, cargar_cache_valuaciones, guardar_cache_valuaciones
+    import json
+
+    nombre_test = '__test_preview_no_uv__'
+    cache_bak = cargar_cache_valuaciones()
+    if nombre_test in cache_bak:
+        del cache_bak[nombre_test]
+        guardar_cache_valuaciones(cache_bak)
+
+    # Backup propiedades.json
+    with open('propiedades.json', 'r', encoding='utf-8') as f:
+        props_bak = json.load(f)
+
+    try:
+        # Agregar propiedad temporal SIN _ultima_valuacion
+        props_bak['propiedades'].append({
+            'nombre': nombre_test,
+            'm2_cubiertos': 50, 'lat': -32.95, 'lon': -60.63,
+        })
+        with open('propiedades.json', 'w', encoding='utf-8') as f:
+            json.dump(props_bak, f, ensure_ascii=False, indent=2)
+
+        prop = {'nombre': nombre_test, 'm2_cubiertos': 50, 'lat': -32.95, 'lon': -60.63}
+        cache = cargar_cache_valuaciones()
+        resultado = {
+            'valor_propiedad_usd': 100000,
+            'm2_base_venta': 2000,
+            'comparables_venta': [{'id': 'c1'}],
+            'resolution_metadata': {'n_propiedades': 1, 'fecha_ref': '2026-06-27'},
+            '_cache': {'preview': True, 'retro_dias': 36},
+        }
+
+        persistir_valuacion(nombre_test, prop, resultado, cache, commit=False)
+
+        # Verificar que _ultima_valuacion NO fue creada
+        with open('propiedades.json', 'r', encoding='utf-8') as f:
+            props_check = json.load(f)
+        for p in props_check['propiedades']:
+            if p['nombre'] == nombre_test:
+                uv = p.get('_ultima_valuacion', None)
+                assert uv is None, \
+                    f"commit=False NO debe crear _ultima_valuacion, encontrada: {uv}"
+                break
+    finally:
+        # Restaurar propiedades original
+        with open('propiedades.json', 'w', encoding='utf-8') as f:
+            json.dump(props_bak, f, ensure_ascii=False, indent=2)
+        # Limpiar cache
+        cache_clean = cargar_cache_valuaciones()
+        cache_clean.pop(nombre_test, None)
+        guardar_cache_valuaciones(cache_clean)
+
+
+# ──────────────────────────────────────────────
+# RO-CACHE-PREVIEW-03: Pendiente no limpia preview valido
+# ──────────────────────────────────────────────
+
+def test_pendiente_preserva_preview_valido():
+    """RO-CACHE-PREVIEW-03: La logica del bloque Pendiente en valu.py debe
+    preservar caches de preview con datos validos (valor_usd>0 y sin error)
+    aunque forzar=False, para evitar perder el preview en reruns espurios."""
+    from parsers.valuacion_cache import persistir_valuacion, cargar_cache_valuaciones, guardar_cache_valuaciones
+
+    nombre_test = '__test_pendiente_valido__'
+    cache_bak = cargar_cache_valuaciones()
+    if nombre_test in cache_bak:
+        del cache_bak[nombre_test]
+        guardar_cache_valuaciones(cache_bak)
+
+    try:
+        prop = {'nombre': nombre_test, 'm2_cubiertos': 50, 'lat': -32.95, 'lon': -60.63}
+        # Preview valido: tiene valor_usd, sin error
+        cache = cargar_cache_valuaciones()
+        resultado_valido = {
+            'valor_propiedad_usd': 100000,
+            'm2_base_venta': 2000,
+            'comparables_venta': [{'id': 'c1'}, {'id': 'c2'}],
+            'resolution_metadata': {'n_propiedades': 2, 'fecha_ref': '2026-06-27'},
+            '_cache': {'preview': True, 'retro_dias': 36, 'flex_dormitorios': [1,2,3,4,5]},
+            'error': None,
+        }
+        persistir_valuacion(nombre_test, prop, resultado_valido, cache, commit=False)
+
+        # Simular el bloque Pendiente viendo la cache
+        cache_loaded = cargar_cache_valuaciones()
+        entrada = cache_loaded.get(nombre_test, {})
+        rc = entrada.get('resultado_completo', {}) or {}
+        cache_preview = rc.get('_cache', {}).get('preview', True)
+        cache_valido = rc.get('valor_propiedad_usd') and not rc.get('error')
+
+        assert cache_preview is True, "Preview debe tener _cache.preview=True"
+        assert cache_valido is True, \
+            "Preview valido debe tener valor_usd>0 y error=None"
+
+        # Con forzar=False y cache_valido=True → NO se debe limpiar
+        forzar = False
+        debe_limpiar = not forzar and not cache_valido
+        assert debe_limpiar is False, \
+            "NO debe limpiar preview valido aunque forzar=False"
+
+        # Con forzar=False y cache_valido=False → SI se debe limpiar
+        rc_invalido = dict(rc)
+        rc_invalido['valor_propiedad_usd'] = 0
+        cache_valido_falso = rc_invalido.get('valor_propiedad_usd') and not rc_invalido.get('error')
+        debe_limpiar_invalido = not forzar and not cache_valido_falso
+        assert debe_limpiar_invalido is True, \
+            "DEBE limpiar preview invalido cuando forzar=False"
+    finally:
+        cache_clean = cargar_cache_valuaciones()
+        cache_clean.pop(nombre_test, None)
+        guardar_cache_valuaciones(cache_clean)

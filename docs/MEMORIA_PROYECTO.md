@@ -82,6 +82,14 @@ El modelo es Data-Driven: los precios emergen del mercado real
 
 **RO-20 (RETRO SLIDER — TESTS INAMOVIBLES):** Los tests `test_retro_dias_*` y `test_retro_bypass_*` en `tests/test_regression.py` son INAMOVIBLES. Cualquier cambio en el código que los haga fallar debe ser aprobado por el usuario antes de modificarlos. No alterar estos tests sin consulta explícita.
 
+**RO-CACHE-PREVIEW-01 (commit=False PERSISTE A CACHE):** `persistir_valuacion(commit=False)` debe SIEMPRE escribir a cache en disco (con `_cache.preview=True`). Antes de esta regla, `commit=False` no guardaba nada — el preview de Flex/Retro se perdía en el siguiente rerun. Ver test `test_preview_cache_persiste_en_disco`.
+
+**RO-CACHE-PREVIEW-02 (commit=False NO ACTUALIZA _ultima_valuacion):** El flag `commit=False` solo afecta persistencia a cache. NUNCA debe actualizar `_ultima_valuacion` en `propiedades.json`. La propiedad sigue apareciendo como Pendiente en Portfolio. Ver test `test_preview_cache_no_afecta_ultima_valuacion`.
+
+**RO-CACHE-PREVIEW-03 (PENDIENTE PRESERVA PREVIEW VÁLIDO):** El bloque Pendiente en `valu.py` NO debe limpiar ni mostrar empty state si existe un preview cacheado con datos válidos (`valor_propiedad_usd > 0` y `error` nulo), aunque `forzar_recalculo` sea `False`. Esto evita perder el preview en reruns espurios. Caches inválidos (error o sin valor) SÍ deben limpiarse. Ver test `test_pendiente_preserva_preview_valido`.
+
+**RO-CACHE-PREVIEW-04 (forzar_recalculo SE LIMPIA POST-EXCLUSIÓN):** Después de `persistir_valuacion(commit=True)` en el bloque de exclusión de comparables ("Aplicar selección"), la key `forzar_recalculo_{prop_name}` debe eliminarse de `st.session_state` en un bloque `finally` para evitar recálculos infinitos en reruns posteriores.
+
 ---
 
 ## 3. ARQUITECTURA DE LA FÓRMULA DE VENTA (TAREA-073 — Modelo Base Puro)

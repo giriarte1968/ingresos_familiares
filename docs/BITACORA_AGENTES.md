@@ -1,6 +1,56 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-06-27 — Fix persist preview cache + Pendiente preserva preview valido + RO-CACHE-PREVIEW
+
+### Problema
+1. `persistir_valuacion(commit=False)` **no guardaba nada** — ni a cache en disco, ni siquiera al dict en memoria. Preview (Flex/Retro) se perdía en el próximo rerun.
+2. **Extra rerun post-Flex**: tras togglear Flex, un rerun espurio mostraba estado Pendiente vacío, impidiendo llegar al botón "Aplicar selección".
+3. Bloque Pendiente limpiaba **todo** preview cache aunque tuviera datos válidos, causando pérdida de previews.
+
+### Diagnóstico
+- `persistir_valuacion` `valuacion_cache.py:123-197`: el `if commit:` englobaba TODO — cache en memoria, disco y propiedades. `commit=False` solo retornaba `True`. Sin persistencia, el preview de 6 comps ($665K) desaparecía al siguiente rerun.
+- El flujo mostró ~5 reruns: inicial → Retro (error 1 comp) → Flex (6 comps) → extra rerun → Pendiente vacío. El extra rerun no tenía `forzar_recalculo` (ya consumido) y veía cache error viejo.
+- `valu.py:567`: la guarda `if not forzar and not retro_btn_clicked:` no consideraba si el preview era válido.
+
+### Cambios
+
+#### 1. `parsers/valuacion_cache.py` — `persistir_valuacion`
+- **Antes:** `if commit:` envolvía cache + disco + propiedades. `commit=False` → no hacía nada.
+- **Después:** cache en memoria + escritura a disco **siempre**. `if commit:` solo para propiedades (`_ultima_valuacion`).
+- Preview ahora sobrevive a reruns, siempre con `_cache.preview=True`.
+
+#### 2. `valu.py` — Bloque Pendiente
+- **Antes:** `if not forzar:` limpiaba preview cache incondicionalmente. `if not forzar and not retro_btn_clicked:` mostraba empty state.
+- **Después:** `if not forzar and not cache_valido:` solo limpia si preview inválido (error o sin valor). `if not forzar and not retro_btn_clicked and not cache_valido:` muestra empty state solo si no hay preview válido.
+- Preview válido (6 comps, $665K) se conserva y reusa en reruns espurios.
+
+#### 3. `valu.py` — Cleanup `forzar_recalculo`
+- Se agregó `finally:` que limpia `forzar_recalculo` del session_state después de persistir exclusión, evitando recálculos infinitos.
+
+#### 4. `tests/test_regression.py` — +3 tests RO-CACHE-PREVIEW
+- `test_preview_cache_persiste_en_disco`: commit=False escribe a cache en disco.
+- `test_preview_cache_no_afecta_ultima_valuacion`: commit=False NO crea `_ultima_valuacion`.
+- `test_pendiente_preserva_preview_valido`: valida lógica condicional del bloque Pendiente.
+
+### Reglas de Oro (nuevas)
+- **RO-CACHE-PREVIEW-01:** commit=False persiste a cache en disco (preview=True).
+- **RO-CACHE-PREVIEW-02:** commit=False NO actualiza _ultima_valuacion.
+- **RO-CACHE-PREVIEW-03:** Pendiente preserva preview válido en re-entry pasivo.
+- **RO-CACHE-PREVIEW-04:** forzar_recalculo se limpia post-exclusion persist.
+
+### Archivos modificados
+- `parsers/valuacion_cache.py` — persistir_valuacion ahora siempre guarda cache
+- `valu.py:556-567` — Pendiente preserva preview válido
+- `valu.py:779-783` — cleanup forzar_recalculo post-exclusion
+- `tests/test_regression.py` — +3 tests RO-CACHE-PREVIEW
+
+### Validación
+- 40/40 regression tests pasan (37 originales + 3 nuevos)
+- auto_validate OK
+
+---
+
 ## 2026-06-27 — TAREA-086 (v2): Fix Retro slider default 36 + bypass retro_dias + tests inamovibles
 
 ### Bugs corregidos
