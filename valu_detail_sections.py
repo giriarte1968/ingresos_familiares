@@ -9,7 +9,7 @@ import json, os, logging
 
 logger = logging.getLogger(__name__)
 from datetime import datetime
-from valu_design import kpi_card, metric_card, hero_price, range_bar, insights_card, property_card
+from valu_design import kpi_card, metric_card, range_bar, insights_card, property_card
 from streamlit.components.v1 import html
 from parsers.mercado_inmobiliario import calcular_vm2_por_seleccion
 from parsers.debug_logger import log as _file_log
@@ -204,26 +204,27 @@ def render_header(prop, res):
     m2_line_manual = f"m²/USD: ${m2_base_manual:,.0f} ({n_comps_manual} comp.)" if m2_base_manual > 0 else "—"
 
     card_key = f'fuente_cards_{nombre}'
+    grad = "linear-gradient(135deg,#006AFF 0%,#004FC4 100%)"
     col_toggle = st.columns([1, 1])
     with col_toggle[0]:
         st.markdown(f"""
-        <div style="border:1px solid #E5E7EB;border-radius:12px;padding:16px;background:#FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,0.06);text-align:center;">
-            <div style="font-size:12px;font-weight:600;color:#16A34A;margin-bottom:4px;">POR COMPARABLES</div>
-            <div style="font-size:24px;font-weight:700;color:#1A2B5C;">{f'${v_auto:,.0f}' if v_auto else '—'}</div>
-            <div style="font-size:13px;color:#6B7280;margin-bottom:2px;">{f'${v_auto * dolar_auto:,.0f} ARS' if v_auto else '—'}</div>
-            <div style="font-size:11px;color:#9CA3AF;">Dólar ${dolar_auto:,.0f} · {m2_line_auto}</div>
+        <div style="border:none;border-radius:12px;padding:16px;background:{grad};box-shadow:0 4px 12px rgba(0,0,0,0.15);text-align:center;">
+            <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.8);margin-bottom:4px;">POR COMPARABLES</div>
+            <div style="font-size:24px;font-weight:700;color:#FFFFFF;">{f'${v_auto:,.0f}' if v_auto else '—'}</div>
+            <div style="font-size:13px;color:rgba(255,255,255,0.85);margin-bottom:2px;">{f'${v_auto * dolar_auto:,.0f} ARS' if v_auto else '—'}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.65);">Dólar ${dolar_auto:,.0f} · {m2_line_auto}</div>
         </div>
         """, unsafe_allow_html=True)
 
     with col_toggle[1]:
         delta_str = f"{delta_pct:+.1f}%" if abs(delta_pct) > 0.01 else "—"
-        delta_color = "#DC2626" if delta_pct > 10 else "#16A34A" if delta_pct < -10 else "#6B7280"
+        delta_color = "#FF6B6B" if delta_pct > 10 else "#6BCB7E" if delta_pct < -10 else "rgba(255,255,255,0.85)"
         st.markdown(f"""
-        <div style="border:1px solid #E5E7EB;border-radius:12px;padding:16px;background:#FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,0.06);text-align:center;">
-            <div style="font-size:12px;font-weight:600;color:#7C3AED;margin-bottom:4px;">MANUAL</div>
-            <div style="font-size:24px;font-weight:700;color:#1A2B5C;">{f'${v_manual:,.0f}' if v_manual else '—'}</div>
+        <div style="border:none;border-radius:12px;padding:16px;background:{grad};box-shadow:0 4px 12px rgba(0,0,0,0.15);text-align:center;">
+            <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.8);margin-bottom:4px;">MANUAL</div>
+            <div style="font-size:24px;font-weight:700;color:#FFFFFF;">{f'${v_manual:,.0f}' if v_manual else '—'}</div>
             <div style="font-size:13px;color:{delta_color};margin-bottom:2px;">{f'${v_manual * dolar_manual:,.0f} ARS' if v_manual else '—'} · vs Auto: {delta_str}</div>
-            <div style="font-size:11px;color:#9CA3AF;">Dólar ${dolar_manual:,.0f} · {m2_line_manual}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.65);">Dólar ${dolar_manual:,.0f} · {m2_line_manual}</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -243,47 +244,25 @@ def render_header(prop, res):
     if staleness_msg:
         st.warning(staleness_msg)
 
-    # ─── Hero card ───
-    c_h1, c_h2 = st.columns([3, 2])
-    # Label de fuente activa
-    fuente_label = "MANUAL" if es_manual else "POR COMPARABLES"
-    fuente_color = "#7C3AED" if es_manual else "#16A34A"
-    fuente_badge_color = "#7C3AED15" if es_manual else "#16A34A15"
-    with c_h1:
-        fuente_badge = f"<span class='badge' style='background:{fuente_badge_color};color:{fuente_color};margin-left:5px;'>{fuente_label}</span>"
-
-        dot = '#16A34A' if n_comps >= 15 else '#F59E0B' if n_comps >= 8 else '#DC2626'
-        conf = 'Alta confianza' if n_comps >= 15 else 'Confianza media' if n_comps >= 8 else 'Confianza baja'
-        st.markdown(f"""
-        <div style="background:white;border-radius:16px;padding:28px;box-shadow:0 4px 12px rgba(0,0,0,0.08);height:100%;">
-            <div style="margin-bottom:12px;">
-                <span class="badge" style="background:#006AFF15;color:#006AFF;">{prop.get('tipo_inmueble','').upper()}</span>
-                <span class="badge" style="background:#0D948815;color:#0D9488;margin-left:5px;">{zona.upper()}</span>
-                <span class="badge" style="background:#F4F6FB;color:#6B7280;margin-left:5px;">ANO {prop.get('anio_construccion','?')}</span>
-                {fuente_badge}
-            </div>
-            <h1 style="color:#1A2B5C;margin:0;font-size:36px;"> {nombre}</h1>
-            <p style="color:#6B7280;font-size:16px;">{prop.get('direccion', 'Rosario, Argentina')}</p>
-            <div style="display:flex;align-items:center;margin-top:20px;">
-                <span style="width:12px;height:12px;border-radius:50%;background:{dot};margin-right:8px;"></span>
-                <span style="color:#1A2B5C;font-weight:600;font-size:14px;">{conf}</span>
-                <span style="color:#9CA3AF;font-size:14px;margin-left:8px;">({n_comps} comparables)</span>
-            </div>
+    # ─── Property info card ───
+    dot = '#16A34A' if n_comps >= 15 else '#F59E0B' if n_comps >= 8 else '#DC2626'
+    conf = 'Alta confianza' if n_comps >= 15 else 'Confianza media' if n_comps >= 8 else 'Confianza baja'
+    st.markdown(f"""
+    <div style="background:white;border-radius:16px;padding:28px;box-shadow:0 4px 12px rgba(0,0,0,0.08);">
+        <div style="margin-bottom:12px;">
+            <span class="badge" style="background:#006AFF15;color:#006AFF;">{prop.get('tipo_inmueble','').upper()}</span>
+            <span class="badge" style="background:#0D948815;color:#0D9488;margin-left:5px;">{zona.upper()}</span>
+            <span class="badge" style="background:#F4F6FB;color:#6B7280;margin-left:5px;">Año {prop.get('anio_construccion','?')}</span>
         </div>
-        """, unsafe_allow_html=True)
-    fuente_subtitle = "VALUACIÓN MANUAL" if es_manual else "VALUACIÓN POR COMPARABLES"
-    with c_h2:
-        if m2_base == 0:
-            st.markdown("""
-            <div style="background:#F4F6FB;border-radius:16px;padding:28px;text-align:center;height:100%;display:flex;flex-direction:column;justify-content:center;font-family:'Inter',sans-serif;">
-                <div style="font-size:14px;color:#6B7280;margin-bottom:8px;">""" + fuente_subtitle + """</div>
-                <div style="font-size:24px;font-weight:700;color:#9CA3AF;">Sin selección</div>
-                <div style="font-size:13px;color:#9CA3AF;margin-top:8px;">Seleccioná al menos 2 comparables</div>
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown(hero_price(valor_usd, valor_usd*dolar, dolar, m2_base, n_comps, zona,
-                                  m2_puro=m2_puro, barrier_pct=barrier_pct, fuente_label=fuente_subtitle), unsafe_allow_html=True)
+        <h1 style="color:#1A2B5C;margin:0;font-size:36px;"> {nombre}</h1>
+        <p style="color:#6B7280;font-size:16px;">{prop.get('direccion', 'Rosario, Argentina')}</p>
+        <div style="display:flex;align-items:center;margin-top:20px;">
+            <span style="width:12px;height:12px;border-radius:50%;background:{dot};margin-right:8px;"></span>
+            <span style="color:#1A2B5C;font-weight:600;font-size:14px;">{conf}</span>
+            <span style="color:#9CA3AF;font-size:14px;margin-left:8px;">({n_comps} comparables)</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
 
 def render_rango(res, valor_usd):

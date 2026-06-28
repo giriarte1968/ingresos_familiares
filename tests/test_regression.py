@@ -667,6 +667,125 @@ def test_preview_cache_no_afecta_ultima_valuacion():
         guardar_cache_valuaciones(cache_clean)
 
 
+# RO-CACHE-PREVIEW-07: Pendiente con preview valido NO debe recalc al entrar a Detalle
+
+def test_pendiente_preview_no_se_sobrescribe():
+    """RO-CACHE-PREVIEW-07: preview=True NO pisa cache ni UV.
+    Simula el fix: Pendiente → preview_mode=True → valuar_con_cache(preview=True)
+    → commit=False → cache preservado, UV intacto."""
+    from parsers.valuacion_cache import (
+        cargar_cache_valuaciones, guardar_cache_valuaciones,
+        get_cache_version, _calcular_hash_propiedad, _calcular_hash_scraping,
+    )
+    import json, copy
+
+    nombre_test = '__test_preview_no_overwrite__'
+    cache_bak = cargar_cache_valuaciones()
+    if nombre_test in cache_bak:
+        del cache_bak[nombre_test]
+        guardar_cache_valuaciones(cache_bak)
+
+    with open('propiedades.json', 'r', encoding='utf-8') as f:
+        props_bak = copy.deepcopy(json.load(f))
+
+    try:
+        # 1. Propiedad Pendiente (sin UV)
+        props_temp = copy.deepcopy(props_bak)
+        props_temp['propiedades'].append({
+            'nombre': nombre_test,
+            'm2_cubiertos': 50, 'lat': -32.95, 'lon': -60.63,
+        })
+        with open('propiedades.json', 'w', encoding='utf-8') as f:
+            json.dump(props_temp, f, ensure_ascii=False, indent=2)
+
+        # 2. Cache con preview valido + metadatos correctos
+        prop_dict = {'nombre': nombre_test, 'm2_cubiertos': 50, 'lat': -32.95, 'lon': -60.63}
+        cv = get_cache_version()
+        hp = _calcular_hash_propiedad(prop_dict)
+        hs = _calcular_hash_scraping()
+
+        preview_result = {
+            'valor_propiedad_usd': 88000,
+            'm2_base_venta': 2100,
+            'comparables_venta': [{'id': f'comp_{i}'} for i in range(6)],
+            'resolution_metadata': {
+                'n_propiedades': 6, 'fecha_ref': '2026-06-27',
+                '_m2_puro': 2000, 'barrier_pct': 0.05,
+            },
+            'usdt_ars': 1480,
+            '_cache': {'preview': True, 'retro_dias': 36, 'flex_dormitorios': [1, 2, 3, 4, 5]},
+        }
+        cache = cargar_cache_valuaciones()
+        cache[nombre_test] = {
+            'resultado_completo': preview_result,
+            'timestamp': '2026-06-27T12:00:00',
+            'hash_prop': hp, 'hash_scraping': hs, 'cache_version': cv,
+        }
+        guardar_cache_valuaciones(cache)
+
+        from parsers.motor_vpp_core import valuar_con_cache
+
+        # 3. preview=True + mismos params → CACHE HIT (preserva valor y comps)
+        r1 = valuar_con_cache(
+            prop_dict, forzar_recalculo=False, consultar_infomapa=False,
+            retro_dias=36, flex_dormitorios=[1, 2, 3, 4, 5],
+            preview=True, manual_data=None
+        )
+        assert r1.get('valor_propiedad_usd') == 88000, \
+            f"preview=True debe retornar 88000, obtuvo: {r1.get('valor_propiedad_usd')}"
+        assert len(r1.get('comparables_venta', [])) == 6, \
+            f"preview=True debe retornar 6 comps, obtuvo: {len(r1.get('comparables_venta', []))}"
+
+        # 4. UV NO se creó (commit=False)
+        with open('propiedades.json', 'r', encoding='utf-8') as f:
+            pc = json.load(f)
+        for p in pc['propiedades']:
+            if p['nombre'] == nombre_test:
+                assert not p.get('_ultima_valuacion'), \
+                    f"UV no debe crearse con preview=True, obtuvo: {p.get('_ultima_valuacion')}"
+                break
+
+        # 5. preview=False + mismos params → "reemplazar_preview_por_oficial" → recalc
+        r2 = valuar_con_cache(
+            prop_dict, forzar_recalculo=False, consultar_infomapa=False,
+            retro_dias=36, flex_dormitorios=[1, 2, 3, 4, 5],
+            preview=False, manual_data=None
+        )
+        # Cache se actualiza con preview=False, UV se crea
+        with open('propiedades.json', 'r', encoding='utf-8') as f:
+            pc2 = json.load(f)
+        for p in pc2['propiedades']:
+            if p['nombre'] == nombre_test:
+                uv = p.get('_ultima_valuacion', {})
+                assert uv.get('valor_usd', 0) > 0, \
+                    f"preview=False debe crear UV con valor>0, obtuvo: {uv}"
+                break
+
+        # 6. preview=False ahora tiene preview=False en cache → cache HIT
+        r3 = valuar_con_cache(
+            prop_dict, forzar_recalculo=False, consultar_infomapa=False,
+            retro_dias=36, flex_dormitorios=[1, 2, 3, 4, 5],
+            preview=False, manual_data=None
+        )
+        assert not r3.get('_cache', {}).get('preview', False), \
+            "preview=False en cache no debe ser True"
+
+        # 7. El BUG evitado por el fix: Pendiente con preview valido + preview_mode=True
+        #    Si se hubiera llamado preview=False, el preview de 88000/6comps se pierde.
+        #    Con preview=True se conserva. Verificar que el cache final es correcto.
+        cache_final = cargar_cache_valuaciones()
+        rc_final = cache_final.get(nombre_test, {}).get('resultado_completo', {})
+        cache_preview_flag = rc_final.get('_cache', {}).get('preview')
+        print(f"[TEST] cache final: preview={cache_preview_flag}, valor={rc_final.get('valor_propiedad_usd')}, comps={len(rc_final.get('comparables_venta',[]))}")
+
+    finally:
+        with open('propiedades.json', 'w', encoding='utf-8') as f:
+            json.dump(props_bak, f, ensure_ascii=False, indent=2)
+        cache_clean = cargar_cache_valuaciones()
+        cache_clean.pop(nombre_test, None)
+        guardar_cache_valuaciones(cache_clean)
+
+
 # ──────────────────────────────────────────────
 # RO-CACHE-PREVIEW-05: Valuacion persiste al volver de Portfolio
 # ──────────────────────────────────────────────

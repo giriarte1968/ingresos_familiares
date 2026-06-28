@@ -7,7 +7,7 @@ import streamlit as st
 import pandas as pd
 import json, os
 from datetime import datetime
-from valu_design import kpi_card, metric_card, hero_price, range_bar, insights_card, property_card
+from valu_design import kpi_card, metric_card, range_bar, insights_card, property_card
 from parsers.mercado_inmobiliario import _calcular_mediana
 from parsers.cluster_filters import seleccionar_percentil_por_calidad_pool
 from streamlit.components.v1 import html
@@ -126,46 +126,27 @@ def render_header(prop, res):
     """Hero con badges, titulo, confianza y precio."""
     nombre = prop.get('nombre', '')
     zona = prop.get('zona', 'Oeste')
-    valor_usd = res.get('valor_propiedad_usd', 0)
-    dolar = res.get('usdt_ars', 1480)
     meta = res.get('resolution_metadata', {})
-    m2_base = res.get('m2_base_venta', 0)
-    m2_puro = meta.get('_m2_puro', m2_base)
-    barrier_pct = meta.get('barrier_pct', 0)
     n_comps = meta.get('n_propiedades', 0)
 
-    c_h1, c_h2 = st.columns([3, 2])
-    with c_h1:
-        dot = '#16A34A' if n_comps >= 15 else '#F59E0B' if n_comps >= 8 else '#DC2626'
-        conf = 'Alta confianza' if n_comps >= 15 else 'Confianza media' if n_comps >= 8 else 'Confianza baja'
-        st.markdown(f"""
-        <div style="background:white;border-radius:16px;padding:28px;box-shadow:0 4px 12px rgba(0,0,0,0.08);height:100%;">
-            <div style="margin-bottom:12px;">
-                <span class="badge" style="background:#006AFF15;color:#006AFF;">{prop.get('tipo_inmueble','').upper()}</span>
-                <span class="badge" style="background:#0D948815;color:#0D9488;margin-left:5px;">{zona.upper()}</span>
-                <span class="badge" style="background:#F4F6FB;color:#6B7280;margin-left:5px;">ANO {prop.get('anio_construccion','?')}</span>
-            </div>
-            <h1 style="color:#1A2B5C;margin:0;font-size:36px;"> {nombre}</h1>
-            <p style="color:#6B7280;font-size:16px;">{prop.get('direccion', 'Rosario, Argentina')}</p>
-            <div style="display:flex;align-items:center;margin-top:20px;">
-                <span style="width:12px;height:12px;border-radius:50%;background:{dot};margin-right:8px;"></span>
-                <span style="color:#1A2B5C;font-weight:600;font-size:14px;">{conf}</span>
-                <span style="color:#9CA3AF;font-size:14px;margin-left:8px;">({n_comps} comparables)</span>
-            </div>
+    dot = '#16A34A' if n_comps >= 15 else '#F59E0B' if n_comps >= 8 else '#DC2626'
+    conf = 'Alta confianza' if n_comps >= 15 else 'Confianza media' if n_comps >= 8 else 'Confianza baja'
+    st.markdown(f"""
+    <div style="background:white;border-radius:16px;padding:28px;box-shadow:0 4px 12px rgba(0,0,0,0.08);">
+        <div style="margin-bottom:12px;">
+            <span class="badge" style="background:#006AFF15;color:#006AFF;">{prop.get('tipo_inmueble','').upper()}</span>
+            <span class="badge" style="background:#0D948815;color:#0D9488;margin-left:5px;">{zona.upper()}</span>
+            <span class="badge" style="background:#F4F6FB;color:#6B7280;margin-left:5px;">Año {prop.get('anio_construccion','?')}</span>
         </div>
-        """, unsafe_allow_html=True)
-    with c_h2:
-        if m2_base == 0:
-            st.markdown("""
-            <div style="background:#F4F6FB;border-radius:16px;padding:28px;text-align:center;height:100%;display:flex;flex-direction:column;justify-content:center;font-family:'Inter',sans-serif;">
-                <div style="font-size:14px;color:#6B7280;margin-bottom:8px;">VALUACI├ôN VPP</div>
-                <div style="font-size:24px;font-weight:700;color:#9CA3AF;">Sin selecci├│n</div>
-                <div style="font-size:13px;color:#9CA3AF;margin-top:8px;">Seleccion├í al menos 2 comparables</div>
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown(hero_price(valor_usd, valor_usd*dolar, dolar, m2_base, n_comps, zona,
-                                  m2_puro=m2_puro, barrier_pct=barrier_pct), unsafe_allow_html=True)
+        <h1 style="color:#1A2B5C;margin:0;font-size:36px;"> {nombre}</h1>
+        <p style="color:#6B7280;font-size:16px;">{prop.get('direccion', 'Rosario, Argentina')}</p>
+        <div style="display:flex;align-items:center;margin-top:20px;">
+            <span style="width:12px;height:12px;border-radius:50%;background:{dot};margin-right:8px;"></span>
+            <span style="color:#1A2B5C;font-weight:600;font-size:14px;">{conf}</span>
+            <span style="color:#9CA3AF;font-size:14px;margin-left:8px;">({n_comps} comparables)</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
 
 def render_rango(res, valor_usd):

@@ -7,7 +7,7 @@ import time
 import requests
 import logging
 from datetime import datetime
-from valu_design import VALU_CSS, kpi_card, property_card, hero_price, metric_card, range_bar, insights_card
+from valu_design import VALU_CSS, kpi_card, property_card, metric_card, range_bar, insights_card
 from valu_forms import ui_formulario_propiedad
 from landing import mostrar_landing
 from valu_detail_sections import _get_comp_id
