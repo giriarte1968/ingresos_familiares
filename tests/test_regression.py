@@ -614,7 +614,7 @@ def test_preview_cache_no_afecta_ultima_valuacion():
     """RO-CACHE-PREVIEW-02: commit=False NO debe actualizar _ultima_valuacion
     en propiedades.json (la propiedad sigue apareciendo como Pendiente)."""
     from parsers.valuacion_cache import persistir_valuacion, cargar_cache_valuaciones, guardar_cache_valuaciones
-    import json
+    import json, copy
 
     nombre_test = '__test_preview_no_uv__'
     cache_bak = cargar_cache_valuaciones()
@@ -622,18 +622,19 @@ def test_preview_cache_no_afecta_ultima_valuacion():
         del cache_bak[nombre_test]
         guardar_cache_valuaciones(cache_bak)
 
-    # Backup propiedades.json
+    # Backup propiedades.json (deep copy to avoid in-place contamination)
     with open('propiedades.json', 'r', encoding='utf-8') as f:
-        props_bak = json.load(f)
+        props_bak = copy.deepcopy(json.load(f))
 
     try:
-        # Agregar propiedad temporal SIN _ultima_valuacion
-        props_bak['propiedades'].append({
+        # Agregar propiedad temporal SIN _ultima_valuacion (crear copia para no mutar el backup)
+        props_temp = copy.deepcopy(props_bak)
+        props_temp['propiedades'].append({
             'nombre': nombre_test,
             'm2_cubiertos': 50, 'lat': -32.95, 'lon': -60.63,
         })
         with open('propiedades.json', 'w', encoding='utf-8') as f:
-            json.dump(props_bak, f, ensure_ascii=False, indent=2)
+            json.dump(props_temp, f, ensure_ascii=False, indent=2)
 
         prop = {'nombre': nombre_test, 'm2_cubiertos': 50, 'lat': -32.95, 'lon': -60.63}
         cache = cargar_cache_valuaciones()

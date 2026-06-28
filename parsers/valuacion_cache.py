@@ -141,6 +141,13 @@ def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict, c
     print(f"[DEBUG-CACHE] persistir_valuacion({nombre}): commit={commit}, valor_usd={resultado.get('valor_propiedad_usd')}, n_comps={resultado.get('resolution_metadata',{}).get('n_propiedades',0)}")
     with profile_block("persistir_valuacion", None):
         try:
+            # Stash runtime-only keys that may contain circular references
+            runtime_keys = ['_auto_result', '_manual_result', '_manual_params']
+            stashed = {}
+            for k in runtime_keys:
+                if k in resultado:
+                    stashed[k] = resultado.pop(k)
+
             # ── 1. Actualizar cache en memoria (siempre) ──
             cache[nombre] = {
                 "timestamp": datetime.now().isoformat(),
@@ -190,6 +197,9 @@ def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict, c
                             break
 
                     atomic_write_json(PROPIEDADES_PATH, props_data)
+
+            # Restore runtime keys so the caller's dict is unmodified
+            resultado.update(stashed)
 
             return True
 
