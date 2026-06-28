@@ -116,10 +116,12 @@ def _set_fuente_activa(nombre, fuente):
     for p in props:
         if p.get('nombre') == nombre:
             uv = p.setdefault('_ultima_valuacion', {})
+            print(f"[DEBUG-FUENTE] {nombre}: UV antes de cambiar fuente_activa a {fuente}: valor_usd={uv.get('valor_usd')}, comps={uv.get('comps')}, tiene_fuente={'fuente_activa' in uv}, previa_fuente={uv.get('fuente_activa')}")
             uv['fuente_activa'] = fuente
             break
     guardar_propiedades(props)
     st.session_state[f'fuente_activa_{nombre}'] = fuente
+    print(f"[DEBUG-FUENTE] {nombre}: fuente_activa={fuente} persistida en propiedades.json + session_state")
 
 
 def render_header(prop, res):

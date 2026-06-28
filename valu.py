@@ -538,6 +538,7 @@ def mostrar_dashboard():
             # ── Si nunca fue valuado (Pendiente): mostrar detalle con 0 comps ──
             uv = p_obj.get('_ultima_valuacion', {})
             ya_valuado = bool(uv.get('valor_usd')) or (uv.get('fuente') == 'manual')
+            print(f"[DEBUG-YA] {p_obj['nombre']}: ya_valuado={ya_valuado}, uv_valor_usd={uv.get('valor_usd')}, uv_fuente={uv.get('fuente')}, uv_fuente_activa={uv.get('fuente_activa')}, uv_comps={uv.get('comps')}, uv_keys={list(uv.keys()) if uv else 'no_uv'}")
             # Detectar si el boton Retro fue clickeado (el `if st.button()` inline aun no evaluo)
             retro_btn_key = f'retro_btn_{p_obj["nombre"]}'
             retro_btn_clicked = st.session_state.get(retro_btn_key, False)
@@ -620,6 +621,8 @@ def mostrar_dashboard():
                         flex_dormitorios = [1, 2, 3, 4, 5] if flex_active else None
                     usar_cache = False
                     print(f"[DEBUG] {prop_name}: pre-valuacion params: forzar={forzar}, ya_valuado={ya_valuado}, retro_active={retro_active}, retro_dias={retro_dias}, flex_active={flex_active}, preview_mode={preview_mode}")
+                    cache_condition = (ya_valuado, fuente_activa_saved == 'auto', not forzar, bool(entrada_antigua.get('resultado_completo')))
+                    print(f"[CACHE-CHECK] {prop_name}: condiciones: ya_valuado={cache_condition[0]}, fuente_activa=='auto'={cache_condition[1]}, not forzar={cache_condition[2]}, tiene_resultado_completo={cache_condition[3]}, entrada_keys={list(entrada_antigua.keys()) if entrada_antigua else 'vacia'}")
                     if ya_valuado and fuente_activa_saved == 'auto' and not forzar and bool(entrada_antigua.get('resultado_completo')):
                         cached_result = entrada_antigua['resultado_completo']
                         if cached_result.get('error'):
@@ -634,8 +637,17 @@ def mostrar_dashboard():
                                 print(f"[CACHE] {prop_name}: usando resultado_completo grabado ({len(resultado.get('comparables_venta',[]))} comps, retro={cached_retro})")
                             else:
                                 print(f"[CACHE] {prop_name}: cache stale (fecha_ref={cached_fecha_ref}, retro_cache={cached_retro}, retro_actual={retro_dias}, hoy={hoy}), recalculando")
+                    else:
+                        fallo_por = []
+                        if not ya_valuado: fallo_por.append("no_ya_valuado")
+                        if fuente_activa_saved != 'auto': fallo_por.append(f"fuente_no_auto={fuente_activa_saved}")
+                        if forzar: fallo_por.append("forzar=True")
+                        if not entrada_antigua.get('resultado_completo'): fallo_por.append("sin_resultado_completo")
+                        print(f"[CACHE-CHECK] {prop_name}: cache RECHAZADO por: {', '.join(fallo_por)}")
                     if not usar_cache:
+                        print(f"[CACHE-CHECK] {prop_name}: llamando valuar_con_cache (forzar={forzar}, preview={preview_mode}, retro={retro_dias}, flex={flex_dormitorios})")
                         resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios, preview=preview_mode, manual_data=st.session_state.get(f'manual_preview_{prop_name}', None))
+                        print(f"[CACHE-CHECK] {prop_name}: valuar_con_cache retorno: error={resultado.get('error')}, valor={resultado.get('valor_propiedad_usd')}, n_comps={len(resultado.get('comparables_venta',[])) if resultado.get('comparables_venta') else 0}, cache_preview={resultado.get('_cache',{}).get('preview')}")
                     _sl.mark("after_valuar_con_cache")
                     if not usar_cache:
                         n_comps = len(resultado.get('comparables_venta', []))
