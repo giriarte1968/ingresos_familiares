@@ -698,6 +698,15 @@ def mostrar_dashboard():
                     resultado['_fuente_activa'] = fuente_activa
                     _sl.mark("after_inject_parallel")
 
+                    # ── Restaurar exclusión desde UV si el resultado fresco no la tiene ──
+                    uv_excl = p_obj.get('_ultima_valuacion', {})
+                    if (not resultado.get('_comp_exclusion_applied') and 
+                        uv_excl.get('_comp_exclusion_applied') and 
+                        not st.session_state.get(f'comp_excluded_{prop_name}', False)):
+                        resultado['_comp_excluded'] = uv_excl.get('_comp_excluded', [])
+                        resultado['_comp_exclusion_applied'] = True
+                        print(f"[DEBUG-EXCL-RESTORE] {prop_name}: exclusión restaurada desde UV: {len(resultado['_comp_excluded'])} ids excluidos, from_apply={uv_excl.get('_comp_exclusion_applied')}")
+
                     # ── Aplicar exclusión de comparables seleccionada por el usuario ──
                     comp_excluded_key = f'comp_excluded_{prop_name}'
                     comps_orig = resultado.get('comparables_venta')

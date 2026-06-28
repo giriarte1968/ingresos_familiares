@@ -1,6 +1,21 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-06-28 — RO-DEBUG-LOG-01 + Fix exclusion no restaurada tras Portfolio + info en Dual Cards + eliminar botones
+
+### Problema
+1. "Selección aplicada" se perdía al ir a Portfolio y volver: el resultado fresco de `valuar_con_cache(preview=True)` tiene `_comp_excluded=[]` (no `None`) y `_comp_exclusion_applied=False`. El código de restauración (valu.py:728) ve `[]` como "not None" y asigna `excluded_ids=[]`, sin llegar a la rama `elif UV`. La exclusión estaba en UV pero nunca se restauraba.
+2. Las nuevas Dual Valuation Cards mostraban menos info que el viejo header azul (faltaban ARS, cotización dólar, m²/USD).
+3. Los botones "Activar"/"✓ Activo" debajo de cada card ya no eran necesarios porque las cards son display-only (ambas siempre activas).
+
+### Cambios
+1. **`valu.py:700-706`**: Restauración de exclusión desde UV si el resultado fresco no la tiene: `if not resultado._comp_exclusion_applied and uv._comp_exclusion_applied: resultado._comp_excluded = uv._comp_excluded; resultado._comp_exclusion_applied = True`. Agregado `[DEBUG-EXCL-RESTORE]` para trazabilidad.
+2. **`valu_detail_sections.py:render_header`**: Dual Cards ahora muestran USD + ARS + cotización dólar + m²/USD + comps. Eliminados botones "Activar"/"✓ Activo" (eran display-only).
+3. **`AGENTS.md`**: Agregadas reglas RO-DEBUG-LOG-01 (pre-flight: leer debug log) y RO-DEBUG-FLAG-01 (debug flags en cada cambio).
+
+### Tests: 43/43 regression OK, auto_validate OK
+
+
 ## 2026-06-28 — RO-CACHE-PREVIEW-06: fix toggle exclusion + debug logger físico
 
 ### Problema

@@ -187,57 +187,48 @@ def render_header(prop, res):
 
     zona = prop.get('zona', 'Oeste')
 
-    # ─── Dual Valuation Cards ───
+    # ─── Dual Valuation Cards (display-only, siempre ambos activos) ───
     tiene_auto = auto_result.get('m2_base_venta', 0) > 0
     tiene_manual = manual_result is not None
 
     v_auto = auto_result.get('valor_propiedad_usd', 0) if auto_result else 0
     v_manual = manual_result.get('valor_propiedad_usd', 0) if manual_result else 0
     n_comps_auto = (auto_result.get('resolution_metadata') or {}).get('n_propiedades', 0) if auto_result else 0
-    auto_active = not es_manual
-    manual_active = es_manual
+    dolar_auto = auto_result.get('usdt_ars', dolar) if auto_result else dolar
+    m2_base_auto = auto_result.get('m2_base_venta', 0) if auto_result else 0
+    m2_line_auto = f"m²/USD en {zona}: ${m2_base_auto:,.0f} ({n_comps_auto} comp.)" if m2_base_auto > 0 else "—"
+
+    dolar_manual = manual_result.get('usdt_ars', dolar) if manual_result else dolar
+    m2_base_manual = manual_result.get('m2_base_venta', 0) if manual_result else 0
+    n_comps_manual = (manual_result.get('resolution_metadata') or {}).get('n_propiedades', 0) if manual_result else 0
+    m2_line_manual = f"m²/USD: ${m2_base_manual:,.0f} ({n_comps_manual} comp.)" if m2_base_manual > 0 else "—"
 
     card_key = f'fuente_cards_{nombre}'
     col_toggle = st.columns([1, 1])
     with col_toggle[0]:
-        border_auto = '2px solid #16A34A' if auto_active else '1px solid #E5E7EB'
-        bg_auto = '#F0FDF4' if auto_active else '#FFFFFF'
-        shadow_auto = '0 2px 8px rgba(22,163,74,0.12)' if auto_active else '0 1px 3px rgba(0,0,0,0.06)'
         st.markdown(f"""
-        <div style="border:{border_auto};border-radius:12px;padding:16px;background:{bg_auto};box-shadow:{shadow_auto};text-align:center;">
+        <div style="border:1px solid #E5E7EB;border-radius:12px;padding:16px;background:#FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,0.06);text-align:center;">
             <div style="font-size:12px;font-weight:600;color:#16A34A;margin-bottom:4px;">POR COMPARABLES</div>
             <div style="font-size:24px;font-weight:700;color:#1A2B5C;">{f'${v_auto:,.0f}' if v_auto else '—'}</div>
-            <div style="font-size:12px;color:#6B7280;margin-bottom:12px;">{n_comps_auto} comparables</div>
+            <div style="font-size:13px;color:#6B7280;margin-bottom:2px;">{f'${v_auto * dolar_auto:,.0f} ARS' if v_auto else '—'}</div>
+            <div style="font-size:11px;color:#9CA3AF;">Dólar ${dolar_auto:,.0f} · {m2_line_auto}</div>
         </div>
         """, unsafe_allow_html=True)
-        btn_auto_label = "✓ Activo" if auto_active else "Activar"
-        if st.button(btn_auto_label, key=f"{card_key}_auto", use_container_width=True,
-                     type="primary" if auto_active else "secondary", disabled=not tiene_auto):
-            print(f"[DEBUG-CARD] {nombre}: click en card AUTO, seteando fuente_activa=auto")
-            st.session_state[f'fuente_activa_{nombre}'] = 'auto'
-            st.rerun()
 
     with col_toggle[1]:
-        border_manual = '2px solid #7C3AED' if manual_active else '1px solid #E5E7EB'
-        bg_manual = '#F5F3FF' if manual_active else '#FFFFFF'
-        shadow_manual = '0 2px 8px rgba(124,58,237,0.12)' if manual_active else '0 1px 3px rgba(0,0,0,0.06)'
         delta_str = f"{delta_pct:+.1f}%" if abs(delta_pct) > 0.01 else "—"
         delta_color = "#DC2626" if delta_pct > 10 else "#16A34A" if delta_pct < -10 else "#6B7280"
         st.markdown(f"""
-        <div style="border:{border_manual};border-radius:12px;padding:16px;background:{bg_manual};box-shadow:{shadow_manual};text-align:center;">
+        <div style="border:1px solid #E5E7EB;border-radius:12px;padding:16px;background:#FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,0.06);text-align:center;">
             <div style="font-size:12px;font-weight:600;color:#7C3AED;margin-bottom:4px;">MANUAL</div>
             <div style="font-size:24px;font-weight:700;color:#1A2B5C;">{f'${v_manual:,.0f}' if v_manual else '—'}</div>
-            <div style="font-size:12px;color:{delta_color};margin-bottom:12px;">vs Auto: {delta_str}</div>
+            <div style="font-size:13px;color:{delta_color};margin-bottom:2px;">{f'${v_manual * dolar_manual:,.0f} ARS' if v_manual else '—'} · vs Auto: {delta_str}</div>
+            <div style="font-size:11px;color:#9CA3AF;">Dólar ${dolar_manual:,.0f} · {m2_line_manual}</div>
         </div>
         """, unsafe_allow_html=True)
-        btn_manual_label = "✓ Activo" if manual_active else "Activar"
-        if st.button(btn_manual_label, key=f"{card_key}_manual", use_container_width=True,
-                     type="primary" if manual_active else "secondary", disabled=not tiene_manual):
-            print(f"[DEBUG-CARD] {nombre}: click en card MANUAL, seteando fuente_activa=manual")
-            st.session_state[f'fuente_activa_{nombre}'] = 'manual'
-            st.rerun()
 
     # ─── Alertas de divergencia ───
+    tiene_manual = manual_result is not None
     if tiene_manual and not es_manual and abs(delta_pct) > 10:
         severity = "🔴" if abs(delta_pct) > 20 else "⚠️"
         color = "#DC2626" if abs(delta_pct) > 20 else "#D97706"
