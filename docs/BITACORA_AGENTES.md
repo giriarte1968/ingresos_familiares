@@ -1,6 +1,23 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-06-28 — RO-CACHE-PREVIEW-07: Pendiente no pisa preview + Dual Cards azules + hero_price cleanup
+
+### Problema
+1. Al entrar a Detalle con `ya_valuado=False` (Pendiente) y un preview válido en cache (6 comps, $665K), `preview_mode=False` (default) causaba `valuar_con_cache(preview=False)` → `motor_vpp_core.py:1386` detectaba cache con `preview=True` distinto al current `preview=False` → **force-recalculaba con `commit=True`** → `persistir_valuacion` escribía resultado 0-comps al cache y UV, destruyendo permanentemente el preview.
+2. El `hero_price` (card azul gradient) duplicaba info de las Dual Valuation Cards.
+3. Las Dual Cards eran blancas, no azules.
+
+### Cambios
+1. **`valu.py:576-578`**: Cuando el bloque Pendiente decide CONSERVAR un preview válido, setea `preview_mode=True` y `st.session_state[f'preview_mode_{nombre}'] = True`. Esto hace que `valuar_con_cache` se llame con `preview=True` → `commit=False` → no se sobreescribe UV.
+2. **`valu_detail_sections.py:render_header`**: Removida sección `hero_price` (c_h1/c_h2 columns + card azul gradient). Simplificada a solo card blanca de info (badges, nombre, confianza).
+3. **`valu_detail_sections.py:208-228`**: Dual Cards cambiadas de `background:#FFFFFF` a `background:linear-gradient(135deg,#006AFF 0%,#004FC4 100%)`. Textos en blanco con opacidades. Sin borde, sombra más fuerte.
+4. **`main_valu_detail_sections.py`**: Mismo cleanup de hero_price.
+5. **`valu.py`, `main_valu.py`**: Import de `hero_price` eliminado.
+6. **`tests/test_regression.py`**: Nuevo test `test_pendiente_preview_no_se_sobrescribe` (RO-CACHE-PREVIEW-07): verifica que `preview=True` usa cache (mismo valor, mismos comps, no crea UV), y que `preview=False` sí force-recalcula.
+
+### Tests: 44/44 regression OK, auto_validate OK
+
 ## 2026-06-28 — RO-DEBUG-LOG-01 + Fix exclusion no restaurada tras Portfolio + info en Dual Cards + eliminar botones
 
 ### Problema
