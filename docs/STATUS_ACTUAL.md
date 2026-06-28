@@ -1,6 +1,6 @@
 ﻿# 🏠 STATUS ACTUAL DEL PROYECTO — AVM Rosario
 
-*Actualizado: 28/06/2026 (TAREA-075: Fix manual valuation overwrites comparable exclusion)*
+*Actualizado: 28/06/2026 (TAREA-077: Fix exclusión perdida tras Guardar Valuacion Manual)*
 
 ---
 

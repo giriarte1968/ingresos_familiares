@@ -3229,3 +3229,29 @@ Al valuar por Comparables, aplicar, presionar "Manual" y luego volver a "Por Com
 7. **`main_valu.py`** — Limpiados prints DEBUG.
 
 ### Tests: 32/32 regression OK, auto_validate OK
+
+## 2026-06-28 — TAREA-077: Fix exclusión perdida tras Guardar Valuacion Manual
+
+### Problema
+Tras guardar una valuación manual, el botón de exclusión volvía a "✅ Aplicar selección"
+en vez de mantener "✅ Selección Aplicada". Causa raíz: el handler de guardado manual
+hacía `cache.pop(nombre)` que forzaba un recálculo fresco en el rerun. El resultado
+recién calculado no tenía `_comp_excluded` ni `_comp_exclusion_applied`, y la
+restauración desde UV fallaba si `st.session_state[comp_excluded_{prop_name}]` tenía
+un valor truthy residual.
+
+### Cambios
+1. **`valu_detail_sections.py:1482-1519`** — Handler de Guardar Valuacion Manual:
+   - YA NO hace `cache.pop(nombre)` + `guardar_cache_valuaciones`
+   - Preserva explícitamente `_comp_excluded` y `_comp_exclusion_applied` desde UV
+   - Guarda `auto_valor_usd` y `manual_valor_usd` para portfolio display
+   - Agrega flags `[DEBUG-MANUAL]` para trazabilidad
+2. **`parsers/valuacion_cache.py:229-233`** — En `persistir_valuacion()`,
+   al restaurar UV manual (`if old_uv.get('manual_params')`), preserva también
+   `_comp_excluded` y `_comp_exclusion_applied` desde old_uv si el nuevo resultado
+   no los trae. Agrega flag `[DEBUG-PERSIST]`.
+3. **`valu.py:703-713`** — Restauración de exclusión: agrega variables
+   `_restore_cond1/2/3` y flag `[DEBUG-EXCL-RESTORE] SALTADA` para depurar
+   condiciones de restauración fallida.
+
+### Tests: 45/45 regression OK, auto_validate OK

@@ -1482,23 +1482,40 @@ def render_valuacion_manual(prop, res):
             from parsers.mercado_inmobiliario import generar_resultado_manual
             resultado_manual = generar_resultado_manual(prop, manual_params, auto_result=auto_result)
 
-            from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
-            cache = cargar_cache_valuaciones()
-            cache.pop(nombre, None)
-            guardar_cache_valuaciones(cache)
+            # Extract auto/manual values for portfolio display
+            auto_valor_usd = auto_result.get('valor_propiedad_usd', 0) if auto_result else 0
+            manual_valor_usd = resultado_manual.get('valor_propiedad_usd', 0)
 
             props = cargar_propiedades()
             for i, p in enumerate(props):
                 if p.get('nombre') == nombre:
                     uv = p.setdefault('_ultima_valuacion', {})
+
+                    # Preserve existing exclusion state from UV
+                    old_comp_excluded = uv.get('_comp_excluded', [])
+                    old_comp_exclusion_applied = uv.get('_comp_exclusion_applied', False)
+
+                    print(f"[DEBUG-MANUAL] {nombre}: Guardando manual — valor_usd={resultado_manual['valor_propiedad_usd']:,.0f}, auto_valor_usd={auto_valor_usd:,.0f}, manual_valor_usd={manual_valor_usd:,.0f}")
+                    print(f"[DEBUG-MANUAL] {nombre}: exclusion previa: _comp_exclusion_applied={old_comp_exclusion_applied}, _comp_excluded_count={len(old_comp_excluded)}")
+
                     uv['valor_usd'] = resultado_manual['valor_propiedad_usd']
+                    uv['auto_valor_usd'] = auto_valor_usd
+                    uv['manual_valor_usd'] = manual_valor_usd
                     uv['fuente'] = 'manual'
                     uv['fuente_activa'] = 'manual'
                     uv['manual_params'] = manual_params
+                    if old_comp_exclusion_applied:
+                        uv['_comp_excluded'] = old_comp_excluded
+                        uv['_comp_exclusion_applied'] = True
+                        print(f"[DEBUG-MANUAL] {nombre}: exclusion preservada: {len(old_comp_excluded)} ids excluidos")
+                    else:
+                        uv.setdefault('_comp_excluded', [])
+                        uv.setdefault('_comp_exclusion_applied', False)
                     break
             guardar_propiedades(props)
             st.session_state.pop(ss_key, None)
             st.success(f"Valuacion manual guardada: ${resultado_manual['valor_propiedad_usd']:,.0f} USD")
+            print(f"[DEBUG-MANUAL] {nombre}: ===== GUARDADO MANUAL COMPLETADO (cache preservado) =====")
             st.rerun()
 
     with col_btn2:

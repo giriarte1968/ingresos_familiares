@@ -702,12 +702,15 @@ def mostrar_dashboard():
 
                     # ── Restaurar exclusión desde UV si el resultado fresco no la tiene ──
                     uv_excl = p_obj.get('_ultima_valuacion', {})
-                    if (not resultado.get('_comp_exclusion_applied') and 
-                        uv_excl.get('_comp_exclusion_applied') and 
-                        not st.session_state.get(f'comp_excluded_{prop_name}', False)):
+                    _restore_cond1 = not resultado.get('_comp_exclusion_applied')
+                    _restore_cond2 = uv_excl.get('_comp_exclusion_applied')
+                    _restore_cond3 = not st.session_state.get(f'comp_excluded_{prop_name}', False)
+                    if _restore_cond1 and _restore_cond2 and _restore_cond3:
                         resultado['_comp_excluded'] = uv_excl.get('_comp_excluded', [])
                         resultado['_comp_exclusion_applied'] = True
-                        print(f"[DEBUG-EXCL-RESTORE] {prop_name}: exclusión restaurada desde UV: {len(resultado['_comp_excluded'])} ids excluidos, from_apply={uv_excl.get('_comp_exclusion_applied')}")
+                        print(f"[DEBUG-EXCL-RESTORE] {prop_name}: RESTAURADA — {len(resultado['_comp_excluded'])} ids excluidos, from_apply={uv_excl.get('_comp_exclusion_applied')}")
+                    elif uv_excl.get('_comp_exclusion_applied'):
+                        print(f"[DEBUG-EXCL-RESTORE] {prop_name}: SALTADA — cond1(fresh_excl_applied)={_restore_cond1}, cond2(uv_excl_applied)={_restore_cond2}, cond3(no_pending_ss)={_restore_cond3}")
 
                     # ── Aplicar exclusión de comparables seleccionada por el usuario ──
                     comp_excluded_key = f'comp_excluded_{prop_name}'

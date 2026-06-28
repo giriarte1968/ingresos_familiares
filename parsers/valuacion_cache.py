@@ -226,6 +226,11 @@ def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict, c
                                 p['_ultima_valuacion']['fuente'] = old_uv.get('fuente', 'manual')
                                 p['_ultima_valuacion']['fuente_activa'] = old_uv.get('fuente_activa', 'manual')
                                 p['_ultima_valuacion']['manual_params'] = old_uv.get('manual_params')
+                                # Preservar exclusión desde old_uv si el nuevo resultado no la trae
+                                if old_uv.get('_comp_exclusion_applied') and not p['_ultima_valuacion'].get('_comp_exclusion_applied'):
+                                    p['_ultima_valuacion']['_comp_excluded'] = old_uv.get('_comp_excluded', [])
+                                    p['_ultima_valuacion']['_comp_exclusion_applied'] = True
+                                    print(f"[DEBUG-PERSIST] {nombre}: exclusion restaurada desde old_uv durante persist manual: {len(old_uv.get('_comp_excluded', []))} ids")
                             break
 
                     atomic_write_json(PROPIEDADES_PATH, props_data)
