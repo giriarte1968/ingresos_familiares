@@ -591,20 +591,19 @@ def _render_cards(rows: list[dict[str, Any]], page_size: int) -> None:
                 auto_val = float(row.get('auto_valor_usd', 0) or 0)
                 manual_val = float(row.get('manual_valor_usd', 0) or 0)
                 has_manual = manual_val > 0
-                price_html = f"""
-                    <div class="p2-price">{_fmt_usd(auto_val)} <span class="p2-price-label">Comparables</span></div>
-                """ + (f"""
-                    <div class="p2-price" style="color:#006AFF;">{_fmt_usd(manual_val)} <span style="font-size:11px;font-weight:400;color:#006AFF;opacity:0.7;">Manual</span></div>
-                """ if has_manual else f"""
-                    <div class="p2-price">{_fmt_usd(row['valor_usd'])}</div>
-                """)
-                st.markdown(f"""
-                <div class="p2-property-card">
+                if has_manual:
+                    price_block = f'''<div class="p2-price">{_fmt_usd(auto_val)} <span class="p2-price-label">Comparables</span></div>
+<div class="p2-price" style="color:#006AFF;">{_fmt_usd(manual_val)} <span style="font-size:11px;font-weight:400;color:#006AFF;opacity:0.7;">Manual</span></div>'''
+                else:
+                    price_block = f'''<div class="p2-price">{_fmt_usd(auto_val)}</div>'''
+                st.markdown(f'''
+                <a href="?prop={row['nombre']}" style="text-decoration:none;color:inherit;">
+                <div class="p2-property-card" style="cursor:pointer;">
                     <div>{badges}</div>
                     <div class="p2-property-title">{row['nombre']}</div>
                     <div class="p2-muted">{row['zona']} · {row['tipo']} · {row['dormitorios']} dorm.</div>
                     <div class="p2-muted">{row['direccion']}</div>
-                    {price_html}
+                    {price_block}
                     <div class="p2-muted">{row['comps']} comparables · {row['estado_detalle']}</div>
                     <div class="p2-card-metrics">
                         <div class="p2-mini-metric"><div class="p2-mini-label">Alquiler</div><div class="p2-mini-value">{_fmt_ars(row['alquiler_ars'])}</div></div>
@@ -612,9 +611,8 @@ def _render_cards(rows: list[dict[str, Any]], page_size: int) -> None:
                         <div class="p2-mini-metric"><div class="p2-mini-label">m² eq.</div><div class="p2-mini-value">{float(row['m2'] or 0):.1f}</div></div>
                     </div>
                 </div>
-                """, unsafe_allow_html=True)
-                if st.button("Ver detalle", key=f"p2_card_{row.get('id', idx)}", use_container_width=True):
-                    _ir_a_detalle(row['nombre'])
+                </a>
+                ''', unsafe_allow_html=True)
 
 
 def _marker_color(row: dict[str, Any]) -> str:
