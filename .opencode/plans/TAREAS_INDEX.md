@@ -65,4 +65,5 @@
 | TAREA-084 | Revertir fuente única en "Valor/m² por selección" (display_source sync) | `14dfd88` | 2026-06-25 |
 | TAREA-085 | Fix "Restablecer todos" no resetea exclusión persistida | `ff6e743` | 2026-06-25 |
 | TAREA-077 | Fix exclusión perdida tras Guardar Valuacion Manual | _completada_ | 2026-06-28 |
+| TAREA-087 | Guard preview fallido no debe pisar cache exitoso | _completada_ | 2026-06-28 |
 | TAREA-086 | Fix cambio Manual→Comparable: carga desde cache físico (v2) | _completada_ | 2026-06-27 |

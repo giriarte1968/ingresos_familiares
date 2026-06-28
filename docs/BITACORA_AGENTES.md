@@ -3252,6 +3252,33 @@ un valor truthy residual.
    no los trae. Agrega flag `[DEBUG-PERSIST]`.
 3. **`valu.py:703-713`** — Restauración de exclusión: agrega variables
    `_restore_cond1/2/3` y flag `[DEBUG-EXCL-RESTORE] SALTADA` para depurar
-   condiciones de restauración fallida.
+    condiciones de restauración fallida.
 
 ### Tests: 45/45 regression OK, auto_validate OK
+
+## 2026-06-28 — TAREA-087: Guard preview fallido no debe pisar cache exitoso
+
+### Problema
+Cuando `valuar_con_cache` se llama con `preview=True` y los parámetros
+producen un resultado fallido (insuficientes_comparables, error, valor=0),
+`persistir_valuacion(commit=False)` sobrescribe el cache, borrando el
+resultado exitoso previo. Esto causó que Francia 250 bis perdiera su
+valuación exitosa ($665,387 USD, 6 comparables).
+
+### Causa raíz
+`valuar_con_cache` en `motor_vpp_core.py:1421` siempre persiste el resultado
+del preview a cache sin verificar si el nuevo resultado es fallido y el cache
+actual tiene un resultado exitoso previo.
+
+### Cambios
+1. **`parsers/motor_vpp_core.py:1419-1434`** — Guard condicional en persist:
+   si `preview=True` y el nuevo resultado es fallido (error o valor=0),
+   verificar si el cache actual tiene un resultado exitoso (valor>0, sin error).
+   Si es así, NO persistir el preview fallido. Agrega flags:
+   - `[CACHE-PREVIEW-SKIP]` cuando se saltea persist por preview fallido
+   - `[CACHE-PREVIEW-PERSIST]` cuando se persiste preview (exitoso o fallido sin cache previo)
+2. **`tests/test_regression.py`** — Tests nuevos:
+   - `test_preview_fallido_no_pisa_cache` (RO-CACHE-PREVIEW-08)
+   - `test_preview_exitoso_actualiza_cache` (RO-CACHE-PREVIEW-09, regresión)
+
+### Tests: 47/47 regression OK, auto_validate OK
