@@ -1,6 +1,21 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-06-28 — RO-CACHE-PREVIEW-06: fix toggle exclusion + debug logger físico
+
+### Problema
+1. Al cambiar de Auto a Manual y volver a Auto, la exclusión de comparables "Selección aplicada" se perdía y aparecía "Aplicar selección". Causa raíz: el cache check en `valu.py:626` condicionaba el uso de cache a `fuente_activa_saved == 'auto'`. Al switchar a Manual, cache bypass, `valuar_con_cache` recalculaba auto result y persistía con `commit=True`, SOBREESCRIBIENDO el cache que tenía la exclusión.
+2. Los logs de debug (`[DEBUG-FUENTE]`, `[CACHE-CHECK]`, etc.) solo iban a consola (stdout), invisibles post-ejecución.
+
+### Cambios
+1. **`valu.py:624-657`**: Cache check ya NO depende de `fuente_activa`. Se intenta cache siempre. Solo se llama `valuar_con_cache` si cache miss Y fuente_activa_saved == 'auto'. Con fuente Manual y cache miss, se usa cache viejo para `_auto_result`.
+2. **`parsers/debug_logger.py`** (nuevo): Logger a disco en `logs/debug_{timestamp}.log`. Guarda todos los mensajes `[DEBUG-*]` y `[CACHE*]` con timestamp.
+3. **`valu.py`**, **`valu_detail_sections.py`**, **`valuacion_cache.py`**, **`motor_vpp_core.py`**: `print` global sobreescrito a nivel módulo para interceptar mensajes `[DEBUG`/`[CACHE` y escribirlos al archivo de log.
+4. **`tests/test_regression.py`**: Nuevo test `test_toggle_fuente_preserva_exclusion` (RO-CACHE-PREVIEW-06): verifica que `persistir_valuacion` con resultado fresco SIN exclusion SOBREESCRIBE cache (prueba que el bypass en valu.py es necesario).
+
+### Tests: 43/43 regression OK, auto_validate OK
+
+
 ## 2026-06-28 — TAREA-074: Dual Valuation Dashboard + fix manual_data contamination
 
 ### Problema

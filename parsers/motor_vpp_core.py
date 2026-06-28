@@ -1,6 +1,14 @@
 import requests
 import logging
 from bs4 import BeautifulSoup
+from parsers.debug_logger import log as _file_log
+_orig_print = print
+def _dbg_print(*args, **kwargs):
+    _orig_print(*args, **kwargs)
+    msg = ' '.join(str(a) for a in args)
+    if msg.startswith(('[DEBUG', '[CACHE')):
+        _file_log(msg)
+print = _dbg_print
 
 logger = logging.getLogger('valuacion_cache')
 import re

@@ -12,6 +12,14 @@ from datetime import datetime
 from valu_design import kpi_card, metric_card, hero_price, range_bar, insights_card, property_card
 from streamlit.components.v1 import html
 from parsers.mercado_inmobiliario import calcular_vm2_por_seleccion
+from parsers.debug_logger import log as _file_log
+_orig_print = print
+def _dbg_print(*args, **kwargs):
+    _orig_print(*args, **kwargs)
+    msg = ' '.join(str(a) for a in args)
+    if msg.startswith(('[DEBUG', '[CACHE')):
+        _file_log(msg)
+print = _dbg_print
 
 
 def render_actions(prop, guardar_fn):

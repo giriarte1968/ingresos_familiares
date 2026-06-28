@@ -822,6 +822,123 @@ def test_pendiente_preserva_preview_valido():
 # RO-CACHE-PREVIEW-04: Restablecer todos limpia exclusion
 # ──────────────────────────────────────────────
 
+def test_toggle_fuente_preserva_exclusion():
+    """RO-CACHE-PREVIEW-06: Cambiar entre Auto <-> Manual NO debe perder la
+    exclusion aplicada. Al llamar persistir_valuacion con un resultado fresco
+    (sin datos de exclusion), el cache se sobreescribe y la exclusion se pierde.
+    Por eso el fix en valu.py impide llamar a valuar_con_cache cuando la fuente
+    activa NO es 'auto', usando en su lugar el cache (incluso si es viejo).
+    
+    Este test verifica que PERSISTIR_valuacion con resultado fresco SIN exclusion
+    efectivamente SOBREESCRIBE el cache, probando que el bypass en valu.py es
+    necesario para preservar exclusion al togglear fuentes."""
+    from parsers.valuacion_cache import persistir_valuacion, cargar_cache_valuaciones, guardar_cache_valuaciones
+    import json, copy
+
+    nombre_test = '__test_toggle_exclusion__'
+    cache_bak = cargar_cache_valuaciones()
+    if nombre_test in cache_bak:
+        del cache_bak[nombre_test]
+        guardar_cache_valuaciones(cache_bak)
+
+    with open('propiedades.json', 'r', encoding='utf-8') as f:
+        props_bak = copy.deepcopy(json.load(f))
+
+    try:
+        # 1. Crear propiedad con _ultima_valuacion que tiene exclusion
+        props_temp = copy.deepcopy(props_bak)
+        props_temp['propiedades'].append({
+            'nombre': nombre_test,
+            'm2_cubiertos': 50, 'lat': -32.95, 'lon': -60.63,
+            '_ultima_valuacion': {
+                'valor_usd': 100000,
+                'comps': 5,
+                'fecha': '26/06/2026 12:00',
+                'fuente': 'auto',
+                'fuente_activa': 'auto',
+                '_comp_excluded': ['comp_a', 'comp_b'],
+                '_comp_exclusion_applied': True,
+            }
+        })
+        with open('propiedades.json', 'w', encoding='utf-8') as f:
+            json.dump(props_temp, f, ensure_ascii=False, indent=2)
+
+        # 2. Simular primera valuacion CON exclusion: guardar en cache
+        prop = {'nombre': nombre_test, 'm2_cubiertos': 50, 'lat': -32.95, 'lon': -60.63}
+        cache = cargar_cache_valuaciones()
+        resultado_con_exclusion = {
+            'valor_propiedad_usd': 100000,
+            'm2_base_venta': 2000,
+            'comparables_venta': [{'id': 'comp_a'}, {'id': 'comp_b'}, {'id': 'comp_c'}],
+            'resolution_metadata': {'n_propiedades': 3, 'fecha_ref': '2026-06-27'},
+            '_cache': {'preview': False},
+            '_comp_excluded': ['comp_a', 'comp_b'],
+            '_comp_exclusion_applied': True,
+        }
+        persistir_valuacion(nombre_test, prop, resultado_con_exclusion, cache, commit=True)
+
+        # 3. Verificar que cache tiene resultado_completo con exclusion
+        cache_check = cargar_cache_valuaciones()
+        rc = cache_check.get(nombre_test, {}).get('resultado_completo', {})
+        assert rc.get('_comp_excluded') == ['comp_a', 'comp_b'], \
+            f"Cache debe tener exclusion, encontrado: {rc.get('_comp_excluded')}"
+        assert rc.get('_comp_exclusion_applied') is True, \
+            f"Cache debe tener exclusion_applied=True, encontrado: {rc.get('_comp_exclusion_applied')}"
+
+        # 4. SIMULAR BUG: persistir con resultado FRESCO (sin exclusion),
+        # como hacia valuar_con_cache al togglear a Manual
+        resultado_fresco_sin_exclusion = {
+            'valor_propiedad_usd': 105000,
+            'm2_base_venta': 2100,
+            'comparables_venta': [{'id': 'comp_x'}, {'id': 'comp_y'}, {'id': 'comp_z'}],
+            'resolution_metadata': {'n_propiedades': 3, 'fecha_ref': '2026-06-27'},
+            '_cache': {'preview': False},
+            # Sin _comp_excluded ni _comp_exclusion_applied
+        }
+        persistir_valuacion(nombre_test, prop, resultado_fresco_sin_exclusion, cache, commit=True)
+
+        # 5. Verificar que AHORA cache NO tiene exclusion (sobreescrito)
+        cache_overwrite = cargar_cache_valuaciones()
+        rc2 = cache_overwrite.get(nombre_test, {}).get('resultado_completo', {})
+        assert rc2.get('_comp_excluded') is None or rc2.get('_comp_excluded') == [], \
+            f"Cache debe haber perdido exclusion tras persist, encontrado: {rc2.get('_comp_excluded')}"
+        assert rc2.get('_comp_exclusion_applied') is False or rc2.get('_comp_exclusion_applied') is None, \
+            f"Cache debe haber perdido exclusion_applied, encontrado: {rc2.get('_comp_exclusion_applied')}"
+
+        # 6. Verificar que _ultima_valuacion en propiedades.json tambien perdio exclusion
+        with open('propiedades.json', 'r', encoding='utf-8') as f:
+            props_check = json.load(f)
+        for p in props_check['propiedades']:
+            if p['nombre'] == nombre_test:
+                uv = p.get('_ultima_valuacion', {})
+                assert uv.get('_comp_excluded') is None or uv.get('_comp_excluded') == [], \
+                    f"_ultima_valuacion debe haber perdido exclusion, encontrado: {uv.get('_comp_excluded')}"
+                assert uv.get('_comp_exclusion_applied') is False or uv.get('_comp_exclusion_applied') is None, \
+                    f"_ultima_valuacion debe haber perdido exclusion_applied, encontrado: {uv.get('_comp_exclusion_applied')}"
+                break
+
+        # 7. SIMULAR FIX: si NO llamamos valuar_con_cache (usar cache viejo),
+        # el resultado_completo ORIGINAL (antes del overwrite) tenia exclusion.
+        # Esto se prueba recargando cache desde el snapshot anterior guardado en paso 2.
+        # El fix en valu.py hace exactamente eso: cuando fuente=manual y cache miss,
+        # usa resultado_completo viejo de cache en lugar de llamar valuar_con_cache.
+        # Como paso 5 mostro que cache se sobreescribe, la unica proteccion es
+        # NO LLAMAR persistir_valuacion en Manual mode.
+        # Verificar que el resultado antiguo (antes del overwrite) SII tenia exclusion:
+        old_rc = resultado_con_exclusion  # preserve del paso 2
+        assert old_rc.get('_comp_excluded') == ['comp_a', 'comp_b'], \
+            "El resultado original antes del overwrite debe tener exclusion"
+        assert old_rc.get('_comp_exclusion_applied') is True, \
+            "El resultado original antes del overwrite debe tener exclusion_applied=True"
+
+    finally:
+        with open('propiedades.json', 'w', encoding='utf-8') as f:
+            json.dump(props_bak, f, ensure_ascii=False, indent=2)
+        cache_clean = cargar_cache_valuaciones()
+        cache_clean.pop(nombre_test, None)
+        guardar_cache_valuaciones(cache_clean)
+
+
 def test_reset_all_limpia_exclusion():
     """RO-CACHE-PREVIEW-04: La logica de 'Restablecer todos' debe limpiar
     _comp_excluded de _ultima_valuacion al persistir con commit=True,

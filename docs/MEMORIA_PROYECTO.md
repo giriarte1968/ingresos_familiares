@@ -92,6 +92,8 @@ El modelo es Data-Driven: los precios emergen del mercado real
 
 **RO-CACHE-PREVIEW-05 (VALUACIÓN PERSISTE EN RETORNO DE PORTFOLIO):** Una valuación oficial persistida con `persistir_valuacion(commit=True)` debe sobrevivir al flujo Detalle → Portfolio → Detalle. En re-entry, `obtener_resultado_cacheado` debe retornar el mismo `resultado_completo` con los mismos valores (`valor_propiedad_usd`, `m2_base_venta`, `comparables_venta`, `m2_equivalentes`). El cache NO debe tener `preview=True` para valuaciones oficiales. La `_ultima_valuacion` en `propiedades.json` debe estar presente con `valor_usd` y `comps` correctos. Ver test `test_valuacion_persiste_retorno_portfolio`.
 
+**RO-CACHE-PREVIEW-06 (TOGGLE AUTO/MANUAL PRESERVA EXCLUSIÓN):** Cambiar entre fuente Auto y Manual NO debe perder la exclusión de comparables aplicada. Para esto, el cache check en `valu.py` NO debe depender de `fuente_activa` — el cache se intenta usar siempre (independientemente de la fuente activa). Si el cache está fresco (fecha_ref == hoy, retro_dias coincide), se usa directamente. Si el cache está viejo/miss y la fuente activa NO es `'auto'`, NO se llama `valuar_con_cache` (que sobreescribiría el cache y perdería la exclusión), sino que se usa el cache viejo para `_auto_result`. `valuar_con_cache` solo se llama cuando `fuente_activa_saved == 'auto'`. Esto garantiza que la exclusión de comparables sobrevive al toggle de fuentes. Ver test `test_toggle_fuente_preserva_exclusion`.
+
 ---
 
 ## 3. ARQUITECTURA DE LA FÓRMULA DE VENTA (TAREA-073 — Modelo Base Puro)

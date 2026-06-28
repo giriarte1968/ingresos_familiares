@@ -23,5 +23,8 @@ data/geometry/
 # Audit logs generados automáticamente por valuación
 data/history/audit_logs/
 
-# Profile dumps de profiling
+# Profile dumps of profiling
 data/profile_*.json
+
+# Debug logs físicos (generados automáticamente por parsers/debug_logger.py)
+logs/

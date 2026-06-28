@@ -2,6 +2,14 @@ import json
 import hashlib
 import os
 from datetime import datetime
+from parsers.debug_logger import log as _file_log
+_orig_print = print
+def _dbg_print(*args, **kwargs):
+    _orig_print(*args, **kwargs)
+    msg = ' '.join(str(a) for a in args)
+    if msg.startswith(('[DEBUG', '[CACHE')):
+        _file_log(msg)
+print = _dbg_print
 
 CACHE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
 CACHE_PATH = os.path.join(CACHE_DIR, 'valuaciones_cache.json')

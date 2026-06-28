@@ -13,6 +13,14 @@ from landing import mostrar_landing
 from valu_detail_sections import _get_comp_id
 from parsers.mercado_inmobiliario import _calcular_mediana, _generar_html_mapa, calcular_vm2_por_seleccion
 from parsers.profiler import profile_block, profile_start, profile_end, StepLedger
+from parsers.debug_logger import log as _file_log
+_orig_print = print
+def _dbg_print(*args, **kwargs):
+    _orig_print(*args, **kwargs)
+    msg = ' '.join(str(a) for a in args)
+    if msg.startswith(('[DEBUG', '[CACHE')):
+        _file_log(msg)
+print = _dbg_print
 logger = logging.getLogger(__name__)
 
 # --- CONFIGURACIÓN ---
@@ -621,9 +629,10 @@ def mostrar_dashboard():
                         flex_dormitorios = [1, 2, 3, 4, 5] if flex_active else None
                     usar_cache = False
                     print(f"[DEBUG] {prop_name}: pre-valuacion params: forzar={forzar}, ya_valuado={ya_valuado}, retro_active={retro_active}, retro_dias={retro_dias}, flex_active={flex_active}, preview_mode={preview_mode}")
-                    cache_condition = (ya_valuado, fuente_activa_saved == 'auto', not forzar, bool(entrada_antigua.get('resultado_completo')))
-                    print(f"[CACHE-CHECK] {prop_name}: condiciones: ya_valuado={cache_condition[0]}, fuente_activa=='auto'={cache_condition[1]}, not forzar={cache_condition[2]}, tiene_resultado_completo={cache_condition[3]}, entrada_keys={list(entrada_antigua.keys()) if entrada_antigua else 'vacia'}")
-                    if ya_valuado and fuente_activa_saved == 'auto' and not forzar and bool(entrada_antigua.get('resultado_completo')):
+                    cache_condition = (ya_valuado, not forzar, bool(entrada_antigua.get('resultado_completo')))
+                    print(f"[CACHE-CHECK] {prop_name}: condiciones: ya_valuado={cache_condition[0]}, not forzar={cache_condition[1]}, tiene_resultado_completo={cache_condition[2]}, fuente_activa_saved={fuente_activa_saved}, entrada_keys={list(entrada_antigua.keys()) if entrada_antigua else 'vacia'}")
+                    # Intentar cache siempre (independientemente de fuente_activa) para preservar exclusion
+                    if ya_valuado and not forzar and bool(entrada_antigua.get('resultado_completo')):
                         cached_result = entrada_antigua['resultado_completo']
                         if cached_result.get('error'):
                             print(f"[CACHE] {prop_name}: saltando resultado con error={cached_result['error']}")
@@ -640,15 +649,20 @@ def mostrar_dashboard():
                     else:
                         fallo_por = []
                         if not ya_valuado: fallo_por.append("no_ya_valuado")
-                        if fuente_activa_saved != 'auto': fallo_por.append(f"fuente_no_auto={fuente_activa_saved}")
                         if forzar: fallo_por.append("forzar=True")
                         if not entrada_antigua.get('resultado_completo'): fallo_por.append("sin_resultado_completo")
-                        print(f"[CACHE-CHECK] {prop_name}: cache RECHAZADO por: {', '.join(fallo_por)}")
+                        print(f"[CACHE-CHECK] {prop_name}: cache NO INTENTADO por: {', '.join(fallo_por)}")
+                    # Solo recalcular si es necesario Y la fuente activa es auto
                     if not usar_cache:
-                        print(f"[CACHE-CHECK] {prop_name}: llamando valuar_con_cache (forzar={forzar}, preview={preview_mode}, retro={retro_dias}, flex={flex_dormitorios})")
-                        manual_data_to_pass = st.session_state.get(f'manual_preview_{prop_name}', None) if fuente_activa_saved == 'manual' else None
-                        resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios, preview=preview_mode, manual_data=manual_data_to_pass)
-                        print(f"[CACHE-CHECK] {prop_name}: valuar_con_cache retorno: error={resultado.get('error')}, valor={resultado.get('valor_propiedad_usd')}, n_comps={len(resultado.get('comparables_venta',[])) if resultado.get('comparables_venta') else 0}, cache_preview={resultado.get('_cache',{}).get('preview')}")
+                        if fuente_activa_saved == 'auto':
+                            print(f"[CACHE-CHECK] {prop_name}: llamando valuar_con_cache (forzar={forzar}, preview={preview_mode}, retro={retro_dias}, flex={flex_dormitorios})")
+                            manual_data_to_pass = st.session_state.get(f'manual_preview_{prop_name}', None) if fuente_activa_saved == 'manual' else None
+                            resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios, preview=preview_mode, manual_data=manual_data_to_pass)
+                            print(f"[CACHE-CHECK] {prop_name}: valuar_con_cache retorno: error={resultado.get('error')}, valor={resultado.get('valor_propiedad_usd')}, n_comps={len(resultado.get('comparables_venta',[])) if resultado.get('comparables_venta') else 0}, cache_preview={resultado.get('_cache',{}).get('preview')}")
+                        else:
+                            # Fuente manual: usar cache aunque sea viejo, no recargar (preserva exclusion)
+                            print(f"[CACHE-CHECK] {prop_name}: cache miss pero fuente=manual, usando cache viejo para _auto_result (preserva exclusion)")
+                            resultado = entrada_antigua.get('resultado_completo', {'valor_propiedad_usd': 0, 'comparables_venta': [], 'resolution_metadata': {'n_propiedades': 0}, '_cache': {'preview': True}})
                     _sl.mark("after_valuar_con_cache")
                     if not usar_cache:
                         n_comps = len(resultado.get('comparables_venta', []))
