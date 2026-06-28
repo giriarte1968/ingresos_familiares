@@ -1,6 +1,23 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-06-27 — Fix circular reference + UnboundLocalError + reset_all test
+
+### Problema
+1. `persistir_valuacion(commit=True)` fallaba con `Circular reference detected` por `resultado['_auto_result'] = resultado` (auto-referencia en dict). `json.dump` no podía serializar, la excepción se tragaba silenciosamente, y `_ultima_valuacion` no se actualizaba.
+2. `UnboundLocalError: cannot access local variable 'retro_active'` — las variables `retro_active`, `flex_active`, `retro_meses` solo se asignaban en el `else` del bloque re-entry, pero se usaban en el print de línea 619 después del `if`.
+3. Test `test_preview_cache_no_afecta_ultima_valuacion` dejaba residuo `__test_preview_no_uv__` sin `id` en `propiedades.json`, causando `StreamlitDuplicateElementKey`.
+4. No existía test de regresión para el botón "Restablecer todos".
+
+### Cambios
+1. **`parsers/valuacion_cache.py:144-202`**: `persistir_valuacion` ahora hace stash de `_auto_result`, `_manual_result`, `_manual_params` antes de serializar a JSON y los restaura después. Evita circular reference en `json.dump`.
+2. **`valu.py:602-617`**: Asignar `retro_active`, `flex_active`, `retro_meses` también en el `if` branch del bloque re-entry, no solo en el `else`.
+3. **`tests/test_regression.py:613-667`**: Test `test_preview_cache_no_afecta_ultima_valuacion` usa `copy.deepcopy` para `props_bak` y escribe `props_temp` en lugar de mutar el backup in-place.
+4. **`parsers/valuacion_cache.py:174-190`**: Eliminado carry-forward de `_comp_excluded` desde old UV. Si el nuevo `resultado` no tiene `_comp_excluded`, la exclusión se limpia intencionalmente (fresh calc, reset_all). Antes el carry-forward re-aplicaba la exclusión vieja, rompiendo "Restablecer todos" en visitas subsecuentes.
+5. **`tests/test_regression.py:730-790`**: Nuevo test `test_reset_all_limpia_exclusion` (RO-CACHE-PREVIEW-04): verifica que `persistir_valuacion(commit=True)` sin `_comp_excluded` limpia la exclusión incluso cuando la UV previa la tenía.
+
+### Tests: 41/41 regression OK, auto_validate OK
+
 ## 2026-06-27 — Fix persist preview cache + Pendiente preserva preview valido + RO-CACHE-PREVIEW
 
 ### Problema

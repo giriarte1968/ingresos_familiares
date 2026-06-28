@@ -173,8 +173,10 @@ def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict, c
                             
                             old_uv = p.get('_ultima_valuacion', {})
                             new_excluded = resultado.get('_comp_excluded')
-                            if new_excluded is None and old_uv.get('_comp_exclusion_applied'):
-                                new_excluded = old_uv.get('_comp_excluded')
+                            # NOTA: NO carry forward from old UV. If the new resultado
+                            # doesn't specify _comp_excluded, the exclusion is intentionally
+                            # cleared (fresh calc, reset_all, etc.). Only explicit keys on
+                            # resultado are used.
                             p['_ultima_valuacion'] = {
                                 'valor_usd': resultado.get('valor_propiedad_usd'),
                                 'alquiler_ars': resultado.get('alquiler_estimado_ars'),
@@ -187,7 +189,7 @@ def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict, c
                                 'fuente': resultado.get('fuente', 'auto'),
                                 'manual_params': resultado.get('manual_params'),
                                 '_comp_excluded': new_excluded,
-                                '_comp_exclusion_applied': old_uv.get('_comp_exclusion_applied', False) if new_excluded else resultado.get('_comp_exclusion_applied', False),
+                                '_comp_exclusion_applied': resultado.get('_comp_exclusion_applied', False),
                             }
                             if old_uv.get('manual_params'):
                                 p['_ultima_valuacion']['valor_usd'] = old_uv.get('valor_usd', p['_ultima_valuacion']['valor_usd'])

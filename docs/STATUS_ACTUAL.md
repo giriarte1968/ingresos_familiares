@@ -1,6 +1,6 @@
 ﻿# 🏠 STATUS ACTUAL DEL PROYECTO — AVM Rosario
 
-*Actualizado: 27/06/2026 (Fix persist cache preview + RO-CACHE-PREVIEW)*
+*Actualizado: 27/06/2026 (Fix circular ref + UnboundLocalError + reset_all test)*
 
 ---
 
@@ -15,7 +15,7 @@
 | Matching catastral (acentos/ñ) | ✅ Normalización NFKD en `_token_contenido` (TAREA-024) |
 | Persistencia DO | ✅ Atómica + branch `do-state` |
 | Landing page | ✅ Navegación por teclado (PageDown/PageUp/Home/End) |
-| Tests regresión | ✅ 40/40 (RO-CACHE-PREVIEW-01 a 03: persist preview + Pendiente preserva válido) |
+| Tests regresión | ✅ 41/41 (RO-CACHE-PREVIEW-01 a 04: persist preview + Pendiente preserva válido + reset_all) |
 | Tests persistencia | ✅ 16/16 |
 | Despliegue DO | Sin redeploy loop |
 | Anclas grilla 400m | 322 microzonas, 96% cobertura (TAREA-036) |

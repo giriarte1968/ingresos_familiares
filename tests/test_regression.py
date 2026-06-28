@@ -725,3 +725,78 @@ def test_pendiente_preserva_preview_valido():
         cache_clean = cargar_cache_valuaciones()
         cache_clean.pop(nombre_test, None)
         guardar_cache_valuaciones(cache_clean)
+
+
+# ──────────────────────────────────────────────
+# RO-CACHE-PREVIEW-04: Restablecer todos limpia exclusion
+# ──────────────────────────────────────────────
+
+def test_reset_all_limpia_exclusion():
+    """RO-CACHE-PREVIEW-04: La logica de 'Restablecer todos' debe limpiar
+    _comp_excluded de _ultima_valuacion al persistir con commit=True,
+    incluso cuando el _ultima_valuacion previo tenia exclusion aplicada."""
+    from parsers.valuacion_cache import persistir_valuacion, cargar_cache_valuaciones, guardar_cache_valuaciones
+    import json, copy
+
+    nombre_test = '__test_reset_exclusion__'
+    cache_bak = cargar_cache_valuaciones()
+    if nombre_test in cache_bak:
+        del cache_bak[nombre_test]
+        guardar_cache_valuaciones(cache_bak)
+
+    # Backup propiedades.json (deep copy)
+    with open('propiedades.json', 'r', encoding='utf-8') as f:
+        props_bak = copy.deepcopy(json.load(f))
+
+    try:
+        # 1. Agregar propiedad temporal con _ultima_valuacion que tiene exclusion
+        props_temp = copy.deepcopy(props_bak)
+        props_temp['propiedades'].append({
+            'nombre': nombre_test,
+            'm2_cubiertos': 50, 'lat': -32.95, 'lon': -60.63,
+            '_ultima_valuacion': {
+                'valor_usd': 100000,
+                'comps': 5,
+                'fecha': '26/06/2026 12:00',
+                '_comp_excluded': ['comp1', 'comp2'],
+                '_comp_exclusion_applied': True,
+            }
+        })
+        with open('propiedades.json', 'w', encoding='utf-8') as f:
+            json.dump(props_temp, f, ensure_ascii=False, indent=2)
+
+        # 2. Simular reset: persistir resultado SIN exclusion
+        prop = {'nombre': nombre_test, 'm2_cubiertos': 50, 'lat': -32.95, 'lon': -60.63}
+        cache = cargar_cache_valuaciones()
+        resultado_reset = {
+            'valor_propiedad_usd': 110000,
+            'm2_base_venta': 2200,
+            'comparables_venta': [{'id': 'c1'}, {'id': 'c2'}, {'id': 'c3'}],
+            'resolution_metadata': {'n_propiedades': 3, 'fecha_ref': '2026-06-27'},
+            '_cache': {'preview': False},
+            # NO tiene _comp_excluded ni _comp_exclusion_applied (simula reset)
+        }
+
+        persistir_valuacion(nombre_test, prop, resultado_reset, cache, commit=True)
+
+        # 3. Verificar que _ultima_valuacion NO tenga exclusion
+        with open('propiedades.json', 'r', encoding='utf-8') as f:
+            props_check = json.load(f)
+        for p in props_check['propiedades']:
+            if p['nombre'] == nombre_test:
+                uv = p.get('_ultima_valuacion', {})
+                assert uv.get('valor_usd') == 110000, \
+                    f"valor_usd debe ser 110000, encontrado: {uv.get('valor_usd')}"
+                assert uv.get('_comp_excluded') is None or uv.get('_comp_excluded') == [], \
+                    f"_comp_excluded debe ser None/[], encontrado: {uv.get('_comp_excluded')}"
+                assert uv.get('_comp_exclusion_applied') is False or uv.get('_comp_exclusion_applied') is None, \
+                    f"_comp_exclusion_applied debe ser False/None, encontrado: {uv.get('_comp_exclusion_applied')}"
+                break
+    finally:
+        # Restaurar propiedades original
+        with open('propiedades.json', 'w', encoding='utf-8') as f:
+            json.dump(props_bak, f, ensure_ascii=False, indent=2)
+        # Limpiar cache
+        cache_clean = cargar_cache_valuaciones()
+        cache_clean.pop(nombre_test, None)
+        guardar_cache_valuaciones(cache_clean)
