@@ -1,6 +1,20 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-06-28 — TAREA-074: Dual Valuation Dashboard + fix manual_data contamination
+
+### Problema
+1. Click en "Por Comparables" borraba toda la valuación. Causa raíz: `valu.py:649` pasaba `manual_data` a `valuar_con_cache` **siempre**, incluso con `fuente_activa='auto'`. `persistir_valuacion` aplicaba `manual_data` a `propiedades.json` → contaminación de datos → recálculo erróneo.
+2. Botones de toggle escribían a disco (`_set_fuente_activa` → `guardar_propiedades`) en cada click, causando race conditions y bloqueos de archivos en Windows.
+
+### Cambios
+1. **`valu_detail_sections.py`**: Reemplazados botones de toggle por **Dual Valuation Cards** — dos tarjetas lado a lado (Auto/Manual) que muestran valor, comps y delta. Click solo actualiza `session_state`, sin I/O a disco.
+2. **`valu.py`**: `fuente_activa` se resuelve priorizando `session_state` → `_ultima_valuacion` → default `'auto'`.
+3. **`valu.py`**: `manual_data` solo se pasa a `valuar_con_cache` si `fuente_activa_saved == 'manual'`.
+4. **`valuacion_cache.py`**: `fuente_activa` agregado al dict base de `_ultima_valuacion` en `persistir_valuacion`.
+
+### Tests: 42/42 regression OK, auto_validate OK
+
 ## 2026-06-27 — RO-CACHE-PREVIEW-05: test retorno portfolio + fix carry-forward exclusion
 
 ### Problema

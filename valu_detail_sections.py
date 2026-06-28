@@ -177,24 +177,45 @@ def render_header(prop, res):
 
     zona = prop.get('zona', 'Oeste')
 
-    # ─── Toggle Pills ───
+    # ─── Dual Valuation Cards ───
     tiene_auto = auto_result.get('m2_base_venta', 0) > 0
     tiene_manual = manual_result is not None
 
-    pill_key = f'fuente_activa_{nombre}'
-    col_toggle = st.columns([1, 1, 4])
+    v_auto = auto_result.get('valor_propiedad_usd', 0) if auto_result else 0
+    v_manual = manual_result.get('valor_propiedad_usd', 0) if manual_result else 0
+    n_comps_auto = (auto_result.get('resolution_metadata') or {}).get('n_propiedades', 0) if auto_result else 0
+    dolar = display.get('usdt_ars', 1480)
+
+    card_key = f'fuente_cards_{nombre}'
+    col_toggle = st.columns([1, 1])
     with col_toggle[0]:
-        if st.button("● Por Comparables", type="primary",
-                     use_container_width=True, disabled=not tiene_auto,
-                     key=f"{pill_key}_auto"):
-            _set_fuente_activa(nombre, 'auto')
+        is_active = not es_manual
+        if st.button(f"● Por Comparables",
+                     key=f"{card_key}_auto",
+                     use_container_width=True,
+                     type="primary" if is_active else "secondary",
+                     disabled=not tiene_auto):
+            st.session_state[f'fuente_activa_{nombre}'] = 'auto'
             st.rerun()
+        # Valor y métrica debajo del botón
+        auto_valor_str = f"${v_auto:,.0f}" if v_auto else "—"
+        auto_comps_str = f"{n_comps_auto} comparables"
+        st.markdown(f"<div style='text-align:center;margin-top:-8px;'><span style='font-size:20px;font-weight:700;'>{auto_valor_str}</span><br><span style='font-size:12px;color:#6B7280;'>{auto_comps_str}</span></div>", unsafe_allow_html=True)
+
     with col_toggle[1]:
-        if st.button("○ Manual", type="primary",
-                     use_container_width=True, disabled=not tiene_manual,
-                     key=f"{pill_key}_manual"):
-            _set_fuente_activa(nombre, 'manual')
+        is_active = es_manual
+        if st.button(f"○ Manual",
+                     key=f"{card_key}_manual",
+                     use_container_width=True,
+                     type="primary" if is_active else "secondary",
+                     disabled=not tiene_manual):
+            st.session_state[f'fuente_activa_{nombre}'] = 'manual'
             st.rerun()
+        # Valor y delta debajo del botón
+        manual_valor_str = f"${v_manual:,.0f}" if v_manual else "—"
+        delta_str = f"{delta_pct:+.1f}%" if abs(delta_pct) > 0.01 else "—"
+        delta_color = "#DC2626" if delta_pct > 10 else "#16A34A" if delta_pct < -10 else "#6B7280"
+        st.markdown(f"<div style='text-align:center;margin-top:-8px;'><span style='font-size:20px;font-weight:700;'>{manual_valor_str}</span><br><span style='font-size:12px;color:{delta_color};'>vs Auto: {delta_str}</span></div>", unsafe_allow_html=True)
 
     # ─── Alertas de divergencia ───
     if tiene_manual and not es_manual and abs(delta_pct) > 10:

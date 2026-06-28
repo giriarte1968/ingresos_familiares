@@ -1,6 +1,6 @@
 ﻿# 🏠 STATUS ACTUAL DEL PROYECTO — AVM Rosario
 
-*Actualizado: 27/06/2026 (RO-CACHE-PREVIEW-05: valuación persiste retorno portfolio)*
+*Actualizado: 28/06/2026 (TAREA-074: Dual Valuation Dashboard + fix manual_data contamination)*
 
 ---
 
@@ -15,7 +15,7 @@
 | Matching catastral (acentos/ñ) | ✅ Normalización NFKD en `_token_contenido` (TAREA-024) |
 | Persistencia DO | ✅ Atómica + branch `do-state` |
 | Landing page | ✅ Navegación por teclado (PageDown/PageUp/Home/End) |
-| Tests regresión | ✅ 42/42 (RO-CACHE-PREVIEW-01 a 05: persist preview + Pendiente preserva válido + reset_all + retorno portfolio) |
+| Tests regresión | ✅ 42/42 (RO-CACHE-PREVIEW-01 a 05 + Dual Valuation Cards) |
 | Tests persistencia | ✅ 16/16 |
 | Despliegue DO | Sin redeploy loop |
 | Anclas grilla 400m | 322 microzonas, 96% cobertura (TAREA-036) |

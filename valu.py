@@ -503,9 +503,9 @@ def mostrar_dashboard():
                 st.session_state.pop(f'flex_btn_{prop_name}', None)
                 st.rerun()
 
-            # Solo aplicar preview manual si la fuente guardada en disco es 'manual'
+            # Solo aplicar preview manual si la fuente activa es 'manual'
             uv_saved = p_obj.get('_ultima_valuacion', {}) or {}
-            fuente_activa_saved = uv_saved.get('fuente_activa', 'auto')
+            fuente_activa_saved = st.session_state.get(f'fuente_activa_{prop_name}', uv_saved.get('fuente_activa', 'auto'))
             if fuente_activa_saved == 'manual':
                 manual_preview = st.session_state.get(f'manual_preview_{prop_name}', {})
                 if manual_preview:
@@ -646,7 +646,8 @@ def mostrar_dashboard():
                         print(f"[CACHE-CHECK] {prop_name}: cache RECHAZADO por: {', '.join(fallo_por)}")
                     if not usar_cache:
                         print(f"[CACHE-CHECK] {prop_name}: llamando valuar_con_cache (forzar={forzar}, preview={preview_mode}, retro={retro_dias}, flex={flex_dormitorios})")
-                        resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios, preview=preview_mode, manual_data=st.session_state.get(f'manual_preview_{prop_name}', None))
+                        manual_data_to_pass = st.session_state.get(f'manual_preview_{prop_name}', None) if fuente_activa_saved == 'manual' else None
+                        resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios, preview=preview_mode, manual_data=manual_data_to_pass)
                         print(f"[CACHE-CHECK] {prop_name}: valuar_con_cache retorno: error={resultado.get('error')}, valor={resultado.get('valor_propiedad_usd')}, n_comps={len(resultado.get('comparables_venta',[])) if resultado.get('comparables_venta') else 0}, cache_preview={resultado.get('_cache',{}).get('preview')}")
                     _sl.mark("after_valuar_con_cache")
                     if not usar_cache:
