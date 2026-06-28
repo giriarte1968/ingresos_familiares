@@ -129,6 +129,14 @@ PORTFOLIO2_CSS = """
     letter-spacing: -0.045em;
     margin: 16px 0 4px 0;
 }
+.p2-price-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748B;
+    letter-spacing: 0;
+    vertical-align: middle;
+    margin-left: 6px;
+}
 .p2-card-metrics {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -338,11 +346,19 @@ def _build_rows(propiedades: list[dict[str, Any]], resultados: dict[str, dict], 
         res = resultados.get(nombre, {}) or {}
         meta = res.get("resolution_metadata", {}) or {}
         estado = estados.get(nombre, {}) or {}
+        ultima = prop.get('_ultima_valuacion', {}) or {}
 
         valor = float(res.get("valor_propiedad_usd", 0) or 0)
         alquiler = float(res.get("alquiler_estimado_ars", 0) or 0)
         cap_rate = float(res.get("cap_rate", 0) or 0)
         comps = int(meta.get("n_propiedades", meta.get("n_filtradas", 0)) or 0)
+
+        # Dual values: auto (comparables) and manual
+        cache_meta = res.get('_cache', {}) or {}
+        auto_valor_usd = float(cache_meta.get('auto_valor_usd', 0) or ultima.get('auto_valor_usd', 0) or 0)
+        manual_valor_usd = float(cache_meta.get('manual_valor_usd', 0) or ultima.get('manual_valor_usd', 0) or 0)
+        if not auto_valor_usd:
+            auto_valor_usd = valor  # fallback: main value is auto
 
         if comps >= 15:
             conf_label, conf_badge = "Alta", "green"
@@ -364,6 +380,8 @@ def _build_rows(propiedades: list[dict[str, Any]], resultados: dict[str, dict], 
             "lat": prop.get("lat"),
             "lon": prop.get("lon"),
             "valor_usd": valor,
+            "auto_valor_usd": auto_valor_usd,
+            "manual_valor_usd": manual_valor_usd,
             "alquiler_ars": alquiler,
             "cap_rate": cap_rate,
             "comps": comps,
@@ -570,13 +588,23 @@ def _render_cards(rows: list[dict[str, Any]], page_size: int) -> None:
         for col, row in zip(cols, page_rows[idx:idx + 3]):
             with col:
                 badges = _badge(row["estado_label"], row["estado_badge"]) + _badge(f"Confianza {row['conf_label']}", row["conf_badge"])
+                auto_val = float(row.get('auto_valor_usd', 0) or 0)
+                manual_val = float(row.get('manual_valor_usd', 0) or 0)
+                has_manual = manual_val > 0
+                price_html = f"""
+                    <div class="p2-price">{_fmt_usd(auto_val)} <span class="p2-price-label">Comparables</span></div>
+                """ + (f"""
+                    <div class="p2-price" style="color:#006AFF;">{_fmt_usd(manual_val)} <span style="font-size:11px;font-weight:400;color:#006AFF;opacity:0.7;">Manual</span></div>
+                """ if has_manual else f"""
+                    <div class="p2-price">{_fmt_usd(row['valor_usd'])}</div>
+                """)
                 st.markdown(f"""
                 <div class="p2-property-card">
                     <div>{badges}</div>
                     <div class="p2-property-title">{row['nombre']}</div>
                     <div class="p2-muted">{row['zona']} · {row['tipo']} · {row['dormitorios']} dorm.</div>
                     <div class="p2-muted">{row['direccion']}</div>
-                    <div class="p2-price">{_fmt_usd(row['valor_usd'])}</div>
+                    {price_html}
                     <div class="p2-muted">{row['comps']} comparables · {row['estado_detalle']}</div>
                     <div class="p2-card-metrics">
                         <div class="p2-mini-metric"><div class="p2-mini-label">Alquiler</div><div class="p2-mini-value">{_fmt_ars(row['alquiler_ars'])}</div></div>

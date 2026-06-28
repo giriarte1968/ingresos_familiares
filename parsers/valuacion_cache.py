@@ -156,6 +156,14 @@ def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict, c
                 if k in resultado:
                     stashed[k] = resultado.pop(k)
 
+            # Extract scalar auto/manual values for portfolio display
+            auto_valor_usd = stashed.get('_auto_result', {}).get('valor_propiedad_usd', 0) or 0
+            manual_valor_usd = stashed.get('_manual_result', {}).get('valor_propiedad_usd', 0) or 0
+            if '_auto_result' not in stashed and not auto_valor_usd:
+                auto_valor_usd = resultado.get('valor_propiedad_usd', 0) or 0
+            resultado['_cache']['auto_valor_usd'] = auto_valor_usd
+            resultado['_cache']['manual_valor_usd'] = manual_valor_usd
+
             # ── 1. Actualizar cache en memoria (siempre) ──
             cache[nombre] = {
                 "timestamp": datetime.now().isoformat(),
@@ -187,6 +195,8 @@ def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict, c
                             # resultado are used.
                             p['_ultima_valuacion'] = {
                                 'valor_usd': resultado.get('valor_propiedad_usd'),
+                                'auto_valor_usd': auto_valor_usd,
+                                'manual_valor_usd': manual_valor_usd,
                                 'alquiler_ars': resultado.get('alquiler_estimado_ars'),
                                 'cap_rate': resultado.get('cap_rate'),
                                 'm2_equivalentes': resultado.get('m2_equivalentes'),
