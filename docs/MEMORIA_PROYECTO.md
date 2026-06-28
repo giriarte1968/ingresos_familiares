@@ -90,6 +90,8 @@ El modelo es Data-Driven: los precios emergen del mercado real
 
 **RO-CACHE-PREVIEW-04 (forzar_recalculo SE LIMPIA POST-EXCLUSIÓN):** Después de `persistir_valuacion(commit=True)` en el bloque de exclusión de comparables ("Aplicar selección"), la key `forzar_recalculo_{prop_name}` debe eliminarse de `st.session_state` en un bloque `finally` para evitar recálculos infinitos en reruns posteriores.
 
+**RO-CACHE-PREVIEW-05 (VALUACIÓN PERSISTE EN RETORNO DE PORTFOLIO):** Una valuación oficial persistida con `persistir_valuacion(commit=True)` debe sobrevivir al flujo Detalle → Portfolio → Detalle. En re-entry, `obtener_resultado_cacheado` debe retornar el mismo `resultado_completo` con los mismos valores (`valor_propiedad_usd`, `m2_base_venta`, `comparables_venta`, `m2_equivalentes`). El cache NO debe tener `preview=True` para valuaciones oficiales. La `_ultima_valuacion` en `propiedades.json` debe estar presente con `valor_usd` y `comps` correctos. Ver test `test_valuacion_persiste_retorno_portfolio`.
+
 ---
 
 ## 3. ARQUITECTURA DE LA FÓRMULA DE VENTA (TAREA-073 — Modelo Base Puro)

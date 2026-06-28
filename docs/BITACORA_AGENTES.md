@@ -1,6 +1,19 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-06-27 — RO-CACHE-PREVIEW-05: test retorno portfolio + fix carry-forward exclusion
+
+### Problema
+1. El carry-forward de `_comp_excluded` desde `old_uv` en `persistir_valuacion` re-aplicaba la exclusión vieja en cada persistencia, incluso cuando el nuevo `resultado` era un cálculo fresco (reset_all, cambio de parámetros). En la práctica, "Restablecer todas" funcionaba en sesión pero la exclusión volvía al re-entrar desde Portfolio.
+2. No existía test que verificara el flujo completo: valuar → volver a Portfolio → re-entrar a la propiedad → misma valuación activa.
+
+### Cambios
+1. **`parsers/valuacion_cache.py:174-190`**: Eliminado carry-forward de `_comp_excluded` y `_comp_exclusion_applied` desde old UV. Ahora solo se usan los valores explícitos del nuevo `resultado`. Si el resultado no tiene estas keys, la exclusión se limpia. Ver RO-CACHE-PREVIEW-04 test `test_reset_all_limpia_exclusion`.
+2. **`tests/test_regression.py`**: Nuevo test `test_valuacion_persiste_retorno_portfolio` (RO-CACHE-PREVIEW-05): verifica que `persistir_valuacion(commit=True)` escribe UV + cache, y que `obtener_resultado_cacheado` en re-entry retorna los mismos valores (valor_usd, m2_base, comps, m2_equivalentes). Verifica también que el cache no tiene `preview=True`.
+3. **`docs/MEMORIA_PROYECTO.md`**: Agregada regla RO-CACHE-PREVIEW-05.
+
+### Tests: 42/42 regression OK (RO-CACHE-PREVIEW-01 a 05), auto_validate OK
+
 ## 2026-06-27 — Fix circular reference + UnboundLocalError + reset_all test
 
 ### Problema

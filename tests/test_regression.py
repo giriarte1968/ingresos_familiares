@@ -668,6 +668,97 @@ def test_preview_cache_no_afecta_ultima_valuacion():
 
 
 # ──────────────────────────────────────────────
+# RO-CACHE-PREVIEW-05: Valuacion persiste al volver de Portfolio
+# ──────────────────────────────────────────────
+
+def test_valuacion_persiste_retorno_portfolio():
+    """RO-CACHE-PREVIEW-05: Valuacion oficial persistida con commit=True
+    debe sobrevivir a una recarga desde cache (simula: Detalle → Portfolio → Detalle).
+    El resultado cacheado debe tener los mismos valores que el original,
+    y _ultima_valuacion debe estar presente en propiedades.json."""
+    from parsers.valuacion_cache import persistir_valuacion, cargar_cache_valuaciones, guardar_cache_valuaciones, obtener_resultado_cacheado
+    import json, copy
+    from datetime import datetime
+
+    nombre_test = '__test_portfolio_return__'
+    cache_bak = cargar_cache_valuaciones()
+    if nombre_test in cache_bak:
+        del cache_bak[nombre_test]
+        guardar_cache_valuaciones(cache_bak)
+
+    with open('propiedades.json', 'r', encoding='utf-8') as f:
+        props_bak = copy.deepcopy(json.load(f))
+
+    try:
+        # 1. Agregar propiedad temporal y valuarla con commit=True
+        hoy = datetime.now().strftime('%Y-%m-%d')
+        props_temp = copy.deepcopy(props_bak)
+        props_temp['propiedades'].append({
+            'nombre': nombre_test,
+            'm2_cubiertos': 50, 'lat': -32.95, 'lon': -60.63,
+        })
+        with open('propiedades.json', 'w', encoding='utf-8') as f:
+            json.dump(props_temp, f, ensure_ascii=False, indent=2)
+
+        prop = {'nombre': nombre_test, 'm2_cubiertos': 50, 'lat': -32.95, 'lon': -60.63}
+        cache = cargar_cache_valuaciones()
+        resultado_original = {
+            'valor_propiedad_usd': 125000,
+            'm2_base_venta': 2500,
+            'comparables_venta': [{'id': 'c1'}, {'id': 'c2'}, {'id': 'c3'}],
+            'resolution_metadata': {'n_propiedades': 3, 'fecha_ref': hoy},
+            'm2_equivalentes': 50,
+            '_cache': {'preview': False, 'retro_dias': 0, 'flex_dormitorios': None},
+        }
+
+        ok = persistir_valuacion(nombre_test, prop, resultado_original, cache, commit=True)
+        assert ok, "persistir_valuacion(commit=True) debe retornar True"
+
+        # 2. Verificar _ultima_valuacion creada correctamente
+        with open('propiedades.json', 'r', encoding='utf-8') as f:
+            props_check = json.load(f)
+        uv = None
+        for p in props_check['propiedades']:
+            if p['nombre'] == nombre_test:
+                uv = p.get('_ultima_valuacion')
+                break
+        assert uv is not None, "commit=True debe crear _ultima_valuacion"
+        assert uv.get('valor_usd') == 125000, \
+            f"UV valor_usd debe ser 125000, encontrado: {uv.get('valor_usd')}"
+        assert uv.get('comps') == 3, \
+            f"UV comps debe ser 3, encontrado: {uv.get('comps')}"
+
+        # 3. Simular re-entry desde Portfolio: cargar cache
+        cache2 = cargar_cache_valuaciones()
+        cached = obtener_resultado_cacheado(nombre_test, cache2)
+
+        assert cached, "Debe haber resultado cacheado en re-entry"
+        assert cached.get('valor_propiedad_usd') == 125000, \
+            f"Cache debe tener valor_usd=125000, encontrado: {cached.get('valor_propiedad_usd')}"
+        assert cached.get('m2_base_venta') == 2500
+        assert len(cached.get('comparables_venta', [])) == 3
+        assert cached.get('resolution_metadata', {}).get('n_propiedades') == 3
+        assert cached.get('m2_equivalentes') == 50
+
+        # 4. Verificar que el cache NO es preview (valuacion oficial)
+        cache_meta = cached.get('_cache', {})
+        assert cache_meta.get('preview') is not True, \
+            "Valuacion oficial no debe tener preview=True en cache"
+
+        # 5. Verificar coincidencia fecha_ref
+        cached_fecha = cached.get('resolution_metadata', {}).get('fecha_ref', '')
+        assert cached_fecha == hoy, \
+            f"fecha_ref del cache ({cached_fecha}) debe coincidir con hoy ({hoy})"
+
+    finally:
+        with open('propiedades.json', 'w', encoding='utf-8') as f:
+            json.dump(props_bak, f, ensure_ascii=False, indent=2)
+        cache_clean = cargar_cache_valuaciones()
+        cache_clean.pop(nombre_test, None)
+        guardar_cache_valuaciones(cache_clean)
+
+
+# ──────────────────────────────────────────────
 # RO-CACHE-PREVIEW-03: Pendiente no limpia preview valido
 # ──────────────────────────────────────────────
 
