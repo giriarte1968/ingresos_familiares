@@ -670,9 +670,10 @@ def mostrar_dashboard():
                     _sl.mark("after_manual_parallel")
 
                     # Determinar fuente activa (default 'auto' si no hay manual)
-                    fuente_activa = uv.get('fuente_activa', 'auto')
+                    fuente_activa = st.session_state.get(f'fuente_activa_{prop_name}', uv.get('fuente_activa', 'auto'))
                     if not manual_params_saved:
                         fuente_activa = 'auto'
+                    print(f"[DEBUG-FUENTE] {prop_name}: fuente_activa resuelta={fuente_activa}, session_state={st.session_state.get(f'fuente_activa_{prop_name}', 'NO_SET')}, uv_disk={uv.get('fuente_activa', 'NO_UV')}")
 
                     # Inyectar datos paralelos para que la UI elija qué mostrar
                     resultado['_auto_result'] = resultado

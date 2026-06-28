@@ -125,7 +125,7 @@ def _set_fuente_activa(nombre, fuente):
 
 
 def render_header(prop, res):
-    """Hero con badges, titulo, confianza, precio y toggle Automática/Manual."""
+    """Hero con badges, titulo, confianza, precio y selector de fuente (Auto/Manual)."""
     from datetime import datetime
     nombre = prop.get('nombre', '')
 
@@ -134,6 +134,8 @@ def render_header(prop, res):
     manual_result = res.get('_manual_result')
     manual_params = res.get('_manual_params') or {}
     fuente_activa = res.get('_fuente_activa', 'auto')
+
+    print(f"[DEBUG-HEADER] {nombre}: render_header inicio, fuente_activa={fuente_activa}, auto_valor={auto_result.get('valor_propiedad_usd','N/A') if auto_result else 'N/A'}, manual_valor={manual_result.get('valor_propiedad_usd','N/A') if manual_result else 'N/A'}")
 
     # Valor activo según fuente
     if fuente_activa == 'manual' and manual_result:
@@ -184,38 +186,48 @@ def render_header(prop, res):
     v_auto = auto_result.get('valor_propiedad_usd', 0) if auto_result else 0
     v_manual = manual_result.get('valor_propiedad_usd', 0) if manual_result else 0
     n_comps_auto = (auto_result.get('resolution_metadata') or {}).get('n_propiedades', 0) if auto_result else 0
-    dolar = display.get('usdt_ars', 1480)
+    auto_active = not es_manual
+    manual_active = es_manual
 
     card_key = f'fuente_cards_{nombre}'
     col_toggle = st.columns([1, 1])
     with col_toggle[0]:
-        is_active = not es_manual
-        if st.button(f"● Por Comparables",
-                     key=f"{card_key}_auto",
-                     use_container_width=True,
-                     type="primary" if is_active else "secondary",
-                     disabled=not tiene_auto):
+        border_auto = '2px solid #16A34A' if auto_active else '1px solid #E5E7EB'
+        bg_auto = '#F0FDF4' if auto_active else '#FFFFFF'
+        shadow_auto = '0 2px 8px rgba(22,163,74,0.12)' if auto_active else '0 1px 3px rgba(0,0,0,0.06)'
+        st.markdown(f"""
+        <div style="border:{border_auto};border-radius:12px;padding:16px;background:{bg_auto};box-shadow:{shadow_auto};text-align:center;">
+            <div style="font-size:12px;font-weight:600;color:#16A34A;margin-bottom:4px;">POR COMPARABLES</div>
+            <div style="font-size:24px;font-weight:700;color:#1A2B5C;">{f'${v_auto:,.0f}' if v_auto else '—'}</div>
+            <div style="font-size:12px;color:#6B7280;margin-bottom:12px;">{n_comps_auto} comparables</div>
+        </div>
+        """, unsafe_allow_html=True)
+        btn_auto_label = "✓ Activo" if auto_active else "Activar"
+        if st.button(btn_auto_label, key=f"{card_key}_auto", use_container_width=True,
+                     type="primary" if auto_active else "secondary", disabled=not tiene_auto):
+            print(f"[DEBUG-CARD] {nombre}: click en card AUTO, seteando fuente_activa=auto")
             st.session_state[f'fuente_activa_{nombre}'] = 'auto'
             st.rerun()
-        # Valor y métrica debajo del botón
-        auto_valor_str = f"${v_auto:,.0f}" if v_auto else "—"
-        auto_comps_str = f"{n_comps_auto} comparables"
-        st.markdown(f"<div style='text-align:center;margin-top:-8px;'><span style='font-size:20px;font-weight:700;'>{auto_valor_str}</span><br><span style='font-size:12px;color:#6B7280;'>{auto_comps_str}</span></div>", unsafe_allow_html=True)
 
     with col_toggle[1]:
-        is_active = es_manual
-        if st.button(f"○ Manual",
-                     key=f"{card_key}_manual",
-                     use_container_width=True,
-                     type="primary" if is_active else "secondary",
-                     disabled=not tiene_manual):
-            st.session_state[f'fuente_activa_{nombre}'] = 'manual'
-            st.rerun()
-        # Valor y delta debajo del botón
-        manual_valor_str = f"${v_manual:,.0f}" if v_manual else "—"
+        border_manual = '2px solid #7C3AED' if manual_active else '1px solid #E5E7EB'
+        bg_manual = '#F5F3FF' if manual_active else '#FFFFFF'
+        shadow_manual = '0 2px 8px rgba(124,58,237,0.12)' if manual_active else '0 1px 3px rgba(0,0,0,0.06)'
         delta_str = f"{delta_pct:+.1f}%" if abs(delta_pct) > 0.01 else "—"
         delta_color = "#DC2626" if delta_pct > 10 else "#16A34A" if delta_pct < -10 else "#6B7280"
-        st.markdown(f"<div style='text-align:center;margin-top:-8px;'><span style='font-size:20px;font-weight:700;'>{manual_valor_str}</span><br><span style='font-size:12px;color:{delta_color};'>vs Auto: {delta_str}</span></div>", unsafe_allow_html=True)
+        st.markdown(f"""
+        <div style="border:{border_manual};border-radius:12px;padding:16px;background:{bg_manual};box-shadow:{shadow_manual};text-align:center;">
+            <div style="font-size:12px;font-weight:600;color:#7C3AED;margin-bottom:4px;">MANUAL</div>
+            <div style="font-size:24px;font-weight:700;color:#1A2B5C;">{f'${v_manual:,.0f}' if v_manual else '—'}</div>
+            <div style="font-size:12px;color:{delta_color};margin-bottom:12px;">vs Auto: {delta_str}</div>
+        </div>
+        """, unsafe_allow_html=True)
+        btn_manual_label = "✓ Activo" if manual_active else "Activar"
+        if st.button(btn_manual_label, key=f"{card_key}_manual", use_container_width=True,
+                     type="primary" if manual_active else "secondary", disabled=not tiene_manual):
+            print(f"[DEBUG-CARD] {nombre}: click en card MANUAL, seteando fuente_activa=manual")
+            st.session_state[f'fuente_activa_{nombre}'] = 'manual'
+            st.rerun()
 
     # ─── Alertas de divergencia ───
     if tiene_manual and not es_manual and abs(delta_pct) > 10:
