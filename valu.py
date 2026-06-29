@@ -741,10 +741,10 @@ def mostrar_dashboard():
                             if resultado.get('_comp_excluded') is not None:
                                 excluded_ids = resultado['_comp_excluded']
                                 print(f"[DEBUG-EXCL] {prop_name}: desde resultado._comp_excluded: {len(excluded_ids)} excluidos")
-                            elif p_obj.get('_ultima_valuacion', {}).get('_comp_exclusion_applied'):
+                            elif not preview_mode and p_obj.get('_ultima_valuacion', {}).get('_comp_exclusion_applied'):
                                 excluded_ids = p_obj['_ultima_valuacion'].get('_comp_excluded', [])
                                 from_apply = True
-                                print(f"[APPLY] {prop_name}: Restaurando exclusión desde _ultima_valuacion, {len(excluded_ids)} comps excluidos")
+                                print(f"[APPLY] {prop_name}: Restaurando exclusión desde _ultima_valuacion, {len(excluded_ids)} comps excluidos, preview_mode={preview_mode}")
                             else:
                                 print(f"[DEBUG-EXCL] {prop_name}: sin exclusion previa, excluded_ids=None")
                         if excluded_ids is not None:
@@ -829,6 +829,8 @@ def mostrar_dashboard():
                                             del st.session_state[f'forzar_recalculo_{prop_name}']
                                             print(f"[DEBUG-FLOW] {prop_name}: forzar_recalculo limpiado post-persist")
                                 else:
+                                    if preview_mode:
+                                        print(f"[DEBUG-PERSIST-SKIP] {prop_name}: preview activo, NO persiste (from_apply={from_apply}, excluded={excluded_ids})")
                                     resultado['_comp_exclusion_applied'] = False
 
                 with profile_block("mostrar_detalle_valu_total", p_obj):

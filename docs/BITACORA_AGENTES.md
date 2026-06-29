@@ -1,6 +1,18 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-06-28 — TAREA-089: Preview mode no persiste valuación vía exclusión restaurada
+
+### Problema
+Cuando una propiedad tenía `_comp_exclusion_applied=True` en UV (por "Aplicar selección" previo) y el usuario activaba Retro/Flex (preview mode), el flujo en `valu.py:744-746` setea `from_apply=True` automáticamente por la restauración de exclusión desde UV. Esto provocaba que las líneas 814-822 persistieran el nuevo valor de preview a `_ultima_valuacion` con `commit=True`, sin que el usuario hubiera clickeado "Aplicar selección".
+
+### Cambios
+1. **`valu.py:744`**: Agregado `not preview_mode` al `elif` de restauración desde UV → `from_apply` solo se setea fuera de preview mode.
+2. **`valu.py:831-832`**: Agregado `[DEBUG-PERSIST-SKIP]` para registrar cuándo se saltea persistencia en preview.
+
+### Commits
+_(pendiente: fix + push)_
+
 ## 2026-06-28 — TAREA-088: Fix "🔄 Limpiar" no borra valuación manual
 
 ### Problema

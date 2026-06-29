@@ -52,14 +52,21 @@
       "expensas_ars": 90000,
       "id": 9,
       "_ultima_valuacion": {
-        "valor_usd": 68385.0,
-        "alquiler_ars": 517324.0,
-        "cap_rate": 0.0598,
+        "valor_usd": 83851.0,
+        "auto_valor_usd": 83851.0,
+        "manual_valor_usd": 0,
+        "alquiler_ars": 566492.0,
+        "cap_rate": 0.052,
         "m2_equivalentes": 42.3035,
-        "comps": 21,
-        "fecha": "05/06/2026 16:09",
-        "cache_version": "v5_zonificada",
-        "timestamp": "2026-06-05T16:09:27.547506"
+        "comps": 22,
+        "fecha": "28/06/2026 21:31",
+        "cache_version": "v7_retro_cache_fix",
+        "timestamp": "2026-06-28T21:31:14.598360",
+        "fuente": "auto",
+        "fuente_activa": "auto",
+        "manual_params": null,
+        "_comp_excluded": [],
+        "_comp_exclusion_applied": true
       }
     },
     {
@@ -244,14 +251,21 @@
       "distancia_ancla_km": 0.39,
       "geocode_status": "no_snap",
       "_ultima_valuacion": {
-        "valor_usd": 132430.0,
-        "alquiler_ars": 734943.0,
-        "cap_rate": 0.0556,
+        "valor_usd": 158597.0,
+        "auto_valor_usd": 158597.0,
+        "manual_valor_usd": 0,
+        "alquiler_ars": 944593.0,
+        "cap_rate": 0.0581,
         "m2_equivalentes": 88.85,
-        "comps": 8,
-        "fecha": "05/06/2026 16:09",
-        "cache_version": "v5_zonificada",
-        "timestamp": "2026-06-05T16:09:02.521551"
+        "comps": 23,
+        "fecha": "28/06/2026 21:23",
+        "cache_version": "v7_retro_cache_fix",
+        "timestamp": "2026-06-28T21:23:41.793268",
+        "fuente": "auto",
+        "fuente_activa": "auto",
+        "manual_params": null,
+        "_comp_excluded": [],
+        "_comp_exclusion_applied": true
       }
     },
     {
