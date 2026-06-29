@@ -93,6 +93,19 @@ def _limpiar_estado_propiedad(nombre: str) -> None:
     claves_a_borrar = [k for k in st.session_state.keys() if k.startswith(sufixo)]
     for k in claves_a_borrar:
         del st.session_state[k]
+    # Destruir preview cache en disco al salir (memoria de trabajo no persiste)
+    try:
+        from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
+        _c = cargar_cache_valuaciones()
+        _entry = _c.get(nombre, {})
+        if _entry:
+            _rc = _entry.get('resultado_completo', {}) or {}
+            if _rc.get('_cache', {}).get('preview', False):
+                del _c[nombre]
+                guardar_cache_valuaciones(_c)
+                print(f"[DEBUG-CLEANUP] {nombre}: preview cache destruido del disco al salir")
+    except Exception as e:
+        print(f"[DEBUG-CLEANUP] Error limpiando preview cache de {nombre}: {e}")
 
 def _limpiar_y_borrar_cache_si_hay_manuales(nombre: str) -> None:
     """Soportar la logica de 'Limpiar Valuacion' al navegar fuera si hay cambios manuales."""
@@ -357,8 +370,11 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                     st.session_state[f'preview_mode_{prop_name}'] = True
                     st.session_state.pop(f'comp_selection_{prop_name}', None)
                     st.session_state.pop(f'comp_excluded_{prop_name}', None)
-                st.slider("Meses atrás", 12, 60, value=36,
-                          key=f'retro_meses_slider_{prop_name}', on_change=_on_retro_slider_change)
+                _slider_key = f'retro_meses_slider_{prop_name}'
+                if _slider_key not in st.session_state:
+                    st.session_state[_slider_key] = 36
+                st.slider("Meses atrás", 12, 60,
+                          key=_slider_key, on_change=_on_retro_slider_change)
 
         with st.expander(f"🗺️ Mapa — {prop_name}", expanded=False):
             with profile_block("render_mapa_propiedad", prop):
@@ -617,11 +633,19 @@ def mostrar_dashboard():
                     _sl.mark("before_valuar")
                     prop_name = p_obj.get('nombre', '')
                     vista_key = f'vista_valuacion_{prop_name}'
-                    # Re-entry: solo la primera vez usar params cacheados
+                    # Re-entry: leer params desde UV oficial (consistente con disco)
                     if ya_valuado and not forzar and not st.session_state.get(vista_key, False):
-                        cache_params = entrada_antigua.get('resultado_completo', {}).get('_cache', {})
-                        retro_dias = cache_params.get('retro_dias', 0)
-                        flex_dormitorios = cache_params.get('flex_dormitorios', None)
+                        uv = p_obj.get('_ultima_valuacion', {})
+                        retro_dias = uv.get('retro_dias')
+                        flex_dormitorios = uv.get('flex_dormitorios')
+                        if retro_dias is None:
+                            cache_params = entrada_antigua.get('resultado_completo', {}).get('_cache', {})
+                            retro_dias = cache_params.get('retro_dias', 36)
+                            print(f"[DEBUG-REENTRY] {prop_name}: retro desde cache (UV legacy)")
+                        if flex_dormitorios is None:
+                            cache_params = entrada_antigua.get('resultado_completo', {}).get('_cache', {})
+                            flex_dormitorios = cache_params.get('flex_dormitorios', None)
+                            print(f"[DEBUG-REENTRY] {prop_name}: flex desde cache (UV legacy)")
                         retro_active = retro_dias > 0
                         flex_active = flex_dormitorios is not None
                         retro_meses = retro_dias if retro_active else 0
@@ -631,6 +655,7 @@ def mostrar_dashboard():
                             st.session_state[f'retro_meses_slider_{prop_name}'] = retro_dias
                         st.session_state[f'flex_active_{prop_name}'] = flex_active
                         st.session_state[vista_key] = True
+                        print(f"[DEBUG-REENTRY] {prop_name}: params desde UV — retro={retro_dias}, flex={flex_dormitorios}")
                     else:
                         st.session_state[vista_key] = True
                         retro_active = st.session_state.get(f'retro_active_{prop_name}', False)

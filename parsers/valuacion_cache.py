@@ -218,6 +218,8 @@ def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict, c
                                 'fuente': resultado.get('fuente', 'auto'),
                                 'fuente_activa': resultado.get('_fuente_activa', 'auto'),
                                 'manual_params': resultado.get('manual_params') or manual_data.get('manual_params') if manual_data else None,
+                                'retro_dias': resultado.get('_cache', {}).get('retro_dias', 36),
+                                'flex_dormitorios': resultado.get('_cache', {}).get('flex_dormitorios', None),
                                 '_comp_excluded': new_excluded,
                                 '_comp_exclusion_applied': exclusion_applied,
                             }

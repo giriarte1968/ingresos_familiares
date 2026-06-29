@@ -1,6 +1,29 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-06-29 — TAREA-091.4: Consistencia total — navegación destruye previews, re-entry lee UV
+
+### Problema
+Cuatro bugs regresivos:
+1. Slider mostraba 36 mientras el motor usaba otro valor del cache (desincronización).
+2. Re-entry leía params del cache del motor, que podía tener valores de preview (no de UV oficial).
+3. Preview cache sobrevivía a "Volver al Portafolio" → al re-entrar, Pendiente conservaba preview.
+4. `_ultima_valuacion` no almacenaba params Retro/Flex → imposible restaurar sliders desde UV.
+
+### Cambios
+1. **`valu.py:_limpiar_estado_propiedad`** (línea 96-108): Nueva lógica que destruye del disco (`valuaciones_cache.json`) la entrada de preview al salir de la pantalla. Solo borra entries con `_cache.preview=True` (nunca toca UV). Debug flag `[DEBUG-CLEANUP]`.
+2. **`parsers/valuacion_cache.py:persistir_valuacion`** (línea 221-222): Al hacer `commit=True`, guarda `retro_dias` y `flex_dormitorios` dentro de `_ultima_valuacion` en `propiedades.json`.
+3. **`valu.py:637-658`**: Re-entry (`ya_valuado=True`) lee params desde `_ultima_valuacion` directamente. Fallback al cache del motor para UV legacy. Debug flags `[DEBUG-REENTRY]`.
+4. **`valu.py:373-377`**: Slider sin `value=36` hardcodeado. Inicialización vía Session State con default=36 (solo si no hay valor previo). Sin warning de Streamlit.
+
+### Flujo resultante
+- **Click "Volver al Portafolio"** → limpia SS + borra preview cache de disco (si existe).
+- **Re-entry con UV** → lee Retro/Flex de `_ultima_valuacion` → sliders consistentes con UV.
+- **Re-entry Pendiente** → no hay preview cache en disco → estado vacío (consistente).
+- **Rerun intra-sesión** → Pendiente conserva preview (comportamiento normal, no afectado).
+
+### Tests: 47/47 regression OK, auto_validate OK
+
 ## 2026-06-29 — TAREA-091: Valuación fallida no pisa cache/UV válido + `_comp_exclusion_applied` preservado
 
 ### Problema (original)
