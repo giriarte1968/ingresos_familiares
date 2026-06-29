@@ -1,6 +1,6 @@
 ﻿# 🏠 STATUS ACTUAL DEL PROYECTO — AVM Rosario
 
-*Actualizado: 29/06/2026 (TAREA-090: Transparencia — desglose de la fórmula en el header)*
+*Actualizado: 29/06/2026 (TAREA-091: Valuación fallida no pisa cache/UV válido)*
 
 ---
 
@@ -15,7 +15,7 @@
 | Matching catastral (acentos/ñ) | ✅ Normalización NFKD en `_token_contenido` (TAREA-024) |
 | Persistencia DO | ✅ Atómica + branch `do-state` |
 | Landing page | ✅ Navegación por teclado (PageDown/PageUp/Home/End) |
-| Tests regresión | ✅ 47/47 (RO-CACHE-PREVIEW-01 a 09 + T_S-07) |
+| Tests regresión | ✅ 47/47 (RO-CACHE-PREVIEW-01 a 09 + T_S-07 + RO-SKIP-PERSIST-01) |
 | Tests persistencia | ✅ 16/16 |
 | Despliegue DO | Sin redeploy loop |
 | Anclas grilla 400m | 322 microzonas, 96% cobertura (TAREA-036) |
@@ -142,10 +142,11 @@ git checkout origin/do-state -- propiedades.json data/valuaciones_cache.json
 ## 7. PRÓXIMOS PASOS / ISSUES CONOCIDOS
 
 1. ✅ Vera Mujica benchmark actualizado (TAREA-071)
-2. `data/history/` directorio untracked (generado por scraping)
-3. Validación manual en DO del flujo do-state
-4. ⚠️ P1200 y Brown 2750 requieren recalibración con fórmula multiplicativa
-5. ⚠️ Botón "Comparable" en header carga desde cache en disco, debe cargar desde resultado actual en memoria (fix pendiente TAREA-086)
+2. ✅ Francia 250bis: valuación fallida ya no pisa cache/UV válido (TAREA-091)
+3. `data/history/` directorio untracked (generado por scraping)
+4. Validación manual en DO del flujo do-state
+5. ⚠️ P1200 y Brown 2750 requieren recalibración con fórmula multiplicativa
+6. ⚠️ Botón "Comparable" en header carga desde cache en disco, debe cargar desde resultado actual en memoria (fix pendiente TAREA-086)
 
 ---
 

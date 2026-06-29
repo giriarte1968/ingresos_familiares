@@ -1418,14 +1418,21 @@ def valuar_con_cache(prop: dict,
 
         with profile_block("vcc_persistir_valuacion", prop):
             _vl.mark("before_persistir_valuacion")
-            # Guard: failed preview should not overwrite successful cache entry
+            # Guard: failed valuation (preview or official) must NOT overwrite a valid cache entry.
+            # Prevents losing a good result when engine fails with new params.
             _skip_persist = False
-            if preview and (resultado.get('error') or not resultado.get('valor_propiedad_usd')):
+            if resultado.get('error') or not resultado.get('valor_propiedad_usd'):
                 _existing = cache.get(nombre, {}).get('resultado_completo', {})
                 if _existing.get('valor_propiedad_usd', 0) > 0 and not _existing.get('error'):
                     _skip_persist = True
+                    _exist_valor = _existing.get('valor_propiedad_usd', 0)
                     _exist_retro = _existing.get('_cache', {}).get('retro_dias', '?')
-                    print(f"[CACHE-PREVIEW-SKIP] {nombre}: preview fallido ({resultado.get('error', 'sin_valor')}) — NO se persiste, cache exitoso preservado ({_existing.get('valor_propiedad_usd'):,.0f} USD, {_exist_retro}d)")
+                    _exist_flex = _existing.get('_cache', {}).get('flex_dormitorios')
+                    _exist_preview = _existing.get('_cache', {}).get('preview', '?')
+                    _new_error = resultado.get('error', 'sin_valor')
+                    _modo = "(preview)" if preview else "(oficial)"
+                    print(f"[DEBUG-SKIP-PERSIST] {nombre}: {_modo} fallido ({_new_error}) — NO persiste. Cache previo: ${_exist_valor:,.0f} USD, retro={_exist_retro}d, flex={_exist_flex}, preview={_exist_preview}")
+                    resultado = _existing
             if not _skip_persist:
                 if preview:
                     _status = 'exitoso' if resultado.get('valor_propiedad_usd') else 'fallido-sin-cache-previo'
