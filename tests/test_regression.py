@@ -1371,6 +1371,38 @@ def test_preview_fallido_no_pisa_cache():
         else:
             print(f"[TEST] OK: Escenario C — engine tuvo éxito con params nuevos (guard no invocado)")
 
+        # 7. ESCENARIO D: cache hit con params MATCH (los que heredaría Pendiente block)
+        # Verifica que cuando se usan los mismos params del cache, es cache hit (sin recalcular)
+        cache_restore4 = cargar_cache_valuaciones()
+        cache_restore4[nombre_test] = {
+            'timestamp': '2026-06-28T12:00:00',
+            'hash_prop': _calcular_hash_propiedad(prop),
+            'hash_scraping': _calcular_hash_scraping(),
+            'cache_version': get_cache_version(),
+            'resultado_completo': resultado_exitoso,
+        }
+        guardar_cache_valuaciones(cache_restore4)
+
+        r4 = valuar_con_cache(
+            prop, forzar_recalculo=False, consultar_infomapa=False,
+            retro_dias=36, flex_dormitorios=[1, 2, 3, 4, 5],
+            preview=False, manual_data=None
+        )
+        cache_after_d = cargar_cache_valuaciones()
+        rc_d = cache_after_d.get(nombre_test, {}).get('resultado_completo', {})
+        recalc_d = r4.get('_cache', {}).get('recalculado', True)
+        # Nota: cache hit overwrites _cache metadata, pero el archivo en disco
+        # conserva los params originales (retro_dias, flex_dormitorios)
+        retro_d_disk = rc_d.get('_cache', {}).get('retro_dias')
+        valor_d = r4.get('valor_propiedad_usd')
+        excl_d = r4.get('_comp_exclusion_applied')
+        print(f"[TEST] Escenario D: cache hit — recalculado={recalc_d}, retro_disk={retro_d_disk}, valor={valor_d}, excl_applied={excl_d}")
+        assert recalc_d is False, f"Cache hit no debe recalcular, recalculado={recalc_d}"
+        assert retro_d_disk == 36, f"Cache en disco debe preservar retro=36, obtuvo {retro_d_disk}"
+        assert valor_d == VALOR_EXITOSO, f"Cache hit debe devolver {VALOR_EXITOSO}, obtuvo {valor_d}"
+        assert excl_d is True, f"Cache hit debe preservar _comp_exclusion_applied=True, obtuvo {excl_d}"
+        print(f"[TEST] OK: Escenario D — cache hit con params matching funciona correctamente")
+
         print(f"[TEST] OK: test_preview_fallido_no_pisa_cache — todos los escenarios OK")
 
     finally:

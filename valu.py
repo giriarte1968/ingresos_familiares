@@ -573,6 +573,16 @@ def mostrar_dashboard():
                         print(f"[DEBUG-FLOW] {p_obj['nombre']}: CONSERVANDO cache preview (forzar={forzar}, valido={cache_valido})")
                         preview_mode = True
                         st.session_state[f'preview_mode_{p_obj["nombre"]}'] = True
+                # Si cache tiene resultado oficial valido (no preview), heredar sus parametros
+                # para que sliders Retro/Flex reflejen los valores cacheados
+                if resultado_cacheado and not cache_preview and cache_valido:
+                    _cache_rs = resultado_cacheado.get('_cache', {}) or {}
+                    _retro = _cache_rs.get('retro_dias', 0)
+                    _flex = _cache_rs.get('flex_dormitorios', None)
+                    if _retro > 0:
+                        st.session_state[f'retro_meses_{p_obj["nombre"]}'] = _retro
+                        st.session_state[f'retro_meses_slider_{p_obj["nombre"]}'] = _retro
+                    print(f"[DEBUG-FLOW] {p_obj['nombre']}: Pendiente con cache oficial valido — heredando params: retro={_retro}d, flex={_flex}")
                 # Si es re-entry pasivo (sin recalculación forzada), mostrar vacío
                 # (no mostrar vacío si hay preview valido en cache)
                 if not forzar and not retro_btn_clicked and not cache_valido:
