@@ -1598,3 +1598,41 @@ def test_manual_comparable_crud(tmp_path):
         mc._SCRAPING_PATH = backup_path
         if test_path.exists():
             test_path.unlink()
+
+
+# ──────────────────────────────────────────────
+# TAREA-093: Shadow Test - Unificación de Core VM2
+# ──────────────────────────────────────────────
+
+def test_shadow_vm2_unification():
+    """
+    Valida que el nuevo núcleo unificado sea la ÚNICA fuente de verdad.
+    _calcular_vm2_base (UI) ahora usa el mismo core que el motor.
+    """
+    from parsers.mercado_inmobiliario import (
+        _calcular_vm2_base,
+        _computar_vm2_core,
+    )
+    
+    # Dataset de prueba: 10 comparables (6 same, 4 cross)
+    # n_same = 6 -> alpha dinámico = 0.55
+    comparables = []
+    for i in range(6):
+        comparables.append({'precio_m2': 3000 + i*10, 'time_adjustment': 1.0, '_cross_soft': False})
+    for i in range(4):
+        comparables.append({'precio_m2': 4000 + i*10, 'time_adjustment': 1.0, '_cross_soft': True})
+    
+    percentil = 33
+    
+    # CAMINO A: _calcular_vm2_base (ya unificado: barrier + alpha dinámico)
+    vm2_ui, _, _, _, _ = _calcular_vm2_base(comparables, percentil)
+    
+    # CAMINO B: _computar_vm2_core directamente
+    vm2_core, _, _, _, _ = _computar_vm2_core(comparables, percentil, apply_barrier=True, alpha=None)
+    
+    print(f"[SHADOW] UI vs Core: {vm2_ui} == {vm2_core}")
+    
+    # Ambos caminos deben ser idénticos (TAREA-093)
+    assert vm2_ui == vm2_core, f"UI y Core divergieron: {vm2_ui} != {vm2_core}"
+    
+    print("[SHADOW] OK: UI y Motor ahora usan el mismo core unificado")

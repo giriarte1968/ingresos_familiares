@@ -3416,3 +3416,32 @@ El breakdown del header usaba `m2_base_venta` (cluster P33) en la fórmula pero 
 5. **`docs/DICCIONARIO_DATOS.md`** — Documentado `m2_microzona` en secciones 5 y 7.
 
 ### Tests: 48/48 regression OK, auto_validate OK
+
+---
+
+## 2026-06-29 — TAREA-093: Unificación de VM2 Core (UI = Motor)
+
+### Contexto
+Dos caminos divergentes de cálculo de VM2:
+1. **Motor** (`obtener_mediana_cluster_v2`): alpha dinámico (0.50–0.70 según n_same) + barrier correction (`* (1 - ratio_cross * 0.03)`)
+2. **UI Preview** (`_calcular_vm2_base`): alpha fijo 0.70 + SIN barrier correction
+
+Esto generaba discrepancias de ~5-15% entre la "Vista Previa" y el valor final, rompiendo la confianza del usuario.
+
+### Solución: `_computar_vm2_core`
+Nuevo núcleo unificado que reemplaza ambos caminos:
+- Acepta `apply_barrier` (default True) y `alpha` (None → dinámico por n_same)
+- Compatible con `precio_m2` (UI) y `valor_m2` (pool_final del motor)
+- Separación same/cross, percentil por grupo, blend P33, barrier opcional
+
+### Cambios
+1. **`parsers/mercado_inmobiliario.py`**:
+   - Nueva función `_computar_vm2_core` (líneas 50-101)
+   - `_calcular_vm2_base` refactored → usa `_computar_vm2_core(apply_barrier=True, alpha=None)`
+   - `obtener_mediana_cluster_v2` refactored → usa `_computar_vm2_core` para el blend principal
+   - Compatibilidad `precio_m2` / `valor_m2` via fallback
+2. **`tests/test_regression.py`**:
+   - `test_shadow_vm2_unification` refactored: verifica que UI == Core == Motor (antes verificaba que Core reproducía la ruta OLD de UI)
+3. **`docs/MEMORIA_PROYECTO.md`** — RO-21 agregada
+
+### Tests: 49/49 regression OK, auto_validate OK

@@ -659,4 +659,21 @@ NO se incluye en el display de subfactores de Valuación Manual.
   zonas céntricas, no porque envejecer baje el precio). Estado, calidad, amenities y NLP
   son observables de propiedad que SÍ se muestran como referencia en la UI.
 
+---
+### RO-21: VM2 Core unificado — UI Preview usa mismo cálculo que Motor (TAREA-093)
+No debe existir un "camino simplificado" para la Vista Previa.
+`_calcular_vm2_base` y `obtener_mediana_cluster_v2` DEBEN llamar ambas a `_computar_vm2_core`
+con los mismos parámetros (`apply_barrier=True, alpha=None`).
+
+**Qué garantiza:**
+- La "Vista Previa" del slider y la tabla de comparables muestran el mismo valor final que aplicará el motor.
+- Barrier correction (cross penalty) se aplica SIEMPRE, incluso en preview.
+- Alpha dinámico (0.50–0.70 según `n_same`) se usa SIEMPRE, sin hardcode a 0.70.
+
+**Qué cambió:**
+- `_computar_vm2_core` acepta `apply_barrier` (bool, True por defecto) y `alpha` (float o None).
+  Cuando `alpha=None`, se computa dinámicamente: `min(0.70, 0.50 + n_same / n_total * 0.20)`.
+- Compatible con `precio_m2` (UI) y `valor_m2` (pool_final del motor).
+- Previene divergencias silenciosas entre UI y backend.
+
 

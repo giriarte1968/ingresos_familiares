@@ -47,19 +47,26 @@ def _calcular_percentil_linear(precios, q):
     return float(s[lo] * (1 - frac) + s[hi] * frac)
 
 
-def _calcular_vm2_base(comparables, percentil):
+def _computar_vm2_core(comparables, percentil, apply_barrier=True, alpha=None):
     """
-    Núcleo compartido: separa same/cross, calcula percentiles por grupo, aplica blend alpha=0.70.
-    Usado por el motor y la UI (preview + aplicar selección).
-    comparables: lista con 'precio_m2', 'time_adjustment', '_cross_soft'.
-    Retorna (vm2, n_same, n_cross, pct_same, pct_cross).
+    NÚCLEO UNIFICADO DE CÁLCULO VM2 (TAREA-093)
+    Centraliza la lógica de blend alpha y corrección de barrera para evitar divergencias
+    entre el motor oficial y la vista previa de la UI.
+    
+    Args:
+        comparables: lista de objetos con 'precio_m2', 'time_adjustment' y '_cross_soft'.
+        percentil: percentil a calcular (ej. 33, 45, 50).
+        apply_barrier: si True, aplica la penalización por comparables cruzando calle.
+        alpha: si es None, usa la escala dinámica basada en n_same.
     """
     from parsers.cluster_filters import calcular_percentil, calcular_blend_p33
-
-    ALPHA_BASE = 0.70
-
+    
     def _precio_ajustado(c):
-        return c.get('precio_m2', 0) * c.get('time_adjustment', 1.0)
+        # Compatibilidad: pool_final usa 'valor_m2' + '_time_adjustment',
+        # UI usa 'precio_m2' + 'time_adjustment'
+        precio = c.get('precio_m2', c.get('valor_m2', 0))
+        adj = c.get('time_adjustment', c.get('_time_adjustment', 1.0))
+        return precio * adj
 
     same = [c for c in comparables if not c.get('_cross_soft', False)]
     cross = [c for c in comparables if c.get('_cross_soft', False)]
@@ -70,11 +77,44 @@ def _calcular_vm2_base(comparables, percentil):
     pct_same = calcular_percentil(precios_same, percentil) if precios_same else None
     pct_cross = calcular_percentil(precios_cross, percentil) if precios_cross else None
 
-    nuevo_vm2 = calcular_blend_p33(pct_same, pct_cross, alpha=ALPHA_BASE)
-    if nuevo_vm2 is None:
-        nuevo_vm2 = 0.0
+    # 1. Determinación de Alpha
+    if alpha is None:
+        n_same = len(precios_same)
+        if n_same >= 15: alpha = 0.70
+        elif n_same >= 8: alpha = 0.60
+        elif n_same >= 5: alpha = 0.55
+        else: alpha = 0.50
+    
+    # 2. Blend Alpha
+    vm2 = calcular_blend_p33(pct_same, pct_cross, alpha=alpha)
+    if vm2 is None:
+        vm2 = 0.0
 
-    return nuevo_vm2, len(precios_same), len(precios_cross), pct_same, pct_cross
+    # 3. Corrección de Barrera
+    if apply_barrier and vm2 > 0:
+        n_cross = len(precios_cross)
+        n_total = len(precios_cross) + len(precios_same)
+        if n_total > 0 and n_cross > 0:
+            barrier_pct = (n_cross / n_total) * 0.03
+            vm2 = round(vm2 * (1 - barrier_pct), 2)
+        else:
+            vm2 = round(vm2, 2)
+    else:
+        vm2 = round(vm2, 2)
+
+    return vm2, len(precios_same), len(precios_cross), pct_same, pct_cross
+
+
+def _calcular_vm2_base(comparables, percentil):
+    """
+    Sustituye la lógica antigua por el núcleo unificado (TAREA-093).
+    Llamada desde la UI para vistas previas.
+    """
+    # Para coherencia total con el motor, aplicamos barrera y alpha dinámico
+    vm2, n_same, n_cross, pct_same, pct_cross = _computar_vm2_core(
+        comparables, percentil, apply_barrier=True, alpha=None
+    )
+    return vm2, n_same, n_cross, pct_same, pct_cross
 
 
 def calcular_vm2_por_seleccion(comparables, resultado_original):
@@ -1486,22 +1526,8 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 'comparables_reales': comparables_reales
             }
         
-        # Calcular percentil CON BLENDING same-side / cross-soft
-        # Separar pools
-        precios_same = []
-        precios_cross = []
-        
-        for p in pool_final:
-            ta = p.get('_time_adjustment', 1.0)
-            val = p.get('valor_m2', 0) * ta
-            if val <= 0:
-                continue
-            if p.get('_cross_soft', False):
-                precios_cross.append(val)
-            else:
-                precios_same.append(val)
-        
-        # Calcular percentil según operación
+        # NÚCLEO UNIFICADO: _computar_vm2_core maneja blend + barrera
+        # Primero calcular percentil según operación
         _cv_pool = None
         if operacion == 'alquiler':
             percentil_venta = 50
@@ -1515,12 +1541,19 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 _cv_pool = _calcular_cv(precios) if len(precios) >= 3 else 1.0
             percentil_venta, percentil_usado = seleccionar_percentil_por_calidad_pool(len(precios), _cv_pool)
             logger.info(f"[CV_POOL] n={len(precios)}, cv={_cv_pool:.4f}, percentil={percentil_venta} ({percentil_usado})")
-
-        pct_same = calcular_percentil(precios_same, percentil_venta)
-        pct_cross = calcular_percentil(precios_cross, percentil_venta)
         
-        # Calcular percentiles del cluster completo (para dispersión estadística)
-        precios_todos = precios_same + precios_cross
+        # Llamar al core unificado que maneja same/cross, blend alpha y barrera
+        vm2_principal, n_same_core, n_cross_core, pct_same_core, pct_cross_core = _computar_vm2_core(
+            pool_final, percentil_venta, apply_barrier=True, alpha=None
+        )
+        
+        # Calcular percentiles del cluster completo (para dispersión estadística y rango)
+        precios_todos = []
+        for p in pool_final:
+            ta = p.get('_time_adjustment', 1.0)
+            val = p.get('valor_m2', 0) * ta
+            if val > 0:
+                precios_todos.append(val)
         if len(precios_todos) >= 4:
             p25_cluster = float(_calcular_percentil_linear(precios_todos, 25))
             p33_cluster = float(_calcular_percentil_linear(precios_todos, 33))
@@ -1529,30 +1562,10 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         else:
             p25_cluster = p33_cluster = p50_cluster = p75_cluster = None
         
-        # VALOR PRINCIPAL: fallback inicial (se recalcula dentro de las ramas)
-        valor_principal = pct_same if pct_same else (pct_cross if pct_cross else (p50_cluster if p50_cluster else 0))
-        
-        n_same = len(precios_same)
-        if n_same >= 15:
-            alpha = 0.70
-        elif n_same >= 8:
-            alpha = 0.60
-        elif n_same >= 5:
-            alpha = 0.55
-        else:
-            alpha = 0.50
-        
-# Calcular 3 bases para rango (solo venta)
-        ALPHA_CONSERVADOR = 0.70  # FIJO para conservador
-        ALPHA_MERCADO = 0.60        # FIJO para mercado
-        
-        # Combinar dispersión del cluster + alpha blending
+        # Rango de 3 escenarios (usa percentiles del cluster, NO blend ni barrera)
+        pct_same = pct_same_core
+        pct_cross = pct_cross_core
         if pct_same is not None and pct_cross is not None:
-            # Alpha blending
-            blend_cons = calcular_blend_p33(pct_same, pct_cross, alpha=ALPHA_CONSERVADOR)
-            blend_mkt = calcular_blend_p33(pct_same, pct_cross, alpha=ALPHA_MERCADO)
-            
-            # Optimista: alpha dinámico según ratio
             ratio = pct_cross / pct_same if pct_same > 0 else 1.0
             if ratio <= 1.05:
                 alpha_opt = 0.70
@@ -1561,71 +1574,47 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             else:
                 alpha_opt = 0.55
             alpha_opt = max(0.55, min(0.70, alpha_opt))
-            blend_opt = calcular_blend_p33(pct_same, pct_cross, alpha=alpha_opt)
-            
-            # Valor principal: blend puro con alpha 0.70 (SIN min con P25)
-            valor_principal = blend_cons  # 0.70 * pct_same + 0.30 * pct_cross
-            
-            # Rango: estos SÍ usan percentiles
-            base_conservadora = p25_cluster if p25_cluster else valor_principal
-            base_mercado = p50_cluster if p50_cluster else valor_principal
-            base_optimista = p75_cluster if p75_cluster else valor_principal
-            
+            base_conservadora = p25_cluster if p25_cluster else vm2_principal
+            base_mercado = p50_cluster if p50_cluster else vm2_principal
+            base_optimista = p75_cluster if p75_cluster else vm2_principal
             fuente_rango = 'percentiles+alpha'
-            
         elif len(precios_todos) >= 4:
-            # Solo percentiles (sin cross-soft) - usar dispersión del cluster
             base_conservadora = p25_cluster
             base_mercado = p50_cluster
             base_optimista = p75_cluster
             alpha_opt = 0.70
             ratio = 1.0
             fuente_rango = 'percentiles'
-            # Valor principal = P33 del cluster cuando no hay cross
-            valor_principal = p33_cluster if p33_cluster else p50_cluster
-            
         else:
-            # Datos insuficientes
-            base_conservadora = base_mercado = base_optimista = pct_same if pct_same else p50_cluster
+            base_conservadora = base_mercado = base_optimista = pct_same if pct_same else (p50_cluster if p50_cluster else 0)
             alpha_opt = 0.70
             ratio = 1.0
             fuente_rango = 'p33_unico'
-            # Valor principal ya tiene fallback al inicio
         
-        # GARANTIZAR ORDEN: conservador <= mercado <= optimista
-        # Filtrar Nones antes de ordenar para evitar TypeError
         bases_to_sort = [b for b in [base_conservadora, base_mercado, base_optimista] if b is not None]
         if not bases_to_sort:
             base_conservadora = base_mercado = base_optimista = 0.0
         else:
             bases_sorted = sorted(bases_to_sort)
-            # Rellenar con el valor mínimo si faltan bases
             while len(bases_sorted) < 3:
                 bases_sorted.insert(0, bases_sorted[0])
             base_conservadora, base_mercado, base_optimista = bases_sorted
-
-        
-        # Valor principal = BLEND PURO con alpha 0.70 (para Venta Lista)
-        # Las otras bases quedan disponibles para el rango
         
         if operacion == 'venta':
-            valor = valor_principal
+            valor = vm2_principal
         else:
             valor = float(_calcular_mediana(precios_filtrados))
             percentil_usado = 'P50_alquiler'
         
         n_filtradas = len(precios_filtrados)
-
-        # M² puro (sin barrera en comparables) para display en header
-        m2_puro = valor
-        # Barrera del sujeto: ajuste proporcional según ratio de comps que cruzan
-        n_cross = len(precios_cross)
-        n_total = len(precios_cross) + len(precios_same)
+        n_same = n_same_core
+        n_cross = n_cross_core
+        n_total = n_same + n_cross
         if n_total > 0 and n_cross > 0:
             barrier_pct = round((n_cross / n_total) * 0.03, 4)
-            valor = round(m2_puro * (1 - barrier_pct), 2)
         else:
             barrier_pct = 0.0
+        m2_puro = vm2_principal
 
         meta = {
             'percentil_usado': percentil_usado,
@@ -1638,7 +1627,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             'zona_resolucion': zona_resol,
             'barrier_mode': 'blending',
             'n_same_side': n_same,
-            'n_cross_soft': len(precios_cross),
+            'n_cross_soft': n_cross,
             'alpha': 0.70,  # conservador siempre
             'pct_same': pct_same,
             'pct_cross': pct_cross,
@@ -1646,10 +1635,10 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             'base_conservadora': round(base_conservadora, 2),
             'base_mercado': round(base_mercado, 2),
             'base_optimista': round(base_optimista, 2),
-            'alpha_conservador': ALPHA_CONSERVADOR,
-            'alpha_mercado': ALPHA_MERCADO,
-            'alpha_optimista': alpha_opt if 'alpha_opt' in dir() else 0.55,
-            'ratio_same_cross': round(ratio, 3) if 'ratio' in dir() else 1.0,
+            'alpha_conservador': 0.70,
+            'alpha_mercado': 0.60,
+            'alpha_optimista': alpha_opt,
+            'ratio_same_cross': round(ratio, 3),
             # Percentiles del cluster
             'p25_cluster': round(p25_cluster, 2) if p25_cluster is not None else None,
             'p33_cluster': round(p33_cluster, 2) if p33_cluster is not None else None,
@@ -1667,7 +1656,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             # Comparables reales (muestra de hasta 30/60)
             'comparables_reales': comparables_reales,
             # M² puro sin barrera (para display en header)
-            '_m2_puro': round(m2_puro, 2),
+            '_m2_puro': round(m2_puro, 2) if barrier_pct == 0 else round(vm2_principal / (1 - barrier_pct), 2),
             'barrier_pct': barrier_pct,
             # Retro
             'retro_activo': bool(retro_dias),
