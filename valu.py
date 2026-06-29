@@ -1461,6 +1461,136 @@ def mostrar_dashboard():
                         reset()
                         st.rerun()
 
+        # ─── Comparables Manuales ───
+        st.markdown("---")
+        with st.expander("📋 Comparables Manuales", expanded=False):
+            from parsers.manual_comparables import load_data, save_data, get_manual_comparables, get_scraping_comparables, add_manual, update_manual, delete_manual
+            _data = load_data()
+            _manual_list = get_manual_comparables(_data)
+            _scraping_list = get_scraping_comparables(_data)
+            st.caption(f"📊 **{len(_manual_list)}** comparables manuales de **{len(_manual_list) + len(_scraping_list)}** totales en cache_scraping.json")
+            if _manual_list:
+                _cols = ["id_manual", "precio", "moneda", "m2", "dormitorios", "tipo", "operacion", "calle_limpia", "numero_limpio", "lat", "lon", "date_created"]
+                _rows = []
+                for p in _manual_list:
+                    _row = {k: p.get(k, "") for k in _cols}
+                    _row["_id"] = p.get("id_manual", "")
+                    _rows.append(_row)
+                st.data_editor(
+                    _rows,
+                    column_config={
+                        "id_manual": st.column_config.TextColumn("ID", disabled=True, width="small"),
+                        "precio": st.column_config.NumberColumn("Precio", format="$%.0f"),
+                        "moneda": st.column_config.SelectColumn("Moneda", options=["USD", "ARS"]),
+                        "m2": st.column_config.NumberColumn("m²", format="%.1f"),
+                        "dormitorios": st.column_config.NumberColumn("Dorms", format="%d"),
+                        "tipo": st.column_config.SelectColumn("Tipo", options=["Departamento", "Casa", "Cochera", "Local", "Oficina", "PH", "Terreno"]),
+                        "operacion": st.column_config.SelectColumn("Oper.", options=["venta", "alquiler"]),
+                        "calle_limpia": st.column_config.TextColumn("Calle", width="medium"),
+                        "numero_limpio": st.column_config.NumberColumn("Nro", format="%d"),
+                        "lat": st.column_config.NumberColumn("Lat", format="%.6f"),
+                        "lon": st.column_config.NumberColumn("Lon", format="%.6f"),
+                        "date_created": st.column_config.TextColumn("Creado", disabled=True, width="small"),
+                    },
+                    hide_index=True,
+                    use_container_width=True,
+                    key="manual_comparables_editor",
+                )
+                for p in _manual_list:
+                    _mid = p.get("id_manual", "")
+                    _cols3 = st.columns([2, 1, 1])
+                    with _cols3[0]:
+                        st.caption(f"**{p.get('calle_limpia', '?')} {p.get('numero_limpio', '') or ''}** — ${p.get('precio', 0):,.0f} — {p.get('m2', 0):.0f}m²")
+                    with _cols3[1]:
+                        _edit_key = f"edit_manual_{_mid}"
+                        if st.session_state.get(_edit_key, False):
+                            if st.button("❌ Cerrar", key=f"close_edit_{_mid}"):
+                                st.session_state[_edit_key] = False
+                                st.rerun()
+                        else:
+                            if st.button("✏️ Editar", key=f"btn_edit_{_mid}"):
+                                st.session_state[_edit_key] = True
+                                st.rerun()
+                    with _cols3[2]:
+                        _del_key = f"delete_confirm_{_mid}"
+                        if st.session_state.get(_del_key, False):
+                            c1, c2 = st.columns(2)
+                            with c1:
+                                if st.button("🗑️ Sí", key=f"confirm_del_{_mid}", type="primary"):
+                                    delete_manual(_mid)
+                                    st.session_state.pop(_del_key, None)
+                                    st.rerun()
+                            with c2:
+                                if st.button("Cancelar", key=f"cancel_del_{_mid}"):
+                                    st.session_state.pop(_del_key, None)
+                                    st.rerun()
+                        else:
+                            if st.button("🗑️ Eliminar", key=f"btn_del_{_mid}"):
+                                st.session_state[_del_key] = True
+                                st.rerun()
+                    if st.session_state.get(_edit_key, False):
+                        st.markdown("---")
+                        _edit_prop = p
+                        with st.form(key=f"form_edit_{_mid}"):
+                            st.markdown(f"**Editando:** {_edit_prop.get('calle_limpia', '')} {_edit_prop.get('numero_limpio', '') or ''}")
+                            ec1, ec2 = st.columns(2)
+                            with ec1:
+                                edit_precio = st.number_input("Precio ($)", value=float(_edit_prop.get("precio", 0)), min_value=0.0, step=1000.0, key=f"ep_{_mid}")
+                                edit_moneda = st.selectbox("Moneda", ["USD", "ARS"], index=0 if _edit_prop.get("moneda") == "USD" else 1, key=f"em_{_mid}")
+                                edit_m2 = st.number_input("m²", value=float(_edit_prop.get("m2", 0)), min_value=1.0, step=1.0, key=f"em2_{_mid}")
+                                edit_dorms = st.number_input("Dormitorios", value=int(_edit_prop.get("dormitorios", 1)), min_value=0, max_value=20, step=1, key=f"ed_{_mid}")
+                                edit_tipo = st.selectbox("Tipo", ["Departamento", "Casa", "Cochera", "Local", "Oficina", "PH", "Terreno"],
+                                                         index=["Departamento", "Casa", "Cochera", "Local", "Oficina", "PH", "Terreno"].index(_edit_prop.get("tipo", "Departamento")), key=f"et_{_mid}")
+                                edit_operacion = st.selectbox("Operación", ["venta", "alquiler"],
+                                                               index=0 if _edit_prop.get("operacion") == "venta" else 1, key=f"eo_{_mid}")
+                            with ec2:
+                                edit_calle = st.text_input("Calle", value=_edit_prop.get("calle_limpia", ""), key=f"ec_{_mid}")
+                                edit_num = st.number_input("Número", value=int(_edit_prop.get("numero_limpio", 0)) if _edit_prop.get("numero_limpio") else 0, min_value=0, step=1, key=f"en_{_mid}")
+                                edit_direccion = st.text_input("Dirección (completa)", value=_edit_prop.get("direccion", ""), key=f"edir_{_mid}")
+                                edit_lat = st.number_input("Latitud", value=float(_edit_prop.get("lat", -32.95)), format="%.6f", key=f"elat_{_mid}")
+                                edit_lon = st.number_input("Longitud", value=float(_edit_prop.get("lon", -60.66)), format="%.6f", key=f"elon_{_mid}")
+                            if st.form_submit_button("💾 Guardar Cambios", type="primary"):
+                                _upd = {
+                                    "precio": edit_precio, "moneda": edit_moneda, "m2": edit_m2,
+                                    "dormitorios": edit_dorms, "tipo": edit_tipo, "operacion": edit_operacion,
+                                    "calle_limpia": edit_calle, "numero_limpio": edit_num, "direccion": edit_direccion,
+                                    "lat": edit_lat, "lon": edit_lon,
+                                }
+                                update_manual(_mid, _upd)
+                                st.session_state[_edit_key] = False
+                                st.rerun()
+            else:
+                st.info("No hay comparables manuales. Añade uno usando el formulario de abajo.")
+            st.markdown("---")
+            _show_add = st.checkbox("➕ Añadir nuevo comparable manual", key="show_add_manual")
+            if _show_add:
+                with st.form(key="form_add_manual"):
+                    ac1, ac2 = st.columns(2)
+                    with ac1:
+                        add_precio = st.number_input("Precio ($)", min_value=0.0, step=1000.0, value=50000.0, key="ap")
+                        add_moneda = st.selectbox("Moneda", ["USD", "ARS"], key="am")
+                        add_m2 = st.number_input("m²", min_value=1.0, step=1.0, value=50.0, key="am2")
+                        add_dorms = st.number_input("Dormitorios", min_value=0, max_value=20, step=1, value=2, key="ad")
+                        add_tipo = st.selectbox("Tipo", ["Departamento", "Casa", "Cochera", "Local", "Oficina", "PH", "Terreno"], key="at")
+                        add_operacion = st.selectbox("Operación", ["venta", "alquiler"], key="ao")
+                    with ac2:
+                        add_calle = st.text_input("Calle", key="acalle")
+                        add_num = st.number_input("Número", min_value=0, step=1, value=0, key="anum")
+                        add_direccion = st.text_input("Dirección (completa, opcional)", key="adir")
+                        add_lat = st.number_input("Latitud", value=-32.95, format="%.6f", key="alat")
+                        add_lon = st.number_input("Longitud", value=-60.66, format="%.6f", key="alon")
+                    if st.form_submit_button("💾 Guardar Comparable", type="primary"):
+                        _add_data = {
+                            "precio": add_precio, "moneda": add_moneda, "m2": add_m2,
+                            "dormitorios": add_dorms, "tipo": add_tipo, "operacion": add_operacion,
+                            "calle_limpia": add_calle, "numero_limpio": add_num, "direccion": add_direccion,
+                            "lat": add_lat, "lon": add_lon,
+                        }
+                        add_manual(_add_data)
+                        st.success("Comparable manual guardado en cache_scraping.json")
+                        st.session_state["show_add_manual"] = False
+                        st.rerun()
+
         # ─── Agregar Nueva Propiedad (último, porque ui_formulario_propiedad hace st.stop()) ───
         st.markdown("---")
         with st.expander("➕ Agregar Nueva Propiedad", expanded=False):

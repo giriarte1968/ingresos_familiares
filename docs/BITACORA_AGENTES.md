@@ -1,6 +1,35 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-06-29 — TAREA-092: Gestión de Comparables Manuales (CRUD en Configuraciones)
+
+### Contexto
+El usuario necesita poder inyectar comparables que conoce del mercado pero que no están en los portales scrapeados (ej: una propiedad que se vendió por fuera del circuito inmobiliario digital, o un dato corregido).
+
+### Cambios
+1. **`parsers/manual_comparables.py`** (nuevo): Capa de datos CRUD sobre `cache_scraping.json`.
+   - `load_data()` / `save_data()` — carga/guarda atómica del archivo.
+   - `add_manual(form_data)` — agrega comparable con `fuente="manual"`, auto-asigna `id_manual` (secuencial), calcula `valor_m2`.
+   - `update_manual(manual_id, form_data)` — actualiza campos de un comparable manual.
+   - `delete_manual(manual_id)` — elimina por `id_manual`.
+   - `get_manual_comparables()` / `get_scraping_comparables()` — filtrado por fuente.
+   - Incremento automático de `next_manual_id` en la raíz del JSON.
+
+2. **`valu.py:1464-1540`**: Nueva sección "📋 Comparables Manuales" en Configuración.
+   - Stats: "X manuales de Y totales en cache_scraping.json".
+   - Tabla editable vía `st.data_editor` con todos los campos del comparable.
+   - Botón "✏️ Editar" por fila → formulario de edición inline.
+   - Botón "🗑️ Eliminar" por fila → confirmación + borrado.
+   - Checkbox "➕ Añadir nuevo comparable manual" → formulario de alta.
+
+### Reglas de negocio
+- Solo comparables con `fuente="manual"` pueden editarse/borrarse.
+- Los comparables scrapeados (`fuente != "manual"`) son inmutables desde la UI.
+- El motor de valuación NO filtra por `fuente`, por lo que los manuales participan automáticamente en clusters, radios y percentiles.
+- ⚠️ **Advertencia**: Si se ejecuta un scraping completo, la herramienta `scraper_propia_fresh.py` reemplaza la lista `propiedades` de `cache_scraping.json` y los comparables manuales se pierden. Se recomienda respaldar antes de rescrapear.
+
+### Tests: 47/47 regression OK, auto_validate OK
+
 ## 2026-06-29 — TAREA-091.4: Consistencia total — navegación destruye previews, re-entry lee UV
 
 ### Problema

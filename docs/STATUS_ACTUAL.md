@@ -1,6 +1,6 @@
 ﻿# 🏠 STATUS ACTUAL DEL PROYECTO — AVM Rosario
 
-*Actualizado: 29/06/2026 (TAREA-091.4: Preview destruction on exit + re-entry consistency)*
+*Actualizado: 29/06/2026 (TAREA-092: Gestión de Comparables Manuales en Configuraciones)*
 
 ---
 
