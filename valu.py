@@ -580,8 +580,10 @@ def mostrar_dashboard():
                     _retro = _cache_rs.get('retro_dias', 0)
                     _flex = _cache_rs.get('flex_dormitorios', None)
                     if _retro > 0:
+                        st.session_state[f'retro_active_{p_obj["nombre"]}'] = True
                         st.session_state[f'retro_meses_{p_obj["nombre"]}'] = _retro
-                        st.session_state[f'retro_meses_slider_{p_obj["nombre"]}'] = _retro
+                    # Nota: NO setear retro_meses_slider_ para evitar warning de Streamlit
+                    # ("value set via Session State API + default value conflict")
                     print(f"[DEBUG-FLOW] {p_obj['nombre']}: Pendiente con cache oficial valido — heredando params: retro={_retro}d, flex={_flex}")
                 # Si es re-entry pasivo (sin recalculación forzada), mostrar vacío
                 # (no mostrar vacío si hay preview valido en cache)
