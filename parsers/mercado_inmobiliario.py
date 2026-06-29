@@ -1667,7 +1667,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             'sujeto_dormitorios': dormitorios,
         }
         
-        return valor, n_filtradas, meta
+        return valor, len(pool_final), meta
     except Exception as e:
         import traceback
         logger.error(f"[EXCEPTION] {e}\n{traceback.format_exc()}")
