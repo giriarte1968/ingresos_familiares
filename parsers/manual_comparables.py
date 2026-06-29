@@ -66,6 +66,7 @@ def add_manual(form_data):
     propiedades = data.setdefault("propiedades", [])
     propiedades.append(entry)
     save_data(data)
+    print(f"[DEBUG-MANUAL] add_manual: id={mid}, direccion={entry.get('calle_limpia','')} {entry.get('numero_limpio','')}, precio={precio}, m2={m2}")
     return mid
 
 
@@ -90,7 +91,9 @@ def update_manual(manual_id, form_data):
             p["valor_m2"] = round(precio / m2, 2) if m2 > 0 else 0
             p["date_updated"] = datetime.now().isoformat()
             save_data(data)
+            print(f"[DEBUG-MANUAL] update_manual: id={manual_id}, precio={precio}, m2={m2}")
             return True
+    print(f"[DEBUG-MANUAL] update_manual: id={manual_id} NOT FOUND")
     return False
 
 
@@ -101,5 +104,7 @@ def delete_manual(manual_id):
     data["propiedades"] = [p for p in propiedades if p.get("id_manual") != manual_id]
     if len(data["propiedades"]) < antes:
         save_data(data)
+        print(f"[DEBUG-MANUAL] delete_manual: id={manual_id} deleted")
         return True
+    print(f"[DEBUG-MANUAL] delete_manual: id={manual_id} NOT FOUND")
     return False

@@ -20,10 +20,6 @@ Es el archivo más grande y crítico. Contiene el "universo" de propiedades comp
 ### Objeto `Propiedad`
 | Campo | Tipo | Descripción |
 |-------|------|-------------|
-
-### Objeto `Propiedad`
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
 | `precio` | float | Precio de lista. |
 | `moneda` | string | "USD" o "ARS". |
 | `m2` | float | Superficie total informada (a veces cubiertos, a veces total). |
@@ -34,11 +30,20 @@ Es el archivo más grande y crítico. Contiene el "universo" de propiedades comp
 | `calle_limpia` | string | Calle normalizada y limpia de basura descriptiva (TAREA-021). |
 | `numero_limpio` | int | Número de calle normalizado. |
 | `valor_m2` | float | Calculado como `precio / m2`. |
-| `fuente` | string | Portal de origen (ej. "propia", "argenprop"). |
-| `url` | string | Link a la publicación original. |
+| `fuente` | string | Portal de origen (ej. "propia", "argenprop"). Para comparables manuales cargados por el usuario, el valor es `"manual"`. Ver TAREA-092. |
+| `id_manual` | string/null | ID único auto-generado para comparables manuales (ej. `"manual_00001"`). Solo presente si `fuente == "manual"`. |
+| `url` | string | Link a la publicación original (vacío para manuales). |
 | `date_updated` | string | ISO de la última vez que se vio activa la propiedad. |
 | `anio_construccion` (comparable) | int/null | Campo actualmente NO disponible o no confiable en la caché. Razón del uso de P33 en venta. |
 | `anio_construccion` (objetivo) | int | Campo SÍ disponible para propiedades propias. Usado para calcular `delta_anti` individual. |
+
+### Estructura de Raíz (`cache_scraping.json`)
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `fecha` | string | ISO timestamp de última actualización global. |
+| `status` | string | Descriptivo de la versión (ej. `"propia_api_browser_cleaned_v2"`). |
+| `propiedades` | array | Lista de objetos `Propiedad`. |
+| `next_manual_id` | int | Contador auto-incremental para asignar `id_manual` a nuevos comparables manuales (TAREA-092). |
 
 ---
 

@@ -103,6 +103,8 @@ Esto garantiza que los Previews no sobrevivan a la navegación y no contaminen l
 
 **RO-CACHE-PREVIEW-09 (RE-ENTRY LEE PARAMS DESDE UV):** Al re-entrar a una propiedad con `ya_valuado=True`, los controles Retro/Flex deben leer sus parámetros (`retro_dias`, `flex_dormitorios`) desde `_ultima_valuacion` en `propiedades.json`, NO desde el cache del motor (`valuaciones_cache.json`). Esto evita que un preview previo haya contaminado los parámetros mostrados. Para UV legacy (sin `retro_dias`/`flex_dormitorios`), se usa el cache del motor como fallback. Ver debug flag `[DEBUG-REENTRY]`.
 
+**RO-MANUAL-COMP-01 (COMPARABLES MANUALES — FUENTE Y EDICIÓN):** Los comparables manuales se almacenan en `cache_scraping.json` con `fuente="manual"` y un `id_manual` único. El motor de valuación NO filtra por `fuente`, por lo que los manuales participan automáticamente en clusters, radios y percentiles. Solo los comparables con `fuente="manual"` pueden editarse o eliminarse desde la UI de Configuración. Los provenientes de scraping son inmutables. Ver test `test_manual_comparable_crud` y módulo `parsers/manual_comparables.py`.
+
 ---
 
 ## 3. ARQUITECTURA DE LA FÓRMULA DE VENTA (TAREA-073 — Modelo Base Puro)

@@ -1484,3 +1484,117 @@ def test_preview_exitoso_actualiza_cache():
         cache_clean = cargar_cache_valuaciones()
         cache_clean.pop(nombre_test, None)
         guardar_cache_valuaciones(cache_clean)
+
+
+# ──────────────────────────────────────────────
+# RO-MANUAL-COMP-01: CRUD comparables manuales
+# ──────────────────────────────────────────────
+
+def test_manual_comparable_crud(tmp_path):
+    """RO-MANUAL-COMP-01: add_manual, update_manual, delete_manual,
+    get_manual_comparables y get_scraping_comparables deben funcionar
+    correctamente sin manipular comparables scrapeados."""
+    from parsers import manual_comparables as mc
+
+    # Usar archivo temporal para no contaminar cache_scraping.json
+    test_path = tmp_path / "cache_scraping.json"
+    backup_path = mc._SCRAPING_PATH
+    mc._SCRAPING_PATH = str(test_path)
+
+    try:
+        # 1. add_manual — crear comparable manual
+        mid = mc.add_manual({
+            "precio": "85000", "moneda": "USD", "m2": "50",
+            "dormitorios": "2", "tipo": "Departamento",
+            "operacion": "venta", "direccion": "Testing 123",
+            "calle_limpia": "testing", "numero_limpio": "123",
+            "lat": "-32.95", "lon": "-60.63",
+        })
+        assert mid is not None and mid.startswith("manual_"), \
+            f"add_manual debe retornar id manual_, obtuvo {mid}"
+        print(f"[TEST] add_manual OK: mid={mid}")
+
+        # 2. get_manual_comparables — debe incluir el nuevo
+        manuales = mc.get_manual_comparables()
+        assert len(manuales) == 1, f"Esperado 1 manual, obtuvo {len(manuales)}"
+        assert any(p.get("id_manual") == mid for p in manuales), \
+            f"El manual recién creado debe estar en get_manual_comparables"
+        print(f"[TEST] get_manual_comparables OK: {len(manuales)} manual(es)")
+
+        # 3. get_scraping_comparables — vacío (solo hay manual)
+        scrapeados = mc.get_scraping_comparables()
+        assert len(scrapeados) == 0, \
+            f"No debe haber scrapeados en test, obtuvo {len(scrapeados)}"
+        print(f"[TEST] get_scraping_comparables OK: {len(scrapeados)} scrapeados")
+
+        # 4. update_manual — cambiar precio
+        ok = mc.update_manual(mid, {"precio": "90000", "m2": "50"})
+        assert ok is True, "update_manual debe retornar True"
+        data = mc.load_data()
+        updated = [p for p in data["propiedades"] if p.get("id_manual") == mid][0]
+        assert updated["precio"] == 90000, \
+            f"Precio debe ser 90000, obtuvo {updated['precio']}"
+        assert updated["valor_m2"] == 1800.0, \
+            f"valor_m2 debe ser 1800, obtuvo {updated['valor_m2']}"
+        print(f"[TEST] update_manual OK: precio=90000, valor_m2=1800")
+
+        # 5. update_manual con id inexistente → False
+        ok_fake = mc.update_manual("manual_99999", {"precio": "1"})
+        assert ok_fake is False, \
+            "update_manual con id inexistente debe retornar False"
+        print(f"[TEST] update_manual fake id OK: False")
+
+        # 6. delete_manual — eliminar
+        ok_del = mc.delete_manual(mid)
+        assert ok_del is True, "delete_manual debe retornar True"
+        manuales_post = mc.get_manual_comparables()
+        assert len(manuales_post) == 0, \
+            f"Después de delete deben quedar 0 manuales, obtuvo {len(manuales_post)}"
+        print(f"[TEST] delete_manual OK: 0 manuales restantes")
+
+        # 7. delete_manual con id inexistente → False
+        ok_del_fake = mc.delete_manual("manual_99999")
+        assert ok_del_fake is False, \
+            "delete_manual con id inexistente debe retornar False"
+        print(f"[TEST] delete_manual fake id OK: False")
+
+        # 8. Verificar next_manual_id se incrementa
+        mid2 = mc.add_manual({
+            "precio": "60000", "moneda": "USD", "m2": "35",
+            "dormitorios": "1", "tipo": "Departamento",
+            "operacion": "venta", "direccion": "Otra 456",
+            "calle_limpia": "otra", "numero_limpio": "456",
+            "lat": "-32.96", "lon": "-60.64",
+        })
+        assert mid2 == "manual_00002", \
+            f"Segundo manual debe tener id manual_00002, obtuvo {mid2}"
+        data2 = mc.load_data()
+        assert data2["next_manual_id"] == 3, \
+            f"next_manual_id debe ser 3, obtuvo {data2['next_manual_id']}"
+        print(f"[TEST] auto-increment OK: mid2={mid2}, next_manual_id={data2['next_manual_id']}")
+
+        # 9. Los scrapeados no son afectados por operaciones manuales
+        data3 = mc.load_data()
+        data3["propiedades"].append({
+            "precio": 100000, "moneda": "USD", "m2": 60,
+            "fuente": "argenprop", "valor_m2": 1666.67,
+        })
+        mc.save_data(data3)
+        scrapeados2 = mc.get_scraping_comparables()
+        assert len(scrapeados2) == 1, \
+            f"Debe haber 1 scrapeado, obtuvo {len(scrapeados2)}"
+        manuales2 = mc.get_manual_comparables()
+        assert len(manuales2) == 1, \
+            f"Debe seguir habiendo 1 manual, obtuvo {len(manuales2)}"
+        mc.delete_manual(mid2)
+        scrapeados3 = mc.get_scraping_comparables()
+        assert len(scrapeados3) == 1, \
+            "delete_manual no debe afectar scrapeados"
+        print(f"[TEST] scraping no afectado OK: {len(scrapeados3)} scrapeados tras delete manual")
+
+        print(f"[TEST] OK: test_manual_comparable_crud — todos los tests OK")
+
+    finally:
+        mc._SCRAPING_PATH = backup_path
+        if test_path.exists():
+            test_path.unlink()

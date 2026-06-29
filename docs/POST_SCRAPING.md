@@ -92,10 +92,20 @@ git push origin main
 | Cap dinámico de factor_total | Es lógica del motor, no depende del scraping |
 | Age blend / percentiles / filtros | Todo es lógica de valuación, no del cache |
 
+### ⚠️ Advertencia sobre Comparables Manuales (TAREA-092)
+
+Si se han cargado comparables manuales (`fuente="manual"`) vía **Configuración → Comparables Manuales**, un scraping fresco **los sobrescribirá**, ya que los scrapers reemplazan la lista completa `propiedades` de `cache_scraping.json`.
+
+**Recomendación antes de scrapear:**
+1. Hacer backup de `cache_scraping.json` (el script `corregir_coords_cache.py` ya genera `.bak` automáticamente).
+2. Después del scraping, volver a añadir los manuales desde Configuración.
+3. O bien restaurar `cache_scraping.json.bak` y fusionar manualmente.
+
 ## Historial de cambios
 
 | Fecha | Cambio |
 |-------|--------|
+| 2026-06-29 | TAREA-092: Advertencia sobre comparables manuales y scraping |
 | 2026-05-30 | TAREA-020: Creación de `scripts/corregir_coords_cache.py` |
 | 2026-05-31 | TAREA-021: Mejora de `extraer_calle_numero()` + guardar `calle_limpia`/`numero_limpio` |
 | 2026-05-31 | Fix: "Santa Fe" como calle (no provincia) en parser |
