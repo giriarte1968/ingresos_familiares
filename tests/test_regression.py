@@ -1237,30 +1237,35 @@ def test_preview_fallido_no_pisa_cache():
             'm2_base_venta': 1760,
             'comparables_venta': [{'id': f'comp_{i}'} for i in range(3)],
             'resolution_metadata': {'n_propiedades': 3, 'fecha_ref': '2026-06-27'},
+            '_comp_excluded': [],
+            '_comp_exclusion_applied': True,
             '_cache': {'preview': False, 'retro_dias': 36, 'flex_dormitorios': [1, 2, 3, 4, 5]},
         }
         persistir_valuacion(nombre_test, prop, resultado_exitoso, cache, commit=True)
 
-        # 3. ESCENARIO A: preview exitoso con nuevos parámetros → persiste
+        # 3. ESCENARIO A: fresh calculation con nuevos parámetros → engine corre
         r1 = valuar_con_cache(
             prop, forzar_recalculo=True, consultar_infomapa=False,
             retro_dias=0, flex_dormitorios=None,
             preview=True, manual_data=None
         )
-        # El cache debe tener el nuevo valor (puede ser exitoso o fallido
-        # según disponibilidad de comps, pero NO debe crashear)
         cache_after_a = cargar_cache_valuaciones()
         rc_a = cache_after_a.get(nombre_test, {}).get('resultado_completo', {})
         valor_a = rc_a.get('valor_propiedad_usd', 0)
         error_a = rc_a.get('error')
-        print(f"[TEST] Escenario A: preview con params nuevos — valor={r1.get('valor_propiedad_usd','N/A')}, cache_final={valor_a}, error={error_a}")
-        # Si el preview fue exitoso, cache se actualizó (normal).
-        # Si falló, guard preservó el cache exitoso (defensa). Ambos son válidos.
+        excl_a = r1.get('_comp_exclusion_applied')
+        print(f"[TEST] Escenario A: preview con params nuevos — valor={r1.get('valor_propiedad_usd','N/A')}, cache_final={valor_a}, error={error_a}, _comp_exclusion_applied={excl_a}")
+        # Si falló, guard preservó el cache exitoso (defensa) + _comp_exclusion_applied
         if r1.get('error') or not r1.get('valor_propiedad_usd'):
             assert valor_a == VALOR_EXITOSO, \
                 f"Guard debe preservar cache exitoso ({VALOR_EXITOSO}) cuando preview falla, obtuvo {valor_a}"
+            assert excl_a is True, \
+                f"Guard debe preservar _comp_exclusion_applied=True, obtuvo {excl_a}"
         else:
             assert valor_a > 0, "Preview exitoso debe persistir valor>0"
+            # Fresh result (engine succeeded) → _comp_exclusion_applied debe ser False/None
+            if excl_a:
+                print(f"[TEST] ADVERTENCIA: fresh result tiene _comp_exclusion_applied={excl_a} (puede ser del cache guard si engine no falló realmente)")
 
         # 4. Restaurar cache exitoso para escenario B
         cache_restore = cargar_cache_valuaciones()
@@ -1330,7 +1335,43 @@ def test_preview_fallido_no_pisa_cache():
         assert valor_final == VALOR_EXITOSO, \
             f"Cache final debe tener {VALOR_EXITOSO}, obtuvo {valor_final}"
 
-        print(f"[TEST] OK: preview_fallido_no_pisa_cache — cache exitoso preservado")
+        print(f"[TEST] OK: Escenario B — cache exitoso preservado")
+
+        # 6. ESCENARIO C: modo oficial (preview=False) con params diferentes al cache
+        # El engine falla → guard devuelve cache previo → _comp_exclusion_applied debe sobrevivir
+        # Simula el flujo exacto de valu.py cuando el usuario re-entra al detalle.
+        cache_restore3 = cargar_cache_valuaciones()
+        cache_restore3[nombre_test] = {
+            'timestamp': '2026-06-28T12:00:00',
+            'hash_prop': _calcular_hash_propiedad(prop),
+            'hash_scraping': _calcular_hash_scraping(),
+            'cache_version': get_cache_version(),
+            'resultado_completo': resultado_exitoso,
+        }
+        guardar_cache_valuaciones(cache_restore3)
+
+        r3 = valuar_con_cache(
+            prop, forzar_recalculo=True, consultar_infomapa=False,
+            retro_dias=0, flex_dormitorios=None,
+            preview=False, manual_data=None
+        )
+        cache_after_c = cargar_cache_valuaciones()
+        rc_c = cache_after_c.get(nombre_test, {}).get('resultado_completo', {})
+        valor_c = rc_c.get('valor_propiedad_usd', 0)
+        excl_c = r3.get('_comp_exclusion_applied')
+        print(f"[TEST] Escenario C: oficial con params nuevos — retorno_valor={r3.get('valor_propiedad_usd','N/A')}, cache_disk_valor={valor_c}, retorno_excl_applied={excl_c}")
+        # Si engine falló → guard preservó cache (con _comp_exclusion_applied=True)
+        # Si engine tuvo éxito → resultado fresco, _comp_exclusion_applied debe ser False/None
+        if r3.get('error') or not r3.get('valor_propiedad_usd'):
+            assert valor_c == VALOR_EXITOSO, \
+                f"Guard oficial debe preservar cache ({VALOR_EXITOSO}), obtuvo {valor_c}"
+            assert excl_c is True, \
+                f"Guard oficial debe preservar _comp_exclusion_applied=True, obtuvo {excl_c}"
+            print(f"[TEST] OK: Escenario C — guard oficial preservó cache Y _comp_exclusion_applied=True")
+        else:
+            print(f"[TEST] OK: Escenario C — engine tuvo éxito con params nuevos (guard no invocado)")
+
+        print(f"[TEST] OK: test_preview_fallido_no_pisa_cache — todos los escenarios OK")
 
     finally:
         with open('propiedades.json', 'w', encoding='utf-8') as f:

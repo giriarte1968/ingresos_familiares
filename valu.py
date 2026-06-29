@@ -755,11 +755,12 @@ def mostrar_dashboard():
                                 resultado.get('_comp_exclusion_applied') is True and 
                                 set(resultado.get('_comp_excluded', [])) == set(excluded_ids)
                             )
-                            print(f"[DEBUG-EXCL] {prop_name}: is_already_applied={is_already_applied}, _cache.recalculado={resultado.get('_cache', {}).get('recalculado')}")
+                            _guard_restored = resultado.get('_cache', {}).get('guard_restored', False)
+                            print(f"[DEBUG-EXCL] {prop_name}: is_already_applied={is_already_applied}, _cache.recalculado={resultado.get('_cache', {}).get('recalculado')}, guard_restored={_guard_restored}")
                             
-                            if is_already_applied and not from_apply and not resultado.get('_cache', {}).get('recalculado'):
-                                # Ya está aplicada y coincide: mantenemos el valor y el estado
-                                print(f"[DEBUG-EXCL] {prop_name}: SALTANDO recálculo (ya aplicado y coincide)")
+                            _skip_recalc = is_already_applied and not from_apply and (not resultado.get('_cache', {}).get('recalculado') or _guard_restored)
+                            if _skip_recalc:
+                                print(f"[DEBUG-EXCL] {prop_name}: SALTANDO recálculo (ya aplicado y coincide, guard_restored={_guard_restored})")
                             else:
                                 # Guardar originales para delta del preview
                                 resultado['_original_m2_base'] = resultado.get('m2_base_venta', 0)
@@ -831,7 +832,10 @@ def mostrar_dashboard():
                                 else:
                                     if preview_mode:
                                         print(f"[DEBUG-PERSIST-SKIP] {prop_name}: preview activo, NO persiste (from_apply={from_apply}, excluded={excluded_ids})")
-                                    resultado['_comp_exclusion_applied'] = False
+                                    if resultado.get('_comp_exclusion_applied'):
+                                        print(f"[DEBUG-EXCL-FLAG] {prop_name}: _comp_exclusion_applied ya=True, PRESERVADO (from_apply=False, guard_restored={resultado.get('_cache', {}).get('guard_restored')}, _cache.recalculado={resultado.get('_cache', {}).get('recalculado')})")
+                                    else:
+                                        resultado['_comp_exclusion_applied'] = False
 
                 with profile_block("mostrar_detalle_valu_total", p_obj):
                     mostrar_detalle_valu(p_obj, resultado, actualizar_propiedad)

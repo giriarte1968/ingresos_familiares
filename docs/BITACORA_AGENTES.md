@@ -1,20 +1,35 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
-## 2026-06-29 — TAREA-091: Valuación fallida no pisa cache/UV válido
+## 2026-06-29 — TAREA-091: Valuación fallida no pisa cache/UV válido + `_comp_exclusion_applied` preservado
 
-### Problema
+### Problema (original)
 Francia 250bis tenía cache válido ($665,387) con Retro=36, Flex=[1,2,3,4,5]. Al entrar al detalle sin Retro, el motor recalcula con params distintos → necesita_recalcular=True → engine falla con `insuficientes_comparables` (0 comps) → `persistir_valuacion(commit=True, valor_usd=None)` destruye el cache y UV. Usuario ve ambas valuaciones en blanco.
 
 Causa raíz: el guard en `motor_vpp_core.py:1422-1428` solo protegía previews fallidos (`preview=True`), no valuaciones oficiales (`preview=False`).
 
-### Cambios
-1. **`parsers/motor_vpp_core.py:1421-1436`**: Eliminada condición `preview and` del guard — ahora aplica a cualquier resultado fallido (preview u oficial).
-2. **`parsers/motor_vpp_core.py:1436`**: Se devuelve `resultado = _existing` (cache previo) cuando se saltea persist, para que la UI muestre el valor cacheadO.
-3. **`parsers/motor_vpp_core.py:1433`**: Nuevo flag `[DEBUG-SKIP-PERSIST]` con contexto completo: nombre, modo (preview/oficial), error nuevo, valor previo, retro/flex previo.
+### Problema (secundario — expuesto por el fix anterior)
+El guard devolvía `resultado = _existing` (cache con `_comp_exclusion_applied=True`), pero `valu.py:834` pisaba incondicionalmente: `resultado['_comp_exclusion_applied'] = False`. El botón "Aplicar selección" quedaba activo en vez de mostrar "Selección Aplicada".
 
-### Commit
-`c51b51f` — `"fix(TAREA-091): valuacion fallida no pisa cache/UV valido — guard expandido, se devuelve cache previo, debug flag DEBUG-SKIP-PERSIST"`
+Causa raíz: línea 760 fallaba el short-circuit porque `_cache.recalculado=True` (del cálculo original), y el else branch en línea 834 limpiaba la flag siempre.
+
+### Cambios (engine)
+1. **`parsers/motor_vpp_core.py:1421-1437`**: Eliminada condición `preview and` del guard — ahora aplica a cualquier resultado fallido (preview u oficial).
+2. **`parsers/motor_vpp_core.py:1436`**: Se devuelve `resultado = _existing` (cache previo) cuando se saltea persist.
+3. **`parsers/motor_vpp_core.py:1433`**: Nuevo flag `[DEBUG-SKIP-PERSIST]` con contexto completo.
+4. **`parsers/motor_vpp_core.py:1437-1438`**: Nuevo flag `[DEBUG-GUARD-RESTORE]` y `resultado['_cache']['guard_restored'] = True`.
+
+### Cambios (UI)
+5. **`valu.py:834`**: Cambiado de `resultado['_comp_exclusion_applied'] = False` incondicional a `if not resultado.get('_comp_exclusion_applied'):` — preserva la flag cuando viene del cache guard/UV restore.
+6. **`valu.py:760-762`**: Agregado `_guard_restored` al short-circuit `is_already_applied` — ahora también salta recálculo cuando el resultado viene del guard.
+7. **`valu.py:834-838`**: Nuevo flag `[DEBUG-EXCL-FLAG]` para registrar cuándo se preserva o se limpia `_comp_exclusion_applied`.
+
+### Cambios (test)
+8. **`tests/test_regression.py`**: `resultado_exitoso` incluye `_comp_exclusion_applied: True`. Escenario A verifica que guard preserva la flag. Nuevo Escenario C: modo oficial (`preview=False`) con params diferentes — verifica que guard devuelve cache con `_comp_exclusion_applied=True`.
+
+### Commits
+`f36722a` — engine guard expandido
+_(este commit)_ — UI flag preservation + test + debug flags
 
 ## 2026-06-29 — TAREA-090: Transparencia — desglose de fórmula en header
 

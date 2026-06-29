@@ -1,6 +1,6 @@
 ﻿# 🏠 STATUS ACTUAL DEL PROYECTO — AVM Rosario
 
-*Actualizado: 29/06/2026 (TAREA-091: Valuación fallida no pisa cache/UV válido)*
+*Actualizado: 29/06/2026 (TAREA-091: Valuación fallida no pisa cache/UV válido + `_comp_exclusion_applied` preservado)*
 
 ---
 

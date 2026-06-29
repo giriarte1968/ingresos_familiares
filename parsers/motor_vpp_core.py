@@ -1433,6 +1433,8 @@ def valuar_con_cache(prop: dict,
                     _modo = "(preview)" if preview else "(oficial)"
                     print(f"[DEBUG-SKIP-PERSIST] {nombre}: {_modo} fallido ({_new_error}) — NO persiste. Cache previo: ${_exist_valor:,.0f} USD, retro={_exist_retro}d, flex={_exist_flex}, preview={_exist_preview}")
                     resultado = _existing
+                    resultado.setdefault('_cache', {})['guard_restored'] = True
+                    print(f"[DEBUG-GUARD-RESTORE] {nombre}: resultado reemplazado por cache previo, _comp_exclusion_applied={resultado.get('_comp_exclusion_applied')}, _comp_excluded_count={len(resultado.get('_comp_excluded', []))}")
             if not _skip_persist:
                 if preview:
                     _status = 'exitoso' if resultado.get('valor_propiedad_usd') else 'fallido-sin-cache-previo'
