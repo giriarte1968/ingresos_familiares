@@ -1,6 +1,6 @@
 ﻿# 🏠 STATUS ACTUAL DEL PROYECTO — AVM Rosario
 
-*Actualizado: 29/06/2026 (TAREA-091: Valuación fallida no pisa cache/UV válido + `_comp_exclusion_applied` preservado)*
+*Actualizado: 29/06/2026 (TAREA-091.4: Preview destruction on exit + re-entry consistency)*
 
 ---
 
@@ -62,6 +62,19 @@ Paso 0: EXACTA — (calle_norm, numero) en _CATASTRO_INDEX ≤200m → ALTA
 Paso 1: TOKEN — token containment + bloque ≤30m → ALTA
 Paso 2: NEAREST — nearest PH + token + bloque ≤60m → MEDIA
 No esquina fallback.
+```
+
+### Navegación y ciclo de vida de previews (TAREA-091.4)
+```
+Detalle → [cambios en slider/flex] → preview_mode=True → persistir_valuacion(commit=False)
+    → valuaciones_cache.json (preview=True)
+Detalle → [Volver al Portafolio] → _limpiar_estado_propiedad()
+    → destruye preview de valuaciones_cache.json (si preview=True)
+    → limpia Session State
+    → NO toca _ultima_valuacion en propiedades.json
+Re-entry → lee retro_dias/flex_dormitorios desde _ultima_valuacion (UV oficial)
+    → fallback a cache del motor para UV legacy
+    → controles consistentes con la UV oficial
 ```
 
 ### Filtro etario

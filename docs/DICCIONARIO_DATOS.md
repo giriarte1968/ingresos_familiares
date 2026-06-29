@@ -278,7 +278,40 @@ Se acceden desde la aplicación en **Configuración → Auditoría Técnica**.
 
 ---
 
-## 7. `resultado.catastro_detalle` (Infomapa)
+## 7. `propiedades.json` — Catálogo de Propiedades + `_ultima_valuacion`
+
+Archivo maestro de propiedades. Cada propiedad tiene un objeto `_ultima_valuacion` que almacena la última valuación oficial (commit=True).
+
+### Estructura de `_ultima_valuacion`
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `valor_usd` | float | Valor de venta oficial en USD. |
+| `auto_valor_usd` | float | Valor automático (motor) antes de ajustes manuales. |
+| `manual_valor_usd` | float | Valor manual (si se editó manualmente). |
+| `alquiler_ars` | float | Alquiler estimado en ARS. |
+| `cap_rate` | float | Cap Rate anual. |
+| `m2_equivalentes` | float | Superficie equivalente calculada. |
+| `comps` | int | Número de comparables usados. |
+| `fecha` | string | Fecha legible de la valuación. |
+| `cache_version` | string | Versión del cache al momento de valuar. |
+| `timestamp` | string | ISO timestamp de la valuación. |
+| `fuente` | string | Fuente de la valuación: `'auto'` o `'manual'`. |
+| `fuente_activa` | string | Fuente activa actual. |
+| `manual_params` | dict/null | Parámetros manuales si `fuente='manual'`. |
+| `retro_dias` | int | Días Retro usados en la valuación (default 36). **Nuevo en TAREA-091.4.** |
+| `flex_dormitorios` | list/null | Lista de dormitorios para filtro Flex, o `null` si no se usó. **Nuevo en TAREA-091.4.** |
+| `_comp_excluded` | list | IDs de comparables excluidos por el usuario. |
+| `_comp_exclusion_applied` | bool | True si la exclusión fue aplicada y persistida. |
+
+### Ciclo de vida
+- **Preview (commit=False):** Solo escribe a `valuaciones_cache.json`. NUNCA toca `_ultima_valuacion`.
+- **Oficial (commit=True):** Escribe a `valuaciones_cache.json` Y actualiza `_ultima_valuacion` en `propiedades.json`.
+- **Al salir (Volver al Portafolio):** La función `_limpiar_estado_propiedad` elimina la entrada del cache (si es preview) del disco. La `_ultima_valuacion` nunca se modifica.
+
+---
+
+## 7b. `resultado.catastro_detalle` (Infomapa)
 
 Agregado a valuación vía `enriquecer_con_infomapa()`.
 

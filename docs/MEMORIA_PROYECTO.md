@@ -96,6 +96,13 @@ El modelo es Data-Driven: los precios emergen del mercado real
 
 **RO-CACHE-PREVIEW-07 (PENDIENTE NO PISA PREVIEW VÁLIDO):** Cuando `ya_valuado=False` (Pendiente) y el cache tiene un preview válido (`valor_propiedad_usd > 0`, sin `error`, `_cache.preview=True`), el bloque Pendiente en `valu.py` debe setear `preview_mode=True` en `st.session_state`. Esto evita que `valuar_con_cache(preview=False)` se llame inadvertidamente, lo que forzaría un recálculo con `commit=True` (vía `motor_vpp_core.py:1386` "reemplazar_preview_por_oficial") y destruiría el preview. Con `preview_mode=True`, `valuar_con_cache` se llama con `preview=True` → `commit=False` → el preview se preserva y la propiedad sigue apareciendo como Pendiente en Portfolio. Ver test `test_pendiente_preview_no_se_sobrescribe`.
 
+**RO-CACHE-PREVIEW-08 (PREVIEW DESTROYED ON EXIT — MEMORIA DE TRABAJO):** Al hacer clic en "Volver al Portafolio", la función `_limpiar_estado_propiedad` debe:
+1. Limpiar todo el Session State de la propiedad (memoria).
+2. Eliminar del archivo `valuaciones_cache.json` cualquier entrada cuyo `_cache.preview == True` (disco).
+Esto garantiza que los Previews no sobrevivan a la navegación y no contaminen la siguiente entrada a la propiedad. La `_ultima_valuacion` en `propiedades.json` NUNCA debe ser modificada por esta limpieza. Ver debug flag `[DEBUG-CLEANUP]`.
+
+**RO-CACHE-PREVIEW-09 (RE-ENTRY LEE PARAMS DESDE UV):** Al re-entrar a una propiedad con `ya_valuado=True`, los controles Retro/Flex deben leer sus parámetros (`retro_dias`, `flex_dormitorios`) desde `_ultima_valuacion` en `propiedades.json`, NO desde el cache del motor (`valuaciones_cache.json`). Esto evita que un preview previo haya contaminado los parámetros mostrados. Para UV legacy (sin `retro_dias`/`flex_dormitorios`), se usa el cache del motor como fallback. Ver debug flag `[DEBUG-REENTRY]`.
+
 ---
 
 ## 3. ARQUITECTURA DE LA FÓRMULA DE VENTA (TAREA-073 — Modelo Base Puro)
