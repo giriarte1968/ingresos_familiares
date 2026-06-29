@@ -1532,6 +1532,8 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         if operacion == 'alquiler':
             percentil_venta = 50
             percentil_usado = 'P50_alquiler'
+            # Compute CV for display even though alquiler always uses P50
+            _cv_pool = _calcular_cv(precios) if len(precios) >= 3 else 1.0
         else:
             # Percentil por calidad del pool (CV post-size_adj)
             if m2_equiv and macrozona_id and len(precios) >= 3:

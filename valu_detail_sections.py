@@ -522,7 +522,8 @@ def render_tabla_comparables(res, prop_name=None):
                 if preview.get('fallback'):
                     st.caption(f"Valor original del pool • {preview['n_sel']} comps (mín. 3 req.)")
                 else:
-                    st.caption(f"{preview['percentil_label']} de selección • CV={preview['cv']:.2f} • {preview['n_sel']} comps selec. de {len(comparables)} totales")
+                    cv_str = f"{preview['cv']:.2f}" if preview.get('cv') is not None else "—"
+                    st.caption(f"{preview['percentil_label']} de selección • CV={cv_str} • {preview['n_sel']} comps selec. de {len(comparables)} totales")
             else:
                 st.caption(f"Mínimo 2 comps • {n_sel} selec. de {len(comparables)} totales")
         with col_c:
