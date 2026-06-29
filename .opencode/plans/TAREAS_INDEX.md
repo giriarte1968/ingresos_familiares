@@ -67,5 +67,6 @@
 | TAREA-077 | Fix exclusión perdida tras Guardar Valuacion Manual | _completada_ | 2026-06-28 |
 | TAREA-087 | Guard preview fallido no debe pisar cache exitoso | _completada_ | 2026-06-28 |
 | TAREA-088 | Fix 🔄 Limpiar no borra valuación manual | `617b699` | 2026-06-28 |
-| TAREA-089 | Preview mode no persiste valuación vía exclusión restaurada | _(current)_ | 2026-06-28 |
+| TAREA-089 | Preview mode no persiste valuación vía exclusión restaurada | `2d948b7` | 2026-06-28 |
+| TAREA-090 | Transparencia: desglose de fórmula en header | _(current)_ | 2026-06-29 |
 | TAREA-086 | Fix cambio Manual→Comparable: carga desde cache físico (v2) | _completada_ | 2026-06-27 |

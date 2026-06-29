@@ -1,6 +1,6 @@
 ﻿# 🏠 STATUS ACTUAL DEL PROYECTO — AVM Rosario
 
-*Actualizado: 28/06/2026 (TAREA-089: Preview mode no persiste valuación vía exclusión restaurada)*
+*Actualizado: 29/06/2026 (TAREA-090: Transparencia — desglose de la fórmula en el header)*
 
 ---
 

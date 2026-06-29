@@ -3629,6 +3629,8 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
         'valor_realizable_usd': round(valor_realizable, 0),
         'valor_m2_actual_usd': round(valor_venta / m2_equiv, 2) if m2_equiv > 0 else 0,
         'm2_base_venta': round(m2_base_venta, 2),
+        'size_discount': round(size_discount, 4),
+        'valor_activos_total': round(valor_activos['total'], 2),
         # Rango 3 escenarios
         'valor_venta_conservador': int(rango_venta['min']),
         'valor_venta_mercado': int(rango_venta['mid']),

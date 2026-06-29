@@ -1,6 +1,18 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-06-29 — TAREA-090: Transparencia — desglose de fórmula en header
+
+### Problema
+El usuario veía que el "Valor/m² por selección" cambiaba (ej: $1,600 → $1,993) pero la valuación final ($83,851) no se movía. La confusión era porque la fórmula del motor (`m2_base × m2_eq × size_discount + activos`) no era visible, ocultando que el m2_base y el size_discount se compensan.
+
+### Cambios
+1. **`parsers/mercado_inmobiliario.py:3631-3632`**: Agregados `size_discount` y `valor_activos_total` al resultado dict.
+2. **`valu_detail_sections.py:159-162,219`**: Leídos los nuevos campos y agregada línea de desglose en el header HTML.
+
+### Commits
+_(pendiente)_
+
 ## 2026-06-28 — TAREA-089: Preview mode no persiste valuación vía exclusión restaurada
 
 ### Problema
@@ -11,7 +23,7 @@ Cuando una propiedad tenía `_comp_exclusion_applied=True` en UV (por "Aplicar s
 2. **`valu.py:831-832`**: Agregado `[DEBUG-PERSIST-SKIP]` para registrar cuándo se saltea persistencia en preview.
 
 ### Commits
-_(pendiente: fix + push)_
+`2d948b7` — `"fix(TAREA-089): preview mode no persiste valuacion via exclusion restaurada"`
 
 ## 2026-06-28 — TAREA-088: Fix "🔄 Limpiar" no borra valuación manual
 

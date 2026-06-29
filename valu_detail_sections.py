@@ -157,6 +157,9 @@ def render_header(prop, res):
     dolar = display.get('usdt_ars', 1480)
     meta = display.get('resolution_metadata', {})
     m2_base = display.get('m2_base_venta', 0)
+    size_discount = display.get('size_discount', 1.0)
+    activos_total = display.get('valor_activos_total', 0)
+    m2_equiv_display = display.get('m2_equivalentes', 0)
     m2_puro = meta.get('_m2_puro', m2_base)
     barrier_pct = meta.get('barrier_pct', 0)
     n_comps = meta.get('n_propiedades', 0)
@@ -213,6 +216,7 @@ def render_header(prop, res):
             <div style="font-size:24px;font-weight:700;color:#FFFFFF;">{f'${v_auto:,.0f}' if v_auto else '—'}</div>
             <div style="font-size:13px;color:rgba(255,255,255,0.85);margin-bottom:2px;">{f'${v_auto * dolar_auto:,.0f} ARS' if v_auto else '—'}</div>
             <div style="font-size:11px;color:rgba(255,255,255,0.65);">Dólar ${dolar_auto:,.0f} · {m2_line_auto}</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:4px;">{'${:,.0f}/m² × {} m² × {} ajuste + ${:,.0f} extras = ${:,.0f}'.format(m2_base, round(m2_equiv_display,1), round(size_discount,3), activos_total, v_auto) if m2_base > 0 and m2_equiv_display > 0 else ''}</div>
         </div>
         """, unsafe_allow_html=True)
 
