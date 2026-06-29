@@ -29,7 +29,8 @@ Causa raíz: línea 760 fallaba el short-circuit porque `_cache.recalculado=True
 
 ### Commits
 `f36722a` — engine guard expandido
-_(este commit)_ — UI flag preservation + test + debug flags
+`6d5b399` — UI flag preservation + test + debug flags
+`ce1585c` — heredar params Retro/Flex desde cache oficial en Pendiente block + Escenario D test
 
 ## 2026-06-29 — TAREA-090: Transparencia — desglose de fórmula en header
 
