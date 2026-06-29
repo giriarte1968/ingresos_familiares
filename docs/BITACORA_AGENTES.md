@@ -3400,3 +3400,19 @@ actual tiene un resultado exitoso previo.
    - `test_preview_exitoso_actualiza_cache` (RO-CACHE-PREVIEW-09, regresión)
 
 ### Tests: 47/47 regression OK, auto_validate OK
+
+---
+
+## 2026-06-29 — TAREA-092.2: Fix coherencia header/engine/table (m2_microzona)
+
+### Contexto
+El breakdown del header usaba `m2_base_venta` (cluster P33) en la fórmula pero el motor podía usar `m2_microzona` (ancla geográfica). La aritmética no cerraba: $2,981 × 160 × 1.299 + $56,000 = $675,571 ≠ $665,387. Además la tabla "Valor/m² por selección" mostraba $3,431 (P45 fresco sin barrier correction) vs $2,981 del header.
+
+### Cambios
+1. **`parsers/mercado_inmobiliario.py:3632`** — Nuevo campo `m2_microzona` en el result dict: el valor de $/m² realmente usado por el motor (cluster o ancla).
+2. **`valu_detail_sections.py:160`** — Header lee `m2_microzona` (fallback a `m2_base_venta`). Línea 219 usa `m2_microzona` en el breakdown.
+3. **`valu_detail_sections.py:201-202`** — Subtítulo del card usa `m2_microzona` para consistencia visual.
+4. **`valu_detail_sections.py:495-501`** — Tabla "Valor/m² por selección": cuando todos los comps están seleccionados (sin exclusiones), usa `m2_microzona` del motor en vez de recalcular P45 fresco. Elimina divergencia header/tabla.
+5. **`docs/DICCIONARIO_DATOS.md`** — Documentado `m2_microzona` en secciones 5 y 7.
+
+### Tests: 48/48 regression OK, auto_validate OK

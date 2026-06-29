@@ -173,6 +173,7 @@ Solo penalizaciones. Pasante no suma (ya cubierto por ventilación cruzada).
 - `delta_anti_raw` (float): Depreciación lineal calculada antes de atenuación.
 - `delta_anti_efectivo` (float): Depreciación después de aplicar atenuación (solo para props $>30$ años).
 - `m2_base_venta` (float): Precio base por m² del cluster v2 para operación de venta (percentil: P33).
+- `m2_microzona` (float): Precio por m² realmente usado por el motor. === `m2_base_venta` si no hay ancla geográfica; si hay ancla, usa el precio del ancla geo más cercano. Este es el valor que aparece en el breakdown del header.
 - `m2_base_alquiler` (float): Precio base por m² del cluster v2 para operación de alquiler (percentil: P50).
 - `percentil_usado` (string): Percentil utilizado del cluster (P33 para venta, P50 para alquiler).
 - `resolution_metadata` (dict): Metadata de resolución del cluster (n_propiedades, radio_usado, zonaresol, method).
@@ -249,6 +250,7 @@ Archivo append-only que registra cada evento de valuación. Formato: una línea 
 - `archivo_scraping`: Nombre del snapshot guardado en `data/scraping_history/`.
 - `dolar_binance`: Cotización USDT/ARS usada.
 - `m2_base_venta`: Precio base del cluster detectado.
+- `m2_microzona`: Precio real por m² usado por el motor (cluster o ancla geográfica).
 
 ---
 

@@ -157,6 +157,7 @@ def render_header(prop, res):
     dolar = display.get('usdt_ars', 1480)
     meta = display.get('resolution_metadata', {})
     m2_base = display.get('m2_base_venta', 0)
+    m2_microzona = display.get('m2_microzona', m2_base)  # anchor override if any
     size_discount = display.get('size_discount', 1.0)
     activos_total = display.get('valor_activos_total', 0)
     m2_equiv_display = display.get('m2_equivalentes', 0)
@@ -198,8 +199,9 @@ def render_header(prop, res):
     v_manual = manual_result.get('valor_propiedad_usd', 0) if manual_result else 0
     n_comps_auto = (auto_result.get('resolution_metadata') or {}).get('n_propiedades', 0) if auto_result else 0
     dolar_auto = auto_result.get('usdt_ars', dolar) if auto_result else dolar
-    m2_base_auto = auto_result.get('m2_base_venta', 0) if auto_result else 0
-    m2_line_auto = f"m²/USD en {zona}: ${m2_base_auto:,.0f} ({n_comps_auto} comp.)" if m2_base_auto > 0 else "—"
+    m2_micro_auto = (auto_result.get('m2_microzona', auto_result.get('m2_base_venta', 0))
+                     if auto_result else 0)
+    m2_line_auto = f"m²/USD en {zona}: ${m2_micro_auto:,.0f} ({n_comps_auto} comp.)" if m2_micro_auto > 0 else "—"
 
     dolar_manual = manual_result.get('usdt_ars', dolar) if manual_result else dolar
     m2_base_manual = manual_result.get('m2_base_venta', 0) if manual_result else 0
@@ -216,7 +218,7 @@ def render_header(prop, res):
             <div style="font-size:24px;font-weight:700;color:#FFFFFF;">{f'${v_auto:,.0f}' if v_auto else '—'}</div>
             <div style="font-size:13px;color:rgba(255,255,255,0.85);margin-bottom:2px;">{f'${v_auto * dolar_auto:,.0f} ARS' if v_auto else '—'}</div>
             <div style="font-size:11px;color:rgba(255,255,255,0.65);">Dólar ${dolar_auto:,.0f} · {m2_line_auto}</div>
-            <div style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:4px;">{'${:,.0f}/m² × {} m² × {} ajuste + ${:,.0f} extras = ${:,.0f}'.format(m2_base, round(m2_equiv_display,1), round(size_discount,3), activos_total, v_auto) if m2_base > 0 and m2_equiv_display > 0 else ''}</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:4px;">{'${:,.0f}/m² × {} m² × {} ajuste + ${:,.0f} extras = ${:,.0f}'.format(m2_microzona, round(m2_equiv_display,1), round(size_discount,3), activos_total, v_auto) if m2_microzona > 0 and m2_equiv_display > 0 else ''}</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -492,8 +494,18 @@ def render_tabla_comparables(res, prop_name=None):
     # Vista previa en vivo usando misma lógica que "Aplicar selección" (percentil por CV)
     if selected_ids:
         n_sel = len(selected_ids)
+        n_total = len(comparables)
         selected_comps = [c for c in comparables if _get_comp_id(c) in selected_ids]
-        preview = calcular_vm2_por_seleccion(selected_comps, res) if len(selected_comps) >= 2 else None
+        if n_sel == n_total:
+            # Sin exclusiones: usar el valor real del motor para coherencia header/tabla
+            vm2_micro = res.get('m2_microzona', res.get('m2_base_venta', 0))
+            meta = res.get('resolution_metadata', {})
+            preview = {'vm2': vm2_micro, 'n_sel': n_sel, 'fallback': False,
+                       'percentil_label': 'Motor', 'cv': meta.get('cv_pool', 0)}
+        elif len(selected_comps) >= 2:
+            preview = calcular_vm2_por_seleccion(selected_comps, res)
+        else:
+            preview = None
 
         all_ids = [_get_comp_id(c) for c in comparables]
         excluded_ids = [cid for cid in all_ids if cid not in selected_ids]
