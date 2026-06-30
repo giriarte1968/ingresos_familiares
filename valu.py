@@ -837,12 +837,19 @@ def mostrar_dashboard():
                                             resultado['valor_venta_conservador'] = v_cons
                                             resultado['valor_venta_optimista'] = v_opt
                                             resultado['_n_excluidos'] = len(excluded_ids)
+                                            # Sincronizar header con selección activa (TAREA-094)
+                                            _meta['n_propiedades'] = len(comps_filtrados)
+                                            resultado['m2_microzona'] = nuevo_vm2
+                                            print(f"[DEBUG-SYNC-HEADER] {prop_name}: n_propiedades={len(comps_filtrados)}, m2_microzona={nuevo_vm2}")
                                             print(f"[APPLY] {prop_name}: {preview['n_sel']} comps, P{preview['percentil']}, valor=${nuevo_valor:,.0f}")
                                         elif preview is not None and preview.get('fallback'):
                                             # < 3 comps: mantener valor original del pool
                                             resultado = dict(resultado)
                                             resultado['_auto_result'] = resultado
                                             resultado['_n_excluidos'] = len(excluded_ids)
+                                            # Sync header (TAREA-094): mostrar pool completo en fallback
+                                            _meta['n_propiedades'] = len(comps_filtrados)
+                                            print(f"[DEBUG-SYNC-HEADER] {prop_name}: fallback, n_propiedades={len(comps_filtrados)}")
                                             print(f"[APPLY] {prop_name}: {preview['n_sel']} comps (fallback), valor original=${resultado.get('valor_propiedad_usd', 0):,.0f}")
                                         else:
                                             # Menos de 2 comps seleccionados o preview falló → limpiar header solo si no hay valor original válido

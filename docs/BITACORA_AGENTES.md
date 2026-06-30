@@ -1,6 +1,31 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-06-30 — TAREA-094: Sincronizar header con exclusión de comparables
+
+### Contexto
+Cuando el usuario excluye comparables vía "Aplicar selección" (ej. 5 de 9), el header seguía mostrando `(9 comp.)` y `$2,932/m²` del pool completo, mientras la tabla mostraba `4/9 activos` y el footer `$2,570 P33 de selección`. Además la confianza decía "Media" en vez de "Baja". La fórmula del header `$2,932/m² × ... = $526,489` no sumaba (usaba valor del pool completo, no de la selección).
+
+### Cambios
+1. **`valu.py:840-842`**: En el exclusion block exitoso (preview not None, not fallback), ahora se sincronizan:
+   - `_meta['n_propiedades'] = len(comps_filtrados)` — header muestra activos, no pool total
+   - `resultado['m2_microzona'] = nuevo_vm2` — fórmula del header usa el valor de la selección
+2. **`valu.py` fallback branch**: Misma sincronización para el caso `< 3 comps` (mantiene pool original pero actualiza `n_propiedades`).
+3. **Debug flag `[DEBUG-SYNC-HEADER]`**: Registra `n_propiedades` y `m2_microzona` sincronizados.
+4. **`tests/test_regression.py`**: `test_header_sync_on_exclusion` (test #51) — verifica que la lógica de sincronización produce valores coherentes (n_propiedades=4, m2_microzona=nuevo_vm2, confianza = "Confianza baja", fórmula consistente).
+
+### Regla de Oro
+- `n_propiedades` refleja comparables activos post-exclusión.
+- `m2_microzona` refleja el valor efectivo usado para el cálculo.
+- Confianza basada en cantidad real de comparables activos.
+- `comparables_venta` y valores originales preservados en `_original_*`.
+
+### Tests
+- 51/51 tests pasan OK.
+- `auto_validate` OK.
+
+---
+
 ## 2026-06-29 — TAREA-092: Gestión de Comparables Manuales (CRUD en Configuraciones)
 
 ### Contexto

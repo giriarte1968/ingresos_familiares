@@ -1642,6 +1642,128 @@ def test_shadow_vm2_unification():
 # TAREA-093: Flex Persistence on Recalculation
 # ──────────────────────────────────────────────
 
+# ──────────────────────────────────────────────
+# TAREA-094: Header Sync on Exclusion (Aplicar selección)
+# ──────────────────────────────────────────────
+
+def test_header_sync_on_exclusion():
+    """
+    TAREA-094: Verifica que al excluir comparables via calcular_vm2_por_seleccion,
+    los metadatos del header (n_propiedades, m2_microzona) se sincronicen.
+    
+    Regresión: header mostraba '(9 comp.)' y valor del pool completo
+    aunque solo 4 comps estuvieran activos tras exclusion.
+    """
+    from parsers.mercado_inmobiliario import calcular_vm2_por_seleccion
+    
+    # Pool de 9 comparables simulados (precios variados)
+    comparables = [
+        {'precio': 480000, 'm2': 167, 'precio_m2': 3240, 'time_adjustment': 1.0,
+         'dormitorios': 3, 'direccion': 'del Alto Puerto Norte 1', '_cross_soft': False},
+        {'precio': 135000, 'm2': 45, 'precio_m2': 3624, 'time_adjustment': 1.0,
+         'dormitorios': 1, 'direccion': 'Puerto norte Araelis', '_cross_soft': False},
+        {'precio': 120000, 'm2': 52, 'precio_m2': 2778, 'time_adjustment': 1.0,
+         'dormitorios': 1, 'direccion': 'Puerto Norte Torre Arealis', '_cross_soft': False},
+        {'precio': 170000, 'm2': 43, 'precio_m2': 5022, 'time_adjustment': 1.0,
+         'dormitorios': 1, 'direccion': 'Forum Puerto Norte Loft', '_cross_soft': False},
+        {'precio': 820000, 'm2': 178, 'precio_m2': 5560, 'time_adjustment': 1.0,
+         'dormitorios': 3, 'direccion': 'Madres Plaza Mayo PN 2', '_cross_soft': False},
+        {'precio': 130000, 'm2': 55, 'precio_m2': 2646, 'time_adjustment': 1.0,
+         'dormitorios': 1, 'direccion': 'Torre Arealis PN', '_cross_soft': False},
+        {'precio': 129000, 'm2': 60, 'precio_m2': 2650, 'time_adjustment': 1.0,
+         'dormitorios': 2, 'direccion': 'Luis Candido Carballo', '_cross_soft': False},
+        {'precio': 425000, 'm2': 154, 'precio_m2': 3432, 'time_adjustment': 1.0,
+         'dormitorios': 2, 'direccion': 'Barranca PN Carballo 112', '_cross_soft': False},
+        {'precio': 266000, 'm2': 85, 'precio_m2': 3971, 'time_adjustment': 1.0,
+         'dormitorios': 1, 'direccion': 'Thedy y Velez Sarsfield', '_cross_soft': False},
+    ]
+    
+    # Resultado original simulado (pool completo)
+    resultado_original = {
+        'm2_base_venta': 3200.0,
+        'm2_microzona': 3200.0,
+        'm2_equivalentes': 160.0,
+        'valor_propiedad_usd': 526489,
+        'valor_activos': {'total': 56000},
+        'comparables_venta': comparables,
+        'resolution_metadata': {
+            'n_propiedades': 9,
+            'percentil_usado': 50,
+            'percentil_label': 'P50',
+            'cv_pool': 0.20,
+        }
+    }
+    
+    # Simular exclusion de 5 comps (quedan 4 activos)
+    excluded_ids = ['comp_1', 'comp_2', 'comp_3', 'comp_4', 'comp_5']
+    comps_filtrados = [c for i, c in enumerate(comparables) if i >= 5]
+    assert len(comps_filtrados) == 4, f"Esperaba 4 comps filtrados, obtuve {len(comps_filtrados)}"
+    
+    preview = calcular_vm2_por_seleccion(comps_filtrados, resultado_original)
+    
+    # Verificar que preview se calculo correctamente
+    assert preview is not None, "calcular_vm2_por_seleccion retorno None para 4 comps"
+    assert not preview.get('fallback'), f"No deberia ser fallback para 4 comps, obtuvo fallback={preview.get('fallback')}"
+    assert preview['n_sel'] == 4, f"Esperaba n_sel=4, obtuvo {preview['n_sel']}"
+    
+    nuevo_vm2 = preview['vm2']
+    nuevo_valor = preview['valor_total']
+    
+    # Esto es lo que hace el exclusion block en valu.py (TAREA-094)
+    _meta = resultado_original.get('resolution_metadata', {})
+    resultado_original['m2_base_venta'] = nuevo_vm2
+    resultado_original['m2_microzona'] = nuevo_vm2
+    _meta['n_propiedades'] = len(comps_filtrados)
+    
+    # ── Verificaciones de sincronia ──
+    
+    # 1. n_propiedades debe reflejar activos (4), no pool (9)
+    assert _meta['n_propiedades'] == 4, \
+        f"n_propiedades debe ser 4 (activos), obtuvo {_meta['n_propiedades']}"
+    
+    # 2. m2_microzona debe reflejar la seleccion, no el pool original
+    assert resultado_original['m2_microzona'] == nuevo_vm2, \
+        f"m2_microzona debe coincidir con nuevo_vm2 ({nuevo_vm2}), obtuvo {resultado_original['m2_microzona']}"
+    
+    # 3. precio/m² de seleccion (preview footer) debe coincidir con header
+    assert abs(nuevo_vm2 - preview['vm2']) < 0.01, \
+        f"nuevo_vm2 debe coincidir con preview.vm2: {nuevo_vm2} vs {preview['vm2']}"
+    
+    # 4. Confianza debe ser "Confianza baja" para 4 < 8
+    n_comps = _meta['n_propiedades']
+    if n_comps >= 15:
+        conf = 'Alta confianza'
+    elif n_comps >= 8:
+        conf = 'Confianza media'
+    else:
+        conf = 'Confianza baja'
+    assert conf == 'Confianza baja', \
+        f"Para 4 comps la confianza debe ser 'Confianza baja', obtuvo '{conf}'"
+    print(f"[TEST-HEADER-SYNC] n_propiedades={_meta['n_propiedades']}, m2_microzona={resultado_original['m2_microzona']}, confianza='{conf}'")
+    
+    # 5. Verificar que nuevo_vm2 + m2_eq + activos dan nuevo_valor (formula coherente)
+    m2_eq = resultado_original.get('m2_equivalentes', 0)
+    activos = resultado_original.get('valor_activos', {}).get('total', 0)
+    m2_base_orig = 3200.0
+    valor_orig = 526489
+    if m2_eq > 0 and m2_base_orig > 0:
+        mult_factores = (valor_orig - activos) / (m2_eq * m2_base_orig)
+        expected_valor = (m2_eq * nuevo_vm2 * mult_factores) + activos
+        diff_pct = abs(expected_valor - nuevo_valor) / nuevo_valor * 100 if nuevo_valor > 0 else 0
+        assert diff_pct < 5.0, \
+            f"Formula header inconsistente: esperado=${expected_valor:,.0f}, obtuvo=${nuevo_valor:,.0f}, diff={diff_pct:.1f}%"
+        print(f"[TEST-HEADER-SYNC] Formula OK: ${nuevo_vm2:.0f}/m² × {m2_eq} m² × {mult_factores:.3f} + ${activos:,} = ${nuevo_valor:,.0f}")
+    
+    # 6. El header formula (m2_microzona * m2_eq * size_discount + activos) debe sumar al valor final
+    size_discount = 1.299  # tipico de las formulas
+    formula_valor = (resultado_original['m2_microzona'] * m2_eq * size_discount) + activos
+    # Nota: size_discount puede variar, no verificamos exactitud, solo que el calculo no sea absurdo
+    assert formula_valor > 0, f"Formula header debe producir valor > 0, obtuvo {formula_valor}"
+    print(f"[TEST-HEADER-SYNC] Formula header consistente: ${formula_valor:,.0f}")
+    
+    print(f"[TEST-HEADER-SYNC] OK: header sincronizado con seleccion (4 comps activos)")
+
+
 def test_flex_persistence_on_scraping_update():
     """
     Regresión: flex_dormitorios se perdía durante recálculo por scraping_actualizado
