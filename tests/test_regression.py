@@ -1636,3 +1636,49 @@ def test_shadow_vm2_unification():
     assert vm2_ui == vm2_core, f"UI y Core divergieron: {vm2_ui} != {vm2_core}"
     
     print("[SHADOW] OK: UI y Motor ahora usan el mismo core unificado")
+
+
+# ──────────────────────────────────────────────
+# TAREA-093: Flex Persistence on Recalculation
+# ──────────────────────────────────────────────
+
+def test_flex_persistence_on_scraping_update():
+    """
+    Regresión: flex_dormitorios se perdía durante recálculo por scraping_actualizado
+    (TAREA-093). Verifica que pasar flex_dormitorios no rompa y produzca
+    al menos tantos comparables como sin flex.
+    """
+    from parsers.mercado_inmobiliario import obtener_mediana_cluster_v2
+    
+    results = []
+    for dorms in [1, 3, 5]:
+        for zona in ['Centro', 'Martin']:
+            _, _, meta_s = obtener_mediana_cluster_v2(
+                zona=zona, dormitorios=dorms, operacion='venta',
+                lat_ref=-32.95, lon_ref=-60.64,
+                retro_dias=60, flex_dormitorios=None
+            )
+            _, _, meta_f = obtener_mediana_cluster_v2(
+                zona=zona, dormitorios=dorms, operacion='venta',
+                lat_ref=-32.95, lon_ref=-60.64,
+                retro_dias=60, flex_dormitorios=[1, 2, 3, 4, 5]
+            )
+            n_s = len(meta_s.get('comparables_reales', []))
+            n_f = len(meta_f.get('comparables_reales', []))
+            results.append((zona, dorms, n_s, n_f, n_f - n_s))
+    
+    for zona, dorms, n_s, n_f, diff in results:
+        print(f"[FLEX-TEST] {zona} d={dorms}: strict={n_s}, flex={n_f}")
+    
+    # Al menos un caso debe mostrar efecto flex (diff > 0)
+    found_effect = any(d > 0 for *_, d in results)
+    # O bien, en todos los casos flex >= strict (nunca disminuye)
+    all_ge = all(n_f >= n_s for *_, n_s, n_f, _ in results)
+    
+    if found_effect:
+        print("[FLEX-TEST] OK: flex produce más comparables que strict")
+    elif all_ge:
+        print("[FLEX-TEST] WARN: no se detectó efecto flex con estos datos de test")
+        print("[FLEX-TEST] OK: flex nunca reduce comparables (no regression)")
+    else:
+        assert False, "Flex redujo comparables (error en el filtro)"

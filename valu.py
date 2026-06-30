@@ -597,9 +597,19 @@ def mostrar_dashboard():
                     _flex = _cache_rs.get('flex_dormitorios', None)
                     if _retro > 0:
                         st.session_state[f'retro_active_{p_obj["nombre"]}'] = True
+                    else:
+                        st.session_state.pop(f'retro_active_{p_obj["nombre"]}', None)
+                    if _retro > 0:
                         st.session_state[f'retro_meses_{p_obj["nombre"]}'] = _retro
                     # Nota: NO setear retro_meses_slider_ para evitar warning de Streamlit
                     # ("value set via Session State API + default value conflict")
+                    # Sincronizar flex (faltaba — causaba caída de 9 a 2 comparables)
+                    if _flex is not None:
+                        st.session_state[f'flex_active_{p_obj["nombre"]}'] = True
+                        st.session_state[f'flex_dormitorios_{p_obj["nombre"]}'] = _flex
+                    else:
+                        st.session_state.pop(f'flex_active_{p_obj["nombre"]}', None)
+                        st.session_state.pop(f'flex_dormitorios_{p_obj["nombre"]}', None)
                     print(f"[DEBUG-FLOW] {p_obj['nombre']}: Pendiente con cache oficial valido — heredando params: retro={_retro}d, flex={_flex}")
                 # Si es re-entry pasivo (sin recalculación forzada), mostrar vacío
                 # (no mostrar vacío si hay preview valido en cache)
@@ -654,6 +664,8 @@ def mostrar_dashboard():
                             st.session_state[f'retro_meses_{prop_name}'] = retro_dias
                             st.session_state[f'retro_meses_slider_{prop_name}'] = retro_dias
                         st.session_state[f'flex_active_{prop_name}'] = flex_active
+                        if flex_active and flex_dormitorios is not None:
+                            st.session_state[f'flex_dormitorios_{prop_name}'] = flex_dormitorios
                         st.session_state[vista_key] = True
                         print(f"[DEBUG-REENTRY] {prop_name}: params desde UV — retro={retro_dias}, flex={flex_dormitorios}")
                     else:
@@ -662,7 +674,7 @@ def mostrar_dashboard():
                         retro_meses = st.session_state.get(f'retro_meses_{prop_name}', 36) if retro_active else 0
                         retro_dias = retro_meses if retro_active else 0
                         flex_active = st.session_state.get(f'flex_active_{prop_name}', False)
-                        flex_dormitorios = [1, 2, 3, 4, 5] if flex_active else None
+                        flex_dormitorios = st.session_state.get(f'flex_dormitorios_{prop_name}', [1, 2, 3, 4, 5]) if flex_active else None
                     usar_cache = False
                     print(f"[DEBUG] {prop_name}: pre-valuacion params: forzar={forzar}, ya_valuado={ya_valuado}, retro_active={retro_active}, retro_dias={retro_dias}, flex_active={flex_active}, preview_mode={preview_mode}")
                     cache_condition = (ya_valuado, not forzar, bool(entrada_antigua.get('resultado_completo')))
@@ -693,6 +705,7 @@ def mostrar_dashboard():
                     if not usar_cache:
                         if fuente_activa_saved == 'auto':
                             print(f"[CACHE-CHECK] {prop_name}: llamando valuar_con_cache (forzar={forzar}, preview={preview_mode}, retro={retro_dias}, flex={flex_dormitorios})")
+                            print(f"[DEBUG-FLEX-PASS] {prop_name}: flex_dormitorios={flex_dormitorios}" if flex_dormitorios else f"[DEBUG-FLEX-PASS] {prop_name}: flex_dormitorios=None, flex_active={flex_active}")
                             manual_data_to_pass = st.session_state.get(f'manual_preview_{prop_name}', None) if fuente_activa_saved == 'manual' else None
                             resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios, preview=preview_mode, manual_data=manual_data_to_pass)
                             print(f"[CACHE-CHECK] {prop_name}: valuar_con_cache retorno: error={resultado.get('error')}, valor={resultado.get('valor_propiedad_usd')}, n_comps={len(resultado.get('comparables_venta',[])) if resultado.get('comparables_venta') else 0}, cache_preview={resultado.get('_cache',{}).get('preview')}")
