@@ -73,4 +73,5 @@
 | TAREA-086 | Fix cambio Manual→Comparable: carga desde cache físico (v2) | _completada_ | 2026-06-27 |
 | TAREA-093 | VM2 core unification + flex persistence + cv_pool fix + header count fix | `e443524` | 2026-06-29 |
 | TAREA-094 | Sincronizar header con exclusión de comparables (n_propiedades, m2_microzona) | `781353e` | 2026-06-30 |
-| TAREA-095 | Fix "Restablecer Todos" no respeta motor (defensa + debug + test #52) | _(current)_ | 2026-06-30 |
+| TAREA-095 | Fix "Restablecer Todos" no respeta motor (defensa + debug + test #52) | `3d9d8d3` | 2026-06-30 |
+| TAREA-096 | Header oculta valuación si < 3 comps | _(current)_ | 2026-06-30 |

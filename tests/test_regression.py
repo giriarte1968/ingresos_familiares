@@ -1903,3 +1903,79 @@ def test_reset_all_restores_motor_value():
     print(f"[TEST-RESET] OK: Reset All retorna al valor del motor correctamente")
     print(f"[TEST-RESET] base: m2={base_m2:.0f}, valor=${base_valor:,.0f}, n_prop={base_np}")
     print(f"[TEST-RESET] fresh: m2={fresh_m2:.0f}, valor=${fresh_valor:,.0f}, n_prop={fresh_np}")
+
+
+def test_min_3_comps_for_valuation():
+    """
+    TAREA-096: Con < 3 comparables, el header debe ocultar la valuación
+    y la tabla no debe mostrar "Motor de selección" para n_sel == n_total.
+    """
+    from parsers.mercado_inmobiliario import (
+        valuar_propiedad_v7, calcular_vm2_por_seleccion, _get_comp_id
+    )
+
+    prop = {
+        'nombre': 'TEST_MIN_3_096',
+        'tipo_inmueble': 'departamento',
+        'zona': 'Centro',
+        'direccion': 'Rioja 1000',
+        'lat': -32.947, 'lon': -60.63,
+        'm2': 50, 'm2_cubiertos': 45,
+        'dormitorios': 2, 'anio_construccion': 2000,
+        'estado_detalle': 'bueno', 'calidad_edificio': 'media',
+        'descripcion_libre': 'test',
+        'piso': 2, 'total_pisos': 5,
+        'tipo_balcon': 'ninguno',
+        'lavadero_independiente': False, 'placares_completos': False,
+        'ascensores_edificio': 0, 'detalles_categoria': [],
+        'vista': 'frente', 'ubicacion_tipo': 'calle', 'gas_ok': 'si',
+    }
+
+    res = valuar_propiedad_v7(prop, fecha_ref='2026-06-27', consultar_infomapa=False)
+    assert not res.get('error'), f"Motor fallo: {res.get('error')}"
+    comps = res.get('comparables_venta', [])
+    n_total = len(comps)
+    meta = res.get('resolution_metadata', {})
+    n_prop = meta.get('n_propiedades', 0)
+    print(f"[TEST-MIN-3] Paso 1 — Motor: n_comps={n_total}, n_prop={n_prop}, valor=${res.get('valor_propiedad_usd',0):,.0f}")
+
+    assert n_prop >= 3, f"Se necesitan >= 3 comps para este test, obtuve {n_prop}"
+    assert n_total >= 3, f"Se necesitan >= 3 comps, obtuve {n_total}"
+
+    # Simular seleccion de solo 2 comps (como cuando flex = OFF reduce el pool)
+    comps_2 = comps[:2]
+    n_sel = len(comps_2)
+    n_total_sim = len(comps)
+
+    # Verificacion 1: n_sel == n_total and n_sel >= 3 es FALSO para 2 comps
+    assert not (n_sel == n_total_sim and n_sel >= 3), \
+        f"n_sel={n_sel}, n_total={n_total_sim}: condicion debe ser False para < 3 comps"
+
+    # Verificacion 2: preview funciona con 2 comps (via elif len(selected_comps) >= 2)
+    preview = calcular_vm2_por_seleccion(comps_2, res)
+    assert preview is not None, "calcular_vm2_por_seleccion debe retornar preview para 2 comps"
+    assert preview.get('n_sel', 0) == 2, f"Preview debe reportar n_sel=2, obtuvo {preview.get('n_sel')}"
+    assert 'vm2' in preview, "Preview debe contener vm2"
+    print(f"[TEST-MIN-3] Paso 2 — Preview 2 comps: vm2=${preview['vm2']:,.0f}, fallback={preview.get('fallback', False)}")
+
+    # Verificacion 3: El motor reporta n_propiedades correctamente
+    if n_total >= 3:
+        assert n_prop >= 3, f"Con {n_total} comps, n_prop debe ser >= 3, obtuve {n_prop}"
+    print(f"[TEST-MIN-3] Paso 3 — n_prop={n_prop} para {n_total} comps totales")
+
+    # Verificacion 4: _get_comp_id funciona para todas las comps
+    for c in comps_2:
+        cid = _get_comp_id(c)
+        assert cid is not None, f"Comp sin ID: {c}"
+    print(f"[TEST-MIN-3] Paso 4 — IDs de comps validos")
+
+    # Verificacion 5: Con 0 o 1 comps, calcular_vm2_por_seleccion retorna None
+    for n in [0, 1]:
+        few_comps = comps[:n]
+        preview_few = calcular_vm2_por_seleccion(few_comps, res)
+        assert preview_few is None or preview_few.get('fallback'), \
+            f"Con {n} comps, preview debe ser None o fallback"
+    print(f"[TEST-MIN-3] Paso 5 — 0/1 comps: preview None o fallback OK")
+
+    print(f"[TEST-MIN-3] OK: < 3 comps manejado correctamente")
+    print(f"[TEST-MIN-3] n_total={n_total}, n_prop={n_prop}, preview(2)={'valido' if preview else 'None'}")

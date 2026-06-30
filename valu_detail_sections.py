@@ -203,6 +203,16 @@ def render_header(prop, res):
                      if auto_result else 0)
     m2_line_auto = f"m²/USD en {zona}: ${m2_micro_auto:,.0f} ({n_comps_auto} comp.)" if m2_micro_auto > 0 else "—"
 
+    # ── Insuficientes comparables (< 3): ocultar valuación en header ──
+    if n_comps < 3:
+        print(f"[DEBUG-INSUF-COMPS] {nombre}: n_comps={n_comps}, ocultando valuación en header")
+        valor_usd = 0
+        m2_microzona = 0
+        v_auto = 0
+        v_manual = 0
+        m2_micro_auto = 0
+        m2_line_auto = "—"
+
     dolar_manual = manual_result.get('usdt_ars', dolar) if manual_result else dolar
     m2_base_manual = manual_result.get('m2_base_venta', 0) if manual_result else 0
     n_comps_manual = (manual_result.get('resolution_metadata') or {}).get('n_propiedades', 0) if manual_result else 0
@@ -496,7 +506,7 @@ def render_tabla_comparables(res, prop_name=None):
         n_sel = len(selected_ids)
         n_total = len(comparables)
         selected_comps = [c for c in comparables if _get_comp_id(c) in selected_ids]
-        if n_sel == n_total:
+        if n_sel == n_total and n_sel >= 3:
             # Sin exclusiones: usar el valor real del motor para coherencia header/tabla
             vm2_micro = res.get('m2_microzona', res.get('m2_base_venta', 0))
             meta = res.get('resolution_metadata', {})

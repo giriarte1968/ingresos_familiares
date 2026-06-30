@@ -285,6 +285,12 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     dolar = display_result.get('usdt_ars', 1480)
     valor_usd = display_result.get('valor_propiedad_usd', 0)
 
+    # ── < 3 comps: ocultar rango y métricas ──
+    n_comps_display = display_result.get('resolution_metadata', {}).get('n_propiedades', 0)
+    if 0 < n_comps_display < 3:
+        print(f"[DEBUG-INSUF-COMPS] {nombre}: n_comps_display={n_comps_display}, ocultando rango/metricas")
+        valor_usd = 0
+
     _dl = StepLedger("mostrar_detalle_valu_ledger", nombre)
     _dl.mark("start")
 
@@ -316,6 +322,11 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
             "(mínimo 2). "
             "Usá la sección **📐 Valuación Manual** debajo "
             "para definir el valor manualmente."
+        )
+    elif 0 < n_comps_display < 3:
+        st.warning(
+            f"**Solo {n_comps_display} comparables disponibles.** "
+            "Se necesitan al menos 3 para una valuación por selección."
         )
 
     if valor_usd > 0:

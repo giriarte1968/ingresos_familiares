@@ -1,6 +1,34 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-06-30 — TAREA-096: Header oculta valuación si < 3 comparables
+
+### Contexto
+Con flex OFF, el motor solo encuentra 2 comps (3-dormitorio en Puerto Norte).
+El header mostraba valuación con esos 2 comps, pero el botón "Aplicar selección"
+decía "Mínimo 3" (disabled). Inconsistencia: si el mínimo para aplicar es 3,
+el header no debe mostrar valuación.
+
+### Cambios
+1. **`valu_detail_sections.py:499`** — `if n_sel == n_total:` → `if n_sel == n_total and n_sel >= 3:`.
+   Con 2 comps, cae a `elif len(selected_comps) >= 2:` → footer muestra "2 comps (mín. 3 req.)".
+2. **`valu_detail_sections.py:render_header`** — Si `n_comps < 3`, setea `v_auto=0`, `v_manual=0`,
+   `m2_microzona=0`, `m2_line_auto="—"`. Cards muestran "—".
+3. **`valu.py:mostrar_detalle_valu`** — Si `n_comps_display < 3`, setea `valor_usd=0` para que
+   `render_rango` y `render_metricas` no se ejecuten. Warning adicional para 2 comps.
+4. **Debug flag `[DEBUG-INSUF-COMPS]`** en ambos archivos.
+5. **`tests/test_regression.py`**: `test_min_3_comps_for_valuation` (#53).
+
+### Regla de Oro
+- Header nunca muestra valuación con < 3 comparables.
+- Rango y métricas ocultos.
+- Footer tabla informa "mín. 3 req.".
+
+### Tests
+- 53/53 tests OK.
+
+---
+
 ## 2026-06-30 — TAREA-095: Fix "Restablecer Todos" no respeta motor
 
 ### Contexto
