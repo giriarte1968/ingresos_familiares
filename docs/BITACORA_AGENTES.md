@@ -1,6 +1,31 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-06-30 — TAREA-095: Fix "Restablecer Todos" no respeta motor
+
+### Contexto
+Tras "Aplicar Selección", el botón "Restablecer Todos" no revertía el header al valor
+base del motor. Posible fuga de estado desde preview/UI persistence.
+
+### Cambios
+1. **`valu.py` — Defensa en `_reset_all_` block**:
+   - Se agrega `resultado['_auto_result'] = resultado` post-persistencia para asegurar
+     que el header lea el resultado fresco del motor y no un valor de UI residual.
+   - Se limpia `forzar_recalculo` del session_state tras el reset.
+   - Flag `[DEBUG-RESET-CLEAN]` para rastrear valores finales.
+2. **`tests/test_regression.py`**: `test_reset_all_restores_motor_value` (#52).
+3. **Documentación actualizada**.
+
+### Regla de Oro
+- No se agregaron botones nuevos ni se cambió la interfaz.
+- Header retorna al valor del motor tras reset.
+
+### Tests
+- 52/52 tests OK.
+- auto_validate OK.
+
+---
+
 ## 2026-06-30 — TAREA-094: Sincronizar header con exclusión de comparables
 
 ### Contexto

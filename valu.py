@@ -777,6 +777,13 @@ def mostrar_dashboard():
                                 from parsers.valuacion_cache import cargar_cache_valuaciones, persistir_valuacion
                                 _cv = cargar_cache_valuaciones()
                                 persistir_valuacion(prop_name, p_obj, resultado, _cv, commit=True)
+                                # Limpiar forzar_recalculo para evitar re-ejecución infinita
+                                if f'forzar_recalculo_{prop_name}' in st.session_state:
+                                    del st.session_state[f'forzar_recalculo_{prop_name}']
+                                # Asegurar que el resultado tenga _auto_result limpio (TAREA-095)
+                                resultado['_auto_result'] = resultado
+                                _meta = resultado.get('resolution_metadata', {})
+                                print(f"[DEBUG-RESET-CLEAN] {prop_name}: m2_base={resultado.get('m2_base_venta')}, m2_micro={resultado.get('m2_microzona')}, n_prop={_meta.get('n_propiedades')}, excl_applied={resultado.get('_comp_exclusion_applied')}")
                                 print(f"[RESET] {prop_name}: Exclusión limpiada y persistida")
                             except Exception as e:
                                 logger.warning(f"[RESET] {prop_name}: persist error: {e}")

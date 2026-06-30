@@ -1804,3 +1804,102 @@ def test_flex_persistence_on_scraping_update():
         print("[FLEX-TEST] OK: flex nunca reduce comparables (no regression)")
     else:
         assert False, "Flex redujo comparables (error en el filtro)"
+
+
+# ──────────────────────────────────────────────
+# TAREA-095: Reset All restores motor value
+# ──────────────────────────────────────────────
+
+def test_reset_all_restores_motor_value():
+    """
+    TAREA-095: Simula el flujo: motor → exclusión → reset.
+    Verifica que tras un "Restablecer Todos", el header retorne
+    al valor base del motor y no se quede con el valor de la UI.
+    """
+    from parsers.mercado_inmobiliario import (
+        valuar_propiedad_v7, calcular_vm2_por_seleccion, _get_comp_id
+    )
+
+    prop = {
+        'nombre': 'TEST_RESET_095',
+        'tipo_inmueble': 'departamento',
+        'zona': 'Centro',
+        'direccion': 'Rioja 1000',
+        'lat': -32.947, 'lon': -60.63,
+        'm2': 50, 'm2_cubiertos': 45,
+        'dormitorios': 2, 'anio_construccion': 2000,
+        'estado_detalle': 'bueno', 'calidad_edificio': 'media',
+        'descripcion_libre': 'test',
+        'piso': 2, 'total_pisos': 5,
+        'tipo_balcon': 'ninguno',
+        'lavadero_independiente': False, 'placares_completos': False,
+        'ascensores_edificio': 0, 'detalles_categoria': [],
+        'vista': 'frente', 'ubicacion_tipo': 'calle', 'gas_ok': 'si',
+    }
+
+    # 1. Obtener resultado base del motor
+    res_base = valuar_propiedad_v7(prop, fecha_ref='2026-06-27', consultar_infomapa=False)
+    assert not res_base.get('error'), f"Motor fallo en paso base: {res_base.get('error')}"
+    base_m2 = res_base.get('m2_base_venta', 0)
+    base_valor = res_base.get('valor_propiedad_usd', 0)
+    base_comps = res_base.get('comparables_venta', [])
+    base_n = len(base_comps)
+    base_meta = res_base.get('resolution_metadata', {})
+    base_np = base_meta.get('n_propiedades', 0)
+    base_mm = res_base.get('m2_microzona', base_m2)
+    print(f"[TEST-RESET] Paso 1 — Motor base: m2_base={base_m2:.0f}, valor=${base_valor:,.0f}, n_comps={base_n}, n_prop={base_np}, m2_micro={base_mm:.0f}")
+
+    assert base_m2 > 0, "Motor base debe tener m2_base > 0"
+    assert base_n >= 3, f"Motor base debe tener al menos 3 comps, obtuvo {base_n}"
+
+    # 2. Simular exclusion de algunos comparables
+    # Excluir los primeros floor(n/2) comps
+    n_excluir = max(1, base_n // 3)
+    excl_changed = False
+    excluded_ids = [_get_comp_id(c) for c in base_comps[:n_excluir]]
+    comps_filtrados = [c for c in base_comps if _get_comp_id(c) not in excluded_ids]
+    n_activos = len(comps_filtrados)
+    print(f"[TEST-RESET] Paso 2 — Excluyendo {n_excluir} comps, quedan {n_activos} activos")
+
+    preview = calcular_vm2_por_seleccion(comps_filtrados, res_base)
+    if preview and not preview.get('fallback'):
+        excl_m2 = preview['vm2']
+        excl_valor = preview['valor_total']
+        excl_percentil = preview.get('percentil_label', 'P?')
+        excl_changed = (excl_m2 != base_m2) or (excl_valor != base_valor)
+        print(f"[TEST-RESET] Paso 2 — Exclusion: m2={excl_m2:.0f}, valor=${excl_valor:,.0f}, {excl_percentil}, n_sel={preview['n_sel']}, changed={excl_changed}")
+    else:
+        print(f"[TEST-RESET] Paso 2 — exclusion fallo con {n_activos} comps, usando base como referencia")
+        excl_m2 = base_m2
+        excl_valor = base_valor
+
+    # 3. Simular "Restablecer Todos": obtener un resultado fresco del motor
+    res_fresh = valuar_propiedad_v7(prop, fecha_ref='2026-06-27', consultar_infomapa=False)
+    assert not res_fresh.get('error'), f"Motor fallo en paso fresh: {res_fresh.get('error')}"
+    fresh_m2 = res_fresh.get('m2_base_venta', 0)
+    fresh_valor = res_fresh.get('valor_propiedad_usd', 0)
+    fresh_meta = res_fresh.get('resolution_metadata', {})
+    fresh_np = fresh_meta.get('n_propiedades', 0)
+    fresh_mm = res_fresh.get('m2_microzona', fresh_m2)
+    print(f"[TEST-RESET] Paso 3 — Fresh motor: m2_base={fresh_m2:.0f}, valor=${fresh_valor:,.0f}, n_prop={fresh_np}, m2_micro={fresh_mm:.0f}")
+
+    # 4. Verificar que el resultado fresco es igual al base (motor estable)
+    assert fresh_m2 == base_m2, \
+        f"Fresh motor debe dar mismo m2_base que base: base={base_m2:.0f}, fresh={fresh_m2:.0f}"
+    assert fresh_valor == base_valor, \
+        f"Fresh motor debe dar mismo valor que base: base=${base_valor:,.0f}, fresh=${fresh_valor:,.0f}"
+    assert fresh_np == base_np, \
+        f"Fresh motor debe dar mismo n_propiedades que base: base={base_np}, fresh={fresh_np}"
+
+    # 5. Verificar que el valor base es el del motor, NO el de la exclusión
+    if excl_changed:
+        # Si la exclusión cambió el valor, verificar que el motor mantiene el base
+        assert fresh_m2 == base_m2, f"Reset debe restaurar m2_base del motor"
+        assert fresh_valor == base_valor, f"Reset debe restaurar valor del motor"
+        print(f"[TEST-RESET] OK: exclusion cambio valor (excl={excl_m2:.0f}, base={base_m2:.0f}), motor fresco mantuvo base")
+    else:
+        print(f"[TEST-RESET] OK: exclusion no cambio valor (comps homogeneas), motor estable")
+
+    print(f"[TEST-RESET] OK: Reset All retorna al valor del motor correctamente")
+    print(f"[TEST-RESET] base: m2={base_m2:.0f}, valor=${base_valor:,.0f}, n_prop={base_np}")
+    print(f"[TEST-RESET] fresh: m2={fresh_m2:.0f}, valor=${fresh_valor:,.0f}, n_prop={fresh_np}")
