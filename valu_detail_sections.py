@@ -1534,6 +1534,10 @@ def render_valuacion_manual(prop, res):
                     uv['fuente'] = 'manual'
                     uv['fuente_activa'] = 'manual'
                     uv['manual_params'] = manual_params
+                    # Preservar retro/flex para que re-entrada sea consistente
+                    uv['retro_dias'] = st.session_state.get(f'retro_meses_{nombre}', 0)
+                    uv['flex_dormitorios'] = st.session_state.get(f'flex_dormitorios_{nombre}', None)
+                    print(f"[DEBUG-MANUAL-SAVE] {nombre}: retro_dias={uv['retro_dias']}, flex_dormitorios={uv['flex_dormitorios']} preservados en UV")
                     if old_comp_exclusion_applied:
                         uv['_comp_excluded'] = old_comp_excluded
                         uv['_comp_exclusion_applied'] = True
@@ -1543,9 +1547,22 @@ def render_valuacion_manual(prop, res):
                         uv.setdefault('_comp_exclusion_applied', False)
                     break
             if not guardar_propiedades(props):
+                print(f"[DEBUG-MANUAL-SAVE] {nombre}: guardar_propiedades FALLO — escritura a disco fallida")
                 st.error("Error de escritura en propiedades.json. La valuacion manual NO se guardo.")
-                print(f"[DEBUG-MANUAL-SAVE] {nombre}: guardar_propiedades FALLO")
                 st.rerun()
+            # Verificar persistencia: releer y confirmar
+            try:
+                with open('propiedades.json', 'r', encoding='utf-8') as f:
+                    _post_save = json.load(f)
+                _post_uv = next((p['_ultima_valuacion'] for p in _post_save['propiedades'] if p.get('nombre') == nombre), {})
+                _post_manual_params = _post_uv.get('manual_params')
+                _post_fuente = _post_uv.get('fuente_activa')
+                if _post_manual_params and _post_fuente == 'manual':
+                    print(f"[DEBUG-MANUAL-SAVE] {nombre}: VERIFICACION DISCO OK — manual_params=True, fuente_activa={_post_fuente}")
+                else:
+                    print(f"[DEBUG-MANUAL-SAVE] {nombre}: VERIFICACION DISCO FALLO — manual_params={'SI' if _post_manual_params else 'NO'}, fuente_activa={_post_fuente}")
+            except Exception as e:
+                print(f"[DEBUG-MANUAL-SAVE] {nombre}: VERIFICACION DISCO ERROR: {e}")
             st.session_state.pop(ss_key, None)
             st.session_state.pop(f'_official_result_{nombre}', None)
             st.session_state.pop(f'preview_mode_{nombre}', None)

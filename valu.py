@@ -54,8 +54,10 @@ def guardar_propiedades(propiedades):
             json.dump({'propiedades': propiedades}, f, indent=2, ensure_ascii=False)
         from parsers.git_sync import try_sync
         try_sync([PROPIEDADES_FILE])
+        return True
     except Exception as e:
         st.error(f"Error guardando: {e}")
+        return False
 
 @st.cache_data(ttl=3600)
 def obtener_usdt_ars_binance(fecha=None):
@@ -412,6 +414,10 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     _dl.mark("after_section_comparables")
 
     # ─── 📐 Valuación Manual ───
+    manual_params_present = bool(res.get('_manual_params'))
+    manual_result_present = bool(res.get('_manual_result'))
+    fuente_activa = res.get('_fuente_activa', 'N/A')
+    print(f"[DEBUG-MANUAL-RESULT] {nombre}: render_valuacion_manual recibiendo: _manual_params={'SI' if manual_params_present else 'NO'}, _manual_result={'SI' if manual_result_present else 'NO'}, _fuente_activa={fuente_activa}")
     with st.expander(f"📐 Valuacion Manual — {prop_name}", expanded=False):
         with profile_block("render_valuacion_manual", prop):
             render_valuacion_manual(prop, res)
@@ -776,14 +782,19 @@ def mostrar_dashboard():
                     # ── Valuación manual paralela (siempre computada, nunca sobreescribe) ──
                     uv = p_obj.get('_ultima_valuacion', {})
                     manual_params_saved = uv.get('manual_params')
+                    print(f"[DEBUG-MANUAL-RESULT] {prop_name}: manual_params_saved={'SI' if manual_params_saved else 'NO'}, "
+                          f"uv_keys={list(uv.keys())}, uv_fuente={uv.get('fuente_activa', 'N/A')}, "
+                          f"uv_valor_usd={uv.get('valor_usd', 'N/A')}, uv_retro={uv.get('retro_dias', 'N/A')}")
                     resultado_manual = None
                     if manual_params_saved:
                         try:
                             from parsers.mercado_inmobiliario import generar_resultado_manual
                             resultado_manual = generar_resultado_manual(p_obj, manual_params_saved, auto_result=resultado)
+                            print(f"[DEBUG-MANUAL-RESULT] {prop_name}: resultado_manual GENERADO OK — valor={resultado_manual.get('valor_propiedad_usd','N/A')}, n_prop={resultado_manual.get('resolution_metadata',{}).get('n_propiedades','N/A')}")
                         except Exception as e:
                             logger.error(f"[MANUAL] Error generando resultado manual para {prop_name}: {e}")
                             resultado_manual = None
+                            print(f"[DEBUG-MANUAL-RESULT] {prop_name}: resultado_manual FALLO — {e}")
                     _sl.mark("after_manual_parallel")
 
                     # Determinar fuente activa (default 'auto' si no hay manual)
@@ -797,6 +808,7 @@ def mostrar_dashboard():
                     resultado['_manual_result'] = resultado_manual
                     resultado['_manual_params'] = manual_params_saved
                     resultado['_fuente_activa'] = fuente_activa
+                    print(f"[DEBUG-MANUAL-RESULT] {prop_name}: INYECTADO: _manual_params={'SI' if resultado.get('_manual_params') else 'NO'}, _manual_result={'SI' if resultado.get('_manual_result') else 'NO'}, _fuente_activa={resultado.get('_fuente_activa')}")
                     _sl.mark("after_inject_parallel")
 
                     # ── Restaurar exclusión desde UV si el resultado fresco no la tiene ──

@@ -2243,3 +2243,126 @@ def test_ui_table_shows_preview_failure_not_restored():
         guardar_cache_valuaciones(cache_bak)
         with open('propiedades.json', 'w', encoding='utf-8') as f:
             json.dump(props_bak, f, ensure_ascii=False, indent=2)
+
+
+def test_manual_save_reentry_consistencia():
+    """T_S-11: Guardar valuacion manual → re-entrar a detalle →
+    _manual_params, _manual_result, _fuente_activa deben estar presentes.
+
+    Simula: guardado manual → re-carga desde disco → ejecución motor → inyección.
+    """
+    from parsers.valuacion_cache import persistir_valuacion, cargar_cache_valuaciones, guardar_cache_valuaciones
+    from parsers.motor_vpp_core import valuar_con_cache
+    from parsers.mercado_inmobiliario import generar_resultado_manual
+    import json, copy
+
+    nombre_test = '__test_manual_reentry__'
+    cache_bak = cargar_cache_valuaciones()
+    if nombre_test in cache_bak:
+        del cache_bak[nombre_test]
+        guardar_cache_valuaciones(cache_bak)
+
+    with open('propiedades.json', 'r', encoding='utf-8') as f:
+        props_bak = copy.deepcopy(json.load(f))
+
+    try:
+        props_temp = copy.deepcopy(props_bak)
+        props_temp['propiedades'].append({
+            'nombre': nombre_test,
+            'm2_cubiertos': 50,
+            'lat': -32.95,
+            'lon': -60.63,
+            'zona': 'Martin',
+            'tipo_inmueble': 'departamento',
+        })
+        with open('propiedades.json', 'w', encoding='utf-8') as f:
+            json.dump(props_temp, f, ensure_ascii=False, indent=2)
+
+        prop = {
+            'nombre': nombre_test,
+            'm2_cubiertos': 50,
+            'lat': -32.95,
+            'lon': -60.63,
+            'zona': 'Martin',
+            'tipo_inmueble': 'departamento',
+        }
+
+        # 1. Auto valuation oficial (commit=True)
+        res_auto = valuar_con_cache(prop, forzar_recalculo=True, retro_dias=36, preview=True)
+        assert res_auto.get('valor_propiedad_usd', 0) > 0, f"Auto valor 0: {res_auto}"
+        res_auto['_comp_excluded'] = []
+        res_auto['_comp_exclusion_applied'] = False
+        persistir_valuacion(nombre_test, prop, res_auto, cargar_cache_valuaciones(), commit=True)
+
+        # 2. Simular guardado manual: modificar UV en propiedades.json
+        manual_params = {
+            'usd_m2': 2000, 'factor_hedonico': 1.05,
+            'incertidumbre_pct': 10, 'ajuste_pct': 0,
+            'fecha_guardado': '2026-07-01T12:00:00',
+            'incluir_prima_const': True, 'incluir_size_adj': True,
+        }
+        with open('propiedades.json', 'r', encoding='utf-8') as f:
+            props_mod = json.load(f)
+        for p in props_mod['propiedades']:
+            if p.get('nombre') == nombre_test:
+                uv = p.setdefault('_ultima_valuacion', {})
+                uv['fuente'] = 'manual'
+                uv['fuente_activa'] = 'manual'
+                uv['manual_params'] = manual_params
+                uv['retro_dias'] = 36
+                uv['flex_dormitorios'] = None
+                break
+        with open('propiedades.json', 'w', encoding='utf-8') as f:
+            json.dump(props_mod, f, ensure_ascii=False, indent=2)
+
+        # 3. Re-carga desde disco (simula re-entrada a detalle)
+        with open('propiedades.json', 'r', encoding='utf-8') as f:
+            props_reload = json.load(f)
+        p_obj = next((p for p in props_reload['propiedades'] if p['nombre'] == nombre_test), None)
+        assert p_obj is not None
+
+        uv = p_obj.get('_ultima_valuacion', {})
+        manual_params_saved = uv.get('manual_params')
+
+        assert manual_params_saved is not None, \
+            "manual_params debe estar en UV tras guardado manual"
+        assert uv.get('fuente_activa') == 'manual', \
+            "fuente_activa='manual' en UV tras guardado manual"
+        assert uv.get('retro_dias') == 36, \
+            "retro_dias=36 debe estar en UV tras guardado manual"
+
+        # 4. Ejecutar motor fresco (como en re-entry)
+        resultado = valuar_con_cache(prop, forzar_recalculo=True, retro_dias=36, preview=True)
+        assert resultado.get('error') is None, f"Engine error: {resultado.get('error')}"
+
+        # 5. Generar resultado manual (valu.py L780-786)
+        resultado_manual = generar_resultado_manual(prop, manual_params_saved, auto_result=resultado)
+        assert resultado_manual is not None
+        assert resultado_manual.get('valor_propiedad_usd', 0) > 0
+
+        # 6. Inyectar datos paralelos (valu.py L802-805)
+        resultado['_auto_result'] = resultado
+        resultado['_manual_result'] = resultado_manual
+        resultado['_manual_params'] = manual_params_saved
+        resultado['_fuente_activa'] = uv.get('fuente_activa', 'auto')
+
+        # 7. VERIFICACIONES
+        assert resultado.get('_manual_params') is not None, \
+            "CRITICO: _manual_params ausente en resultado tras re-entry"
+        assert resultado.get('_manual_result') is not None, \
+            "CRITICO: _manual_result ausente en resultado tras re-entry"
+        assert resultado.get('_fuente_activa') == 'manual', \
+            f"CRITICO: _fuente_activa debe ser 'manual', no {resultado.get('_fuente_activa')}"
+        assert resultado['_manual_result'].get('valor_propiedad_usd', 0) > 0, \
+            "CRITICO: valor_manual > 0 en resultado tras re-entry"
+
+        print(f"[TEST-MANUAL-REENTRY] OK — auto=${resultado.get('valor_propiedad_usd'):,.0f}, "
+              f"manual=${resultado['_manual_result'].get('valor_propiedad_usd'):,.0f}, "
+              f"fuente={resultado['_fuente_activa']}")
+
+    finally:
+        with open('propiedades.json', 'w', encoding='utf-8') as f:
+            json.dump(props_bak, f, ensure_ascii=False, indent=2)
+        cache_clean = cargar_cache_valuaciones()
+        cache_clean.pop(nombre_test, None)
+        guardar_cache_valuaciones(cache_clean)
