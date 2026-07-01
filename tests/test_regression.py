@@ -2366,3 +2366,114 @@ def test_manual_save_reentry_consistencia():
         cache_clean = cargar_cache_valuaciones()
         cache_clean.pop(nombre_test, None)
         guardar_cache_valuaciones(cache_clean)
+
+
+def test_retro_toggle_after_zero_exclusion_keep_button_active():
+    """T_S-12: Aplicar seleccion con 0 exclusiones → toggle Retro → boton Aplicar seleccion activo.
+
+    Si usuario aplica seleccion con TODOS los comps marcados (0 exclusiones),
+    UV queda con _comp_excluded=[] y _comp_exclusion_applied=True.
+    Al togglear Retro, la restauracion NO debe copiar exclusion vacia,
+    permitiendo que is_applied=False y el boton se muestre activo."""
+    from parsers.valuacion_cache import persistir_valuacion, cargar_cache_valuaciones, guardar_cache_valuaciones
+    from parsers.motor_vpp_core import valuar_con_cache
+    import json, copy
+
+    nombre_test = '__test_retro_zero_excl__'
+    cache_bak = cargar_cache_valuaciones()
+    if nombre_test in cache_bak:
+        del cache_bak[nombre_test]
+        guardar_cache_valuaciones(cache_bak)
+
+    with open('propiedades.json', 'r', encoding='utf-8') as f:
+        props_bak = copy.deepcopy(json.load(f))
+
+    try:
+        props_temp = copy.deepcopy(props_bak)
+        props_temp['propiedades'].append({
+            'nombre': nombre_test,
+            'm2_cubiertos': 50,
+            'lat': -32.95,
+            'lon': -60.63,
+            'zona': 'Martin',
+            'tipo_inmueble': 'departamento',
+        })
+        with open('propiedades.json', 'w', encoding='utf-8') as f:
+            json.dump(props_temp, f, ensure_ascii=False, indent=2)
+
+        prop = {
+            'nombre': nombre_test,
+            'm2_cubiertos': 50,
+            'lat': -32.95,
+            'lon': -60.63,
+            'zona': 'Martin',
+            'tipo_inmueble': 'departamento',
+        }
+
+        # 1. Auto valuation oficial (commit=True)
+        res_auto = valuar_con_cache(prop, forzar_recalculo=True, retro_dias=36, preview=True)
+        assert res_auto.get('valor_propiedad_usd', 0) > 0, "Auto valor > 0"
+        res_auto['_comp_excluded'] = []
+        res_auto['_comp_exclusion_applied'] = False
+        persistir_valuacion(nombre_test, prop, res_auto, cargar_cache_valuaciones(), commit=True)
+
+        # 2. Simular "Aplicar seleccion" con 0 exclusiones
+        with open('propiedades.json', 'r', encoding='utf-8') as f:
+            props_mod = json.load(f)
+        for p in props_mod['propiedades']:
+            if p.get('nombre') == nombre_test:
+                uv = p.setdefault('_ultima_valuacion', {})
+                uv['_comp_excluded'] = []
+                uv['_comp_exclusion_applied'] = True
+                uv['retro_dias'] = 36
+                uv['flex_dormitorios'] = None
+                break
+        with open('propiedades.json', 'w', encoding='utf-8') as f:
+            json.dump(props_mod, f, ensure_ascii=False, indent=2)
+
+        # 3. Verificar UV con exclusion vacia aplicada
+        with open('propiedades.json', 'r', encoding='utf-8') as f:
+            props_check = json.load(f)
+        uv_check = next(p['_ultima_valuacion'] for p in props_check['propiedades'] if p['nombre'] == nombre_test)
+        assert uv_check['_comp_excluded'] == [], "UV: exclusion vacia"
+        assert uv_check['_comp_exclusion_applied'] is True, "UV: exclusion aplicada flag"
+
+        # 4. Simular toggle Retro: engine fresco
+        resultado = valuar_con_cache(prop, forzar_recalculo=True, retro_dias=36, preview=True)
+        assert resultado.get('error') is None, f"Engine: {resultado.get('error')}"
+
+        # 5. Simular exclusion restore (valu.py L814-824)
+        uv_excl = uv_check
+        _restore_cond1 = not resultado.get('_comp_exclusion_applied')
+        _restore_cond2 = uv_excl.get('_comp_exclusion_applied')
+        resultado['_comp_excluded'] = resultado.get('_comp_excluded', [])
+        resultado['_comp_exclusion_applied'] = resultado.get('_comp_exclusion_applied', False)
+
+        if _restore_cond1 and _restore_cond2:
+            excluded_ids_list = uv_excl.get('_comp_excluded', [])
+            if excluded_ids_list:
+                resultado['_comp_excluded'] = excluded_ids_list
+                resultado['_comp_exclusion_applied'] = True
+                print(f"[TEST ZERO-EXCL] Restaurando {len(excluded_ids_list)} ids")
+
+        # 6. Simular is_applied en render_tabla_comparables
+        excluded_ids = []
+        is_applied = set(resultado.get('_comp_excluded', [])) == set(excluded_ids) and resultado.get('_comp_exclusion_applied', False)
+
+        print(f"[TEST ZERO-EXCL] n_comps={len(resultado.get('comparables_venta',[]))}, "
+              f"_comp_excluded={len(resultado.get('_comp_excluded',[]))}, "
+              f"_comp_exclusion_applied={resultado.get('_comp_exclusion_applied')}, "
+              f"is_applied={is_applied}")
+
+        assert is_applied is False, \
+            f"is_applied={is_applied}. Boton Aplicar seleccion deshabilitado tras Retro. " \
+            f"_comp_excluded={resultado.get('_comp_excluded')}, applied={resultado.get('_comp_exclusion_applied')}"
+
+        print(f"[TEST ZERO-EXCL] OK — is_applied=False, boton activo")
+
+    finally:
+        with open('propiedades.json', 'w', encoding='utf-8') as f:
+            json.dump(props_bak, f, ensure_ascii=False, indent=2)
+        cache_clean = cargar_cache_valuaciones()
+        cache_clean.pop(nombre_test, None)
+        guardar_cache_valuaciones(cache_clean)

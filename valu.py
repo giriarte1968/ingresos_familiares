@@ -817,9 +817,13 @@ def mostrar_dashboard():
                     _restore_cond2 = uv_excl.get('_comp_exclusion_applied')
                     _restore_cond3 = not st.session_state.get(f'comp_excluded_{prop_name}', False)
                     if _restore_cond1 and _restore_cond2 and _restore_cond3:
-                        resultado['_comp_excluded'] = uv_excl.get('_comp_excluded', [])
-                        resultado['_comp_exclusion_applied'] = True
-                        print(f"[DEBUG-EXCL-RESTORE] {prop_name}: RESTAURADA — {len(resultado['_comp_excluded'])} ids excluidos, from_apply={uv_excl.get('_comp_exclusion_applied')}")
+                        excluded_ids_list = uv_excl.get('_comp_excluded', [])
+                        if excluded_ids_list:
+                            resultado['_comp_excluded'] = excluded_ids_list
+                            resultado['_comp_exclusion_applied'] = True
+                            print(f"[DEBUG-EXCL-RESTORE] {prop_name}: RESTAURADA — {len(excluded_ids_list)} ids excluidos, from_apply={uv_excl.get('_comp_exclusion_applied')}")
+                        else:
+                            print(f"[DEBUG-EXCL-RESTORE] {prop_name}: SALTADA — lista de exclusiones vacia en UV")
                     elif uv_excl.get('_comp_exclusion_applied'):
                         print(f"[DEBUG-EXCL-RESTORE] {prop_name}: SALTADA — cond1(fresh_excl_applied)={_restore_cond1}, cond2(uv_excl_applied)={_restore_cond2}, cond3(no_pending_ss)={_restore_cond3}")
 
