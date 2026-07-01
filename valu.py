@@ -452,8 +452,8 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
 
         if hay_catastro:
             st.markdown("<br>", unsafe_allow_html=True)
-                with profile_block("render_catastro_detalle", prop):
-                    render_catastro(prop, original_res if (preview_mode and official_res) else res, compact=False)
+            with profile_block("render_catastro_detalle", prop):
+                render_catastro(prop, original_res if (preview_mode and official_res) else res, compact=False)
             _dl.mark("after_render_catastro")
     _dl.mark("after_section_acciones")
 
