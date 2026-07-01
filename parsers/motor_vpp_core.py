@@ -1420,6 +1420,8 @@ def valuar_con_cache(prop: dict,
             _vl.mark("before_persistir_valuacion")
             # Guard: failed valuation (preview or official) must NOT overwrite a valid cache entry.
             # Prevents losing a good result when engine fails with new params.
+            # CRITICAL: When preview=True, the return value MUST reflect the actual engine run
+            # (even if failed) so the UI shows real results. Only skip persistence.
             _skip_persist = False
             if resultado.get('error') or not resultado.get('valor_propiedad_usd'):
                 _existing = cache.get(nombre, {}).get('resultado_completo', {})
@@ -1432,9 +1434,15 @@ def valuar_con_cache(prop: dict,
                     _new_error = resultado.get('error', 'sin_valor')
                     _modo = "(preview)" if preview else "(oficial)"
                     print(f"[DEBUG-SKIP-PERSIST] {nombre}: {_modo} fallido ({_new_error}) — NO persiste. Cache previo: ${_exist_valor:,.0f} USD, retro={_exist_retro}d, flex={_exist_flex}, preview={_exist_preview}")
-                    resultado = _existing
-                    resultado.setdefault('_cache', {})['guard_restored'] = True
-                    print(f"[DEBUG-GUARD-RESTORE] {nombre}: resultado reemplazado por cache previo, _comp_exclusion_applied={resultado.get('_comp_exclusion_applied')}, _comp_excluded_count={len(resultado.get('_comp_excluded', []))}")
+                    # Sólo reemplazar return value si NO es preview.
+                    # Preview debe reflejar el fallo real para que la UI sea transparente.
+                    if not preview:
+                        resultado = _existing
+                        resultado.setdefault('_cache', {})['guard_restored'] = True
+                        print(f"[DEBUG-GUARD-RESTORE] {nombre}: preview={preview}, resultado reemplazado por cache previo, _comp_exclusion_applied={resultado.get('_comp_exclusion_applied')}, _comp_excluded_count={len(resultado.get('_comp_excluded', []))}")
+                    else:
+                        resultado.setdefault('_cache', {})['guard_restored'] = False
+                        print(f"[DEBUG-GUARD-PREVIEW] {nombre}: preview={preview}, fallo preservado (NO restore). Resultado refleja motor real.")
             if not _skip_persist:
                 if preview:
                     _status = 'exitoso' if resultado.get('valor_propiedad_usd') else 'fallido-sin-cache-previo'

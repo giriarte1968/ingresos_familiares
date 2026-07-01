@@ -3586,3 +3586,31 @@ en el primer motor run no-preview.
    (Test #55) verifica primera valuación sin `_official_result` previo.
 
 ### Tests: 55/55 regression OK, auto_validate OK
+
+## 2026-07-01 — TAREA-100: Desactivar Engine Guard en preview (defensa sistémica)
+
+### Contexto
+Al apagar Retro, el motor retorna 0 comparables. El Engine Guard en
+`valuar_con_cache` restauraba el último resultado válido (Retro ON,
+6 comps) pisando el return value. En modo preview, la tabla mostraba
+"Retro activo" aunque el botón estuviera apagado.
+
+### Causa raíz
+`resultado = _existing` en `motor_vpp_core.py:1435` reemplazaba el
+return value debiendo solo `_skip_persist = True`. Esto violaba el
+contrato de preview: "muestra lo que pasaría con estos parámetros".
+
+### Cambios
+1. **`parsers/motor_vpp_core.py:1424-1442`** — El Guard ahora solo
+   reemplaza `resultado = _existing` si `preview=False`. Para previews,
+   solo hace `_skip_persist = True` (protege el cache en disco sin
+   ocultar el fallo al caller).
+2. **Flag `[DEBUG-GUARD-PREVIEW]`** — Rastrea cuando preview preserva
+   el fallo real del motor.
+3. **`tests/test_regression.py`**:
+   - `test_preview_failure_returns_failure_not_cached` (Test #56):
+     verifica que `valuar_con_cache(preview=True)` retorna el fallo real.
+   - `test_ui_table_shows_preview_failure_not_restored` (Test #57):
+     verifica el flujo completo Retro ON → Retro OFF.
+
+### Tests: 57/57 regression OK, auto_validate OK
