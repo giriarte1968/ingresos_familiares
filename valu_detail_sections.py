@@ -1565,6 +1565,9 @@ def render_valuacion_manual(prop, res):
                         uv['fuente'] = 'auto'
                         uv['fuente_activa'] = 'auto'
                         uv.pop('manual_params', None)
+                        uv['manual_valor_usd'] = 0
+                        uv['valor_usd'] = uv.get('auto_valor_usd', 0)
+                        print(f"[DEBUG-DELETE-103] {nombre}: manual_valor_usd=0, valor_usd revertido a auto={uv['valor_usd']}")
                         break
                 if not guardar_propiedades(props):
                     st.error("Error de escritura en propiedades.json. La valuacion manual NO se elimino.")

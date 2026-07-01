@@ -81,3 +81,4 @@
 | TAREA-100 | Desactivar Engine Guard en preview (defensa sistémica) | _(current)_ | 2026-07-01 |
 | TAREA-101 | Reconfiguración visual Parámetros Valuación Manual (5 cols, FH en %, check constructora siempre visible) | _completada_ | 2026-07-01 |
 | TAREA-102 | Fallback a UV snapshot si recálculo falla (Mabel: sin valuación en detalle) | _completada_ | 2026-07-01 |
+| TAREA-103 | Limpiar manual_valor_usd al eliminar valuación manual | _completada_ | 2026-07-01 |

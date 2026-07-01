@@ -1,6 +1,24 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-07-01 — TAREA-103: Limpiar manual_valor_usd al eliminar valuación manual
+
+### Contexto
+Al eliminar una valuación manual, `manual_valor_usd` en `_ultima_valuacion`
+seguía con el valor anterior (ej. $83.851). El portfolio lo lee y muestra
+"Manual $83.851" aunque la valuación manual ya fue borrada.
+
+### Cambio
+- `valu_detail_sections.py` (L1565-1568): En handler "Eliminar Valuación Manual"
+  se agregó `uv['manual_valor_usd'] = 0` y `uv['valor_usd'] = uv.get('auto_valor_usd', 0)`.
+  Debug flag: `[DEBUG-DELETE-103]`.
+
+### Tests
+- 57/57 regression OK.
+- auto_validate OK.
+
+---
+
 ## 2026-07-01 — TAREA-102: Fallback a UV snapshot si recálculo falla
 
 ### Contexto

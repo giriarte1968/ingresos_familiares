@@ -1,6 +1,6 @@
 ﻿# 🏠 STATUS ACTUAL DEL PROYECTO — AVM Rosario
 
-*Actualizado: 01/07/2026 (TAREA-102: Fallback a UV snapshot si recálculo falla)*
+*Actualizado: 01/07/2026 (TAREA-103: Limpiar manual_valor_usd al eliminar valuación manual)*
 
 ---
 
@@ -15,7 +15,7 @@
 | Matching catastral (acentos/ñ) | ✅ Normalización NFKD en `_token_contenido` (TAREA-024) |
 | Persistencia DO | ✅ Atómica + branch `do-state` |
 | Landing page | ✅ Navegación por teclado (PageDown/PageUp/Home/End) |
-| Tests regresión | ✅ 57/57 (incluye TAREA-094-102) |
+| Tests regresión | ✅ 57/57 (incluye TAREA-094-103) |
 | Tests persistencia | ✅ 16/16 |
 | Despliegue DO | Sin redeploy loop |
 | Anclas grilla 400m | 322 microzonas, 96% cobertura (TAREA-036) |
