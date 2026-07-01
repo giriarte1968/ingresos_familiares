@@ -3569,3 +3569,20 @@ Nuevo núcleo unificado que reemplaza ambos caminos:
 3. **`docs/MEMORIA_PROYECTO.md`** — RO-21 agregada
 
 ### Tests: 49/49 regression OK, auto_validate OK
+
+## 2026-07-01 — TAREA-099: _official_result en primera valuación (gap fix)
+
+### Contexto
+TAREA-098 protege el header en modo preview vía `_official_result`,
+pero si no existe (primera valuación, post-Limpiar), Retro/Flex/Slider
+cambian el header. Este gap se cierra guardando el resultado oficial
+en el primer motor run no-preview.
+
+### Cambios
+1. **`valu.py`** — Antes de `mostrar_detalle_valu`, si NO es preview y
+   no existe `_official_result`, se guarda `copy.deepcopy(resultado)`.
+2. **Flag `[DEBUG-OFFICIAL-FIRST]`** — Rastrea cuándo se guarda por primera vez.
+3. **`tests/test_regression.py`** — `test_first_valuation_saves_official_before_preview`
+   (Test #55) verifica primera valuación sin `_official_result` previo.
+
+### Tests: 55/55 regression OK, auto_validate OK

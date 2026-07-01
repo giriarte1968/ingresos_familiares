@@ -915,6 +915,13 @@ def mostrar_dashboard():
                                         resultado['_comp_exclusion_applied'] = False
 
                 with profile_block("mostrar_detalle_valu_total", p_obj):
+                    # ── Guardar resultado oficial si no existe (primera valuación / post-Limpiar) ──
+                    if not preview_mode:
+                        official_key = f'_official_result_{prop_name}'
+                        if official_key not in st.session_state:
+                            import copy
+                            st.session_state[official_key] = copy.deepcopy(resultado)
+                            print(f"[DEBUG-OFFICIAL-FIRST] {prop_name}: resultado oficial guardado por primera vez, valor=${resultado.get('valor_propiedad_usd',0):,.0f}, n_prop={resultado.get('resolution_metadata',{}).get('n_propiedades')}")
                     mostrar_detalle_valu(p_obj, resultado, actualizar_propiedad)
 
                 _sl.mark("after_render")

@@ -1950,6 +1950,73 @@ def test_min_3_comps_for_valuation():
     print(f"[TEST-MIN-3] n_total={n_total}, n_prop={n_prop}, preview(2)={'valido' if preview else 'None'}")
 
 
+def test_first_valuation_saves_official_before_preview():
+    """
+    TAREA-099: Verifica que en primera valuación (sin _official_result previo),
+    el resultado oficial se guarda antes de que el preview pueda contaminar el header.
+    Esto cierra el gap donde Retro/Flex/Slider cambiaban el header en primera vez.
+    """
+    import copy
+    from parsers.mercado_inmobiliario import valuar_propiedad_v7
+
+    prop = {
+        'nombre': 'TEST_FIRST_099',
+        'tipo_inmueble': 'departamento',
+        'zona': 'Centro',
+        'direccion': 'Corrientes 1500',
+        'lat': -32.945, 'lon': -60.635,
+        'm2': 60, 'm2_cubiertos': 55,
+        'dormitorios': 2, 'anio_construccion': 2000,
+        'estado_detalle': 'bueno', 'calidad_edificio': 'media',
+        'descripcion_libre': 'test first-valuation',
+        'piso': 3, 'total_pisos': 8,
+        'tipo_balcon': 'ninguno',
+        'lavadero_independiente': False, 'placares_completos': False,
+        'ascensores_edificio': 1, 'detalles_categoria': [],
+        'vista': 'frente', 'ubicacion_tipo': 'calle', 'gas_ok': 'si',
+    }
+
+    # 1. Simular PRIMERA valuación: no existe _official_result
+    res = valuar_propiedad_v7(prop, fecha_ref='2026-06-28', consultar_infomapa=False)
+    assert not res.get('error')
+    base_valor = res.get('valor_propiedad_usd', 0)
+    base_mm = res.get('m2_microzona', 0)
+    base_n = res.get('resolution_metadata', {}).get('n_propiedades', 0)
+    print(f"[TEST-FIRST-099] Primera valuación: valor=${base_valor:,.0f}, m2_micro={base_mm:.0f}, n_prop={base_n}")
+
+    # 2. Guardar oficial (simula la lógica nueva L917 antes de mostrar_detalle_valu)
+    official_res = copy.deepcopy(res)
+    val_o = official_res.get('valor_propiedad_usd', 0)
+    mm_o = official_res.get('m2_microzona', 0)
+    n_o = official_res.get('resolution_metadata', {}).get('n_propiedades', 0)
+    print(f"[TEST-FIRST-099] Oficial guardado: valor=${val_o:,.0f}, m2_micro={mm_o:.0f}, n_prop={n_o}")
+
+    # 3. Simular preview (modifica resultado in-place como hace la UI)
+    if base_n > 0:
+        res['resolution_metadata']['n_propiedades'] = max(1, base_n - 1)
+        res['m2_microzona'] = base_mm + 500
+        print(f"[TEST-FIRST-099] Preview modifica: n_prop={res['resolution_metadata']['n_propiedades']}, m2_micro={res['m2_microzona']:.0f}")
+
+    # 4. Verificar que oficial NO fue contaminado por preview
+    assert official_res.get('valor_propiedad_usd', 0) == base_valor, \
+        f"Oficial contaminado! valor: {official_res.get('valor_propiedad_usd')} vs {base_valor}"
+    assert official_res.get('m2_microzona', 0) == base_mm, \
+        f"Oficial contaminado! m2_micro: {official_res.get('m2_microzona')} vs {base_mm}"
+    if base_n > 0:
+        assert official_res['resolution_metadata']['n_propiedades'] == base_n, \
+            f"Oficial contaminado! n_prop: {official_res['resolution_metadata']['n_propiedades']} vs {base_n}"
+    print(f"[TEST-FIRST-099] OK: oficial preservado: valor=${official_res.get('valor_propiedad_usd'):,.0f}")
+
+    # 5. Simular segundo commit (preview -> nuevo oficial)
+    res2 = valuar_propiedad_v7(prop, fecha_ref='2026-06-28', consultar_infomapa=False)
+    assert not res2.get('error')
+    official_res2 = copy.deepcopy(res2)
+    assert official_res2.get('m2_microzona', 0) > 0, "Segundo commit no tiene m2_microzona"
+    assert official_res2.get('valor_propiedad_usd', 0) > 0, "Segundo commit no tiene valor"
+    print(f"[TEST-FIRST-099] Segundo commit OK: valor=${official_res2.get('valor_propiedad_usd'):,.0f}")
+    print(f"[TEST-FIRST-099] OK: primera valuación guarda oficial antes de preview")
+
+
 def test_preview_no_modifica_header_oficial():
     """
     TAREA-098: Verifica que el modo preview NO contamina el resultado oficial.

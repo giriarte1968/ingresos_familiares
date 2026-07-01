@@ -77,3 +77,4 @@
 | TAREA-096 | Header oculta valuación si < 3 comps | `c3dc621` | 2026-06-30 |
 | TAREA-097 | Restablecer Todo como efecto visual puro | `b3d1da4` | 2026-06-30 |
 | TAREA-098 | Header no cambia en modo preview | _(current)_ | 2026-07-01 |
+| TAREA-099 | _official_result en primera valuación (gap fix) | _(current)_ | 2026-07-01 |
