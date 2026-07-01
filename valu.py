@@ -784,21 +784,11 @@ def mostrar_dashboard():
 
                         reset_key = f'_reset_all_{prop_name}'
                         if st.session_state.pop(reset_key, False):
-                            try:
-                                from parsers.valuacion_cache import cargar_cache_valuaciones, persistir_valuacion
-                                _cv = cargar_cache_valuaciones()
-                                persistir_valuacion(prop_name, p_obj, resultado, _cv, commit=True)
-                                # Limpiar forzar_recalculo para evitar re-ejecución infinita
-                                if f'forzar_recalculo_{prop_name}' in st.session_state:
-                                    del st.session_state[f'forzar_recalculo_{prop_name}']
-                                # Asegurar que el resultado tenga _auto_result limpio (TAREA-095)
-                                resultado['_auto_result'] = resultado
-                                _meta = resultado.get('resolution_metadata', {})
-                                print(f"[DEBUG-RESET-CLEAN] {prop_name}: m2_base={resultado.get('m2_base_venta')}, m2_micro={resultado.get('m2_microzona')}, n_prop={_meta.get('n_propiedades')}, excl_applied={resultado.get('_comp_exclusion_applied')}")
-                                print(f"[RESET] {prop_name}: Exclusión limpiada y persistida")
-                            except Exception as e:
-                                logger.warning(f"[RESET] {prop_name}: persist error: {e}")
-                                st.session_state[f'forzar_recalculo_{prop_name}'] = True
+                            # No persistir el resultado actual ya que puede estar contaminado por una selección
+                            # Simplemente limpiamos flags y dejamos que el rerun cargue el motor base desde cache
+                            if f'forzar_recalculo_{prop_name}' in st.session_state:
+                                del st.session_state[f'forzar_recalculo_{prop_name}']
+                            print(f"[RESET] {prop_name}: Exclusión limpiada. El rerun restaurará el valor base del motor.")
                         elif comp_excluded_key in st.session_state:
                             excluded_ids = st.session_state.pop(comp_excluded_key)
                             from_apply = True
