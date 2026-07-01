@@ -1,6 +1,6 @@
 ﻿# 🏠 STATUS ACTUAL DEL PROYECTO — AVM Rosario
 
-*Actualizado: 01/07/2026 (TAREA-104: Preservar retro_dias/flex_dormitorios al guardar valuación manual + log debug)*
+*Actualizado: 01/07/2026 (TAREA-105: is_applied false-positive con exclusion vacía en Retro toggle)*
 
 ---
 
@@ -15,7 +15,7 @@
 | Matching catastral (acentos/ñ) | ✅ Normalización NFKD en `_token_contenido` (TAREA-024) |
 | Persistencia DO | ✅ Atómica + branch `do-state` |
 | Landing page | ✅ Navegación por teclado (PageDown/PageUp/Home/End) |
-| Tests regresión | ✅ 58/58 (incluye TAREA-094-104) |
+| Tests regresión | ✅ 59/59 (incluye TAREA-094-105) |
 | Tests persistencia | ✅ 16/16 |
 | Despliegue DO | Sin redeploy loop |
 | Anclas grilla 400m | 322 microzonas, 96% cobertura (TAREA-036) |

@@ -1,6 +1,22 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-07-01 — TAREA-105: is_applied false-positive con exclusion vacía al togglear Retro
+
+### Contexto
+Si el usuario aplicaba selección con TODOS los comps marcados (0 exclusiones), UV quedaba con `_comp_excluded=[]` y `_comp_exclusion_applied=True`. Al togglear Retro, la restauración de exclusión copiaba esta exclusión vacía al resultado nuevo. Como los 60 comps nuevos venían todos seleccionados, `is_applied=True` y el botón "Aplicar selección" se mostraba como "✅ Selección Aplicada" (deshabilitado), impidiendo al usuario re-aplicar la selección con los nuevos datos.
+
+### Cambios
+- **`valu.py`** (L814-824): La restauración de exclusión desde UV ahora solo se ejecuta si `uv_excl.get('_comp_excluded')` es truthy (lista no vacía). Si la lista está vacía, se salta con log `[DEBUG-EXCL-RESTORE] SALTADA — lista de exclusiones vacia en UV`.
+- **`test_retro_toggle_after_zero_exclusion_keep_button_active`** (T_S-12): Test que simula toda la secuencia → verifica `is_applied=False`.
+
+### Tests
+- 59/59 regression OK.
+- auto_validate OK.
+- `properties.json` y `valuaciones_cache.json` restaurados antes de commit.
+
+---
+
 ## 2026-07-01 — TAREA-104: Preservar retro_dias/flex_dormitorios al guardar valuación manual + estandarización guardar_propiedades
 
 ### Contexto
