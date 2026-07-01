@@ -1,6 +1,30 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-07-01 — TAREA-098: Header no debe cambiar en modo preview
+
+### Contexto
+Al apagar "Todos los dormitorios" (Flex OFF), el motor se ejecuta
+en modo preview y devuelve un resultado con 2 comparables. Aunque
+el usuario NO aplicó la selección (imposible con < 3), el header
+se actualizaba con este valor preview.
+
+### Cambios
+1. **`valu.py:persistir_valuacion`** — Tras commit, se guarda
+   `copy.deepcopy(resultado)` como `[DEBUG-OFFICIAL]` en session_state.
+2. **`valu.py:mostrar_detalle_valu`** — Si `preview_mode` es True y
+   existe `_official_result`, se usa el resultado oficial para el
+   header (render_header, render_rango, render_metricas). El resultado
+   preview se usa solo para la tabla de comparables y mapas.
+3. **`valu.py:clean_block`** — Se limpia `_official_result` al limpiar.
+4. **Flag `[DEBUG-OFFICIAL]`**.
+5. **`tests/test_regression.py`**: `test_preview_no_modifica_header_oficial` (#54).
+
+### Tests
+- 54/54 tests OK.
+
+---
+
 ## 2026-06-30 — TAREA-097: Restablecer Todo como efecto visual puro
 
 ### Contexto

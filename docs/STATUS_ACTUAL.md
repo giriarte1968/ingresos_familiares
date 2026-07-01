@@ -1,6 +1,6 @@
 ﻿# 🏠 STATUS ACTUAL DEL PROYECTO — AVM Rosario
 
-*Actualizado: 30/06/2026 (TAREA-097: Restablecer Todo como efecto visual puro)*
+*Actualizado: 01/07/2026 (TAREA-098: Header no cambia en modo preview)*
 
 ---
 
@@ -15,7 +15,7 @@
 | Matching catastral (acentos/ñ) | ✅ Normalización NFKD en `_token_contenido` (TAREA-024) |
 | Persistencia DO | ✅ Atómica + branch `do-state` |
 | Landing page | ✅ Navegación por teclado (PageDown/PageUp/Home/End) |
-| Tests regresión | ✅ 53/53 (incluye TAREA-094-096) |
+| Tests regresión | ✅ 54/54 (incluye TAREA-094-098) |
 | Tests persistencia | ✅ 16/16 |
 | Despliegue DO | Sin redeploy loop |
 | Anclas grilla 400m | 322 microzonas, 96% cobertura (TAREA-036) |
@@ -131,7 +131,7 @@ git checkout origin/do-state -- propiedades.json data/valuaciones_cache.json
 
 | Archivo | Estado |
 |---------|--------|
-| `tests/test_regression.py` | 53/53 ✅ |
+| `tests/test_regression.py` | 54/54 ✅ |
 | `tests/test_persistencia_valuaciones.py` | 16/16 ✅ |
 | `tests/test_age_blend_filter.py` | ✅ |
 | `tests/test_cluster_filters.py` | ✅ |

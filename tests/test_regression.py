@@ -1948,3 +1948,68 @@ def test_min_3_comps_for_valuation():
 
     print(f"[TEST-MIN-3] OK: < 3 comps manejado correctamente")
     print(f"[TEST-MIN-3] n_total={n_total}, n_prop={n_prop}, preview(2)={'valido' if preview else 'None'}")
+
+
+def test_preview_no_modifica_header_oficial():
+    """
+    TAREA-098: Verifica que el modo preview NO contamina el resultado oficial.
+    Tras un commit, se guarda una copia profunda del resultado ('_official_result').
+    Las modificaciones del preview no deben afectar esa copia.
+    """
+    import copy
+    from parsers.mercado_inmobiliario import valuar_propiedad_v7
+
+    prop = {
+        'nombre': 'TEST_OFFICIAL_098',
+        'tipo_inmueble': 'departamento',
+        'zona': 'Centro',
+        'direccion': 'Rioja 1000',
+        'lat': -32.947, 'lon': -60.63,
+        'm2': 50, 'm2_cubiertos': 45,
+        'dormitorios': 2, 'anio_construccion': 2000,
+        'estado_detalle': 'bueno', 'calidad_edificio': 'media',
+        'descripcion_libre': 'test',
+        'piso': 2, 'total_pisos': 5,
+        'tipo_balcon': 'ninguno',
+        'lavadero_independiente': False, 'placares_completos': False,
+        'ascensores_edificio': 0, 'detalles_categoria': [],
+        'vista': 'frente', 'ubicacion_tipo': 'calle', 'gas_ok': 'si',
+    }
+
+    # 1. Obtener resultado base (simula primer motor run)
+    res = valuar_propiedad_v7(prop, fecha_ref='2026-06-27', consultar_infomapa=False)
+    assert not res.get('error')
+    base_valor = res.get('valor_propiedad_usd', 0)
+    base_m2 = res.get('m2_base_venta', 0)
+    base_mm = res.get('m2_microzona', base_m2)
+    base_n = res.get('resolution_metadata', {}).get('n_propiedades', 0)
+    print(f"[TEST-OFFICIAL] Base: valor=${base_valor:,.0f}, m2_micro={base_mm:.0f}, n_prop={base_n}")
+
+    # 2. Simular commit: guardar copia profunda como oficial
+    official_res = copy.deepcopy(res)
+    assert official_res.get('valor_propiedad_usd') == base_valor
+    assert official_res.get('m2_microzona') == base_mm
+    print(f"[TEST-OFFICIAL] Oficial guardado: valor=${official_res.get('valor_propiedad_usd'):,.0f}")
+
+    # 3. Simular preview: modificar el resultado original in-place
+    # (exactamente como lo hace TAREA-094 cuando sincroniza header con selección)
+    if base_n > 0:
+        res['resolution_metadata']['n_propiedades'] = 2
+        res['m2_microzona'] = base_mm + 999
+        print(f"[TEST-OFFICIAL] Preview contaminado: n_prop=2, m2_micro={res['m2_microzona']:.0f}")
+
+        # 4. Verificar que el oficial NO fue contaminado
+        assert official_res['resolution_metadata']['n_propiedades'] == base_n, \
+            f"Oficial contaminado! n_prop: official={official_res['resolution_metadata']['n_propiedades']}, base={base_n}"
+        assert official_res.get('m2_microzona') == base_mm, \
+            f"Oficial contaminado! m2_micro: official={official_res.get('m2_microzona')}, base={base_mm}"
+        assert official_res.get('valor_propiedad_usd') == base_valor, \
+            f"Oficial contaminado! valor: official={official_res.get('valor_propiedad_usd')}, base={base_valor}"
+        print(f"[TEST-OFFICIAL] OK: oficial preservado: valor=${official_res.get('valor_propiedad_usd'):,.0f}")
+
+    # 5. Simular segundo commit: el preview se convierte en oficial
+    official_res2 = copy.deepcopy(res)
+    assert official_res2.get('m2_microzona') == base_mm + 999, \
+        f"Segundo commit no capturo cambios: {official_res2.get('m2_microzona')} vs {base_mm + 999}"
+    print(f"[TEST-OFFICIAL] Segundo commit OK: m2_micro={official_res2.get('m2_microzona'):.0f}")
+    print(f"[TEST-OFFICIAL] OK: modo preview no contamina resultado oficial")

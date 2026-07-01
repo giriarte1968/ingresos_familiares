@@ -75,4 +75,5 @@
 | TAREA-094 | Sincronizar header con exclusión de comparables (n_propiedades, m2_microzona) | `781353e` | 2026-06-30 |
 | TAREA-095 | Fix "Restablecer Todos" no respeta motor (defensa + debug + test #52) | `3d9d8d3` | 2026-06-30 |
 | TAREA-096 | Header oculta valuación si < 3 comps | `c3dc621` | 2026-06-30 |
-| TAREA-097 | Restablecer Todo como efecto visual puro | _(current)_ | 2026-06-30 |
+| TAREA-097 | Restablecer Todo como efecto visual puro | `b3d1da4` | 2026-06-30 |
+| TAREA-098 | Header no cambia en modo preview | _(current)_ | 2026-07-01 |

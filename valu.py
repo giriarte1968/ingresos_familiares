@@ -270,6 +270,17 @@ def mostrar_dashboard_valu(propiedades, resultados):
 
 def mostrar_detalle_valu(prop, res, guardar_fn):
     # Determinar si hay valuación manual paralela y qué fuente mostrar
+    nombre = prop.get('nombre', '')
+
+    # ── Modo preview: preservar header con resultado oficial ──
+    preview_mode = st.session_state.get(f'preview_mode_{nombre}', False)
+    official_key = f'_official_result_{nombre}'
+    official_res = st.session_state.get(official_key)
+    original_res = res  # preservar para tabla de comparables
+    if preview_mode and official_res:
+        print(f"[DEBUG-OFFICIAL] {nombre}: modo preview activo, header usara resultado oficial")
+        res = official_res
+
     auto_result = res.get('_auto_result', res)
     manual_result = res.get('_manual_result')
     fuente_activa = res.get('_fuente_activa', 'auto')
@@ -389,14 +400,14 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
 
         with st.expander(f"🗺️ Mapa — {prop_name}", expanded=False):
             with profile_block("render_mapa_propiedad", prop):
-                render_mapa_propiedad(res)
+                render_mapa_propiedad(original_res if (preview_mode and official_res) else res)
         _dl.mark("after_render_mapa")
 
-        comparables = res.get('comparables_venta', [])
+        comparables = original_res.get('comparables_venta', [])
         n_comps = len(comparables)
         with st.expander(f"Detalle de Comparables — {prop_name}", expanded=False):
             st.caption(f"{n_comps} propiedades comparables")
-            render_tabla_comparables({**res, 'comparables_venta': comparables}, prop_name=prop_name)
+            render_tabla_comparables({**original_res, 'comparables_venta': comparables}, prop_name=prop_name)
         _dl.mark("after_render_tabla_comparables")
     _dl.mark("after_section_comparables")
 
@@ -424,7 +435,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
 
         col1, col2, col3 = st.columns(3)
         with col1:
-            hay_catastro = render_catastro(prop, res, compact=True)
+            hay_catastro = render_catastro(prop, original_res if (preview_mode and official_res) else res, compact=True)
         with col2:
             render_street_view(prop, compact=True)
         with col3:
@@ -441,8 +452,8 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
 
         if hay_catastro:
             st.markdown("<br>", unsafe_allow_html=True)
-            with profile_block("render_catastro_detalle", prop):
-                render_catastro(prop, res, compact=False)
+                with profile_block("render_catastro_detalle", prop):
+                    render_catastro(prop, original_res if (preview_mode and official_res) else res, compact=False)
             _dl.mark("after_render_catastro")
     _dl.mark("after_section_acciones")
 
@@ -525,6 +536,7 @@ def mostrar_dashboard():
                 except Exception as e:
                     print(f"[DEBUG-CLEAN] Error limpiando comparables {prop_name}: {e}")
                 st.session_state.pop(f'preview_mode_{prop_name}', None)
+                st.session_state.pop(f'_official_result_{prop_name}', None)
                 st.session_state.pop(f'retro_active_{prop_name}', None)
                 st.session_state.pop(f'flex_active_{prop_name}', None)
                 st.session_state.pop(f'comp_excluded_{prop_name}', None)
@@ -883,6 +895,9 @@ def mostrar_dashboard():
                                             resultado['_cache']['preview'] = False
                                         print(f"[DEBUG-PERSIST] {prop_name}: VALORES a persistir: valor_usd={resultado.get('valor_propiedad_usd')}, valor_m2={resultado.get('valor_m2')}, m2_base={resultado.get('m2_base_venta')}, n_comps={len(resultado.get('comparables_venta',[]))}, excluded={excluded_ids}, preview={resultado.get('_cache',{}).get('preview')}")
                                         persistir_valuacion(prop_name, p_obj, resultado, _cache_v, commit=True)
+                                        import copy
+                                        st.session_state[f'_official_result_{prop_name}'] = copy.deepcopy(resultado)
+                                        print(f"[DEBUG-OFFICIAL] {prop_name}: resultado oficial guardado en session_state")
                                         print(f"[APPLY] {prop_name}: Persistida exclusión de {len(excluded_ids)} comps a cache+propiedades")
                                     except Exception as e:
                                         logger.warning(f"[APPLY] {prop_name}: No se pudo persistir exclusión: {e}")
