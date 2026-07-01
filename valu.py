@@ -744,6 +744,35 @@ def mostrar_dashboard():
                         if resultado.get('error'):
                             print(f"[DEBUG] {prop_name}: RESULTADO CON ERROR, mensaje={resultado.get('mensaje')}")
 
+                    # ── TAREA-102: Fallback a UV snapshot si recálculo falló ──
+                    if ya_valuado and (resultado.get('error') or n_comps < 3):
+                        uv_snap = p_obj.get('_ultima_valuacion', {})
+                        if uv_snap.get('valor_usd') and uv_snap.get('comps', 0) >= 3:
+                            uv_valor = uv_snap['valor_usd']
+                            uv_comps = uv_snap.get('comps', 0)
+                            uv_m2_eq = uv_snap.get('m2_equivalentes', 0)
+                            print(f"[DEBUG-FALLBACK-102] {prop_name}: fallback a UV snapshot. "
+                                  f"error={resultado.get('error')}, n_comps={n_comps}, "
+                                  f"uv_valor={uv_valor}, uv_comps={uv_comps}")
+                            resultado = {
+                                'valor_propiedad_usd': uv_valor,
+                                'm2_base_venta': uv_m2_eq,
+                                'm2_equivalentes': uv_m2_eq,
+                                'm2_microzona': uv_m2_eq,
+                                'resolution_metadata': {'n_propiedades': uv_comps},
+                                'comparables_venta': [],
+                                '_cache': {'preview': True, 'recalculado': False, 'guard_restored': False},
+                                'error': None,
+                                '_fallback_uv': True,
+                                'valor_venta_conservador': round(uv_valor * 0.93, 0),
+                                'valor_venta_optimista': round(uv_valor * 1.07, 0),
+                                'valor_m2': uv_m2_eq,
+                                'valor_m2_actual_usd': round(uv_valor / uv_m2_eq, 2) if uv_m2_eq > 0 else 0,
+                                '_fuente_activa': uv_snap.get('fuente_activa', 'auto'),
+                                'usdt_ars': uv_snap.get('usdt_ars', 1480),
+                            }
+                            n_comps = uv_comps
+
                     # ── Valuación manual paralela (siempre computada, nunca sobreescribe) ──
                     uv = p_obj.get('_ultima_valuacion', {})
                     manual_params_saved = uv.get('manual_params')

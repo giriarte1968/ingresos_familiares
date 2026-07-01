@@ -193353,6 +193353,25 @@
       "date_updated": "2026-04-16T15:21:39.428Z",
       "calle_limpia": "hilarion de la quintana",
       "numero_limpio": 1400
+    },
+    {
+      "id_manual": "manual_00001",
+      "precio": 380000.0,
+      "moneda": "USD",
+      "m2": 110.0,
+      "dormitorios": 2,
+      "tipo": "Departamento",
+      "operacion": "venta",
+      "direccion": "Brassey al 8000, Fisherton, Rosario",
+      "calle_limpia": "brassey",
+      "numero_limpio": 8000,
+      "lat": -32.939,
+      "lon": -60.685,
+      "valor_m2": 3454.55,
+      "fuente": "manual",
+      "date_created": "2026-06-29T21:12:20.592444",
+      "date_updated": "2026-06-29T21:12:20.592444"
     }
-  ]
+  ],
+  "next_manual_id": 2
 }

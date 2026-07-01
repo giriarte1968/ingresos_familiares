@@ -1,6 +1,43 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-07-01 — TAREA-102: Fallback a UV snapshot si recálculo falla
+
+### Contexto
+Mabel mostraba valuación manual ($83.851) en el card de Portfolio, pero al entrar al detalle aparecía "sin valuación". Causa raíz: el recálculo con datos frescos de scraping podía devolver 0 comparables (`n_comps < 3`), lo que hacía que `render_header` ocultara la valuación. El Engine Guard (TAREA-100) solo restauraba desde caché si `resultado.error` era True, pero no cubría el caso de `n_comps < 3` sin error.
+
+Además, Mabel tenía `fuente: "auto"` y `fuente_activa: "auto"` en `propiedades.json`, pero su `manual_valor_usd` coincidía con `valor_usd` ($83.851), indicando que la valuación activa era realmente manual. Esto causaba que el selector de fuente en el detalle mostrara "Auto" en vez de "Manual".
+
+### Cambios
+1. **`valu.py`** — Tras la llamada a `valuar_con_cache`, si `ya_valuado=True` y el resultado tiene `error=True` o `n_comps < 3`, se construye un fallback desde la `_ultima_valuacion` snapshot. El resultado fallback incluye `valor_propiedad_usd`, `m2_equivalentes`, `resolution_metadata.n_propiedades` (desde `comps` del UV), y flags `_fallback_uv: True` / `_cache.preview: True` para evitar persistencia accidental.
+2. **`propiedades.json`** — Mabel: `fuente → "manual"`, `fuente_activa → "manual"` para reflejar que su valuación activa es manual.
+
+### Archivos
+- `valu.py` — Fallback a UV snapshot tras `valuar_con_cache`
+- `propiedades.json` — Mabel: `fuente`/`fuente_activa` corregidos a `manual`
+
+### Tests
+- 57/57 regression OK.
+
+---
+
+## 2026-07-01 — TAREA-101: Reconfiguración visual Parámetros Valuación Manual
+
+### Cambios
+1. **Layout single-row**: 5 columnas `[2, 1, 1, 1, 1]` para Ancla, USD/m², Factor Hed. (%), Inc. (±%), Ajuste (%).
+2. **FH en %**: Input muestra porcentaje (ej. `105.0` en vez de `1.0500`). Internamente se divide por 100 para compatibilidad con `generar_resultado_manual`.
+3. **Check de constructora siempre visible**: `incluir_prima_const` ya no depende de `constr_label`. Si no hay constructora, se muestra como "Prima de constructora" sin efecto en el cálculo.
+4. **Preview HTML**: FH muestra `{fh_eff*100:.1f}%`.
+5. **Labels cortos**: "Ancla" "USD/m²" "Factor Hed. (%)" "Inc. (±%)" "Ajuste (%)".
+
+### Archivos
+- `valu_detail_sections.py` — `render_valuacion_manual`: layout 5 cols, FH en %, check constructora siempre visible, preview HTML FH en %.
+
+### Tests
+- 57/57 regression OK.
+
+---
+
 ## 2026-07-01 — TAREA-098: Header no debe cambiar en modo preview
 
 ### Contexto

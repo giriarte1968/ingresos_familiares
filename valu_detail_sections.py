@@ -1152,6 +1152,13 @@ def render_valuacion_manual(prop, res):
     saved_params = res.get('_manual_params') or {}
     motor_valor = auto_result.get('valor_propiedad_usd', 0)
 
+    # Feedback post-guardado/eliminacion (persiste un ciclo de render)
+    feedback = st.session_state.pop(f'manual_feedback_{nombre}', None)
+    if feedback == 'guardado':
+        st.success("Valuacion manual guardada correctamente.")
+    elif feedback == 'eliminado':
+        st.success("Valuacion manual eliminada correctamente.")
+
     # ─── Carga de anclas ───
     anclas = cargar_anclas()
     ancla_options = {a.get('id', a.get('nombre', '')): a for a in anclas}
@@ -1252,8 +1259,9 @@ def render_valuacion_manual(prop, res):
     with st.container(border=True):
         st.markdown("##### Parametros de Valuacion Manual")
 
-        # Fila 1: Ancla + USD/m2
-        col_a, col_b = st.columns(2)
+        # Fila única: Ancla | USD/m² | FH (%) | Inc. (±%) | Ajuste (%)
+        print(f"[DEBUG-VISUAL-101] {nombre}: layout single-row, ancla_id={saved.get('ancla_id')}, fh_delta={(float(saved.get('factor_hedonico', 1.0))-1.0)*100:+.1f}%, inc={saved.get('incertidumbre_pct')}, ajuste={saved.get('ajuste_pct')}")
+        col_a, col_b, col_c, col_d, col_e = st.columns([2, 1, 1, 1, 1])
         with col_a:
             saved_display = "Sin Ancla"
             for dk in ancla_display_list:
@@ -1263,7 +1271,7 @@ def render_valuacion_manual(prop, res):
             if saved_display == "Sin Ancla" and saved.get('ancla_id'):
                 saved_display = ancla_display_list[0]
             ancla_display_sel = st.selectbox(
-                "Ancla de referencia",
+                "Ancla",
                 options=ancla_display_list,
                 index=ancla_display_list.index(saved_display) if saved_display in ancla_display_list else 0,
                 key=f"manual_ancla_{nombre}",
@@ -1284,52 +1292,51 @@ def render_valuacion_manual(prop, res):
                 disabled=tiene_ancla,
                 key=f"manual_usd_m2_{nombre}",
             )
-            if tiene_ancla:
-                st.caption("Valor determinado por el ancla. Deseleccioná el ancla para editar manualmente.")
-
-        # Fila 2: FH + Incertidumbre
-        col_c, col_d = st.columns(2)
         with col_c:
-            fh = st.number_input(
-                "Factor Hedonico",
-                min_value=0.0, max_value=5.0,
-                value=float(saved.get('factor_hedonico', default_factor_hedonico)),
-                step=0.05, format="%.4f",
+            fh_delta_saved = (float(saved.get('factor_hedonico', default_factor_hedonico)) - 1.0) * 100
+            fh_delta = st.number_input(
+                "FH (Δ%)",
+                min_value=-100.0, max_value=400.0,
+                value=fh_delta_saved,
+                step=1.0, format="%.1f",
                 key=f"manual_fh_{nombre}",
             )
+            fh = 1.0 + (fh_delta / 100.0)
         with col_d:
             inc = st.number_input(
-                "Incertidumbre (±%)",
+                "Inc. (±%)",
                 min_value=0.0, max_value=100.0,
                 value=float(saved.get('incertidumbre_pct', 10.0)),
                 step=1.0, format="%.0f",
                 key=f"manual_inc_{nombre}",
             )
+        with col_e:
+            ajuste_pct = st.number_input(
+                "Ajuste (%)",
+                min_value=-50.0, max_value=100.0,
+                value=float(saved.get('ajuste_pct', 0.0)),
+                step=1.0, format="%.1f",
+                key=f"manual_aj_{nombre}",
+            )
+        # Caption del ancla debajo de la fila
+        if tiene_ancla:
+            st.caption("Valor determinado por el ancla. Deseleccioná el ancla para editar manualmente.")
 
-        # Fila 3: Ajuste %
-        ajuste_pct = st.number_input(
-            "Ajuste porcentual (%)",
-            min_value=-50.0, max_value=100.0,
-            value=float(saved.get('ajuste_pct', 0.0)),
-            step=1.0, format="%.1f",
-            key=f"manual_aj_{nombre}",
-        )
-
-        # Fila 4: checkboxes lado a lado
+        # Checkboxes: ajuste por tamaño + prima de constructora
         col_f, col_g = st.columns(2)
         with col_f:
             saved['incluir_size_adj'] = st.checkbox(
-                f"Incluir ajuste por tamano ({_mz_name})",
+                f"Ajuste por tamano ({_mz_name})",
                 value=saved.get('incluir_size_adj', True),
                 key=f"manual_incluir_size_{nombre}",
             )
         with col_g:
-            if constr_label:
-                saved['incluir_prima_const'] = st.checkbox(
-                    f"Incluir prima de constructora ({constr_label})",
-                    value=saved.get('incluir_prima_const', True),
-                    key=f"manual_incluir_const_{nombre}",
-                )
+            constr_check_label = f"Prima de constructora ({constr_label})" if constr_label else "Prima de constructora"
+            saved['incluir_prima_const'] = st.checkbox(
+                constr_check_label,
+                value=saved.get('incluir_prima_const', True),
+                key=f"manual_incluir_const_{nombre}",
+            )
 
         # Activos (solo lectura, inline)
         activos_parts = []
@@ -1460,7 +1467,7 @@ def render_valuacion_manual(prop, res):
         <div><span style="color:#000000;font-weight:600;">m² eq.:</span> {m2_eq:,.0f}</div>
         <div><span style="color:#000000;font-weight:600;">USD/m²:</span> ${usd_m2_input:,.0f}</div>
         <div><span style="color:#000000;font-weight:600;">Size adj.:</span> {size_adj_str}</div>
-        <div><span style="color:#000000;font-weight:600;">FH:</span> {fh_eff:.4f}</div>
+        <div><span style="color:#000000;font-weight:600;">FH:</span> {(fh_eff-1.0)*100:+.1f}%</div>
         <div><span style="color:#000000;font-weight:600;">Constructora:</span> {constr_pct_str}</div>
         <div><span style="color:#000000;font-weight:600;">Ajuste %:</span> {ajuste_pct:+.1f}%</div>
         <div><span style="color:#000000;font-weight:600;">Incertidumbre:</span> ±{inc:.0f}%</div>
@@ -1535,10 +1542,16 @@ def render_valuacion_manual(prop, res):
                         uv.setdefault('_comp_excluded', [])
                         uv.setdefault('_comp_exclusion_applied', False)
                     break
-            guardar_propiedades(props)
+            if not guardar_propiedades(props):
+                st.error("Error de escritura en propiedades.json. La valuacion manual NO se guardo.")
+                print(f"[DEBUG-MANUAL-SAVE] {nombre}: guardar_propiedades FALLO")
+                st.rerun()
             st.session_state.pop(ss_key, None)
-            st.success(f"Valuacion manual guardada: ${resultado_manual['valor_propiedad_usd']:,.0f} USD")
-            print(f"[DEBUG-MANUAL] {nombre}: ===== GUARDADO MANUAL COMPLETADO (cache preservado) =====")
+            st.session_state.pop(f'_official_result_{nombre}', None)
+            st.session_state.pop(f'preview_mode_{nombre}', None)
+            print(f"[DEBUG-OFFICIAL-CLEAN] {nombre}: _official_result y preview_mode limpiados tras guardado manual")
+            st.session_state[f'manual_feedback_{nombre}'] = 'guardado'
+            print(f"[DEBUG-MANUAL-SAVE] {nombre}: GUARDADO EXITOSO (cache preservado, official_result limpiado)")
             st.rerun()
 
     with col_btn2:
@@ -1553,6 +1566,14 @@ def render_valuacion_manual(prop, res):
                         uv['fuente_activa'] = 'auto'
                         uv.pop('manual_params', None)
                         break
-                guardar_propiedades(props)
+                if not guardar_propiedades(props):
+                    st.error("Error de escritura en propiedades.json. La valuacion manual NO se elimino.")
+                    print(f"[DEBUG-MANUAL-DELETE] {nombre}: guardar_propiedades FALLO")
+                    st.rerun()
                 st.session_state.pop(ss_key, None)
+                st.session_state.pop(f'_official_result_{nombre}', None)
+                st.session_state.pop(f'preview_mode_{nombre}', None)
+                print(f"[DEBUG-OFFICIAL-CLEAN] {nombre}: _official_result y preview_mode limpiados tras eliminar manual")
+                st.session_state[f'manual_feedback_{nombre}'] = 'eliminado'
+                print(f"[DEBUG-MANUAL-DELETE] {nombre}: ELIMINACION EXITOSA")
                 st.rerun()
