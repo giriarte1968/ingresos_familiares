@@ -1,6 +1,28 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-07-01 — TAREA-104: Preservar retro_dias/flex_dormitorios al guardar valuación manual + estandarización guardar_propiedades
+
+### Contexto
+Al guardar una valuación manual y re-entrar al detalle (vía Portfolio → clic en "Ver detalle"), `retro_dias` y `flex_dormitorios` no se persistían en UV. En re-entry, `_limpiar_estado_propiedad` borraba el session state, y la falta de estos valores en UV forzaba defaults incompatibles con el cache guardado, causando recálculos innecesarios.
+
+### Cambios
+1. **`valu_detail_sections.py`** (handler Guardar): Se agrega `uv['retro_dias']` y `uv['flex_dormitorios']` desde session state (análogo a lo que `persistir_valuacion` graba con `commit=True`). Debug flag: `[DEBUG-MANUAL-SAVE] retro_dias=... flex_dormitorios=... preservados en UV`.
+2. **`valu_detail_sections.py`** (verificación post-escritura): Se agrega re-lectura de `propiedades.json` tras `guardar_propiedades` para verificar que `manual_params` y `fuente_activa` persistan correctamente en disco.
+3. **`valu.py`** `guardar_propiedades()`: Ahora retorna `True`/`False` para alinearse con la versión de `valu_detail_sections.py` (antes retornaba `None`).
+4. **`valu.py`** (re-entry): Debug flags `[DEBUG-MANUAL-RESULT]` en:
+   - Lectura de `manual_params` desde UV (indicando si se encontró o no).
+   - Generación de `resultado_manual` (OK o FAIL con error).
+   - Post-inyección en `resultado` (confirmando que `_manual_params`, `_manual_result`, `_fuente_activa` están presentes).
+   - Pre-llamada a `render_valuacion_manual` desde `mostrar_detalle_valu`.
+
+### Tests
+- `test_manual_save_reentry_consistencia` (T_S-11): Simula guardado manual → re-carga desde disco → ejecución motor → inyección → verificación de `_manual_params`, `_manual_result`, `_fuente_activa`.
+- 58/58 regression OK.
+- auto_validate OK.
+
+---
+
 ## 2026-07-01 — TAREA-103: Limpiar manual_valor_usd al eliminar valuación manual
 
 ### Contexto
