@@ -1,6 +1,28 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-06-30 — TAREA-097: Restablecer Todo como efecto visual puro
+
+### Contexto
+"Restablecer todos" provocaba un recálculo completo del motor,
+contaminando el header y cache. El usuario pidió que sea solo
+un efecto visual: seleccionar todas las checkboxes, habilitar
+"Aplicar selección", pero no modificar el header.
+
+### Cambios
+1. **`valu_detail_sections.py:441-453`** — Removidos `_reset_all_` flag
+   y `forzar_recalculo`. El botón solo setea checkboxes a True y
+   actualiza `comp_selection`.
+2. **`valu.py:785-801`** — Bloque `_reset_all_` reemplazado por `pass`.
+3. **Flag `[DEBUG-RESET-VISUAL]`** en el botón.
+4. **`tests/test_regression.py`**: `test_reset_all_restores_motor_value` (#52)
+   actualizado para verificar que cache NO se contamina.
+
+### Tests
+- 53/53 tests OK.
+
+---
+
 ## 2026-06-30 — TAREA-096: Header oculta valuación si < 3 comparables
 
 ### Contexto

@@ -784,11 +784,8 @@ def mostrar_dashboard():
 
                         reset_key = f'_reset_all_{prop_name}'
                         if st.session_state.pop(reset_key, False):
-                            # No persistir el resultado actual ya que puede estar contaminado por una selección
-                            # Simplemente limpiamos flags y dejamos que el rerun cargue el motor base desde cache
-                            if f'forzar_recalculo_{prop_name}' in st.session_state:
-                                del st.session_state[f'forzar_recalculo_{prop_name}']
-                            print(f"[RESET] {prop_name}: Exclusión limpiada. El rerun restaurará el valor base del motor.")
+                            # Ya no se hace nada aquí — el botón solo actúa a nivel visual
+                            pass
                         elif comp_excluded_key in st.session_state:
                             excluded_ids = st.session_state.pop(comp_excluded_key)
                             from_apply = True

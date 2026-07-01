@@ -1812,15 +1812,15 @@ def test_flex_persistence_on_scraping_update():
 
 def test_reset_all_restores_motor_value():
     """
-    TAREA-095/096: Verifica que "Restablecer Todos" no contamine el cache
-    y retorne al valor original del motor, incluso si el objeto 'res'
-    fue modificado in-place por la sincronización del header.
+    TAREA-097: Verifica que "Restablecer Todos" es solo un efecto visual
+    y NO contamina el cache. El botón solo selecciona las checkboxes
+    sin disparar recalculo ni persistencia.
     """
     from parsers.mercado_inmobiliario import valuar_propiedad_v7
     from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
 
     prop = {
-        'nombre': 'TEST_RESET_FIX_096',
+        'nombre': 'TEST_RESET_VISUAL_097',
         'tipo_inmueble': 'departamento',
         'zona': 'Centro',
         'direccion': 'Rioja 1000',
@@ -1841,22 +1841,21 @@ def test_reset_all_restores_motor_value():
     assert not res_base.get('error')
     base_m2 = res_base.get('m2_base_venta', 0)
     base_mm = res_base.get('m2_microzona', base_m2)
+    base_valor = res_base.get('valor_propiedad_usd', 0)
     
     # Guardar en cache explícitamente para el test
     cache = cargar_cache_valuaciones()
     cache[prop['nombre']] = {'resultado_completo': res_base}
     guardar_cache_valuaciones(cache)
 
-    # 2. SIMULAR CONTAMINACIÓN (TAREA-094): Modificar res_base in-place
-    # Esto es lo que hacía que el reset fallara si se guardaba el objeto
+    # 2. SIMULAR CONTAMINACIÓN (similar a TAREA-094): Modificar res_base in-place
     polluted_m2 = base_mm + 500 
     res_base['m2_microzona'] = polluted_m2
     res_base['resolution_metadata']['n_propiedades'] = 1
     print(f"[TEST-RESET] Objeto contaminado: m2_micro={res_base['m2_microzona']} (base={base_mm})")
 
     # 3. Simular acción de "Restablecer Todos"
-    # Según la nueva implementación, NO debe llamar a persistir_valuacion(commit=True)
-    # Solo debe limpiar el estado y dejar que el rerun cargue del cache.
+    # La nueva implementación NO debe persistir ni recalcular nada
     
     # Verificamos que el cache SIGUE siendo el original (no fue contaminado)
     cache_after = cargar_cache_valuaciones()
@@ -1868,8 +1867,11 @@ def test_reset_all_restores_motor_value():
         f"El cache fue contaminado! base={base_mm}, cache={cached_res.get('m2_microzona')}"
     assert cached_res['resolution_metadata'].get('n_propiedades') != 1, \
         "El cache fue contaminado con n_propiedades=1"
+    assert cached_res.get('valor_propiedad_usd', 0) == base_valor, \
+        f"El cache fue contaminado en valor_usd! base={base_valor}, cache={cached_res.get('valor_propiedad_usd', 0)}"
 
     print(f"[TEST-RESET] OK: El reset no contaminó el cache y el valor base se preservó.")
+    print(f"[TEST-RESET] base: m2_micro={base_mm:.0f}, valor=${base_valor:,.0f}")
 
 
 def test_min_3_comps_for_valuation():

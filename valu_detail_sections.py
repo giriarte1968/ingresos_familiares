@@ -439,18 +439,14 @@ def render_tabla_comparables(res, prop_name=None):
                 st.info(f"⚡ {n_desel} comparable(s) desmarcado(s) — Aplicar selección para recalcular.")
         with col_reset:
             if st.button("↩️ Restablecer todos", key=f'reset_comp_sel_{prop_name}', use_container_width=True):
-                # 1. Setear todas las keys de checkbox a True
-                for cid in comp_ids:
-                    st.session_state[f'sel_comp_{prop_name}_{cid}'] = True
-                # 2. Sincronizar estado global de selección
-                st.session_state[f'comp_selection_{prop_name}'] = set(comp_ids)
-                # 3. Setear flag _reset_all para que valu.py persista estado limpio
-                st.session_state[f'_reset_all_{prop_name}'] = True
-                # 4. Limpiar exclusión y forzar recálculo
-                st.session_state.pop(f'comp_excluded_{prop_name}', None)
-                st.session_state.pop(f'_comp_interacted_{prop_name}', None)
-                st.session_state[f'forzar_recalculo_{prop_name}'] = True
-                st.rerun()
+                    # Solo efecto visual: seleccionar todos los comparables
+                    for cid in comp_ids:
+                        st.session_state[f'sel_comp_{prop_name}_{cid}'] = True
+                    st.session_state[f'comp_selection_{prop_name}'] = set(comp_ids)
+                    st.session_state.pop(f'comp_excluded_{prop_name}', None)
+                    st.session_state.pop(f'_comp_interacted_{prop_name}', None)
+                    print(f"[DEBUG-RESET-VISUAL] {prop_name}: checkboxes seteados a True, sin recalculo")
+                    st.rerun()
 
     # Cabecera de la tabla
     hdr = st.columns([0.4, 0.5, 1.5, 0.8, 1.5, 0.6, 0.9, 2, 0.7, 0.6])

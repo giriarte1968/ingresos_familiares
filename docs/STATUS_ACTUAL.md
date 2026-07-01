@@ -1,6 +1,6 @@
 ﻿# 🏠 STATUS ACTUAL DEL PROYECTO — AVM Rosario
 
-*Actualizado: 30/06/2026 (TAREA-096: Header oculta valuación si < 3 comps)*
+*Actualizado: 30/06/2026 (TAREA-097: Restablecer Todo como efecto visual puro)*
 
 ---
 
