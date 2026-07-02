@@ -1577,7 +1577,7 @@ def mostrar_dashboard():
             _scraping_list = get_scraping_comparables(_data)
             st.caption(f"📊 **{len(_manual_list)}** comparables manuales de **{len(_manual_list) + len(_scraping_list)}** totales en cache_scraping.json")
             if _manual_list:
-                _cols = ["id_manual", "precio", "moneda", "m2", "dormitorios", "tipo", "operacion", "calle_limpia", "numero_limpio", "lat", "lon", "date_created"]
+                _cols = ["id_manual", "precio", "moneda", "m2", "dormitorios", "tipo", "operacion", "calle_limpia", "numero_limpio", "anio_construccion", "lat", "lon", "date_created"]
                 _rows = []
                 for p in _manual_list:
                     _row = {k: p.get(k, "") for k in _cols}
@@ -1597,6 +1597,7 @@ def mostrar_dashboard():
                         "numero_limpio": st.column_config.NumberColumn("Nro", format="%d"),
                         "lat": st.column_config.NumberColumn("Lat", format="%.6f"),
                         "lon": st.column_config.NumberColumn("Lon", format="%.6f"),
+                        "anio_construccion": st.column_config.NumberColumn("Año", format="%d"),
                         "date_created": st.column_config.TextColumn("Creado", disabled=True, width="small"),
                     },
                     hide_index=True,
@@ -1638,6 +1639,29 @@ def mostrar_dashboard():
                     if st.session_state.get(_edit_key, False):
                         st.markdown("---")
                         _edit_prop = p
+                        _geo_col1, _geo_col2 = st.columns([4, 1])
+                        with _geo_col1:
+                            st.caption("✏️ Completá calle+número o dirección, luego:")
+                        with _geo_col2:
+                            if st.button("📍 Geocodificar", key=f"geobtn_edit_{_mid}"):
+                                _dir = st.session_state.get(f"edir_{_mid}", "").strip()
+                                if not _dir:
+                                    _calle = st.session_state.get(f"ec_{_mid}", "").strip()
+                                    _num = st.session_state.get(f"en_{_mid}", 0)
+                                    _dir = f"{_calle} {_num}" if _num else _calle
+                                if len(_dir) >= 3:
+                                    from parsers.geocoder import geocoding_manager
+                                    with st.spinner("Buscando coordenadas..."):
+                                        _geo = geocoding_manager(_dir)
+                                    if _geo and _geo.get('lat'):
+                                        st.session_state[f"elat_{_mid}"] = _geo['lat']
+                                        st.session_state[f"elon_{_mid}"] = _geo['lon']
+                                        st.success(f"📍 {_geo['lat']:.6f}, {_geo['lon']:.6f}")
+                                        st.rerun()
+                                    else:
+                                        st.error("No se encontró la dirección")
+                                else:
+                                    st.warning("Ingresá calle+número o dirección completa")
                         with st.form(key=f"form_edit_{_mid}"):
                             st.markdown(f"**Editando:** {_edit_prop.get('calle_limpia', '')} {_edit_prop.get('numero_limpio', '') or ''}")
                             ec1, ec2 = st.columns(2)
@@ -1656,12 +1680,13 @@ def mostrar_dashboard():
                                 edit_direccion = st.text_input("Dirección (completa)", value=_edit_prop.get("direccion", ""), key=f"edir_{_mid}")
                                 edit_lat = st.number_input("Latitud", value=float(_edit_prop.get("lat", -32.95)), format="%.6f", key=f"elat_{_mid}")
                                 edit_lon = st.number_input("Longitud", value=float(_edit_prop.get("lon", -60.66)), format="%.6f", key=f"elon_{_mid}")
+                                edit_anio = st.number_input("Año de Construcción", min_value=1900, max_value=datetime.now().year, value=int(_edit_prop.get("anio_construccion", 2000)), step=1, key=f"eanio_{_mid}")
                             if st.form_submit_button("💾 Guardar Cambios", type="primary"):
                                 _upd = {
                                     "precio": edit_precio, "moneda": edit_moneda, "m2": edit_m2,
                                     "dormitorios": edit_dorms, "tipo": edit_tipo, "operacion": edit_operacion,
                                     "calle_limpia": edit_calle, "numero_limpio": edit_num, "direccion": edit_direccion,
-                                    "lat": edit_lat, "lon": edit_lon,
+                                    "lat": edit_lat, "lon": edit_lon, "anio_construccion": edit_anio,
                                 }
                                 update_manual(_mid, _upd)
                                 st.session_state[_edit_key] = False
@@ -1671,6 +1696,29 @@ def mostrar_dashboard():
             st.markdown("---")
             _show_add = st.checkbox("➕ Añadir nuevo comparable manual", key="show_add_manual")
             if _show_add:
+                __gc1, __gc2 = st.columns([4, 1])
+                with __gc1:
+                    st.caption("✏️ Completá calle+número o dirección, luego:")
+                with __gc2:
+                    if st.button("📍 Geocodificar", key="geobtn_add"):
+                        _dir = st.session_state.get("adir", "").strip()
+                        if not _dir:
+                            _calle = st.session_state.get("acalle", "").strip()
+                            _num = st.session_state.get("anum", 0)
+                            _dir = f"{_calle} {_num}" if _num else _calle
+                        if len(_dir) >= 3:
+                            from parsers.geocoder import geocoding_manager
+                            with st.spinner("Buscando coordenadas..."):
+                                _geo = geocoding_manager(_dir)
+                            if _geo and _geo.get('lat'):
+                                st.session_state["alat"] = _geo['lat']
+                                st.session_state["alon"] = _geo['lon']
+                                st.success(f"📍 {_geo['lat']:.6f}, {_geo['lon']:.6f}")
+                                st.rerun()
+                            else:
+                                st.error("No se encontró la dirección")
+                        else:
+                            st.warning("Ingresá calle+número o dirección completa")
                 with st.form(key="form_add_manual"):
                     ac1, ac2 = st.columns(2)
                     with ac1:
@@ -1686,12 +1734,13 @@ def mostrar_dashboard():
                         add_direccion = st.text_input("Dirección (completa, opcional)", key="adir")
                         add_lat = st.number_input("Latitud", value=-32.95, format="%.6f", key="alat")
                         add_lon = st.number_input("Longitud", value=-60.66, format="%.6f", key="alon")
+                        add_anio = st.number_input("Año de Construcción", min_value=1900, max_value=datetime.now().year, value=2000, step=1, key="aanio")
                     if st.form_submit_button("💾 Guardar Comparable", type="primary"):
                         _add_data = {
                             "precio": add_precio, "moneda": add_moneda, "m2": add_m2,
                             "dormitorios": add_dorms, "tipo": add_tipo, "operacion": add_operacion,
                             "calle_limpia": add_calle, "numero_limpio": add_num, "direccion": add_direccion,
-                            "lat": add_lat, "lon": add_lon,
+                            "lat": add_lat, "lon": add_lon, "anio_construccion": add_anio,
                         }
                         add_manual(_add_data)
                         st.success("Comparable manual guardado en cache_scraping.json")

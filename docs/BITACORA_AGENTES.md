@@ -3739,3 +3739,19 @@ Después de "🔄 Limpiar" (borra cache + UV + session state), la propiedad qued
 ### Tests
 - auto_validate OK (incluye regression tests).
 
+---
+
+## 2026-07-01 — TAREA-107: Configuración: georeferencia + año de construcción en Carga de Comparable
+
+### Contexto
+Los formularios de alta/edición de comparables manuales en Configuración no tenían georeferencia automática ni campo "Año de construcción". El usuario debía ingresar lat/lon manualmente y no podía registrar el año del comparable.
+
+### Cambios
+- **`parsers/manual_comparables.py`**: `add_manual()` y `update_manual()` ahora persisten `anio_construccion`.
+- **`valu.py`** (data_editor): Agregada columna `anio_construccion` a la tabla y `column_config`.
+- **`valu.py`** (Edit form): Botón "📍 Geocodificar" antes del form que llama `geocoding_manager()` y setea lat/lon en session state. Campo "Año de Construcción" agregado en columna ec2.
+- **`valu.py`** (Add form): Mismo botón "📍 Geocodificar" antes del form. Campo "Año de Construcción" agregado en ac2.
+
+### Tests
+- auto_validate OK (60/60 regression tests).
+

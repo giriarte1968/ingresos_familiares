@@ -1,6 +1,6 @@
 ﻿# 🏠 STATUS ACTUAL DEL PROYECTO — AVM Rosario
 
-*Actualizado: 01/07/2026 (TAREA-106: Botón Limpiar ↔ Comparables toggle post-limpieza)*
+*Actualizado: 01/07/2026 (TAREA-107: Configuración: georeferencia + año de construcción en Carga de Comparable)*
 
 ---
 

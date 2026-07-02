@@ -58,6 +58,7 @@ def add_manual(form_data):
         "numero_limpio": int(form_data.get("numero_limpio", 0)) if form_data.get("numero_limpio") else None,
         "lat": float(form_data.get("lat", 0)),
         "lon": float(form_data.get("lon", 0)),
+        "anio_construccion": int(form_data.get("anio_construccion", 2000)),
         "valor_m2": round(precio / m2, 2) if m2 > 0 else 0,
         "fuente": _FUENTE_MANUAL,
         "date_created": now_iso,
@@ -88,6 +89,7 @@ def update_manual(manual_id, form_data):
             p["numero_limpio"] = int(form_data.get("numero_limpio", 0)) if form_data.get("numero_limpio") else p.get("numero_limpio")
             p["lat"] = float(form_data.get("lat", p["lat"]))
             p["lon"] = float(form_data.get("lon", p["lon"]))
+            p["anio_construccion"] = int(form_data.get("anio_construccion", p.get("anio_construccion", 2000)))
             p["valor_m2"] = round(precio / m2, 2) if m2 > 0 else 0
             p["date_updated"] = datetime.now().isoformat()
             save_data(data)
