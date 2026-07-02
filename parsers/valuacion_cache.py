@@ -104,6 +104,11 @@ def necesita_recalcular(nombre: str, prop: dict, cache: dict) -> tuple[bool, str
 
     entrada = cache[nombre]
 
+    # Cache poisoning detection: si el resultado cacheado es un error o valor 0, forzar recálculo
+    rc = entrada.get('resultado_completo', {})
+    if rc.get('error') or not rc.get('valor_propiedad_usd'):
+        return True, "cache_envenenada"
+
     # Invalidar por versión del código
     current_cv = get_cache_version()
     if entrada.get('cache_version', '') != current_cv:

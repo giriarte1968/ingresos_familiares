@@ -3799,3 +3799,18 @@ Ahora: `m2_microzona = cluster` siempre → Retro/Flex cambian el pool de compar
 ### Tests
 - 60/60 regression OK.
 
+---
+
+## 2026-07-02 — TAREA-110: Cache poisoning fix — VCC no persiste errores
+
+### Contexto
+TAREA-109 introdujo `NameError` en 3 prints de debug que crasheaban el motor. VCC capturaba la excepción y creaba `{'error': str(e), 'valor_propiedad_usd': 0}` sin `comparables_venta`. Si no había caché previo, el error se persistía como oficial. Cargas posteriores servían el error sin llamar al motor.
+
+### Cambios
+1. **`parsers/valuacion_cache.py`**: `necesita_recalcular()` detecta `cache_envenenada` (resultado con error/valor=0) y fuerza recálculo.
+2. **`parsers/motor_vpp_core.py`**: Exception handler incluye `comparables_venta: []` y `resolution_metadata: {}` en error dict.
+3. **`tests/test_regression.py`**: `test_cache_poisoning_detection` (nuevo) + fix `test_retro_bypass_respeta_cambio_dias`.
+
+### Tests
+- 61/61 regression OK.
+

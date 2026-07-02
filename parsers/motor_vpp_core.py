@@ -1404,7 +1404,7 @@ def valuar_con_cache(prop: dict,
             save_results()
         except Exception as e:
             logger.error(f"Error en valuar_propiedad_v7: {e}")
-            resultado = {'error': str(e), 'valor_propiedad_usd': 0}
+            resultado = {'error': str(e), 'valor_propiedad_usd': 0, 'comparables_venta': [], 'resolution_metadata': {}}
         _vl.mark("after_valuar_propiedad_v7")
 
         resultado['_cache'] = {

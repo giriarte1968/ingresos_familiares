@@ -512,16 +512,19 @@ def test_retro_bypass_respeta_cambio_dias():
             f"Cache debe tener retro_dias=36, tiene {r36.get('_cache', {}).get('retro_dias')}"
 
         # 2da llamada: retro=12 → detecta mismatch cache retro=36 != 12 → recalcula
+        # (tambien puede detectar cache_envenenada si el primer resultado tenia error)
         r12 = valuar_con_cache(p, retro_dias=12, forzar_recalculo=False, consultar_infomapa=False)
-        assert r12.get('_cache', {}).get('razon', '').startswith('parametros_cambiados'), \
-            f"Debe detectar parametros_cambiados, razon={r12.get('_cache', {}).get('razon')}"
+        _r12_razon = r12.get('_cache', {}).get('razon', '')
+        assert _r12_razon.startswith('parametros_cambiados') or _r12_razon == 'cache_envenenada', \
+            f"Debe detectar cambio o cache envenenada, razon={_r12_razon}"
         assert len(r12.get('comparables_venta', [])) == 0, \
             f"2da llamada retro=12 debe dar 0 comps, dio {len(r12.get('comparables_venta', []))}"
 
         # 3ra llamada: retro=36 → detecta mismatch cache retro=12 != 36 → recalcula
         r36b = valuar_con_cache(p, retro_dias=36, forzar_recalculo=False, consultar_infomapa=False)
-        assert r36b.get('_cache', {}).get('razon', '').startswith('parametros_cambiados'), \
-            f"3ra llamada debe detectar cambio retro, razon={r36b.get('_cache', {}).get('razon')}"
+        _r36b_razon = r36b.get('_cache', {}).get('razon', '')
+        assert _r36b_razon.startswith('parametros_cambiados') or _r36b_razon == 'cache_envenenada', \
+            f"3ra llamada debe detectar cambio o cache envenenada, razon={_r36b_razon}"
         assert len(r36b.get('comparables_venta', [])) == 1, \
             f"3ra llamada retro=36 debe dar 1 comp, dio {len(r36b.get('comparables_venta', []))}"
 
@@ -2557,3 +2560,70 @@ def test_limpiar_toggle_comparables_natural():
         cache_clean = cargar_cache_valuaciones()
         cache_clean.pop(nombre_test, None)
         guardar_cache_valuaciones(cache_clean)
+
+
+# ─── TAREA-110: CACHE POISONING ───
+
+def test_cache_poisoning_detection():
+    """
+    TAREA-110: 1. necesita_recalcular detecta cache con error como 'cache_envenenada'.
+    2. valuar_con_cache forza recalculo y se recupera.
+    """
+    from parsers.valuacion_cache import necesita_recalcular, _calcular_hash_propiedad, _calcular_hash_scraping, get_cache_version, cargar_cache_valuaciones, guardar_cache_valuaciones
+    from parsers.motor_vpp_core import valuar_con_cache
+    from parsers.mercado_inmobiliario import valuar_propiedad_v7
+
+    prop = ejecutar_valuacion('ayacucho')
+
+    # ── 1. necesita_recalcular detecta cache envenenada ──
+    cache_poisoned = {
+        'ayacucho_test_poison': {
+            'resultado_completo': {'error': 'test_poison', 'valor_propiedad_usd': 0, 'comparables_venta': []},
+            'cache_version': 'dummy',
+            'hash_prop': 'dummy',
+            'hash_scraping': 'dummy',
+        }
+    }
+    needs, reason = necesita_recalcular('ayacucho_test_poison', prop, cache_poisoned)
+    assert needs, "Debe necesitar recálculo con cache envenenada"
+    assert reason == "cache_envenenada", \
+        f"Esperaba 'cache_envenenada', obtuvo '{reason}'"
+
+    # ── 2. Con cache sano y hashes correctos, debe decir cache_valido ──
+    rc = valuar_propiedad_v7(prop, fecha_ref='2026-04')
+    assert rc.get('valor_propiedad_usd', 0) > 0, "Ayacucho debe tener valor"
+    cache_healthy = {
+        'ayacucho_test_healthy': {
+            'resultado_completo': rc,
+            'cache_version': get_cache_version(),
+            'hash_prop': _calcular_hash_propiedad(prop),
+            'hash_scraping': _calcular_hash_scraping(),
+        }
+    }
+    needs2, reason2 = necesita_recalcular('ayacucho_test_healthy', prop, cache_healthy)
+    assert not needs2, f"Cache sano no debe necesitar recálculo: {reason2}"
+    assert reason2 == "cache_valido", f"Esperaba 'cache_valido', obtuvo '{reason2}'"
+
+    # ── 3. valuar_con_cache se recupera de cache envenenada en disco ──
+    cache_real = cargar_cache_valuaciones()
+    try:
+        cache_real['ayacucho'] = {
+            'resultado_completo': {'error': 'test_poison', 'valor_propiedad_usd': 0, 'comparables_venta': []},
+            'cache_version': 'dummy',
+            'hash_prop': 'dummy',
+            'hash_scraping': 'dummy',
+        }
+        guardar_cache_valuaciones(cache_real)
+        resultado = valuar_con_cache(prop, consultar_infomapa=False, forzar_recalculo=False)
+        assert resultado.get('valor_propiedad_usd', 0) > 0, \
+            f"Debe recuperarse de cache envenenada, valor={resultado.get('valor_propiedad_usd')}"
+        assert not resultado.get('error'), \
+            f"Sin error tras recuperación, error={resultado.get('error')}"
+        n_comps = len(resultado.get('comparables_venta', []))
+        assert n_comps >= 3, \
+            f"Debe tener >=3 comparables, obtuvo {n_comps}"
+        print(f"[TEST CACHE-POISON] OK — valor=${resultado.get('valor_propiedad_usd'):,.0f}, {n_comps} comps")
+    finally:
+        cache_final = cargar_cache_valuaciones()
+        cache_final.pop('ayacucho', None)
+        guardar_cache_valuaciones(cache_final)
