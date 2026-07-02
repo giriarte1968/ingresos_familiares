@@ -23,10 +23,10 @@ print = _dbg_print
 
 
 def render_actions(prop, guardar_fn):
-    """Barra de acciones: Volver, Editar, Limpiar, Eliminar."""
+    """Barra de acciones: Volver, Editar, Eliminar."""
     nombre = prop.get('nombre', '')
     prop_id = prop.get('id', nombre)
-    col_back, col_edit, col_clean, col_delete = st.columns([1.5, 1, 1.5, 1])
+    col_back, col_edit, col_delete = st.columns([1.5, 1, 1.5])
     with col_back:
         if st.button("← Volver al Portafolio", type="primary", use_container_width=True,
                      key=f"action_volver_{prop_id}"):
@@ -41,11 +41,6 @@ def render_actions(prop, guardar_fn):
         if st.button("Editar", type="primary", use_container_width=True,
                      key=f"action_editar_{prop_id}"):
             st.session_state[f"edit_{prop_id}"] = True
-    with col_clean:
-        if st.button("🗑️ Limpiar Valuación", type="secondary", use_container_width=True,
-                     key=f"action_limpiar_{prop_id}"):
-            st.session_state[f"clean_valuacion_{nombre}"] = True
-            st.rerun()
     with col_delete:
         if st.button("Eliminar", type="primary", use_container_width=True,
                      key=f"action_eliminar_{prop_id}"):
@@ -224,11 +219,11 @@ def render_header(prop, res):
     with col_toggle[0]:
         st.markdown(f"""
         <div style="border:none;border-radius:12px;padding:16px;background:{grad_md};box-shadow:0 4px 12px rgba(0,0,0,0.15);text-align:center;">
-            <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.8);margin-bottom:4px;">POR COMPARABLES</div>
+            <div style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.8);margin-bottom:4px;">POR COMPARABLES</div>
             <div style="font-size:24px;font-weight:700;color:#FFFFFF;">{f'${v_auto:,.0f}' if v_auto else '—'}</div>
             <div style="font-size:13px;color:rgba(255,255,255,0.85);margin-bottom:2px;">{f'${v_auto * dolar_auto:,.0f} ARS' if v_auto else '—'}</div>
             <div style="font-size:11px;color:rgba(255,255,255,0.65);">Dólar ${dolar_auto:,.0f} · {m2_line_auto}</div>
-            <div style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:4px;">{'${:,.0f}/m² × {} m² × {} ajuste + ${:,.0f} extras = ${:,.0f}'.format(m2_microzona, round(m2_equiv_display,1), round(size_discount,3), activos_total, v_auto) if m2_microzona > 0 and m2_equiv_display > 0 else ''}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:4px;">{'${:,.0f}/m² × {} m² × {} ajuste + ${:,.0f} extras = ${:,.0f}'.format(m2_microzona, round(m2_equiv_display,1), round(size_discount,3), activos_total, v_auto) if m2_microzona > 0 and m2_equiv_display > 0 else ''}</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -237,7 +232,7 @@ def render_header(prop, res):
         delta_color = "#FF6B6B" if delta_pct > 10 else "#6BCB7E" if delta_pct < -10 else "rgba(255,255,255,0.85)"
         st.markdown(f"""
         <div style="border:none;border-radius:12px;padding:16px;background:{grad_md};box-shadow:0 4px 12px rgba(0,0,0,0.15);text-align:center;">
-            <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.8);margin-bottom:4px;">MANUAL</div>
+            <div style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.8);margin-bottom:4px;">MANUAL</div>
             <div style="font-size:24px;font-weight:700;color:#FFFFFF;">{f'${v_manual:,.0f}' if v_manual else '—'}</div>
             <div style="font-size:13px;color:{delta_color};margin-bottom:2px;">{f'${v_manual * dolar_manual:,.0f} ARS' if v_manual else '—'} · vs Auto: {delta_str}</div>
             <div style="font-size:11px;color:rgba(255,255,255,0.65);">Dólar ${dolar_manual:,.0f} · {m2_line_manual}</div>
@@ -1446,7 +1441,7 @@ def render_valuacion_manual(prop, res):
     <div style="background:#ffffff;border:1px solid #d1d5db;border-radius:10px;padding:20px;margin:16px 0;">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
         <div>
-          <div style="color:#000000;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">
+          <div style="color:#000000;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">
             Valor Manual Estimado
           </div>
           <div style="font-size:30px;font-weight:700;color:#000000;margin:4px 0;font-family:system-ui,-apple-system,sans-serif;">

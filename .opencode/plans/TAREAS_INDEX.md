@@ -86,3 +86,4 @@
 | TAREA-105 | Fix is_applied false-positive con exclusion vacía en Retro toggle | _completada_ | 2026-07-01 |
 | TAREA-106 | Botón Limpiar ↔ Comparables toggle post-limpieza | _completada_ | 2026-07-01 |
 | TAREA-107 | Configuración: georeferencia + año de construcción en Carga de Comparable | _completada_ | 2026-07-01 |
+| TAREA-108 | Font-size headers +10% + eliminar botón Limpiar Valuación | _completada_ | 2026-07-02 |

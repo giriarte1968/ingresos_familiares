@@ -32,7 +32,7 @@ def _auto_geocode_cb(key_suffix, lat_key, lon_key):
 def _titulo_seccion(titulo, icono, color):
     """Muestra el título de la sección con estilo."""
     st.markdown(f"""
-    <div style="color:{color};font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">
+    <div style="color:{color};font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">
         {icono} {titulo}
     </div>
     """, unsafe_allow_html=True)

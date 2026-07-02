@@ -1,6 +1,6 @@
 ﻿# 🏠 STATUS ACTUAL DEL PROYECTO — AVM Rosario
 
-*Actualizado: 01/07/2026 (TAREA-107: Configuración: georeferencia + año de construcción en Carga de Comparable)*
+*Actualizado: 02/07/2026 (TAREA-108: Font-size headers +10% + eliminar botón Limpiar Valuación)*
 
 ---
 
@@ -15,7 +15,7 @@
 | Matching catastral (acentos/ñ) | ✅ Normalización NFKD en `_token_contenido` (TAREA-024) |
 | Persistencia DO | ✅ Atómica + branch `do-state` |
 | Landing page | ✅ Navegación por teclado (PageDown/PageUp/Home/End) |
-| Tests regresión | ✅ 59/59 (incluye TAREA-094-105) |
+| Tests regresión | ✅ 60/60 (incluye TAREA-094-108) |
 | Tests persistencia | ✅ 16/16 |
 | Despliegue DO | Sin redeploy loop |
 | Anclas grilla 400m | 322 microzonas, 96% cobertura (TAREA-036) |
@@ -160,6 +160,7 @@ git checkout origin/do-state -- propiedades.json data/valuaciones_cache.json
 4. Validación manual en DO del flujo do-state
 5. ⚠️ P1200 y Brown 2750 requieren recalibración con fórmula multiplicativa
 6. ⚠️ Botón "Comparable" en header carga desde cache en disco, debe cargar desde resultado actual en memoria (fix pendiente TAREA-086)
+7. ✅ Botón "🗑️ Limpiar Valuación" eliminado (TAREA-108) — no funcionaba correctamente
 
 ---
 

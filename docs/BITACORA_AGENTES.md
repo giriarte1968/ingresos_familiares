@@ -17,6 +17,27 @@ Si el usuario aplicaba selección con TODOS los comps marcados (0 exclusiones), 
 
 ---
 
+## 2026-07-02 — TAREA-108: Font-size headers +10% + eliminar botón 🗑️ Limpiar Valuación
+
+### Contexto
+Solicitud del usuario: (a) incrementar font-size de headers UI en +10% (12px→13px, 10px→11px en fórmula); (b) eliminar botón "🗑️ Limpiar Valuación" que no funcionaba correctamente.
+
+### Cambios
+1. **`valu_detail_sections.py`**:
+   - Fórmula en header card: `font-size:10px→11px` (L231) — los headers POR COMPARABLES y MANUAL ya estaban en 13px de TAREA-107.
+   - Se eliminó `col_clean` (3→2 columnas) y bloque "🗑️ Limpiar Valuación" de `render_actions()` (L44-48).
+   - Docstring actualizado: `"Barra de acciones: Volver, Editar, Limpiar, Eliminar"` → `"Barra de acciones: Volver, Editar, Eliminar"`.
+2. **`valu.py`**:
+   - Se eliminó handler `clean_valuacion_` (ex L513-535) que borraba cache + UV + redirigía a Portfolio.
+   - Se eliminó `'clean_valuacion_'` de `_PREFIJOS` en `_limpiar_estado_propiedad()`.
+3. **`tests/test_regression.py`**: 60/60 tests pasan sin cambios.
+
+### Tests
+- 60/60 regression OK.
+- auto_validate OK.
+
+---
+
 ## 2026-07-01 — TAREA-104: Preservar retro_dias/flex_dormitorios al guardar valuación manual + estandarización guardar_propiedades
 
 ### Contexto

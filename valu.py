@@ -86,7 +86,7 @@ def _limpiar_estado_propiedad(nombre: str) -> None:
         'manual_params_', 'retro_btn_', 'flex_btn_', 'aplicar_cambios_',
         'infomapa_catastro_', 'ph_sel_', 'comp1_', 'comp2_',
         'manual_ancla_', 'manual_usd_m2_', 'manual_fh_',
-        'manual_aj_', 'manual_inc_', 'clean_valuacion_',
+        'manual_aj_', 'manual_inc_',
         'clean_comparables_', 'comp_interacted_',
         'pendiente_comparables_', 'act_comparables_',
     ]
@@ -510,30 +510,6 @@ def mostrar_dashboard():
             p_obj = next((p for p in propiedades if p['nombre'] == st.session_state.prop_sel), None)
         if p_obj:
             prop_name = p_obj.get('nombre', '')
-            # Limpiar Valuación: borrar cache, _ultima_valuacion y manual staging
-            if st.session_state.get(f"clean_valuacion_{prop_name}", False):
-                _limpiar_estado_propiedad(prop_name)
-                try:
-                    from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
-                    cache_v = cargar_cache_valuaciones()
-                    cache_v.pop(prop_name, None)
-                    guardar_cache_valuaciones(cache_v)
-                    
-                    props = cargar_propiedades()
-                    for p in props:
-                        if p.get('nombre') == prop_name:
-                            p.pop('_ultima_valuacion', None)
-                            break
-                    guardar_propiedades(props)
-                except Exception as e:
-                    print(f"Error limpiando valuacion: {e}")
-                # Redirigir al portafolio para evitar que la carga natural re-valuate
-                st.session_state.prop_sel = None
-                st.session_state['_force_nav_page'] = 'Portfolio'
-                if 'prop' in st.query_params:
-                    st.query_params.clear()
-                st.rerun()
-
             # Limpiar solo comparables: borra cache, conserva manual si existe
             if st.session_state.pop(f"clean_comparables_{prop_name}", False):
                 try:
