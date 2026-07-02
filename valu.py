@@ -363,6 +363,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                     st.session_state[f'act_comparables_{prop_name}'] = True
                     st.session_state[f'preview_mode_{prop_name}'] = True
                     st.session_state.pop(f'pendiente_comparables_{prop_name}', None)
+                    print(f"[DEBUG-COMP-BTN] {prop_name}: 📊 Comparables clickeado — act_comparables=True, preview_mode=True")
                     st.rerun()
             else:
                 if st.button("🔄 Limpiar", type="secondary", use_container_width=True, key=f"cln_comps_{prop_name}"):
@@ -561,6 +562,7 @@ def mostrar_dashboard():
                 st.session_state.pop(f'retro_btn_{prop_name}', None)
                 st.session_state.pop(f'flex_btn_{prop_name}', None)
                 st.session_state[f'pendiente_comparables_{prop_name}'] = True
+                print(f"[DEBUG-COMP-BTN] {prop_name}: pendiente_comparables=True — botón cambiará a Comparables")
                 st.rerun()
 
             # Solo aplicar preview manual si la fuente activa es 'manual'
@@ -653,6 +655,7 @@ def mostrar_dashboard():
                 # Si es re-entry pasivo (sin recalculación forzada), mostrar vacío
                 # (no mostrar vacío si hay preview valido en cache)
                 act_comps = st.session_state.pop(f'act_comparables_{p_obj["nombre"]}', False)
+                print(f"[DEBUG-COMP-BTN] {p_obj['nombre']}: act_comparables={act_comps} — {'saltea' if act_comps else 'NO saltea'} early return Pendiente")
                 if not forzar and not retro_btn_clicked and not cache_valido and not act_comps:
                     st.info(f"**{p_obj['nombre']}** está pendiente de valuación. "
                             "Usa los controles Retro/Flex para generar una previsualización.")

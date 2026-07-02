@@ -2477,3 +2477,83 @@ def test_retro_toggle_after_zero_exclusion_keep_button_active():
         cache_clean = cargar_cache_valuaciones()
         cache_clean.pop(nombre_test, None)
         guardar_cache_valuaciones(cache_clean)
+
+
+# ──────────────────────────────────────────────
+# T_S-13: Limpiar → Comparables toggle post-limpieza (TAREA-106)
+# ──────────────────────────────────────────────
+
+def test_limpiar_toggle_comparables_natural():
+    """RO-COMP-BTN-01: Post-Limpiar (cache borrado + sin UV) el engine
+    debe retornar comparables en ventana natural con preview=True sin
+    requerir forzar_recalculo ni crear UV."""
+    from parsers.valuacion_cache import (
+        cargar_cache_valuaciones, guardar_cache_valuaciones,
+        get_cache_version, _calcular_hash_propiedad, _calcular_hash_scraping,
+    )
+    import json, copy
+
+    nombre_test = '__test_limp_comp_toggle__'
+    cache_bak = cargar_cache_valuaciones()
+    if nombre_test in cache_bak:
+        del cache_bak[nombre_test]
+        guardar_cache_valuaciones(cache_bak)
+
+    with open('propiedades.json', 'r', encoding='utf-8') as f:
+        props_bak = copy.deepcopy(json.load(f))
+
+    try:
+        # 1. Propiedad Pendiente (sin UV, sin cache) — estado post-Limpiar
+        props_temp = copy.deepcopy(props_bak)
+        props_temp['propiedades'].append({
+            'nombre': nombre_test,
+            'm2_cubiertos': 50, 'lat': -32.95, 'lon': -60.63,
+            'dormitorios': 2, 'tipo_inmueble': 'departamento',
+        })
+        with open('propiedades.json', 'w', encoding='utf-8') as f:
+            json.dump(props_temp, f, ensure_ascii=False, indent=2)
+
+        prop_dict = {
+            'nombre': nombre_test, 'm2_cubiertos': 50,
+            'lat': -32.95, 'lon': -60.63,
+            'dormitorios': 2, 'tipo_inmueble': 'departamento',
+        }
+
+        from parsers.motor_vpp_core import valuar_con_cache
+
+        # 2. Simula "📊 Comparables" → engine corre natural (sin cache)
+        #    Ya es preview=True porque es post-Limpiar.
+        r = valuar_con_cache(
+            prop_dict, forzar_recalculo=False, consultar_infomapa=False,
+            retro_dias=0, flex_dormitorios=None,
+            preview=True, manual_data=None
+        )
+        assert r.get('error') is None, \
+            f"Engine no debe fallar post-Limpiar, error={r.get('error')}"
+        n_comps = len(r.get('comparables_venta', []))
+        assert n_comps > 0, \
+            f"Engine debe retornar comps en ventana natural, obtuvo {n_comps}"
+        assert r.get('_cache', {}).get('preview', False) is True, \
+            "Resultado debe ser preview=True post-Limpiar"
+        assert r.get('valor_propiedad_usd', 0) > 0, \
+            f"valor_usd debe ser >0, obtuvo: {r.get('valor_propiedad_usd')}"
+        print(f"[TEST COMP-BTN] OK — {n_comps} comps, valor_usd={r.get('valor_propiedad_usd')}, preview=True, sin forzar")
+
+        # 3. UV NO debe crearse (preview=True, commit=False)
+        with open('propiedades.json', 'r', encoding='utf-8') as f:
+            pc = json.load(f)
+        for p in pc['propiedades']:
+            if p['nombre'] == nombre_test:
+                uv = p.get('_ultima_valuacion', {})
+                assert not uv.get('valor_usd'), \
+                    f"UV NO debe existir post-preview, obtuvo: {uv}"
+                break
+
+        print(f"[TEST COMP-BTN] OK — UV no creada (preview no persiste)")
+
+    finally:
+        with open('propiedades.json', 'w', encoding='utf-8') as f:
+            json.dump(props_bak, f, ensure_ascii=False, indent=2)
+        cache_clean = cargar_cache_valuaciones()
+        cache_clean.pop(nombre_test, None)
+        guardar_cache_valuaciones(cache_clean)
