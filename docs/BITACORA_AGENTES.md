@@ -3707,3 +3707,35 @@ contrato de preview: "muestra lo que pasaría con estos parámetros".
      verifica el flujo completo Retro ON → Retro OFF.
 
 ### Tests: 57/57 regression OK, auto_validate OK
+
+---
+
+## 2026-07-01 — TAREA-106: Botón "Limpiar" ↔ "Comparables" toggle post-limpieza
+
+### Contexto
+Después de "🔄 Limpiar" (borra cache + UV + session state), la propiedad quedaba en estado Pendiente sin forma de visualizar comparables sin clickear Retro/Flex. Solución: el mismo botón hace toggle entre "🔄 Limpiar" y "📊 Comparables".
+
+### Cambios
+- **`valu.py`** (L90): Agregadas `'pendiente_comparables_'` y `'act_comparables_'` a `_PREFIJOS`.
+- **`valu.py`** (L358-361): Botón condicional: si `pendiente_comparables_{N}` está True → "📊 Comparables (primary)" que setea `act_comparables=True, preview_mode=True`; si no → "🔄 Limpiar (secondary)".
+- **`valu.py`** (L554): Handler `clean_comparables_`: agrega `pendiente_comparables=True` antes de `st.rerun()`.
+- **`valu.py`** (L655): Bloque Pendiente early return: agrega `act_comps = st.session_state.pop('act_comparables_', False)` para saltear el early return cuando el usuario clickea "Comparables".
+- **`valu.py`** (L981): Antes de `mostrar_detalle_valu`: resetea `pendiente_comparables` para que el botón vuelva a "Limpiar".
+
+### Flujo
+```
+[🔄 Limpiar] → borra cache/UV/SS → pendiente_comparables=True → rerun
+                ↓
+         Pendiente: botón ahora es "📊 Comparables"
+                ↓
+[📊 Comparables] → act_comparables=True, preview_mode=True → rerun
+                ↓
+         Pop act_comparables → bypass early return Pendiente
+         Engine corre natural (sin cache → forzar=False innecesario)
+         Muestra comparables en ventana natural (retro_dias=0)
+         pendiente_comparables reseteado → botón vuelve a "Limpiar"
+```
+
+### Tests
+- auto_validate OK (incluye regression tests).
+

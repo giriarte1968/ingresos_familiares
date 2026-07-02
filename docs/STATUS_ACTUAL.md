@@ -1,6 +1,6 @@
 ﻿# 🏠 STATUS ACTUAL DEL PROYECTO — AVM Rosario
 
-*Actualizado: 01/07/2026 (TAREA-105: is_applied false-positive con exclusion vacía en Retro toggle)*
+*Actualizado: 01/07/2026 (TAREA-106: Botón Limpiar ↔ Comparables toggle post-limpieza)*
 
 ---
 

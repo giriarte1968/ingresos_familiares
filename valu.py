@@ -88,6 +88,7 @@ def _limpiar_estado_propiedad(nombre: str) -> None:
         'manual_ancla_', 'manual_usd_m2_', 'manual_fh_',
         'manual_aj_', 'manual_inc_', 'clean_valuacion_',
         'clean_comparables_', 'comp_interacted_',
+        'pendiente_comparables_', 'act_comparables_',
     ]
     for p in _PREFIJOS:
         st.session_state.pop(f'{p}{nombre}', None)
@@ -356,9 +357,17 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         retro_active = st.session_state.get(retro_key, False)
         col_limpiar, col_btn, col_cb, col_slider = st.columns([1.2, 1.2, 1.0, 2.6])
         with col_limpiar:
-            if st.button("🔄 Limpiar", type="secondary", use_container_width=True, key=f"cln_comps_{prop_name}"):
-                st.session_state[f"clean_comparables_{prop_name}"] = True
-                st.rerun()
+            pendiente = st.session_state.get(f'pendiente_comparables_{prop_name}', False)
+            if pendiente:
+                if st.button("📊 Comparables", type="primary", use_container_width=True, key=f"act_comp_{prop_name}"):
+                    st.session_state[f'act_comparables_{prop_name}'] = True
+                    st.session_state[f'preview_mode_{prop_name}'] = True
+                    st.session_state.pop(f'pendiente_comparables_{prop_name}', None)
+                    st.rerun()
+            else:
+                if st.button("🔄 Limpiar", type="secondary", use_container_width=True, key=f"cln_comps_{prop_name}"):
+                    st.session_state[f"clean_comparables_{prop_name}"] = True
+                    st.rerun()
         with col_btn:
             label = "🔙 Retro Activado" if retro_active else "🔙 Retro"
             if st.button(label, type="primary" if retro_active else "secondary", use_container_width=True, key=f'retro_btn_{prop_name}'):
@@ -551,6 +560,7 @@ def mostrar_dashboard():
                 st.session_state.pop(f'retro_meses_slider_{prop_name}', None)
                 st.session_state.pop(f'retro_btn_{prop_name}', None)
                 st.session_state.pop(f'flex_btn_{prop_name}', None)
+                st.session_state[f'pendiente_comparables_{prop_name}'] = True
                 st.rerun()
 
             # Solo aplicar preview manual si la fuente activa es 'manual'
@@ -642,7 +652,8 @@ def mostrar_dashboard():
                     print(f"[DEBUG-FLOW] {p_obj['nombre']}: Pendiente con cache oficial valido — heredando params: retro={_retro}d, flex={_flex}")
                 # Si es re-entry pasivo (sin recalculación forzada), mostrar vacío
                 # (no mostrar vacío si hay preview valido en cache)
-                if not forzar and not retro_btn_clicked and not cache_valido:
+                act_comps = st.session_state.pop(f'act_comparables_{p_obj["nombre"]}', False)
+                if not forzar and not retro_btn_clicked and not cache_valido and not act_comps:
                     st.info(f"**{p_obj['nombre']}** está pendiente de valuación. "
                             "Usa los controles Retro/Flex para generar una previsualización.")
                     
@@ -967,6 +978,7 @@ def mostrar_dashboard():
                             import copy
                             st.session_state[official_key] = copy.deepcopy(resultado)
                             print(f"[DEBUG-OFFICIAL-FIRST] {prop_name}: resultado oficial guardado por primera vez, valor=${resultado.get('valor_propiedad_usd',0):,.0f}, n_prop={resultado.get('resolution_metadata',{}).get('n_propiedades')}")
+                    st.session_state.pop(f'pendiente_comparables_{p_obj["nombre"]}', None)
                     mostrar_detalle_valu(p_obj, resultado, actualizar_propiedad)
 
                 _sl.mark("after_render")

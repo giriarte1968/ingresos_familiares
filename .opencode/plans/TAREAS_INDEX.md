@@ -82,3 +82,6 @@
 | TAREA-101 | Reconfiguración visual Parámetros Valuación Manual (5 cols, FH en %, check constructora siempre visible) | _completada_ | 2026-07-01 |
 | TAREA-102 | Fallback a UV snapshot si recálculo falla (Mabel: sin valuación en detalle) | _completada_ | 2026-07-01 |
 | TAREA-103 | Limpiar manual_valor_usd al eliminar valuación manual | _completada_ | 2026-07-01 |
+| TAREA-104 | Preservar retro_dias/flex_dormitorios al guardar valuación manual | _completada_ | 2026-07-01 |
+| TAREA-105 | Fix is_applied false-positive con exclusion vacía en Retro toggle | _completada_ | 2026-07-01 |
+| TAREA-106 | Botón Limpiar ↔ Comparables toggle post-limpieza | _completada_ | 2026-07-01 |
