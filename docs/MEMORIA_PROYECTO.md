@@ -112,7 +112,7 @@ Esto garantiza que los Previews no sobrevivan a la navegación y no contaminen l
 
 donde:
 - `m2_equiv = m2_cubiertos + (m2_semi × 0.45) + (m2_desc_propios × 0.25) + (m2_desc_comun_exclusivo × 0.15)`  (coeficientes varían según contexto PB/patio grande)
-- `m2_microzona = valor_ancla_geo.usd_m2` (ancla más cercana por coordenadas, fallback a cluster P33/P50)
+- `m2_microzona = m2_base_venta` (cluster Data-Driven siempre — RO-08. Ancla solo como referencia informativa, no como precio base)
 - `size_discount = calcular_size_discount_venta()` (descuento progresivo para >80m²)
 - `cocheras + baulera`: valor aditivo de activos vía `calcular_valor_activos()`
 - **No hay factores hedónicos** (estado, calidad, antigüedad, NLP). Análisis ML demostró que ubicación explica ~80% del precio (XGBoost). Edad es confounding effect. Estado/calidad son double premiums sobre el anchor.

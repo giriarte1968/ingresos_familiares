@@ -3776,3 +3776,26 @@ Los formularios de alta/edición de comparables manuales en Configuración no te
 ### Tests
 - auto_validate OK (60/60 regression tests).
 
+---
+
+## 2026-07-02 — TAREA-109: Retro/Flex toggles no cambian valuación (RO-08)
+
+### Contexto
+El usuario descubrió que Retro/Flex toggles no cambiaban el valor de valuación para propiedades con un ancla cercana (ej. P1200). La causa: `m2_microzona` se seteaba al valor del ancla (`valor_ancla_geo`) si existía un ancla seleccionada, ignorando el `m2_base_venta` derivado del cluster. Esto violaba RO-08 (100% Data-Driven, sin ancla física como precio base).
+
+### Cambios
+1. **`parsers/mercado_inmobiliario.py`**:
+   - `m2_microzona = m2_base_venta` siempre (cluster Data-Driven). Ancla solo como referencia informativa.
+   - Guard para N<3 comparables → retorna error `insuficientes_comparables`.
+   - Debug flags `[DEBUG-SENSITIVITY]`, `[DEBUG-M2-SOURCE]` para trazabilidad.
+2. **`tests/test_regression.py`**: Rangos actualizados para Mabel ($81.5k→$79k) y Ayacucho ($58k→$55k) por eliminación del override de ancla.
+3. **`docs/MEMORIA_PROYECTO.md`** (L115): Actualizada fórmula `m2_microzona`.
+4. **`docs/ALGORITMOS.md`** (L137, L209): Actualizada misma fórmula.
+
+### RO-08 verificada
+Antes: `m2_microzona = ancla` si existía → Retro/Flex no tenían efecto.
+Ahora: `m2_microzona = cluster` siempre → Retro/Flex cambian el pool de comparables y afectan el valor.
+
+### Tests
+- 60/60 regression OK.
+

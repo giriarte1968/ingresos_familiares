@@ -3223,41 +3223,36 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
             m2_equiv=m2_equiv
         )
 
-    # Si v2 tiene valor, usarlo; si no, fallback a ancla
-    if m2_base_venta_raw > 0:
+    # Si v2 tiene valor y hay suficientes comparables (N >= 3), usarlo
+    if m2_base_venta_raw > 0 and n_v >= 3:
         m2_base_venta = m2_base_venta_raw
         metodo_origen = f"cluster_v2 (P{meta_venta.get('percentil_usado','33')}, {n_v} props)"
+        print(f"[DEBUG-SENSITIVITY] {prop.get('nombre','?')}: CLUSTER OK — n_v={n_v}, m2_base_venta={m2_base_venta}, retro={retro_dias}, flex={flex_dormitorios}")
     else:
-        if meta_venta.get('insuficientes_comparables'):
-            comparables_venta = meta_venta.get('comparables_reales', [])
-            mapa_html = _generar_html_mapa(prop, {
-                'resolution_metadata': {
-                    'radio_usado': 300,
-                },
-                'comparables_venta': comparables_venta,
-                'valor_propiedad_usd': 0,
-            })
-            return {
-                'error': 'insuficientes_comparables',
-                'mensaje': 'No se encontraron suficientes comparables (mínimo 2).',
-                'n_comps': meta_venta.get('n_comparables', 0),
-                'comparables_venta': comparables_venta,
-                'mapa_html': mapa_html,
-                'resolution_metadata': ensamblar_metadata_resolucion(
-                    meta_venta=meta_venta,
-                    n_v=meta_venta.get('n_comparables', 0),
-                    zona_txt='',
-                    m2_base_source='insuficiente'
-                ),
-                'fuente': 'insuficiente',
-            }
-        # Fallback a ancla
-        antiguedad = ANIO_ACTUAL - anio_const
-
-        factor_deprec = max(0.5, 1.0 - (antiguedad * 0.006))
-
-        m2_base_venta = valor_ancla_geo * factor_deprec
-        metodo_origen = "Ancla (fallback)"
+        razon = f"m2_base_venta_raw={m2_base_venta_raw}, n_v={n_v}"
+        print(f"[DEBUG-SENSITIVITY] {prop.get('nombre','?')}: INSUFICIENTE — {razon}, retro={retro_dias}, flex={flex_dormitorios}")
+        comparables_venta = meta_venta.get('comparables_reales', [])
+        mapa_html = _generar_html_mapa(prop, {
+            'resolution_metadata': {
+                'radio_usado': 300,
+            },
+            'comparables_venta': comparables_venta,
+            'valor_propiedad_usd': 0,
+        })
+        return {
+            'error': 'insuficientes_comparables',
+            'mensaje': 'No se encontraron suficientes comparables (mínimo 3). Utilice la Valuación Manual o ajuste Retro/Flex.',
+            'n_comps': n_v,
+            'comparables_venta': comparables_venta,
+            'mapa_html': mapa_html,
+            'resolution_metadata': ensamblar_metadata_resolucion(
+                meta_venta=meta_venta,
+                n_v=n_v,
+                zona_txt='',
+                m2_base_source='insuficiente'
+            ),
+            'fuente': 'insuficiente',
+        }
     
     # Metadata REALES de v2
     # ══════════════════════════════════════════════
@@ -3307,8 +3302,11 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
     m2_equiv_alquiler = m2_cub + (m2_desc * 0.1)
     
     # 3. Fórmula Base (TAREA-073: sin factores hedónicos)
-    # m2_microzona = precio del anchor más cercano (o cluster como fallback)
-    m2_microzona = valor_ancla_geo if ancla_seleccionada is not None else m2_base_venta
+    # m2_microzona = cluster siempre (Data-Driven, RO-08). Ancla solo como referencia.
+    m2_microzona = m2_base_venta
+    
+    print(f"[DEBUG-M2-SOURCE] {prop.get('nombre','?')}: Fuente=Cluster (Data-Driven), m2_base_venta={m2_base_venta}, m2_microzona={m2_microzona}, ancla_seleccionada={ancla_seleccionada} ({valor_ancla_geo}), retro={retro_dias}, flex={flex_dormitorios}")
+
     from parsers.zonas_manager import resolver_macrozona
     _mz_info = resolver_macrozona(prop)
     _ancla_id = str(ancla_seleccionada) if ancla_seleccionada is not None else None
