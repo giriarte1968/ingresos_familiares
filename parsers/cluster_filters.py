@@ -244,28 +244,51 @@ def _calcular_cv(precios: List[float]) -> float:
     return statistics.stdev(precios) / media if media > 0 else 1.0
 
 
-def seleccionar_percentil_por_calidad_pool(n: int, cv: float) -> Tuple[int, str]:
+def seleccionar_percentil_por_calidad_pool(n: int, cv: float,
+                                           cv_ref: Optional[float] = None) -> Tuple[int, str]:
     """
     Selecciona percentil según calidad del pool (CV post-size_adj).
     
-    Tabla:
-    - n>=10 y CV<25%  → P50 (pool grande y homogéneo)
-    - n>=8  y CV<35%  → P45 (pool mediano, homogeneidad aceptable)
-    - n>=5  y CV<45%  → P40 (pool chico pero coherente)
-    - <5 o CV>=45%    → P33 (fallback conservador)
+    Si se proporciona cv_ref, usa el ratio cv/cv_ref para seleccionar
+    el percentil (TAREA-111). Esto normaliza la decisión según la
+    dispersión histórica de cada macrozona.
+    
+    Tabla ratio (cv / cv_ref):
+    - n>=10 y ratio<1.10 → P50
+    - n>=8  y ratio<1.30 → P45
+    - n>=5  y ratio<1.60 → P40
+    - else                → P33
+    
+    Sin cv_ref (backward compat), usa umbrales absolutos:
+    - n>=10 y CV<25% → P50
+    - n>=8  y CV<35% → P45
+    - n>=5  y CV<45% → P40
+    - else            → P33
     
     Args:
         n: Cantidad de comparables en el pool
         cv: Coeficiente de variación (0.0 = homogéneo, 1.0+ = muy disperso)
+        cv_ref: CV de referencia de la macrozona (opcional, TAREA-111)
     
     Returns:
         (percentil_numero, etiqueta)  ej: (45, 'P45')
     """
-    if n >= 10 and cv < 0.25:
-        return 50, 'P50'
-    elif n >= 8 and cv < 0.35:
-        return 45, 'P45'
-    elif n >= 5 and cv < 0.45:
-        return 40, 'P40'
+    if cv_ref is not None and cv_ref > 0:
+        ratio = cv / cv_ref
+        if n >= 10 and ratio < 1.10:
+            return 50, 'P50'
+        elif n >= 8 and ratio < 1.30:
+            return 45, 'P45'
+        elif n >= 5 and ratio < 1.60:
+            return 40, 'P40'
+        else:
+            return 33, 'P33'
     else:
-        return 33, 'P33'
+        if n >= 10 and cv < 0.25:
+            return 50, 'P50'
+        elif n >= 8 and cv < 0.35:
+            return 45, 'P45'
+        elif n >= 5 and cv < 0.45:
+            return 40, 'P40'
+        else:
+            return 33, 'P33'

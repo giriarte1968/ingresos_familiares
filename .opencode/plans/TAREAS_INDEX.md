@@ -89,3 +89,4 @@
 | TAREA-108 | Font-size headers +10% + eliminar botón Limpiar Valuación | _completada_ | 2026-07-02 |
 | TAREA-109 | m2_microzona siempre cluster (RO-08) — Retro/Flex afectan valuación | `55aaf8b` | 2026-07-02 |
 | TAREA-110 | Cache poisoning fix: VCC nunca persiste errores + necesita_recalcular detecta cache_envenenada | _(current)_ | 2026-07-02 |
+| TAREA-111 | Estabilización percentiles vía CV normalizado por macrozona + UI configurable | _completada_ | 2026-07-03 |

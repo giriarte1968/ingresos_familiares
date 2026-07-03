@@ -430,6 +430,27 @@ def test_percentil_calidad_p33():
     assert seleccionar_percentil_por_calidad_pool(4, 0.10) == (33, 'P33')
 
 
+# ─── PERCENTIL POR CV NORMALIZADO (TAREA-111) ───
+
+def test_percentil_ratio_mabel_p50():
+    """
+    Mabel (Centro Premium, cv_ref=0.339):
+    n=24, cv=0.35 → ratio=1.032 → debe ser P50 (no P33 como antes).
+    Esto evita el salto de ~65k→85k al cambiar ventana Natural/Retro.
+    """
+    from parsers.cluster_filters import seleccionar_percentil_por_calidad_pool
+    assert seleccionar_percentil_por_calidad_pool(24, 0.35, cv_ref=0.339) == (50, 'P50')
+
+def test_percentil_ratio_obtener_cv_ref():
+    """Verifica que obtener_cv_ref cargue valores desde zonas_depreciacion.json."""
+    from parsers.mercado_inmobiliario import obtener_cv_ref
+    assert obtener_cv_ref('centro_premium') == 0.339
+    assert obtener_cv_ref('macrocentro') == 0.438
+    assert obtener_cv_ref('sur_default') == 0.416
+    assert obtener_cv_ref('resto_rosario') == 0.416
+    assert obtener_cv_ref('zona_inexistente') is None
+
+
 # ─── RETRO SLIDER — COMPORTAMIENTO INAMOVIBLE ───
 #
 # ⛔ RO-RETRO-01 a RO-RETRO-05: Cualquier cambio debe ser aprobado por el usuario.

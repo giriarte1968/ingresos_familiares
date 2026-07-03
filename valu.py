@@ -1437,6 +1437,19 @@ def mostrar_dashboard():
                 
                 st.markdown("**{}** ({})".format(_mz.get('nombre', _mz['id']), _mz['id']))
                 
+                _cols = st.columns([1, 2])
+                with _cols[0]:
+                    _cv_ref_val = _mz.get('cv_ref', 0.25)
+                    st.number_input(
+                        "CV de Referencia", min_value=0.001, max_value=5.0, step=0.001, format="%.3f",
+                        value=_cv_ref_val,
+                        key="cv_ref_{}".format(_mz['id'])
+                    )
+                with _cols[1]:
+                    st.caption("CV_ref es la dispersión histórica de la macrozona. "
+                               "El percentil se elige según ratio CV_actual / CV_ref. "
+                               "Valores menores → percentil más alto (P50).")
+                
                 _df = pd.DataFrame(_pts)
                 
                 _edited = st.data_editor(
@@ -1504,10 +1517,15 @@ def mostrar_dashboard():
                         _sub_edited = st.session_state.get("sa_{}_{}".format(_mz['id'], _sub_id))
                         if _sub_edited is not None:
                             _sa["subzonas"][_sub_id]["points"] = [{"m2": int(r["m2"]), "factor": round(float(r["factor"]), 4)} for _, r in _sub_edited.iterrows()]
+                    # Guardar cv_ref (TAREA-111)
+                    _cv_ref_saved = st.session_state.get("cv_ref_{}".format(_mz['id']))
+                    if _cv_ref_saved is not None:
+                        _mz['cv_ref'] = round(float(_cv_ref_saved), 4)
                 with open(_ruta_zonas, "w", encoding="utf-8") as _f:
                     json.dump(_zonas_data, _f, ensure_ascii=False, indent=2)
                 import parsers.mercado_inmobiliario as _mi
                 _mi._SIZE_ADJ_CONFIG = None
+                _mi._CV_REF_CONFIG = None
                 st.success("Curvas guardadas. Cache invalidada.")
                 st.rerun()
 

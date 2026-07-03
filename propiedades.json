@@ -50,32 +50,7 @@
       "fecha_compra": "2003-01-01",
       "fecha_publicacion": "2026-05-19",
       "expensas_ars": 90000,
-      "id": 9,
-      "_ultima_valuacion": {
-        "valor_usd": 83851.0,
-        "auto_valor_usd": 83591.0,
-        "manual_valor_usd": 83851.0,
-        "alquiler_ars": 558499.0,
-        "cap_rate": 0.0508,
-        "m2_equivalentes": 42.3035,
-        "comps": 54,
-        "fecha": "01/07/2026 12:41",
-        "cache_version": "v7_retro_cache_fix",
-        "timestamp": "2026-07-01T12:41:00.787412",
-        "fuente": "manual",
-        "fuente_activa": "manual",
-        "retro_dias": 58,
-        "flex_dormitorios": null,
-        "_comp_excluded": [
-          "8e3a18b170aa",
-          "90b00cf8e0fb",
-          "4189a4b05bae",
-          "31caac6b7168",
-          "7c73525e872b",
-          "7ba426455f24"
-        ],
-        "_comp_exclusion_applied": true
-      }
+      "id": 9
     },
     {
       "nombre": "Ayacucho",
@@ -262,18 +237,20 @@
         "valor_usd": 158597.0,
         "auto_valor_usd": 158597.0,
         "manual_valor_usd": 0,
-        "alquiler_ars": 944593.0,
-        "cap_rate": 0.0581,
+        "alquiler_ars": 958612.0,
+        "cap_rate": 0.0584,
         "m2_equivalentes": 88.85,
-        "comps": 23,
-        "fecha": "28/06/2026 21:23",
+        "comps": 25,
+        "fecha": "02/07/2026 10:37",
         "cache_version": "v7_retro_cache_fix",
-        "timestamp": "2026-06-28T21:23:41.793268",
+        "timestamp": "2026-07-02T10:37:53.337661",
         "fuente": "auto",
         "fuente_activa": "auto",
         "manual_params": null,
+        "retro_dias": 0,
+        "flex_dormitorios": null,
         "_comp_excluded": [],
-        "_comp_exclusion_applied": true
+        "_comp_exclusion_applied": false
       }
     },
     {

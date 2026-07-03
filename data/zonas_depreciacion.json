@@ -8,6 +8,7 @@
       "nombre": "Centro Premium",
       "descripcion": "Martin, Pichincha, Puerto Norte, Bv Ono, Parque Espana y zonas premium consolidadas",
       "tasa_depreciacion_anual": 0.004,
+      "cv_ref": 0.339,
       "zonas_match_textual": [
         "centro",
         "martin",
@@ -87,6 +88,7 @@
       "nombre": "Macrocentro",
       "descripcion": "Centro extendido, Lourdes, Abasto, Sexta, Facultades, Echesortu consolidado",
       "tasa_depreciacion_anual": 0.005,
+      "cv_ref": 0.438,
       "zonas_match_textual": [
         "abasto",
         "lourdes",
@@ -134,6 +136,7 @@
       "nombre": "Norte",
       "descripcion": "Alberdi, Arroyito, Fisherton y eje norte",
       "tasa_depreciacion_anual": 0.006,
+      "cv_ref": 0.489,
       "zonas_match_textual": [
         "norte",
         "alberdi",
@@ -177,6 +180,7 @@
       "nombre": "Oeste",
       "descripcion": "Godoy, Luduena, Triangulo, Bella Vista y oeste consolidado",
       "tasa_depreciacion_anual": 0.006,
+      "cv_ref": 0.494,
       "zonas_match_textual": [
         "oeste",
         "godoy",
@@ -226,6 +230,7 @@
       "nombre": "Sur (default)",
       "descripcion": "Sur y sudoeste, sin senal RF suficiente por ahora",
       "tasa_depreciacion_anual": 0.006,
+      "cv_ref": 0.416,
       "zonas_match_textual": [
         "sur",
         "tablada",
@@ -271,6 +276,7 @@
       "id": "resto_rosario",
       "nombre": "Resto de Rosario",
       "descripcion": "Fallback para zonas no clasificadas",
+      "cv_ref": 0.416,
       "zonas_match_textual": [],
       "bbox": null,
       "size_adjustment": {

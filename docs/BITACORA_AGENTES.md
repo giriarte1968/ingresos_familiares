@@ -3814,3 +3814,45 @@ TAREA-109 introdujo `NameError` en 3 prints de debug que crasheaban el motor. VC
 ### Tests
 - 61/61 regression OK.
 
+---
+
+## 2026-07-03 — TAREA-111: Estabilización de percentiles vía CV normalizado
+
+### Contexto
+El sistema usaba umbrales universales de CV (0.25, 0.35, 0.45) para elegir percentil. Cuando Mabel (Centro Premium, CV=0.35) tenía n≥10 con ventana Retro, el CV superaba el umbral de 0.25 y saltaba de P33 (~$65k) a P50 (~$85k). El salto no reflejaba la dispersión real de la zona sino un artefacto del umbral rígido.
+
+### Solución: ratio CV / CV_REF
+Se introdujo el concepto de **CV de referencia por macrozona** (`cv_ref`), basado en la dispersión histórica medida de cada zona. El percentil se selecciona según el ratio `cv_actual / cv_ref`:
+
+| Condición | Percentil |
+|-----------|-----------|
+| n≥10 y ratio < 1.10 | P50 |
+| n≥8 y ratio < 1.30 | P45 |
+| n≥5 y ratio < 1.60 | P40 |
+| else | P33 |
+
+### CV_REF por macrozona (medidos empíricamente)
+| Macrozona | CV_REF |
+|-----------|--------|
+| Centro Premium | 0.339 |
+| Macrocentro | 0.438 |
+| Norte | 0.489 |
+| Oeste | 0.494 |
+| Sur (default) | 0.416 |
+| Resto de Rosario | 0.416 |
+
+### Cambios
+1. **`data/zonas_depreciacion.json`**: Nuevo campo `cv_ref` en cada macrozona.
+2. **`parsers/cluster_filters.py`**: `seleccionar_percentil_por_calidad_pool()` acepta `cv_ref` opcional. Si se provee, usa ratio; si no, mantiene umbrales legacy.
+3. **`parsers/mercado_inmobiliario.py`**: Nueva función `obtener_cv_ref(macrozona_id)` con cache (`_CV_REF_CONFIG`). Actualizados los dos callers del motor para pasar `cv_ref`.
+4. **`valu.py`**: UI editable para `cv_ref` en el expander de "Ajuste por Tamaño", con persistencia y cache invalidada.
+5. **`tests/test_cluster_filters.py`**: 6 nuevos tests ratio-based (incluyendo Mabel → P50).
+6. **`tests/test_regression.py`**: 2 nuevos tests (`test_percentil_ratio_mabel_p50`, `test_percentil_ratio_obtener_cv_ref`).
+
+### Regla de oro verificada
+- **RO-08**: sin cambios (cluster sigue siendo la fuente de m2_base).
+- Los 63 tests regression pasan (2 nuevos + 61 legacy).
+- auto_validate OK.
+
+### Next
+- Auto-calibración de CV_REF desde caché de valuaciones (opcional, no crítica).

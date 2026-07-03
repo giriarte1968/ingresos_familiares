@@ -5,6 +5,7 @@ import math
 import unicodedata
 import logging
 from datetime import datetime
+from typing import Optional
 from parsers.location_engine import cargar_anclas, calcular_precio_m2, estimar_confianza, get_ancla_mas_cercana
 from parsers import cluster_filters
 from parsers.cluster_filters import (
@@ -143,7 +144,9 @@ def calcular_vm2_por_seleccion(comparables, resultado_original):
         }
 
     cv = _calcular_cv(precios)
-    percentil, percentil_label = seleccionar_percentil_por_calidad_pool(n_sel, cv)
+    _mz_id = (resultado_original.get('depreciacion_zonificada') or {}).get('macrozona_id')
+    _cv_ref = obtener_cv_ref(_mz_id)
+    percentil, percentil_label = seleccionar_percentil_por_calidad_pool(n_sel, cv, cv_ref=_cv_ref)
 
     m2_eq = resultado_original.get('m2_equivalentes', 0)
     valor_activos = resultado_original.get('valor_activos', {}).get('total', 0)
@@ -1541,8 +1544,10 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 _cv_pool = _calcular_cv(_size_adj_prices) if len(_size_adj_prices) >= 3 else 1.0
             else:
                 _cv_pool = _calcular_cv(precios) if len(precios) >= 3 else 1.0
-            percentil_venta, percentil_usado = seleccionar_percentil_por_calidad_pool(len(precios), _cv_pool)
-            logger.info(f"[CV_POOL] n={len(precios)}, cv={_cv_pool:.4f}, percentil={percentil_venta} ({percentil_usado})")
+            _cv_ref = obtener_cv_ref(macrozona_id)
+            percentil_venta, percentil_usado = seleccionar_percentil_por_calidad_pool(len(precios), _cv_pool, cv_ref=_cv_ref)
+            print(f"[DEBUG-CV-POOL] zona={zona}, n={len(precios)}, cv={_cv_pool:.4f}, cv_ref={_cv_ref}, ratio={_cv_pool/_cv_ref:.4f}" if _cv_ref else f"[DEBUG-CV-POOL] zona={zona}, n={len(precios)}, cv={_cv_pool:.4f}, cv_ref=LEGACY")
+            logger.info(f"[CV_POOL] n={len(precios)}, cv={_cv_pool:.4f}, cv_ref={_cv_ref}, percentil={percentil_venta} ({percentil_usado})")
         
         # Llamar al core unificado que maneja same/cross, blend alpha y barrera
         vm2_principal, n_same_core, n_cross_core, pct_same_core, pct_cross_core = _computar_vm2_core(
@@ -1990,6 +1995,37 @@ def calcular_size_adjustment(m2_equiv, macrozona_id=None, ancla_id=None):
     
     # Default curve for this macrozona
     return _interpolar_piecewise(m2_equiv, config.get("points", []))
+
+# ─── CV_REF por macrozona (TAREA-111) ───
+_CV_REF_CONFIG = None
+
+def _cargar_cv_ref_config():
+    """Carga el mapa macrozona_id → cv_ref desde zonas_depreciacion.json"""
+    ruta = os.path.join(os.path.dirname(__file__), "..", "data", "zonas_depreciacion.json")
+    ruta = os.path.normpath(ruta)
+    if not os.path.exists(ruta):
+        return {}
+    import json
+    with open(ruta) as f:
+        cfg = json.load(f)
+    result = {}
+    for mz in cfg.get("macrozonas", []):
+        cv = mz.get("cv_ref")
+        if cv is not None and cv > 0:
+            result[mz["id"]] = cv
+    return result
+
+def obtener_cv_ref(macrozona_id: Optional[str] = None) -> Optional[float]:
+    """
+    Retorna el cv_ref para una macrozona, o None si no está configurado.
+    Hace cache del archivo como _SIZE_ADJ_CONFIG.
+    """
+    global _CV_REF_CONFIG
+    if _CV_REF_CONFIG is None:
+        _CV_REF_CONFIG = _cargar_cv_ref_config()
+    if macrozona_id and macrozona_id in _CV_REF_CONFIG:
+        return _CV_REF_CONFIG[macrozona_id]
+    return None
 
 def calcular_size_discount_alquiler(m2_equiv):
     """

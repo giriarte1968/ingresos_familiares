@@ -282,6 +282,38 @@ def test_calidad_cv_fronteras():
     assert seleccionar_percentil_por_calidad_pool(5, 0.4499) == (40, 'P40')
 
 
+# ─── TESTS RATIO-BASED (TAREA-111) ───
+
+def test_calidad_ratio_p50():
+    """n>=10, ratio<1.10 → P50."""
+    assert seleccionar_percentil_por_calidad_pool(10, 0.339, cv_ref=0.339) == (50, 'P50')
+    assert seleccionar_percentil_por_calidad_pool(15, 0.37, cv_ref=0.339) == (50, 'P50')
+
+def test_calidad_ratio_p45():
+    """n>=8, ratio<1.30 → P45."""
+    assert seleccionar_percentil_por_calidad_pool(8, 0.40, cv_ref=0.339) == (45, 'P45')
+    assert seleccionar_percentil_por_calidad_pool(9, 0.44, cv_ref=0.339) == (45, 'P45')
+
+def test_calidad_ratio_p40():
+    """n>=5, ratio<1.60 → P40."""
+    assert seleccionar_percentil_por_calidad_pool(5, 0.50, cv_ref=0.339) == (40, 'P40')
+    assert seleccionar_percentil_por_calidad_pool(7, 0.54, cv_ref=0.339) == (40, 'P40')
+
+def test_calidad_ratio_p33():
+    """ratio>=1.60 o n<5 → P33."""
+    assert seleccionar_percentil_por_calidad_pool(3, 0.30, cv_ref=0.339) == (33, 'P33')
+    assert seleccionar_percentil_por_calidad_pool(5, 0.60, cv_ref=0.339) == (33, 'P33')
+
+def test_calidad_ratio_mabel():
+    """Mabel (Centro Premium): n=24, cv=0.35, cv_ref=0.339 → ratio=1.032 → P50."""
+    assert seleccionar_percentil_por_calidad_pool(24, 0.35, cv_ref=0.339) == (50, 'P50')
+
+def test_calidad_ratio_sin_referencia_mantiene_legacy():
+    """Sin cv_ref se usa umbrales absolutos legacy."""
+    assert seleccionar_percentil_por_calidad_pool(10, 0.20) == (50, 'P50')
+    assert seleccionar_percentil_por_calidad_pool(10, 0.26) == (45, 'P45')
+
+
 # ─── TESTS _calcular_cv ───
 
 def test_calcular_cv():

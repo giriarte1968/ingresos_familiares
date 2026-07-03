@@ -339,13 +339,41 @@ Reemplazan todos los valores de calibración previos.
 
 **Nota**: El incremento en Vera se debe a la eliminación del factor_piso (PB con patio ya no recibe descuento). Es intencional según TAREA-071 — los factores de ruido (vista, piso, balcón, etc.) fueron eliminados del modelo.
 
-**Regla de percentil dinámico:**
-- Si hay filtro de edad (age_filter_applied):
-  - n_age ≥ 20 → P50
-  - 10 ≤ n_age < 20 → P45
-  - 8 ≤ n_age < 10 → P40
-  - 5 ≤ n_age < 8 → P33_age_blend (blend entre pool etario y pool completo)
-- Si NO hay filtro de edad o n_age < 5 → P33 (conservador histórico)
+**Regla de percentil dinámico (CV normalizado, TAREA-111):**
+
+El motor selecciona el percentil según la **dispersión del pool** medida por el coeficiente de variación (CV), normalizado por el CV de referencia de la macrozona (`cv_ref`):
+
+```
+ratio = cv_actual / cv_ref
+```
+
+| n   | ratio cv/cv_ref | Percentil | Etiqueta |
+|-----|----------------|-----------|----------|
+| ≥10 | < 1.10         | P50       | P50      |
+| ≥8  | < 1.30         | P45       | P45      |
+| ≥5  | < 1.60         | P40       | P40      |
+| any | ≥ 1.60 o n<5   | P33       | P33      |
+
+**CV_REF** se almacena en `data/zonas_depreciacion.json` por macrozona y es editable desde la UI (expander "Ajuste por Tamaño"). Los valores iniciales se midieron empíricamente del caché de valuaciones:
+
+| Macrozona | CV_REF |
+|-----------|--------|
+| Centro Premium | 0.339 |
+| Macrocentro | 0.438 |
+| Norte | 0.489 |
+| Oeste | 0.494 |
+| Sur (default) | 0.416 |
+| Resto de Rosario | 0.416 |
+
+**Ejemplo Mabel**: Centro Premium, n=24, cv=0.35, cv_ref=0.339 → ratio=1.032 < 1.10 → **P50** (estable, no salta entre ventanas Natural/Retro).
+
+**Fallback legacy**: Si no se provee `cv_ref`, se usan umbrales absolutos históricos:
+- n≥10 y CV<25% → P50
+- n≥8 y CV<35% → P45
+- n≥5 y CV<45% → P40
+- else → P33
+
+Implementación en `parsers/cluster_filters.py` → `seleccionar_percentil_por_calidad_pool()`.
 
 ### FASE 3: Age Blend para 5-7 Comparables
 
