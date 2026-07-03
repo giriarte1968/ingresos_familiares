@@ -591,17 +591,8 @@ def mostrar_dashboard():
                 cache_preview = resultado_cacheado.get('_cache', {}).get('preview', True)
                 cache_valido = resultado_cacheado.get('valor_propiedad_usd') and not resultado_cacheado.get('error')
                 print(f"[DEBUG-FLOW] {p_obj['nombre']}: Pendiente - cache_exists={bool(resultado_cacheado)}, cache_preview={cache_preview}, cache_error={resultado_cacheado.get('error')}, cache_valido={cache_valido}")
-                # Sin cache en disco: auto-run solo si es post-Limpiar (TAREA-111)
-                if not resultado_cacheado and not cache_valido:
-                    auto_run = st.session_state.get(f'pendiente_comparables_{p_obj["nombre"]}', False)
-                    if auto_run:
-                        print(f"[DEBUG-FLOW] {p_obj['nombre']}: SIN CACHE (post-Limpiar) — forzando engine run (preview)")
-                        forzar = True
-                        preview_mode = True
-                        st.session_state[f'preview_mode_{p_obj["nombre"]}'] = True
-                        st.session_state.pop(f'pendiente_comparables_{p_obj["nombre"]}', None)
-                    else:
-                        print(f"[DEBUG-FLOW] {p_obj['nombre']}: SIN CACHE (primera entrada) — NO auto-run, esperando accion usuario")
+                # NOTA: Sin cache + Pendiente = esperar accion usuario (NO auto-run).
+                # El unico auto-run permitido es recuperacion de cache envenenado abajo.
                 if resultado_cacheado and cache_preview:
                     # Cache de preview no comprometido: limpiar al entrar solo si no hay recalculo activo
                     # Conservar si el preview tiene datos validos (evita perder preview en reruns espurios)

@@ -3854,5 +3854,23 @@ Se introdujo el concepto de **CV de referencia por macrozona** (`cv_ref`), basad
 - Los 63 tests regression pasan (2 nuevos + 61 legacy).
 - auto_validate OK.
 
+---
+
+## 2026-07-03 — TAREA-112: Restaurar Pendiente puro (sin auto-run) + Limpiar funcional
+
+### Contexto
+El hotfix de TAREA-111 introdujo un auto-run en el bloque Pendiente cuando no hay cache en disco. Esto rompió:
+1. **Primera entrada:** El motor corría automáticamente y creaba resultados sin clic del usuario.
+2. **Botón Limpiar:** Borraba cache y UV, pero el auto-run recreaba la valuación instantáneamente → parecía que Limpiar no funcionaba.
+
+### Cambios
+- **`valu.py`** (líneas 594-604 eliminadas): Se eliminó el bloque `if not resultado_cacheado and not cache_valido:` que implementaba auto-run. El único auto-run permitido es la recuperación de cache envenenado (error técnico, TAREA-110).
+- El flujo Pendiente vuelve a ser: estado Pendiente → esperar acción del usuario (clic en "📊 Comparables", Retro o Flex).
+- Se agregaron notas y debug flags para claridad.
+
+### Tests
+- 63/63 regression OK.
+- auto_validate OK.
+
 ### Next
 - Auto-calibración de CV_REF desde caché de valuaciones (opcional, no crítica).
