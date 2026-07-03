@@ -602,6 +602,9 @@ def mostrar_dashboard():
                         st.session_state.pop(f'manual_preview_{p_obj["nombre"]}', None)
                         del cache_existente[p_obj['nombre']]
                         guardar_cache_valuaciones(cache_existente)
+                        # Forzar engine run para reemplazar preview envenenado (TAREA-111)
+                        forzar = True
+                        print(f"[DEBUG-FLOW] {p_obj['nombre']}: PREVIEW ENVENENADO LIMPIADO — forzando engine run")
                     else:
                         print(f"[DEBUG-FLOW] {p_obj['nombre']}: CONSERVANDO cache preview (forzar={forzar}, valido={cache_valido})")
                         preview_mode = True

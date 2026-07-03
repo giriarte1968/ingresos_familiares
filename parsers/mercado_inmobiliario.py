@@ -1546,7 +1546,10 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 _cv_pool = _calcular_cv(precios) if len(precios) >= 3 else 1.0
             _cv_ref = obtener_cv_ref(macrozona_id)
             percentil_venta, percentil_usado = seleccionar_percentil_por_calidad_pool(len(precios), _cv_pool, cv_ref=_cv_ref)
-            print(f"[DEBUG-CV-POOL] zona={zona}, n={len(precios)}, cv={_cv_pool:.4f}, cv_ref={_cv_ref}, ratio={_cv_pool/_cv_ref:.4f}" if _cv_ref else f"[DEBUG-CV-POOL] zona={zona}, n={len(precios)}, cv={_cv_pool:.4f}, cv_ref=LEGACY")
+            try:
+                print(f"[DEBUG-CV-POOL] zona={zona}, n={len(precios)}, cv={_cv_pool:.4f}, cv_ref={_cv_ref}, ratio={_cv_pool/_cv_ref:.4f}" if _cv_ref else f"[DEBUG-CV-POOL] zona={zona}, n={len(precios)}, cv={_cv_pool:.4f}, cv_ref=LEGACY")
+            except Exception:
+                pass
             logger.info(f"[CV_POOL] n={len(precios)}, cv={_cv_pool:.4f}, cv_ref={_cv_ref}, percentil={percentil_venta} ({percentil_usado})")
         
         # Llamar al core unificado que maneja same/cross, blend alpha y barrera
