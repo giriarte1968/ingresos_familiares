@@ -945,5 +945,33 @@ Si alguna difiere, se fuerza recálculo completo.
 - `tests/test_regression.py` — Tests `test_retro_dias_*` y `test_retro_bypass_*` (INAMOVIBLES)
 
 
+---
+
+## 19. Flujo de Estado Pendiente y Auto-Preview (T_S-13 / TAREA-112)
+
+Gestiona la experiencia cuando una propiedad no tiene valuación oficial (Estado Pendiente).
+
+### Comportamiento por Escenario
+
+| Escenario | Acción del Sistema | Header | Botón |
+|---|---|---|---|
+| **Primera Entrada** (sin UV, sin cache) | **Auto-run Preview** (`preview=True`) | **VACÍO** (preview) | `🔄 Limpiar` |
+| **Post-Limpiar** (sin UV, sin cache) | **NO auto-run** (Espera acción) | **VACIO** (sin datos) | `📊 Comparables` |
+| **Cache Envenenada** (error en cache) | **Auto-run Recovery** (`preview=True`) | **VACÍO** (preview) | `🔄 Limpiar` |
+| **Acción Usuario** (clic Comparables/Retro) | **Ejecución Motor** (`preview=True`) | **VACÍO** (preview) | `🔄 Limpiar` |
+| **Aplicar Selección** | **Commit UV** (`preview=False`) | **VISIBLE** (Oficial) | `🔄 Limpiar` |
+
+### Visibilidad del Header (`render_header`)
+La valuación en el header se oculta si:
+1. `n_comps < 3`
+2. **O** `preview_mode=True` y `ya_valuado=False` (no existe UV oficial)
+
+### Disparo del Motor (`valu.py`)
+El motor se dispara automáticamente (`forzar=True`) solo si:
+- **SIN `pendiente_comparables_`** y no hay cache (primera entrada).
+- **O** cache envenenada (limpieza de error técnico).
+
+Post-Limpiar (`pendiente_comparables_=True`) → no auto-run → early return Pendiente.
+
 **Generado por**: OpenCode
-**Fecha**: 2026-06-27
+**Fecha**: 2026-07-03
