@@ -198,9 +198,13 @@ def render_header(prop, res):
                      if auto_result else 0)
     m2_line_auto = f"m²/USD en {zona}: ${m2_micro_auto:,.0f} ({n_comps_auto} comp.)" if m2_micro_auto > 0 else "—"
 
-    # ── Insuficientes comparables (< 3): ocultar valuación en header ──
-    if n_comps < 3:
-        print(f"[DEBUG-INSUF-COMPS] {nombre}: n_comps={n_comps}, ocultando valuación en header")
+    # ── Ocultar valuación en header si:
+    # 1. Insuficientes comparables (< 3)
+    # 2. Es un preview y NO existe una valuación oficial (ya_valuado=False)
+    ya_valuado = bool(prop.get('_ultima_valuacion', {}).get('valor_usd'))
+    preview_mode = res.get('_cache', {}).get('preview', False)
+    if n_comps < 3 or (preview_mode and not ya_valuado):
+        print(f"[DEBUG-INSUF-COMPS] {nombre}: n_comps={n_comps}, preview={preview_mode}, ya_valuado={ya_valuado}, ocultando valuación en header")
         valor_usd = 0
         m2_microzona = 0
         v_auto = 0

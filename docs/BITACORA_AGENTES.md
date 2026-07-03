@@ -3856,17 +3856,17 @@ Se introdujo el concepto de **CV de referencia por macrozona** (`cv_ref`), basad
 
 ---
 
-## 2026-07-03 — TAREA-112: Restaurar Pendiente puro (sin auto-run) + Limpiar funcional
+## 2026-07-03 — TAREA-112: Restaurar Pendiente puro + Flujo Golden Path de Primera Entrada
 
 ### Contexto
-El hotfix de TAREA-111 introdujo un auto-run en el bloque Pendiente cuando no hay cache en disco. Esto rompió:
-1. **Primera entrada:** El motor corría automáticamente y creaba resultados sin clic del usuario.
-2. **Botón Limpiar:** Borraba cache y UV, pero el auto-run recreaba la valuación instantáneamente → parecía que Limpiar no funcionaba.
+Se detectó que el auto-run indiscriminado rompía el flujo de "Limpiar" (recreaba UV al instante) y violaba el diseño de "estatuto Pendiente".
 
 ### Cambios
-- **`valu.py`** (líneas 594-604 eliminadas): Se eliminó el bloque `if not resultado_cacheado and not cache_valido:` que implementaba auto-run. El único auto-run permitido es la recuperación de cache envenenado (error técnico, TAREA-110).
-- El flujo Pendiente vuelve a ser: estado Pendiente → esperar acción del usuario (clic en "📊 Comparables", Retro o Flex).
-- Se agregaron notas y debug flags para claridad.
+- **`valu.py`**: Implementado "Auto-run Inteligente".
+  - **Primera Entrada (sin UV, sin cache, sin flag Limpiar):** Corre engine en `preview=True` $\rightarrow$ muestra comparables naturales inmediatamente.
+  - **Post-Limpiar (con flag `pendiente_comparables_`):** NO auto-run $\rightarrow$ muestra mensaje "Pendiente de valuación" + mapa básico $\rightarrow$ espera clic en "📊 Comparables".
+  - **Cache Envenenada:** Mantiene la recuperación automática con `preview=True`.
+- **`valu_detail_sections.py`**: Actualizado `render_header` para ocultar la valuación si `preview_mode=True` y no existe una UV oficial (`ya_valuado=False`). Esto evita que el auto-preview contamine el header antes de la aplicación manual.
 
 ### Tests
 - 63/63 regression OK.
