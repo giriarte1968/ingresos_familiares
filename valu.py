@@ -591,6 +591,10 @@ def mostrar_dashboard():
                 cache_preview = resultado_cacheado.get('_cache', {}).get('preview', True)
                 cache_valido = resultado_cacheado.get('valor_propiedad_usd') and not resultado_cacheado.get('error')
                 print(f"[DEBUG-FLOW] {p_obj['nombre']}: Pendiente - cache_exists={bool(resultado_cacheado)}, cache_preview={cache_preview}, cache_error={resultado_cacheado.get('error')}, cache_valido={cache_valido}")
+                # Sin cache en disco → forzar engine run (TAREA-111 hotfix)
+                if not resultado_cacheado and not cache_valido:
+                    print(f"[DEBUG-FLOW] {p_obj['nombre']}: SIN CACHE — forzando engine run")
+                    forzar = True
                 if resultado_cacheado and cache_preview:
                     # Cache de preview no comprometido: limpiar al entrar solo si no hay recalculo activo
                     # Conservar si el preview tiene datos validos (evita perder preview en reruns espurios)
