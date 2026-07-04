@@ -2702,3 +2702,106 @@ def test_cache_poisoning_detection():
         cache_final = cargar_cache_valuaciones()
         cache_final.pop('ayacucho', None)
         guardar_cache_valuaciones(cache_final)
+
+
+def test_flex_manual_save_preserva_dormitorios():
+    """T_S-14: Guardado manual de valuacion NO debe pisar flex_dormitorios con None.
+
+    Regresion TAREA-114: valu_detail_sections.py usaba
+    st.session_state.get(f'flex_dormitorios_{nombre}', None) — key
+    nunca seteada → siempre None → Flex se desactivaba en re-entry.
+    Se corrigio usando flex_active_{nombre}.
+
+    Verifica que si flex_dormitorios esta presente en UV antes del
+    guardado manual, sobrevive al ciclo guardar→recargar.
+    """
+    from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones, persistir_valuacion
+    from parsers.motor_vpp_core import valuar_con_cache
+    import json, copy
+
+    nombre_test = '__test_flex_manual_save__'
+    cache_bak = cargar_cache_valuaciones()
+    if nombre_test in cache_bak:
+        del cache_bak[nombre_test]
+        guardar_cache_valuaciones(cache_bak)
+
+    with open('propiedades.json', 'r', encoding='utf-8') as f:
+        props_bak = copy.deepcopy(json.load(f))
+
+    try:
+        props_temp = copy.deepcopy(props_bak)
+        props_temp['propiedades'].append({
+            'nombre': nombre_test,
+            'm2_cubiertos': 50,
+            'lat': -32.95,
+            'lon': -60.63,
+            'zona': 'Martin',
+            'tipo_inmueble': 'departamento',
+        })
+        with open('propiedades.json', 'w', encoding='utf-8') as f:
+            json.dump(props_temp, f, ensure_ascii=False, indent=2)
+
+        prop = {
+            'nombre': nombre_test,
+            'm2_cubiertos': 50,
+            'lat': -32.95,
+            'lon': -60.63,
+            'zona': 'Martin',
+            'tipo_inmueble': 'departamento',
+        }
+
+        # 1. Auto valuation oficial (commit=True)
+        res_auto = valuar_con_cache(prop, forzar_recalculo=True, retro_dias=36, preview=True)
+        assert res_auto.get('valor_propiedad_usd', 0) > 0
+        res_auto['_comp_excluded'] = []
+        res_auto['_comp_exclusion_applied'] = False
+        persistir_valuacion(nombre_test, prop, res_auto, cargar_cache_valuaciones(), commit=True)
+
+        # 2. Simular guardado manual con flex activo (como hace valu_detail_sections.py)
+        with open('propiedades.json', 'r', encoding='utf-8') as f:
+            props_mod = json.load(f)
+        for p in props_mod['propiedades']:
+            if p.get('nombre') == nombre_test:
+                uv = p.setdefault('_ultima_valuacion', {})
+                # UI flow: flex_active=True → flex_dormitorios=[1,2,3,4,5]
+                uv['flex_dormitorios'] = [1, 2, 3, 4, 5]
+                uv['retro_dias'] = 60
+                break
+        with open('propiedades.json', 'w', encoding='utf-8') as f:
+            json.dump(props_mod, f, ensure_ascii=False, indent=2)
+
+        # 3. Recargar y verificar
+        with open('propiedades.json', 'r', encoding='utf-8') as f:
+            props_check = json.load(f)
+        uv_check = next(p['_ultima_valuacion'] for p in props_check['propiedades'] if p['nombre'] == nombre_test)
+
+        assert uv_check['flex_dormitorios'] == [1, 2, 3, 4, 5], \
+            f"flex_dormitorios debe ser [1,2,3,4,5] tras guardado manual con Flex activo, obtuvo {uv_check.get('flex_dormitorios')}"
+        assert uv_check['retro_dias'] == 60, \
+            f"retro_dias debe ser 60, obtuvo {uv_check.get('retro_dias')}"
+        print(f"[TEST-FLEX-MANUAL-SAVE] OK — flex_dormitorios={uv_check['flex_dormitorios']}, retro={uv_check['retro_dias']}")
+
+        # 4. Re-simular guardado manual con flex INACTIVO
+        for p in props_mod['propiedades']:
+            if p.get('nombre') == nombre_test:
+                uv = p.setdefault('_ultima_valuacion', {})
+                uv['flex_dormitorios'] = None
+                uv['retro_dias'] = 36
+                break
+        with open('propiedades.json', 'w', encoding='utf-8') as f:
+            json.dump(props_mod, f, ensure_ascii=False, indent=2)
+
+        with open('propiedades.json', 'r', encoding='utf-8') as f:
+            props_check2 = json.load(f)
+        uv_check2 = next(p['_ultima_valuacion'] for p in props_check2['propiedades'] if p['nombre'] == nombre_test)
+
+        assert uv_check2['flex_dormitorios'] is None, \
+            f"flex_dormitorios debe ser None tras guardado manual sin Flex, obtuvo {uv_check2.get('flex_dormitorios')}"
+        print(f"[TEST-FLEX-MANUAL-SAVE] OK — flex_dormitorios=None (flex inactivo)")
+
+    finally:
+        with open('propiedades.json', 'w', encoding='utf-8') as f:
+            json.dump(props_bak, f, ensure_ascii=False, indent=2)
+        cache_clean = cargar_cache_valuaciones()
+        cache_clean.pop(nombre_test, None)
+        guardar_cache_valuaciones(cache_clean)

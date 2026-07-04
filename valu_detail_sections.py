@@ -1537,7 +1537,7 @@ def render_valuacion_manual(prop, res):
                     uv['retro_dias'] = st.session_state.get(f'retro_meses_{nombre}', 0)
                     flex_active = st.session_state.get(f'flex_active_{nombre}', False)
                     uv['flex_dormitorios'] = [1, 2, 3, 4, 5] if flex_active else None
-                    print(f"[DEBUG-MANUAL-SAVE] {nombre}: retro_dias={uv['retro_dias']}, flex_dormitorios={uv['flex_dormitorios']} preservados en UV")
+                    print(f"[DEBUG-MANUAL-SAVE] {nombre}: flex_active={flex_active}, retro_dias={uv['retro_dias']}, flex_dormitorios={uv['flex_dormitorios']} preservados en UV")
                     if old_comp_exclusion_applied:
                         uv['_comp_excluded'] = old_comp_excluded
                         uv['_comp_exclusion_applied'] = True
