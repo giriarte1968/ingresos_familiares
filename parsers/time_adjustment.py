@@ -75,9 +75,31 @@ def es_nuevo(prop):
     return any(k in txt for k in ['a estrenar', 'estrenar', 'pozo', 'obra nueva'])
 
 
-def calcular_ct(meses, es_nuevo_flag=False):
+def get_ct_rate(macrozona_id: str = None) -> float:
+    """Retorna la tasa anual de CT para una macrozona desde zonas_depreciacion.json."""
+    try:
+        import json, os
+        path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'zonas_depreciacion.json')
+        with open(path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        for mz in data.get('macrozonas', []):
+            if mz['id'] == macrozona_id:
+                return mz.get('ct_annual_rate', -0.02)
+    except Exception:
+        pass
+    return -0.02
+
+def calcular_ct(meses, es_nuevo_flag=False, macrozona_id=None):
     if meses is None:
         return 1.0
+    
+    # Prioridad 1: Usar tasa anual de macrozona (Sustituye tabla universal)
+    if macrozona_id:
+        tasa = get_ct_rate(macrozona_id)
+        # Formula: CT = (1 + tasa)^(meses/12)
+        return (1.0 + tasa) ** (meses / 12.0)
+    
+    # Fallback: Tabla universal original
     factores = get_ct_factors()
     factor = factores.get('nuevo', 0.95) if es_nuevo_flag else factores.get('usado', 1.12)
     return ct_segmento(meses, factor)

@@ -1321,7 +1321,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         
         props, radio_usado, zona_resol = mejor_resultado
         
-# === AJUSTE Ct PARA COMPARABLES > VENTANA NATURAL ===
+        # === AJUSTE Ct PARA COMPARABLES > VENTANA NATURAL ===
         from parsers.time_adjustment import get_natural_window_dias, calcular_ct, meses_desde, es_nuevo
         natural_dias = get_natural_window_dias()
         for p in props:
@@ -1331,9 +1331,10 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             try:
                 m = meses_desde(dc, fecha_ref)
                 if m is not None and m > natural_dias / 30:
-                    p['_time_adjustment'] = calcular_ct(m, es_nuevo(p))
+                    p['_time_adjustment'] = calcular_ct(m, es_nuevo(p), macrozona_id=zona_resol)
             except Exception:
                 pass
+
         
 # === APLICAR BARRERAS GEOGRÁFICAS (Rosario) ===
 # Blending same-side / cross-soft para evitar contaminación

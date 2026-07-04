@@ -81,7 +81,8 @@
             ]
           }
         }
-      }
+      },
+      "ct_annual_rate": -0.0411
     },
     {
       "id": "macrocentro",
@@ -129,7 +130,8 @@
             "factor": 0.87
           }
         ]
-      }
+      },
+      "ct_annual_rate": -0.0006
     },
     {
       "id": "norte",
@@ -173,7 +175,8 @@
             "factor": 1.25
           }
         ]
-      }
+      },
+      "ct_annual_rate": -0.0665
     },
     {
       "id": "oeste",
@@ -223,7 +226,8 @@
             "factor": 0.87
           }
         ]
-      }
+      },
+      "ct_annual_rate": -0.1949
     },
     {
       "id": "sur_default",
@@ -270,7 +274,8 @@
             "factor": 0.9
           }
         ]
-      }
+      },
+      "ct_annual_rate": 0.0305
     },
     {
       "id": "resto_rosario",
@@ -303,7 +308,8 @@
             "factor": 0.9
           }
         ]
-      }
+      },
+      "ct_annual_rate": -0.02
     }
   ]
 }
