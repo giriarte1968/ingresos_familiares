@@ -564,6 +564,13 @@ def mostrar_dashboard():
                         retro_meses = st.session_state.get(f'retro_meses_{prop_name}', 36) if retro_active else 0
                         retro_dias = retro_meses if retro_active else 0
                         flex_active = st.session_state.get(f'flex_active_{prop_name}', False)
+                        if not flex_active:
+                            uv_m = p_obj.get('_ultima_valuacion', {}) or {}
+                            uv_flex = uv_m.get('flex_dormitorios')
+                            if uv_flex is not None:
+                                flex_active = True
+                                st.session_state[f'flex_active_{prop_name}'] = True
+                                print(f"[DEBUG-FLEX-FALLBACK] {prop_name}: restaurado desde UV — flex_dormitorios={uv_flex}")
                         flex_dormitorios = [1, 2, 3, 4, 5] if flex_active else None
                     resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios, preview=preview_mode, manual_data=st.session_state.get(f'manual_preview_{prop_name}', None))
                     _sl.mark("after_valuar_con_cache")
