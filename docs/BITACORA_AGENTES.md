@@ -3901,3 +3901,23 @@ Reemplazar la tabla universal CT (`config/anclas_config.json`) por **Tasa Anual 
 
 ### Tests
 - `pytest tests/test_regression.py::test_ct_macrozona_direccionalidad -v`
+
+---
+
+## 2026-07-04 — TAREA-114-b: Fix flex_active loss on Editar→Cancelar (else-branch fallback)
+
+### Contexto
+Tras guardar valuación manual con Flex activo, si el usuario hacía clic en **Editar → Cancelar**, `flex_active_{nombre}` desaparecía del session state. En el siguiente rerun, el `else` branch (L705-712) leía `st.session_state.get(f'flex_active_{prop_name}', False)` → False → enviaba `flex_dormitorios=None` al motor → engine usaba filtro estricto de dormitorios → 2 comparables → `insuficientes_comparables` → UI ocultaba valuación Automática.
+
+### Diagnóstico
+- Debug log `debug_20260704_190111.log` mostraba transición limpia: L196 flex_active=True → L198 flex_active=False sin mensajes intermedios.
+- No se identificó el punto exacto de pop, pero la solución es resiliente: sincronizar desde UV en el else branch.
+
+### Cambios
+1. **`valu.py`** (L710-718): Agregado fallback `if not flex_active: uv_flex = uv.get('flex_dormitorios')` — restaura `flex_active=True` y setea session state si UV tiene `flex_dormitorios`. Debug flag `[DEBUG-FLEX-FALLBACK]`.
+2. **`main_valu.py`** (L566-574): Misma lógica de fallback usando `p_obj.get('_ultima_valuacion', {})`.
+
+### Tests
+- 65/65 regression OK.
+- `auto_validate.py` OK.
+- Commit: `6e8e016`, pushed a `estabilizar`.
