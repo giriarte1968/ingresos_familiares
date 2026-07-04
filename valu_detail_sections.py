@@ -1535,7 +1535,8 @@ def render_valuacion_manual(prop, res):
                     uv['manual_params'] = manual_params
                     # Preservar retro/flex para que re-entrada sea consistente
                     uv['retro_dias'] = st.session_state.get(f'retro_meses_{nombre}', 0)
-                    uv['flex_dormitorios'] = st.session_state.get(f'flex_dormitorios_{nombre}', None)
+                    flex_active = st.session_state.get(f'flex_active_{nombre}', False)
+                    uv['flex_dormitorios'] = [1, 2, 3, 4, 5] if flex_active else None
                     print(f"[DEBUG-MANUAL-SAVE] {nombre}: retro_dias={uv['retro_dias']}, flex_dormitorios={uv['flex_dormitorios']} preservados en UV")
                     if old_comp_exclusion_applied:
                         uv['_comp_excluded'] = old_comp_excluded
