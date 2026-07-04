@@ -562,6 +562,60 @@ def test_retro_bypass_respeta_cambio_dias():
             json.dump(props_bak, f, ensure_ascii=False, indent=2)
 
 
+# ──────────────────────────────────────────────
+# TAREA-113: CT por Macrozona — Direccionalidad
+# ──────────────────────────────────────────────
+
+def test_ct_macrozona_direccionalidad():
+    """
+    TAREA-113: Verifica que el CT por macrozona tenga la direccionalidad correcta.
+    Centro Premium y Norte tienen tasas negativas → CT < 1.0 para comparables viejos.
+    Sur tiene tasa positiva → CT > 1.0 para comparables viejos.
+    Esto evita regresiones a la tabla universal que siempre subestimaba (CT > 1.0).
+    """
+    from parsers.time_adjustment import calcular_ct, get_ct_rate
+
+    # 1. Verificar tasas desde zonas_depreciacion.json
+    assert get_ct_rate('centro_premium') == -0.0411, \
+        f"centro_premium debe tener tasa -0.0411, obtuvo {get_ct_rate('centro_premium')}"
+    assert get_ct_rate('norte') == -0.0665, \
+        f"norte debe tener tasa -0.0665, obtuvo {get_ct_rate('norte')}"
+    assert get_ct_rate('sur_default') == 0.0305, \
+        f"sur_default debe tener tasa 0.0305, obtuvo {get_ct_rate('sur_default')}"
+    assert get_ct_rate('resto_rosario') == -0.02, \
+        f"resto_rosario debe tener tasa -0.02, obtuvo {get_ct_rate('resto_rosario')}"
+
+    # 2. Verificar direccionalidad: centro_premium (tasa negativa)
+    ct_cp_36 = calcular_ct(36, macrozona_id='centro_premium')
+    assert ct_cp_36 < 0.95, \
+        f"centro_premium CT@36m={ct_cp_36:.4f}, esperado < 0.95 (tasa -4.11% anual)"
+
+    # 3. Verificar direccionalidad: sur_default (tasa positiva)
+    ct_sur_36 = calcular_ct(36, macrozona_id='sur_default')
+    assert ct_sur_36 > 1.02, \
+        f"sur_default CT@36m={ct_sur_36:.4f}, esperado > 1.02 (tasa +3.05% anual)"
+
+    # 4. Verificar monotonicidad: a más meses, más extremo
+    ct_cp_12 = calcular_ct(12, macrozona_id='centro_premium')
+    ct_cp_24 = calcular_ct(24, macrozona_id='centro_premium')
+    assert ct_cp_12 > ct_cp_24, \
+        f"centro_premium: CT@12m={ct_cp_12:.4f} debe ser > CT@24m={ct_cp_24:.4f} (tasa negativa)"
+    ct_sur_12 = calcular_ct(12, macrozona_id='sur_default')
+    ct_sur_24 = calcular_ct(24, macrozona_id='sur_default')
+    assert ct_sur_12 < ct_sur_24, \
+        f"sur_default: CT@12m={ct_sur_12:.4f} debe ser < CT@24m={ct_sur_24:.4f} (tasa positiva)"
+
+    # 5. Verificar consistencia: mismos params → mismo resultado
+    ct_a = calcular_ct(24, macrozona_id='macrocentro')
+    ct_b = calcular_ct(24, macrozona_id='macrocentro')
+    assert ct_a == ct_b, \
+        f"macrocentro CT@24m debe ser determinístico: {ct_a} != {ct_b}"
+
+    print(f"[TEST-CT] centro_premium CT@36m={ct_cp_36:.4f} (< 0.95 ✓)")
+    print(f"[TEST-CT] sur_default CT@36m={ct_sur_36:.4f} (> 1.02 ✓)")
+    print(f"[TEST-CT] OK: CT por macrozona direccionalidad correcta")
+
+
 def test_retro_bypass_valu_py_coherencia():
     """RO-RETRO-05: El bypass en valu.py (lineas 611-618) debe verificar retro_dias."""
     # Simula la logica exacta del bypass de valu.py

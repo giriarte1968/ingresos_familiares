@@ -3874,3 +3874,30 @@ Se detectó que el auto-run indiscriminado rompía el flujo de "Limpiar" (recrea
 
 ### Next
 - Auto-calibración de CV_REF desde caché de valuaciones (opcional, no crítica).
+
+---
+
+## TAREA-113: CT por Macrozona + UI Sync (2026-07-04)
+
+### Decision
+Reemplazar la tabla universal CT (`config/anclas_config.json`) por **Tasa Anual por Macrozona** en `data/zonas_depreciacion.json`. El motor ya estaba actualizado desde la ejecucion previa; este bloque sincroniza la UI y blinda contra regresiones.
+
+### Changes
+1. **valu.py** (TAB 4): Replaced ct_table editor + Plotly graph + nuevo-usado factors with **Tasa Anual por Macrozona** editor. Each macrozona shows its annual rate (%) with inline editing. Save writes to `data/zonas_depreciacion.json`. A preview chart shows all macrozona CT curves.
+2. **config/anclas_config.json**: Removed `ct_table` and `ct_factors` keys to eliminate confusion. The motor already bypasses them via `macrozona_id` fallback.
+3. **tests/test_regression.py**: Added `test_ct_macrozona_direccionalidad()` verifying:
+   - Centro Premium (negative rate) → CT < 0.95 at 36 months
+   - Sur Default (positive rate) → CT > 1.02 at 36 months
+   - Monotonicity: more months = more extreme factor
+   - Determinism: same params → same result
+4. **docs**: Updated ALGORITMOS.md (Section 6.5 deprecated notice, Section 14→20 renamed with UI refs), BITACORA (this entry), MAPA (zonas_depreciacion.json added).
+
+### Files Touched
+- `valu.py` (TAB 4 replacement)
+- `config/anclas_config.json` (ct_table/ct_factors removed)
+- `tests/test_regression.py` (new CT test)
+- `docs/ALGORITMOS.md` (sections 6.5, 20)
+- `docs/BITACORA_AGENTES.md` (this entry)
+
+### Tests
+- `pytest tests/test_regression.py::test_ct_macrozona_direccionalidad -v`

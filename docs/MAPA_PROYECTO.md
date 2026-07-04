@@ -29,6 +29,7 @@ Ubicación de la lógica principal de valuación y procesamiento.
 | `parsers/nlp_inmobiliario.py` | Análisis de descripciones libres para extracción de features. |
 | `parsers/valuacion_helpers.py` | Funciones puras desacopladas del motor: `calcular_rango_venta()` (única fuente de rango), `procesar_alquiler()`, `ensamblar_metadata_resolucion()`. |
 | `parsers/cluster_filters.py` | 7 helpers puros con 34 tests: filtro geográfico, percentil discreto, blend alpha, regla de percentil por edad. |
+| `parsers/time_adjustment.py` | Ajuste temporal (CT). Lee `ct_annual_rate` desde `data/zonas_depreciacion.json`. Formula: CT = (1 + tasa)^(meses/12). |
 | `parsers/geocoder.py` | Integración con servicios de geocodificación. |
 | `parsers/manual_comparables.py` | CRUD de comparables manuales sobre `cache_scraping.json`. TAREA-092. |
 
@@ -40,6 +41,7 @@ Archivos JSON que actúan como base de datos y parámetros de configuración.
 |---------|-----------|
 | `cache_scraping.json` | ~10.000 propiedades scrapeadas. La fuente de verdad del mercado actual. |
 | `barreras_rosario.json` | 751 LineStrings que definen límites urbanos (vías, avenidas, barrios). Incluye Av. Del Valle como barrera blanda desde 2026-05-24. |
+| `zonas_depreciacion.json` | Macrozonas con tasas de depreciación, size_adjustment, cv_ref y **ct_annual_rate** (TAREA-113). El corazón de la configuración por zona. |
 | `anclas_rosario.json` | Puntos de referencia de precios manuales (usados como validación o fallback). |
 | `comercios_conocidos.json` | Base de datos de POIs para análisis de entorno. |
 | `constructoras_rosario.json` | Listado de constructoras para ajustar factor de calidad. |

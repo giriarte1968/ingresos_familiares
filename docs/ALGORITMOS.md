@@ -742,7 +742,7 @@ Asignada por posición geográfica relativa al centro (-32.92776, -60.69769). La
 
 ### 6.5 Tabla Ct (Ajuste Temporal)
 
-La tabla representa el movimiento del mercado de departamentos de Rosario desde el piso de 2023 hasta el amesetamiento de 2026:
+> ⚠️ **DEPRECATED en TAREA-113:** La tabla universal fue reemplazada por la **Tasa Anual por Macrozona** (ver Sección 20). El motor ahora usa la fórmula `CT = (1 + tasa)^(meses/12)` con tasas específicas por macrozona desde `data/zonas_depreciacion.json`. Esta tabla se conserva solo como referencia histórica.
 
 | Meses | Ct_base | Ct_usado (×1.12) | Descripción |
 |-------|---------|-------------------|-------------|
@@ -763,7 +763,7 @@ La tabla representa el movimiento del mercado de departamentos de Rosario desde 
 | 78 | 1.027 | 1.030 | |
 | ≥83 | 1.000 | 1.000 | Anteriores a 2019 |
 
-Fuente: COCIR + IIE-UNR (ciclo 2018-2024), MeLi+UdeSA (2024-2026), Zonaprop ZP Index.
+Fuente: COCIR + IIE-UNR (ciclo 2018-2024), MeLi+UdeSA (2024-2026), Zonaprop ZP Index (histórica).
 
 ### 6.6 Cobertura
 
@@ -975,3 +975,35 @@ Post-Limpiar (`pendiente_comparables_=True`) → no auto-run → early return Pe
 
 **Generado por**: OpenCode
 **Fecha**: 2026-07-03
+
+
+---
+## 20. Ajuste Temporal Dinamico por Macrozona (TAREA-113)
+
+### Justificacion
+El analisis rolling del cache revelo que en USD los precios no suben uniformemente. En zonas como Centro Premium y Norte, la tendencia es negativa, mientras que en Oeste es variable. Usar una tabla ascendente inflaba artificialmente el valor de comparables retroactivos.
+
+### Formula de Calculo
+Para un comparable con m meses de antiguedad:
+
+```
+CT = (1 + Tasa_mz)^(m / 12)
+```
+
+Donde **Tasa_mz** es el coeficiente anual real observado en la macrozona:
+- **Centro Premium**: -4.11%
+- **Macrocentro**: -0.06%
+- **Norte**: -6.65%
+- **Oeste**: -19.49%
+- **Sur**: +3.05%
+
+**Impacto**: Si la tasa es negativa, el CT es < 1.0, ajustando el precio del comparable a la baja para reflejar la caida del mercado en USD.
+
+### UI de Configuracion
+La pestaña "Ct / Ajuste Temporal" en la pantalla de Configuración (`valu.py`) ahora muestra un editor de **Tasa Anual por Macrozona**. Los cambios se guardan directamente en `data/zonas_depreciacion.json` (clave `ct_annual_rate`).
+
+### Referencias
+- Motor: `parsers/time_adjustment.py` -> `calcular_ct()`, `get_ct_rate()`
+- Datos: `data/zonas_depreciacion.json` -> `macrozonas[].ct_annual_rate`
+- UI: `valu.py` -> TAB 4 "Ct / Ajuste Temporal"
+- Tests: `tests/test_regression.py` -> `test_ct_macrozona_direccionalidad()`

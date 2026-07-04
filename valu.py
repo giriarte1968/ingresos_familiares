@@ -1339,96 +1339,91 @@ def mostrar_dashboard():
                     if linked:
                         st.markdown(f"**{a['id']}** (${a.get('usd_m2',0):.0f}): {', '.join(linked)}")
 
-        # ─── TAB 4: Ct / Ajuste Temporal ───
+        # ─── TAB 4: Ct / Ajuste Temporal (Tasa Anual por Macrozona) ───
         with tab4:
-            st.caption("Curva de Ajuste Temporal (Ct) y Factores COCIR")
+            st.caption("Ajuste Temporal (CT) — Tasa Anual por Macrozona")
+            st.markdown("La tasa anual se aplica con la fórmula:  `CT = (1 + tasa)^(meses/12)`. "
+                        "Tasas negativas = mercado bajista en USD. Tasas positivas = mercado alcista.")
             st.markdown("---")
 
-            # ct_table editor
-            st.markdown("**Tabla Ct (mes → factor)**")
-            ct_table = gen_cfg.get('ct_table', [[0, 1.0]])
-            ct_df = pd.DataFrame(ct_table, columns=["meses", "Ct"])
-            edited_ct = st.data_editor(
-                ct_df, num_rows="dynamic", use_container_width=True,
-                key="ct_table_editor"
-            )
-            if st.button("💾 Guardar Tabla Ct", key="save_ct_table", use_container_width=True):
-                new_ct = [[int(r.meses), float(r.Ct)] for _, r in edited_ct.iterrows()]
-                cfg = load_anclas_config(force_reload=True)
-                cfg['generator']['ct_table'] = new_ct
-                save_anclas_config(cfg)
-                load_anclas_config(force_reload=True)
-                bump_cache_version()
-                st.success("Tabla Ct guardada. Caché invalidada.")
-                st.rerun()
+            _ruta_ct = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "zonas_depreciacion.json")
+            try:
+                with open(_ruta_ct, "r", encoding="utf-8") as _f:
+                    _ct_data = json.load(_f)
+            except:
+                _ct_data = {"macrozonas": []}
 
-            # Gráfico Plotly de Ct
+            ct_rows = []
+            for _mz in _ct_data.get("macrozonas", []):
+                _rate = _mz.get("ct_annual_rate", -0.02)
+                ct_rows.append({
+                    "Macrozona": _mz.get("nombre", _mz["id"]),
+                    "ID": _mz["id"],
+                    "Tasa Anual (%)": round(_rate * 100, 2),
+                })
+
+            _ct_edited = st.data_editor(
+                ct_rows,
+                column_config={
+                    "Macrozona": st.column_config.TextColumn("Macrozona", disabled=True, width="medium"),
+                    "ID": st.column_config.TextColumn("ID", disabled=True, width="small"),
+                    "Tasa Anual (%)": st.column_config.NumberColumn(
+                        "Tasa Anual (%)",
+                        min_value=-50.0, max_value=50.0, step=0.01, format="%.2f%%",
+                        help="Tasa anual de ajuste temporal. Negativa = USD baja en el tiempo. Positiva = USD sube."
+                    ),
+                },
+                hide_index=True,
+                use_container_width=True,
+                key="ct_annual_rate_editor"
+            )
+
+            if st.button("💾 Guardar Tasas Anuales por Macrozona", type="primary", use_container_width=True):
+                try:
+                    with open(_ruta_ct, "r", encoding="utf-8") as _f:
+                        _ct_data_save = json.load(_f)
+                    for _, _row in _ct_edited.iterrows():
+                        _mz_id = _row["ID"]
+                        _new_rate = round(float(_row["Tasa Anual (%)"]) / 100.0, 4)
+                        for _mz in _ct_data_save.get("macrozonas", []):
+                            if _mz["id"] == _mz_id:
+                                old_rate = _mz.get("ct_annual_rate", -0.02)
+                                if abs(old_rate - _new_rate) > 0.0001:
+                                    print(f"[DEBUG-CT-UI] {_mz_id}: tasa anual {old_rate*100:.2f}% → {_new_rate*100:.2f}%")
+                                _mz["ct_annual_rate"] = _new_rate
+                                break
+                    with open(_ruta_ct, "w", encoding="utf-8") as _f:
+                        json.dump(_ct_data_save, _f, ensure_ascii=False, indent=2)
+                    st.success("Tasas anuales guardadas.")
+                    st.rerun()
+                except Exception as _e:
+                    st.error(f"Error guardando tasas: {_e}")
+
+            st.markdown("---")
+            st.markdown("**Vista previa del factor CT para cada macrozona**")
             try:
                 import plotly.graph_objects as go
-                ct_sorted = sorted(ct_table, key=lambda x: x[0])
-                meses_vals = [r[0] for r in ct_sorted]
-                ct_vals = [r[1] for r in ct_sorted]
-                fig = go.Figure()
-                fig.add_trace(go.Scatter(
-                    x=meses_vals, y=ct_vals, mode='lines+markers',
-                    name='Ct',
-                    line=dict(color='#ff6b35', width=3),
-                    marker=dict(size=8)
-                ))
-                # Línea vertical en ventana natural (180d = 6 meses)
-                fig.add_vline(x=6, line_dash="dash", line_color="green",
-                              annotation_text="ventana natural (6m)")
-                # Línea horizontal en 1.0
-                fig.add_hline(y=1.0, line_dash="dot", line_color="gray",
-                              annotation_text="Ct=1.0 (sin ajuste)")
-                fig.update_layout(
-                    title="Curva Ct - Ajuste Temporal",
+                _fig = go.Figure()
+                _meses_x = list(range(0, 61))
+                for _mz in _ct_data.get("macrozonas", []):
+                    _rate = _mz.get("ct_annual_rate", -0.02)
+                    _ct_y = [(1.0 + _rate) ** (m / 12.0) for m in _meses_x]
+                    _fig.add_trace(go.Scatter(
+                        x=_meses_x, y=_ct_y, mode="lines",
+                        name=_mz.get("nombre", _mz["id"])
+                    ))
+                _fig.add_hline(y=1.0, line_dash="dot", line_color="gray",
+                               annotation_text="Ct=1.0 (sin ajuste)")
+                _fig.update_layout(
+                    title="Curvas CT por Macrozona",
                     xaxis_title="Meses desde publicación",
-                    yaxis_title="Factor Ct",
-                    template="plotly_dark"
+                    yaxis_title="Factor CT",
+                    template="plotly_dark",
+                    height=400,
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(_fig, use_container_width=True)
             except ImportError:
                 st.info("Plotly no disponible. Instalar con `pip install plotly`")
-
-            st.markdown("---")
-
-            # Factores nuevo-usado
-            st.markdown("**Factores nuevo-usado**")
-            cf = gen_cfg.get('ct_factors', {})
-            col_f1, col_f2, col_f3 = st.columns(3)
-            with col_f1:
-                nuevo_factor = st.number_input("Factor NUEVO", min_value=0.5, max_value=2.0, value=cf.get('nuevo', 0.95), step=0.01, key="ct_nuevo")
-            with col_f2:
-                usado_factor = st.number_input("Factor USADO", min_value=0.5, max_value=2.0, value=cf.get('usado', 1.12), step=0.01, key="ct_usado")
-            with col_f3:
-                fv = st.text_input("Fecha vigencia (YYYY-MM)", value=cf.get('fecha_vigencia', '2026-01'), key="ct_fv")
-
-            if st.button("💾 Guardar Factores nuevo-usado", key="save_ct_factors", use_container_width=True):
-                cfg = load_anclas_config(force_reload=True)
-                cfg['generator']['ct_factors'] = {
-                    'usado': usado_factor,
-                    'nuevo': nuevo_factor,
-                    'fecha_vigencia': fv
-                }
-                save_anclas_config(cfg)
-                load_anclas_config(force_reload=True)
-                bump_cache_version()
-                st.success("Factores nuevo-usado guardados. Caché invalidada.")
-                st.rerun()
-
-            # Histórico de cambios de factores
-            try:
-                hist_path = os.path.join(CONFIG_DIR, "ct_factors_history.json")
-                if os.path.exists(hist_path):
-                    with open(hist_path, encoding='utf-8') as f:
-                        history = json.load(f)
-                    if history:
-                        st.markdown("---")
-                        st.markdown("**Historial de cambios**")
-                        st.json(history)
-            except:
-                pass
 
 
 
