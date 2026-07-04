@@ -1349,9 +1349,9 @@ def render_valuacion_manual(prop, res):
         if valor_baulera > 0:
             activos_parts.append(f"Baulera: ${valor_baulera:,.0f} USD")
         if activos_parts:
-            st.caption(f"**Activos adicionales:** {' · '.join(activos_parts)}")
+            st.markdown(f"**Activos adicionales:** {' · '.join(activos_parts)}")
         else:
-            st.caption("Sin activos adicionales")
+            st.markdown("Sin activos adicionales")
 
         # Subfactores de Referencia (display only)
         try:
@@ -1412,28 +1412,6 @@ def render_valuacion_manual(prop, res):
 
     delta_pct = ((pre_final - motor_valor) / motor_valor * 100) if motor_valor > 0 else 0
 
-    # Badge color
-    if motor_valor == 0:
-        badge_bg = "#F3F4F6"
-        badge_fg = "#4B5563"
-        badge_label = "Sin referencia del motor"
-        badge_display = badge_label
-    elif abs(delta_pct) > 20:
-        badge_bg = "#FEE2E2"
-        badge_fg = "#DC2626"
-        badge_label = "Diferencia significativa"
-        badge_display = f"D {delta_pct:+.1f}% vs. motor · {badge_label}"
-    elif abs(delta_pct) > 10:
-        badge_bg = "#FEF3C7"
-        badge_fg = "#D97706"
-        badge_label = "Diferencia moderada"
-        badge_display = f"D {delta_pct:+.1f}% vs. motor · {badge_label}"
-    else:
-        badge_bg = "#D1FAE5"
-        badge_fg = "#059669"
-        badge_label = "Diferencia aceptable"
-        badge_display = f"D {delta_pct:+.1f}% vs. motor · {badge_label}"
-
     pre_cons = pre_final * (1 - inc / 100.0)
     pre_opt = pre_final * (1 + inc / 100.0)
 
@@ -1454,11 +1432,6 @@ def render_valuacion_manual(prop, res):
           <div style="color:#333333;font-size:13px;">
             Rango: ${pre_cons:,.0f} – ${pre_opt:,.0f} USD (±{inc:.0f}%)
           </div>
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
-          <span style="background:{badge_bg};color:{badge_fg};padding:4px 12px;border-radius:14px;font-size:13px;font-weight:600;white-space:nowrap;">
-            {badge_display}
-          </span>
         </div>
       </div>
       <hr style="margin:14px 0;border:none;border-top:1px solid #d1d5db;">
