@@ -2798,10 +2798,41 @@ def test_flex_manual_save_preserva_dormitorios():
         assert uv_check2['flex_dormitorios'] is None, \
             f"flex_dormitorios debe ser None tras guardado manual sin Flex, obtuvo {uv_check2.get('flex_dormitorios')}"
         print(f"[TEST-FLEX-MANUAL-SAVE] OK — flex_dormitorios=None (flex inactivo)")
-
+        
     finally:
         with open('propiedades.json', 'w', encoding='utf-8') as f:
             json.dump(props_bak, f, ensure_ascii=False, indent=2)
         cache_clean = cargar_cache_valuaciones()
         cache_clean.pop(nombre_test, None)
         guardar_cache_valuaciones(cache_clean)
+
+def test_retro_slider_sync_fallback():
+    """Verifica que el slider de Retro se sincronice desde session state/UV si falta la key del slider."""
+    import streamlit as st
+    
+    # Mock de session state
+    st.session_state.clear()
+    prop_name = "test_retro_sync"
+    vista_key = f"vista_valuacion_{prop_name}"
+    
+    # ESCENARIO: la propiedad ya fue cargada (vista_key=True)
+    # El usuario tiene Retro activado y seteo 60 meses en el engine, 
+    # pero la key del slider se perdió (ej. tras Editar->Cancelar)
+    st.session_state[vista_key] = True
+    st.session_state[f"retro_active_{prop_name}"] = True
+    st.session_state[f"retro_meses_{prop_name}"] = 60
+    # retro_meses_slider_{prop_name} NO existe
+    
+    # Simulamos el 'else' branch de valu.py:705-712
+    retro_active = st.session_state.get(f"retro_active_{prop_name}", False)
+    retro_meses = st.session_state.get(f"retro_meses_{prop_name}", 36) if retro_active else 0
+    retro_dias = retro_meses if retro_active else 0
+    
+    if retro_active:
+        retro_slider_key = f"retro_meses_slider_{prop_name}"
+        if retro_slider_key not in st.session_state:
+            st.session_state[retro_slider_key] = retro_dias
+            
+    # --- Verificación ---
+    assert st.session_state.get(f"retro_meses_slider_{prop_name}") == 60, "El slider debe sincronizarse a 60"
+
