@@ -93,3 +93,4 @@
 | TAREA-112 | Restaurar Pendiente puro + Golden Path Primera Entrada + Limpiar funcional | `900f53b` | 2026-07-03 |
 | TAREA-113 | Sustitución de Tabla CT por Tasa Anual por Macrozona | 573b21 | 2026-07-04 |
 | TAREA-114 | Fix flex_dormitorios=None al guardar valuación manual | _(current)_ | 2026-07-04 |
+| TAREA-120 | Restaurar botones UI + Guardrails de regresión | _(current)_ | 2026-07-05 |

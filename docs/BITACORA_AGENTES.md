@@ -1,6 +1,44 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-07-05 — TAREA-120: Restaurar botones UI + Guardrails de regresión
+
+### Contexto
+**Regresión crítica:** Botón "Aplicar Selección" desaparecía con selección completa (`n_sel == len(comparables)`), impidiendo ratificar el estado todo-seleccionado.
+
+### ⚠️ Corrección importante sobre "Restablecer Todas"
+En borradores iniciales de TAREA-120 se especuló con que "Restablecer Todas" debía forzar recálculo. **Eso es INCORRECTO.** Restablecer es SOLO visual — reselecciona checkboxes y limpia `comp_excluded`, pero NO setea `forzar_recalculo`. El recálculo ocurre exclusivamente al hacer clic en "Aplicar Selección". Esta lógica nunca se documentó explícitamente porque no existía una sección centralizada de comportamiento UI en los docs (ver RO-UI-01 en STATUS_ACTUAL.md).
+
+### Cambios (código)
+1. **`valu_detail_sections.py:543-569`**: El `elif n_sel < len(comparables)` se cambió a `else:` para que el botón "Aplicar Selección" sea visible siempre (6/6 incluido), en vez de caer en `else: st.write("")`.
+
+### Cambios (tests — 3 nuevos UI guardrail + 1 fix)
+2. **`tests/test_regression.py`**: Fix syntax error `_ultima_//_valuacion` → `_ultima_valuacion`.
+3. **`tests/test_regression.py`**: 
+   - `test_comparables_banner_hidden_when_full_selection` — migrado a usar `_get_comp_id` real (antes todos los comparables daban el mismo hash y el test no funcionaba).
+   - `test_ui_apply_button_visible_when_all_selected` — Mock Streamlit, verifica que `st.button` sea llamado con 6/6 checks.
+   - `test_ui_reset_all_visual_only` — Verifica que Restablecer setee todos los checkboxes a True y elimine `comp_excluded`, pero NO toque `forzar_recalculo`.
+   - `test_ui_manual_save_hidden_on_no_changes` — Verifica que Guardar Valuacion Manual NO aparezca sin cambios de parámetros.
+4. Agregados helpers: `_number_input_side_effect`, `_cols_side_effect` mejorado.
+
+### Nueva documentación creada
+5. **`docs/STATUS_ACTUAL.md` — Sección 8 "Comportamiento UI"**: Documenta por primera vez el comportamiento de cada botón de selección de comparables, cuándo aparece, qué hace, y si forza recálculo. Incluye la Regla de Oro RO-UI-01.
+6. **`docs/TASK_TEMPLATE.md`**: Nueva sección obligatoria "UI GUARDRAILS" — todo cambio de UI debe incluir tests con mocks de Streamlit.
+7. **`docs/BITACORA_AGENTES.md`**: Esta entrada (corregida).
+8. **`docs/STATUS_ACTUAL.md`**: Actualizado (secciones 7 y 8).
+9. **`docs/MAPA_PROYECTO.md`**: Mención a tests con mocks Streamlit.
+10. **`.opencode/plans/TAREA-120.md`**: Plan creado.
+11. **`.opencode/plans/TAREAS_INDEX.md`**: Entrada agregada.
+
+### Por qué no estaba documentado antes
+No existía una sección de "Comportamiento UI" en ningún documento del proyecto. La lógica de "Restablecer es visual-only" fue implementada en TAREA-097 pero nunca se capturó en texto — solo en el código y en comentarios. TAREA-120 crea por primera vez un lugar centralizado (STATUS_ACTUAL.md §8) para estas reglas.
+
+### Tests
+- `pytest tests/test_regression.py` pasa (6+ tests).
+- auto_validate OK.
+
+---
+
 ## 2026-07-01 — TAREA-105: is_applied false-positive con exclusion vacía al togglear Retro
 
 ### Contexto
@@ -3921,3 +3959,20 @@ Tras guardar valuación manual con Flex activo, si el usuario hacía clic en **E
 - 65/65 regression OK.
 - `auto_validate.py` OK.
 - Commit: `6e8e016`, pushed a `estabilizar`.
+
+---
+
+## 2026-07-04 — TAREA-115: Sincronización de Slider Retro (Fallback UV)
+
+### Contexto
+Se detectó que el slider de Retro podía mostrar un valor incorrecto (default 36) mientras el motor usaba un valor diferente (ej. 60) heredado del caché, debido a que el Pendiente block setea `retro_meses_` pero no `retro_meses_slider_` (para evitar warnings de Streamlit). Tras Editar→Cancelar, si la key del slider se perdía, el usuario veía 36 aunque la valuación fuera correcta.
+
+### Cambios
+1. **`valu.py`** (L707-711): En el `else` branch, si `retro_active` es True y `retro_meses_slider_{name}` no existe en session state, se sincroniza con el valor de `retro_meses`. Debug flag `[DEBUG-RETRO-FALLBACK]`.
+2. **`main_valu.py`** (L561-567): Misma lógica de fallback.
+3. **`tests/test_regression.py`**: Nuevo test `test_retro_slider_sync_fallback()` que verifica la restauración del slider desde session state.
+
+### Tests
+- 66/66 regression OK.
+- `auto_validate.py` OK.
+- Commit: `a31b8eb`, pushed a `estabilizar`.

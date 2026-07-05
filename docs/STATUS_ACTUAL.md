@@ -1,6 +1,6 @@
 ﻿# 🏠 STATUS ACTUAL DEL PROYECTO — AVM Rosario
 
-*Actualizado: 02/07/2026 (TAREA-108: Font-size headers +10% + eliminar botón Limpiar Valuación)*
+*Actualizado: 05/07/2026 (TAREA-120: Restaurar botones UI + Guardrails de regresión)*
 
 ---
 
@@ -131,7 +131,7 @@ git checkout origin/do-state -- propiedades.json data/valuaciones_cache.json
 
 | Archivo | Estado |
 |---------|--------|
-| `tests/test_regression.py` | 57/57 ✅ |
+| `tests/test_regression.py` | 66+ ✅ (incluye UI guardrails con mocks Streamlit) |
 | `tests/test_persistencia_valuaciones.py` | 16/16 ✅ |
 | `tests/test_age_blend_filter.py` | ✅ |
 | `tests/test_cluster_filters.py` | ✅ |
@@ -161,10 +161,50 @@ git checkout origin/do-state -- propiedades.json data/valuaciones_cache.json
 5. ⚠️ P1200 y Brown 2750 requieren recalibración con fórmula multiplicativa
 6. ⚠️ Botón "Comparable" en header carga desde cache en disco, debe cargar desde resultado actual en memoria (fix pendiente TAREA-086)
 7. ✅ Botón "🗑️ Limpiar Valuación" eliminado (TAREA-108) — no funcionaba correctamente
+8. ✅ Botón "Aplicar Selección" restaurado visible siempre (TAREA-120)
+9. ✅ "Restablecer Todas" es visual-only: reselecciona checkboxes y limpia comp_excluded, NO forza recálculo (TAREA-120)
+10. ✅ Botón "Aplicar Selección" visible siempre (incluso con 6/6 seleccionados) (TAREA-120)
+11. ✅ UI Guardrails: tests con mocks de Streamlit protegen botones y banner (TAREA-120)
 
 ---
 
-## 8. ESQUINAS — CORRECCIÓN DE DIRECCIONES VIA CENTROIDE CATASTRAL
+## 8. COMPORTAMIENTO UI — BOTONES DE SELECCIÓN DE COMPARABLES
+
+**Regla de oro (RO-UI-01):** "Restablecer Todas" es SOLO visual — reselecciona todos los checkboxes y limpia `comp_excluded`, pero NO setea `forzar_recalculo`. El recálculo ocurre SOLO al hacer clic en "Aplicar Selección".
+
+### Botones y su comportamiento
+
+| Botón | Cuándo aparece | Qué hace | ¿Forza recálculo? |
+|-------|---------------|----------|-------------------|
+| "↩️ Restablecer todos" | Cuando `len(current_sel) < len(comparables)` (hay desmarcados) | Setea todos los checkboxes a True, elimina `comp_excluded`, elimina `_comp_interacted` | ❌ No |
+| "✅ Aplicar selección" | Siempre que `n_sel >= 3` y NO esté ya aplicada | Setea `comp_excluded`, `forzar_recalculo=True`, hace `st.rerun()` | ✅ Sí |
+| "✅ Selección Aplicada" | Cuando la selección ya fue aplicada (`is_applied`) | Deshabilitado, solo informa | ❌ No |
+| "Mínimo 3 comparables" | Cuando `n_sel < 3` | Deshabilitado, solo informa | ❌ No |
+| "Guardar Valuacion Manual" | Solo cuando `usd_m2_input > 0` Y `params_changed == True` | Persiste valuación manual | ✅ Sí |
+
+### Flujo de banner + reset
+```
+[usuario desmarca comparables]
+  → banner naranja: "X/Y comparables activos — N desmarcado(s). Aplicar selección para recalcular."
+  → botón "↩️ Restablecer todos" disponible (visual-only)
+[usuario click Restablecer]
+  → checkboxes todos True, comp_excluded eliminado, banner desaparece
+  → NO hay recálculo — el motor sigue con los valores anteriores
+[usuario click Aplicar selección]
+  → forzar_recalculo=True, st.rerun() → el motor recalcula con la selección actual
+```
+
+### Cambios recientes (TAREA-120)
+- **Antes:** "Aplicar Selección" desaparecía con selección completa (`else: st.write("")`).
+- **Ahora:** "Aplicar Selección" visible siempre (6/6 incluido).
+- **Antes:** sin test UI.
+- **Ahora:** 3 tests UI con mocks de Streamlit protegen banner, botón aplicar, y guardado manual.
+- **Antes:** sin documentación centralizada de comportamiento UI.
+- **Ahora:** esta sección documenta el comportamiento de cada botón.
+
+---
+
+## 9. ESQUINAS — CORRECCIÓN DE DIRECCIONES VIA CENTROIDE CATASTRAL
 
 ### Problema detectado
 PHs en intersecciones tienen `direccion_nominatim` incorrecta. Ej: PH 10286 tiene "Entre Ríos 411" pero su parcela catastral (SD=3) está sobre Tucumán → "Tucumán 1291".

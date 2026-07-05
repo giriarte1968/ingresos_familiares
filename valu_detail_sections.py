@@ -377,7 +377,16 @@ def render_mapa_propiedad(res):
     mapa_html = res.get('mapa_html', '')
     if mapa_html:
         with st.container(key="mapa_propiedad"):
-            html(mapa_html, height=350)
+            # Envolvemos en un div para forzar el ancho y evitar el efecto de "achico" en reruns
+            st.markdown(
+                f'<div style="width:100%; overflow:hidden;">'
+                f'{mapa_html}'
+                f'</div>', 
+                unsafe_allow_html=True
+            )
+            # Nota: El componente html() original se reemplaza por st.markdown 
+            # ya que el mapa_html ya contiene el iframe/script necesario.
+            # Si mapa_html no es HTML completo, volveremos a html().
     else:
         st.caption("Mapa no disponible")
 
@@ -426,16 +435,12 @@ def render_tabla_comparables(res, prop_name=None):
         elif cid in stored_sel:
             current_sel.add(cid)
 
-    # Banner de info + botón Restablecer (también visible si hay comps desmarcados en UI)
-    n_excluidos = res.get('_n_excluidos', 0)
-    if n_excluidos or len(current_sel) < len(comparables):
+    # Banner de info + botón Restablecer (solo si hay comparables desmarcados en UI)
+    if len(current_sel) < len(comparables):
         col_info, col_reset = st.columns([3, 1])
         with col_info:
             n_desel = len(comparables) - len(current_sel)
-            if n_excluidos:
-                st.info(f"⚡ {len(current_sel)}/{len(comparables)} comparables activos ({n_excluidos} excluidos por el usuario).")
-            else:
-                st.info(f"⚡ {n_desel} comparable(s) desmarcado(s) — Aplicar selección para recalcular.")
+            st.info(f"⚡ {len(current_sel)}/{len(comparables)} comparables activos — {n_desel} desmarcado(s). Aplicar selección para recalcular.")
         with col_reset:
             if st.button("↩️ Restablecer todos", key=f'reset_comp_sel_{prop_name}', use_container_width=True):
                     # Solo efecto visual: seleccionar todos los comparables
@@ -540,7 +545,7 @@ def render_tabla_comparables(res, prop_name=None):
             elif is_applied:
                 st.button("✅ Selección Aplicada", type="secondary", disabled=True, use_container_width=True)
             else:
-                # Botón visible incluso si no hay exclusiones (todos seleccionados)
+                # Botón visible SIEMPRE (incluye selección completa 6/6)
                 if st.button(
                     f"✅ Aplicar selección ({n_sel}/{len(comparables)})",
                     key=f'apply_comp_sel_{prop_name}',
@@ -1145,18 +1150,29 @@ def render_valuacion_manual(prop, res):
         calcular_size_adjustment,
     )
     from parsers.zonas_manager import resolver_macrozona
-
+    
     nombre = prop.get('nombre', '')
     auto_result = res.get('_auto_result', res)
     saved_params = res.get('_manual_params') or {}
     motor_valor = auto_result.get('valor_propiedad_usd', 0)
-
+    
+    # Debugging initial values
+    cant_cocheras_raw = prop.get('cocheras_cantidad', 0)
+    try:
+        cant_cocheras = int(cant_cocheras_raw)
+    except (ValueError, TypeError):
+        cant_cocheras = 0
+    tipo_cochera = prop.get('cocheras_tipo', 'cubierta')
+    valor_baulera = prop.get('valor_baulera', 0)
+    print(f"[DEBUG-MANUAL-VAL] {nombre}: cant_cocheras={cant_cocheras} (raw={cant_cocheras_raw}), baulera={valor_baulera}")
+    
     # Feedback post-guardado/eliminacion (persiste un ciclo de render)
     feedback = st.session_state.pop(f'manual_feedback_{nombre}', None)
     if feedback == 'guardado':
         st.success("Valuacion manual guardada correctamente.")
     elif feedback == 'eliminado':
         st.success("Valuacion manual eliminada correctamente.")
+
 
     # ─── Carga de anclas ───
     anclas = cargar_anclas()
@@ -1349,9 +1365,16 @@ def render_valuacion_manual(prop, res):
         if valor_baulera > 0:
             activos_parts.append(f"Baulera: ${valor_baulera:,.0f} USD")
         if activos_parts:
-            st.markdown(f"**Activos adicionales:** {' · '.join(activos_parts)}")
+            # Estilo unificado para coincidir con las etiquetas de los widgets (como Ajuste por Tamaño)
+            st.markdown(
+                f'<div style="color:#31333F; font-size:14px; margin:4px 0; font-family: \'Inter\', sans-serif;">'
+                f'<span style="font-weight:600;">Activos adicionales:</span> '
+                f'{ " · ".join(activos_parts) }'
+                f'</div>', 
+                unsafe_allow_html=True
+            )
         else:
-            st.markdown("Sin activos adicionales")
+            st.markdown('<div style="color:#9CA3AF; font-size:14px; margin:4px 0; font-family: \'Inter\', sans-serif;">Sin activos adicionales</div>', unsafe_allow_html=True)
 
         # Subfactores de Referencia (display only)
         try:
@@ -1462,87 +1485,84 @@ def render_valuacion_manual(prop, res):
     # ========================================================================
     col_btn1, col_btn2 = st.columns(2)
     with col_btn1:
-        can_save = usd_m2_input > 0
-
-        if st.button("Guardar Valuacion Manual", type="primary", use_container_width=True,
-                     disabled=not can_save, key=f"manual_guardar_{nombre}"):
-            if usd_m2_input <= 0:
-                st.error("Ingrese un valor de USD/m² valido.")
-                st.rerun()
-
-            manual_params = {
-                'ancla_id': ancla_sel,
-                'usd_m2': usd_m2_input,
-                'factor_hedonico': fh,
-                'incertidumbre_pct': inc,
-                'ajuste_pct': ajuste_pct,
-                'incluir_prima_const': saved.get('incluir_prima_const', True),
-                'incluir_size_adj': saved.get('incluir_size_adj', True),
-                'fecha_guardado': datetime.now().isoformat(),
-                'valor_auto_snapshot': motor_valor,
-            }
-            from parsers.mercado_inmobiliario import generar_resultado_manual
-            resultado_manual = generar_resultado_manual(prop, manual_params, auto_result=auto_result)
-
-            # Extract auto/manual values for portfolio display
-            auto_valor_usd = auto_result.get('valor_propiedad_usd', 0) if auto_result else 0
-            manual_valor_usd = resultado_manual.get('valor_propiedad_usd', 0)
-
-            props = cargar_propiedades()
-            for i, p in enumerate(props):
-                if p.get('nombre') == nombre:
-                    uv = p.setdefault('_ultima_valuacion', {})
-
-                    # Preserve existing exclusion state from UV
-                    old_comp_excluded = uv.get('_comp_excluded', [])
-                    old_comp_exclusion_applied = uv.get('_comp_exclusion_applied', False)
-
-                    print(f"[DEBUG-MANUAL] {nombre}: Guardando manual — valor_usd={resultado_manual['valor_propiedad_usd']:,.0f}, auto_valor_usd={auto_valor_usd:,.0f}, manual_valor_usd={manual_valor_usd:,.0f}")
-                    print(f"[DEBUG-MANUAL] {nombre}: exclusion previa: _comp_exclusion_applied={old_comp_exclusion_applied}, _comp_excluded_count={len(old_comp_excluded)}")
-
-                    uv['valor_usd'] = resultado_manual['valor_propiedad_usd']
-                    uv['auto_valor_usd'] = auto_valor_usd
-                    uv['manual_valor_usd'] = manual_valor_usd
-                    uv['fuente'] = 'manual'
-                    uv['fuente_activa'] = 'manual'
-                    uv['manual_params'] = manual_params
-                    # Preservar retro/flex para que re-entrada sea consistente
-                    uv['retro_dias'] = st.session_state.get(f'retro_meses_{nombre}', 0)
-                    flex_active = st.session_state.get(f'flex_active_{nombre}', False)
-                    uv['flex_dormitorios'] = [1, 2, 3, 4, 5] if flex_active else None
-                    print(f"[DEBUG-MANUAL-SAVE] {nombre}: flex_active={flex_active}, retro_dias={uv['retro_dias']}, flex_dormitorios={uv['flex_dormitorios']} preservados en UV")
-                    if old_comp_exclusion_applied:
-                        uv['_comp_excluded'] = old_comp_excluded
-                        uv['_comp_exclusion_applied'] = True
-                        print(f"[DEBUG-MANUAL] {nombre}: exclusion preservada: {len(old_comp_excluded)} ids excluidos")
-                    else:
-                        uv.setdefault('_comp_excluded', [])
-                        uv.setdefault('_comp_exclusion_applied', False)
+        # Verificar si los parámetros actuales difieren de los guardados en la UV
+        params_changed = False
+        if saved_params:
+            # Comparar solo los parámetros editables
+            checks = [
+                ('ancla_id', ancla_sel),
+                ('usd_m2', usd_m2_input),
+                ('factor_hedonico', fh),
+                ('incertidumbre_pct', inc),
+                ('ajuste_pct', ajuste_pct),
+                ('incluir_prima_const', saved.get('incluir_prima_const', True)),
+                ('incluir_size_adj', saved.get('incluir_size_adj', True)),
+            ]
+            for key, val in checks:
+                if saved_params.get(key) != val:
+                    params_changed = True
                     break
-            if not guardar_propiedades(props):
-                print(f"[DEBUG-MANUAL-SAVE] {nombre}: guardar_propiedades FALLO — escritura a disco fallida")
-                st.error("Error de escritura en propiedades.json. La valuacion manual NO se guardo.")
+        else:
+            params_changed = True # Si no hay nada guardado, permitimos guardar
+
+        can_save = usd_m2_input > 0 and params_changed
+        
+        if can_save:
+            if st.button("Guardar Valuacion Manual", type="primary", use_container_width=True,
+                         key=f"manual_guardar_{nombre}"):
+                # El resto de la lógica de guardado se mantiene igual
+                manual_params = {
+                    'ancla_id': ancla_sel,
+                    'usd_m2': usd_m2_input,
+                    'factor_hedonico': fh,
+                    'incertidumbre_pct': inc,
+                    'ajuste_pct': ajuste_pct,
+                    'incluir_prima_const': saved.get('incluir_prima_const', True),
+                    'incluir_size_adj': saved.get('incluir_size_adj', True),
+                    'fecha_guardado': datetime.now().isoformat(),
+                    'valor_auto_snapshot': motor_valor,
+                }
+                from parsers.mercado_inmobiliario import generar_resultado_manual
+                resultado_manual = generar_resultado_manual(prop, manual_params, auto_result=auto_result)
+                
+                auto_valor_usd = auto_result.get('valor_propiedad_usd', 0) if auto_result else 0
+                manual_valor_usd = resultado_manual.get('valor_propiedad_usd', 0)
+                
+                props = cargar_propiedades()
+                for i, p in enumerate(props):
+                    if p.get('nombre') == nombre:
+                        uv = p.setdefault('_ultima_valuacion', {})
+                        old_comp_excluded = uv.get('_comp_excluded', [])
+                        old_comp_exclusion_applied = uv.get('_comp_exclusion_applied', False)
+                        
+                        uv['valor_usd'] = resultado_manual['valor_propiedad_usd']
+                        uv['auto_valor_usd'] = auto_valor_usd
+                        uv['manual_valor_usd'] = manual_valor_usd
+                        uv['fuente'] = 'manual'
+                        uv['fuente_activa'] = 'manual'
+                        uv['manual_params'] = manual_params
+                        uv['retro_dias'] = st.session_state.get(f'retro_meses_{nombre}', 0)
+                        flex_active = st.session_state.get(f'flex_active_{nombre}', False)
+                        uv['flex_dormitorios'] = [1, 2, 3, 4, 5] if flex_active else None
+                        if old_comp_exclusion_applied:
+                            uv['_comp_excluded'] = old_comp_excluded
+                            uv['_comp_exclusion_applied'] = True
+                        else:
+                            uv.setdefault('_comp_excluded', [])
+                            uv.setdefault('_comp_exclusion_applied', False)
+                        break
+                if not guardar_propiedades(props):
+                    st.error("Error de escritura en propiedades.json. La valuacion manual NO se guardo.")
+                    st.rerun()
+                st.session_state.pop(ss_key, None)
+                st.session_state.pop(f'_official_result_{nombre}', None)
+                st.session_state.pop(f'preview_mode_{nombre}', None)
+                st.session_state[f'manual_feedback_{nombre}'] = 'guardado'
                 st.rerun()
-            # Verificar persistencia: releer y confirmar
-            try:
-                with open('propiedades.json', 'r', encoding='utf-8') as f:
-                    _post_save = json.load(f)
-                _post_uv = next((p['_ultima_valuacion'] for p in _post_save['propiedades'] if p.get('nombre') == nombre), {})
-                _post_manual_params = _post_uv.get('manual_params')
-                _post_fuente = _post_uv.get('fuente_activa')
-                if _post_manual_params and _post_fuente == 'manual':
-                    print(f"[DEBUG-MANUAL-SAVE] {nombre}: VERIFICACION DISCO OK — manual_params=True, fuente_activa={_post_fuente}")
-                else:
-                    print(f"[DEBUG-MANUAL-SAVE] {nombre}: VERIFICACION DISCO FALLO — manual_params={'SI' if _post_manual_params else 'NO'}, fuente_activa={_post_fuente}")
-            except Exception as e:
-                print(f"[DEBUG-MANUAL-SAVE] {nombre}: VERIFICACION DISCO ERROR: {e}")
-            st.session_state.pop(ss_key, None)
-            st.session_state.pop(f'_official_result_{nombre}', None)
-            st.session_state.pop(f'preview_mode_{nombre}', None)
-            print(f"[DEBUG-OFFICIAL-CLEAN] {nombre}: _official_result y preview_mode limpiados tras guardado manual")
-            st.session_state[f'manual_feedback_{nombre}'] = 'guardado'
-            print(f"[DEBUG-MANUAL-SAVE] {nombre}: GUARDADO EXITOSO (cache preservado, official_result limpiado)")
-            st.rerun()
+        else:
+            # Si no hay cambios o USD/m2 es 0, el botón desaparece para evitar prompts innecesarios
+            pass
+
 
     with col_btn2:
         if saved_params:

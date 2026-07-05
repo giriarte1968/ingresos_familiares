@@ -22,6 +22,18 @@ Problema actual que motiva el cambio, con referencias a código y comportamiento
 - Los valores del motor NO cambian (si aplica)
 - etc.
 
+### UI GUARDRAILS (OBLIGATORIO si el cambio afecta la UI)
+
+Si el cambio modifica componentes de UI (botones, banners, visibilidad, formularios):
+
+1. **Agregar tests con mocks de Streamlit** en `tests/test_regression.py` que verifiquen:
+   - Visibilidad de botones en todos los estados (selección total, parcial, sin selección)
+   - Comportamiento del banner informativo
+   - Estados disabled/enabled de botones críticos
+2. Nombrar los tests con prefijo `test_ui_` para identificarlos
+3. Usar `unittest.mock.patch` para simular `streamlit.button`, `streamlit.info`, etc.
+4. Verificar que los tests pasen ANTES y DESPUÉS del cambio de código
+
 ### ALCANCE
 
 | Archivo | Cambio |

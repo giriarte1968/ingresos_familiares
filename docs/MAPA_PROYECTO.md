@@ -79,7 +79,7 @@ El proyecto comenzó como un gestor de ingresos familiares y conserva módulos d
 
 **CRÍTICO:** Antes de cualquier cambio, se deben correr estos tests.
 
-- `tests/test_regression.py`: El más importante. Valida que las valuaciones de "Mabel" y "Ayacucho" sigan en rango.
+- `tests/test_regression.py`: El más importante. Valida que las valuaciones de "Mabel" y "Ayacucho" sigan en rango. Incluye tests con **mocks de Streamlit** para proteger comportamientos UI (visibilidad de botones, banner, guardado manual).
 - `parsers/tests_regresion.py`: Tests adicionales de lógica interna.
 - `test_*.py` (Raíz): Archivos de prueba específicos para módulos nuevos.
 
