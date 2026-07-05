@@ -82,6 +82,12 @@ El modelo es Data-Driven: los precios emergen del mercado real
 
 **RO-20 (RETRO SLIDER — TESTS INAMOVIBLES):** Los tests `test_retro_dias_*` y `test_retro_bypass_*` en `tests/test_regression.py` son INAMOVIBLES. Cualquier cambio en el código que los haga fallar debe ser aprobado por el usuario antes de modificarlos. No alterar estos tests sin consulta explícita.
 
+**RO-UI-01 (RESTABLECER TODAS ES VISUAL-ONLY):** El botón "↩️ Restablecer todos" es SOLO visual: reselecciona todos los checkboxes y limpia `comp_excluded`, pero NO setea `forzar_recalculo`. El recálculo ocurre exclusivamente al hacer clic en "✅ Aplicar selección". Ver tests `test_ui_reset_all_visual_only`, `test_ui_apply_button_visible_when_all_selected`, y `STATUS_ACTUAL.md §8`.
+
+**RO-UI-02 (APLICAR SELECCIÓN VISIBLE SIEMPRE):** El botón "✅ Aplicar selección" debe ser visible en TODOS los estados donde `n_sel >= 3` y la selección no esté ya aplicada, incluyendo selección completa (6/6). No debe ocultarse con `st.write("")` ni ninguna otra condición. Ver test `test_ui_apply_button_visible_when_all_selected`.
+
+**RO-UI-03 (UI GUARDRAILS OBLIGATORIOS):** Todo cambio que modifique componentes de UI (botones, banners, visibilidad, formularios) DEBE incluir tests con mocks de Streamlit en `tests/test_regression.py` que verifiquen visibilidad de botones, estados disabled/enabled, y comportamiento de banners. Ver `docs/TASK_TEMPLATE.md` sección "UI GUARDRAILS (OBLIGATORIO)".
+
 **RO-CACHE-PREVIEW-01 (commit=False PERSISTE A CACHE):** `persistir_valuacion(commit=False)` debe SIEMPRE escribir a cache en disco (con `_cache.preview=True`). Antes de esta regla, `commit=False` no guardaba nada — el preview de Flex/Retro se perdía en el siguiente rerun. Ver test `test_preview_cache_persiste_en_disco`.
 
 **RO-CACHE-PREVIEW-02 (commit=False NO ACTUALIZA _ultima_valuacion):** El flag `commit=False` solo afecta persistencia a cache. NUNCA debe actualizar `_ultima_valuacion` en `propiedades.json`. La propiedad sigue apareciendo como Pendiente en Portfolio. Ver test `test_preview_cache_no_afecta_ultima_valuacion`.
