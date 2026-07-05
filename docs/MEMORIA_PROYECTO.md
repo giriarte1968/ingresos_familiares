@@ -88,6 +88,8 @@ El modelo es Data-Driven: los precios emergen del mercado real
 
 **RO-UI-03 (UI GUARDRAILS OBLIGATORIOS):** Todo cambio que modifique componentes de UI (botones, banners, visibilidad, formularios) DEBE incluir tests con mocks de Streamlit en `tests/test_regression.py` que verifiquen visibilidad de botones, estados disabled/enabled, y comportamiento de banners. Ver `docs/TASK_TEMPLATE.md` sección "UI GUARDRAILS (OBLIGATORIO)".
 
+**RO-UI-04 (FLUJO UI DOCUMENTADO):** El flujo completo desde Portfolio → Propiedad → Retro → Comparables → Deselección → Aplicar selección está documentado en `docs/FLUJO_UI.md`. Cualquier cambio en la lógica de navegación, session state, o comportamiento de botones DEBE actualizar ese documento. Incluye: todos los pasos, keys de session_state, puntos de decisión, diagrama de estados, y reglas de consistencia (F1-F6).
+
 **RO-CACHE-PREVIEW-01 (commit=False PERSISTE A CACHE):** `persistir_valuacion(commit=False)` debe SIEMPRE escribir a cache en disco (con `_cache.preview=True`). Antes de esta regla, `commit=False` no guardaba nada — el preview de Flex/Retro se perdía en el siguiente rerun. Ver test `test_preview_cache_persiste_en_disco`.
 
 **RO-CACHE-PREVIEW-02 (commit=False NO ACTUALIZA _ultima_valuacion):** El flag `commit=False` solo afecta persistencia a cache. NUNCA debe actualizar `_ultima_valuacion` en `propiedades.json`. La propiedad sigue apareciendo como Pendiente en Portfolio. Ver test `test_preview_cache_no_afecta_ultima_valuacion`.

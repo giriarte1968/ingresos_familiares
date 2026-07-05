@@ -200,7 +200,7 @@ git checkout origin/do-state -- propiedades.json data/valuaciones_cache.json
 - **Antes:** sin test UI.
 - **Ahora:** 3 tests UI con mocks de Streamlit protegen banner, botón aplicar, y guardado manual.
 - **Antes:** sin documentación centralizada de comportamiento UI.
-- **Ahora:** esta sección documenta el comportamiento de cada botón.
+- **Ahora:** esta sección documenta el comportamiento de cada botón. El flujo completo paso a paso (Portfolio → Aplicar selección) está en `docs/FLUJO_UI.md` con todos los session state keys, puntos de decisión y diagrama de estados.
 
 ---
 
