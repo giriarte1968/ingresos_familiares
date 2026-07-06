@@ -562,16 +562,86 @@ def mostrar_dashboard():
                 prop_name = p_obj.get('nombre', '')
                 # Almacenar en staging (preview) en lugar de guardar en disco inmediatamente
                 st.session_state[f'manual_preview_{prop_name}'] = nueva_data
+                
+                # --- DETECCIÓN DE CAMBIOS (ESTRUCTURAL vs ADITIVO) ---
+                cambio_estructural = False
+                cambio_aditivo = False
+                
+                campos_estructurales = ['lat', 'lon', 'zona', 'dormitorios']
+                campos_aditivos = ['valor_baulera', 'cocheras_cantidad', 'valor_cochera_base', 'cocheras_tipo']
+                
+                for campo in campos_estructurales:
+                    if nueva_data.get(campo) != p_obj.get(campo):
+                        cambio_estructural = True
+                        break
+                
+                if not cambio_estructural:
+                    for campo in campos_aditivos:
+                        if nueva_data.get(campo) != p_obj.get(campo):
+                            cambio_aditivo = True
+                            break
+                
                 # Actualizar objeto local para que la UI refleje los cambios inmediatamente
                 p_obj.update(nueva_data)
-                # Invalidar cache de valuación para que refleje los cambios en el próximo recálculo
+
+                # --- PERSISTENCIA EN DISCO ---
                 try:
-                    from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
-                    cache_v = cargar_cache_valuaciones()
-                    cache_v.pop(prop_name, None)
-                    guardar_cache_valuaciones(cache_v)
-                except Exception:
-                    pass
+                    props = cargar_propiedades()
+                    found_idx = -1
+                    for i, p in enumerate(props):
+                        if p.get('nombre') == prop_name:
+                            props[i].update(nueva_data)
+                            found_idx = i
+                            break
+                    
+                    # Sincronización automática de Valuación Manual si hay cambios aditivos
+                    if cambio_aditivo and found_idx != -1:
+                        uv = props[found_idx].get('_ultima_valuacion', {})
+                        if uv.get('fuente_activa') == 'manual' and 'manual_params' in uv:
+                            print(f"[DEBUG-MANUAL-AUTO-SYNC] {prop_name}: Cambio aditivo detectado en fuente manual. Recalculando valor oficial...")
+                            from parsers.mercado_inmobiliario import generar_resultado_manual
+                            
+                            # Usamos el 'res' actual de la vista como auto_result para consistencia
+                            res_auto = res if 'res' in locals() else {}
+                            resultado_manual = generar_resultado_manual(p_obj, uv['manual_params'], auto_result=res_auto)
+                            
+                            # Actualizar valores oficiales en la UV
+                            uv['valor_usd'] = resultado_manual['valor_propiedad_usd']
+                            uv['manual_valor_usd'] = resultado_manual['valor_propiedad_usd']
+                            # El auto_valor_usd se actualiza vía motor en el siguiente render, 
+                            # pero lo marcamos aquí para consistencia inmediata
+                            if 'auto_valor_usd' in resultado_manual:
+                                uv['auto_valor_usd'] = resultado_manual['auto_valor_usd']
+                            
+                            print(f"[DEBUG-MANUAL-AUTO-SYNC] {prop_name}: Nuevo valor oficial manual=${uv['valor_usd']:,.0f}")
+                    
+                    guardar_propiedades(props)
+                except Exception as e:
+                    print(f"[ERROR-SNC-DISK] {prop_name}: Falló guardado en disco: {e}")
+                # -----------------------------
+                
+                if cambio_estructural:
+                    print(f"[DEBUG-SNC] {prop_name}: Cambio ESTRUCTURAL detectado. Reset total.")
+                    from valu import _limpiar_estado_propiedad
+                    _limpiar_estado_propiedad(prop_name)
+                    try:
+                        from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
+                        cache_v = cargar_cache_valuaciones()
+                        cache_v.pop(prop_name, None)
+                        guardar_cache_valuaciones(cache_v)
+                    except Exception: pass
+                elif cambio_aditivo:
+                    print(f"[DEBUG-SNC] {prop_name}: Cambio ADITIVO detectado. Forzando recálculo de total.")
+                    st.session_state[f'forzar_recalculo_{prop_name}'] = True
+                else:
+                    # Si no hay cambios relevantes, invalidamos cache solo por seguridad (como estaba antes)
+                    try:
+                        from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
+                        cache_v = cargar_cache_valuaciones()
+                        cache_v.pop(prop_name, None)
+                        guardar_cache_valuaciones(cache_v)
+                    except Exception: pass
+
 
             # ── Si nunca fue valuado (Pendiente): mostrar detalle con 0 comps ──
             uv = p_obj.get('_ultima_valuacion', {})
@@ -724,7 +794,9 @@ def mostrar_dashboard():
                                 print(f"[DEBUG-FLEX-FALLBACK] {prop_name}: restaurado desde UV — flex_dormitorios={uv_flex}")
                         flex_dormitorios = st.session_state.get(f'flex_dormitorios_{prop_name}', [1, 2, 3, 4, 5]) if flex_active else None
                     usar_cache = False
-                    print(f"[DEBUG] {prop_name}: pre-valuacion params: forzar={forzar}, ya_valuado={ya_valuado}, retro_active={retro_active}, retro_dias={retro_dias}, flex_active={flex_active}, preview_mode={preview_mode}")
+                    uv_pre = p_obj.get('_ultima_valuacion', {})
+                    print(f"[DEBUG] {prop_name}: pre-valuacion params: forzar={forzar}, ya_valuado={ya_valuado}, retro_active={retro_active}, retro_dias={retro_dias}, flex_active={flex_active}, preview_mode={preview_mode}, "
+                          f"UV:fuente={uv_pre.get('fuente','N/A')}, UV:valor_usd={uv_pre.get('valor_usd','N/A')}, UV:auto_valor_usd={uv_pre.get('auto_valor_usd','N/A')}, UV:comps={uv_pre.get('comps','N/A')}")
                     cache_condition = (ya_valuado, not forzar, bool(entrada_antigua.get('resultado_completo')))
                     print(f"[CACHE-CHECK] {prop_name}: condiciones: ya_valuado={cache_condition[0]}, not forzar={cache_condition[1]}, tiene_resultado_completo={cache_condition[2]}, fuente_activa_saved={fuente_activa_saved}, entrada_keys={list(entrada_antigua.keys()) if entrada_antigua else 'vacia'}")
                     # Intentar cache siempre (independientemente de fuente_activa) para preservar exclusion
@@ -772,13 +844,27 @@ def mostrar_dashboard():
                     # ── TAREA-102: Fallback a UV snapshot si recálculo falló ──
                     if ya_valuado and (resultado.get('error') or n_comps < 3):
                         uv_snap = p_obj.get('_ultima_valuacion', {})
+                        uv_fuente = uv_snap.get('fuente', 'N/A')
+                        uv_auto_valor = uv_snap.get('auto_valor_usd', 'N/A')
+                        uv_manual_valor = uv_snap.get('manual_valor_usd', 'N/A')
+                        print(f"[DEBUG-FALLBACK-102] {prop_name}: evaluando UV snapshot. "
+                              f"error={resultado.get('error')}, n_comps={n_comps}, "
+                              f"uv_fuente={uv_fuente}, uv_valor_usd={uv_snap.get('valor_usd', 'N/A')}, "
+                              f"uv_auto_valor={uv_auto_valor}, uv_manual_valor={uv_manual_valor}, "
+                              f"uv_comps={uv_snap.get('comps', 0)}")
                         if uv_snap.get('valor_usd') and uv_snap.get('comps', 0) >= 3:
+                            if uv_fuente != 'auto':
+                                print(f"[DEBUG-FALLBACK-102-WARN] {prop_name}: "
+                                      f"UV fuente={uv_fuente} NO es 'auto' — "
+                                      f"posible fuga de valor manual en auto fallback! "
+                                      f"uv_valor={uv_snap['valor_usd']}, "
+                                      f"uv_auto_valor={uv_auto_valor}, "
+                                      f"uv_manual_valor={uv_manual_valor}")
                             uv_valor = uv_snap['valor_usd']
                             uv_comps = uv_snap.get('comps', 0)
                             uv_m2_eq = uv_snap.get('m2_equivalentes', 0)
-                            print(f"[DEBUG-FALLBACK-102] {prop_name}: fallback a UV snapshot. "
-                                  f"error={resultado.get('error')}, n_comps={n_comps}, "
-                                  f"uv_valor={uv_valor}, uv_comps={uv_comps}")
+                            print(f"[DEBUG-FALLBACK-102] {prop_name}: fallback APLICADO. "
+                                  f"uv_valor={uv_valor}, uv_comps={uv_comps}, uv_fuente={uv_fuente}")
                             resultado = {
                                 'valor_propiedad_usd': uv_valor,
                                 'm2_base_venta': uv_m2_eq,
@@ -827,6 +913,10 @@ def mostrar_dashboard():
                     resultado['_manual_result'] = resultado_manual
                     resultado['_manual_params'] = manual_params_saved
                     resultado['_fuente_activa'] = fuente_activa
+                    print(f"[DEBUG-INYECT] {prop_name}: _auto_result={resultado.get('_auto_result', {}).get('valor_propiedad_usd', 'N/A') if resultado.get('_auto_result') else 'NONE'}, "
+                          f"_auto_result_fallback={resultado.get('_auto_result', {}).get('_fallback_uv', False) if resultado.get('_auto_result') else 'N/A'}, "
+                          f"_manual_result={'YES' if resultado_manual else 'NONE'}, "
+                          f"_fuente_activa={fuente_activa}")
                     print(f"[DEBUG-MANUAL-RESULT] {prop_name}: INYECTADO: _manual_params={'SI' if resultado.get('_manual_params') else 'NO'}, _manual_result={'SI' if resultado.get('_manual_result') else 'NO'}, _fuente_activa={resultado.get('_fuente_activa')}")
                     _sl.mark("after_inject_parallel")
 

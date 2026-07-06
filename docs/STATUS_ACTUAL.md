@@ -1,6 +1,6 @@
 ﻿# 🏠 STATUS ACTUAL DEL PROYECTO — AVM Rosario
 
-*Actualizado: 05/07/2026 (TAREA-120: Restaurar botones UI + Guardrails de regresión)*
+*Actualizado: 06/07/2026 (TAREA-122: Fix real header leak — cache preview no contamina auto_valor_usd)*
 
 ---
 
@@ -165,6 +165,8 @@ git checkout origin/do-state -- propiedades.json data/valuaciones_cache.json
 9. ✅ "Restablecer Todas" es visual-only: reselecciona checkboxes y limpia comp_excluded, NO forza recálculo (TAREA-120)
 10. ✅ Botón "Aplicar Selección" visible siempre (incluso con 6/6 seleccionados) (TAREA-120)
 11. ✅ UI Guardrails: tests con mocks de Streamlit protegen botones y banner (TAREA-120)
+12. ✅ RU-MANUAL-SAVE-02: Save manual no contamina `auto_valor_usd` con cache preview (TAREA-122)
+13. ✅ RU-HEADER-02: Auto card oculto en modo manual sin `auto_valor_usd` oficial (TAREA-122)
 
 ---
 
@@ -194,13 +196,20 @@ git checkout origin/do-state -- propiedades.json data/valuaciones_cache.json
   → forzar_recalculo=True, st.rerun() → el motor recalcula con la selección actual
 ```
 
-### Cambios recientes (TAREA-120)
+### Cambios recientes (TAREA-120 + TAREA-122)
 - **Antes:** "Aplicar Selección" desaparecía con selección completa (`else: st.write("")`).
 - **Ahora:** "Aplicar Selección" visible siempre (6/6 incluido).
 - **Antes:** sin test UI.
 - **Ahora:** 3 tests UI con mocks de Streamlit protegen banner, botón aplicar, y guardado manual.
+- **Antes:** auto card mostraba valor STALE del cache preview tras guardar manual (TAREA-121 incompleto).
+- **Ahora:** RU-MANUAL-SAVE-02: Save manual NUNCA escribe `auto_valor_usd` desde `auto_result` (cache preview). Solo preserva UV existente o inicializa a 0.
 - **Antes:** sin documentación centralizada de comportamiento UI.
 - **Ahora:** esta sección documenta el comportamiento de cada botón. El flujo completo paso a paso (Portfolio → Aplicar selección) está en `docs/FLUJO_UI.md` con todos los session state keys, puntos de decisión y diagrama de estados.
+
+### Guardrails RU
+- **RU-HEADER-01**: Auto card usa `n_comps_auto` (del AUTO engine), NO `n_comps` del display (que sigue a `fuente_activa`).
+- **RU-HEADER-02**: Auto card oculto si `fuente_activa == 'manual'` y no hay `auto_valor_usd` oficial en UV.
+- **RU-MANUAL-SAVE-02**: Save manual NO contamina `auto_valor_usd` con valor preview del cache.
 
 ---
 

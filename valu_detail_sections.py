@@ -138,7 +138,25 @@ def render_header(prop, res):
     manual_params = res.get('_manual_params') or {}
     fuente_activa = res.get('_fuente_activa', 'auto')
 
-    print(f"[DEBUG-HEADER] {nombre}: render_header inicio, fuente_activa={fuente_activa}, auto_valor={auto_result.get('valor_propiedad_usd','N/A') if auto_result else 'N/A'}, manual_valor={manual_result.get('valor_propiedad_usd','N/A') if manual_result else 'N/A'}")
+    auto_valor_usd_raw = auto_result.get('valor_propiedad_usd', 0) if auto_result else 0
+    manual_valor_usd_raw = manual_result.get('valor_propiedad_usd', 0) if manual_result else 0
+
+    # Detectar si auto_result es real o es fallback TAREA-102
+    is_fallback = auto_result.get('_fallback_uv', False) if auto_result else False
+    auto_viene_de = 'motor' if not is_fallback else 'fallback-102'
+    uv_dict = prop.get('_ultima_valuacion', {})
+    auto_fuente_uv = uv_dict.get('fuente', 'N/A')
+    auto_valor_uv = uv_dict.get('valor_usd', 'N/A')
+    auto_valor_uv_auto = uv_dict.get('auto_valor_usd', 'N/A')
+    auto_valor_uv_manual = uv_dict.get('manual_valor_usd', 'N/A')
+
+    print(f"[DEBUG-HEADER] {nombre}: render_header inicio, "
+          f"fuente_activa={fuente_activa}, "
+          f"auto_result_from={auto_viene_de}, "
+          f"auto_valor={auto_valor_usd_raw}, "
+          f"manual_valor={manual_valor_usd_raw}, "
+          f"UV:fuente={auto_fuente_uv}, UV:valor_usd={auto_valor_uv}, "
+          f"UV:auto_valor_usd={auto_valor_uv_auto}, UV:manual_valor_usd={auto_valor_uv_manual}")
 
     # Valor activo según fuente
     if fuente_activa == 'manual' and manual_result:
@@ -189,6 +207,9 @@ def render_header(prop, res):
     # ─── Dual Valuation Cards (display-only, siempre ambos activos) ───
     tiene_auto = auto_result.get('m2_base_venta', 0) > 0
     tiene_manual = manual_result is not None
+    print(f"[DEBUG-HEADER-CARDS] {nombre}: tiene_auto={tiene_auto}, tiene_manual={tiene_manual}, "
+          f"auto_m2_base={auto_result.get('m2_base_venta', 0) if auto_result else 0}, "
+          f"fallback={auto_result.get('_fallback_uv', False) if auto_result else False}")
 
     v_auto = auto_result.get('valor_propiedad_usd', 0) if auto_result else 0
     v_manual = manual_result.get('valor_propiedad_usd', 0) if manual_result else 0
@@ -201,14 +222,32 @@ def render_header(prop, res):
     # ── Ocultar valuación en header si:
     # 1. Insuficientes comparables (< 3)
     # 2. Es un preview y NO existe una valuación oficial (ya_valuado=False)
-    ya_valuado = bool(prop.get('_ultima_valuacion', {}).get('valor_usd'))
+    #
+    # RU-HEADER-01: El auto card usa n_comps_auto (del AUTO engine), NO n_comps del display
+    #   (que sigue a fuente_activa). Esto evita que el auto card muestre un valor STALE
+    #   del cache preview después de un save manual que setea fuente_activa=manual.
+    # RU-HEADER-02: El auto card se oculta adicionalmente si está en preview mode y
+    #   no hay un auto_valor_usd oficial en UV (evita fuga de valor manual en auto card).
+    ya_valuado = bool(uv_dict.get('valor_usd'))
     preview_mode = res.get('_cache', {}).get('preview', False)
+    n_comps_auto_hide = (auto_result.get('resolution_metadata') or {}).get('n_propiedades', 0) if auto_result else 0
+    ocultar_auto = n_comps_auto_hide < 3 or (fuente_activa == 'manual' and not uv_dict.get('auto_valor_usd', 0) > 0)
     if n_comps < 3 or (preview_mode and not ya_valuado):
-        print(f"[DEBUG-INSUF-COMPS] {nombre}: n_comps={n_comps}, preview={preview_mode}, ya_valuado={ya_valuado}, ocultando valuación en header")
+        print(f"[DEBUG-INSUF-COMPS] {nombre}: n_comps={n_comps}, preview={preview_mode}, ya_valuado={ya_valuado}, "
+              f"ocultando valuación en header. v_auto_antes={v_auto}, v_manual_antes={v_manual}, "
+              f"UV:auto_valor_usd={auto_valor_uv_auto}, UV:manual_valor_usd={auto_valor_uv_manual}")
         valor_usd = 0
         m2_microzona = 0
         v_auto = 0
         v_manual = 0
+        m2_micro_auto = 0
+        m2_line_auto = "—"
+    elif ocultar_auto:
+        print(f"[DEBUG-INSUF-COMPS] {nombre}: ocultando solo auto card. n_comps_auto_hide={n_comps_auto_hide}, "
+              f"preview={preview_mode}, uv_auto_valor_usd={auto_valor_uv_auto}, "
+              f"fuente_activa={fuente_activa}, "
+              f"v_manual_ok={v_manual}, v_auto_antes={v_auto}")
+        v_auto = 0
         m2_micro_auto = 0
         m2_line_auto = "—"
 
@@ -1525,8 +1564,14 @@ def render_valuacion_manual(prop, res):
                 from parsers.mercado_inmobiliario import generar_resultado_manual
                 resultado_manual = generar_resultado_manual(prop, manual_params, auto_result=auto_result)
                 
-                auto_valor_usd = auto_result.get('valor_propiedad_usd', 0) if auto_result else 0
                 manual_valor_usd = resultado_manual.get('valor_propiedad_usd', 0)
+                auto_viene_de = 'fallback-102' if (auto_result and auto_result.get('_fallback_uv', False)) else 'motor'
+                auto_result_valor = auto_result.get('valor_propiedad_usd', None) if auto_result else None
+                print(f"[DEBUG-MANUAL-SAVE] {nombre}: GUARDANDO manual. "
+                      f"manual_valor_usd={manual_valor_usd}, "
+                      f"auto_viene_de={auto_viene_de}, "
+                      f"auto_result_keys={list(auto_result.keys()) if auto_result else 'NONE'}, "
+                      f"auto_result_valor={auto_result_valor}")
                 
                 props = cargar_propiedades()
                 for i, p in enumerate(props):
@@ -1535,8 +1580,20 @@ def render_valuacion_manual(prop, res):
                         old_comp_excluded = uv.get('_comp_excluded', [])
                         old_comp_exclusion_applied = uv.get('_comp_exclusion_applied', False)
                         
+                        uv_antes = {k: uv.get(k) for k in ('valor_usd', 'auto_valor_usd', 'manual_valor_usd', 'fuente', 'fuente_activa')}
+                        print(f"[DEBUG-MANUAL-SAVE] {nombre}: UV ANTES del guardado: {uv_antes}")
+                        
                         uv['valor_usd'] = resultado_manual['valor_propiedad_usd']
-                        uv['auto_valor_usd'] = auto_valor_usd
+                        # RU-MANUAL-SAVE-02: NO contaminar auto_valor_usd con resultado preview del cache.
+                        # El auto_result puede venir del cache preview (valor STALE no oficial).
+                        # Solo preservar el valor existente en UV o inicializar a 0.
+                        # NUNCA escribir auto_result.get('valor_propiedad_usd') porque eso filtraría
+                        # el valor preview del cache como si fuera oficial.
+                        auto_valor_previo = uv.get('auto_valor_usd', None)
+                        auto_valor_origen = 'uv_preservado' if (auto_valor_previo is not None and auto_valor_previo > 0) else 'uv_init_0'
+                        uv.setdefault('auto_valor_usd', 0)
+                        print(f"[DEBUG-MANUAL-SAVE-ORIGEN] {nombre}: auto_valor_usd={uv['auto_valor_usd']}, "
+                              f"origen={auto_valor_origen}, auto_result_valor_cache={auto_result_valor}")
                         uv['manual_valor_usd'] = manual_valor_usd
                         uv['fuente'] = 'manual'
                         uv['fuente_activa'] = 'manual'
@@ -1550,6 +1607,8 @@ def render_valuacion_manual(prop, res):
                         else:
                             uv.setdefault('_comp_excluded', [])
                             uv.setdefault('_comp_exclusion_applied', False)
+                        uv_despues = {k: uv.get(k) for k in ('valor_usd', 'auto_valor_usd', 'manual_valor_usd', 'fuente', 'fuente_activa')}
+                        print(f"[DEBUG-MANUAL-SAVE] {nombre}: UV DESPUES del guardado: {uv_despues}")
                         break
                 if not guardar_propiedades(props):
                     st.error("Error de escritura en propiedades.json. La valuacion manual NO se guardo.")
@@ -1576,8 +1635,10 @@ def render_valuacion_manual(prop, res):
                         uv['fuente_activa'] = 'auto'
                         uv.pop('manual_params', None)
                         uv['manual_valor_usd'] = 0
+                        auto_valor_previo = uv.get('auto_valor_usd', 'N/A')
                         uv['valor_usd'] = uv.get('auto_valor_usd', 0)
-                        print(f"[DEBUG-DELETE-103] {nombre}: manual_valor_usd=0, valor_usd revertido a auto={uv['valor_usd']}")
+                        print(f"[DEBUG-DELETE-103] {nombre}: manual_valor_usd=0, valor_usd revertido a auto={uv['valor_usd']}, "
+                              f"auto_valor_usd_previo={auto_valor_previo}")
                         break
                 if not guardar_propiedades(props):
                     st.error("Error de escritura en propiedades.json. La valuacion manual NO se elimino.")

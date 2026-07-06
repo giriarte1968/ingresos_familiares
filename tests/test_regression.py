@@ -370,3 +370,110 @@ def test_ui_manual_save_hidden_on_no_changes():
             f"Llamadas: {save_calls}"
         )
         print(f"[TEST-UI-MANUAL-SAVE] OK — botón Guardar oculto sin cambios de parámetros")
+
+
+def test_auto_card_hidden_when_engine_failed_after_manual_save():
+    """TAREA-121: RU-HEADER-01/02 — El auto card NO debe mostrar un valor STALE del cache
+    preview después de un save manual cuando el auto engine no produjo resultado.
+    Escenario: engine falló (insuficientes), usuario guarda valuación manual, el auto card
+    debe quedar oculto ("—") aunque cache devuelva un resultado preview.
+    """
+    import streamlit as st
+    from unittest.mock import patch, MagicMock
+    import json
+
+    nombre = "__test_auto_hidden__"
+    prop = {
+        'nombre': nombre,
+        'zona': 'Centro',
+        'lat': -32.95, 'lon': -60.63,
+        'direccion': 'Test 123',
+        '_ultima_valuacion': {
+            'valor_usd': 735013.0,        # set by manual save
+            'auto_valor_usd': 0,           # overwritten by manual save (engine had no result)
+            'manual_valor_usd': 735013.0,  # manual save value
+            'fuente': 'manual',
+            'fuente_activa': 'manual',
+            'manual_params': {'ancla_id': 'test', 'usd_m2': 2000},
+            'comps': 6,
+            'retro_dias': 36,
+            'flex_dormitorios': None,
+        }
+    }
+
+    # Auto_result simula un cache preview con valor STALE (590093) pero auto engine
+    # nunca produjo resultado con los parámetros actuales.
+    auto_result = {
+        'valor_propiedad_usd': 590093.0,  # valor STALE del cache preview
+        'm2_base_venta': 2586.57,
+        'm2_microzona': 2586.57,
+        'm2_equivalentes': 160.0,
+        'usdt_ars': 1480,
+        'resolution_metadata': {'n_propiedades': 6},  # preview tuvo 6 comps
+        '_fallback_uv': False,
+        '_cache': {'preview': True, 'recalculado': False, 'guard_restored': False},
+    }
+
+    manual_result = {
+        'valor_propiedad_usd': 735013.0,
+        'm2_base_venta': 160.0,
+        'm2_equivalentes': 160.0,
+        'usdt_ars': 1480,
+        'resolution_metadata': {'n_propiedades': 6},
+    }
+
+    res = {
+        '_auto_result': auto_result,
+        '_manual_result': manual_result,
+        '_manual_params': prop['_ultima_valuacion']['manual_params'],
+        '_fuente_activa': 'manual',
+        '_cache': {'preview': True, 'recalculado': False, 'guard_restored': False},
+    }
+
+    captured_md = []
+
+    def _md_side_effect(*args, **kw):
+        captured_md.append(args[0] if args else kw.get('body', ''))
+        return MagicMock()
+
+    with patch('streamlit.columns', side_effect=_cols_side_effect), \
+         patch('streamlit.markdown', side_effect=_md_side_effect), \
+         patch('streamlit.metric'), \
+         patch('streamlit.warning'):
+
+        from valu_detail_sections import render_header
+        render_header(prop, res)
+
+        # Check: auto card (POR COMPARABLES) should show "—" (hidden)
+        auto_card_showing_dollar = False
+        auto_card_hidden = False
+        for md in captured_md:
+            if 'POR COMPARABLES' in str(md):
+                if '—' in str(md):
+                    auto_card_hidden = True
+                if '$590,093' in str(md) or '$590093' in str(md) or '590,093' in str(md) or '590093' in str(md):
+                    auto_card_showing_dollar = True
+
+        assert auto_card_hidden, (
+            f"Auto card debe mostrar '—' (oculto) cuando auto engine falló. "
+            f"Markdowns: {[m[:80] for m in captured_md]}"
+        )
+        assert not auto_card_showing_dollar, (
+            f"Auto card NO debe mostrar el valor STALE del cache ($590,093). "
+            f"Markdowns: {[m[:80] for m in captured_md]}"
+        )
+
+        # Verify manual card IS showing
+        manual_card_showing = False
+        for md in captured_md:
+            if 'MANUAL' in str(md):
+                if '735,013' in str(md) or '735013' in str(md):
+                    manual_card_showing = True
+        assert manual_card_showing, (
+            f"Manual card debe mostrar el valor guardado ($735,013). "
+            f"Markdowns: {[m[:80] for m in captured_md]}"
+        )
+
+        print(f"[TEST-AUTO-HIDDEN] OK — auto card oculto, manual card visible. "
+              f"Auto hidden={auto_card_hidden}, Auto dollar={auto_card_showing_dollar}, "
+              f"Manual showing={manual_card_showing}")

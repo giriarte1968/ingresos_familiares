@@ -1,6 +1,72 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-07-06 — TAREA-122: Fix real header leak — cache preview no contamina auto_valor_usd
+
+### Contexto
+El fix TAREA-121 fue insuficiente. El auto card seguía mostrando $590K (stale cache preview) tras guardar valuación manual aunque el auto engine nunca se hubiera aplicado oficialmente.
+
+### Causa raíz real (2 puntos de falla)
+1. **PRIMARIO — Save manual contaminaba `auto_valor_usd`**: `render_valuacion_manual` línea 1566 leía `auto_result.get('valor_propiedad_usd', 0)` (=$590K del cache preview), y como `> 0` era True, escribía `uv['auto_valor_usd'] = 590062`. Esto "oficializaba" un valor preview no oficial en el UV.
+2. **SECUNDARIO — `ocultar_auto` chequeaba `preview_mode`**: La guarda usaba `preview_mode` que es `False` tras el rerun del save manual, por lo que nunca ocultaba el auto card.
+
+### Fix aplicado
+1. **RU-MANUAL-SAVE-02** (`valu_detail_sections.py:1586-1591`): Reemplazada la lógica `if auto_valor_usd > 0: uv['auto_valor_usd'] = ...` por `uv.setdefault('auto_valor_usd', 0)`. Esto preserva el valor oficial existente en UV o inicializa a 0, pero NUNCA escribe el valor del `auto_result` (que puede ser cache preview).
+2. **RU-HEADER-02** (`valu_detail_sections.py:234`): Cambiado `preview_mode` por `fuente_activa == 'manual'` en `ocultar_auto` — ya aplicado en intento previo, ahora combinado con RU-MANUAL-SAVE-02 funciona correctamente.
+
+### DEBUG flags agregados
+- `[DEBUG-MANUAL-SAVE-ORIGEN]`: Muestra `auto_valor_usd`, `origen` (uv_preservado/uv_init_0), y `auto_result_valor_cache`
+- `[DEBUG-INSUF-COMPS]`: Agregado `fuente_activa` al print existente
+- `[DEBUG-DELETE-103]`: Agregado `auto_valor_usd_previo` para rastrear valor al eliminar manual
+
+### Guardrails
+- **RU-MANUAL-SAVE-02**: Save manual NO escribe `auto_valor_usd` desde auto_result. Preserva UV existente o inicializa a 0.
+
+### Tests
+- 10/10 regression OK (incluyendo `test_auto_card_hidden_when_engine_failed_after_manual_save`)
+- `auto_validate.py` OK
+
+### Archivos modificados
+- `valu_detail_sections.py`: Líneas 1586-1591 (save), 246 (DEBUG), 1633 (Eliminar DEBUG)
+- `.opencode/plans/TAREA-122.md`: Plan archivado
+- `docs/BITACORA_AGENTES.md`: Esta entrada
+- `docs/STATUS_ACTUAL.md`: §8 actualizado
+- `.opencode/plans/TAREAS_INDEX.md`: Entrada agregada
+
+---
+
+## 2026-07-05 — TAREA-121: Fix header leak — auto card oculto tras save manual con engine fallido
+
+### Contexto
+Al guardar una valuación manual cuando el auto engine no produjo resultado (insuficientes comparables), el header de "Valuación por Comparables" mostraba un valor STALE del cache preview, dando la impresión al usuario de que la valuación por comparables se había actualizado sin haber sido aplicada.
+
+### Causa raíz (3 factores concurrentes)
+1. **`n_comps` del display (no del auto engine)**: El hide check `n_comps < 3` usaba `n_comps` del `display`, que cuando `fuente_activa=manual` es el `n_propiedades` del resultado manual (~6 comps), no del auto engine (0 comps). La guarda nunca se activaba.
+2. **`ya_valuado` True por save manual**: El check `preview_mode and not ya_valuado` se desactivaba porque `ya_valuado=bool(uv.valor_usd)` era True tras el save manual (que escribe `valor_usd=735013.0`), aunque el auto engine nunca se hubiera aplicado.
+3. **Cache preview con resultado viejo**: El st.rerun() del save manual disparaba un cache HIT que devolvía el preview anterior (590093, 6 comps), y como las guardas 1 y 2 estaban rotas, el auto card lo mostraba.
+
+### Cambios (código)
+1. **`valu_detail_sections.py:render_header`** (RU-HEADER-01/02): Separado el hide check en dos:
+   - **Combinado** (original): `n_comps < 3 or (preview_mode and not ya_valuado)` — zappa ambos cards (backward compatible).
+   - **Auto-specific**: `n_comps_auto_hide < 3 or (preview_mode and not uv_dict.get('auto_valor_usd', 0) > 0)` — oculta solo el auto card cuando el auto engine no produjo resultado o el UV no tiene `auto_valor_usd` oficial.
+   - `n_comps_auto_hide` usa `auto_result.resolution_metadata.n_propiedades`, NO `display`'s (que sigue a `fuente_activa`).
+   
+2. **`valu_detail_sections.py:render_valuacion_manual`** (RU-MANUAL-SAVE-01): El save manual ahora solo sobreescribe `auto_valor_usd` en UV si `auto_valor_usd > 0` (auto_result válido). Si no, preserva el valor existente. Evita que el save manual destruya `auto_valor_usd` cuando el auto engine está en estado de error.
+
+### Guardrails (RU)
+- **RU-HEADER-01**: El auto card usa `n_comps_auto` (del AUTO engine), NO `n_comps` del display (que sigue a `fuente_activa`).
+- **RU-HEADER-02**: El auto card se oculta adicionalmente si está en preview mode y no hay un `auto_valor_usd` oficial en UV.
+- **RU-MANUAL-SAVE-01**: Preservar `auto_valor_usd` existente si auto_result no tiene valor válido.
+
+### Tests
+- `test_auto_card_hidden_when_engine_failed_after_manual_save` (#10): Mock completo de escenario engine fallido + save manual + cache preview — verifica auto card oculto ("—") y manual card visible ($735K). 10/10 regression OK.
+- `auto_validate.py` OK.
+
+### Commits
+- `TAREA-121-header-leak` (por push)
+
+---
+
 ## 2026-07-05 — TAREA-120: Restaurar botones UI + Guardrails de regresión
 
 ### Contexto
