@@ -1584,16 +1584,16 @@ def render_valuacion_manual(prop, res):
                         print(f"[DEBUG-MANUAL-SAVE] {nombre}: UV ANTES del guardado: {uv_antes}")
                         
                         uv['valor_usd'] = resultado_manual['valor_propiedad_usd']
-                        # RU-MANUAL-SAVE-02: NO contaminar auto_valor_usd con resultado preview del cache.
-                        # El auto_result puede venir del cache preview (valor STALE no oficial).
-                        # Solo preservar el valor existente en UV o inicializar a 0.
-                        # NUNCA escribir auto_result.get('valor_propiedad_usd') porque eso filtraría
-                        # el valor preview del cache como si fuera oficial.
+                        # GUARDRAIL RU-MANUAL-SAVE-02: NO contaminar auto_valor_usd con cache preview.
                         auto_valor_previo = uv.get('auto_valor_usd', None)
-                        auto_valor_origen = 'uv_preservado' if (auto_valor_previo is not None and auto_valor_previo > 0) else 'uv_init_0'
                         uv.setdefault('auto_valor_usd', 0)
+                        auto_valor_origen = 'uv_preservado' if (auto_valor_previo is not None and auto_valor_previo > 0) else 'uv_init_0'
                         print(f"[DEBUG-MANUAL-SAVE-ORIGEN] {nombre}: auto_valor_usd={uv['auto_valor_usd']}, "
-                              f"origen={auto_valor_origen}, auto_result_valor_cache={auto_result_valor}")
+                              f"origen={auto_valor_origen}, previo={auto_valor_previo}, "
+                              f"auto_result_cache={auto_result_valor}")
+                        if not _verificar_invariante_auto_valor_usd(uv, auto_result, nombre):
+                            print(f"[GUARDRAIL-EXCL] {nombre}: valor corregido post-guardrail. "
+                                  f"auto_valor_usd={uv['auto_valor_usd']}")
                         uv['manual_valor_usd'] = manual_valor_usd
                         uv['fuente'] = 'manual'
                         uv['fuente_activa'] = 'manual'
@@ -1651,3 +1651,36 @@ def render_valuacion_manual(prop, res):
                 st.session_state[f'manual_feedback_{nombre}'] = 'eliminado'
                 print(f"[DEBUG-MANUAL-DELETE] {nombre}: ELIMINACION EXITOSA")
                 st.rerun()
+
+
+# ========================================================================
+# GUARDRAIL RU-MANUAL-SAVE-02: Invariante de auto_valor_usd
+# No se debe escribir auto_valor_usd desde auto_result (cache preview).
+# ========================================================================
+def _verificar_invariante_auto_valor_usd(uv: dict, auto_result: dict, nombre: str) -> bool:
+    """
+    Verifica que auto_valor_usd NO fue contaminado por el cache preview
+    despues de un save manual.
+
+    Si detecta contaminacion (auto_valor_usd == cache preview), auto-corrige
+    el valor a 0 y emite alerta DEBUG.
+
+    Returns:
+        True si el invariante se cumple (no hubo contaminacion).
+        False si se detecto contaminacion y se auto-corrigio.
+    """
+    auto_cache_val = (auto_result or {}).get('valor_propiedad_usd', 0)
+    current_val = uv.get('auto_valor_usd', 0)
+    fuente = uv.get('fuente_activa', '')
+
+    if fuente != 'manual':
+        return True
+
+    if auto_cache_val > 0 and current_val == auto_cache_val:
+        print(f"[GUARDRAIL-EXCL] {nombre}: CONTAMINACION DETECTADA - "
+              f"auto_valor_usd={current_val} == cache preview={auto_cache_val}. "
+              f"RU-MANUAL-SAVE-02 violado. AUTO-CORRIGIENDO a 0.")
+        uv['auto_valor_usd'] = 0
+        return False
+
+    return True

@@ -94,4 +94,5 @@
 | TAREA-113 | Sustitución de Tabla CT por Tasa Anual por Macrozona | 573b21 | 2026-07-04 |
 | TAREA-114 | Fix flex_dormitorios=None al guardar valuación manual | _(current)_ | 2026-07-04 |
 | TAREA-120 | Restaurar botones UI + Guardrails de regresión | _(current)_ | 2026-07-05 |
-| TAREA-122 | Fix real header leak — cache preview no contamina auto_valor_usd | _(current)_ | 2026-07-06 |
+| TAREA-122 | Fix real header leak — cache preview no contamina auto_valor_usd | `09973f3` | 2026-07-06 |
+| TAREA-123 | Fix 🔄 Limpiar borra valuación manual (RU-CLEAN-MANUAL-01) | _(current)_ | 2026-07-06 |

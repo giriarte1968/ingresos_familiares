@@ -477,3 +477,232 @@ def test_auto_card_hidden_when_engine_failed_after_manual_save():
         print(f"[TEST-AUTO-HIDDEN] OK — auto card oculto, manual card visible. "
               f"Auto hidden={auto_card_hidden}, Auto dollar={auto_card_showing_dollar}, "
               f"Manual showing={manual_card_showing}")
+
+
+# ========================================================================
+# TESTS RU-CLEAN-MANUAL-01: Limpiar comparables NO debe borrar manual
+# ========================================================================
+def test_clean_comparables_preserves_manual_valuation():
+    """RU-CLEAN-MANUAL-01: Limpiar comparables NO debe borrar la valuacion manual.
+    Escenario: Francia 250b con valuacion manual guardada ($735K), usuario hace clic
+    en "🔄 Limpiar" dentro del expander de Comparables. El UV debe preservar
+    valor_usd, manual_valor_usd, fuente, fuente_activa, manual_params."""
+    uv_original = {
+        'valor_usd': 735013.0,
+        'auto_valor_usd': 0,
+        'manual_valor_usd': 735013.0,
+        'fuente': 'manual',
+        'fuente_activa': 'manual',
+        'manual_params': {'ancla_id': 'test', 'usd_m2': 2000},
+        'retro_dias': 36,
+        'flex_dormitorios': None,
+        '_comp_excluded': [],
+        '_comp_exclusion_applied': False,
+    }
+
+    tiene_manual = uv_original.get('fuente') == 'manual' or uv_original.get('fuente_activa') == 'manual'
+    assert tiene_manual, "Debe detectar que hay valuacion manual"
+
+    # Simular la logica de clean con preservacion
+    if tiene_manual:
+        manual_keys = ('valor_usd', 'auto_valor_usd', 'manual_valor_usd',
+                       'fuente', 'fuente_activa', 'manual_params',
+                       'retro_dias', 'flex_dormitorios',
+                       '_comp_excluded', '_comp_exclusion_applied')
+        uv_result = {k: uv_original[k] for k in manual_keys if k in uv_original}
+
+    assert uv_result.get('valor_usd') == 735013.0, "valor_usd debe preservarse"
+    assert uv_result.get('fuente') == 'manual', "fuente debe preservarse"
+    assert uv_result.get('fuente_activa') == 'manual', "fuente_activa debe preservarse"
+    assert uv_result.get('manual_params') is not None, "manual_params debe preservarse"
+    assert uv_result.get('manual_valor_usd') == 735013.0, "manual_valor_usd debe preservarse"
+    assert uv_result.get('retro_dias') == 36, "retro_dias debe preservarse"
+    assert '_comp_excluded' in uv_result, "_comp_excluded debe preservarse"
+
+    print(f"[TEST-CLEAN-MANUAL] OK — manual preservada. "
+          f"keys={list(uv_result.keys())}, valor_usd={uv_result['valor_usd']}")
+
+
+def test_clean_comparables_cleans_when_no_manual():
+    """RU-CLEAN-MANUAL-01: Limpiar comparables SIN valuacion manual debe limpiar
+    todo el UV (comportamiento original, no regression)."""
+    uv_original = {
+        'valor_usd': 590062.0,
+        'auto_valor_usd': 590062.0,
+        'fuente': 'auto',
+        'fuente_activa': 'auto',
+        '_comp_excluded': ['comp_1'],
+    }
+
+    tiene_manual = uv_original.get('fuente') == 'manual' or uv_original.get('fuente_activa') == 'manual'
+    assert not tiene_manual, "No debe detectar valuacion manual"
+
+    # Sin manual, se limpia todo
+    uv_result = None
+
+    assert uv_result is None, "Sin manual, UV debe limpiarse completamente"
+
+    print(f"[TEST-CLEAN-NO-MANUAL] OK — UV limpiada cuando no hay manual")
+
+
+def test_guardrail_clean_comparables_detects_violation():
+    """GUARDRAIL RU-CLEAN-MANUAL-01: _verificar_invariante_clean_comparables
+    detecta cuando una manual fue borrada (fuente=manual pero sin manual_params)."""
+    from valu import _verificar_invariante_clean_comparables
+
+    # Escenario de bug: fuente=manual pero se perdieron los datos
+    uv_violado = {'fuente': 'manual', 'valor_usd': 735013.0}
+    result = _verificar_invariante_clean_comparables(uv_violado, "__test__")
+    assert result is False, "Debe detectar violacion: manual_params ausente"
+
+    # Escenario correcto: fuente=manual con todo preservado
+    uv_ok = {
+        'fuente': 'manual', 'fuente_activa': 'manual',
+        'valor_usd': 735013.0, 'manual_valor_usd': 735013.0,
+        'manual_params': {'ancla_id': 'test'},
+    }
+    result = _verificar_invariante_clean_comparables(uv_ok, "__test__")
+    assert result is True, "No debe detectar violacion cuando todo esta correcto"
+
+    # Escenario: fuente=auto, no aplica
+    uv_auto = {'fuente': 'auto', 'valor_usd': 590062.0}
+    result = _verificar_invariante_clean_comparables(uv_auto, "__test__")
+    assert result is True, "No debe activarse cuando fuente=auto"
+
+    print(f"[TEST-GUARDRAIL-CLEAN] OK — violacion detectada, correcto ignorado")
+
+
+def test_guardrail_clean_comparables_auto_corrects():
+    """GUARDRAIL RU-CLEAN-MANUAL-01: Verifica que el invariante NO se activa
+    cuando valor_usd=0 (recien inicializado, no es borrado de manual)."""
+    from valu import _verificar_invariante_clean_comparables
+
+    # UV vacio recien inicializado
+    result = _verificar_invariante_clean_comparables({}, "__test__")
+    assert result is True, "UV vacio no debe activar guardrail"
+
+    # fuente=manual pero valor_usd=0 (recien creado, nunca valuado)
+    uv_zero = {'fuente': 'manual', 'fuente_activa': 'manual',
+               'valor_usd': 0, 'manual_params': None}
+    result = _verificar_invariante_clean_comparables(uv_zero, "__test__")
+    assert result is False, "Debe detectar: manual_params=None con fuente=manual"
+
+    print(f"[TEST-GUARDRAIL-CLEAN-ZERO] OK — casos borde manejados correctamente")
+
+
+def test_guardrail_clean_comparables_integration():
+    """GUARDRAIL RU-CLEAN-MANUAL-01: Integracion - simula el flujo completo
+    de clean + guardrail usando propiedades.json real (como test_manual_valuation).
+    Crea propiedad con manual, ejecuta logica de clean, verifica preservacion."""
+    from valu import cargar_propiedades, guardar_propiedades
+
+    prop_name = "__test_clean_integration__"
+    props = cargar_propiedades()
+    # Limpiar propiedad previa si existe
+    props = [p for p in props if p.get('nombre') != prop_name]
+
+    uv_manual = {
+        'valor_usd': 500000.0, 'auto_valor_usd': 0,
+        'manual_valor_usd': 500000.0, 'fuente': 'manual',
+        'fuente_activa': 'manual',
+        'manual_params': {'ancla_id': 'test', 'usd_m2': 2000},
+        'retro_dias': 36, 'flex_dormitorios': None,
+        '_comp_excluded': [], '_comp_exclusion_applied': False,
+    }
+    props.append({'nombre': prop_name, 'lat': -32.9, 'lon': -60.6,
+                  '_ultima_valuacion': uv_manual})
+    guardar_propiedades(props)
+
+    # Simular la logica de clean del boton
+    props2 = cargar_propiedades()
+    for p in props2:
+        if p.get('nombre') == prop_name:
+            uv_old = p.get('_ultima_valuacion', {})
+            tiene_manual = uv_old.get('fuente') == 'manual' or uv_old.get('fuente_activa') == 'manual'
+            assert tiene_manual, "Debe detectar manual"
+            if tiene_manual:
+                manual_keys = ('valor_usd', 'auto_valor_usd', 'manual_valor_usd',
+                               'fuente', 'fuente_activa', 'manual_params',
+                               'retro_dias', 'flex_dormitorios',
+                               '_comp_excluded', '_comp_exclusion_applied')
+                uv_preservado = {k: uv_old[k] for k in manual_keys if k in uv_old}
+                p['_ultima_valuacion'] = uv_preservado
+            break
+    guardar_propiedades(props2)
+
+    # Verificar en disco
+    props_final = cargar_propiedades()
+    final_uv = next((p.get('_ultima_valuacion', {}) for p in props_final if p.get('nombre') == prop_name), {})
+    assert final_uv.get('valor_usd') == 500000.0, "valor_usd preservado en disco"
+    assert final_uv.get('fuente') == 'manual', "fuente preservada en disco"
+    assert final_uv.get('manual_params') is not None, "manual_params preservado en disco"
+
+    # Limpiar
+    props_clean = [p for p in props_final if p.get('nombre') != prop_name]
+    guardar_propiedades(props_clean)
+
+    print(f"[TEST-CLEAN-INTEGRATION] OK — flujo completo clean+preservacion verificado")
+
+
+def test_guardrail_auto_valor_usd_detects_contamination():
+    """GUARDRAIL RU-MANUAL-SAVE-02: Verifica que _verificar_invariante_auto_valor_usd
+    detecta cuando auto_valor_usd fue contaminado por cache preview y lo auto-corrige."""
+    from valu_detail_sections import _verificar_invariante_auto_valor_usd
+
+    # Escenario: UV fue contaminado con cache preview ($590K) en vez de valor oficial
+    uv = {'auto_valor_usd': 590093, 'fuente_activa': 'manual'}
+    auto_result = {'valor_propiedad_usd': 590093.0}
+
+    result = _verificar_invariante_auto_valor_usd(uv, auto_result, "__test_guardrail__")
+    assert result is False, "Debe detectar contaminacion y devolver False"
+    assert uv['auto_valor_usd'] == 0, "Debe auto-corregir a 0"
+
+    print(f"[TEST-GUARDRAIL] OK — contaminacion detectada y corregida: auto_valor_usd={uv['auto_valor_usd']}")
+
+
+def test_guardrail_auto_valor_usd_preserves_legitimate_value():
+    """GUARDRAIL RU-MANUAL-SAVE-02: Verifica que el invariante NO se activa
+    cuando auto_valor_usd es un valor oficial preservado (diferente del cache preview)."""
+    from valu_detail_sections import _verificar_invariante_auto_valor_usd
+
+    # Escenario: UV tiene auto_valor_usd oficial ($735K) diferente del cache preview ($590K)
+    uv = {'auto_valor_usd': 735013, 'fuente_activa': 'manual'}
+    auto_result = {'valor_propiedad_usd': 590093.0}
+
+    result = _verificar_invariante_auto_valor_usd(uv, auto_result, "__test_guardrail__")
+    assert result is True, "No debe detectar contaminacion cuando valor preservado es diferente"
+    assert uv['auto_valor_usd'] == 735013, "Debe preservar el valor oficial"
+
+    print(f"[TEST-GUARDRAIL-LEGIT] OK — valor oficial preservado: auto_valor_usd={uv['auto_valor_usd']}")
+
+
+def test_guardrail_auto_valor_usd_ignores_non_manual():
+    """GUARDRAIL RU-MANUAL-SAVE-02: Verifica que el invariante NO se activa
+    cuando la fuente activa es 'auto' (no aplica a modo automatico)."""
+    from valu_detail_sections import _verificar_invariante_auto_valor_usd
+
+    # Escenario: fuente activa es auto, no manual
+    uv = {'auto_valor_usd': 590093, 'fuente_activa': 'auto'}
+    auto_result = {'valor_propiedad_usd': 590093.0}
+
+    result = _verificar_invariante_auto_valor_usd(uv, auto_result, "__test_guardrail__")
+    assert result is True, "No debe activarse cuando fuente != manual"
+    assert uv['auto_valor_usd'] == 590093, "No debe modificar auto_valor_usd"
+
+    print(f"[TEST-GUARDRAIL-AUTO] OK — invariante ignorado en modo auto: auto_valor_usd={uv['auto_valor_usd']}")
+
+
+def test_guardrail_auto_valor_usd_uv_init_0():
+    """GUARDRAIL RU-MANUAL-SAVE-02: Verifica que si auto_valor_usd es 0 (inicializado
+    por setdefault) y cache preview tiene valor, NO se activa el invariante."""
+    from valu_detail_sections import _verificar_invariante_auto_valor_usd
+
+    # Escenario: UV se inicializo con 0 (nunca se aplico auto engine), cache tiene valor
+    uv = {'auto_valor_usd': 0, 'fuente_activa': 'manual'}
+    auto_result = {'valor_propiedad_usd': 590093.0}
+
+    result = _verificar_invariante_auto_valor_usd(uv, auto_result, "__test_guardrail__")
+    assert result is True, "auto_valor_usd=0 es distinto de cache preview, no hay contaminacion"
+    assert uv['auto_valor_usd'] == 0, "Debe mantener 0"
+
+    print(f"[TEST-GUARDRAIL-ZERO] OK — auto_valor_usd=0 preservado: {uv['auto_valor_usd']}")

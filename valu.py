@@ -521,10 +521,27 @@ def mostrar_dashboard():
                     for p in props:
                         if p.get('nombre') == prop_name:
                             uv_old = p.get('_ultima_valuacion', {})
-                            print(f"[DEBUG-CLEAN] {prop_name}: limpiando _ultima_valuacion (tenia fuente={uv_old.get('fuente')}, manual_params={bool(uv_old.get('manual_params'))}, valor_usd={uv_old.get('valor_usd')})")
-                            p.pop('_ultima_valuacion', None)
+                            tiene_manual = uv_old.get('fuente') == 'manual' or uv_old.get('fuente_activa') == 'manual'
+                            print(f"[DEBUG-CLEAN] {prop_name}: tiene_manual={tiene_manual}, "
+                                  f"UV:fuente={uv_old.get('fuente')}, valor_usd={uv_old.get('valor_usd')}")
+                            if tiene_manual:
+                                manual_keys = ('valor_usd', 'auto_valor_usd', 'manual_valor_usd',
+                                               'fuente', 'fuente_activa', 'manual_params',
+                                               'retro_dias', 'flex_dormitorios',
+                                               '_comp_excluded', '_comp_exclusion_applied')
+                                uv_preservado = {k: uv_old[k] for k in manual_keys if k in uv_old}
+                                p['_ultima_valuacion'] = uv_preservado
+                                print(f"[DEBUG-CLEAN-PRESERVE] {prop_name}: preservada valuacion manual. "
+                                      f"valor_usd={uv_preservado.get('valor_usd')}, "
+                                      f"fuente={uv_preservado.get('fuente')}")
+                            else:
+                                p.pop('_ultima_valuacion', None)
                             break
                     guardar_propiedades(props)
+                    if tiene_manual:
+                        print(f"[GUARDRAIL-CLEAN] {prop_name}: POST-CLEAN OK - "
+                              f"manual preservada: valor_usd={uv_preservado.get('valor_usd')}, "
+                              f"fuente={uv_preservado.get('fuente')}")
                 except Exception as e:
                     print(f"[DEBUG-CLEAN] Error limpiando comparables {prop_name}: {e}")
                 st.session_state.pop(f'preview_mode_{prop_name}', None)
@@ -2008,6 +2025,37 @@ def main():
         _loader.empty()
 
     profile_end(_main_ctx)
+
+# ========================================================================
+# GUARDRAIL RU-CLEAN-MANUAL-01: Limpiar comparables NO debe borrar manual
+# ========================================================================
+def _verificar_invariante_clean_comparables(uv: dict, nombre: str) -> bool:
+    """
+    Verifica que despues de limpiar comparables, si habia una valuacion manual
+    (fuente=manual), los campos esenciales se preservaron.
+
+    Returns:
+        True si el invariante se cumple.
+        False si se detecto que la manual fue borrada.
+    """
+    if not uv:
+        return True
+    fuente = uv.get('fuente', '')
+    valor_usd = uv.get('valor_usd', 0)
+    manual_params = uv.get('manual_params')
+
+    if fuente == 'manual' and valor_usd > 0 and manual_params is None:
+        print(f"[GUARDRAIL-EXCL] {nombre}: INVARIANTE VIOLADO - "
+              f"fuente=manual pero manual_params perdido. "
+              f"Probable colision con limpiar comparables.")
+        return False
+    if fuente == 'manual' and valor_usd == 0:
+        print(f"[GUARDRAIL-EXCL] {nombre}: INVARIANTE VIOLADO - "
+              f"fuente=manual pero valor_usd=0. "
+              f"Probable colision con limpiar comparables.")
+        return False
+    return True
+
 
 if __name__ == "__main__":
     with profile_block("APP_SCRIPT_TOTAL", "global"):

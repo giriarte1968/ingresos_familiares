@@ -19,6 +19,35 @@ El fix TAREA-121 fue insuficiente. El auto card seguía mostrando $590K (stale c
 - `[DEBUG-INSUF-COMPS]`: Agregado `fuente_activa` al print existente
 - `[DEBUG-DELETE-103]`: Agregado `auto_valor_usd_previo` para rastrear valor al eliminar manual
 
+### Guardrails agregados
+- `_verificar_invariante_auto_valor_usd()` en `valu_detail_sections.py:1656`: Detecta si `auto_valor_usd` fue contaminado por cache preview. Auto-corrige a 0.
+- Tests: `test_guardrail_auto_valor_usd_detects_contamination`, `test_guardrail_auto_valor_usd_preserves_legitimate_value`, `test_guardrail_auto_valor_usd_ignores_non_manual`, `test_guardrail_auto_valor_usd_uv_init_0`
+
+---
+
+## 2026-07-06 — TAREA-123: Fix 🔄 Limpiar borra valuación manual (RU-CLEAN-MANUAL-01)
+
+### Contexto
+Después de guardar valuación manual y volver al preview de comparables, el botón "🔄 Limpiar" dentro del expander "📊 Valuación por Comparables" ejecutaba `p.pop('_ultima_valuacion', None)` que **borraba TODO el UV**, incluyendo la valuación manual. El comentario decía "conserva manual si existe" pero la implementación hacía lo opuesto.
+
+### Causa raíz
+`valu.py:525` — `p.pop('_ultima_valuacion', None)` sin verificar si el UV contenía una valuación manual (`fuente=manual`).
+
+### Fix aplicado
+1. **RU-CLEAN-MANUAL-01** (`valu.py:527-536`): Si `tiene_manual` (fuente=manual o fuente_activa=manual), preserva las claves esenciales (`valor_usd`, `auto_valor_usd`, `manual_valor_usd`, `fuente`, `fuente_activa`, `manual_params`, `retro_dias`, `flex_dormitorios`, `_comp_excluded`, `_comp_exclusion_applied`). Solo hace `pop` completo si NO hay manual.
+
+### DEBUG flags agregados
+- `[DEBUG-CLEAN-PRESERVE]`: Muestra `valor_usd` y `fuente` preservados tras limpiar con manual activa
+- `[GUARDRAIL-CLEAN]`: Confirmación POST-CLEAN de que la manual se preservó
+
+### Guardrail agregado
+- `_verificar_invariante_clean_comparables()` en `valu.py:2026`: Detecta si tras un clean, una propiedad con `fuente=manual` perdió `manual_params` o tiene `valor_usd=0`.
+- DEBUG flag: `[GUARDRAIL-EXCL]` con descripción de la violación.
+- Tests: `test_guardrail_clean_comparables_detects_violation`, `test_guardrail_clean_comparables_auto_corrects`, `test_guardrail_clean_comparables_integration`, `test_clean_comparables_preserves_manual_valuation`, `test_clean_comparables_cleans_when_no_manual`.
+
+### Tests
+19/19 pasando (5 nuevos para RU-CLEAN-MANUAL-01).
+
 ### Guardrails
 - **RU-MANUAL-SAVE-02**: Save manual NO escribe `auto_valor_usd` desde auto_result. Preserva UV existente o inicializa a 0.
 

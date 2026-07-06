@@ -1,6 +1,6 @@
 ﻿# 🏠 STATUS ACTUAL DEL PROYECTO — AVM Rosario
 
-*Actualizado: 06/07/2026 (TAREA-122: Fix real header leak — cache preview no contamina auto_valor_usd)*
+*Actualizado: 06/07/2026 (TAREA-123: Fix 🔄 Limpiar borra valuación manual)*
 
 ---
 
@@ -210,6 +210,7 @@ git checkout origin/do-state -- propiedades.json data/valuaciones_cache.json
 - **RU-HEADER-01**: Auto card usa `n_comps_auto` (del AUTO engine), NO `n_comps` del display (que sigue a `fuente_activa`).
 - **RU-HEADER-02**: Auto card oculto si `fuente_activa == 'manual'` y no hay `auto_valor_usd` oficial en UV.
 - **RU-MANUAL-SAVE-02**: Save manual NO contamina `auto_valor_usd` con valor preview del cache.
+- **RU-CLEAN-MANUAL-01**: Limpiar comparables (`🔄 Limpiar`) NO borra la valuación manual. Preserva `valor_usd`, `auto_valor_usd`, `manual_valor_usd`, `fuente`, `fuente_activa`, `manual_params`, `retro_dias`, `flex_dormitorios` y `_comp_excluded`.
 
 ---
 
