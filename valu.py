@@ -528,6 +528,7 @@ def mostrar_dashboard():
                                 manual_keys = ('valor_usd', 'auto_valor_usd', 'manual_valor_usd',
                                                'fuente', 'fuente_activa', 'manual_params',
                                                'retro_dias', 'flex_dormitorios',
+                                               'comps', 'm2_equivalentes',
                                                '_comp_excluded', '_comp_exclusion_applied')
                                 uv_preservado = {k: uv_old[k] for k in manual_keys if k in uv_old}
                                 p['_ultima_valuacion'] = uv_preservado

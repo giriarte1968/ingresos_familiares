@@ -1,6 +1,42 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-07-06 — TAREA-124: Header independiente auto/manual + Fix n_comps gate bug
+
+### Contexto
+El fix TAREA-123 preservó la UV manual al limpiar comparables, pero el header seguía sin mostrar la tarjeta MANUAL. Causa: el gate `n_comps < 3` en `render_header` usaba `n_comps` del `display` (que sigue a `fuente_activa`). Cuando `fuente_activa='manual'`, `display=manual_result`, y `generar_resultado_manual` copiaba `n_propiedades=0` del `auto_result` fallido (cache fría post-Limpiar). La condición `0 < 3` zereaba AMBAS tarjetas: `v_auto=0` y `v_manual=0`.
+
+Además, el clean block no preservaba `comps` ni `m2_equivalentes`, causando que el fallback TAREA-102 (`uv_snap.get('comps', 0) >= 3`) fallara al no encontrar `comps` en la UV preservada.
+
+### Causa raíz — Tres puntos de acoplamiento
+1. **PRIMARIO — `render_header:235`**: Gate `< 3` comps usaba `n_comps` del display, no `n_comps_auto_hide` del auto engine. Al activarse, zereaba `v_manual` junto a `v_auto`.
+2. **`render_header:179`**: `n_comps` para la confianza del property card venía del display (dependía de `fuente_activa`), no del auto engine.
+3. **`valu.py:528-531`**: `manual_keys` no incluía `comps` ni `m2_equivalentes`, rompiendo el fallback TAREA-102.
+
+### Fix aplicado
+1. **RU-HEADER-03** (`valu_detail_sections.py:235`): Gate cambiado a `n_comps_auto_hide < 3`. Cuando se activa, solo zerea `v_auto` (no `v_manual`). La tarjeta MANUAL es independiente de la disponibilidad de comparables.
+2. **`valu_detail_sections.py:179`**: `n_comps` ahora siempre desde `auto_result.resolution_metadata.n_propiedades`, no del display.
+3. **`valu.py:528-531`**: Agregados `'comps'` y `'m2_equivalentes'` a `manual_keys` para que el fallback TAREA-102 funcione post-Limpiar.
+
+### DEBUG flags
+- `[DEBUG-INSUF-COMPS]`: Mensaje actualizado para reflejar que solo se oculta auto card cuando `n_comps_auto_hide < 3`.
+
+### Tests
+- Nuevo: `test_manual_card_shows_when_auto_0_comps` (TAREA-124): Auto con `n_propiedades=0`, manual con $735K → verifica auto oculto, manual visible.
+- Actualizado: `test_clean_comparables_preserves_manual_valuation` ahora verifica `comps` y `m2_equivalentes`.
+- 20/20 regression OK. `auto_validate.py` OK.
+
+### Archivos modificados
+- `valu_detail_sections.py:179,235-244` — Gate desacoplado, n_comps desde auto
+- `valu.py:528-531` — manual_keys +comps +m2_equivalentes
+- `tests/test_regression.py` — Nuevo test + actualizado test clean
+- `.opencode/plans/TAREA-124.md` — Plan archivado
+- `docs/BITACORA_AGENTES.md` — Esta entrada
+- `docs/STATUS_ACTUAL.md` — Actualizado
+- `.opencode/plans/TAREAS_INDEX.md` — Entrada agregada
+
+---
+
 ## 2026-07-06 — TAREA-122: Fix real header leak — cache preview no contamina auto_valor_usd
 
 ### Contexto

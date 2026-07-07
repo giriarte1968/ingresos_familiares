@@ -479,6 +479,102 @@ def test_auto_card_hidden_when_engine_failed_after_manual_save():
               f"Manual showing={manual_card_showing}")
 
 
+def test_manual_card_shows_when_auto_0_comps():
+    """TAREA-124: RU-HEADER-03 — La tarjeta MANUAL debe mostrarse aunque el auto engine
+    tenga 0 comparables (n_propiedades=0). Escenario: usuario guardó valuación manual,
+    luego limpió comparables, el engine no encontró datos (cache fría).
+    El header debe mostrar la manual, ocultando solo la auto card."""
+    import streamlit as st
+    from unittest.mock import patch, MagicMock
+    import json
+
+    nombre = "__test_manual_0_comps__"
+    prop = {
+        'nombre': nombre,
+        'zona': 'Centro',
+        'lat': -32.95, 'lon': -60.63,
+        'direccion': 'Test 123',
+        '_ultima_valuacion': {
+            'valor_usd': 735013.0,
+            'auto_valor_usd': 0,
+            'manual_valor_usd': 735013.0,
+            'fuente': 'manual',
+            'fuente_activa': 'manual',
+            'manual_params': {'ancla_id': 'test', 'usd_m2': 2000},
+            'comps': 0,
+            'm2_equivalentes': 160.0,
+            'retro_dias': 36,
+            'flex_dormitorios': None,
+        }
+    }
+
+    # Auto_result con 0 comps (engine falló o cache fría post-Limpiar)
+    auto_result = {
+        'valor_propiedad_usd': 0,
+        'm2_base_venta': 0,
+        'm2_microzona': 0,
+        'm2_equivalentes': 0,
+        'usdt_ars': 1480,
+        'resolution_metadata': {'n_propiedades': 0},
+        '_fallback_uv': False,
+        '_cache': {'preview': True, 'recalculado': False, 'guard_restored': False},
+    }
+
+    manual_result = {
+        'valor_propiedad_usd': 735013.0,
+        'm2_base_venta': 160.0,
+        'm2_equivalentes': 160.0,
+        'usdt_ars': 1480,
+        'resolution_metadata': {'n_propiedades': 0},
+    }
+
+    res = {
+        '_auto_result': auto_result,
+        '_manual_result': manual_result,
+        '_manual_params': prop['_ultima_valuacion']['manual_params'],
+        '_fuente_activa': 'manual',
+        '_cache': {'preview': True, 'recalculado': False, 'guard_restored': False},
+    }
+
+    captured_md = []
+
+    def _md_side_effect(*args, **kw):
+        captured_md.append(args[0] if args else kw.get('body', ''))
+        return MagicMock()
+
+    with patch('streamlit.columns', side_effect=_cols_side_effect), \
+         patch('streamlit.markdown', side_effect=_md_side_effect), \
+         patch('streamlit.metric'), \
+         patch('streamlit.warning'):
+
+        from valu_detail_sections import render_header
+        render_header(prop, res)
+
+        # Auto card debe mostrar "—" (0 comps)
+        auto_card_hidden = False
+        # Manual card debe mostrar $735,013
+        manual_card_showing = False
+        for md in captured_md:
+            if 'POR COMPARABLES' in str(md):
+                if '—' in str(md):
+                    auto_card_hidden = True
+            if 'MANUAL' in str(md):
+                if '735,013' in str(md) or '735013' in str(md):
+                    manual_card_showing = True
+
+        assert auto_card_hidden, (
+            f"Auto card debe mostrar '—' (oculto) cuando auto engine tiene 0 comps. "
+            f"Markdowns: {[m[:80] for m in captured_md]}"
+        )
+        assert manual_card_showing, (
+            f"Manual card debe mostrar el valor guardado ($735,013) aunque auto tenga 0 comps. "
+            f"Markdowns: {[m[:80] for m in captured_md]}"
+        )
+
+        print(f"[TEST-MANUAL-0-COMPS] OK — auto card oculto, manual card visible ($735,013). "
+              f"Auto hidden={auto_card_hidden}, Manual showing={manual_card_showing}")
+
+
 # ========================================================================
 # TESTS RU-CLEAN-MANUAL-01: Limpiar comparables NO debe borrar manual
 # ========================================================================
@@ -496,6 +592,8 @@ def test_clean_comparables_preserves_manual_valuation():
         'manual_params': {'ancla_id': 'test', 'usd_m2': 2000},
         'retro_dias': 36,
         'flex_dormitorios': None,
+        'comps': 12,
+        'm2_equivalentes': 160.0,
         '_comp_excluded': [],
         '_comp_exclusion_applied': False,
     }
@@ -508,6 +606,7 @@ def test_clean_comparables_preserves_manual_valuation():
         manual_keys = ('valor_usd', 'auto_valor_usd', 'manual_valor_usd',
                        'fuente', 'fuente_activa', 'manual_params',
                        'retro_dias', 'flex_dormitorios',
+                       'comps', 'm2_equivalentes',
                        '_comp_excluded', '_comp_exclusion_applied')
         uv_result = {k: uv_original[k] for k in manual_keys if k in uv_original}
 
@@ -517,6 +616,8 @@ def test_clean_comparables_preserves_manual_valuation():
     assert uv_result.get('manual_params') is not None, "manual_params debe preservarse"
     assert uv_result.get('manual_valor_usd') == 735013.0, "manual_valor_usd debe preservarse"
     assert uv_result.get('retro_dias') == 36, "retro_dias debe preservarse"
+    assert uv_result.get('comps') == 12, "comps debe preservarse"
+    assert uv_result.get('m2_equivalentes') == 160.0, "m2_equivalentes debe preservarse"
     assert '_comp_excluded' in uv_result, "_comp_excluded debe preservarse"
 
     print(f"[TEST-CLEAN-MANUAL] OK — manual preservada. "

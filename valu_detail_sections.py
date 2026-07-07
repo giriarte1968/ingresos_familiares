@@ -176,7 +176,7 @@ def render_header(prop, res):
     m2_equiv_display = display.get('m2_equivalentes', 0)
     m2_puro = meta.get('_m2_puro', m2_base)
     barrier_pct = meta.get('barrier_pct', 0)
-    n_comps = meta.get('n_propiedades', 0)
+    n_comps = (auto_result.get('resolution_metadata') or {}).get('n_propiedades', 0) if auto_result else 0
 
     # Calcular divergencia manual vs auto (si hay manual)
     delta_pct = 0
@@ -232,14 +232,13 @@ def render_header(prop, res):
     preview_mode = res.get('_cache', {}).get('preview', False)
     n_comps_auto_hide = (auto_result.get('resolution_metadata') or {}).get('n_propiedades', 0) if auto_result else 0
     ocultar_auto = n_comps_auto_hide < 3 or (fuente_activa == 'manual' and not uv_dict.get('auto_valor_usd', 0) > 0)
-    if n_comps < 3 or (preview_mode and not ya_valuado):
-        print(f"[DEBUG-INSUF-COMPS] {nombre}: n_comps={n_comps}, preview={preview_mode}, ya_valuado={ya_valuado}, "
-              f"ocultando valuación en header. v_auto_antes={v_auto}, v_manual_antes={v_manual}, "
+    if n_comps_auto_hide < 3 or (preview_mode and not ya_valuado):
+        print(f"[DEBUG-INSUF-COMPS] {nombre}: n_comps_auto_hide={n_comps_auto_hide}, preview={preview_mode}, ya_valuado={ya_valuado}, "
+              f"ocultando solo auto card (manual preservado). v_auto_antes={v_auto}, v_manual_antes={v_manual}, "
               f"UV:auto_valor_usd={auto_valor_uv_auto}, UV:manual_valor_usd={auto_valor_uv_manual}")
         valor_usd = 0
         m2_microzona = 0
         v_auto = 0
-        v_manual = 0
         m2_micro_auto = 0
         m2_line_auto = "—"
     elif ocultar_auto:
