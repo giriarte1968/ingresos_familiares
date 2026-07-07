@@ -4107,3 +4107,23 @@ Se detectó que el slider de Retro podía mostrar un valor incorrecto (default 3
 - 66/66 regression OK.
 - `auto_validate.py` OK.
 - Commit: `a31b8eb`, pushed a `estabilizar`.
+
+---
+
+## 2026-07-07 — TAREA-125: Fix portfolio double-value + Guardrail RU-PORTFOLIO-01
+
+### Contexto
+TAREA-122 setea `auto_valor_usd=0` en UV al guardar manual. En `_build_rows()` (valu_portfolio2.py:361-362), `auto_valor_usd` se inicializa a 0, y el fallback `auto_valor_usd = valor` copia el valor manual (porque `_cargar_resultados_cache` sobrescribe `valor_propiedad_usd` con el valor manual). En `_render_cards`, se muestran ambos valores idénticos.
+
+### Cambios aplicados
+1. **`valu_portfolio2.py:_build_rows`** (L361-362): El fallback `auto_valor_usd = valor` ahora respeta `fuente_activa`. Si `fuente_activa='manual'`, NO se hace fallback (auto_valor_usd queda en 0). DEBUG flag `[DEBUG-PORTFOLIO-BUILD]` rastrea las decisiones.
+2. **`valu_portfolio2.py:_render_cards`** (L594-602): Se agregó `has_auto`. Cuando `auto_val==0` y hay manual, se muestra solo manual. Cuando ambos son 0, se muestra `—`. Tres estados: ambos, solo manual, solo auto, ninguno.
+3. **`valu_portfolio2.py`**: Nueva función `_verificar_invariante_portfolio_manual()` — RU-PORTFOLIO-01. Detecta si `auto_valor_usd` fue contaminado con el valor manual (`auto_val == manual_val` cuando `fuente_activa='manual'`). Se llama en cada iteración de `_build_rows`.
+4. **`tests/test_regression.py`**: 4 nuevos tests del guardrail (contaminación, falso positivo, ignorar auto, sin manual).
+
+### Archivos modificados
+- `valu_portfolio2.py` — Fix _build_rows fallback + _render_cards three-state + guardrail function
+- `tests/test_regression.py` — 4 guardrail tests (test_guardrail_portfolio_manual_*)
+- `docs/BITACORA_AGENTES.md` — Nueva entrada
+- `.opencode/plans/TAREA-125.md` — Nuevo plan archivado
+- `.opencode/plans/TAREAS_INDEX.md` — Nueva entrada

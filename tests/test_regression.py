@@ -807,3 +807,67 @@ def test_guardrail_auto_valor_usd_uv_init_0():
     assert uv['auto_valor_usd'] == 0, "Debe mantener 0"
 
     print(f"[TEST-GUARDRAIL-ZERO] OK — auto_valor_usd=0 preservado: {uv['auto_valor_usd']}")
+
+
+def test_guardrail_portfolio_manual_detects_contamination():
+    """GUARDRAIL RU-PORTFOLIO-01: Verifica que _verificar_invariante_portfolio_manual
+    detecta cuando auto_valor_usd fue contaminado con el valor manual."""
+    from valu_portfolio2 import _verificar_invariante_portfolio_manual
+
+    row = {
+        'auto_valor_usd': 735013.0,
+        'manual_valor_usd': 735013.0,
+        'valor_usd': 735013.0,
+        'fuente_activa': 'manual',
+    }
+    result = _verificar_invariante_portfolio_manual(row, "__test_guardrail_portfolio__")
+    assert result is False, "Debe detectar contaminacion: auto_val == manual_val con fuente=manual"
+    print(f"[TEST-GUARDRAIL-PORT-01] OK — contaminacion detectada")
+
+
+def test_guardrail_portfolio_manual_no_false_positive():
+    """GUARDRAIL RU-PORTFOLIO-01: Verifica que NO hay falso positivo
+    cuando auto_valor_usd es legitimo (diferente del valor manual)."""
+    from valu_portfolio2 import _verificar_invariante_portfolio_manual
+
+    row = {
+        'auto_valor_usd': 590062.0,
+        'manual_valor_usd': 735013.0,
+        'valor_usd': 590062.0,
+        'fuente_activa': 'manual',
+    }
+    result = _verificar_invariante_portfolio_manual(row, "__test_guardrail_portfolio__")
+    assert result is True, "No debe detectar contaminacion cuando valores son diferentes"
+    print(f"[TEST-GUARDRAIL-PORT-01] OK — sin falso positivo")
+
+
+def test_guardrail_portfolio_manual_ignores_auto():
+    """GUARDRAIL RU-PORTFOLIO-01: Verifica que el invariante NO se activa
+    cuando la fuente activa es 'auto'."""
+    from valu_portfolio2 import _verificar_invariante_portfolio_manual
+
+    row = {
+        'auto_valor_usd': 590062.0,
+        'manual_valor_usd': 590062.0,
+        'valor_usd': 590062.0,
+        'fuente_activa': 'auto',
+    }
+    result = _verificar_invariante_portfolio_manual(row, "__test_guardrail_portfolio__")
+    assert result is True, "No debe activarse cuando fuente=auto"
+    print(f"[TEST-GUARDRAIL-PORT-01] OK — invariante ignorado en modo auto")
+
+
+def test_guardrail_portfolio_manual_no_manual():
+    """GUARDRAIL RU-PORTFOLIO-01: Verifica que no hay falso positivo
+    cuando manual_valor_usd = 0 (no hay valuacion manual)."""
+    from valu_portfolio2 import _verificar_invariante_portfolio_manual
+
+    row = {
+        'auto_valor_usd': 590062.0,
+        'manual_valor_usd': 0,
+        'valor_usd': 590062.0,
+        'fuente_activa': 'manual',
+    }
+    result = _verificar_invariante_portfolio_manual(row, "__test_guardrail_portfolio__")
+    assert result is True, "No debe activarse cuando manual_valor_usd=0"
+    print(f"[TEST-GUARDRAIL-PORT-01] OK — sin manual no hay contaminacion")

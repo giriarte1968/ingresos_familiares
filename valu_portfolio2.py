@@ -359,7 +359,12 @@ def _build_rows(propiedades: list[dict[str, Any]], resultados: dict[str, dict], 
         auto_valor_usd = float(cache_meta.get('auto_valor_usd', 0) or ultima.get('auto_valor_usd', 0) or 0)
         manual_valor_usd = float(cache_meta.get('manual_valor_usd', 0) or ultima.get('manual_valor_usd', 0) or 0)
         if not auto_valor_usd:
-            auto_valor_usd = valor  # fallback: main value is auto
+            fuente_activa = ultima.get('fuente_activa', 'auto')
+            if fuente_activa != 'manual':
+                auto_valor_usd = valor
+            print(f"[DEBUG-PORTFOLIO-BUILD] {nombre}: auto_valor_usd={auto_valor_usd}, "
+                  f"manual_valor_usd={manual_valor_usd}, fuente_activa={fuente_activa}, "
+                  f"valor_base={valor}")
 
         if comps >= 15:
             conf_label, conf_badge = "Alta", "green"
@@ -369,6 +374,14 @@ def _build_rows(propiedades: list[dict[str, Any]], resultados: dict[str, dict], 
             conf_label, conf_badge = "Baja", "red"
         else:
             conf_label, conf_badge = "Sin datos", "amber"
+
+        _verificar_invariante_portfolio_manual({
+            "nombre": nombre,
+            "auto_valor_usd": auto_valor_usd,
+            "manual_valor_usd": manual_valor_usd,
+            "valor_usd": valor,
+            "fuente_activa": ultima.get('fuente_activa', 'auto'),
+        }, nombre)
 
         rows.append({
             "id": prop.get("id", f"_no_id_{nombre}"),
@@ -592,11 +605,16 @@ def _render_cards(rows: list[dict[str, Any]], page_size: int) -> None:
                 auto_val = float(row.get('auto_valor_usd', 0) or 0)
                 manual_val = float(row.get('manual_valor_usd', 0) or 0)
                 has_manual = manual_val > 0
-                if has_manual:
+                has_auto = auto_val > 0
+                if has_manual and has_auto:
                     price_block = f'''<div class="p2-price">{_fmt_usd(auto_val)} <span class="p2-price-label">Comparables</span></div>
 <div class="p2-price" style="color:#006AFF;">{_fmt_usd(manual_val)} <span style="font-size:11px;font-weight:400;color:#006AFF;opacity:0.7;">Manual</span></div>'''
-                else:
+                elif has_manual:
+                    price_block = f'''<div class="p2-price" style="color:#006AFF;">{_fmt_usd(manual_val)} <span style="font-size:11px;font-weight:400;color:#006AFF;opacity:0.7;">Manual</span></div>'''
+                elif has_auto:
                     price_block = f'''<div class="p2-price">{_fmt_usd(auto_val)}</div>'''
+                else:
+                    price_block = f'''<div class="p2-price">—</div>'''
                 st.markdown(f'''
                 <a href="?prop={row['nombre']}" style="text-decoration:none;color:inherit;">
                 <div class="p2-property-card" style="cursor:pointer;">
@@ -835,3 +853,25 @@ def mostrar_portfolio2(
         _render_table(rows_filtradas)
     elif vista == "Analytics":
         _render_analytics(rows_filtradas)
+
+
+def _verificar_invariante_portfolio_manual(row: dict, nombre: str) -> bool:
+    """
+    RU-PORTFOLIO-01: Verifica que auto_valor_usd NO fue contaminado
+    con el valor manual en el portfolio.
+
+    Returns:
+        True si invariante se cumple.
+        False si se detecto contaminacion.
+    """
+    auto_val = float(row.get('auto_valor_usd', 0) or 0)
+    manual_val = float(row.get('manual_valor_usd', 0) or 0)
+    valor = float(row.get('valor_usd', 0) or 0)
+    fuente = row.get('fuente_activa', 'auto')
+
+    if fuente == 'manual' and manual_val > 0 and auto_val > 0 and auto_val == manual_val:
+        print(f"[GUARDRAIL-PORT-01] {nombre}: CONTAMINACION DETECTADA - "
+              f"auto_valor_usd={auto_val} == manual_valor_usd={manual_val}. "
+              f"RU-PORTFOLIO-01 violado. Valor={valor}, fuente={fuente}")
+        return False
+    return True
