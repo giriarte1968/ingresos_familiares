@@ -99,3 +99,4 @@
 | TAREA-124 | Header independiente auto/manual + Fix n_comps gate bug (RU-HEADER-03) | _(current)_ | 2026-07-06 |
 | TAREA-125 | Fix portfolio double-value + _build_rows fallback + _render_cards + Guardrail RU-PORTFOLIO-01 | _(current)_ | 2026-07-07 |
 | TAREA-126 | Restaurar botones Valuación Manual (siempre visibles) + Renombrar a "Aplicar Selección"/"Limpiar" | _(current)_ | 2026-07-08 |
+| TAREA-127 | Fix exclusion-applied state con 0 exclusiones (session_state) | `2135dea` | 2026-07-08 |

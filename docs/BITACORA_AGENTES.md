@@ -4155,3 +4155,40 @@ El botón "Guardar Valuacion Manual" se ocultaba cuando `can_save=False` (parám
 - `docs/BITACORA_AGENTES.md` — Nueva entrada
 - `.opencode/plans/TAREA-126.md` — Nuevo plan archivado
 - `.opencode/plans/TAREAS_INDEX.md` — Nueva entrada
+
+---
+
+## 2026-07-08 — TAREA-127: Fix exclusion-applied state con 0 exclusiones (session_state)
+
+### Contexto
+TAREA-105 (commit 587cdd9) agregó un `if excluded_ids_list:` guard en el restore de UV que causó que el flag `_comp_exclusion_applied` NO se restaurara cuando la lista de exclusiones está vacía. Esto provocó que aplicar selección con 6/6 (0 exclusiones) dejara el botón en "✅ Aplicar selección (6/6)" en lugar de "✅ Selección Aplicada".
+
+### Causa raíz
+El guard `if excluded_ids_list:` en `valu.py:948-953` (EXCL-RESTORE) era necesario para evitar un falso positivo post-Retro toggle, pero rompió el caso de apply con 0 exclusiones porque no se podía distinguir entre:
+1. "Nunca se aplicó selección" (UV fresca post-Retro) → `_comp_exclusion_applied` debe ser falsy
+2. "Se aplicó selección con 0 exclusiones" → `_comp_exclusion_applied` debe ser True
+
+La información en UV es insuficiente para distinguir ambos casos (en ambos, `_comp_excluded=[]`).
+
+### Solución
+Usar `session_state` para llevar el flag `_comp_exclusion_applied` a través de reruns, complementando a UV:
+1. **Apply handler** (`valu_detail_sections.py:603`): setea `_comp_exclusion_applied` y `_comp_excluded` en session_state
+2. **is_applied check** (`valu_detail_sections.py:560-563`): usa `res.get(X) or st.session_state.get(X, default)` para que session_state sea el fallback
+3. **Retro/Flex callbacks** (`valu.py:382,396,406`): `pop` flags de session_state para deshacer apply tras toggle
+4. **Resultado engine** (`valu.py:1087`): cuando engine limpia `_comp_exclusion_applied` en resultado, también pop de session_state
+
+### Debug flags
+- `[DEBUG-YA.is_applied]`: Muestra valores de comp_excluded, excluded_ids y resultado de comparación
+- `[DEBUG-EXCL-RESTORE]`: Muestra cuándo se restaura o no `_comp_exclusion_applied` desde UV
+
+### Tests
+- **T_S-14**: Apply con 6/6, verifica que botón muestra "Selección Aplicada" via session_state
+- **T_S-15**: Retro toggle después de apply, verifica que botón vuelve a "Aplicar selección"
+- **T_S-16**: Apply con 3/6 exclusiones reales, verifica flag preservado desde UV
+- 28/28 regression OK. `auto_validate.py` OK.
+
+### Archivos modificados
+- `valu_detail_sections.py` — Apply handler + is_applied check con `or`
+- `valu.py` — Retro/Flex callbacks pop flags + engine cleanup
+- `tests/test_regression.py` — 3 nuevos tests + `_MockColumn` helper
+- `docs/BITACORA_AGENTES.md` — Nueva entrada
