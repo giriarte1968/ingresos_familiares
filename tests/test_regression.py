@@ -146,6 +146,29 @@ def _cols_side_effect(*args, **kw):
     return [MagicMock() for _ in range(n)]
 
 
+class _MockColumn:
+    """Column mock whose checkbox() reads from st.session_state for test isolation."""
+    def __init__(self):
+        from unittest.mock import MagicMock
+        self._mock = MagicMock()
+    def checkbox(self, label='', key=None, **kwargs):
+        import streamlit as st
+        return st.session_state.get(key, False)
+    def __enter__(self):
+        return self
+    def __exit__(self, *args):
+        pass
+    def __getattr__(self, name):
+        return getattr(self._mock, name)
+
+
+def _cols_side_effect_with_checkbox(*args, **kw):
+    """Like _cols_side_effect but uses _MockColumn so checkbox reads session_state."""
+    spec = args[0] if args else [1]
+    n = len(spec) if isinstance(spec, (list, tuple)) else int(spec)
+    return [_MockColumn() for _ in range(n)]
+
+
 def _number_input_side_effect(*args, **kw):
     """Mocks st.number_input by returning the 'value' kwarg or 0."""
     return kw.get('value', 0)
@@ -953,3 +976,157 @@ def test_ui_manual_limpiar_button_name():
             f"Llamadas: {antiguo_calls}"
         )
         print(f"[TEST-UI-MANUAL-LIMPIAR] OK — botón '🔄 Limpiar' presente, antiguo nombre ausente")
+
+
+def test_exclusion_applied_flag_session_state_zero_exclusions():
+    """T_S-14: Apply con 6/6 (0 exclusiones) → is_applied=True via session_state.
+    Verifica que el flag session_state mantiene el botón como 'Aplicada' cuando
+    res no tiene el flag (simula rerun post-apply).
+    """
+    import streamlit as st
+    from unittest.mock import patch, MagicMock
+    from valu_detail_sections import render_tabla_comparables, _get_comp_id
+
+    comparables = [{'id': f'c{i}', 'precio': 1000 + i*100, 'm2': 50 + i*10,
+                    'direccion': f'Calle {i} 123', 'lat': -34.0 - i*0.01, 'lon': -58.0 - i*0.01}
+                   for i in range(6)]
+    prop_name = "T_S14"
+    real_ids = [_get_comp_id(c) for c in comparables]
+
+    # Simular res SIN flag (como si viniera de engine fresco)
+    res = {'comparables_venta': comparables, '_n_excluidos': 0,
+           '_comp_excluded': [], '_comp_exclusion_applied': False,
+           'retro_activo': False}
+
+    # Session state con flag del apply previo (simula rerun post-apply)
+    st.session_state[f'comp_selection_{prop_name}'] = set(real_ids)
+    for rid in real_ids:
+        st.session_state[f'sel_comp_{prop_name}_{rid}'] = True
+    st.session_state[f'_comp_exclusion_applied_{prop_name}'] = True
+    st.session_state[f'_comp_excluded_{prop_name}'] = []
+
+    with patch('streamlit.columns', side_effect=_cols_side_effect_with_checkbox), \
+         patch('streamlit.button', return_value=False) as mock_btn, \
+         patch('streamlit.write'), \
+         patch('streamlit.checkbox', return_value=True), \
+         patch('streamlit.metric'), \
+         patch('streamlit.caption'), \
+         patch('streamlit.markdown'), \
+         patch('streamlit.info'), \
+         patch('streamlit.warning'):
+
+        render_tabla_comparables(res, prop_name=prop_name)
+
+        applied_calls = [call for call in mock_btn.call_args_list if 'Selección Aplicada' in str(call)]
+        apply_calls = [call for call in mock_btn.call_args_list if 'Aplicar selección' in str(call)]
+        assert len(applied_calls) >= 1, (
+            f"El botón debe mostrar '✅ Selección Aplicada'. "
+            f"Apply calls: {apply_calls}, All calls: {mock_btn.call_args_list}"
+        )
+        if apply_calls:
+            for ac in apply_calls:
+                assert 'disabled=True' in str(ac), (
+                    f"Botón 'Aplicar selección' debe estar deshabilitado. "
+                    f"Calls: {apply_calls}"
+                )
+        print(f"[T_S-14] OK — is_applied=True con flag session_state (0 exclusiones)")
+
+
+def test_exclusion_applied_flag_cleared_after_retro_toggle():
+    """T_S-15: Retro toggle después de apply con 0 exclusiones → is_applied=False.
+    Simula que el callback Retro limpió los flags de session_state y el resultado
+    fresco no tiene el flag.
+    """
+    import streamlit as st
+    from unittest.mock import patch, MagicMock
+    from valu_detail_sections import render_tabla_comparables, _get_comp_id
+
+    comparables = [{'id': f'c{i}', 'precio': 1000 + i*100, 'm2': 50 + i*10,
+                    'direccion': f'Calle {i} 123', 'lat': -34.0 - i*0.01, 'lon': -58.0 - i*0.01}
+                   for i in range(6)]
+    prop_name = "T_S15"
+    real_ids = [_get_comp_id(c) for c in comparables]
+
+    # Res SIN flag (engine fresco post-Retro)
+    res = {'comparables_venta': comparables, '_n_excluidos': 0,
+           '_comp_excluded': [], '_comp_exclusion_applied': False,
+           'retro_activo': False}
+
+    # Session State: Retro toggle limpió flags
+    st.session_state[f'comp_selection_{prop_name}'] = set(real_ids)
+    for rid in real_ids:
+        st.session_state[f'sel_comp_{prop_name}_{rid}'] = True
+    # NO setear _comp_exclusion_applied (simula limpieza del callback)
+
+    with patch('streamlit.columns', side_effect=_cols_side_effect_with_checkbox), \
+         patch('streamlit.button', return_value=False) as mock_btn, \
+         patch('streamlit.write'), \
+         patch('streamlit.checkbox', return_value=True), \
+         patch('streamlit.metric'), \
+         patch('streamlit.caption'), \
+         patch('streamlit.markdown'), \
+         patch('streamlit.info'), \
+         patch('streamlit.warning'):
+
+        render_tabla_comparables(res, prop_name=prop_name)
+
+        apply_calls = [call for call in mock_btn.call_args_list if 'Aplicar selección' in str(call)]
+        applied_calls = [call for call in mock_btn.call_args_list if 'Selección Aplicada' in str(call)]
+        assert len(applied_calls) == 0, (
+            f"El botón NO debe mostrar '✅ Selección Aplicada' tras Retro toggle. "
+            f"Applied calls: {applied_calls}"
+        )
+        assert len(apply_calls) >= 1, (
+            f"El botón '✅ Aplicar selección' debe estar visible. "
+            f"Calls: {mock_btn.call_args_list}"
+        )
+        print(f"[T_S-15] OK — is_applied=False tras Retro toggle (flags limpiados)")
+
+
+def test_exclusion_applied_flag_real_exclusions():
+    """T_S-16: Apply con exclusiones reales (3/6) → flag preservado.
+    Verifica que el flag en res (desde UV restore) funciona para exclusiones no vacías.
+    """
+    import streamlit as st
+    from unittest.mock import patch, MagicMock
+    from valu_detail_sections import render_tabla_comparables, _get_comp_id
+
+    comparables = [{'id': f'c{i}', 'precio': 1000 + i*100, 'm2': 50 + i*10,
+                    'direccion': f'Calle {i} 123', 'lat': -34.0 - i*0.01, 'lon': -58.0 - i*0.01}
+                   for i in range(6)]
+    prop_name = "T_S16"
+    real_ids = [_get_comp_id(c) for c in comparables]
+    # Excluir los primeros 3 (sus IDs reales MD5)
+    excluded_ids = real_ids[:3]
+    selected_ids = real_ids[3:]
+
+    # Res CON flag (UV restore funcionó para exclusiones no vacías)
+    res = {'comparables_venta': comparables, '_n_excluidos': 3,
+           '_comp_excluded': excluded_ids, '_comp_exclusion_applied': True,
+           'retro_activo': False}
+
+    # Session: solo 3 comps seleccionados (los últimos 3)
+    st.session_state[f'comp_selection_{prop_name}'] = set(selected_ids)
+    for rid in real_ids:
+        checked = rid in selected_ids
+        st.session_state[f'sel_comp_{prop_name}_{rid}'] = checked
+
+    with patch('streamlit.columns', side_effect=_cols_side_effect_with_checkbox), \
+         patch('streamlit.button', return_value=False) as mock_btn, \
+         patch('streamlit.write'), \
+         patch('streamlit.checkbox', return_value=True), \
+         patch('streamlit.metric'), \
+         patch('streamlit.caption'), \
+         patch('streamlit.markdown'), \
+         patch('streamlit.info'), \
+         patch('streamlit.warning'):
+
+        render_tabla_comparables(res, prop_name=prop_name)
+
+        applied_calls = [call for call in mock_btn.call_args_list if 'Selección Aplicada' in str(call)]
+        apply_calls = [call for call in mock_btn.call_args_list if 'Aplicar' in str(call) and 'selección' in str(call)]
+        assert len(applied_calls) >= 1, (
+            f"El botón debe mostrar '✅ Selección Aplicada' para exclusiones reales. "
+            f"Calls: {mock_btn.call_args_list}"
+        )
+        print(f"[T_S-16] OK — is_applied=True con exclusiones reales")

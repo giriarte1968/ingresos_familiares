@@ -557,7 +557,11 @@ def render_tabla_comparables(res, prop_name=None):
 
         all_ids = [_get_comp_id(c) for c in comparables]
         excluded_ids = [cid for cid in all_ids if cid not in selected_ids]
-        is_applied = set(res.get('_comp_excluded', [])) == set(excluded_ids) and res.get('_comp_exclusion_applied', False)
+        _ss_comp_excluded = st.session_state.get(f'_comp_excluded_{prop_name}', [])
+        _ss_comp_applied = st.session_state.get(f'_comp_exclusion_applied_{prop_name}', False)
+        comp_excluded = res.get('_comp_excluded') or _ss_comp_excluded
+        comp_applied = res.get('_comp_exclusion_applied') or _ss_comp_applied
+        is_applied = set(comp_excluded) == set(excluded_ids) and comp_applied
 
         col_a, col_b, col_c = st.columns([1, 2, 1.2])
         with col_a:
@@ -601,8 +605,10 @@ def render_tabla_comparables(res, prop_name=None):
                     print(f"[DEBUG-APPLY] {prop_name}: slider_val={slider_val}")
                     
                     st.session_state[f'comp_excluded_{prop_name}'] = excluded
+                    st.session_state[f'_comp_exclusion_applied_{prop_name}'] = True
+                    st.session_state[f'_comp_excluded_{prop_name}'] = excluded
                     st.session_state[f'forzar_recalculo_{prop_name}'] = True
-                    print(f"[DEBUG-APPLY] {prop_name}: Set forzar_recalculo=True, excluded={excluded}")
+                    print(f"[DEBUG-APPLY] {prop_name}: Set forzar_recalculo=True, _comp_exclusion_applied=True, excluded={excluded}")
                     print(f"[DEBUG-APPLY] {prop_name} ===== FIN Aplicar selección =====, calling st.rerun()")
                     st.rerun()
     elif not selected_ids:

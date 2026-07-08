@@ -380,6 +380,8 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                 if not nuevo_valor:
                     st.session_state.pop(f'flex_active_{prop_name}', None)
                     st.session_state.pop(f'comp_excluded_{prop_name}', None)
+                    st.session_state.pop(f'_comp_exclusion_applied_{prop_name}', None)
+                    st.session_state.pop(f'_comp_excluded_{prop_name}', None)
                     st.session_state.pop(f'retro_meses_{prop_name}', None)
                     st.session_state.pop(f'retro_meses_slider_{prop_name}', None)
                 # Resetear selección de comparables al cambiar modo retro
@@ -394,6 +396,8 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                     st.session_state[f'preview_mode_{prop_name}'] = True
                     st.session_state.pop(f'comp_selection_{prop_name}', None)
                     st.session_state.pop(f'comp_excluded_{prop_name}', None)
+                    st.session_state.pop(f'_comp_exclusion_applied_{prop_name}', None)
+                    st.session_state.pop(f'_comp_excluded_{prop_name}', None)
                 st.checkbox("🔍 Todos los dormitorios", key=flex_key, on_change=_on_flex_change)
         with col_slider:
             if retro_active:
@@ -404,6 +408,8 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                     st.session_state[f'preview_mode_{prop_name}'] = True
                     st.session_state.pop(f'comp_selection_{prop_name}', None)
                     st.session_state.pop(f'comp_excluded_{prop_name}', None)
+                    st.session_state.pop(f'_comp_exclusion_applied_{prop_name}', None)
+                    st.session_state.pop(f'_comp_excluded_{prop_name}', None)
                 _slider_key = f'retro_meses_slider_{prop_name}'
                 if _slider_key not in st.session_state:
                     st.session_state[_slider_key] = 36
@@ -1085,6 +1091,7 @@ def mostrar_dashboard():
                                         print(f"[DEBUG-EXCL-FLAG] {prop_name}: _comp_exclusion_applied ya=True, PRESERVADO (from_apply=False, guard_restored={resultado.get('_cache', {}).get('guard_restored')}, _cache.recalculado={resultado.get('_cache', {}).get('recalculado')})")
                                     else:
                                         resultado['_comp_exclusion_applied'] = False
+                                        st.session_state.pop(f'_comp_exclusion_applied_{prop_name}', None)
 
                 with profile_block("mostrar_detalle_valu_total", p_obj):
                     # ── Guardar resultado oficial si no existe (primera valuación / post-Limpiar) ──
