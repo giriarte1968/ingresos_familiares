@@ -415,16 +415,7 @@ def render_mapa_propiedad(res):
     mapa_html = res.get('mapa_html', '')
     if mapa_html:
         with st.container(key="mapa_propiedad"):
-            # Envolvemos en un div para forzar el ancho y evitar el efecto de "achico" en reruns
-            st.markdown(
-                f'<div style="width:100%; overflow:hidden;">'
-                f'{mapa_html}'
-                f'</div>', 
-                unsafe_allow_html=True
-            )
-            # Nota: El componente html() original se reemplaza por st.markdown 
-            # ya que el mapa_html ya contiene el iframe/script necesario.
-            # Si mapa_html no es HTML completo, volveremos a html().
+            st.components.v1.html(mapa_html, height=500, scrolling=False)
     else:
         st.caption("Mapa no disponible")
 
