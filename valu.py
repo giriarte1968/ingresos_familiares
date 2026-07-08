@@ -951,12 +951,9 @@ def mostrar_dashboard():
                     _restore_cond3 = not st.session_state.get(f'comp_excluded_{prop_name}', False)
                     if _restore_cond1 and _restore_cond2 and _restore_cond3:
                         excluded_ids_list = uv_excl.get('_comp_excluded', [])
-                        if excluded_ids_list:
-                            resultado['_comp_excluded'] = excluded_ids_list
-                            resultado['_comp_exclusion_applied'] = True
-                            print(f"[DEBUG-EXCL-RESTORE] {prop_name}: RESTAURADA — {len(excluded_ids_list)} ids excluidos, from_apply={uv_excl.get('_comp_exclusion_applied')}")
-                        else:
-                            print(f"[DEBUG-EXCL-RESTORE] {prop_name}: SALTADA — lista de exclusiones vacia en UV")
+                        resultado['_comp_excluded'] = excluded_ids_list
+                        resultado['_comp_exclusion_applied'] = True
+                        print(f"[DEBUG-EXCL-RESTORE] {prop_name}: RESTAURADA — {len(excluded_ids_list)} ids excluidos, from_apply={uv_excl.get('_comp_exclusion_applied')}")
                     elif uv_excl.get('_comp_exclusion_applied'):
                         print(f"[DEBUG-EXCL-RESTORE] {prop_name}: SALTADA — cond1(fresh_excl_applied)={_restore_cond1}, cond2(uv_excl_applied)={_restore_cond2}, cond3(no_pending_ss)={_restore_cond3}")
 
@@ -2068,3 +2065,31 @@ def _verificar_invariante_clean_comparables(uv: dict, nombre: str) -> bool:
 if __name__ == "__main__":
     with profile_block("APP_SCRIPT_TOTAL", "global"):
         main()
+
+def _verificar_invariante_exclusion_applied(resultado: dict, uv: dict, nombre: str) -> bool:
+    """
+    GUARDRAIL RU-EXCL-APPLIED-01: Verifica que _comp_exclusion_applied se preserva
+    cuando el resultado coincide con la UV (ambos vacios incluidos).
+
+    Si uv tiene _comp_exclusion_applied=True y resultado._comp_excluded coincide
+    (set equality) con uv._comp_excluded, entonces resultado debe tener
+    _comp_exclusion_applied=True tambien.
+
+    Returns:
+        True si el invariante se cumple.
+        False si el flag se perdio.
+    """
+    if not resultado or not uv:
+        return True
+    uv_applied = uv.get('_comp_exclusion_applied')
+    if not uv_applied:
+        return True
+    uv_excluded = uv.get('_comp_excluded', [])
+    res_excluded = resultado.get('_comp_excluded', [])
+    if set(uv_excluded) == set(res_excluded):
+        res_applied = resultado.get('_comp_exclusion_applied')
+        if not res_applied:
+            print(f"[GUARDRAIL-EXCL] {nombre}: INVARIANTE VIOLADO - "
+                  f"_comp_exclusion_applied perdido en resultado. UV tenia True.")
+            return False
+    return True

@@ -1130,3 +1130,79 @@ def test_exclusion_applied_flag_real_exclusions():
             f"Calls: {mock_btn.call_args_list}"
         )
         print(f"[T_S-16] OK — is_applied=True con exclusiones reales")
+
+
+def test_exclusion_applied_flag_portfolio_reentry_zero_exclusions():
+    """T_S-17: Re-entrada desde portafolio con 0 exclusiones (UV restaurada).
+    Simula que EXCL-RESTORE restauro _comp_exclusion_applied=True incluso
+    con lista vacia. Sesion state fresca (re-entrada). Verifica boton
+    "Seleccion Aplicada".
+    """
+    import streamlit as st
+    from unittest.mock import patch, MagicMock
+    from valu_detail_sections import render_tabla_comparables, _get_comp_id
+
+    comparables = [{'id': f'c{i}', 'precio': 1000 + i*100, 'm2': 50 + i*10,
+                    'direccion': f'Calle {i} 123', 'lat': -34.0 - i*0.01, 'lon': -58.0 - i*0.01}
+                   for i in range(6)]
+    prop_name = "T_S17"
+    real_ids = [_get_comp_id(c) for c in comparables]
+
+    # Res CON flag (EXCL-RESTORE lo restauro correctamente)
+    res = {'comparables_venta': comparables, '_n_excluidos': 0,
+           '_comp_excluded': [], '_comp_exclusion_applied': True,
+           'retro_activo': False}
+
+    # Session FRESCA (simula re-entrada desde portafolio)
+    # NO setear _comp_exclusion_applied ni _comp_excluded en session_state
+
+    with patch('streamlit.columns', side_effect=_cols_side_effect_with_checkbox), \
+         patch('streamlit.button', return_value=False) as mock_btn, \
+         patch('streamlit.write'), \
+         patch('streamlit.checkbox', return_value=True), \
+         patch('streamlit.metric'), \
+         patch('streamlit.caption'), \
+         patch('streamlit.markdown'), \
+         patch('streamlit.info'), \
+         patch('streamlit.warning'):
+
+        render_tabla_comparables(res, prop_name=prop_name)
+
+        applied_calls = [call for call in mock_btn.call_args_list if 'Selecci\xf3n Aplicada' in str(call)]
+        apply_calls = [call for call in mock_btn.call_args_list if 'Aplicar seleccion' in str(call)]
+        assert len(applied_calls) >= 1, (
+            f"El boton debe mostrar 'Selecci\xf3n Aplicada' en re-entrada desde portafolio. "
+            f"Calls: {mock_btn.call_args_list}"
+        )
+        print(f"[T_S-17] OK — is_applied=True en re-entrada con 0 exclusiones")
+
+
+def test_guardrail_exclusion_applied():
+    """GUARDRAIL RU-EXCL-APPLIED-01: Verifica que el invariante detecta
+    cuando _comp_exclusion_applied se pierde en resultado vs UV.
+    """
+    from valu import _verificar_invariante_exclusion_applied
+
+    # Caso 1: UV con flag=True, resultado igual (mismo vacio) -> OK
+    uv = {'_comp_excluded': [], '_comp_exclusion_applied': True}
+    res = {'_comp_excluded': [], '_comp_exclusion_applied': True}
+    assert _verificar_invariante_exclusion_applied(res, uv, '__test__') is True, (
+        "Invarianate debe pasar cuando coinciden"
+    )
+
+    # Caso 2: UV con flag=True, resultado perdio el flag -> VIOLACION
+    res_bad = {'_comp_excluded': [], '_comp_exclusion_applied': False}
+    assert _verificar_invariante_exclusion_applied(res_bad, uv, '__test__') is False, (
+        "Invarianate debe detectar flag perdido"
+    )
+
+    # Caso 3: UV sin flag -> OK (no hay invariante)
+    uv_noflag = {'_comp_excluded': []}
+    assert _verificar_invariante_exclusion_applied(res_bad, uv_noflag, '__test__') is True
+
+    # Caso 4: UV con flag, resultado con exclusiones diferentes -> OK (no aplica)
+    uv_diff = {'_comp_excluded': ['a'], '_comp_exclusion_applied': True}
+    res_diff = {'_comp_excluded': ['b'], '_comp_exclusion_applied': False}
+    assert _verificar_invariante_exclusion_applied(res_diff, uv_diff, '__test__') is True
+
+    print("[GUARDRAIL-RU-EXCL-APPLIED-01] OK — todos los casos pasaron")
