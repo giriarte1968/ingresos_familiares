@@ -4264,3 +4264,30 @@ Al limpiar comparables en una propiedad con valuacion manual, el header mostraba
 - valu.py:2064-2094 — Guardrail RU-AUTO-CONTAMINATION-01
 - tests/test_regression.py — T_S-18 + test guardrail
 - docs/BITACORA_AGENTES.md — Nueva entrada
+
+---
+
+## 2026-07-08 — TAREA-127d: FALLBACK-102 setea n_propiedades=0 si fuente!=auto
+
+### Contexto
+Tras 'Limpiar comparables' en una propiedad con valuacion manual, el auto card del header seguia mostrando el valor STALE ( auto_valor_usd). Causa: FALLBACK-102 usaba uv_comps=5 del snapshot pre-clean como n_propiedades en resolution_metadata, haciendo que n_comps_auto_hide=5 (no < 3) y la auto card no se ocultara.
+
+### Causa raiz
+- **valu.py:896**: resolution_metadata.n_propiedades = uv_comps (5 de la UV pre-clean). El engine tuvo 0 comps reales post-clean, pero el fallback reportaba 5.
+
+### Fix aplicado
+1. **valu.py:889,896**: Cuando uv_fuente != 'auto', setear n_prop_fb=0 en lugar de uv_comps. Esto hace que n_comps_auto_hide = 0 < 3, ocultando la auto card automaticamente.
+
+### Guardrail
+- **RU-COMPCOUNT-CLEAN-01**: _verificar_invariante_fallback_ncomps verifica que si _fallback_uv=True y uv.fuente='manual', entonces n_propiedades=0.
+
+### Tests
+- **T_S-18**: Actualizado — ahora verifica auto card OCULTO (no mostrando ) cuando fallback con fuente manual
+- **test_guardrail_fallback_ncomps**: 4 casos para RU-COMPCOUNT-CLEAN-01
+- 33/33 regression OK. auto_validate OK.
+
+### Archivos modificados
+- valu.py:889,896 — Fix FALLBACK-102: n_prop_fb=0 si fuente!=auto
+- valu.py:2098-2122 — Guardrail RU-COMPCOUNT-CLEAN-01
+- tests/test_regression.py — T_S-18 actualizado + test guardrail
+- docs/BITACORA_AGENTES.md — Nueva entrada

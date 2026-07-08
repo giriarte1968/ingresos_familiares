@@ -1,6 +1,6 @@
 ﻿# 🏠 STATUS ACTUAL DEL PROYECTO — AVM Rosario
 
-*Actualizado: 08/07/2026 (TAREA-127c: FALLBACK-102 usa auto_valor_usd si fuente!=auto)*
+*Actualizado: 08/07/2026 (TAREA-127d: FALLBACK-102 setea n_propiedades=0 si fuente!=auto)*
 
 ---
 
@@ -131,7 +131,7 @@ git checkout origin/do-state -- propiedades.json data/valuaciones_cache.json
 
 | Archivo | Estado |
 |---------|--------|
-| `tests/test_regression.py` | 68+ ✅ (incluye UI guardrails con mocks Streamlit) |
+| `tests/test_regression.py` | 69+ ✅ (incluye UI guardrails con mocks Streamlit) |
 | `tests/test_persistencia_valuaciones.py` | 16/16 ✅ |
 | `tests/test_age_blend_filter.py` | ✅ |
 | `tests/test_cluster_filters.py` | ✅ |
@@ -213,6 +213,7 @@ git checkout origin/do-state -- propiedades.json data/valuaciones_cache.json
 - **RU-CLEAN-MANUAL-01**: Limpiar comparables (`🔄 Limpiar`) NO borra la valuación manual. Preserva `valor_usd`, `auto_valor_usd`, `manual_valor_usd`, `fuente`, `fuente_activa`, `manual_params`, `retro_dias`, `flex_dormitorios`, `comps`, `m2_equivalentes` y `_comp_excluded`.
 - **RU-HEADER-03**: La tarjeta MANUAL es independiente de la disponibilidad de comparables. El gate `< 3` comps solo oculta la tarjeta POR COMPARABLES, no la manual. `n_comps` del property card siempre refleja el auto engine.
 - **RU-AUTO-CONTAMINATION-01**: FALLBACK-102 NUNCA usa `uv_snap['valor_usd']` cuando `uv.fuente != 'auto'`. Usa `uv_snap.get('auto_valor_usd', 0)` para evitar filtrar el valor manual al auto result.
+- **RU-COMPCOUNT-CLEAN-01**: FALLBACK-102 setea `n_propiedades=0` en `resolution_metadata` cuando `uv.fuente != 'auto'`, reflejando 0 comps reales del engine post-clean. Esto oculta la auto card automáticamente.
 
 ---
 
