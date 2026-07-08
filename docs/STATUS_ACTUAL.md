@@ -1,6 +1,6 @@
 ﻿# 🏠 STATUS ACTUAL DEL PROYECTO — AVM Rosario
 
-*Actualizado: 08/07/2026 (TAREA-127d: FALLBACK-102 setea n_propiedades=0 si fuente!=auto)*
+*Actualizado: 08/07/2026 (TAREA-127e: Fix stale session_state + guardrails estructurales)*
 
 ---
 

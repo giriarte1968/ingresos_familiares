@@ -82,6 +82,7 @@ def _limpiar_estado_propiedad(nombre: str) -> None:
     _PREFIJOS = [
         'preview_mode_', 'retro_active_', 'flex_active_',
         'forzar_recalculo_', 'manual_preview_', 'comp_excluded_',
+        '_comp_excluded_', '_comp_exclusion_applied_',
         'comp_selection_', 'vista_valuacion_', 'retro_meses_', 'retro_meses_slider_',
         'manual_params_', 'retro_btn_', 'flex_btn_', 'aplicar_cambios_',
         'infomapa_catastro_', 'ph_sel_', 'comp1_', 'comp2_',
@@ -96,6 +97,8 @@ def _limpiar_estado_propiedad(nombre: str) -> None:
     claves_a_borrar = [k for k in st.session_state.keys() if k.startswith(sufixo)]
     for k in claves_a_borrar:
         del st.session_state[k]
+    # RU-CLEANUP-VERIFY-01: Verificar que claves conocidas se limpiaron
+    _verificar_limpieza_estado(nombre)
     # Destruir preview cache en disco al salir (memoria de trabajo no persiste)
     try:
         from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
@@ -2120,6 +2123,21 @@ def _verificar_invariante_fallback_ncomps(resultado: dict, uv: dict, nombre: str
               f"Debe ser 0 (engine tuvo 0 comps).")
         return False
     return True
+
+
+def _verificar_limpieza_estado(nombre: str) -> None:
+    """
+    GUARDRAIL RU-CLEANUP-VERIFY-01: Verifica que claves conocidas de session_state
+    se hayan limpiado despues de _limpiar_estado_propiedad.
+    """
+    _claves_criticas = [
+        f'_comp_excluded_{nombre}',
+        f'_comp_exclusion_applied_{nombre}',
+    ]
+    for k in _claves_criticas:
+        if k in st.session_state:
+            print(f"[GUARDRAIL] RU-CLEANUP-VERIFY-01: '{k}' sobrevivio a _limpiar_estado_propiedad({nombre}). "
+                  f"Agregar prefijo a _PREFIJOS.")
 
 
 if __name__ == "__main__":

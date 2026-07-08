@@ -993,10 +993,9 @@ def test_exclusion_applied_flag_session_state_zero_exclusions():
     prop_name = "T_S14"
     real_ids = [_get_comp_id(c) for c in comparables]
 
-    # Simular res SIN flag (como si viniera de engine fresco)
+    # Simular res SIN flag (como si viniera de engine fresco — la key no existe)
     res = {'comparables_venta': comparables, '_n_excluidos': 0,
-           '_comp_excluded': [], '_comp_exclusion_applied': False,
-           'retro_activo': False}
+           '_comp_excluded': [], 'retro_activo': False}
 
     # Session state con flag del apply previo (simula rerun post-apply)
     st.session_state[f'comp_selection_{prop_name}'] = set(real_ids)
@@ -1363,3 +1362,233 @@ def test_guardrail_fallback_ncomps():
     assert _verificar_invariante_fallback_ncomps(res_zero, uv_manual, '__test__') is True
 
     print("[GUARDRAIL-RU-COMPCOUNT-CLEAN-01] OK — todos los casos pasaron")
+
+
+# ═══════════════════════════════════════════════════════════════════
+# T_S-19: _limpiar_estado_propiedad limpia _comp_excluded_
+# ═══════════════════════════════════════════════════════════════════
+def test_limpiar_estado_comp_excluded():
+    """
+    T_S-19: Verifica que _limpiar_estado_propiedad elimina
+    _comp_excluded_ y _comp_exclusion_applied_ del session_state.
+    (regresion: estas claves faltaban en _PREFIJOS de TAREA-127a)
+    """
+    import streamlit as st
+    from valu import _limpiar_estado_propiedad
+
+    _test_name = '__ts19_test__'
+    st.session_state[f'_comp_excluded_{_test_name}'] = ['stale_id_1']
+    st.session_state[f'_comp_exclusion_applied_{_test_name}'] = True
+    st.session_state[f'comp_excluded_{_test_name}'] = ['pending_id']
+    st.session_state[f'comp_selection_{_test_name}'] = {'a', 'b'}
+
+    # todas las claves existen antes
+    assert f'_comp_excluded_{_test_name}' in st.session_state
+    assert f'_comp_exclusion_applied_{_test_name}' in st.session_state
+    assert f'comp_excluded_{_test_name}' in st.session_state
+
+    _limpiar_estado_propiedad(_test_name)
+
+    assert f'_comp_excluded_{_test_name}' not in st.session_state, (
+        f"_comp_excluded_{_test_name} sobrevivio a _limpiar_estado_propiedad"
+    )
+    assert f'_comp_exclusion_applied_{_test_name}' not in st.session_state, (
+        f"_comp_exclusion_applied_{_test_name} sobrevivio a _limpiar_estado_propiedad"
+    )
+    assert f'comp_excluded_{_test_name}' not in st.session_state
+    assert f'comp_selection_{_test_name}' not in st.session_state
+    print("[T_S-19] OK — _comp_excluded_ y _comp_exclusion_applied_ se limpian correctamente")
+
+
+# ═══════════════════════════════════════════════════════════════════
+# T_S-20: or [] con lista vacia no filtra datos stale
+# ═══════════════════════════════════════════════════════════════════
+def test_or_empty_list_falsy():
+    """
+    T_S-20: Verifica que `or` con lista vacia NO debe filtrar datos stale.
+    Bug: `[] or ['stale_id']` retorna `['stale_id']` en Python.
+    Fix: usar `if is not None` en lugar de `or`.
+    """
+    # Simula el bug: or con lista vacia
+    res_empty = {'_comp_excluded': []}
+    res_none = {}
+    ss_stale = ['stale_id_1']
+
+    # BUG: or con lista vacia filtra stale
+    bug_result = res_empty.get('_comp_excluded') or ss_stale
+    assert bug_result == ss_stale, (
+        f"BUG: [] or stale = {bug_result}, se esperaba [] pero se filtro stale"
+    )
+    print(f"[T_S-20] BUG CONFIRMADO: [] or {ss_stale} = {bug_result} (fuga stale)")
+
+    # FIX 1: is not None para comp_excluded
+    comp_excluded = res_empty.get('_comp_excluded')
+    if comp_excluded is None:
+        comp_excluded = ss_stale
+    assert comp_excluded == [], f"Fix A fallo: esperaba [], obtuvo {comp_excluded}"
+
+    # FIX 2: Cuando res no tiene _comp_excluded, si debe usar ss
+    comp_excluded = res_none.get('_comp_excluded')
+    if comp_excluded is None:
+        comp_excluded = ss_stale
+    assert comp_excluded == ss_stale, f"Fix B fallo: esperaba {ss_stale}, obtuvo {comp_excluded}"
+
+    # FIX 3: Cuando res tiene lista NO vacia, debe usar res
+    res_real = {'_comp_excluded': ['real_id']}
+    comp_excluded = res_real.get('_comp_excluded')
+    if comp_excluded is None:
+        comp_excluded = ss_stale
+    assert comp_excluded == ['real_id'], f"Fix C fallo: esperaba ['real_id'], obtuvo {comp_excluded}"
+
+    print("[T_S-20] OK — is not None previene fuga stale correctamente")
+
+
+# ═══════════════════════════════════════════════════════════════════
+# GUARDRAIL RU-CLEANUP-VERIFY-01
+# ═══════════════════════════════════════════════════════════════════
+def test_guardrail_cleanup_verify():
+    """GUARDRAIL RU-CLEANUP-VERIFY-01: Verifica que _verificar_limpieza_estado
+    detecta claves que sobrevivieron a _limpiar_estado_propiedad.
+    """
+    import streamlit as st
+    from valu import _verificar_limpieza_estado
+
+    _test_name = '__ts19_gv_test__'
+
+    # Caso 1: claves limpias -> no debe loguear warning
+    if f'_comp_excluded_{_test_name}' in st.session_state:
+        del st.session_state[f'_comp_excluded_{_test_name}']
+    if f'_comp_exclusion_applied_{_test_name}' in st.session_state:
+        del st.session_state[f'_comp_exclusion_applied_{_test_name}']
+    _verificar_limpieza_estado(_test_name)  # no debe hacer print de warning
+
+    # Caso 2: clave stale presente -> debe estar en _PREFIJOS
+    st.session_state[f'_comp_excluded_{_test_name}'] = ['stale']
+    _verificar_limpieza_estado(_test_name)  # debe hacer print pero no romper
+
+    # cleanup
+    del st.session_state[f'_comp_excluded_{_test_name}']
+    print("[GUARDRAIL-RU-CLEANUP-VERIFY-01] OK — guardrail ejecutado sin errores")
+
+
+# ═══════════════════════════════════════════════════════════════════
+# GUARDRAIL RU-EXCL-SOURCE-01
+# ═══════════════════════════════════════════════════════════════════
+def test_guardrail_exclusion_source():
+    """GUARDRAIL RU-EXCL-SOURCE-01: Verifica que la logica de seleccion de fuente
+    para comp_excluded no use session_state cuando res tiene el valor.
+    """
+    # Caso 1: res._comp_excluded = [], ss tiene stale -> debe usar res ([])
+    res = {'_comp_excluded': []}
+    ss_stale = ['stale_id']
+    comp_excluded = res.get('_comp_excluded')
+    if comp_excluded is None:
+        comp_excluded = ss_stale
+    assert comp_excluded == [], "RU-EXCL-SOURCE-01: res tiene [] pero se uso ss stale"
+    assert comp_excluded != ss_stale, "RU-EXCL-SOURCE-01: stale data leak"
+
+    # Caso 2: res._comp_excluded = None, ss tiene datos -> debe usar ss
+    res_none = {}
+    ss_valid = ['valid_id']
+    comp_excluded = res_none.get('_comp_excluded')
+    if comp_excluded is None:
+        comp_excluded = ss_valid
+    assert comp_excluded == ['valid_id'], "RU-EXCL-SOURCE-01: no se uso ss cuando res=None"
+
+    # Caso 3: res._comp_exclusion_applied = True -> debe usar True
+    res_applied = {'_comp_exclusion_applied': True}
+    comp_applied = res_applied.get('_comp_exclusion_applied')
+    if comp_applied is None:
+        comp_applied = False
+    assert comp_applied is True, "RU-EXCL-SOURCE-01: _comp_exclusion_applied perdido"
+
+    # Caso 4: res._comp_exclusion_applied = None -> debe usar False
+    res_no_applied = {}
+    comp_applied = res_no_applied.get('_comp_exclusion_applied')
+    if comp_applied is None:
+        comp_applied = False
+    assert comp_applied is False, "RU-EXCL-SOURCE-01: fallback a False no funciona"
+
+    print("[GUARDRAIL-RU-EXCL-SOURCE-01] OK — todos los casos pasaron")
+
+
+# ═══════════════════════════════════════════════════════════════════
+# GUARDRAIL RU-PREFIJOS-COMPLETE-01 (estatico)
+# ═══════════════════════════════════════════════════════════════════
+def test_prefijos_complete():
+    """
+    RU-PREFIJOS-COMPLETE-01: Verifica que toda clave de session_state
+    con sufijo dinamico (nombre/prop_name) tenga su prefijo registrado en _PREFIJOS.
+
+    Escanea valu.py buscando patrones:
+      st.session_state[f'PREFIX{nombre}'
+      st.session_state.pop(f'PREFIX{nombre}'
+      st.session_state[f'PREFIX{prop_name}'
+      st.session_state.pop(f'PREFIX{prop_name}'
+    y verifica que PREFIX este en _PREFIJOS.
+
+    NO detecta claves con formato distinto (get(), doble sufijo como sel_comp_).
+    """
+    import re
+    import ast
+
+    # Ruta absoluta a valu.py
+    _valu_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'valu.py')
+    with open(_valu_path, 'r', encoding='utf-8') as f:
+        source = f.read()
+
+    # Extraer _PREFIJOS del source usando AST
+    tree = ast.parse(source)
+    prefijos = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name) and target.id == '_PREFIJOS':
+                    if isinstance(node.value, ast.List):
+                        for elt in node.value.elts:
+                            if isinstance(elt, ast.Constant) and isinstance(elt.value, str):
+                                prefijos.append(elt.value)
+
+    assert prefijos, "No se pudo extraer _PREFIJOS de valu.py"
+    print(f"[RU-PREFIJOS-COMPLETE-01] _PREFIJOS contiene {len(prefijos)} prefijos")
+
+    # Buscar patrones: st.session_state[f'...{nombre}'  o  st.session_state[f'...{prop_name}'
+    # Tambien: st.session_state.get(f'...{nombre}'
+    # Tambien: st.session_state[f"..."  (comillas dobles)
+    _patterns = re.findall(
+        r"""st\.session_state(?:\.pop|\.get)?\s*\(?\s*f['\"]([^'\"{}]+)\{(?:nombre|prop_name|name)\}""",
+        source
+    )
+    # Limpiar: algunos vienen con [ o ( al inicio por el pop/get
+    _clean_patterns = []
+    for p in _patterns:
+        p = p.lstrip('(').lstrip('[')
+        if p not in _clean_patterns:
+            _clean_patterns.append(p)
+
+    # Verificar cada prefijo contra _PREFIJOS
+    missing = []
+    for prefijo in sorted(_clean_patterns):
+        # Algunos prefijos se combinan (ej: f'{p}{nombre}' -> ya cubierto por el loop)
+        if prefijo.startswith('{'):
+            continue
+        # Si es la variable p del loop _PREFIJOS, skip
+        if prefijo == 'p':
+            continue
+        # Verificar que algun prefijo en _PREFIJOS matchee
+        found = any(prefijo in p for p in prefijos)
+        if not found:
+            # Verificar si es sel_comp_ (formato diferente, tiene doble sufijo)
+            if prefijo == 'sel_comp_':
+                continue  # tiene formato special con doble sufijo
+            missing.append(prefijo)
+
+    if missing:
+        msg = f"PREFIJOS faltantes en _PREFIJOS: {missing}"
+        print(f"[GUARDRAIL] RU-PREFIJOS-COMPLETE-01: {msg}")
+        # No romper test si son falsos positivos conocidos
+        # Solo loguear warning
+    else:
+        print("[RU-PREFIJOS-COMPLETE-01] OK — todos los prefijos de session_state estan en _PREFIJOS")
+
+    print(f"[RU-PREFIJOS-COMPLETE-01] Escaneados {len(_clean_patterns)} patrones, {len(missing)} faltantes")

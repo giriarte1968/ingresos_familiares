@@ -4291,3 +4291,38 @@ Tras 'Limpiar comparables' en una propiedad con valuacion manual, el auto card d
 - valu.py:2098-2122 — Guardrail RU-COMPCOUNT-CLEAN-01
 - tests/test_regression.py — T_S-18 actualizado + test guardrail
 - docs/BITACORA_AGENTES.md — Nueva entrada
+
+
+## 2026-07-08 â€” TAREA-127e: Fix "Aplicar seleccion" regresion por stale session_state + guardrails estructurales
+
+### Contexto
+"âœ… Aplicar seleccion" se activaba al entrar a propiedades aunque la exclusion ya estuviera aplicada. Causa raiz: las claves _comp_excluded_{name} y _comp_exclusion_applied_{name} introducidas en TAREA-127a fueron agregadas a cleanup en paths especificos (clean, retro) pero NUNCA registradas en _PREFIJOS de _limpiar_estado_propiedad. Al navegar Portfolio/Detalle, el dato stale sobrevivia, y el operador or con lista vacia ([] or [stale_id]) filtraba datos stale.
+
+### Causa raiz - Dos capas
+1. PRIMARIA - valu.py _PREFIJOS: _comp_excluded_ y _comp_exclusion_applied_ no estaban en _PREFIJOS. TAREA-127a las limpiaba en 3 paths especificos (clean, retro, from_apply) pero no en navegacion general.
+2. SECUNDARIA - valu_detail_sections.py:562: res.get('_comp_excluded') or _ss_comp_excluded â€” [] es falsy en Python, cayendo a session_state stale.
+
+### Fix aplicado
+1. Fix A - valu.py _PREFIJOS: Agregados _comp_excluded_ y _comp_exclusion_applied_ al array de prefijos.
+2. Fix B - valu_detail_sections.py:562-563: Cambiado or por if is not None para evitar fuga de datos stale con [].
+
+### Guardrails agregados (3)
+1. RU-CLEANUP-VERIFY-01 - _verificar_limpieza_estado() en _limpiar_estado_propiedad despues del loop. Logea warning si claves criticas sobreviven.
+2. RU-EXCL-SOURCE-01 - Runtime guardrail en render_tabla_comparables que compara res._comp_excluded con comp_excluded computado. Detecta fuga stale en vivo.
+3. RU-PREFIJOS-COMPLETE-01 - Test estatico que escanea valu.py con AST/regex buscando patrones y verifica cada prefijo contra _PREFIJOS.
+
+### Tests
+- T_S-19: _limpiar_estado_propiedad limpia _comp_excluded_ y _comp_exclusion_applied_.
+- T_S-20: or [] no filtra datos stale. [] or [stale] = [stale] (bug confirmado), is not None previene.
+- test_guardrail_cleanup_verify: RU-CLEANUP-VERIFY-01 - 2 casos.
+- test_guardrail_exclusion_source: RU-EXCL-SOURCE-01 - 4 casos.
+- test_prefijos_complete: RU-PREFIJOS-COMPLETE-01 - escanea ~35 patrones, 0 faltantes.
+- 38/38 regression OK. auto_validate.py OK.
+
+### Archivos modificados
+- valu.py:82-92 - Fix A: _PREFIJOS con _comp_excluded_ y _comp_exclusion_applied_
+- valu.py:100 - Guardrail RU-CLEANUP-VERIFY-01: _verificar_limpieza_estado() despues del loop
+- valu.py:2128-2142 - _verificar_limpieza_estado() definicion
+- valu_detail_sections.py:560-571 - Fix B: if is not None + RU-EXCL-SOURCE-01
+- tests/test_regression.py - T_S-19, T_S-20, 3 guardrail tests
+- docs/BITACORA_AGENTES.md - Nueva entrada

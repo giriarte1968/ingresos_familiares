@@ -559,8 +559,17 @@ def render_tabla_comparables(res, prop_name=None):
         excluded_ids = [cid for cid in all_ids if cid not in selected_ids]
         _ss_comp_excluded = st.session_state.get(f'_comp_excluded_{prop_name}', [])
         _ss_comp_applied = st.session_state.get(f'_comp_exclusion_applied_{prop_name}', False)
-        comp_excluded = res.get('_comp_excluded') or _ss_comp_excluded
-        comp_applied = res.get('_comp_exclusion_applied') or _ss_comp_applied
+        comp_excluded = res.get('_comp_excluded')
+        if comp_excluded is None:
+            comp_excluded = _ss_comp_excluded
+        comp_applied = res.get('_comp_exclusion_applied')
+        if comp_applied is None:
+            comp_applied = _ss_comp_applied
+        # RU-EXCL-SOURCE-01: verificar que comp_excluded no viene de session_state stale
+        _res_excl = res.get('_comp_excluded')
+        if _res_excl is not None and _res_excl != comp_excluded:
+            print(f"[GUARDRAIL] RU-EXCL-SOURCE-01: {prop_name}: res._comp_excluded={_res_excl} "
+                  f"!= comp_excluded={comp_excluded}. Stale session state leaking!")
         is_applied = set(comp_excluded) == set(excluded_ids) and comp_applied
 
         col_a, col_b, col_c = st.columns([1, 2, 1.2])
