@@ -4192,3 +4192,47 @@ Usar `session_state` para llevar el flag `_comp_exclusion_applied` a través de 
 - `valu.py` — Retro/Flex callbacks pop flags + engine cleanup
 - `tests/test_regression.py` — 3 nuevos tests + `_MockColumn` helper
 - `docs/BITACORA_AGENTES.md` — Nueva entrada
+
+---
+
+## 2026-07-08 — TAREA-127b: Fix EXCL-RESTORE pierde _comp_exclusion_applied con lista vacía
+
+### Contexto
+TAREA-127 arregló el apply 6/6 dentro de la misma sesión (vía session_state), pero la re-entrada desde portafolio seguía mostrando "Aplicar selección" en lugar de "Selección Aplicada". Causa: EXCL-RESTORE en `generar_resultado` saltaba la restauración de `_comp_exclusion_applied` cuando `_comp_excluded` estaba vacío (`[]` es falsy en `if excluded_ids_list:`).
+
+### Causa raíz
+El guard `if excluded_ids_list:` (TAREA-105) evitaba restaurar exclusiones stale post-Retro toggle. Pero el guard era demasiado amplio: también impedía restaurar `_comp_exclusion_applied` para listas vacías. En re-entrada desde portafolio:
+1. UV tiene `_comp_excluded=[]`, `_comp_exclusion_applied=True`
+2. EXCL-RESTORE: `if excluded_ids_list:` → False (lista vacía) → salta todo
+3. Resultado mantiene `_comp_exclusion_applied=False` del motor
+4. UI: `is_applied=False` → botón "Aplicar selección"
+
+### Solución
+Separar el guard: siempre restaurar `_comp_exclusion_applied`, mantener el guard solo para `_comp_excluded`:
+
+```python
+# Antes (roto):
+if excluded_ids_list:
+    resultado['_comp_excluded'] = excluded_ids_list
+    resultado['_comp_exclusion_applied'] = True
+
+# Después (fijo):
+resultado['_comp_excluded'] = excluded_ids_list
+resultado['_comp_exclusion_applied'] = True
+# _comp_excluded vacío es correcto — no hay stale IDs
+```
+
+### Guardrail
+- **RU-EXCL-APPLIED-01**: `_verificar_invariante_exclusion_applied(resultado, uv, nombre)`
+- Verifica: si UV tiene `_comp_exclusion_applied=True` y `resultado._comp_excluded` coincide con `uv._comp_excluded`, entonces `resultado._comp_exclusion_applied` debe ser True.
+- 4 casos testeados: coincidencia, violación, UV sin flag, excluded diferentes.
+
+### Tests
+- **T_S-17**: Re-entrada desde portafolio con 0 exclusiones, UV restaurada, sesión fresca → verifica "Selección Aplicada"
+- **test_guardrail_exclusion_applied**: 4 casos para RU-EXCL-APPLIED-01
+- 30/30 regression OK. `auto_validate.py` OK.
+
+### Archivos modificados
+- `valu.py` — EXCL-RESTORE sin guard en _comp_exclusion_applied + guardrail function
+- `tests/test_regression.py` — T_S-17 + test guardrail
+- `docs/BITACORA_AGENTES.md` — Nueva entrada
