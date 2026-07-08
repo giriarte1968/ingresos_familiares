@@ -1240,7 +1240,7 @@ def test_fallback_102_auto_valor_not_manual():
         'm2_base_venta': 50,
         'm2_equivalentes': 50,
         'm2_microzona': 50,
-        'resolution_metadata': {'n_propiedades': 5},
+        'resolution_metadata': {'n_propiedades': 0},  # fix: 0 cuando fuente=manual
         'usdt_ars': 1480,
     }
     manual_result = {
@@ -1272,16 +1272,21 @@ def test_fallback_102_auto_valor_not_manual():
 
         render_header(prop, res)
 
-        # Auto card: debe mostrar 89000, NO 200000
+        # Auto card: debe estar OCULTO (—) porque fallback con fuente manual
+        # setea n_propiedades=0 → n_comps_auto_hide < 3
+        auto_card_hidden = False
         auto_has_manual_value = False
-        auto_has_auto_value = False
         for md in captured_md:
             if 'POR COMPARABLES' in str(md) or 'AUTO' in str(md):
+                if '—' in str(md):
+                    auto_card_hidden = True
                 if '200,000' in str(md).replace('\xa0', ' ') or '200000' in str(md):
                     auto_has_manual_value = True
-                if '89,000' in str(md).replace('\xa0', ' ') or '89000' in str(md):
-                    auto_has_auto_value = True
 
+        assert auto_card_hidden, (
+            f"Auto card debe estar oculto (fallback con fuente manual, n_prop=0). "
+            f"Markdowns: {[m[:100] for m in captured_md]}"
+        )
         assert not auto_has_manual_value, (
             f"Auto card NO debe mostrar el valor manual ($200,000). "
             f"Markdowns: {[m[:100] for m in captured_md]}"
@@ -1298,8 +1303,8 @@ def test_fallback_102_auto_valor_not_manual():
             f"Markdowns: {[m[:100] for m in captured_md]}"
         )
 
-        print(f"[T_S-18] OK — auto card NO muestra valor manual. "
-              f"auto_has_manual={auto_has_manual_value}, auto_has_auto={auto_has_auto_value}")
+        print(f"[T_S-18] OK — auto card OCULTO (fallback manual). "
+              f"hidden={auto_card_hidden}, manual_showing={manual_has_manual_value}")
 
 
 def test_guardrail_auto_contamination():
@@ -1329,3 +1334,32 @@ def test_guardrail_auto_contamination():
     assert _verificar_invariante_auto_contamination(res_clean, uv_manual, '__test__') is True
 
     print("[GUARDRAIL-RU-AUTO-CONTAMINATION-01] OK — todos los casos pasaron")
+
+
+def test_guardrail_fallback_ncomps():
+    """GUARDRAIL RU-COMPCOUNT-CLEAN-01: Verifica que FALLBACK-102 setea
+    n_propiedades=0 cuando fuente es manual (engine tuvo 0 comps post-clean).
+    """
+    from valu import _verificar_invariante_fallback_ncomps
+
+    # Caso 1: UV fuente=auto -> OK (no aplica)
+    uv_auto = {'fuente': 'auto'}
+    res_fb = {'_fallback_uv': True, 'resolution_metadata': {'n_propiedades': 5}}
+    assert _verificar_invariante_fallback_ncomps(res_fb, uv_auto, '__test__') is True
+
+    # Caso 2: UV fuente=manual, sin _fallback_uv -> OK (no aplica)
+    uv_manual = {'fuente': 'manual'}
+    res_normal = {'resolution_metadata': {'n_propiedades': 5}}
+    assert _verificar_invariante_fallback_ncomps(res_normal, uv_manual, '__test__') is True
+
+    # Caso 3: UV fuente=manual, _fallback_uv, n_prop>0 -> VIOLACION
+    res_stale = {'_fallback_uv': True, 'resolution_metadata': {'n_propiedades': 5}}
+    assert _verificar_invariante_fallback_ncomps(res_stale, uv_manual, '__test__') is False, (
+        "Debe detectar n_propiedades stale en fallback manual"
+    )
+
+    # Caso 4: UV fuente=manual, _fallback_uv, n_prop=0 -> OK
+    res_zero = {'_fallback_uv': True, 'resolution_metadata': {'n_propiedades': 0}}
+    assert _verificar_invariante_fallback_ncomps(res_zero, uv_manual, '__test__') is True
+
+    print("[GUARDRAIL-RU-COMPCOUNT-CLEAN-01] OK — todos los casos pasaron")

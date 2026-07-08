@@ -886,14 +886,16 @@ def mostrar_dashboard():
                                 uv_valor = uv_auto if uv_auto else 0
                             uv_comps = uv_snap.get('comps', 0)
                             uv_m2_eq = uv_snap.get('m2_equivalentes', 0)
+                            n_prop_fb = 0 if uv_fuente != 'auto' else uv_comps
                             print(f"[DEBUG-FALLBACK-102] {prop_name}: fallback APLICADO. "
-                                  f"uv_valor={uv_valor}, uv_comps={uv_comps}, uv_fuente={uv_fuente}")
+                                  f"uv_valor={uv_valor}, uv_comps={uv_comps}, uv_fuente={uv_fuente}, "
+                                  f"n_prop_fb={n_prop_fb}")
                             resultado = {
                                 'valor_propiedad_usd': uv_valor,
                                 'm2_base_venta': uv_m2_eq,
                                 'm2_equivalentes': uv_m2_eq,
                                 'm2_microzona': uv_m2_eq,
-                                'resolution_metadata': {'n_propiedades': uv_comps},
+                                'resolution_metadata': {'n_propiedades': n_prop_fb},
                                 'comparables_venta': [],
                                 '_cache': {'preview': True, 'recalculado': False, 'guard_restored': False},
                                 'error': None,
@@ -2087,6 +2089,35 @@ def _verificar_invariante_auto_contamination(resultado: dict, uv: dict, nombre: 
         print(f"[GUARDRAIL-EXCL] {nombre}: INVARIANTE VIOLADO - "
               f"auto_valor={auto_valor} igual a manual_valor_usd={uv_manual_valor}. "
               f"Probable fuga de valor manual en auto result.")
+        return False
+    return True
+
+
+def _verificar_invariante_fallback_ncomps(resultado: dict, uv: dict, nombre: str) -> bool:
+    """
+    GUARDRAIL RU-COMPCOUNT-CLEAN-01: Verifica que FALLBACK-102 setea n_propiedades=0
+    cuando la fuente UV es manual (engine tuvo 0 comps post-clean).
+
+    Si uv.fuente=='manual' y resultado._fallback_uv==True, entonces
+    resultado.resolution_metadata.n_propiedades debe ser 0 (no el comp count
+    stale de la UV).
+
+    Returns:
+        True si el invariante se cumple.
+        False si n_propiedades tiene un valor stale.
+    """
+    if not resultado or not uv:
+        return True
+    uv_fuente = uv.get('fuente', '')
+    if uv_fuente != 'manual':
+        return True
+    if not resultado.get('_fallback_uv'):
+        return True
+    n_prop = (resultado.get('resolution_metadata') or {}).get('n_propiedades', 0)
+    if n_prop > 0:
+        print(f"[GUARDRAIL-EXCL] {nombre}: INVARIANTE VIOLADO - "
+              f"n_propiedades={n_prop} > 0 con fuente=manual y fallback. "
+              f"Debe ser 0 (engine tuvo 0 comps).")
         return False
     return True
 
