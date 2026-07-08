@@ -287,9 +287,9 @@ def test_ui_reset_all_visual_only():
         print(f"[TEST-UI-RESET-VISUAL] OK — checkboxes restaurados, excluded limpiado, sin recálculo")
 
 
-def test_ui_manual_save_hidden_on_no_changes():
-    """TAREA-120: Botón 'Guardar Cambios' en valuación manual NO debe aparecer
-    cuando los parámetros no han cambiado respecto a los guardados en UV.
+def test_ui_manual_save_visible_disabled_when_no_changes():
+    """TAREA-126: Botón '✅ Aplicar Selección' en valuación manual SIEMPRE visible,
+    pero deshabilitado (disabled=True) cuando los parámetros no han cambiado.
     """
     import streamlit as st
     from unittest.mock import patch, MagicMock
@@ -361,15 +361,20 @@ def test_ui_manual_save_hidden_on_no_changes():
         from valu_detail_sections import render_valuacion_manual
         render_valuacion_manual(prop, res)
 
-        save_calls = [
+        # Botón "✅ Aplicar Selección" debe estar PRESENTE pero disabled
+        apply_calls = [
             call for call in mock_btn.call_args_list
-            if 'Guardar' in str(call) or 'guardar' in str(call).lower()
+            if 'Aplicar Selección' in str(call)
         ]
-        assert len(save_calls) == 0, (
-            f"Botón 'Guardar' no debe aparecer sin cambios de parámetros. "
-            f"Llamadas: {save_calls}"
+        assert len(apply_calls) > 0, (
+            f"Botón '✅ Aplicar Selección' SIEMPRE debe aparecer (cambios o no). "
+            f"Llamadas: {mock_btn.call_args_list}"
         )
-        print(f"[TEST-UI-MANUAL-SAVE] OK — botón Guardar oculto sin cambios de parámetros")
+        assert any('disabled=True' in str(call) for call in apply_calls), (
+            f"Botón debe estar disabled cuando no hay cambios. "
+            f"Llamadas: {apply_calls}"
+        )
+        print(f"[TEST-UI-MANUAL-SAVE] OK — botón Aplicar Selección visible+disabled sin cambios")
 
 
 def test_auto_card_hidden_when_engine_failed_after_manual_save():
@@ -871,3 +876,80 @@ def test_guardrail_portfolio_manual_no_manual():
     result = _verificar_invariante_portfolio_manual(row, "__test_guardrail_portfolio__")
     assert result is True, "No debe activarse cuando manual_valor_usd=0"
     print(f"[TEST-GUARDRAIL-PORT-01] OK — sin manual no hay contaminacion")
+
+
+def test_ui_manual_limpiar_button_name():
+    """TAREA-126: Botón 'Eliminar Valuacion Manual' renombrado a '🔄 Limpiar'."""
+    import streamlit as st
+    from unittest.mock import patch, MagicMock
+
+    prop = {
+        'nombre': '__test_manual_limpiar__',
+        'lat': -32.95, 'lon': -60.63,
+        'm2_cubiertos': 50,
+        'direccion': 'Test 123',
+        'zona': 'Centro',
+        '_ultima_valuacion': {
+            'fuente': 'manual', 'fuente_activa': 'manual',
+            'manual_params': {'ancla_id': 'test', 'usd_m2': 2000, 'factor_hedonico': 1.0,
+                              'incertidumbre_pct': 10.0, 'ajuste_pct': 0.0,
+                              'incluir_prima_const': True, 'incluir_size_adj': True},
+            'valor_usd': 100000, 'retro_dias': 36, 'flex_dormitorios': None,
+            '_comp_excluded': [], '_comp_exclusion_applied': False,
+        }
+    }
+    res = {
+        'comparables_venta': [], 'm2_microzona': 2000, 'm2_base_venta': 1900,
+        'm2_equivalentes': 50, 'valor_propiedad_usd': 100000,
+        '_fuente_activa': 'manual',
+        '_manual_params': dict(prop['_ultima_valuacion']['manual_params']),
+        '_manual_result': {'valor_propiedad_usd': 100000},
+        'retro_dias': 36, 'flex_dormitorios': None,
+        '_comp_excluded': [], '_comp_exclusion_applied': False,
+        '_auto_result': {'valor_propiedad_usd': 100000},
+    }
+    nombre = prop['nombre']
+    st.session_state[f'vista_valuacion_{nombre}'] = True
+    st.session_state[f'retro_meses_slider_{nombre}'] = 36
+    st.session_state[f'flex_active_{nombre}'] = False
+
+    with patch('streamlit.columns', side_effect=_cols_side_effect), \
+         patch('streamlit.button', return_value=False) as mock_btn, \
+         patch('streamlit.write'), \
+         patch('streamlit.markdown'), \
+         patch('streamlit.metric'), \
+         patch('streamlit.number_input', side_effect=_number_input_side_effect), \
+         patch('streamlit.checkbox', return_value=True), \
+         patch('streamlit.selectbox', return_value='test'), \
+         patch('streamlit.expander') as mock_exp, \
+         patch('streamlit.info'), \
+         patch('streamlit.warning'), \
+         patch('streamlit.error'), \
+         patch('streamlit.success'), \
+         patch('streamlit.tabs'), \
+         patch('parsers.location_engine.cargar_anclas', return_value=[]), \
+         patch('parsers.location_engine.get_ancla_mas_cercana', return_value=None):
+
+        mock_exp.return_value.__enter__ = MagicMock()
+        mock_exp.return_value.__exit__ = MagicMock()
+
+        from valu_detail_sections import render_valuacion_manual
+        render_valuacion_manual(prop, res)
+
+        limpiar_calls = [
+            call for call in mock_btn.call_args_list
+            if 'Limpiar' in str(call)
+        ]
+        assert len(limpiar_calls) > 0, (
+            f"Botón '🔄 Limpiar' debe aparecer cuando hay valuación manual. "
+            f"Llamadas: {mock_btn.call_args_list}"
+        )
+        antiguo_calls = [
+            call for call in mock_btn.call_args_list
+            if 'Eliminar Valuacion' in str(call)
+        ]
+        assert len(antiguo_calls) == 0, (
+            f"No debe existir botón 'Eliminar Valuacion Manual'. "
+            f"Llamadas: {antiguo_calls}"
+        )
+        print(f"[TEST-UI-MANUAL-LIMPIAR] OK — botón '🔄 Limpiar' presente, antiguo nombre ausente")

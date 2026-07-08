@@ -1545,86 +1545,80 @@ def render_valuacion_manual(prop, res):
 
         can_save = usd_m2_input > 0 and params_changed
         
-        if can_save:
-            if st.button("Guardar Valuacion Manual", type="primary", use_container_width=True,
-                         key=f"manual_guardar_{nombre}"):
-                # El resto de la lógica de guardado se mantiene igual
-                manual_params = {
-                    'ancla_id': ancla_sel,
-                    'usd_m2': usd_m2_input,
-                    'factor_hedonico': fh,
-                    'incertidumbre_pct': inc,
-                    'ajuste_pct': ajuste_pct,
-                    'incluir_prima_const': saved.get('incluir_prima_const', True),
-                    'incluir_size_adj': saved.get('incluir_size_adj', True),
-                    'fecha_guardado': datetime.now().isoformat(),
-                    'valor_auto_snapshot': motor_valor,
-                }
-                from parsers.mercado_inmobiliario import generar_resultado_manual
-                resultado_manual = generar_resultado_manual(prop, manual_params, auto_result=auto_result)
-                
-                manual_valor_usd = resultado_manual.get('valor_propiedad_usd', 0)
-                auto_viene_de = 'fallback-102' if (auto_result and auto_result.get('_fallback_uv', False)) else 'motor'
-                auto_result_valor = auto_result.get('valor_propiedad_usd', None) if auto_result else None
-                print(f"[DEBUG-MANUAL-SAVE] {nombre}: GUARDANDO manual. "
-                      f"manual_valor_usd={manual_valor_usd}, "
-                      f"auto_viene_de={auto_viene_de}, "
-                      f"auto_result_keys={list(auto_result.keys()) if auto_result else 'NONE'}, "
-                      f"auto_result_valor={auto_result_valor}")
-                
-                props = cargar_propiedades()
-                for i, p in enumerate(props):
-                    if p.get('nombre') == nombre:
-                        uv = p.setdefault('_ultima_valuacion', {})
-                        old_comp_excluded = uv.get('_comp_excluded', [])
-                        old_comp_exclusion_applied = uv.get('_comp_exclusion_applied', False)
-                        
-                        uv_antes = {k: uv.get(k) for k in ('valor_usd', 'auto_valor_usd', 'manual_valor_usd', 'fuente', 'fuente_activa')}
-                        print(f"[DEBUG-MANUAL-SAVE] {nombre}: UV ANTES del guardado: {uv_antes}")
-                        
-                        uv['valor_usd'] = resultado_manual['valor_propiedad_usd']
-                        # GUARDRAIL RU-MANUAL-SAVE-02: NO contaminar auto_valor_usd con cache preview.
-                        auto_valor_previo = uv.get('auto_valor_usd', None)
-                        uv.setdefault('auto_valor_usd', 0)
-                        auto_valor_origen = 'uv_preservado' if (auto_valor_previo is not None and auto_valor_previo > 0) else 'uv_init_0'
-                        print(f"[DEBUG-MANUAL-SAVE-ORIGEN] {nombre}: auto_valor_usd={uv['auto_valor_usd']}, "
-                              f"origen={auto_valor_origen}, previo={auto_valor_previo}, "
-                              f"auto_result_cache={auto_result_valor}")
-                        if not _verificar_invariante_auto_valor_usd(uv, auto_result, nombre):
-                            print(f"[GUARDRAIL-EXCL] {nombre}: valor corregido post-guardrail. "
-                                  f"auto_valor_usd={uv['auto_valor_usd']}")
-                        uv['manual_valor_usd'] = manual_valor_usd
-                        uv['fuente'] = 'manual'
-                        uv['fuente_activa'] = 'manual'
-                        uv['manual_params'] = manual_params
-                        uv['retro_dias'] = st.session_state.get(f'retro_meses_{nombre}', 0)
-                        flex_active = st.session_state.get(f'flex_active_{nombre}', False)
-                        uv['flex_dormitorios'] = [1, 2, 3, 4, 5] if flex_active else None
-                        if old_comp_exclusion_applied:
-                            uv['_comp_excluded'] = old_comp_excluded
-                            uv['_comp_exclusion_applied'] = True
-                        else:
-                            uv.setdefault('_comp_excluded', [])
-                            uv.setdefault('_comp_exclusion_applied', False)
-                        uv_despues = {k: uv.get(k) for k in ('valor_usd', 'auto_valor_usd', 'manual_valor_usd', 'fuente', 'fuente_activa')}
-                        print(f"[DEBUG-MANUAL-SAVE] {nombre}: UV DESPUES del guardado: {uv_despues}")
-                        break
-                if not guardar_propiedades(props):
-                    st.error("Error de escritura en propiedades.json. La valuacion manual NO se guardo.")
-                    st.rerun()
-                st.session_state.pop(ss_key, None)
-                st.session_state.pop(f'_official_result_{nombre}', None)
-                st.session_state.pop(f'preview_mode_{nombre}', None)
-                st.session_state[f'manual_feedback_{nombre}'] = 'guardado'
+        if st.button("✅ Aplicar Selección", type="primary", use_container_width=True,
+                     key=f"manual_guardar_{nombre}", disabled=not can_save):
+            manual_params = {
+                'ancla_id': ancla_sel,
+                'usd_m2': usd_m2_input,
+                'factor_hedonico': fh,
+                'incertidumbre_pct': inc,
+                'ajuste_pct': ajuste_pct,
+                'incluir_prima_const': saved.get('incluir_prima_const', True),
+                'incluir_size_adj': saved.get('incluir_size_adj', True),
+                'fecha_guardado': datetime.now().isoformat(),
+                'valor_auto_snapshot': motor_valor,
+            }
+            from parsers.mercado_inmobiliario import generar_resultado_manual
+            resultado_manual = generar_resultado_manual(prop, manual_params, auto_result=auto_result)
+            
+            manual_valor_usd = resultado_manual.get('valor_propiedad_usd', 0)
+            auto_viene_de = 'fallback-102' if (auto_result and auto_result.get('_fallback_uv', False)) else 'motor'
+            auto_result_valor = auto_result.get('valor_propiedad_usd', None) if auto_result else None
+            print(f"[DEBUG-MANUAL-SAVE] {nombre}: GUARDANDO manual. "
+                  f"manual_valor_usd={manual_valor_usd}, "
+                  f"auto_viene_de={auto_viene_de}, "
+                  f"auto_result_keys={list(auto_result.keys()) if auto_result else 'NONE'}, "
+                  f"auto_result_valor={auto_result_valor}")
+            
+            props = cargar_propiedades()
+            for i, p in enumerate(props):
+                if p.get('nombre') == nombre:
+                    uv = p.setdefault('_ultima_valuacion', {})
+                    old_comp_excluded = uv.get('_comp_excluded', [])
+                    old_comp_exclusion_applied = uv.get('_comp_exclusion_applied', False)
+                    
+                    uv_antes = {k: uv.get(k) for k in ('valor_usd', 'auto_valor_usd', 'manual_valor_usd', 'fuente', 'fuente_activa')}
+                    print(f"[DEBUG-MANUAL-SAVE] {nombre}: UV ANTES del guardado: {uv_antes}")
+                    
+                    uv['valor_usd'] = resultado_manual['valor_propiedad_usd']
+                    auto_valor_previo = uv.get('auto_valor_usd', None)
+                    uv.setdefault('auto_valor_usd', 0)
+                    auto_valor_origen = 'uv_preservado' if (auto_valor_previo is not None and auto_valor_previo > 0) else 'uv_init_0'
+                    print(f"[DEBUG-MANUAL-SAVE-ORIGEN] {nombre}: auto_valor_usd={uv['auto_valor_usd']}, "
+                          f"origen={auto_valor_origen}, previo={auto_valor_previo}, "
+                          f"auto_result_cache={auto_result_valor}")
+                    if not _verificar_invariante_auto_valor_usd(uv, auto_result, nombre):
+                        print(f"[GUARDRAIL-EXCL] {nombre}: valor corregido post-guardrail. "
+                              f"auto_valor_usd={uv['auto_valor_usd']}")
+                    uv['manual_valor_usd'] = manual_valor_usd
+                    uv['fuente'] = 'manual'
+                    uv['fuente_activa'] = 'manual'
+                    uv['manual_params'] = manual_params
+                    uv['retro_dias'] = st.session_state.get(f'retro_meses_{nombre}', 0)
+                    flex_active = st.session_state.get(f'flex_active_{nombre}', False)
+                    uv['flex_dormitorios'] = [1, 2, 3, 4, 5] if flex_active else None
+                    if old_comp_exclusion_applied:
+                        uv['_comp_excluded'] = old_comp_excluded
+                        uv['_comp_exclusion_applied'] = True
+                    else:
+                        uv.setdefault('_comp_excluded', [])
+                        uv.setdefault('_comp_exclusion_applied', False)
+                    uv_despues = {k: uv.get(k) for k in ('valor_usd', 'auto_valor_usd', 'manual_valor_usd', 'fuente', 'fuente_activa')}
+                    print(f"[DEBUG-MANUAL-SAVE] {nombre}: UV DESPUES del guardado: {uv_despues}")
+                    break
+            if not guardar_propiedades(props):
+                st.error("Error de escritura en propiedades.json. La valuacion manual NO se guardo.")
                 st.rerun()
-        else:
-            # Si no hay cambios o USD/m2 es 0, el botón desaparece para evitar prompts innecesarios
-            pass
+            st.session_state.pop(ss_key, None)
+            st.session_state.pop(f'_official_result_{nombre}', None)
+            st.session_state.pop(f'preview_mode_{nombre}', None)
+            st.session_state[f'manual_feedback_{nombre}'] = 'guardado'
+            st.rerun()
 
 
     with col_btn2:
         if saved_params:
-            if st.button("Eliminar Valuacion Manual", use_container_width=True,
+            if st.button("🔄 Limpiar", use_container_width=True,
                          key=f"manual_eliminar_{nombre}"):
                 props = cargar_propiedades()
                 for i, p in enumerate(props):

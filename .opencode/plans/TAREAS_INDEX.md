@@ -98,3 +98,4 @@
 | TAREA-123 | Fix 🔄 Limpiar borra valuación manual (RU-CLEAN-MANUAL-01) | _(current)_ | 2026-07-06 |
 | TAREA-124 | Header independiente auto/manual + Fix n_comps gate bug (RU-HEADER-03) | _(current)_ | 2026-07-06 |
 | TAREA-125 | Fix portfolio double-value + _build_rows fallback + _render_cards + Guardrail RU-PORTFOLIO-01 | _(current)_ | 2026-07-07 |
+| TAREA-126 | Restaurar botones Valuación Manual (siempre visibles) + Renombrar a "Aplicar Selección"/"Limpiar" | _(current)_ | 2026-07-08 |

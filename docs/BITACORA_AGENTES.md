@@ -4127,3 +4127,31 @@ TAREA-122 setea `auto_valor_usd=0` en UV al guardar manual. En `_build_rows()` (
 - `docs/BITACORA_AGENTES.md` — Nueva entrada
 - `.opencode/plans/TAREA-125.md` — Nuevo plan archivado
 - `.opencode/plans/TAREAS_INDEX.md` — Nueva entrada
+
+---
+
+## 2026-07-08 — TAREA-126: Restaurar botones Valuación Manual (siempre visibles) + Renombrar
+
+### Contexto
+El botón "Guardar Valuacion Manual" se ocultaba cuando `can_save=False` (parámetros sin cambios) vía `if can_save: ... else: pass`. El usuario pide que esté siempre visible (disabled si no aplica). También renombrar para consistencia con Comparables.
+
+### Cambios aplicados
+1. **`valu_detail_sections.py:1546-1550`**: Botón "✅ Aplicar Selección" reemplaza "Guardar Valuacion Manual". Siempre visible via `disabled=not can_save` (Streamlit `st.button` soporta `disabled`). Eliminado el `if can_save:` / `else: pass`.
+2. **`valu_detail_sections.py:1627`**: Botón "Eliminar Valuacion Manual" → "🔄 Limpiar".
+3. **`tests/test_regression.py`**: 
+   - `test_ui_manual_save_visible_disabled_when_no_changes` (antes `test_ui_manual_save_hidden_on_no_changes`): verifica que botón está presente y disabled.
+   - `test_ui_manual_limpiar_button_name`: verifica que "🔄 Limpiar" aparece y "Eliminar Valuacion" no.
+
+### Guardrails preservados
+- RU-MANUAL-SAVE-02 (`_verificar_invariante_auto_valor_usd`)
+- RU-PORTFOLIO-01 (`_verificar_invariante_portfolio_manual`)
+
+### Tests
+- 25/25 regression OK. `auto_validate.py` OK.
+
+### Archivos modificados
+- `valu_detail_sections.py` — Botones siempre visibles, renombrados
+- `tests/test_regression.py` — 1 test actualizado + 1 nuevo
+- `docs/BITACORA_AGENTES.md` — Nueva entrada
+- `.opencode/plans/TAREA-126.md` — Nuevo plan archivado
+- `.opencode/plans/TAREAS_INDEX.md` — Nueva entrada
