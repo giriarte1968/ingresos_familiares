@@ -1206,3 +1206,126 @@ def test_guardrail_exclusion_applied():
     assert _verificar_invariante_exclusion_applied(res_diff, uv_diff, '__test__') is True
 
     print("[GUARDRAIL-RU-EXCL-APPLIED-01] OK — todos los casos pasaron")
+
+
+def test_fallback_102_auto_valor_not_manual():
+    """T_S-18: FALLBACK-102 con fuente manual — verifica que auto card NO muestra valor manual.
+    Simula el escenario post-clean donde engine falla y el fallback usa
+    auto_valor_usd (no valor_usd) cuando la fuente UV es manual.
+    """
+    import streamlit as st
+    from unittest.mock import patch, MagicMock
+    from valu_detail_sections import render_header
+
+    prop_name = "T_S18"
+
+    # prop con UV: fuente=manual, auto_valor_usd != valor_usd (que es el manual)
+    prop = {
+        'nombre': prop_name,
+        '_ultima_valuacion': {
+            'fuente': 'manual',
+            'valor_usd': 200000,        # valor activo (manual)
+            'auto_valor_usd': 89000,     # valor auto preservado
+            'manual_valor_usd': 200000,
+            'comps': 5,
+            'm2_equivalentes': 50,
+            'fuente_activa': 'manual',
+        }
+    }
+
+    # res simula FALLBACK-102 con fix: usa auto_valor_usd (89000), no manual (200000)
+    auto_result = {
+        'valor_propiedad_usd': 89000,
+        '_fallback_uv': True,
+        'm2_base_venta': 50,
+        'm2_equivalentes': 50,
+        'm2_microzona': 50,
+        'resolution_metadata': {'n_propiedades': 5},
+        'usdt_ars': 1480,
+    }
+    manual_result = {
+        'valor_propiedad_usd': 200000,
+        'm2_base_venta': 50,
+        'm2_equivalentes': 50,
+        'resolution_metadata': {},
+        'usdt_ars': 1480,
+    }
+    res = {
+        '_auto_result': auto_result,
+        '_manual_result': manual_result,
+        '_fuente_activa': 'manual',
+        '_manual_params': {'m2': 50},
+    }
+
+    captured_md = []
+
+    def _md_side_effect(*args, **kw):
+        captured_md.append(args[0] if args else kw.get('body', ''))
+        return MagicMock()
+
+    with patch('streamlit.columns', side_effect=_cols_side_effect), \
+         patch('streamlit.markdown', side_effect=_md_side_effect), \
+         patch('streamlit.metric'), \
+         patch('streamlit.warning'), \
+         patch('streamlit.page_link'), \
+         patch('streamlit.link_button'):
+
+        render_header(prop, res)
+
+        # Auto card: debe mostrar 89000, NO 200000
+        auto_has_manual_value = False
+        auto_has_auto_value = False
+        for md in captured_md:
+            if 'POR COMPARABLES' in str(md) or 'AUTO' in str(md):
+                if '200,000' in str(md).replace('\xa0', ' ') or '200000' in str(md):
+                    auto_has_manual_value = True
+                if '89,000' in str(md).replace('\xa0', ' ') or '89000' in str(md):
+                    auto_has_auto_value = True
+
+        assert not auto_has_manual_value, (
+            f"Auto card NO debe mostrar el valor manual ($200,000). "
+            f"Markdowns: {[m[:100] for m in captured_md]}"
+        )
+
+        # Manual card: debe mostrar 200000
+        manual_has_manual_value = False
+        for md in captured_md:
+            if 'MANUAL' in str(md):
+                if '200,000' in str(md).replace('\xa0', ' ') or '200000' in str(md):
+                    manual_has_manual_value = True
+        assert manual_has_manual_value, (
+            f"Manual card debe mostrar el valor manual ($200,000). "
+            f"Markdowns: {[m[:100] for m in captured_md]}"
+        )
+
+        print(f"[T_S-18] OK — auto card NO muestra valor manual. "
+              f"auto_has_manual={auto_has_manual_value}, auto_has_auto={auto_has_auto_value}")
+
+
+def test_guardrail_auto_contamination():
+    """GUARDRAIL RU-AUTO-CONTAMINATION-01: Verifica que el invariante detecta
+    cuando el auto result contiene el valor manual via fallback.
+    """
+    from valu import _verificar_invariante_auto_contamination
+
+    # Caso 1: UV fuente=auto -> OK (no hay invariante por fuente no manual)
+    uv_auto = {'fuente': 'auto', 'manual_valor_usd': 200000}
+    res_fallback = {'_fallback_uv': True, 'valor_propiedad_usd': 200000}
+    assert _verificar_invariante_auto_contamination(res_fallback, uv_auto, '__test__') is True
+
+    # Caso 2: UV fuente=manual, resultado sin _fallback_uv -> OK (no aplica)
+    uv_manual = {'fuente': 'manual', 'manual_valor_usd': 200000}
+    res_normal = {'valor_propiedad_usd': 200000}
+    assert _verificar_invariante_auto_contamination(res_normal, uv_manual, '__test__') is True
+
+    # Caso 3: UV fuente=manual, resultado con _fallback_uv y valor == manual_valor -> VIOLACION
+    res_contaminated = {'_fallback_uv': True, 'valor_propiedad_usd': 200000}
+    assert _verificar_invariante_auto_contamination(res_contaminated, uv_manual, '__test__') is False, (
+        "Debe detectar contaminacion: valor manual en auto fallback"
+    )
+
+    # Caso 4: UV fuente=manual, resultado con _fallback_uv y valor DIFERENTE -> OK
+    res_clean = {'_fallback_uv': True, 'valor_propiedad_usd': 89000}
+    assert _verificar_invariante_auto_contamination(res_clean, uv_manual, '__test__') is True
+
+    print("[GUARDRAIL-RU-AUTO-CONTAMINATION-01] OK — todos los casos pasaron")

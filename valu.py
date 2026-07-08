@@ -877,14 +877,13 @@ def mostrar_dashboard():
                               f"uv_auto_valor={uv_auto_valor}, uv_manual_valor={uv_manual_valor}, "
                               f"uv_comps={uv_snap.get('comps', 0)}")
                         if uv_snap.get('valor_usd') and uv_snap.get('comps', 0) >= 3:
+                            uv_valor = uv_snap['valor_usd']
                             if uv_fuente != 'auto':
+                                uv_auto = uv_snap.get('auto_valor_usd', 0)
                                 print(f"[DEBUG-FALLBACK-102-WARN] {prop_name}: "
                                       f"UV fuente={uv_fuente} NO es 'auto' — "
-                                      f"posible fuga de valor manual en auto fallback! "
-                                      f"uv_valor={uv_snap['valor_usd']}, "
-                                      f"uv_auto_valor={uv_auto_valor}, "
-                                      f"uv_manual_valor={uv_manual_valor}")
-                            uv_valor = uv_snap['valor_usd']
+                                      f"usando auto_valor_usd={uv_auto} en lugar de valor_usd={uv_valor}")
+                                uv_valor = uv_auto if uv_auto else 0
                             uv_comps = uv_snap.get('comps', 0)
                             uv_m2_eq = uv_snap.get('m2_equivalentes', 0)
                             print(f"[DEBUG-FALLBACK-102] {prop_name}: fallback APLICADO. "
@@ -2058,6 +2057,36 @@ def _verificar_invariante_clean_comparables(uv: dict, nombre: str) -> bool:
         print(f"[GUARDRAIL-EXCL] {nombre}: INVARIANTE VIOLADO - "
               f"fuente=manual pero valor_usd=0. "
               f"Probable colision con limpiar comparables.")
+        return False
+    return True
+
+
+def _verificar_invariante_auto_contamination(resultado: dict, uv: dict, nombre: str) -> bool:
+    """
+    GUARDRAIL RU-AUTO-CONTAMINATION-01: Verifica que el auto result no contenga
+    valores de la valuacion manual cuando el fallback UV se activa.
+
+    Si uv.fuente=='manual' y resultado._fallback_uv==True y
+    resultado.valor_propiedad_usd coincide con uv.manual_valor_usd,
+    es fuga del valor manual en el auto result.
+
+    Returns:
+        True si el invariante se cumple.
+        False si hay contaminacion.
+    """
+    if not resultado or not uv:
+        return True
+    uv_fuente = uv.get('fuente', '')
+    if uv_fuente != 'manual':
+        return True
+    if not resultado.get('_fallback_uv'):
+        return True
+    uv_manual_valor = uv.get('manual_valor_usd', 0)
+    auto_valor = resultado.get('valor_propiedad_usd', 0)
+    if auto_valor > 0 and auto_valor == uv_manual_valor:
+        print(f"[GUARDRAIL-EXCL] {nombre}: INVARIANTE VIOLADO - "
+              f"auto_valor={auto_valor} igual a manual_valor_usd={uv_manual_valor}. "
+              f"Probable fuga de valor manual en auto result.")
         return False
     return True
 
