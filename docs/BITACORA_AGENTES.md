@@ -4236,3 +4236,31 @@ resultado['_comp_exclusion_applied'] = True
 - `valu.py` â€” EXCL-RESTORE sin guard en _comp_exclusion_applied + guardrail function
 - `tests/test_regression.py` â€” T_S-17 + test guardrail
 - `docs/BITACORA_AGENTES.md` â€” Nueva entrada
+
+---
+
+## 2026-07-08 — TAREA-127c: FALLBACK-102 no filtra valor manual al auto result
+
+### Contexto
+Al limpiar comparables en una propiedad con valuacion manual, el header mostraba el valor manual en la tarjeta AUTO. Causa: FALLBACK-102 usaba uv_snap['valor_usd'] para construir el fallback result. Cuando uv.fuente='manual', valor_usd es el valor manual, que se inyectaba en _auto_result y el header lo mostraba.
+
+### Causa raiz
+- **PRIMARIO — valu.py:887**: uv_valor = uv_snap['valor_usd'] obtenia el valor activo (manual) cuando la fuente era manual. El codigo tenia un WARN que detectaba la condicion pero no la prevenia.
+
+### Fix aplicado
+1. **valu.py:880-886**: Cuando uv_fuente != 'auto', usar uv_snap.get('auto_valor_usd', 0) en lugar de uv_snap['valor_usd']. Si auto_valor_usd es 0, usar 0 (el header oculta la tarjeta AUTO automaticamente).
+2. **Guardrail RU-AUTO-CONTAMINATION-01**: Nueva funcion _verificar_invariante_auto_contamination que verifica que resultado.valor_propiedad_usd no coincida con uv.manual_valor_usd cuando uv.fuente='manual' y resultado._fallback_uv=True.
+
+### DEBUG flags
+- [DEBUG-FALLBACK-102-WARN]: Cambiado de "posible fuga" (solo warn) a indicar que se esta usando auto_valor_usd en lugar de valor_usd.
+
+### Tests
+- **T_S-18**: FALLBACK-102 con fuente manual -> verifica auto card NO muestra valor manual (), si muestra auto ()
+- **test_guardrail_auto_contamination**: 4 casos para RU-AUTO-CONTAMINATION-01
+- 32/32 regression OK. auto_validate.py OK.
+
+### Archivos modificados
+- valu.py:880-886 — Fix FALLBACK-102: usar auto_valor_usd si fuente!=auto
+- valu.py:2064-2094 — Guardrail RU-AUTO-CONTAMINATION-01
+- tests/test_regression.py — T_S-18 + test guardrail
+- docs/BITACORA_AGENTES.md — Nueva entrada
