@@ -165,7 +165,7 @@ git checkout origin/do-state -- propiedades.json data/valuaciones_cache.json
 9. ✅ "Restablecer Todas" es visual-only: reselecciona checkboxes y limpia comp_excluded, NO forza recálculo (TAREA-120)
 10. ✅ Botón "Aplicar Selección" visible siempre (incluso con 6/6 seleccionados) (TAREA-120)
 11. ✅ UI Guardrails: tests con mocks de Streamlit protegen botones y banner (TAREA-120)
-12. ✅ RU-MANUAL-SAVE-02: Save manual no contamina `auto_valor_usd` con cache preview (TAREA-122)
+12. ✅ RU-MANUAL-SAVE-02: Save manual no contamina `auto_valor_usd` con cache preview (TAREA-122) — guardrail `_verificar_invariante_auto_valor_usd` eliminado (TAREA-NNN): detectaba falsos positivos, seteando `auto_valor_usd=0` cuando el valor legítimo coincidía con auto_result (fix TAREA-NNN)
 13. ✅ RU-HEADER-02: Auto card oculto en modo manual sin `auto_valor_usd` oficial (TAREA-122)
 
 ---
@@ -203,13 +203,14 @@ git checkout origin/do-state -- propiedades.json data/valuaciones_cache.json
 - **Ahora:** 3 tests UI con mocks de Streamlit protegen banner, botón aplicar, y guardado manual.
 - **Antes:** auto card mostraba valor STALE del cache preview tras guardar manual (TAREA-121 incompleto).
 - **Ahora:** RU-MANUAL-SAVE-02: Save manual NUNCA escribe `auto_valor_usd` desde `auto_result` (cache preview). Solo preserva UV existente o inicializa a 0.
+- **Ahora (TAREA-NNN):** Guardrail `_verificar_invariante_auto_valor_usd` eliminado. Detectaba falsos positivos: si `auto_valor_usd == auto_result['valor_propiedad_usd']` (comportamiento NORMAL), lo trataba como contaminación y seteaba a 0, provocando auto card blank. El handler de save manual ya implementa correctamente RU-MANUAL-SAVE-02 preservando `auto_valor_usd` antes de la guardrail.
 - **Antes:** sin documentación centralizada de comportamiento UI.
 - **Ahora:** esta sección documenta el comportamiento de cada botón. El flujo completo paso a paso (Portfolio → Aplicar selección) está en `docs/FLUJO_UI.md` con todos los session state keys, puntos de decisión y diagrama de estados.
 
 ### Guardrails RU
 - **RU-HEADER-01**: Auto card usa `n_comps_auto` (del AUTO engine), NO `n_comps` del display (que sigue a `fuente_activa`).
 - **RU-HEADER-02**: Auto card oculto si `fuente_activa == 'manual'` y no hay `auto_valor_usd` oficial en UV.
-- **RU-MANUAL-SAVE-02**: Save manual NO contamina `auto_valor_usd` con valor preview del cache.
+- **RU-MANUAL-SAVE-02**: Save manual NO contamina `auto_valor_usd` con valor preview del cache. Guardrail `_verificar_invariante_auto_valor_usd` eliminado (TAREA-NNN): detectaba falsos positivos.
 - **RU-CLEAN-MANUAL-01**: Limpiar comparables (`🔄 Limpiar`) NO borra la valuación manual. Preserva `valor_usd`, `auto_valor_usd`, `manual_valor_usd`, `fuente`, `fuente_activa`, `manual_params`, `retro_dias`, `flex_dormitorios`, `comps`, `m2_equivalentes` y `_comp_excluded`.
 - **RU-HEADER-03**: La tarjeta MANUAL es independiente de la disponibilidad de comparables. El gate `< 3` comps solo oculta la tarjeta POR COMPARABLES, no la manual. `n_comps` del property card siempre refleja el auto engine.
 - **RU-AUTO-CONTAMINATION-01**: FALLBACK-102 NUNCA usa `uv_snap['valor_usd']` cuando `uv.fuente != 'auto'`. Usa `uv_snap.get('auto_valor_usd', 0)` para evitar filtrar el valor manual al auto result.

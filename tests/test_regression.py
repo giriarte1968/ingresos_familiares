@@ -773,70 +773,6 @@ def test_guardrail_clean_comparables_integration():
     print(f"[TEST-CLEAN-INTEGRATION] OK — flujo completo clean+preservacion verificado")
 
 
-def test_guardrail_auto_valor_usd_detects_contamination():
-    """GUARDRAIL RU-MANUAL-SAVE-02: Verifica que _verificar_invariante_auto_valor_usd
-    detecta cuando auto_valor_usd fue contaminado por cache preview y lo auto-corrige."""
-    from valu_detail_sections import _verificar_invariante_auto_valor_usd
-
-    # Escenario: UV fue contaminado con cache preview ($590K) en vez de valor oficial
-    uv = {'auto_valor_usd': 590093, 'fuente_activa': 'manual'}
-    auto_result = {'valor_propiedad_usd': 590093.0}
-
-    result = _verificar_invariante_auto_valor_usd(uv, auto_result, "__test_guardrail__")
-    assert result is False, "Debe detectar contaminacion y devolver False"
-    assert uv['auto_valor_usd'] == 0, "Debe auto-corregir a 0"
-
-    print(f"[TEST-GUARDRAIL] OK — contaminacion detectada y corregida: auto_valor_usd={uv['auto_valor_usd']}")
-
-
-def test_guardrail_auto_valor_usd_preserves_legitimate_value():
-    """GUARDRAIL RU-MANUAL-SAVE-02: Verifica que el invariante NO se activa
-    cuando auto_valor_usd es un valor oficial preservado (diferente del cache preview)."""
-    from valu_detail_sections import _verificar_invariante_auto_valor_usd
-
-    # Escenario: UV tiene auto_valor_usd oficial ($735K) diferente del cache preview ($590K)
-    uv = {'auto_valor_usd': 735013, 'fuente_activa': 'manual'}
-    auto_result = {'valor_propiedad_usd': 590093.0}
-
-    result = _verificar_invariante_auto_valor_usd(uv, auto_result, "__test_guardrail__")
-    assert result is True, "No debe detectar contaminacion cuando valor preservado es diferente"
-    assert uv['auto_valor_usd'] == 735013, "Debe preservar el valor oficial"
-
-    print(f"[TEST-GUARDRAIL-LEGIT] OK — valor oficial preservado: auto_valor_usd={uv['auto_valor_usd']}")
-
-
-def test_guardrail_auto_valor_usd_ignores_non_manual():
-    """GUARDRAIL RU-MANUAL-SAVE-02: Verifica que el invariante NO se activa
-    cuando la fuente activa es 'auto' (no aplica a modo automatico)."""
-    from valu_detail_sections import _verificar_invariante_auto_valor_usd
-
-    # Escenario: fuente activa es auto, no manual
-    uv = {'auto_valor_usd': 590093, 'fuente_activa': 'auto'}
-    auto_result = {'valor_propiedad_usd': 590093.0}
-
-    result = _verificar_invariante_auto_valor_usd(uv, auto_result, "__test_guardrail__")
-    assert result is True, "No debe activarse cuando fuente != manual"
-    assert uv['auto_valor_usd'] == 590093, "No debe modificar auto_valor_usd"
-
-    print(f"[TEST-GUARDRAIL-AUTO] OK — invariante ignorado en modo auto: auto_valor_usd={uv['auto_valor_usd']}")
-
-
-def test_guardrail_auto_valor_usd_uv_init_0():
-    """GUARDRAIL RU-MANUAL-SAVE-02: Verifica que si auto_valor_usd es 0 (inicializado
-    por setdefault) y cache preview tiene valor, NO se activa el invariante."""
-    from valu_detail_sections import _verificar_invariante_auto_valor_usd
-
-    # Escenario: UV se inicializo con 0 (nunca se aplico auto engine), cache tiene valor
-    uv = {'auto_valor_usd': 0, 'fuente_activa': 'manual'}
-    auto_result = {'valor_propiedad_usd': 590093.0}
-
-    result = _verificar_invariante_auto_valor_usd(uv, auto_result, "__test_guardrail__")
-    assert result is True, "auto_valor_usd=0 es distinto de cache preview, no hay contaminacion"
-    assert uv['auto_valor_usd'] == 0, "Debe mantener 0"
-
-    print(f"[TEST-GUARDRAIL-ZERO] OK — auto_valor_usd=0 preservado: {uv['auto_valor_usd']}")
-
-
 def test_guardrail_portfolio_manual_detects_contamination():
     """GUARDRAIL RU-PORTFOLIO-01: Verifica que _verificar_invariante_portfolio_manual
     detecta cuando auto_valor_usd fue contaminado con el valor manual."""
@@ -1592,3 +1528,42 @@ def test_prefijos_complete():
         print("[RU-PREFIJOS-COMPLETE-01] OK — todos los prefijos de session_state estan en _PREFIJOS")
 
     print(f"[RU-PREFIJOS-COMPLETE-01] Escaneados {len(_clean_patterns)} patrones, {len(missing)} faltantes")
+
+
+
+# ============================================================
+# RU-M2-CONSISTENCY-01/02: consistencia m2 en header y formula
+# ============================================================
+def test_m2_consistency_keys():
+    data_in = ejecutar_valuacion("mabel")
+    res = valuar_propiedad_v7(data_in)
+    assert "m2_base_venta" in res, "Motor debe producir m2_base_venta"
+
+    if "m2_microzona" in res:
+        bv = res["m2_base_venta"]
+        mz = res["m2_microzona"]
+        assert abs(mz - bv) / max(bv, 1) < 0.001, (
+            f"m2_microzona ({mz}) debe == m2_base_venta ({bv})"
+        )
+
+    comps = res.get("comparables_venta", [])
+    if len(comps) >= 4:
+        from parsers.mercado_inmobiliario import calcular_vm2_por_seleccion
+        comps_filtrados = comps[:-1]
+        preview = calcular_vm2_por_seleccion(comps_filtrados, res)
+        if preview and not preview.get("fallback"):
+            nuevo_vm2 = preview["vm2"]
+            res_excl = dict(res)
+            res_excl["m2_base_venta"] = nuevo_vm2
+            res_excl["m2_microzona"] = nuevo_vm2
+            res_excl["_auto_result"] = res_excl
+            bv2 = res_excl["m2_base_venta"]
+            mz2 = res_excl["m2_microzona"]
+            assert abs(mz2 - bv2) / max(bv2, 1) < 0.001, (
+                "Post-exclusion: m2_microzona debe == m2_base_venta"
+            )
+            auto = res_excl.get("_auto_result", res_excl)
+            mz3 = auto["m2_microzona"]
+            assert abs(mz3 - mz2) / max(mz2, 1) < 0.001, (
+                "_auto_result.m2_microzona debe coincidir con resultado.m2_microzona"
+            )

@@ -218,6 +218,15 @@ def render_header(prop, res):
     m2_micro_auto = (auto_result.get('m2_microzona', auto_result.get('m2_base_venta', 0))
                      if auto_result else 0)
     m2_line_auto = f"m²/USD en {zona}: ${m2_micro_auto:,.0f} ({n_comps_auto} comp.)" if m2_micro_auto > 0 else "—"
+    # Componentes de fórmula SIEMPRE desde auto_result (no display)
+    auto_m2_equiv = auto_result.get("m2_equivalentes", 0) if auto_result else 0
+    auto_size_discount = auto_result.get("size_discount", 1.0) if auto_result else 1.0
+    auto_activos_total = auto_result.get("valor_activos_total", 0) if auto_result else 0
+
+    print(f"[DEBUG-HEADER-FORMULA] {nombre}: formula: "
+          f"m2_micro_auto={m2_micro_auto:.2f}, m2_equiv={auto_m2_equiv:.1f}, "
+          f"size_discount={auto_size_discount:.3f}, activos={auto_activos_total:.0f}, "
+          f"v_auto={v_auto:.0f}, display_m2_microzona={m2_microzona:.2f}")
 
     # ── Ocultar valuación en header si:
     # 1. Insuficientes comparables (< 3)
@@ -265,7 +274,7 @@ def render_header(prop, res):
             <div style="font-size:24px;font-weight:700;color:#FFFFFF;">{f'${v_auto:,.0f}' if v_auto else '—'}</div>
             <div style="font-size:13px;color:rgba(255,255,255,0.85);margin-bottom:2px;">{f'${v_auto * dolar_auto:,.0f} ARS' if v_auto else '—'}</div>
             <div style="font-size:11px;color:rgba(255,255,255,0.65);">Dólar ${dolar_auto:,.0f} · {m2_line_auto}</div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:4px;">{'${:,.0f}/m² × {} m² × {} ajuste + ${:,.0f} extras = ${:,.0f}'.format(m2_microzona, round(m2_equiv_display,1), round(size_discount,3), activos_total, v_auto) if m2_microzona > 0 and m2_equiv_display > 0 else ''}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:4px;">{'${:,.0f}/m² × {} m² × {} ajuste + ${:,.0f} extras = ${:,.0f}'.format(m2_micro_auto, round(auto_m2_equiv,1), round(auto_size_discount,3), auto_activos_total, v_auto) if m2_micro_auto > 0 and auto_m2_equiv > 0 else ''}</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -562,6 +571,21 @@ def render_tabla_comparables(res, prop_name=None):
             print(f"[GUARDRAIL] RU-EXCL-SOURCE-01: {prop_name}: res._comp_excluded={_res_excl} "
                   f"!= comp_excluded={comp_excluded}. Stale session state leaking!")
         is_applied = set(comp_excluded) == set(excluded_ids) and comp_applied
+
+        # GUARDRAIL: detectar divergencia entre preview vm2 y header m2
+        if preview and is_applied:
+            header_m2 = res.get("m2_microzona", res.get("m2_base_venta", 0))
+            preview_m2 = preview["vm2"]
+            diff_pct = abs(preview_m2 - header_m2) / max(header_m2, 1) * 100
+            if diff_pct > 0.5:
+                print(f"[GUARDRAIL] RU-M2-CONSISTENCY-01: {prop_name}: "
+                      f"preview_vm2={preview_m2:.2f} != header_m2={header_m2:.2f} "
+                      f"(diff={diff_pct:.1f}%, n_sel={n_sel}/{n_total}, is_applied={is_applied})")
+
+        _pv = f'{preview["vm2"]:.2f}' if preview else "N/A"
+        _hm = res.get("m2_microzona", res.get("m2_base_venta", 0))
+        print(f"[DEBUG-EXCL-PREVIEW] {prop_name}: preview_vm2={_pv}, "
+              f"n_sel={n_sel}/{n_total}, is_applied={is_applied}, header_m2={_hm:.2f}")
 
         col_a, col_b, col_c = st.columns([1, 2, 1.2])
         with col_a:
@@ -1593,9 +1617,6 @@ def render_valuacion_manual(prop, res):
                     print(f"[DEBUG-MANUAL-SAVE-ORIGEN] {nombre}: auto_valor_usd={uv['auto_valor_usd']}, "
                           f"origen={auto_valor_origen}, previo={auto_valor_previo}, "
                           f"auto_result_cache={auto_result_valor}")
-                    if not _verificar_invariante_auto_valor_usd(uv, auto_result, nombre):
-                        print(f"[GUARDRAIL-EXCL] {nombre}: valor corregido post-guardrail. "
-                              f"auto_valor_usd={uv['auto_valor_usd']}")
                     uv['manual_valor_usd'] = manual_valor_usd
                     uv['fuente'] = 'manual'
                     uv['fuente_activa'] = 'manual'
@@ -1652,34 +1673,4 @@ def render_valuacion_manual(prop, res):
                 st.rerun()
 
 
-# ========================================================================
-# GUARDRAIL RU-MANUAL-SAVE-02: Invariante de auto_valor_usd
-# No se debe escribir auto_valor_usd desde auto_result (cache preview).
-# ========================================================================
-def _verificar_invariante_auto_valor_usd(uv: dict, auto_result: dict, nombre: str) -> bool:
-    """
-    Verifica que auto_valor_usd NO fue contaminado por el cache preview
-    despues de un save manual.
 
-    Si detecta contaminacion (auto_valor_usd == cache preview), auto-corrige
-    el valor a 0 y emite alerta DEBUG.
-
-    Returns:
-        True si el invariante se cumple (no hubo contaminacion).
-        False si se detecto contaminacion y se auto-corrigio.
-    """
-    auto_cache_val = (auto_result or {}).get('valor_propiedad_usd', 0)
-    current_val = uv.get('auto_valor_usd', 0)
-    fuente = uv.get('fuente_activa', '')
-
-    if fuente != 'manual':
-        return True
-
-    if auto_cache_val > 0 and current_val == auto_cache_val:
-        print(f"[GUARDRAIL-EXCL] {nombre}: CONTAMINACION DETECTADA - "
-              f"auto_valor_usd={current_val} == cache preview={auto_cache_val}. "
-              f"RU-MANUAL-SAVE-02 violado. AUTO-CORRIGIENDO a 0.")
-        uv['auto_valor_usd'] = 0
-        return False
-
-    return True
