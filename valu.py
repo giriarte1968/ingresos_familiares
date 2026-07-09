@@ -285,6 +285,13 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     original_res = res  # preservar para tabla de comparables
     if preview_mode and official_res:
         print(f"[DEBUG-OFFICIAL] {nombre}: modo preview activo, header usara resultado oficial")
+        # GUARDRAIL RU-M2-CONSISTENCY-02: detectar divergencia preview vs oficial
+        h_m2 = official_res.get('m2_microzona', official_res.get('m2_base_venta', 0))
+        p_m2 = original_res.get('m2_microzona', original_res.get('m2_base_venta', 0))
+        if h_m2 and p_m2 and abs(h_m2 - p_m2) / max(h_m2, 1) * 100 > 0.5:
+            print(f"[GUARDRAIL] RU-M2-CONSISTENCY-02: {nombre}: "
+                  f"official_m2={h_m2:.2f} != preview_m2={p_m2:.2f}. "
+                  f"Header mostrara valor oficial, tabla mostrara preview.")
         res = official_res
 
     auto_result = res.get('_auto_result', res)
@@ -534,16 +541,10 @@ def mostrar_dashboard():
                             print(f"[DEBUG-CLEAN] {prop_name}: tiene_manual={tiene_manual}, "
                                   f"UV:fuente={uv_old.get('fuente')}, valor_usd={uv_old.get('valor_usd')}")
                             if tiene_manual:
-                                manual_keys = ('valor_usd', 'auto_valor_usd', 'manual_valor_usd',
-                                               'fuente', 'fuente_activa', 'manual_params',
-                                               'retro_dias', 'flex_dormitorios',
-                                               'comps', 'm2_equivalentes',
-                                               '_comp_excluded', '_comp_exclusion_applied')
-                                uv_preservado = {k: uv_old[k] for k in manual_keys if k in uv_old}
-                                p['_ultima_valuacion'] = uv_preservado
-                                print(f"[DEBUG-CLEAN-PRESERVE] {prop_name}: preservada valuacion manual. "
-                                      f"valor_usd={uv_preservado.get('valor_usd')}, "
-                                      f"fuente={uv_preservado.get('fuente')}")
+                                p.pop('_ultima_valuacion', None)
+                                print(f"[DEBUG-CLEAN-CLEAR] {prop_name}: valuacion manual LIMPIADA. "
+                                      f"UV:valor_usd={uv_old.get('valor_usd')}, "
+                                      f"fuente={uv_old.get('fuente')}")
                             else:
                                 p.pop('_ultima_valuacion', None)
                             break
@@ -564,6 +565,8 @@ def mostrar_dashboard():
                 st.session_state.pop(f'retro_meses_slider_{prop_name}', None)
                 st.session_state.pop(f'retro_btn_{prop_name}', None)
                 st.session_state.pop(f'flex_btn_{prop_name}', None)
+                st.session_state.pop(f'manual_preview_{prop_name}', None)
+                st.session_state.pop(f'fuente_activa_{prop_name}', None)
                 st.session_state[f'pendiente_comparables_{prop_name}'] = True
                 print(f"[DEBUG-COMP-BTN] {prop_name}: pendiente_comparables=True — botón cambiará a Comparables")
                 st.rerun()
@@ -2040,12 +2043,12 @@ def main():
 # ========================================================================
 def _verificar_invariante_clean_comparables(uv: dict, nombre: str) -> bool:
     """
-    Verifica que despues de limpiar comparables, si habia una valuacion manual
-    (fuente=manual), los campos esenciales se preservaron.
+    Verifica que despues de limpiar comparables, la valuacion manual fue borrada.
+    El clean debe limpiar TODO, incluyendo fuente=manual.
 
     Returns:
-        True si el invariante se cumple.
-        False si se detecto que la manual fue borrada.
+        True si el invariante se cumple (manual fue borrada).
+        False si la manual sobrevivio al clean.
     """
     if not uv:
         return True
@@ -2053,15 +2056,10 @@ def _verificar_invariante_clean_comparables(uv: dict, nombre: str) -> bool:
     valor_usd = uv.get('valor_usd', 0)
     manual_params = uv.get('manual_params')
 
-    if fuente == 'manual' and valor_usd > 0 and manual_params is None:
+    if fuente == 'manual' and valor_usd > 0 and manual_params is not None:
         print(f"[GUARDRAIL-EXCL] {nombre}: INVARIANTE VIOLADO - "
-              f"fuente=manual pero manual_params perdido. "
-              f"Probable colision con limpiar comparables.")
-        return False
-    if fuente == 'manual' and valor_usd == 0:
-        print(f"[GUARDRAIL-EXCL] {nombre}: INVARIANTE VIOLADO - "
-              f"fuente=manual pero valor_usd=0. "
-              f"Probable colision con limpiar comparables.")
+              f"fuente=manual pero manual_params preservado. "
+              f"Clean debio borrar la valuacion manual.")
         return False
     return True
 

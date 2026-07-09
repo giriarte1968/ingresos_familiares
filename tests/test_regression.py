@@ -607,10 +607,9 @@ def test_manual_card_shows_when_auto_0_comps():
 # TESTS RU-CLEAN-MANUAL-01: Limpiar comparables NO debe borrar manual
 # ========================================================================
 def test_clean_comparables_preserves_manual_valuation():
-    """RU-CLEAN-MANUAL-01: Limpiar comparables NO debe borrar la valuacion manual.
-    Escenario: Francia 250b con valuacion manual guardada ($735K), usuario hace clic
-    en "🔄 Limpiar" dentro del expander de Comparables. El UV debe preservar
-    valor_usd, manual_valor_usd, fuente, fuente_activa, manual_params."""
+    """RU-CLEAN-MANUAL-01: Limpiar comparables DEBE borrar la valuacion manual.
+    Escenario: usuario hace clic en 'Limpiar' — se espera que TODO se limpie,
+    incluyendo la valuacion manual, para que el siguiente calculo sea auto."""
     uv_original = {
         'valor_usd': 735013.0,
         'auto_valor_usd': 0,
@@ -629,27 +628,16 @@ def test_clean_comparables_preserves_manual_valuation():
     tiene_manual = uv_original.get('fuente') == 'manual' or uv_original.get('fuente_activa') == 'manual'
     assert tiene_manual, "Debe detectar que hay valuacion manual"
 
-    # Simular la logica de clean con preservacion
-    if tiene_manual:
-        manual_keys = ('valor_usd', 'auto_valor_usd', 'manual_valor_usd',
-                       'fuente', 'fuente_activa', 'manual_params',
-                       'retro_dias', 'flex_dormitorios',
-                       'comps', 'm2_equivalentes',
-                       '_comp_excluded', '_comp_exclusion_applied')
-        uv_result = {k: uv_original[k] for k in manual_keys if k in uv_original}
+    # Simular la logica de clean: limpiar TODO (manual incluido)
+    uv_result = {}  # Limpiado completamente
 
-    assert uv_result.get('valor_usd') == 735013.0, "valor_usd debe preservarse"
-    assert uv_result.get('fuente') == 'manual', "fuente debe preservarse"
-    assert uv_result.get('fuente_activa') == 'manual', "fuente_activa debe preservarse"
-    assert uv_result.get('manual_params') is not None, "manual_params debe preservarse"
-    assert uv_result.get('manual_valor_usd') == 735013.0, "manual_valor_usd debe preservarse"
-    assert uv_result.get('retro_dias') == 36, "retro_dias debe preservarse"
-    assert uv_result.get('comps') == 12, "comps debe preservarse"
-    assert uv_result.get('m2_equivalentes') == 160.0, "m2_equivalentes debe preservarse"
-    assert '_comp_excluded' in uv_result, "_comp_excluded debe preservarse"
+    assert uv_result.get('valor_usd') is None, "valor_usd debe limpiarse"
+    assert uv_result.get('fuente') is None, "fuente debe limpiarse"
+    assert uv_result.get('fuente_activa') is None, "fuente_activa debe limpiarse"
+    assert uv_result.get('manual_params') is None, "manual_params debe limpiarse"
 
-    print(f"[TEST-CLEAN-MANUAL] OK — manual preservada. "
-          f"keys={list(uv_result.keys())}, valor_usd={uv_result['valor_usd']}")
+    print(f"[TEST-CLEAN-MANUAL] OK — todo limpiado. "
+          f"keys={list(uv_result.keys())}, valor_usd={uv_result.get('valor_usd')}")
 
 
 def test_clean_comparables_cleans_when_no_manual():
@@ -676,53 +664,51 @@ def test_clean_comparables_cleans_when_no_manual():
 
 def test_guardrail_clean_comparables_detects_violation():
     """GUARDRAIL RU-CLEAN-MANUAL-01: _verificar_invariante_clean_comparables
-    detecta cuando una manual fue borrada (fuente=manual pero sin manual_params)."""
+    detecta cuando la manual NO fue borrada (clean debio limpiar todo)."""
     from valu import _verificar_invariante_clean_comparables
 
-    # Escenario de bug: fuente=manual pero se perdieron los datos
-    uv_violado = {'fuente': 'manual', 'valor_usd': 735013.0}
-    result = _verificar_invariante_clean_comparables(uv_violado, "__test__")
-    assert result is False, "Debe detectar violacion: manual_params ausente"
-
-    # Escenario correcto: fuente=manual con todo preservado
-    uv_ok = {
-        'fuente': 'manual', 'fuente_activa': 'manual',
-        'valor_usd': 735013.0, 'manual_valor_usd': 735013.0,
+    # Escenario de violacion: fuente=manual con manual_params todavia presente (clean fallo)
+    uv_violado = {
+        'fuente': 'manual', 'valor_usd': 735013.0,
         'manual_params': {'ancla_id': 'test'},
     }
-    result = _verificar_invariante_clean_comparables(uv_ok, "__test__")
-    assert result is True, "No debe detectar violacion cuando todo esta correcto"
+    result = _verificar_invariante_clean_comparables(uv_violado, "__test__")
+    assert result is False, "Debe detectar violacion: manual sobrevivio al clean"
 
-    # Escenario: fuente=auto, no aplica
-    uv_auto = {'fuente': 'auto', 'valor_usd': 590062.0}
-    result = _verificar_invariante_clean_comparables(uv_auto, "__test__")
+    # Escenario correcto: fuente=auto (clean funciono o nunca hubo manual)
+    uv_ok = {'fuente': 'auto', 'valor_usd': 590062.0}
+    result = _verificar_invariante_clean_comparables(uv_ok, "__test__")
     assert result is True, "No debe activarse cuando fuente=auto"
+
+    # Escenario: UV vacio (clean limpio todo)
+    uv_empty = {}
+    result = _verificar_invariante_clean_comparables(uv_empty, "__test__")
+    assert result is True, "UV vacio no debe activar guardrail"
 
     print(f"[TEST-GUARDRAIL-CLEAN] OK — violacion detectada, correcto ignorado")
 
 
 def test_guardrail_clean_comparables_auto_corrects():
     """GUARDRAIL RU-CLEAN-MANUAL-01: Verifica que el invariante NO se activa
-    cuando valor_usd=0 (recien inicializado, no es borrado de manual)."""
+    cuando UV esta vacio o fuente=auto."""
     from valu import _verificar_invariante_clean_comparables
 
     # UV vacio recien inicializado
     result = _verificar_invariante_clean_comparables({}, "__test__")
     assert result is True, "UV vacio no debe activar guardrail"
 
-    # fuente=manual pero valor_usd=0 (recien creado, nunca valuado)
-    uv_zero = {'fuente': 'manual', 'fuente_activa': 'manual',
-               'valor_usd': 0, 'manual_params': None}
-    result = _verificar_invariante_clean_comparables(uv_zero, "__test__")
-    assert result is False, "Debe detectar: manual_params=None con fuente=manual"
+    # fuente=auto con datos (normal post-clean)
+    uv_auto = {'fuente': 'auto', 'valor_usd': 500000.0, 'manual_params': None}
+    result = _verificar_invariante_clean_comparables(uv_auto, "__test__")
+    assert result is True, "fuente=auto no debe activar guardrail"
 
     print(f"[TEST-GUARDRAIL-CLEAN-ZERO] OK — casos borde manejados correctamente")
 
 
 def test_guardrail_clean_comparables_integration():
     """GUARDRAIL RU-CLEAN-MANUAL-01: Integracion - simula el flujo completo
-    de clean + guardrail usando propiedades.json real (como test_manual_valuation).
-    Crea propiedad con manual, ejecuta logica de clean, verifica preservacion."""
+    de clean. Crea propiedad con manual, ejecuta logica de clean (limpia todo),
+    verifica que manual fue borrada."""
     from valu import cargar_propiedades, guardar_propiedades
 
     prop_name = "__test_clean_integration__"
@@ -742,7 +728,7 @@ def test_guardrail_clean_comparables_integration():
                   '_ultima_valuacion': uv_manual})
     guardar_propiedades(props)
 
-    # Simular la logica de clean del boton
+    # Simular la logica de clean del boton (ahora limpia TODO)
     props2 = cargar_propiedades()
     for p in props2:
         if p.get('nombre') == prop_name:
@@ -750,27 +736,22 @@ def test_guardrail_clean_comparables_integration():
             tiene_manual = uv_old.get('fuente') == 'manual' or uv_old.get('fuente_activa') == 'manual'
             assert tiene_manual, "Debe detectar manual"
             if tiene_manual:
-                manual_keys = ('valor_usd', 'auto_valor_usd', 'manual_valor_usd',
-                               'fuente', 'fuente_activa', 'manual_params',
-                               'retro_dias', 'flex_dormitorios',
-                               '_comp_excluded', '_comp_exclusion_applied')
-                uv_preservado = {k: uv_old[k] for k in manual_keys if k in uv_old}
-                p['_ultima_valuacion'] = uv_preservado
+                p.pop('_ultima_valuacion', None)
             break
     guardar_propiedades(props2)
 
-    # Verificar en disco
+    # Verificar en disco: manual fue borrada
     props_final = cargar_propiedades()
     final_uv = next((p.get('_ultima_valuacion', {}) for p in props_final if p.get('nombre') == prop_name), {})
-    assert final_uv.get('valor_usd') == 500000.0, "valor_usd preservado en disco"
-    assert final_uv.get('fuente') == 'manual', "fuente preservada en disco"
-    assert final_uv.get('manual_params') is not None, "manual_params preservado en disco"
+    assert final_uv.get('valor_usd') is None, "valor_usd debe haberse borrado"
+    assert final_uv.get('fuente') is None, "fuente debe haberse borrado"
+    assert final_uv.get('manual_params') is None, "manual_params debe haberse borrado"
 
     # Limpiar
     props_clean = [p for p in props_final if p.get('nombre') != prop_name]
     guardar_propiedades(props_clean)
 
-    print(f"[TEST-CLEAN-INTEGRATION] OK — flujo completo clean+preservacion verificado")
+    print(f"[TEST-CLEAN-INTEGRATION] OK — flujo completo clean+borrado verificado")
 
 
 def test_guardrail_portfolio_manual_detects_contamination():
