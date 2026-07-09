@@ -1365,23 +1365,8 @@ def render_valuacion_manual(prop, res):
         with col_b:
             tiene_ancla = ancla_sel != "Sin Ancla"
             usd_display = saved.get('usd_m2', default_usd_m2)
-            _usd_m2_raw_val = None
             if tiene_ancla and ancla_sel in ancla_options:
-                _anchor_data = ancla_options[ancla_sel]
-                _usd_m2_raw_val = _anchor_data.get('usd_m2_raw', _anchor_data.get('usd_m2', 0))
-                try:
-                    from parsers.time_adjustment import calcular_ct, es_nuevo
-                    _anio_prop = prop.get('anio_construccion') or prop.get('antiguedad')
-                    _meses_prop = 0
-                    if _anio_prop:
-                        _anio_num = int(_anio_prop) if isinstance(_anio_prop, (int, float)) else int(str(_anio_prop)[:4])
-                        _meses_prop = max(0, (2026 - _anio_num) * 12)
-                    _mz_id = _mz_info.get('macrozona_id') if _mz_info else None
-                    _es_nuevo_flag = es_nuevo(prop)
-                    _ct = calcular_ct(_meses_prop, es_nuevo_flag=_es_nuevo_flag, macrozona_id=_mz_id)
-                    usd_display = round(_usd_m2_raw_val * _ct, 0)
-                except Exception:
-                    usd_display = _usd_m2_raw_val
+                usd_display = ancla_options[ancla_sel].get('usd_m2', usd_display)
             usd_m2_input = st.number_input(
                 "USD/m²",
                 min_value=0.0, max_value=10000.0,
@@ -1595,7 +1580,6 @@ def render_valuacion_manual(prop, res):
             manual_params = {
                 'ancla_id': ancla_sel,
                 'usd_m2': usd_m2_input,
-                'usd_m2_raw': _usd_m2_raw_val,
                 'factor_hedonico': fh,
                 'incertidumbre_pct': inc,
                 'ajuste_pct': ajuste_pct,

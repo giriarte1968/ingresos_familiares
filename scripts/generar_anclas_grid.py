@@ -15,7 +15,7 @@ PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
 sys.path.insert(0, PROJECT_ROOT)
 
 from parsers.motor_vpp_core import load_anclas_config
-from parsers.time_adjustment import interpolar, ct_segmento, meses_desde, es_nuevo
+from parsers.time_adjustment import calcular_ct, meses_desde, es_nuevo
 
 FECHA_REF = datetime(2026, 6, 1)
 
@@ -77,13 +77,10 @@ def main():
 
     GRID_SIZE_M = args.grid_size
     MIN_PROPS = args.min_props
-    FACTOR_USADO = gen_cfg.get('ct_factors', {}).get('usado', 1.12)
-    FACTOR_NUEVO = gen_cfg.get('ct_factors', {}).get('nuevo', 0.95)
     city_center = gen_cfg.get('city_center', {'lat': -32.92776, 'lon': -60.69769})
     noise_tokens = gen_cfg.get('noise_tokens', [])
     noise_patterns = gen_cfg.get('noise_patterns', [])
     noise_set, _ = build_noise_set(noise_tokens, noise_patterns)
-    ct_table = gen_cfg.get('ct_table', [])
 
     RUTA_CACHE = os.path.join(PROJECT_ROOT, 'cache_scraping.json')
 
@@ -96,7 +93,7 @@ def main():
         RUTA_OUT = os.path.join(PROJECT_ROOT, gen_cfg.get('output_dir', 'data'), out_name)
 
     print("Grid size: %dm, min props: %d" % (GRID_SIZE_M, MIN_PROPS))
-    print("Ct: usado=1.0+(Ct-1.0)*%.2f, nuevo=1.0+(Ct-1.0)*%.2f" % (FACTOR_USADO, FACTOR_NUEVO))
+    print("Ct: usar ct_annual_rate por macrozona desde zonas_depreciacion.json")
 
     with open(RUTA_CACHE, encoding='utf-8') as f:
         cache = json.load(f)
@@ -116,22 +113,26 @@ def main():
         is_new = es_nuevo(p)
         if is_new: n_nuevo += 1
 
-        ct_base = interpolar(ct_table, m)
-        ct_usado = ct_segmento(m, FACTOR_USADO)
-        ct_nuevo_val = ct_segmento(m, FACTOR_NUEVO)
-        ct = ct_nuevo_val if is_new else ct_usado
+        try:
+            from parsers.zonas_manager import resolver_macrozona
+            _mz = resolver_macrozona({'lat': lat, 'lon': lon, 'zona': p.get('zona', '')})
+            _mz_id = _mz.get('macrozona_id', 'resto_rosario')
+        except Exception:
+            _mz_id = None
+        ct = calcular_ct(m, es_nuevo_flag=is_new, macrozona_id=_mz_id)
 
         props.append({
             'lat': lat, 'lon': lon,
             'valor_m2': vm2,
-            'lista_hoy_unico': round(vm2 * ct_base, 2),
+            'lista_hoy_unico': round(vm2 * ct, 2),
             'lista_hoy_dual':  round(vm2 * ct, 2),
-            'ct_base': ct_base,
+            'ct_base': ct,
             'ct_aplicado': ct,
             'es_nuevo': is_new,
             'zona': p.get('zona', ''),
             'calle': p.get('calle_limpia', ''),
             'meses': m,
+            'macrozona_id': _mz_id,
         })
     print("Props validas venta: %d (nuevo=%d, usado=%d)" % (len(props), n_nuevo, len(props)-n_nuevo))
 
@@ -235,8 +236,7 @@ def main():
         'parametros': {
             'grid_size_m': GRID_SIZE_M,
             'min_props': MIN_PROPS,
-            'ct_usado_factor': FACTOR_USADO,
-            'ct_nuevo_factor': FACTOR_NUEVO,
+            'ct_metodo': 'calcular_ct(pub_date, macrozona_id) con ct_annual_rate de zonas_depreciacion.json',
         },
         'total_props': len(props),
         'total_anclas': len(anclas),

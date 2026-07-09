@@ -81,7 +81,7 @@ def calcular_precio_m2(lat, lon, nodos, barriers=None, radio_km=1.0, lambda_val=
         # aplicamos una función de saturación o limitamos el weight.
         weight = min(weight, MAX_PESO_NODO)
         
-        anchor_val = n.get('usd_m2_raw', n.get('usd_m2', 1500))
+        anchor_val = n['usd_m2']
         weighted_vals.append(anchor_val * weight)
         total_weight += weight
         influencing_nodes.append({
