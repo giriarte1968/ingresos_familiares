@@ -101,3 +101,4 @@
 | TAREA-126 | Restaurar botones Valuación Manual (siempre visibles) + Renombrar a "Aplicar Selección"/"Limpiar" | _(current)_ | 2026-07-08 |
 | TAREA-127 | Fix exclusion-applied state con 0 exclusiones (session_state) | `2135dea` | 2026-07-08 |
 | TAREA-127b | Fix EXCL-RESTORE pierde _comp_exclusion_applied con lista vacía + Guardrail RU-EXCL-APPLIED-01 | `fe504ba` | 2026-07-08 |
+| TAREA-128 | Desacoplar Ct del Anchor — Valuación Manual con Ct runtime | _(current)_ | 2026-07-09 |

@@ -162,6 +162,10 @@ def main():
         vals_d = sorted(p['lista_hoy_dual'] for p in miembros)
         med_d = vals_d[n//2] if n%2 else (vals_d[n//2-1]+vals_d[n//2])/2
 
+        vals_raw = sorted(p['valor_m2'] for p in miembros)
+        med_raw = vals_raw[n//2] if n%2 else (vals_raw[n//2-1]+vals_raw[n//2])/2
+        avg_meses_val = sum(p['meses'] for p in miembros) / n
+
         calles_raw = [clean_calle(p['calle'], noise_set, noise_patterns) for p in miembros if p['calle']]
         calles = [c for c in calles_raw if c]
         top1 = ''
@@ -198,6 +202,8 @@ def main():
             'lon': round(lon_c, 6),
             'usd_m2': round(med_d, 0),
             'usd_m2_ct_unico': round(med_u, 0),
+            'usd_m2_raw': round(med_raw, 0),
+            'avg_meses': round(avg_meses_val, 1),
             'diff_pct': round((med_d - med_u) / med_u * 100, 1) if med_u else 0,
             'fecha_calibracion': '2026-06-01',
             'fuente': 'grid_v7',

@@ -1567,3 +1567,95 @@ def test_m2_consistency_keys():
             assert abs(mz3 - mz2) / max(mz2, 1) < 0.001, (
                 "_auto_result.m2_microzona debe coincidir con resultado.m2_microzona"
             )
+
+@pytest.mark.core
+def test_anchor_usd_m2_raw_fields():
+    """TAREA-128: Todos los anclas deben tener usd_m2_raw y avg_meses."""
+    from parsers.location_engine import cargar_anclas
+    anclas = cargar_anclas()
+    assert len(anclas) > 0, "Debe haber anclas cargadas"
+    for a in anclas:
+        assert 'usd_m2_raw' in a, f"Anchor {a.get('id')} falta usd_m2_raw"
+        assert 'avg_meses' in a, f"Anchor {a.get('id')} falta avg_meses"
+        assert a['usd_m2_raw'] > 0, f"Anchor {a.get('id')} usd_m2_raw debe > 0"
+        assert a['avg_meses'] >= 0, f"Anchor {a.get('id')} avg_meses debe >= 0"
+
+@pytest.mark.core
+def test_ct_runtime_generar_resultado_manual():
+    """TAREA-128: generar_resultado_manual debe aplicar Ct cuando hay ancla."""
+    from parsers.mercado_inmobiliario import generar_resultado_manual
+    from parsers.location_engine import cargar_anclas
+    anclas = cargar_anclas()
+    de_mayo_sur = next((a for a in anclas if a['id'] == 'de_mayo_sur'), None)
+    assert de_mayo_sur is not None, "de_mayo_sur debe existir"
+    raw_val = de_mayo_sur['usd_m2_raw']
+    assert raw_val > 0, f"de_mayo_sur usd_m2_raw debe > 0, got {raw_val}"
+
+    prop = {
+        'nombre': 'test_ct',
+        'tipo_inmueble': 'departamento',
+        'zona': 'Martin',
+        'direccion': 'Mabel 1400',
+        'lat': -32.9541, 'lon': -60.6316,
+        'm2': 48.5, 'm2_cubiertos': 41.0,
+        'dormitorios': 1,
+        'anio_construccion': 2000,
+        'estado_detalle': 'muy bueno',
+        'calidad_edificio': 'media',
+    }
+    
+    manual_params = {
+        'ancla_id': 'de_mayo_sur',
+        'usd_m2': raw_val,
+        'usd_m2_raw': raw_val,
+        'factor_hedonico': 1.0,
+        'incertidumbre_pct': 10.0,
+        'ajuste_pct': 0.0,
+        'incluir_prima_const': False,
+        'incluir_size_adj': False,
+    }
+    
+    result = generar_resultado_manual(prop, manual_params)
+    m2_base = result.get('m2_base_venta', 0)
+    valor = result.get('valor_propiedad_usd', 0)
+    assert m2_base > 0, f"m2_base_venta debe > 0, got {m2_base}"
+    assert valor > 0, f"valor_propiedad_usd debe > 0, got {valor}"
+    # Ct for sur macrozona, 26 years old = (1+0.0305)^(26) ≈ 2.18x
+    # Raw = 1804, effective ≈ 1804 * 2.18 ≈ 3933
+    # But m2_base_venta depends on what macrozona the property resolves to.
+    # The test just checks that Ct was applied (value differs from raw)
+    from parsers.time_adjustment import calcular_ct, es_nuevo
+    from parsers.zonas_manager import resolver_macrozona
+    mz = resolver_macrozona(prop)
+    mz_id = mz.get('macrozona_id')
+    ct = calcular_ct(max(0, (2026 - 2000) * 12), es_nuevo_flag=es_nuevo(prop), macrozona_id=mz_id)
+    expected_m2 = raw_val * ct
+    ratio = m2_base / expected_m2
+    assert 0.95 < ratio < 1.05, (
+        f"m2_base_venta ({m2_base:.2f}) debe ≈ expected ({expected_m2:.2f}), "
+        f"ratio={ratio:.4f}"
+    )
+
+@pytest.mark.core
+def test_ct_runtime_legacy_fallback():
+    """TAREA-128: Sin ancla_id, usar usd_m2 directo (backward compat)."""
+    from parsers.mercado_inmobiliario import generar_resultado_manual
+    prop = {
+        'nombre': 'test_legacy',
+        'tipo_inmueble': 'casa',
+        'zona': 'Centro',
+        'm2': 100, 'm2_cubiertos': 90,
+        'dormitorios': 3,
+    }
+    manual_params = {
+        'ancla_id': 'Sin Ancla',
+        'usd_m2': 2000,
+        'factor_hedonico': 1.0,
+        'incertidumbre_pct': 10.0,
+        'ajuste_pct': 0.0,
+        'incluir_prima_const': False,
+        'incluir_size_adj': False,
+    }
+    result = generar_resultado_manual(prop, manual_params)
+    m2_base = result.get('m2_base_venta', 0)
+    assert abs(m2_base - 2000) < 1, f"m2_base_venta debe ≈ 2000, got {m2_base}"

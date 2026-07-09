@@ -4006,6 +4006,7 @@ def generar_resultado_manual(prop, manual_params, auto_result=None):
     # Size adjustment por macrozona (TAREA-077)
     size_adj = 1.0
     mz_nombre = ""
+    _mz_info = None
     try:
         from parsers.zonas_manager import resolver_macrozona
         _mz_info = resolver_macrozona(prop)
@@ -4019,6 +4020,34 @@ def generar_resultado_manual(prop, manual_params, auto_result=None):
             )
     except:
         pass
+
+    # Ct runtime: desacoplar Ct del anchor (TAREA-128)
+    _ancla_id = manual_params.get('ancla_id')
+    if _ancla_id:
+        try:
+            from parsers.location_engine import cargar_anclas
+            from parsers.time_adjustment import calcular_ct, es_nuevo
+            _anclas = cargar_anclas()
+            for _a in _anclas:
+                if _a.get('id') == _ancla_id:
+                    _usd_m2_raw = _a.get('usd_m2_raw', 0)
+                    if _usd_m2_raw:
+                        _anio_prop = prop.get('anio_construccion') or prop.get('antiguedad')
+                        _meses_prop = 0
+                        if _anio_prop:
+                            try:
+                                _anio_num = int(_anio_prop) if isinstance(_anio_prop, (int, float)) else int(str(_anio_prop)[:4])
+                                _meses_prop = max(0, (2026 - _anio_num) * 12)
+                            except:
+                                pass
+                        _mz_id = _mz_info.get('macrozona_id') if _mz_info else None
+                        _es_nuevo_flag = es_nuevo(prop)
+                        _ct = calcular_ct(_meses_prop, es_nuevo_flag=_es_nuevo_flag, macrozona_id=_mz_id)
+                        usd_m2 = round(_usd_m2_raw * _ct, 2)
+                        print(f"[DEBUG-CT-RUNTIME] ancla={_ancla_id} raw={_usd_m2_raw:.0f} ct={_ct:.4f} meses={_meses_prop} effective={usd_m2:.2f}")
+                    break
+        except Exception as e:
+            print(f"[DEBUG-CT-RUNTIME] WARN: fallback usd_m2={usd_m2}, err={e}")
 
     # Factor constructora desde JSON
     factor_const = 1.0

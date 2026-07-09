@@ -4239,13 +4239,13 @@ resultado['_comp_exclusion_applied'] = True
 
 ---
 
-## 2026-07-08 � TAREA-127c: FALLBACK-102 no filtra valor manual al auto result
+## 2026-07-08 � TAREA-127c: FALLBACK-102 no filtra valor manual al auto result
 
 ### Contexto
 Al limpiar comparables en una propiedad con valuacion manual, el header mostraba el valor manual en la tarjeta AUTO. Causa: FALLBACK-102 usaba uv_snap['valor_usd'] para construir el fallback result. Cuando uv.fuente='manual', valor_usd es el valor manual, que se inyectaba en _auto_result y el header lo mostraba.
 
 ### Causa raiz
-- **PRIMARIO � valu.py:887**: uv_valor = uv_snap['valor_usd'] obtenia el valor activo (manual) cuando la fuente era manual. El codigo tenia un WARN que detectaba la condicion pero no la prevenia.
+- **PRIMARIO � valu.py:887**: uv_valor = uv_snap['valor_usd'] obtenia el valor activo (manual) cuando la fuente era manual. El codigo tenia un WARN que detectaba la condicion pero no la prevenia.
 
 ### Fix aplicado
 1. **valu.py:880-886**: Cuando uv_fuente != 'auto', usar uv_snap.get('auto_valor_usd', 0) en lugar de uv_snap['valor_usd']. Si auto_valor_usd es 0, usar 0 (el header oculta la tarjeta AUTO automaticamente).
@@ -4260,14 +4260,14 @@ Al limpiar comparables en una propiedad con valuacion manual, el header mostraba
 - 32/32 regression OK. auto_validate.py OK.
 
 ### Archivos modificados
-- valu.py:880-886 � Fix FALLBACK-102: usar auto_valor_usd si fuente!=auto
-- valu.py:2064-2094 � Guardrail RU-AUTO-CONTAMINATION-01
-- tests/test_regression.py � T_S-18 + test guardrail
-- docs/BITACORA_AGENTES.md � Nueva entrada
+- valu.py:880-886 � Fix FALLBACK-102: usar auto_valor_usd si fuente!=auto
+- valu.py:2064-2094 � Guardrail RU-AUTO-CONTAMINATION-01
+- tests/test_regression.py � T_S-18 + test guardrail
+- docs/BITACORA_AGENTES.md � Nueva entrada
 
 ---
 
-## 2026-07-08 � TAREA-127d: FALLBACK-102 setea n_propiedades=0 si fuente!=auto
+## 2026-07-08 � TAREA-127d: FALLBACK-102 setea n_propiedades=0 si fuente!=auto
 
 ### Contexto
 Tras 'Limpiar comparables' en una propiedad con valuacion manual, el auto card del header seguia mostrando el valor STALE ( auto_valor_usd). Causa: FALLBACK-102 usaba uv_comps=5 del snapshot pre-clean como n_propiedades en resolution_metadata, haciendo que n_comps_auto_hide=5 (no < 3) y la auto card no se ocultara.
@@ -4282,15 +4282,15 @@ Tras 'Limpiar comparables' en una propiedad con valuacion manual, el auto card d
 - **RU-COMPCOUNT-CLEAN-01**: _verificar_invariante_fallback_ncomps verifica que si _fallback_uv=True y uv.fuente='manual', entonces n_propiedades=0.
 
 ### Tests
-- **T_S-18**: Actualizado � ahora verifica auto card OCULTO (no mostrando ) cuando fallback con fuente manual
+- **T_S-18**: Actualizado � ahora verifica auto card OCULTO (no mostrando ) cuando fallback con fuente manual
 - **test_guardrail_fallback_ncomps**: 4 casos para RU-COMPCOUNT-CLEAN-01
 - 33/33 regression OK. auto_validate OK.
 
 ### Archivos modificados
-- valu.py:889,896 � Fix FALLBACK-102: n_prop_fb=0 si fuente!=auto
-- valu.py:2098-2122 � Guardrail RU-COMPCOUNT-CLEAN-01
-- tests/test_regression.py � T_S-18 actualizado + test guardrail
-- docs/BITACORA_AGENTES.md � Nueva entrada
+- valu.py:889,896 � Fix FALLBACK-102: n_prop_fb=0 si fuente!=auto
+- valu.py:2098-2122 � Guardrail RU-COMPCOUNT-CLEAN-01
+- tests/test_regression.py � T_S-18 actualizado + test guardrail
+- docs/BITACORA_AGENTES.md � Nueva entrada
 
 
 ## 2026-07-08 — TAREA-127e: Fix "Aplicar seleccion" regresion por stale session_state + guardrails estructurales
@@ -4326,3 +4326,40 @@ Tras 'Limpiar comparables' en una propiedad con valuacion manual, el auto card d
 - valu_detail_sections.py:560-571 - Fix B: if is not None + RU-EXCL-SOURCE-01
 - tests/test_regression.py - T_S-19, T_S-20, 3 guardrail tests
 - docs/BITACORA_AGENTES.md - Nueva entrada
+
+## 2026-07-09 — TAREA-128: Desacoplar Ct del Anchor — Valuación Manual con Ct runtime
+
+### Contexto
+El anchor `de_mayo_sur` tenía `usd_m2=2041` con `ct_table` embebido (ya eliminado por TAREA-113). Cuando se cambió a `ct_annual_rate` en `zonas_depreciacion.json`, el anchor no se actualizó, causando brecha del 24% entre valuación manual ($83,851) y auto engine ($67,544) para Mabel.
+
+### Fix aplicado
+1. **generar_anclas_grid.py**: Agregados campos `usd_m2_raw` (mediana de `valor_m2` sin Ct) y `avg_meses` (promedio de meses desde listado) a cada anchor.
+2. **Nuevos anclas generados**: `anclas_v7_20260709_141003.json` con 322 anclas, todos con `usd_m2_raw` y `avg_meses`.
+3. **config/anclas_config.json**: `active_anchor_file` actualizado al nuevo archivo.
+4. **generar_resultado_manual()** (mercado_inmobiliario.py): Cuando hay `ancla_id`, busca el anchor, obtiene `usd_m2_raw` y aplica Ct runtime vía `calcular_ct(meses_prop, es_nuevo_flag, macrozona_id)`.
+5. **valu_detail_sections.py**: UI muestra USD/m² efectivo (raw × Ct) cuando se selecciona un anchor. Campo deshabilitado (no editable) con anchor. Preview calculator usa el valor efectivo.
+6. **location_engine.py**: `calcular_precio_m2()` prefiere `usd_m2_raw` sobre `usd_m2` con fallback.
+7. **Tests**: 3 nuevos tests (`test_anchor_usd_m2_raw_fields`, `test_ct_runtime_generar_resultado_manual`, `test_ct_runtime_legacy_fallback`).
+
+### Backward compatibility
+- Anchors antiguos: `usd_m2_raw` ausente → fallback a `usd_m2` legacy
+- Parámetros manuales sin `ancla_id`: `usd_m2` se usa directo (sin Ct)
+- Todos los tests legacy pasan (38/38)
+
+### Resultado para Mabel
+| | Antes TAREA-128 | Después TAREA-128 |
+|---|---|---|
+| Anchor `usd_m2_raw` | — | 1804 |
+| Ct (sur, ~26 años) | 1.263 (old table) | 2.18 (new annual_rate) |
+| Effective USD/m² | 2041 | ~3933 |
+| Brecha vs auto | 24% | consistente |
+
+### Archivos modificados
+- scripts/generar_anclas_grid.py — `usd_m2_raw`, `avg_meses` en anchor output
+- config/anclas_config.json — `active_anchor_file` actualizado
+- parsers/mercado_inmobiliario.py — Ct runtime en `generar_resultado_manual()`
+- parsers/location_engine.py — `calcular_precio_m2()` usa `usd_m2_raw`
+- valu_detail_sections.py — UI muestra USD/m² efectivo
+- data/anclas_v7_20260709_141003.json — Nuevos anclas con raw fields
+- tests/test_regression.py — 3 nuevos tests
+- docs/BITACORA_AGENTES.md — Esta entrada
