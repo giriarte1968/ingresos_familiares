@@ -43,20 +43,26 @@ Si el cambio modifica componentes de UI (botones, banners, visibilidad, formular
 ---
 
 ### PASO 1: [Nombre del paso]
-
+ 
 **Archivo:** `ruta/archivo.py` — funcion/bloque (lineas XX-YY)
-
+ 
+**JUSTIFICACIÓN RO:** [OBLIGATORIO] Citar Regla de Oro afectada (ej. RO-UI-01) y explicar exactamente por qué este cambio NO la viola. Si el cambio es puramente visual, justificar que no altera la lógica de persistencia.
+ 
 **1.1** Cambio especifico 1
-
+ 
 **1.2** Cambio especifico 2
-
+ 
 ```python
 # Codigo exacto a insertar/reemplazar
 ```
-
+ 
 **COMMIT:** `"Etiqueta: Descripcion del cambio"`
+ 
+**VERIFICAR:** 
+- `pytest` (específicamente tests de regresión afectados)
+- **TEST UI:** [Nombre del test de mock ejecutado] (OBLIGATORIO si afecta UI)
+- Verificación visual en navegador
 
-**VERIFICAR:** `pytest` / visual / etc.
 
 ---
 

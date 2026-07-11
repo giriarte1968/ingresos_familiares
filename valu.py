@@ -79,6 +79,11 @@ def _limpiar_estado_propiedad(nombre: str) -> None:
     """Limpia TODO el estado de sesion asociado a una propiedad."""
     if not nombre:
         return
+    _had_sel = f'comp_selection_{nombre}' in st.session_state
+    _n_sel_comp = sum(1 for k in st.session_state if k.startswith(f'sel_comp_{nombre}_'))
+    import traceback
+    _caller = ''.join(traceback.format_stack()[-3:-1])
+    print(f"[DEBUG-SEL-LIMPIAR] {nombre}: _limpiar_estado_propiedad called. had_comp_selection={_had_sel}, n_sel_comp_keys={_n_sel_comp}. Caller:\n{_caller}")
     _PREFIJOS = [
         'preview_mode_', 'retro_active_', 'flex_active_',
         'forzar_recalculo_', 'manual_preview_', 'comp_excluded_',
@@ -86,8 +91,8 @@ def _limpiar_estado_propiedad(nombre: str) -> None:
         'comp_selection_', 'vista_valuacion_', 'retro_meses_', 'retro_meses_slider_',
         'manual_params_', 'retro_btn_', 'flex_btn_', 'aplicar_cambios_',
         'infomapa_catastro_', 'ph_sel_', 'comp1_', 'comp2_',
-        'manual_ancla_', 'manual_usd_m2_', 'manual_fh_',
-        'manual_aj_', 'manual_inc_',
+        'manual_ancla_', 'manual_usd_m2_',
+        'manual_fh_', 'manual_aj_', 'manual_inc_',
         'clean_comparables_', 'comp_interacted_',
         'pendiente_comparables_', 'act_comparables_',
     ]
@@ -97,27 +102,13 @@ def _limpiar_estado_propiedad(nombre: str) -> None:
     claves_a_borrar = [k for k in st.session_state.keys() if k.startswith(sufixo)]
     for k in claves_a_borrar:
         del st.session_state[k]
-    # RU-CLEANUP-VERIFY-01: Verificar que claves conocidas se limpiaron
-    _verificar_limpieza_estado(nombre)
-    # Destruir preview cache en disco al salir (memoria de trabajo no persiste)
-    try:
-        from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
-        _c = cargar_cache_valuaciones()
-        _entry = _c.get(nombre, {})
-        if _entry:
-            _rc = _entry.get('resultado_completo', {}) or {}
-            if _rc.get('_cache', {}).get('preview', False):
-                del _c[nombre]
-                guardar_cache_valuaciones(_c)
-                print(f"[DEBUG-CLEANUP] {nombre}: preview cache destruido del disco al salir")
-    except Exception as e:
-        print(f"[DEBUG-CLEANUP] Error limpiando preview cache de {nombre}: {e}")
 
 def _limpiar_y_borrar_cache_si_hay_manuales(nombre: str) -> None:
     """Soportar la logica de 'Limpiar Valuacion' al navegar fuera si hay cambios manuales."""
     if not nombre:
         return
     _limpiar_estado_propiedad(nombre)
+
 
 
 # --- UI COMPONENTS ---
@@ -274,25 +265,57 @@ def mostrar_dashboard_valu(propiedades, resultados):
                 st.rerun()
 
 
+def _tiene_exclusion_activa(res: dict, nombre: str) -> bool:
+    """
+    RO-HEADER-04: Verifica si hay una exclusión de comparables activa,
+    ya sea en el resultado del motor o en session_state (pendiente de aplicar).
+    """
+    import streamlit as st
+    tiene_exclusion_res = res.get('_comp_exclusion_applied') and res.get('_comp_excluded')
+    tiene_exclusion_ss = st.session_state.get(f'comp_excluded_{nombre}')
+    return bool(tiene_exclusion_res or tiene_exclusion_ss)
+
+
+def _should_show_preview_header(res: dict, nombre: str) -> bool:
+    """
+    RO-HEADER-04: Determina si el header debe mostrar el valor preview en vez del oficial.
+    Solo se activa cuando:
+    1. Hay una exclusión activa (usuario aplicó o está por aplicar exclusión de comparables)
+    2. El resultado del motor difiere del oficial en > 0.5% en m2_microzona
+    Cambios de Retro/Flex/Slider sin exclusión NO cambian el header.
+    """
+    preview_mode = st.session_state.get(f'preview_mode_{nombre}', False)
+    official_key = f'_official_result_{nombre}'
+    official_res = st.session_state.get(official_key)
+    if not preview_mode or not official_res:
+        return False
+    if not _tiene_exclusion_activa(res, nombre):
+        print(f"[DEBUG-HEADER] {nombre}: Preview sin exclusión — header mantiene oficial (RO-HEADER-04)")
+        return False
+    h_m2 = official_res.get('m2_microzona', official_res.get('m2_base_venta', 0))
+    p_m2 = res.get('m2_microzona', res.get('m2_base_venta', 0))
+    if not h_m2 or not p_m2:
+        return False
+    if abs(h_m2 - p_m2) / max(h_m2, 1) * 100 > 0.5:
+        print(f"[DEBUG-HEADER] {nombre}: Divergencia por exclusión ({h_m2:.2f} vs {p_m2:.2f}), header muestra preview.")
+        return True
+    return False
+
+
 def mostrar_detalle_valu(prop, res, guardar_fn):
     # Determinar si hay valuación manual paralela y qué fuente mostrar
     nombre = prop.get('nombre', '')
 
     # ── Modo preview: preservar header con resultado oficial ──
-    preview_mode = st.session_state.get(f'preview_mode_{nombre}', False)
     official_key = f'_official_result_{nombre}'
     official_res = st.session_state.get(official_key)
-    original_res = res  # preservar para tabla de comparables
-    if preview_mode and official_res:
-        print(f"[DEBUG-OFFICIAL] {nombre}: modo preview activo, header usara resultado oficial")
-        # GUARDRAIL RU-M2-CONSISTENCY-02: detectar divergencia preview vs oficial
-        h_m2 = official_res.get('m2_microzona', official_res.get('m2_base_venta', 0))
-        p_m2 = original_res.get('m2_microzona', original_res.get('m2_base_venta', 0))
-        if h_m2 and p_m2 and abs(h_m2 - p_m2) / max(h_m2, 1) * 100 > 0.5:
-            print(f"[GUARDRAIL] RU-M2-CONSISTENCY-02: {nombre}: "
-                  f"official_m2={h_m2:.2f} != preview_m2={p_m2:.2f}. "
-                  f"Header mostrara valor oficial, tabla mostrara preview.")
-        res = official_res
+    if _should_show_preview_header(res, nombre):
+        header_res = res
+    elif official_res:
+        header_res = official_res
+    else:
+        header_res = res
+
 
     auto_result = res.get('_auto_result', res)
     manual_result = res.get('_manual_result')
@@ -330,7 +353,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         render_actions(prop, guardar_fn)
     _dl.mark("after_render_actions")
     with profile_block("render_header", prop):
-        render_header(prop, res)
+        render_header(prop, header_res)
     _dl.mark("after_render_header")
 
     st.markdown("<br>", unsafe_allow_html=True)
@@ -387,6 +410,8 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                 if nuevo_valor:
                     sv = st.session_state.get(f'retro_meses_slider_{prop_name}', 36)
                     st.session_state[f'retro_meses_{prop_name}'] = sv
+                    st.info("🔄 Modo Retro activado. Los comparables disponibles se actualizaron. "
+                            "Todos están seleccionados por defecto.")
                 if not nuevo_valor:
                     st.session_state.pop(f'flex_active_{prop_name}', None)
                     st.session_state.pop(f'comp_excluded_{prop_name}', None)
@@ -394,25 +419,34 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                     st.session_state.pop(f'_comp_excluded_{prop_name}', None)
                     st.session_state.pop(f'retro_meses_{prop_name}', None)
                     st.session_state.pop(f'retro_meses_slider_{prop_name}', None)
+                    st.info("🔄 Modo Retro desactivado. Se restauró el pool natural de comparables. "
+                            "Todos están seleccionados por defecto.")
                 # Resetear selección de comparables al cambiar modo retro
+                _had_sel = f'comp_selection_{prop_name}' in st.session_state
                 st.session_state.pop(f'comp_selection_{prop_name}', None)
+                print(f"[DEBUG-SEL-POP] {prop_name}: Retro checkbox toggle → comp_selection_ removed={_had_sel}")
                 st.session_state[f'forzar_recalculo_{prop_name}'] = True
                 st.session_state[f'preview_mode_{prop_name}'] = True
                 st.rerun()
         with col_cb:
             if retro_active:
                 def _on_flex_change(prop_name=prop_name):
+                    _had_sel = f'comp_selection_{prop_name}' in st.session_state
                     st.session_state[f'forzar_recalculo_{prop_name}'] = True
                     st.session_state[f'preview_mode_{prop_name}'] = True
                     st.session_state.pop(f'comp_selection_{prop_name}', None)
                     st.session_state.pop(f'comp_excluded_{prop_name}', None)
                     st.session_state.pop(f'_comp_exclusion_applied_{prop_name}', None)
                     st.session_state.pop(f'_comp_excluded_{prop_name}', None)
+                    print(f"[DEBUG-SEL-POP] {prop_name}: Flex on_change → comp_selection_ removed={_had_sel}")
+                    st.info("🔄 Modo Flex modificado. Los comparables se actualizaron. "
+                            "Todos están seleccionados por defecto.")
                 st.checkbox("🔍 Todos los dormitorios", key=flex_key, on_change=_on_flex_change)
         with col_slider:
             if retro_active:
                 def _on_retro_slider_change(prop_name=prop_name):
                     sv = st.session_state.get(f'retro_meses_slider_{prop_name}', 36)
+                    _had_sel = f'comp_selection_{prop_name}' in st.session_state
                     st.session_state[f'retro_meses_{prop_name}'] = sv
                     st.session_state[f'forzar_recalculo_{prop_name}'] = True
                     st.session_state[f'preview_mode_{prop_name}'] = True
@@ -420,6 +454,9 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                     st.session_state.pop(f'comp_excluded_{prop_name}', None)
                     st.session_state.pop(f'_comp_exclusion_applied_{prop_name}', None)
                     st.session_state.pop(f'_comp_excluded_{prop_name}', None)
+                    print(f"[DEBUG-SEL-POP] {prop_name}: Retro slider on_change → comp_selection_ removed={_had_sel}")
+                    st.info("🔄 Ventana Retro modificada. Los comparables se actualizaron. "
+                            "Todos están seleccionados por defecto.")
                 _slider_key = f'retro_meses_slider_{prop_name}'
                 if _slider_key not in st.session_state:
                     st.session_state[_slider_key] = 36
@@ -428,15 +465,16 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
 
         with st.expander(f"🗺️ Mapa — {prop_name}", expanded=False):
             with profile_block("render_mapa_propiedad", prop):
-                render_mapa_propiedad(original_res if (preview_mode and official_res) else res)
+                render_mapa_propiedad(res)
         _dl.mark("after_render_mapa")
-
-        comparables = original_res.get('comparables_venta', [])
+ 
+        comparables = res.get('comparables_venta', [])
         n_comps = len(comparables)
         with st.expander(f"Detalle de Comparables — {prop_name}", expanded=False):
             st.caption(f"{n_comps} propiedades comparables")
-            render_tabla_comparables({**original_res, 'comparables_venta': comparables}, prop_name=prop_name)
+            render_tabla_comparables({**res, 'comparables_venta': comparables}, prop_name=prop_name)
         _dl.mark("after_render_tabla_comparables")
+
     _dl.mark("after_section_comparables")
 
     # ─── 📐 Valuación Manual ───
@@ -467,7 +505,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
 
         col1, col2, col3 = st.columns(3)
         with col1:
-            hay_catastro = render_catastro(prop, original_res if (preview_mode and official_res) else res, compact=True)
+            hay_catastro = render_catastro(prop, res if (preview_mode and official_res) else res, compact=True)
         with col2:
             render_street_view(prop, compact=True)
         with col3:
@@ -485,11 +523,38 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         if hay_catastro:
             st.markdown("<br>", unsafe_allow_html=True)
             with profile_block("render_catastro_detalle", prop):
-                render_catastro(prop, original_res if (preview_mode and official_res) else res, compact=False)
+                render_catastro(prop, res if (preview_mode and official_res) else res, compact=False)
             _dl.mark("after_render_catastro")
     _dl.mark("after_section_acciones")
 
     _dl.close()
+
+
+
+def _should_restore_excl(resultado: dict, uv_excl: dict, prop_name: str,
+                         preview_mode: bool, forzar: bool) -> bool:
+    """
+    RO-UI-04: Determina si se debe restaurar la exclusión desde UV.
+    NO se restaura si:
+    - El resultado ya tiene exclusión aplicada (cond1)
+    - La UV no tiene exclusión aplicada (cond2)
+    - Hay una exclusión pendiente en session_state (cond3)
+    - La selección actual es el pool completo (_is_reset_state)
+    - Es un fresh preview (preview_mode=True AND forzar=True) — RO-UI-04
+    """
+    import streamlit as st
+    _restore_cond1 = not resultado.get('_comp_exclusion_applied') or not resultado.get('_comp_excluded')
+    _restore_cond2 = uv_excl.get('_comp_exclusion_applied')
+    _restore_cond3 = not st.session_state.get(f'comp_excluded_{prop_name}', False)
+    current_sel = st.session_state.get(f'comp_selection_{prop_name}')
+    _is_reset_state = isinstance(current_sel, set) and len(current_sel) == len(resultado.get('comparables_venta', []))
+    _is_fresh_preview = preview_mode and forzar
+    print(f"[DEBUG-STATE-RESTORE] {prop_name}: current_sel={current_sel}, "
+          f"preview_mode={preview_mode}, forzar={forzar}, "
+          f"_is_reset_state={_is_reset_state}, _is_fresh_preview={_is_fresh_preview}")
+    return bool(_restore_cond1 and _restore_cond2 and _restore_cond3
+                and not _is_reset_state and not _is_fresh_preview)
+
 
 def mostrar_dashboard():
     from parsers.motor_vpp_core import valuar_con_cache
@@ -527,7 +592,9 @@ def mostrar_dashboard():
         if p_obj:
             prop_name = p_obj.get('nombre', '')
             # Limpiar solo comparables: borra cache, conserva manual si existe
-            if st.session_state.pop(f"clean_comparables_{prop_name}", False):
+            clean_flag = st.session_state.pop(f"clean_comparables_{prop_name}", False)
+            print(f"[DEBUG-CLEAN-FLAG] {prop_name}: flag_set={clean_flag}")
+            if clean_flag:
                 try:
                     from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
                     cache_v = cargar_cache_valuaciones()
@@ -551,8 +618,8 @@ def mostrar_dashboard():
                     guardar_propiedades(props)
                     if tiene_manual:
                         print(f"[GUARDRAIL-CLEAN] {prop_name}: POST-CLEAN OK - "
-                              f"manual preservada: valor_usd={uv_preservado.get('valor_usd')}, "
-                              f"fuente={uv_preservado.get('fuente')}")
+                              f"valuacion manual ELIMINADA: valor_usd={uv_old.get('valor_usd')}, "
+                              f"fuente={uv_old.get('fuente')}")
                 except Exception as e:
                     print(f"[DEBUG-CLEAN] Error limpiando comparables {prop_name}: {e}")
                 st.session_state.pop(f'preview_mode_{prop_name}', None)
@@ -953,16 +1020,15 @@ def mostrar_dashboard():
 
                     # ── Restaurar exclusión desde UV si el resultado fresco no la tiene ──
                     uv_excl = p_obj.get('_ultima_valuacion', {})
-                    _restore_cond1 = not resultado.get('_comp_exclusion_applied')
-                    _restore_cond2 = uv_excl.get('_comp_exclusion_applied')
-                    _restore_cond3 = not st.session_state.get(f'comp_excluded_{prop_name}', False)
-                    if _restore_cond1 and _restore_cond2 and _restore_cond3:
+                    if _should_restore_excl(resultado, uv_excl, prop_name, preview_mode, forzar):
                         excluded_ids_list = uv_excl.get('_comp_excluded', [])
                         resultado['_comp_excluded'] = excluded_ids_list
                         resultado['_comp_exclusion_applied'] = True
                         print(f"[DEBUG-EXCL-RESTORE] {prop_name}: RESTAURADA — {len(excluded_ids_list)} ids excluidos, from_apply={uv_excl.get('_comp_exclusion_applied')}")
+                    elif preview_mode and forzar:
+                        print(f"[DEBUG-EXCL-RESTORE] {prop_name}: BLOQUEADO-PREVIEW — fresh preview (preview_mode=True, forzar=True), NO se restaura exclusión UV")
                     elif uv_excl.get('_comp_exclusion_applied'):
-                        print(f"[DEBUG-EXCL-RESTORE] {prop_name}: SALTADA — cond1(fresh_excl_applied)={_restore_cond1}, cond2(uv_excl_applied)={_restore_cond2}, cond3(no_pending_ss)={_restore_cond3}")
+                        print(f"[DEBUG-EXCL-RESTORE] {prop_name}: SALTADA — no cumple condiciones para restaurar")
 
                     # ── Aplicar exclusión de comparables seleccionada por el usuario ──
                     comp_excluded_key = f'comp_excluded_{prop_name}'
@@ -1105,7 +1171,6 @@ def mostrar_dashboard():
                             import copy
                             st.session_state[official_key] = copy.deepcopy(resultado)
                             print(f"[DEBUG-OFFICIAL-FIRST] {prop_name}: resultado oficial guardado por primera vez, valor=${resultado.get('valor_propiedad_usd',0):,.0f}, n_prop={resultado.get('resolution_metadata',{}).get('n_propiedades')}")
-                    st.session_state.pop(f'pendiente_comparables_{p_obj["nombre"]}', None)
                     mostrar_detalle_valu(p_obj, resultado, actualizar_propiedad)
 
                 _sl.mark("after_render")
@@ -2169,3 +2234,4 @@ def _verificar_invariante_exclusion_applied(resultado: dict, uv: dict, nombre: s
                   f"_comp_exclusion_applied perdido en resultado. UV tenia True.")
             return False
     return True
+

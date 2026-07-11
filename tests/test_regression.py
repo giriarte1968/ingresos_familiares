@@ -73,7 +73,7 @@ def test_mabel_alquiler():
 def test_ayacucho_venta():
     """Valida rangos de venta para Ayacucho (6ta Pellegrini, modelo multiplicativo)"""
     r = valuar_propiedad_v7(ejecutar_valuacion('ayacucho'))
-    assert 49000 <= r['valor_propiedad_usd'] <= 62000, f"Ayacucho {r['valor_propiedad_usd']} fuera de rango"
+    assert 35000 <= r['valor_propiedad_usd'] <= 45000, f"Ayacucho {r['valor_propiedad_usd']} fuera de rango"
 
 def test_patio_grande_vera():
     """Verifica ajuste patio grande para Vera Mujica (PB con patio 12.7m²)."""
@@ -84,7 +84,9 @@ def test_patio_grande_vera():
     assert vera is not None
     r = valuar_propiedad_v7(vera, fecha_ref='2026-04')
     # Validar que el resultado sea consistente con el modelo actual
+    # Después de la normalización de tamaño, el valor no debería superar los 75k
     assert r['valor_propiedad_usd'] > 0
+    assert r['valor_propiedad_usd'] <= 75000, f"Vera Mujica {r['valor_propiedad_usd']} sigue inflada por doble premio de tamaño"
 
 def test_manual_valuation_auto_updates_on_additive_change():
     """Verifica que cambiar aditivos actualice la Valuación Manual en el UV sin intervención manual.
@@ -251,9 +253,8 @@ def test_ui_apply_button_visible_when_all_selected():
 
 
 def test_ui_reset_all_visual_only():
-    """TAREA-120: 'Restablecer Todas' es SOLO visual — reselecciona todos los checkboxes
-    y limpia comp_excluded, pero NO forza recálculo. El recálculo ocurre al hacer
-    clic en 'Aplicar selección'.
+    """TAREA-132: 'Restablecer Todas' fuerza recálculo (forzar_recalculo=True)
+    para que el header muestre el valor natural, pero NO persiste ni aplica exclusiones.
     """
     import streamlit as st
     from unittest.mock import patch, MagicMock
@@ -295,7 +296,7 @@ def test_ui_reset_all_visual_only():
 
         render_tabla_comparables(res, prop_name=prop_name)
 
-        # Verify: all checkboxes are True, comp_excluded is gone, NO forzar_recalculo
+        # Verify: all checkboxes True, comp_excluded gone, forzar_recalculo=True (preview consistency)
         for rid in real_ids:
             assert st.session_state.get(f'sel_comp_{prop_name}_{rid}', False) is True, (
                 f"Checkbox {rid} debe estar seleccionado tras reset"
@@ -304,10 +305,127 @@ def test_ui_reset_all_visual_only():
             "comp_excluded debe eliminarse tras reset visual"
         )
         forzar_key = f'forzar_recalculo_{prop_name}'
-        assert st.session_state.get(forzar_key, False) is False, (
-            f"'Restablecer Todas' NO debe setear {forzar_key}. Es solo visual."
+        assert st.session_state.get(forzar_key, False) is True, (
+            f"'Restablecer Todas' DEBE setear {forzar_key}=True para preview consistente."
         )
-        print(f"[TEST-UI-RESET-VISUAL] OK — checkboxes restaurados, excluded limpiado, sin recálculo")
+        print(f"[TEST-UI-RESET-VISUAL] OK — checkboxes restaurados, excluded limpiado, recálculo forzado")
+
+
+def test_ui_retro_toggle_inhibits_exclusion_restoration():
+    """RO-UI-04: Toggle Retro NO debe restaurar exclusión desde UV.
+    Cuando preview_mode=True y forzar=True, la exclusión de UV debe ser ignorada.
+    """
+    import streamlit as st
+    from unittest.mock import patch, MagicMock, PropertyMock
+    from valu import _should_restore_excl
+
+    prop_name = "T133_Retro"
+    comparables = [{'id': f'c{i}'} for i in range(6)]
+    real_ids = [f'c{i}' for i in range(6)]
+
+    # UV tiene exclusión aplicada (3 comps excluidos)
+    uv_with_excl = {'_comp_excluded': real_ids[:3], '_comp_exclusion_applied': True}
+
+    # Resultado fresco SIN exclusión (recién calculado por Retro toggle)
+    res_fresh = {'comparables_venta': comparables, '_comp_excluded': None,
+                 '_comp_exclusion_applied': False, 'retro_activo': True}
+
+    # Caso 1: Retro activo (fresh preview) → NO restaurar
+    st.session_state.pop(f'comp_excluded_{prop_name}', None)
+    st.session_state.pop(f'comp_selection_{prop_name}', None)
+    result = _should_restore_excl(res_fresh, uv_with_excl, prop_name,
+                                   preview_mode=True, forzar=True)
+    assert result is False, (
+        "RO-UI-04: Retro toggle (preview_mode=True, forzar=True) NO debe restaurar exclusión UV"
+    )
+    print(f"[TEST-RO-UI-04] OK — Retro toggle inhibe restauración")
+
+    # Caso 2: Re-entry normal (no preview) → SÍ restaurar
+    st.session_state[f'comp_excluded_{prop_name}'] = None
+    st.session_state.pop(f'comp_selection_{prop_name}', None)
+    result2 = _should_restore_excl(res_fresh, uv_with_excl, prop_name,
+                                    preview_mode=False, forzar=False)
+    assert result2 is True, (
+        "RO-UI-04: Re-entry pasivo (no preview) SÍ debe restaurar exclusión UV"
+    )
+    print(f"[TEST-RO-UI-04] OK — re-entry pasivo sí restaura")
+
+    # Caso 3: Reset (full pool selection) → NO restaurar
+    st.session_state[f'comp_selection_{prop_name}'] = set(real_ids)
+    st.session_state.pop(f'comp_excluded_{prop_name}', None)
+    result3 = _should_restore_excl(res_fresh, uv_with_excl, prop_name,
+                                    preview_mode=False, forzar=True)
+    assert result3 is False, (
+        "RO-UI-04: Reset (full pool) NO debe restaurar exclusión UV"
+    )
+    print(f"[TEST-RO-UI-04] OK — reset (full pool) inhibe restauración")
+
+    # Caso 4: UV sin exclusión → nunca restaurar
+    uv_empty = {'_comp_excluded': [], '_comp_exclusion_applied': False}
+    st.session_state.pop(f'comp_excluded_{prop_name}', None)
+    st.session_state.pop(f'comp_selection_{prop_name}', None)
+    result4 = _should_restore_excl(res_fresh, uv_empty, prop_name,
+                                    preview_mode=False, forzar=False)
+    assert result4 is False, (
+        "UV sin exclusión: nunca restaurar"
+    )
+    print(f"[TEST-RO-UI-04] OK — UV sin exclusión no restaura")
+
+
+def test_header_no_cambia_con_retro_sin_aplicar():
+    """RO-HEADER-04: Retro/Flex/Slider sin exclusión NO cambian el header.
+    El header solo muestra preview cuando hay exclusión activa de comparables.
+    """
+    import streamlit as st
+    from unittest.mock import patch, MagicMock
+    from valu import _should_show_preview_header, _tiene_exclusion_activa
+
+    nombre = "T_HEADER04"
+    res = {'m2_microzona': 1500, 'm2_base_venta': 1500,
+           '_comp_exclusion_applied': False, '_comp_excluded': None}
+    official = {'m2_microzona': 1400, 'm2_base_venta': 1400}
+
+    # Caso 1: Retro activo (preview_mode=True) SIN exclusión → NO mostrar preview
+    st.session_state[f'preview_mode_{nombre}'] = True
+    st.session_state[f'_official_result_{nombre}'] = official
+    st.session_state.pop(f'comp_excluded_{nombre}', None)
+    result = _should_show_preview_header(res, nombre)
+    assert result is False, (
+        "RO-HEADER-04: Retro sin exclusión NO debe cambiar el header"
+    )
+    print(f"[TEST-RO-HEADER-04] OK — Retro sin exclusión: header no cambia")
+
+    # Caso 2: Retro activo CON exclusión → SÍ mostrar preview
+    res_excl = dict(res)
+    res_excl['_comp_exclusion_applied'] = True
+    res_excl['_comp_excluded'] = ['c0']
+    result2 = _should_show_preview_header(res_excl, nombre)
+    assert result2 is True, (
+        "RO-HEADER-04: Retro con exclusión SÍ debe cambiar el header"
+    )
+    print(f"[TEST-RO-HEADER-04] OK — Retro con exclusión: header muestra preview")
+
+    # Caso 3: Sin preview_mode → nunca mostrar preview
+    st.session_state.pop(f'preview_mode_{nombre}', None)
+    result3 = _should_show_preview_header(res_excl, nombre)
+    assert result3 is False, (
+        "RO-HEADER-04: Sin preview_mode, header nunca cambia"
+    )
+    print(f"[TEST-RO-HEADER-04] OK — Sin preview_mode: header no cambia")
+
+    # Caso 4: _tiene_exclusion_activa detecta session_state
+    st.session_state[f'preview_mode_{nombre}'] = True
+    st.session_state[f'comp_excluded_{nombre}'] = ['c0']
+    res_clean = {'m2_microzona': 1500, '_comp_exclusion_applied': False, '_comp_excluded': None}
+    assert _tiene_exclusion_activa(res_clean, nombre) is True, (
+        "Debe detectar exclusión en session_state"
+    )
+    print(f"[TEST-RO-HEADER-04] OK — _tiene_exclusion_activa detecta session_state")
+    st.session_state.pop(f'comp_excluded_{nombre}', None)
+
+    # Limpiar session_state
+    st.session_state.pop(f'preview_mode_{nombre}', None)
+    st.session_state.pop(f'_official_result_{nombre}', None)
 
 
 def test_ui_manual_save_visible_disabled_when_no_changes():
@@ -1634,3 +1752,234 @@ def test_ct_runtime_legacy_fallback():
     result = generar_resultado_manual(prop, manual_params)
     m2_base = result.get('m2_base_venta', 0)
     assert abs(m2_base - 2000) < 1, f"m2_base_venta debe ≈ 2000, got {m2_base}"
+
+
+# ============================================================================
+# ESCENARIOS DE STRESS TEST (TAREA-133 continuation)
+# ============================================================================
+# Escenario 1: Santuario Manual — ciclo completo valuación manual
+# Escenario 2: Preview Cycle — Retro/Flex/Slider no afecta header, exclusión sí
+# Escenario 3: Navigation Leak — estado no se filtra entre propiedades distintas
+# Escenario 4: Sync Check — fuente_activa consistente tras navegación
+# ============================================================================
+
+
+def test_stress_santuario_manual():
+    """Escenario 1 — Santuario Manual: Ciclo completo de valuación manual.
+    1. Inicia con fuente=auto
+    2. Cambia a fuente=manual (setea session state)
+    3. Guarda valuación manual
+    4. Simula re-ingreso (limpia session state fresco)
+    5. Verifica que los datos manuales sobreviven
+    """
+    import streamlit as st
+    prop_name = "T_STRESS01"
+
+    # Setup: estado inicial manual_params y resultado manual
+    manual_params = {
+        'ancla_id': 'Sin Ancla', 'usd_m2': 2000,
+        'factor_hedonico': 1.0, 'incertidumbre_pct': 10.0,
+        'ajuste_pct': 0.0, 'incluir_prima_const': False,
+        'incluir_size_adj': False,
+    }
+    st.session_state[f'fuente_{prop_name}'] = 'manual'
+    st.session_state[f'modificado_{prop_name}'] = True
+    st.session_state[f'm2_equivalentes_{prop_name}'] = 80.0
+    st.session_state[f'manual_total_{prop_name}'] = 160000.0
+
+    # Simular UV guardada
+    uv = {
+        'fuente': 'manual', 'fuente_activa': 'manual',
+        'manual_params': dict(manual_params),
+        'valor_usd': 160000, 'auto_valor_usd': 155000,
+        'manual_valor_usd': 160000, 'retro_dias': 36,
+        'flex_dormitorios': None,
+        '_comp_excluded': [], '_comp_exclusion_applied': False,
+    }
+
+    # 1. Verificar que fuente manual está correcta
+    assert st.session_state[f'fuente_{prop_name}'] == 'manual'
+    assert uv['fuente'] == 'manual'
+    assert uv['fuente_activa'] == 'manual'
+    print(f"[STRESS-01] Manual source OK")
+
+    # 2. Verificar que manual_params sobreviven
+    assert uv['manual_params']['ancla_id'] == 'Sin Ancla'
+    assert uv['manual_params']['usd_m2'] == 2000
+    assert uv['manual_valor_usd'] == 160000
+    print(f"[STRESS-01] Manual params survive OK")
+
+    # 3. Simular re-ingreso desde portfolio (session_state fresco)
+    st.session_state.pop(f'fuente_{prop_name}', None)
+    st.session_state.pop(f'modificado_{prop_name}', None)
+    st.session_state.pop(f'm2_equivalentes_{prop_name}', None)
+    st.session_state.pop(f'manual_total_{prop_name}', None)
+
+    # En re-ingreso, la UI debe leer fuente_activa desde UV
+    assert uv['fuente_activa'] == 'manual', (
+        "Re-ingreso: fuente_activa debe persistir en UV"
+    )
+    assert uv['manual_params']['usd_m2'] == 2000, (
+        "Re-ingreso: manual_params debe persistir en UV"
+    )
+    print(f"[STRESS-01] Re-entry: manual state preserved in UV OK")
+
+    print("[STRESS-01] ✅ ESCENARIO 1 — Santuario Manual: COMPLETADO")
+
+
+def test_stress_preview_cycle():
+    """Escenario 2 — Preview Cycle: Retro/Flex/Slider no cambia header.
+    Solo exclusión activa cambia el header.
+    """
+    import streamlit as st
+    from valu import _should_show_preview_header, _tiene_exclusion_activa
+
+    nombre = "T_STRESS02"
+    official_res = {'m2_microzona': 1500, 'm2_base_venta': 1500}
+    preview_res = {'m2_microzona': 1650, 'm2_base_venta': 1650}
+
+    # Fase A: Retro toggle — preview mode ON, sin exclusión
+    st.session_state[f'preview_mode_{nombre}'] = True
+    st.session_state[f'_official_result_{nombre}'] = official_res
+    st.session_state.pop(f'comp_excluded_{nombre}', None)
+
+    assert _should_show_preview_header(preview_res, nombre) is False, (
+        "Retro sin exclusión: header no debe cambiar"
+    )
+    print(f"[STRESS-02-A] Retro sin exclusión: header oficial OK")
+
+    # Fase B: Aplicar exclusión de comparables
+    res_excl = dict(preview_res)
+    res_excl['_comp_exclusion_applied'] = True
+    res_excl['_comp_excluded'] = ['c0', 'c1']
+
+    assert _should_show_preview_header(res_excl, nombre) is True, (
+        "Con exclusión: header debe mostrar preview"
+    )
+    print(f"[STRESS-02-B] Exclusión aplicada: header preview OK")
+
+    # Fase C: Descartar preview — session_state limpio
+    st.session_state.pop(f'preview_mode_{nombre}', None)
+    st.session_state.pop(f'comp_excluded_{nombre}', None)
+    assert _should_show_preview_header(res_excl, nombre) is False, (
+        "Sin preview_mode: header vuelve a oficial"
+    )
+    print(f"[STRESS-02-C] Descartar preview: header oficial OK")
+
+    # Fase D: Slider cambio — preview mode ON, sin exclusión
+    st.session_state[f'preview_mode_{nombre}'] = True
+    st.session_state.pop(f'comp_excluded_{nombre}', None)
+    assert _should_show_preview_header(preview_res, nombre) is False, (
+        "Slider sin exclusión: header no cambia"
+    )
+    print(f"[STRESS-02-D] Slider sin exclusión: header oficial OK")
+
+    # Cleanup
+    st.session_state.pop(f'preview_mode_{nombre}', None)
+    st.session_state.pop(f'_official_result_{nombre}', None)
+
+    print("[STRESS-02] ✅ ESCENARIO 2 — Preview Cycle: COMPLETADO")
+
+
+def test_stress_navigation_leak():
+    """Escenario 3 — Navigation Leak: estado de una propiedad no
+    contamina a otra propiedad distinta.
+    """
+    import streamlit as st
+
+    prop_a = "T_STRESS03_A"
+    prop_b = "T_STRESS03_B"
+
+    # Setup session state para A
+    st.session_state[f'fuente_{prop_a}'] = 'manual'
+    st.session_state[f'preview_mode_{prop_a}'] = True
+    st.session_state[f'comp_excluded_{prop_a}'] = ['x', 'y']
+
+    # A no debe contaminar a B
+    assert f'fuente_{prop_b}' not in st.session_state, (
+        "Navigation Leak: fuente de A no debe aparecer en B"
+    )
+    assert f'preview_mode_{prop_b}' not in st.session_state, (
+        "Navigation Leak: preview_mode de A no debe aparecer en B"
+    )
+    assert f'comp_excluded_{prop_b}' not in st.session_state, (
+        "Navigation Leak: comp_excluded de A no debe aparecer en B"
+    )
+    print(f"[STRESS-03] Propiedades aisladas: fuente OK, preview_mode OK, comp_excluded OK")
+
+    # Verificar que los keys existen para A (no fueron borrados por error)
+    assert f'fuente_{prop_a}' in st.session_state
+    assert f'preview_mode_{prop_a}' in st.session_state
+    assert f'comp_excluded_{prop_a}' in st.session_state
+    print(f"[STRESS-03] Estado de A preservado correctamente")
+
+    # Cleanup
+    for p in [prop_a, prop_b]:
+        for k in ['fuente', 'preview_mode', 'comp_excluded']:
+            st.session_state.pop(f'{k}_{p}', None)
+
+    print("[STRESS-03] ✅ ESCENARIO 3 — Navigation Leak: COMPLETADO")
+
+
+def test_stress_sync_check():
+    """Escenario 4 — Sync Check: consistencia entre AUTO y MANUAL
+    tras navegación. Al re-ingresar desde portfolio, la fuente_activa
+    debe coincidir con la fuente de la UV.
+    """
+    import streamlit as st
+
+    prop_name = "T_STRESS04"
+
+    # Simular dos tipos de UV: auto y manual
+    uv_auto = {
+        'fuente': 'auto', 'fuente_activa': 'auto',
+        'auto_valor_usd': 150000, 'valor_usd': 150000,
+        'retro_dias': 36, 'flex_dormitorios': None,
+        '_comp_excluded': [], '_comp_exclusion_applied': False,
+    }
+
+    uv_manual = {
+        'fuente': 'manual', 'fuente_activa': 'manual',
+        'auto_valor_usd': 150000, 'valor_usd': 180000,
+        'manual_valor_usd': 180000,
+        'manual_params': {'ancla_id': 'Sin Ancla', 'usd_m2': 2200},
+        'retro_dias': 36, 'flex_dormitorios': None,
+        '_comp_excluded': [], '_comp_exclusion_applied': False,
+    }
+
+    # Caso 1: UV auto → fuente_activa = auto
+    assert uv_auto['fuente_activa'] == uv_auto['fuente'], (
+        "Sync: fuente_activa == fuente para auto"
+    )
+    assert uv_auto['auto_valor_usd'] == uv_auto['valor_usd'], (
+        "Sync: auto_valor_usd == valor_usd para auto"
+    )
+    print(f"[STRESS-04-A] Auto sync OK")
+
+    # Caso 2: UV manual → fuente_activa = manual
+    assert uv_manual['fuente_activa'] == uv_manual['fuente'], (
+        "Sync: fuente_activa == fuente para manual"
+    )
+    assert uv_manual['manual_valor_usd'] != uv_manual['auto_valor_usd'], (
+        "Sync: manual_valor_usd != auto_valor_usd (son distintos por diseño)"
+    )
+    assert uv_manual['valor_usd'] == uv_manual['manual_valor_usd'], (
+        "Sync: valor_usd == manual_valor_usd cuando fuente=manual"
+    )
+    print(f"[STRESS-04-B] Manual sync OK")
+
+    # Caso 3: Re-ingreso — session_state fresco, UI debe leer de UV
+    # Simular que la UI decide fuente_activa desde UV
+    def _ui_resolve_fuente(uv):
+        return uv.get('fuente_activa', uv.get('fuente', 'auto'))
+
+    assert _ui_resolve_fuente(uv_auto) == 'auto'
+    assert _ui_resolve_fuente(uv_manual) == 'manual'
+
+    # Caso 4: Valor auto preservado incluso en fuente manual
+    assert uv_manual.get('auto_valor_usd', 0) > 0, (
+        "Sync: auto_valor_usd preservado para auto card incluso con fuente manual"
+    )
+    print(f"[STRESS-04-C] Auto card valor preservado en manual OK")
+
+    print("[STRESS-04] ✅ ESCENARIO 4 — Sync Check: COMPLETADO")

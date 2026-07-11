@@ -48,7 +48,19 @@ def _calcular_percentil_linear(precios, q):
     return float(s[lo] * (1 - frac) + s[hi] * frac)
 
 
-def _computar_vm2_core(comparables, percentil, apply_barrier=True, alpha=None):
+def _precio_ajustado(c, macrozona_id=None):
+    """Suma el ajuste temporal y normaliza el premio/descuento por tamaño del comparable."""
+    precio = c.get('precio_m2', c.get('valor_m2', 0))
+    adj = c.get('time_adjustment', c.get('_time_adjustment', 1.0))
+    raw_val = precio * adj
+    m2_comp = c.get('m2') or c.get('m2_cubiertos', 0)
+    adj_size = calcular_size_adjustment(m2_comp, macrozona_id)
+    norm_val = raw_val / adj_size if adj_size > 0 else raw_val
+    if adj_size != 1.0:
+        print(f"[DEBUG-SIZE-NORM] {c.get('direccion', 'comp')}: raw={raw_val:.2f}, adj={adj_size:.4f}, norm={norm_val:.2f}")
+    return norm_val
+
+def _computar_vm2_core(comparables, percentil, apply_barrier=True, alpha=None, macrozona_id=None):
     """
     NÚCLEO UNIFICADO DE CÁLCULO VM2 (TAREA-093)
     Centraliza la lógica de blend alpha y corrección de barrera para evitar divergencias
@@ -62,18 +74,12 @@ def _computar_vm2_core(comparables, percentil, apply_barrier=True, alpha=None):
     """
     from parsers.cluster_filters import calcular_percentil, calcular_blend_p33
     
-    def _precio_ajustado(c):
-        # Compatibilidad: pool_final usa 'valor_m2' + '_time_adjustment',
-        # UI usa 'precio_m2' + 'time_adjustment'
-        precio = c.get('precio_m2', c.get('valor_m2', 0))
-        adj = c.get('time_adjustment', c.get('_time_adjustment', 1.0))
-        return precio * adj
-
     same = [c for c in comparables if not c.get('_cross_soft', False)]
     cross = [c for c in comparables if c.get('_cross_soft', False)]
+    
+    precios_same = sorted([_precio_ajustado(c, macrozona_id) for c in same])
+    precios_cross = sorted([_precio_ajustado(c, macrozona_id) for c in cross])
 
-    precios_same = sorted([_precio_ajustado(c) for c in same])
-    precios_cross = sorted([_precio_ajustado(c) for c in cross])
 
     pct_same = calcular_percentil(precios_same, percentil) if precios_same else None
     pct_cross = calcular_percentil(precios_cross, percentil) if precios_cross else None
@@ -106,16 +112,17 @@ def _computar_vm2_core(comparables, percentil, apply_barrier=True, alpha=None):
     return vm2, len(precios_same), len(precios_cross), pct_same, pct_cross
 
 
-def _calcular_vm2_base(comparables, percentil):
+def _calcular_vm2_base(comparables, percentil, macrozona_id=None):
     """
     Sustituye la lógica antigua por el núcleo unificado (TAREA-093).
     Llamada desde la UI para vistas previas.
     """
     # Para coherencia total con el motor, aplicamos barrera y alpha dinámico
     vm2, n_same, n_cross, pct_same, pct_cross = _computar_vm2_core(
-        comparables, percentil, apply_barrier=True, alpha=None
+        comparables, percentil, apply_barrier=True, alpha=None, macrozona_id=macrozona_id
     )
     return vm2, n_same, n_cross, pct_same, pct_cross
+
 
 
 def calcular_vm2_por_seleccion(comparables, resultado_original):
@@ -147,13 +154,14 @@ def calcular_vm2_por_seleccion(comparables, resultado_original):
     _mz_id = (resultado_original.get('depreciacion_zonificada') or {}).get('macrozona_id')
     _cv_ref = obtener_cv_ref(_mz_id)
     percentil, percentil_label = seleccionar_percentil_por_calidad_pool(n_sel, cv, cv_ref=_cv_ref)
-
+    
     m2_eq = resultado_original.get('m2_equivalentes', 0)
     valor_activos = resultado_original.get('valor_activos', {}).get('total', 0)
     m2_base_orig = resultado_original.get('m2_base_venta', 1.0)
     valor_orig = resultado_original.get('valor_propiedad_usd', 0)
+    
+    nuevo_vm2, n_same, n_cross, _, _ = _calcular_vm2_base(comparables, percentil, macrozona_id=_mz_id)
 
-    nuevo_vm2, n_same, n_cross, _, _ = _calcular_vm2_base(comparables, percentil)
 
     if m2_eq > 0 and m2_base_orig > 0:
         mult_factores = (valor_orig - valor_activos) / (m2_eq * m2_base_orig)
@@ -1554,9 +1562,16 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             logger.info(f"[CV_POOL] n={len(precios)}, cv={_cv_pool:.4f}, cv_ref={_cv_ref}, percentil={percentil_venta} ({percentil_usado})")
         
         # Llamar al core unificado que maneja same/cross, blend alpha y barrera
+        # Calculamos la versión normalizada (neutra)
         vm2_principal, n_same_core, n_cross_core, pct_same_core, pct_cross_core = _computar_vm2_core(
-            pool_final, percentil_venta, apply_barrier=True, alpha=None
+            pool_final, percentil_venta, apply_barrier=True, alpha=None, macrozona_id=macrozona_id
         )
+        
+        # Debug: Comparar con la mediana RAW (sin normalizar) para auditoría de doble conteo
+        vm2_raw, _, _, _, _ = _computar_vm2_core(
+            pool_final, percentil_venta, apply_barrier=True, alpha=None, macrozona_id=None
+        )
+        print(f"[DEBUG-SIZE-MEDIAN] {zona}: Raw={vm2_raw:.2f}, Norm={vm2_principal:.2f}, Diff={vm2_raw - vm2_principal:.2f}")
         
         # Calcular percentiles del cluster completo (para dispersión estadística y rango)
         precios_todos = []
@@ -1982,6 +1997,8 @@ def calcular_size_adjustment(m2_equiv, macrozona_id=None, ancla_id=None):
     Ajuste por tamaño configurable por macrozona (TAREA-074).
     Lee curvas piecewise desde zonas_depreciacion.json.
     Retorna 1.0 si no hay config (sin ajuste).
+    IMPORTANTE: Solo aplica descuentos para unidades grandes, excepto en subzonas premium (ej. Puerto Norte)
+    donde el ML indica que las unidades grandes tienen un premio.
     """
     global _SIZE_ADJ_CONFIG
     if _SIZE_ADJ_CONFIG is None:
@@ -1992,13 +2009,25 @@ def calcular_size_adjustment(m2_equiv, macrozona_id=None, ancla_id=None):
         return 1.0
     
     # Check subzona by anchor_id
+    is_premium_subzona = False
+    adj = 1.0
     if ancla_id and "subzonas" in config:
         for sub_id, sub in config["subzonas"].items():
             if any(mid in ancla_id for mid in sub.get("match_anchor_ids", [])):
-                return _interpolar_piecewise(m2_equiv, sub.get("points", []))
+                adj = _interpolar_piecewise(m2_equiv, sub.get("points", []))
+                # Si la subzona tiene puntos > 1.0, la marcamos como premium
+                if any(p.get('factor', 0) > 1.0 for p in sub.get('points', [])):
+                    is_premium_subzona = True
+                break
+    else:
+        # Default curve for this macrozona
+        adj = _interpolar_piecewise(m2_equiv, config.get("points", []))
     
-    # Default curve for this macrozona
-    return _interpolar_piecewise(m2_equiv, config.get("points", []))
+    # Guardrail: No premios para unidades chicas, EXCEPTO en subzonas premium
+    if not is_premium_subzona:
+        return min(1.0, adj)
+        
+    return adj
 
 # ─── CV_REF por macrozona (TAREA-111) ───
 _CV_REF_CONFIG = None

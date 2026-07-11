@@ -1,6 +1,71 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-07-11 — TAREA-133: RO-UI-04 Preview fresco + RO-UI-05 Retro reset
+
+### Contexto
+Toggle Retro aplicaba directamente la exclusión previa de la UV porque el guardrail `_is_reset_state` de TAREA-132 solo detectaba el caso "pool completo" (`comp_selection == set de todos los IDs`) pero no el caso "selección borrada" (Retro/Flex toggleean y borran `comp_selection` dejándolo en `None`). Se documentó e implementó el comportamiento de "fresh start" para Retro/Flex/Slider.
+
+### Cambios (código)
+1. **`valu.py:497-520`** — Nueva función `_should_restore_excl()` que centraliza la decisión de restaurar exclusión UV con 5 condiciones.
+2. **`valu.py:959-976`** — Refactorizado el bloque inline a llamada de `_should_restore_excl()`.
+3. **`valu.py:378-427`** — Agregados `st.info()` en Retro ON, Retro OFF, Flex on_change, y Slider on_change informando del reset de selección.
+4. **`valu.py:268-305`** — Nuevas funciones `_tiene_exclusion_activa()` y `_should_show_preview_header()`. Refactorizado el bloque de selección de `header_res` para que solo muestre preview cuando hay exclusión activa (RO-HEADER-04).
+5. **`tests/test_regression.py`** — Nuevo test `test_ui_retro_toggle_inhibits_exclusion_restoration` (4 casos) + `test_header_no_cambia_con_retro_sin_aplicar` (4 casos).
+
+### Reglas de oro afectadas
+- **RO-UI-04** (nueva): Inhibición de restauración en preview fresco.
+- **RO-UI-05** (nueva): Toggle Retro/Flex/Slider resetea selección.
+- **RO-HEADER-04** (nueva): Header solo cambia con exclusión activa.
+
+### Decisión de diseño
+Retro/Flex/Slider hacen "fresh start" del pool de comparables. La selección previa se descarta porque los IDs podrían no existir en el nuevo pool. El header NO debe reflejar estos cambios de búsqueda — solo refleja cambios de selección/exclusión.
+
+### Debug flags nuevos
+- `[DEBUG-STATE-RESTORE]`: Loguea estado de restauración.
+- `[DEBUG-EXCL-RESTORE] BLOQUEADO-PREVIEW`: Restauración inhibida.
+- `[DEBUG-HEADER] Preview sin exclusión`: Header mantiene oficial.
+
+### Docs actualizados
+- `MEMORIA_PROYECTO.md` — RO-UI-04, RO-UI-05, RO-HEADER-04.
+- `STATUS_ACTUAL.md` — §8 actualizado, cambios recientes, guardrails.
+- `FLUJO_UI.md` — F3, F7 agregados.
+- `BITACORA_AGENTES.md` — Esta entrada.
+
+### Tests
+- 40/40 regression OK. `auto_validate.py` OK.
+
+---
+
+## 2026-07-11 — TAREA-132: Restablecer forza recálculo + inhibir restauración UV
+
+### Contexto
+El usuario detectó que "Restablecer todos" no devolvía el valor natural (1497) sino que se quedaba en 1516. Causa: la restauración de exclusiones desde `_ultima_valuacion` se ejecutaba incluso cuando el usuario había explícitamente restablecido la selección al pool completo.
+
+### Cambios (overturn RO-UI-01)
+1. **`valu_detail_sections.py:502`** — "Restablecer todos" ahora setea `forzar_recalculo=True` para que el header muestre el valor natural del pool completo (preview consistente). NO persiste ni comitea.
+2. **`valu.py:961-963`** — Nuevo guardrail `_is_reset_state`: si la selección actual (`comp_selection`) es un `set` del mismo tamaño que el pool completo, se salta la restauración de exclusiones desde UV. Log: `[DEBUG-EXCL-RESTORE] SALTADA`.
+3. **`valu.py:964`** — Guard `if _restore_cond1 and _restore_cond2 and _restore_cond3 and not _is_reset_state:`.
+4. **`tests/test_regression.py`** — `test_ui_reset_all_visual_only` actualizado: ahora espera `forzar_recalculo=True`.
+
+### Reglas de oro afectadas
+- **RO-UI-01**: Cambió de "NO setea forzar_recalculo" a "SÍ setea forzar_recalculo=True, NO persiste"
+
+### Racional del overturn
+El header preview debe reflejar el estado actual de la interacción del usuario. Si el usuario hace clic en "Restablecer todos", el header debe mostrar inmediatamente el valor natural del pool completo, no quedarse con el valor stale de la selección anterior. El recálculo forzado es puramente visual/preview; la persistencia sigue requiriendo "Aplicar selección".
+
+### Docs actualizados
+- `MEMORIA_PROYECTO.md` — RO-UI-01
+- `STATUS_ACTUAL.md` — §8 regla, tabla, diagrama, cambios recientes
+- `BITACORA_AGENTES.md` — TAREA-097/120 marcados como OVERTURNED
+- `FLUJO_UI.md` — comentarios, F2, referencias
+- `tests/test_regression.py` — test actualizado
+
+### Tests
+- 38/38 regression OK. `auto_validate.py` OK.
+
+---
+
 ## 2026-07-06 — TAREA-124: Header independiente auto/manual + Fix n_comps gate bug
 
 ### Contexto
@@ -137,8 +202,8 @@ Al guardar una valuación manual cuando el auto engine no produjo resultado (ins
 ### Contexto
 **Regresión crítica:** Botón "Aplicar Selección" desaparecía con selección completa (`n_sel == len(comparables)`), impidiendo ratificar el estado todo-seleccionado.
 
-### ⚠️ Corrección importante sobre "Restablecer Todas"
-En borradores iniciales de TAREA-120 se especuló con que "Restablecer Todas" debía forzar recálculo. **Eso es INCORRECTO.** Restablecer es SOLO visual — reselecciona checkboxes y limpia `comp_excluded`, pero NO setea `forzar_recalculo`. El recálculo ocurre exclusivamente al hacer clic en "Aplicar Selección". Esta lógica nunca se documentó explícitamente porque no existía una sección centralizada de comportamiento UI en los docs (ver RO-UI-01 en STATUS_ACTUAL.md).
+### ⚠️ Corrección importante sobre "Restablecer Todas" (OVERTURNED por TAREA-132)
+En borradores iniciales de TAREA-120 se especuló con que "Restablecer Todas" debía forzar recálculo. **Eso se documentó como INCORRECTO en ese momento**, pero en TAREA-132 el usuario revirtió explícitamente esta decisión: ahora "Restablecer Todas" SÍ setea `forzar_recalculo=True` para que el header muestre el valor natural del pool completo (preview consistente). Sin embargo, NO persiste ni comitea — el usuario debe hacer clic en "✅ Aplicar selección" para persistir. Ver RO-UI-01 actualizada en `MEMORIA_PROYECTO.md` y `STATUS_ACTUAL.md §8`.
 
 ### Cambios (código)
 1. **`valu_detail_sections.py:543-569`**: El `elif n_sel < len(comparables)` se cambió a `else:` para que el botón "Aplicar Selección" sea visible siempre (6/6 incluido), en vez de caer en `else: st.write("")`.
@@ -148,7 +213,7 @@ En borradores iniciales de TAREA-120 se especuló con que "Restablecer Todas" de
 3. **`tests/test_regression.py`**: 
    - `test_comparables_banner_hidden_when_full_selection` — migrado a usar `_get_comp_id` real (antes todos los comparables daban el mismo hash y el test no funcionaba).
    - `test_ui_apply_button_visible_when_all_selected` — Mock Streamlit, verifica que `st.button` sea llamado con 6/6 checks.
-   - `test_ui_reset_all_visual_only` — Verifica que Restablecer setee todos los checkboxes a True y elimine `comp_excluded`, pero NO toque `forzar_recalculo`.
+    - `test_ui_reset_all_visual_only` — Verifica que Restablecer setee todos los checkboxes a True, elimine `comp_excluded`, y SÍ setee `forzar_recalculo=True` (TAREA-132 overturn).
    - `test_ui_manual_save_hidden_on_no_changes` — Verifica que Guardar Valuacion Manual NO aparezca sin cambios de parámetros.
 4. Agregados helpers: `_number_input_side_effect`, `_cols_side_effect` mejorado.
 
@@ -308,7 +373,7 @@ se actualizaba con este valor preview.
 
 ---
 
-## 2026-06-30 — TAREA-097: Restablecer Todo como efecto visual puro
+## 2026-06-30 — TAREA-097: Restablecer Todo como efecto visual puro (OVERTURNED por TAREA-132)
 
 ### Contexto
 "Restablecer todos" provocaba un recálculo completo del motor,
@@ -324,6 +389,11 @@ un efecto visual: seleccionar todas las checkboxes, habilitar
 3. **Flag `[DEBUG-RESET-VISUAL]`** en el botón.
 4. **`tests/test_regression.py`**: `test_reset_all_restores_motor_value` (#52)
    actualizado para verificar que cache NO se contamina.
+
+### ⚠️ OVERTURNED por TAREA-132
+El usuario revirtió explícitamente la decisión de "Restablecer visual-only":
+ahora SÍ setea `forzar_recalculo=True` para que el header muestre el valor
+natural del pool completo (preview consistente). Ver RO-UI-01 actualizada.
 
 ### Tests
 - 53/53 tests OK.

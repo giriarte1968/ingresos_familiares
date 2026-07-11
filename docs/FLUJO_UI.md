@@ -280,8 +280,9 @@ if len(current_sel) < len(comparables):
         st.session_state[f'comp_selection_{nombre}'] = set(comp_ids)
         st.session_state.pop(f'comp_excluded_{nombre}', None)
         st.session_state.pop(f'_comp_interacted_{nombre}', None)
+        st.session_state[f'forzar_recalculo_{nombre}'] = True  # SÍ forza recálculo (RO-UI-01)
         st.rerun()
-    # ⚠️ NO setea forzar_recalculo — es VISUAL ONLY (RO-UI-01)
+    # ⚠️ setea forzar_recalculo para preview consistente, pero NO persiste
 ```
 
 **Condición de banner:** `len(current_sel) < len(comparables)` — hay al menos 1 desmarcado.
@@ -399,19 +400,23 @@ else:  # ← Cambiado de `elif n_sel < len(comparables):` a `else:` (TAREA-120)
 
 ## 4. REGLAS DE CONSISTENCIA (FLUJO)
 
-### F1 — Sync slider antes de aplicar (RO-UI-01 implícito)
+### F1 — Sync slider antes de aplicar
 Cuando se hace clic en "Aplicar selección", se sincroniza `retro_meses_{nombre}`
 desde `retro_meses_slider_{nombre}` ANTES de setear `forzar_recalculo`.
 Esto asegura que el motor use el valor actual del slider, no un valor stale.
 
-### F2 — Restablecer NO forza recálculo (RO-UI-01)
-"Restablecer todos" solo reselecciona checkboxes y limpia `comp_excluded`.
-El recálculo ocurre solo al hacer clic en "Aplicar selección".
+### F2 — Restablecer SÍ forza recálculo preview (RO-UI-01)
+"Restablecer todos" reselecciona checkboxes, limpia `comp_excluded`,
+y setea `forzar_recalculo=True` para preview consistente del valor natural.
+NO persiste ni comitea — el usuario debe hacer clic en "Aplicar selección" para persistir.
 
-### F3 — Retro/flex/slider limpian exclusión
+### F3 — Retro/flex/slider limpian exclusión + resetean selección (RO-UI-05)
 Cualquier cambio en Retro toggle, Flex checkbox o slider de meses
 ELIMINA `comp_excluded_{nombre}` y `comp_selection_{nombre}`,
 forzando al usuario a re-aplicar la selección si quiere exclusión.
+Además, se resetear todos los checkboxes a True (selección completa) y
+se muestra un mensaje `st.info()` informando al usuario del cambio.
+Esto es intencional: el pool de comparables cambia con estos parámetros.
 
 ### F4 — comp_excluded se consume una sola vez
 `comp_excluded_{nombre}` se crea en `render_tabla_comparables()` (Apply btn)
@@ -426,6 +431,12 @@ Similar a F4: se crea en varios triggers y se consume (pop) en
 `is_applied` compara `set(res.get('_comp_excluded', []))` con los IDs
 actualmente desmarcados. Si coinciden Y `_comp_exclusion_applied == True`,
 el botón muestra "✅ Selección Aplicada" (disabled).
+
+### F7 — Header solo cambia con exclusión activa (RO-HEADER-04)
+El header solo muestra el valor recalculado del preview cuando hay una
+exclusión de comparables activa (`_comp_exclusion_applied=True` en el
+resultado o `comp_excluded_` en session_state). Cambios de Retro/Flex/Slider
+sin exclusión NO afectan el header — se usa `_official_result_` si existe.
 
 ---
 
@@ -472,7 +483,7 @@ el botón muestra "✅ Selección Aplicada" (disabled).
 
 ## 6. REFERENCIAS CRUZADAS
 
-- **RO-UI-01** (MEMORIA_PROYECTO.md): Restablecer es visual-only, no forza recálculo
+- **RO-UI-01** (MEMORIA_PROYECTO.md): Restablecer forza recálculo preview (TAREA-132), no persiste
 - **RO-UI-02** (MEMORIA_PROYECTO.md): Aplicar Selección visible siempre
 - **RO-UI-03** (MEMORIA_PROYECTO.md): UI Guardrails obligatorios
 - **STATUS_ACTUAL.md §8**: Comportamiento UI — tabla de botones

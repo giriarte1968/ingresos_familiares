@@ -162,7 +162,7 @@ git checkout origin/do-state -- propiedades.json data/valuaciones_cache.json
 6. ⚠️ Botón "Comparable" en header carga desde cache en disco, debe cargar desde resultado actual en memoria (fix pendiente TAREA-086)
 7. ✅ Botón "🗑️ Limpiar Valuación" eliminado (TAREA-108) — no funcionaba correctamente
 8. ✅ Botón "Aplicar Selección" restaurado visible siempre (TAREA-120)
-9. ✅ "Restablecer Todas" es visual-only: reselecciona checkboxes y limpia comp_excluded, NO forza recálculo (TAREA-120)
+9. ✅ "Restablecer Todas" forza recálculo preview: reselecciona checkboxes, limpia comp_excluded, setea forzar_recalculo=True (TAREA-132 overturn)
 10. ✅ Botón "Aplicar Selección" visible siempre (incluso con 6/6 seleccionados) (TAREA-120)
 11. ✅ UI Guardrails: tests con mocks de Streamlit protegen botones y banner (TAREA-120)
 12. ✅ RU-MANUAL-SAVE-02: Save manual no contamina `auto_valor_usd` con cache preview (TAREA-122) — guardrail `_verificar_invariante_auto_valor_usd` eliminado (TAREA-NNN): detectaba falsos positivos, seteando `auto_valor_usd=0` cuando el valor legítimo coincidía con auto_result (fix TAREA-NNN)
@@ -172,36 +172,44 @@ git checkout origin/do-state -- propiedades.json data/valuaciones_cache.json
 
 ## 8. COMPORTAMIENTO UI — BOTONES DE SELECCIÓN DE COMPARABLES
 
-**Regla de oro (RO-UI-01):** "Restablecer Todas" es SOLO visual — reselecciona todos los checkboxes y limpia `comp_excluded`, pero NO setea `forzar_recalculo`. El recálculo ocurre SOLO al hacer clic en "Aplicar Selección".
+**Regla de oro (RO-UI-01):** "Restablecer Todas" reselecciona todos los checkboxes y limpia `comp_excluded`, y SÍ setea `forzar_recalculo=True` para que el header muestre el valor natural del pool completo. Sin embargo NO persiste ni comitea el cambio — el usuario debe confirmar con "Aplicar Selección" para persistir.
 
 ### Botones y su comportamiento
 
 | Botón | Cuándo aparece | Qué hace | ¿Forza recálculo? |
 |-------|---------------|----------|-------------------|
-| "↩️ Restablecer todos" | Cuando `len(current_sel) < len(comparables)` (hay desmarcados) | Setea todos los checkboxes a True, elimina `comp_excluded`, elimina `_comp_interacted` | ❌ No |
+| "↩️ Restablecer todos" | Cuando `len(current_sel) < len(comparables)` (hay desmarcados) | Setea todos los checkboxes a True, elimina `comp_excluded`, elimina `_comp_interacted`, setea `forzar_recalculo=True` | ✅ Sí (preview) |
 | "✅ Aplicar selección" | Siempre que `n_sel >= 3` y NO esté ya aplicada | Setea `comp_excluded`, `forzar_recalculo=True`, hace `st.rerun()` | ✅ Sí |
 | "✅ Selección Aplicada" | Cuando la selección ya fue aplicada (`is_applied`) | Deshabilitado, solo informa | ❌ No |
 | "Mínimo 3 comparables" | Cuando `n_sel < 3` | Deshabilitado, solo informa | ❌ No |
 | "Guardar Valuacion Manual" | Solo cuando `usd_m2_input > 0` Y `params_changed == True` | Persiste valuación manual | ✅ Sí |
 
+### Nota: Toggle Retro/Flex/Slider resetean selección (RO-UI-05)
+Cualquier toggle de Retro (ON/OFF), Flex (ON/OFF) o cambio en el slider de meses **resetea la selección de comparables a su estado por defecto** (todos seleccionados). El pool de comparables cambia con estos parámetros y la selección previa podría referenciar IDs que ya no existen. Un mensaje `st.info()` informa al usuario.
+
 ### Flujo de banner + reset
 ```
 [usuario desmarca comparables]
   → banner naranja: "X/Y comparables activos — N desmarcado(s). Aplicar selección para recalcular."
-  → botón "↩️ Restablecer todos" disponible (visual-only)
+  → botón "↩️ Restablecer todos" disponible
 [usuario click Restablecer]
-  → checkboxes todos True, comp_excluded eliminado, banner desaparece
-  → NO hay recálculo — el motor sigue con los valores anteriores
+  → checkboxes todos True, comp_excluded eliminado, forzar_recalculo=True, banner desaparece
+  → el motor recalcula y header muestra el valor natural del pool completo (preview)
+  → NO persiste — el cambio es visual hasta "Aplicar selección"
 [usuario click Aplicar selección]
-  → forzar_recalculo=True, st.rerun() → el motor recalcula con la selección actual
+  → persiste exclusión, forzar_recalculo=True (ya está), st.rerun() → recalcula y guarda
 ```
 
-### Cambios recientes (TAREA-120 + TAREA-122)
+### Cambios recientes (TAREA-120 + TAREA-122 + TAREA-132)
 - **Antes:** "Aplicar Selección" desaparecía con selección completa (`else: st.write("")`).
 - **Ahora:** "Aplicar Selección" visible siempre (6/6 incluido).
 - **Antes:** sin test UI.
-- **Ahora:** 3 tests UI con mocks de Streamlit protegen banner, botón aplicar, y guardado manual.
+- **Ahora:** 3+ tests UI con mocks de Streamlit protegen banner, botón aplicar, guardado manual, y reset.
 - **Antes:** auto card mostraba valor STALE del cache preview tras guardar manual (TAREA-121 incompleto).
+- **TAREA-132:** "Restablecer todos" ahora forza recálculo (`forzar_recalculo=True`) para preview consistente, pero NO persiste. Se añadió guardrail `_is_reset_state` para inhibir restauración de exclusiones desde UV cuando el usuario elige el pool completo.
+- **TAREA-133:** Se añadió RO-UI-04 (Inhibición de Restauración en Preview Fresco) con función `_should_restore_excl()` que centraliza la decisión. Cualquier acción con `preview_mode=True AND forzar=True` inhibe la restauración automática de exclusiones UV. Esto corrige el bug donde toggle Retro aplicaba directamente la exclusión previa.
+- **TAREA-133 (continuación):** Se añadió RO-UI-05 (Toggle Retro/Flex resetea selección). Retro ON/OFF, Flex ON/OFF y slider resetean la selección de comparables a todos seleccionados por defecto con mensaje `st.info()` informativo.
+- **TAREA-133 (corrección header):** Se añadió RO-HEADER-04. El header solo cambia con exclusión de comparables activa, no con Retro/Flex/Slider. Funciones `_tiene_exclusion_activa()` y `_should_show_preview_header()` centralizan la lógica.
 - **Ahora:** RU-MANUAL-SAVE-02: Save manual NUNCA escribe `auto_valor_usd` desde `auto_result` (cache preview). Solo preserva UV existente o inicializa a 0.
 - **Ahora (TAREA-NNN):** Guardrail `_verificar_invariante_auto_valor_usd` eliminado. Detectaba falsos positivos: si `auto_valor_usd == auto_result['valor_propiedad_usd']` (comportamiento NORMAL), lo trataba como contaminación y seteaba a 0, provocando auto card blank. El handler de save manual ya implementa correctamente RU-MANUAL-SAVE-02 preservando `auto_valor_usd` antes de la guardrail.
 - **Antes:** sin documentación centralizada de comportamiento UI.
@@ -213,6 +221,7 @@ git checkout origin/do-state -- propiedades.json data/valuaciones_cache.json
 - **RU-MANUAL-SAVE-02**: Save manual NO contamina `auto_valor_usd` con valor preview del cache. Guardrail `_verificar_invariante_auto_valor_usd` eliminado (TAREA-NNN): detectaba falsos positivos.
 - **RU-CLEAN-MANUAL-01**: Limpiar comparables (`🔄 Limpiar`) NO borra la valuación manual. Preserva `valor_usd`, `auto_valor_usd`, `manual_valor_usd`, `fuente`, `fuente_activa`, `manual_params`, `retro_dias`, `flex_dormitorios`, `comps`, `m2_equivalentes` y `_comp_excluded`.
 - **RU-HEADER-03**: La tarjeta MANUAL es independiente de la disponibilidad de comparables. El gate `< 3` comps solo oculta la tarjeta POR COMPARABLES, no la manual. `n_comps` del property card siempre refleja el auto engine.
+- **RO-HEADER-04**: Header solo cambia con exclusión de comparables activa. Retro/Flex/Slider sin exclusión NO cambian el header.
 - **RU-AUTO-CONTAMINATION-01**: FALLBACK-102 NUNCA usa `uv_snap['valor_usd']` cuando `uv.fuente != 'auto'`. Usa `uv_snap.get('auto_valor_usd', 0)` para evitar filtrar el valor manual al auto result.
 - **RU-COMPCOUNT-CLEAN-01**: FALLBACK-102 setea `n_propiedades=0` en `resolution_metadata` cuando `uv.fuente != 'auto'`, reflejando 0 comps reales del engine post-clean. Esto oculta la auto card automáticamente.
 

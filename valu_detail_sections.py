@@ -240,6 +240,7 @@ def render_header(prop, res):
     ya_valuado = bool(uv_dict.get('valor_usd'))
     preview_mode = res.get('_cache', {}).get('preview', False)
     n_comps_auto_hide = (auto_result.get('resolution_metadata') or {}).get('n_propiedades', 0) if auto_result else 0
+    
     ocultar_auto = n_comps_auto_hide < 3 or (fuente_activa == 'manual' and not uv_dict.get('auto_valor_usd', 0) > 0)
     if n_comps_auto_hide < 3 or (preview_mode and not ya_valuado):
         print(f"[DEBUG-INSUF-COMPS] {nombre}: n_comps_auto_hide={n_comps_auto_hide}, preview={preview_mode}, ya_valuado={ya_valuado}, "
@@ -442,6 +443,14 @@ def render_tabla_comparables(res, prop_name=None):
     """
     if not prop_name:
         prop_name = 'default'
+    # Debug: dump selection state at entry
+    _sel_key = f'comp_selection_{prop_name}'
+    _sel_val = st.session_state.get(_sel_key, None)
+    _sel_comp_keys = [k for k in st.session_state if k.startswith(f'sel_comp_{prop_name}_')]
+    _sel_comp_true = sum(1 for k in _sel_comp_keys if st.session_state[k])
+    _comp_excl = st.session_state.get(f'comp_excluded_{prop_name}', None)
+    _comp_excl_applied = st.session_state.get(f'_comp_exclusion_applied_{prop_name}', None)
+    print(f"[DEBUG-SEL-ENTRY] {prop_name}: comp_selection_={'SET(' + str(len(_sel_val)) + ')' if _sel_val else 'None'}, sel_comp_keys={len(_sel_comp_keys)} (true={_sel_comp_true}), comp_excluded={_comp_excl}, _applied={_comp_excl_applied}")
     if res.get('retro_activo'):
         st.caption(f"🔙 Retro activo: ventana de {res.get('total_dias_ventana', 180)} días")
     comparables = res.get('comparables_venta', [])
@@ -460,6 +469,7 @@ def render_tabla_comparables(res, prop_name=None):
         else:
             stored_sel = set(comp_ids)
         st.session_state[sel_key] = stored_sel
+        print(f"[DEBUG-SEL-INIT] {prop_name}: stored_sel=None, reinicializado desde res._comp_excluded={excluded} → {len(stored_sel)} comps. Keys en session que matchean sel_comp_*: {sum(1 for k in st.session_state if k.startswith(f'sel_comp_{prop_name}_'))}")
     if not isinstance(stored_sel, set):
         stored_sel = set(stored_sel)
 
@@ -486,9 +496,15 @@ def render_tabla_comparables(res, prop_name=None):
                         st.session_state[f'sel_comp_{prop_name}_{cid}'] = True
                     st.session_state[f'comp_selection_{prop_name}'] = set(comp_ids)
                     st.session_state.pop(f'comp_excluded_{prop_name}', None)
+                    st.session_state.pop(f'_comp_exclusion_applied_{prop_name}', None)
                     st.session_state.pop(f'_comp_interacted_{prop_name}', None)
-                    print(f"[DEBUG-RESET-VISUAL] {prop_name}: checkboxes seteados a True, sin recalculo")
+                    # FORZAR RECALCULO: Para que el motor vuelva a calcular la mediana del pool completo
+                    st.session_state[f'forzar_recalculo_{prop_name}'] = True
+                    print(f"[DEBUG-RESET] {prop_name}: Selección restablecida, forzando recálculo para volver al valor natural.")
                     st.rerun()
+
+
+
 
     # Cabecera de la tabla
     hdr = st.columns([0.4, 0.5, 1.5, 0.8, 1.5, 0.6, 0.9, 2, 0.7, 0.6])
@@ -571,6 +587,7 @@ def render_tabla_comparables(res, prop_name=None):
             print(f"[GUARDRAIL] RU-EXCL-SOURCE-01: {prop_name}: res._comp_excluded={_res_excl} "
                   f"!= comp_excluded={comp_excluded}. Stale session state leaking!")
         is_applied = set(comp_excluded) == set(excluded_ids) and comp_applied
+        print(f"[DEBUG-SEL-APPLIED] {prop_name}: is_applied={is_applied}, excluded_ids={excluded_ids}, comp_excluded={comp_excluded}, comp_applied={comp_applied}, n_sel={len(selected_ids)}/{len(comp_ids)}, stored_sel_len={len(stored_sel)}")
 
         # GUARDRAIL: detectar divergencia entre preview vm2 y header m2
         if preview and is_applied:
@@ -612,29 +629,31 @@ def render_tabla_comparables(res, prop_name=None):
                 st.button("✅ Selección Aplicada", type="secondary", disabled=True, use_container_width=True)
             else:
                 # Botón visible SIEMPRE (incluye selección completa 6/6)
-                if st.button(
-                    f"✅ Aplicar selección ({n_sel}/{len(comparables)})",
-                    key=f'apply_comp_sel_{prop_name}',
-                    type='primary',
-                    use_container_width=True,
-                ):
-                    from datetime import datetime
-                    print(f"[DEBUG-APPLY] ===== INICIO Aplicar selección {prop_name} =====")
-                    print(f"[DEBUG-APPLY] {prop_name}: n_sel={n_sel}, n_total={len(comparables)}, n_excluded={len(excluded)}")
-                    print(f"[DEBUG-APPLY] {prop_name}: retro_active={st.session_state.get('retro_active_' + prop_name, False)}, flex_active={st.session_state.get('flex_active_' + prop_name, False)}")
-                    
-                    # Sync slider value before applying selection
-                    slider_val = st.session_state.get(f'retro_meses_slider_{prop_name}', 36)
-                    st.session_state[f'retro_meses_{prop_name}'] = slider_val
-                    print(f"[DEBUG-APPLY] {prop_name}: slider_val={slider_val}")
-                    
-                    st.session_state[f'comp_excluded_{prop_name}'] = excluded
-                    st.session_state[f'_comp_exclusion_applied_{prop_name}'] = True
-                    st.session_state[f'_comp_excluded_{prop_name}'] = excluded
-                    st.session_state[f'forzar_recalculo_{prop_name}'] = True
-                    print(f"[DEBUG-APPLY] {prop_name}: Set forzar_recalculo=True, _comp_exclusion_applied=True, excluded={excluded}")
-                    print(f"[DEBUG-APPLY] {prop_name} ===== FIN Aplicar selección =====, calling st.rerun()")
-                    st.rerun()
+                    if st.button(
+                        f"✅ Aplicar selección ({n_sel}/{len(comparables)})",
+                        key=f'apply_comp_sel_{prop_name}',
+                        type='primary',
+                        use_container_width=True,
+                    ):
+                        from datetime import datetime
+                        print(f"[DEBUG-APPLY] ===== INICIO Aplicar selección {prop_name} =====")
+                        print(f"[DEBUG-APPLY] {prop_name}: n_sel={n_sel}, n_total={len(comparables)}, n_excluded={len(excluded)}")
+                        print(f"[DEBUG-APPLY] {prop_name}: retro_active={st.session_state.get('retro_active_' + prop_name, False)}, flex_active={st.session_state.get('flex_active_' + prop_name, False)}")
+                        
+                        # Sync slider value before applying selection
+                        slider_val = st.session_state.get(f'retro_meses_slider_{prop_name}', 36)
+                        st.session_state[f'retro_meses_{prop_name}'] = slider_val
+                        print(f"[DEBUG-APPLY] {prop_name}: slider_val={slider_val}")
+                        
+                        st.session_state[f'comp_excluded_{prop_name}'] = excluded
+                        st.session_state[f'_comp_exclusion_applied_{prop_name}'] = True
+                        st.session_state[f'_comp_excluded_{prop_name}'] = excluded
+                        st.session_state[f'forzar_recalculo_{prop_name}'] = True
+                        print(f"[DEBUG-APPLY] {prop_name}: Set forzar_recalculo=True, _comp_exclusion_applied=True, excluded={excluded}")
+                        print(f"[DEBUG-APPLY] {prop_name} ===== FIN Aplicar selección =====, calling st.rerun()")
+                        st.rerun()
+
+
     elif not selected_ids:
         st.warning("⚠️ Seleccioná al menos un comparable para calcular el valor.")
         if st.button("Seleccionar todos", key=f'sel_all_{prop_name}'):
