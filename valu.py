@@ -505,7 +505,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
 
         col1, col2, col3 = st.columns(3)
         with col1:
-            hay_catastro = render_catastro(prop, res if (preview_mode and official_res) else res, compact=True)
+            hay_catastro = render_catastro(prop, res, compact=True)
         with col2:
             render_street_view(prop, compact=True)
         with col3:
@@ -523,7 +523,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         if hay_catastro:
             st.markdown("<br>", unsafe_allow_html=True)
             with profile_block("render_catastro_detalle", prop):
-                render_catastro(prop, res if (preview_mode and official_res) else res, compact=False)
+                render_catastro(prop, res, compact=False)
             _dl.mark("after_render_catastro")
     _dl.mark("after_section_acciones")
 
