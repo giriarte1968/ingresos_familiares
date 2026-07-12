@@ -591,52 +591,37 @@ def mostrar_dashboard():
             p_obj = next((p for p in propiedades if p['nombre'] == st.session_state.prop_sel), None)
         if p_obj:
             prop_name = p_obj.get('nombre', '')
-            # Limpiar solo comparables: borra cache, conserva manual si existe
+            # Limpiar solo comparables: borra cache, conserva manual si existe (RU-CLEAN-MANUAL-01)
             clean_flag = st.session_state.pop(f"clean_comparables_{prop_name}", False)
-            print(f"[DEBUG-CLEAN-FLAG] {prop_name}: flag_set={clean_flag}")
             if clean_flag:
                 try:
                     from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
                     cache_v = cargar_cache_valuaciones()
                     cache_v.pop(prop_name, None)
                     guardar_cache_valuaciones(cache_v)
-                    props = cargar_propiedades()
-                    for p in props:
-                        if p.get('nombre') == prop_name:
-                            uv_old = p.get('_ultima_valuacion', {})
-                            tiene_manual = uv_old.get('fuente') == 'manual' or uv_old.get('fuente_activa') == 'manual'
-                            print(f"[DEBUG-CLEAN] {prop_name}: tiene_manual={tiene_manual}, "
-                                  f"UV:fuente={uv_old.get('fuente')}, valor_usd={uv_old.get('valor_usd')}")
-                            if tiene_manual:
-                                p.pop('_ultima_valuacion', None)
-                                print(f"[DEBUG-CLEAN-CLEAR] {prop_name}: valuacion manual LIMPIADA. "
-                                      f"UV:valor_usd={uv_old.get('valor_usd')}, "
-                                      f"fuente={uv_old.get('fuente')}")
-                            else:
-                                p.pop('_ultima_valuacion', None)
-                            break
-                    guardar_propiedades(props)
-                    if tiene_manual:
-                        print(f"[GUARDRAIL-CLEAN] {prop_name}: POST-CLEAN OK - "
-                              f"valuacion manual ELIMINADA: valor_usd={uv_old.get('valor_usd')}, "
-                              f"fuente={uv_old.get('fuente')}")
+                    print(f"[DEBUG-CLEAN] {prop_name}: Cache de comparables limpiado. UV preservada.")
                 except Exception as e:
                     print(f"[DEBUG-CLEAN] Error limpiando comparables {prop_name}: {e}")
-                st.session_state.pop(f'preview_mode_{prop_name}', None)
+            
+            # Limpiar estado de sesión relativo a AUTO
+            st.session_state.pop(f'preview_mode_{prop_name}', None)
+            
+            # GUARDRAIL RU-CLEAN-MANUAL-01: No borrar official_result si la fuente es manual
+            fuente_actual = st.session_state.get(f'fuente_activa_{prop_name}', p_obj.get('_ultima_valuacion', {}).get('fuente_activa', 'auto'))
+            if fuente_actual != 'manual':
                 st.session_state.pop(f'_official_result_{prop_name}', None)
-                st.session_state.pop(f'retro_active_{prop_name}', None)
-                st.session_state.pop(f'flex_active_{prop_name}', None)
-                st.session_state.pop(f'comp_excluded_{prop_name}', None)
-                st.session_state.pop(f'comp_selection_{prop_name}', None)
-                st.session_state.pop(f'retro_meses_{prop_name}', None)
-                st.session_state.pop(f'retro_meses_slider_{prop_name}', None)
-                st.session_state.pop(f'retro_btn_{prop_name}', None)
-                st.session_state.pop(f'flex_btn_{prop_name}', None)
-                st.session_state.pop(f'manual_preview_{prop_name}', None)
-                st.session_state.pop(f'fuente_activa_{prop_name}', None)
-                st.session_state[f'pendiente_comparables_{prop_name}'] = True
-                print(f"[DEBUG-COMP-BTN] {prop_name}: pendiente_comparables=True — botón cambiará a Comparables")
-                st.rerun()
+            
+            st.session_state.pop(f'retro_active_{prop_name}', None)
+            st.session_state.pop(f'flex_active_{prop_name}', None)
+            st.session_state.pop(f'comp_excluded_{prop_name}', None)
+            st.session_state.pop(f'comp_selection_{prop_name}', None)
+            st.session_state.pop(f'retro_meses_{prop_name}', None)
+            st.session_state.pop(f'retro_meses_slider_{prop_name}', None)
+            st.session_state.pop(f'retro_btn_{prop_name}', None)
+            st.session_state.pop(f'flex_btn_{prop_name}', None)
+            st.session_state.pop(f'manual_preview_{prop_name}', None)
+            st.session_state[f'pendiente_comparables_{prop_name}'] = True
+            st.rerun()
 
             # Solo aplicar preview manual si la fuente activa es 'manual'
             uv_saved = p_obj.get('_ultima_valuacion', {}) or {}
