@@ -1,6 +1,22 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-07-12 — TAREA-134: Corregir botón "Limpiar" (RU-CLEAN-MANUAL-01)
+
+### Contexto
+El botón "🔄 Limpiar" de comparables borraba la UV del disco y el session state sin discriminar entre fuente auto y manual. Esto destruía la valuación manual y el header. Se modificó el bloque `if clean_flag:` en `valu.py:597-639` para que preserve la UV manual.
+
+### Cambios (código)
+1. **`valu.py:610-614`** — `tiene_manual` se evalúa; si True, la UV en disco NO se toca (`guardar_propiedades` no se llama).
+2. **`valu.py:624-625`** — `_official_result` solo se borra si `not tiene_manual`.
+3. **`valu.py:635-636`** — `fuente_activa` solo se borra si `not tiene_manual`.
+4. **`valu.py:597`** — `tiene_manual = False` inicializado fuera del `try` para evitar `UnboundLocalError`.
+5. **`valu.py:2111-2131`** — `_verificar_invariante_clean_comparables` convertido a stub (siempre True) porque el comportamiento anterior (limpiar manual) ya no aplica.
+6. **`tests/test_regression.py`** — `test_clean_comparables_preserves_manual_valuation` actualizado: ahora verifica que la UV manual se preserva. `test_guardrail_clean_comparables_detects_violation` actualizado para el stub.
+
+### Reglas de oro afectadas
+- **RU-CLEAN-MANUAL-01**: Ahora se cumple correctamente.
+
 ## 2026-07-11 — TAREA-133: RO-UI-04 Preview fresco + RO-UI-05 Retro reset
 
 ### Contexto

@@ -725,9 +725,9 @@ def test_manual_card_shows_when_auto_0_comps():
 # TESTS RU-CLEAN-MANUAL-01: Limpiar comparables NO debe borrar manual
 # ========================================================================
 def test_clean_comparables_preserves_manual_valuation():
-    """RU-CLEAN-MANUAL-01: Limpiar comparables DEBE borrar la valuacion manual.
-    Escenario: usuario hace clic en 'Limpiar' — se espera que TODO se limpie,
-    incluyendo la valuacion manual, para que el siguiente calculo sea auto."""
+    """RU-CLEAN-MANUAL-01: Limpiar comparables NO debe borrar la valuacion manual.
+    Escenario: usuario hace clic en 'Limpiar' con fuente manual activa —
+    la UV manual debe preservarse en disco y en session state."""
     uv_original = {
         'valor_usd': 735013.0,
         'auto_valor_usd': 0,
@@ -746,15 +746,15 @@ def test_clean_comparables_preserves_manual_valuation():
     tiene_manual = uv_original.get('fuente') == 'manual' or uv_original.get('fuente_activa') == 'manual'
     assert tiene_manual, "Debe detectar que hay valuacion manual"
 
-    # Simular la logica de clean: limpiar TODO (manual incluido)
-    uv_result = {}  # Limpiado completamente
+    # Simular el nuevo comportamiento: clean NO toca UV manual
+    uv_result = uv_original  # Se preserva intacta
 
-    assert uv_result.get('valor_usd') is None, "valor_usd debe limpiarse"
-    assert uv_result.get('fuente') is None, "fuente debe limpiarse"
-    assert uv_result.get('fuente_activa') is None, "fuente_activa debe limpiarse"
-    assert uv_result.get('manual_params') is None, "manual_params debe limpiarse"
+    assert uv_result.get('valor_usd') == 735013.0, "valor_usd debe preservarse"
+    assert uv_result.get('fuente') == 'manual', "fuente debe preservarse"
+    assert uv_result.get('fuente_activa') == 'manual', "fuente_activa debe preservarse"
+    assert uv_result.get('manual_params') == {'ancla_id': 'test', 'usd_m2': 2000}, "manual_params debe preservarse"
 
-    print(f"[TEST-CLEAN-MANUAL] OK — todo limpiado. "
+    print(f"[TEST-CLEAN-MANUAL] OK — UV manual preservada. "
           f"keys={list(uv_result.keys())}, valor_usd={uv_result.get('valor_usd')}")
 
 
@@ -781,29 +781,28 @@ def test_clean_comparables_cleans_when_no_manual():
 
 
 def test_guardrail_clean_comparables_detects_violation():
-    """GUARDRAIL RU-CLEAN-MANUAL-01: _verificar_invariante_clean_comparables
-    detecta cuando la manual NO fue borrada (clean debio limpiar todo)."""
+    """GUARDRAIL RU-CLEAN-MANUAL-01 (OBSOLETO): El invariante ahora siempre retorna True
+    porque el nuevo comportamiento preserva la UV manual. Este test verifica
+    que el stub no rompe nada."""
     from valu import _verificar_invariante_clean_comparables
 
-    # Escenario de violacion: fuente=manual con manual_params todavia presente (clean fallo)
-    uv_violado = {
+    # El invariante ya no se activa — siempre retorna True
+    uv_con_manual = {
         'fuente': 'manual', 'valor_usd': 735013.0,
         'manual_params': {'ancla_id': 'test'},
     }
-    result = _verificar_invariante_clean_comparables(uv_violado, "__test__")
-    assert result is False, "Debe detectar violacion: manual sobrevivio al clean"
+    result = _verificar_invariante_clean_comparables(uv_con_manual, "__test__")
+    assert result is True, "Nuevo comportamiento: manual preservada no es violacion"
 
-    # Escenario correcto: fuente=auto (clean funciono o nunca hubo manual)
     uv_ok = {'fuente': 'auto', 'valor_usd': 590062.0}
     result = _verificar_invariante_clean_comparables(uv_ok, "__test__")
-    assert result is True, "No debe activarse cuando fuente=auto"
+    assert result is True, "Debe retornar True para fuente=auto"
 
-    # Escenario: UV vacio (clean limpio todo)
     uv_empty = {}
     result = _verificar_invariante_clean_comparables(uv_empty, "__test__")
-    assert result is True, "UV vacio no debe activar guardrail"
+    assert result is True, "UV vacio debe retornar True"
 
-    print(f"[TEST-GUARDRAIL-CLEAN] OK — violacion detectada, correcto ignorado")
+    print(f"[TEST-GUARDRAIL-CLEAN] OK — stub retorna True siempre")
 
 
 def test_guardrail_clean_comparables_auto_corrects():

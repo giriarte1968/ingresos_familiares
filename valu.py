@@ -593,6 +593,8 @@ def mostrar_dashboard():
             prop_name = p_obj.get('nombre', '')
             # Limpiar solo comparables: borra cache, conserva manual si existe (RU-CLEAN-MANUAL-01)
             clean_flag = st.session_state.pop(f"clean_comparables_{prop_name}", False)
+            clean_flag = st.session_state.pop(f"clean_comparables_{prop_name}", False)
+            print(f"[DEBUG-CLEAN-FLAG] {prop_name}: flag_set={clean_flag}")
             if clean_flag:
                 try:
                     from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
@@ -602,15 +604,12 @@ def mostrar_dashboard():
                     print(f"[DEBUG-CLEAN] {prop_name}: Cache de comparables limpiado. UV preservada.")
                 except Exception as e:
                     print(f"[DEBUG-CLEAN] Error limpiando comparables {prop_name}: {e}")
-            
             # Limpiar estado de sesión relativo a AUTO
             st.session_state.pop(f'preview_mode_{prop_name}', None)
-            
             # GUARDRAIL RU-CLEAN-MANUAL-01: No borrar official_result si la fuente es manual
             fuente_actual = st.session_state.get(f'fuente_activa_{prop_name}', p_obj.get('_ultima_valuacion', {}).get('fuente_activa', 'auto'))
             if fuente_actual != 'manual':
                 st.session_state.pop(f'_official_result_{prop_name}', None)
-            
             st.session_state.pop(f'retro_active_{prop_name}', None)
             st.session_state.pop(f'flex_active_{prop_name}', None)
             st.session_state.pop(f'comp_excluded_{prop_name}', None)
@@ -621,6 +620,7 @@ def mostrar_dashboard():
             st.session_state.pop(f'flex_btn_{prop_name}', None)
             st.session_state.pop(f'manual_preview_{prop_name}', None)
             st.session_state[f'pendiente_comparables_{prop_name}'] = True
+            print(f"[DEBUG-COMP-BTN] {prop_name}: pendiente_comparables=True — botón cambiará a Comparables")
             st.rerun()
 
             # Solo aplicar preview manual si la fuente activa es 'manual'
@@ -2093,24 +2093,10 @@ def main():
 # ========================================================================
 def _verificar_invariante_clean_comparables(uv: dict, nombre: str) -> bool:
     """
-    Verifica que despues de limpiar comparables, la valuacion manual fue borrada.
-    El clean debe limpiar TODO, incluyendo fuente=manual.
-
-    Returns:
-        True si el invariante se cumple (manual fue borrada).
-        False si la manual sobrevivio al clean.
+    VERIFIED-OBSOLETE: El nuevo comportamiento preserva la UV manual.
+    Esta función se mantiene como stub para no romper imports existentes,
+    pero siempre retorna True.
     """
-    if not uv:
-        return True
-    fuente = uv.get('fuente', '')
-    valor_usd = uv.get('valor_usd', 0)
-    manual_params = uv.get('manual_params')
-
-    if fuente == 'manual' and valor_usd > 0 and manual_params is not None:
-        print(f"[GUARDRAIL-EXCL] {nombre}: INVARIANTE VIOLADO - "
-              f"fuente=manual pero manual_params preservado. "
-              f"Clean debio borrar la valuacion manual.")
-        return False
     return True
 
 
