@@ -391,19 +391,6 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         col_limpiar, col_btn, col_cb, col_slider = st.columns([1.2, 1.2, 1.0, 2.6])
         with col_limpiar:
             pendiente = st.session_state.get(f'pendiente_comparables_{prop_name}', False)
-            # GUARDRAIL loop de rerun: si pendiente supera N renders sin interacción,
-            # se auto-limpia para romper el loop
-            if pendiente:
-                _render_key = f'_pendiente_render_count_{prop_name}'
-                count = st.session_state.get(_render_key, 0) + 1
-                st.session_state[_render_key] = count
-                if count > 5:
-                    st.session_state.pop(f'pendiente_comparables_{prop_name}', None)
-                    st.session_state.pop(_render_key, None)
-                    pendiente = False
-                    print(f"[DEBUG-GUARDRAIL] {prop_name}: pendiente_comparables auto-limpio tras {count} renders (loop guard)")
-            else:
-                st.session_state.pop(f'_pendiente_render_count_{prop_name}', None)
             if pendiente:
                 if st.button("📊 Comparables", type="primary", use_container_width=True, key=f"act_comp_{prop_name}"):
                     st.session_state[f'act_comparables_{prop_name}'] = True
@@ -606,7 +593,6 @@ def mostrar_dashboard():
             prop_name = p_obj.get('nombre', '')
             # Limpiar solo comparables: borra cache, conserva manual si existe (RU-CLEAN-MANUAL-01)
             clean_flag = st.session_state.pop(f"clean_comparables_{prop_name}", False)
-            clean_flag = st.session_state.pop(f"clean_comparables_{prop_name}", False)
             print(f"[DEBUG-CLEAN-FLAG] {prop_name}: flag_set={clean_flag}")
             if clean_flag:
                 try:
@@ -617,24 +603,31 @@ def mostrar_dashboard():
                     print(f"[DEBUG-CLEAN] {prop_name}: Cache de comparables limpiado. UV preservada.")
                 except Exception as e:
                     print(f"[DEBUG-CLEAN] Error limpiando comparables {prop_name}: {e}")
-            # Limpiar estado de sesión relativo a AUTO
-            st.session_state.pop(f'preview_mode_{prop_name}', None)
-            # GUARDRAIL RU-CLEAN-MANUAL-01: No borrar official_result si la fuente es manual
-            fuente_actual = st.session_state.get(f'fuente_activa_{prop_name}', p_obj.get('_ultima_valuacion', {}).get('fuente_activa', 'auto'))
-            if fuente_actual != 'manual':
-                st.session_state.pop(f'_official_result_{prop_name}', None)
-            st.session_state.pop(f'retro_active_{prop_name}', None)
-            st.session_state.pop(f'flex_active_{prop_name}', None)
-            st.session_state.pop(f'comp_excluded_{prop_name}', None)
-            st.session_state.pop(f'comp_selection_{prop_name}', None)
-            st.session_state.pop(f'retro_meses_{prop_name}', None)
-            st.session_state.pop(f'retro_meses_slider_{prop_name}', None)
-            st.session_state.pop(f'retro_btn_{prop_name}', None)
-            st.session_state.pop(f'flex_btn_{prop_name}', None)
-            st.session_state.pop(f'manual_preview_{prop_name}', None)
-            st.session_state[f'pendiente_comparables_{prop_name}'] = True
-            print(f"[DEBUG-COMP-BTN] {prop_name}: pendiente_comparables=True — botón cambiará a Comparables")
-            st.rerun()
+                
+                # Limpiar estado de sesión relativo a AUTO
+                st.session_state.pop(f'preview_mode_{prop_name}', None)
+                
+                # GUARDRAIL RU-CLEAN-MANUAL-01: No borrar official_result si la fuente es manual
+                fuente_actual = st.session_state.get(f'fuente_activa_{prop_name}', p_obj.get('_ultima_valuacion', {}).get('fuente_activa', 'auto'))
+                if fuente_actual != 'manual':
+                    st.session_state.pop(f'_official_result_{prop_name}', None)
+                
+                # Limpiar fuente_activa SIEMPRE para forzar lectura de UV disco y evitar loops
+                st.session_state.pop(f'fuente_activa_{prop_name}', None)
+                
+                st.session_state.pop(f'retro_active_{prop_name}', None)
+                st.session_state.pop(f'flex_active_{prop_name}', None)
+                st.session_state.pop(f'comp_excluded_{prop_name}', None)
+                st.session_state.pop(f'comp_selection_{prop_name}', None)
+                st.session_state.pop(f'retro_meses_{prop_name}', None)
+                st.session_state.pop(f'retro_meses_slider_{prop_name}', None)
+                st.session_state.pop(f'retro_btn_{prop_name}', None)
+                st.session_state.pop(f'flex_btn_{prop_name}', None)
+                st.session_state.pop(f'manual_preview_{prop_name}', None)
+                
+                st.session_state[f'pendiente_comparables_{prop_name}'] = True
+                print(f"[DEBUG-COMP-BTN] {prop_name}: pendiente_comparables=True — botón cambiará a Comparables")
+                st.rerun()
 
             # Solo aplicar preview manual si la fuente activa es 'manual'
             uv_saved = p_obj.get('_ultima_valuacion', {}) or {}
