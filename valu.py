@@ -391,6 +391,19 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         col_limpiar, col_btn, col_cb, col_slider = st.columns([1.2, 1.2, 1.0, 2.6])
         with col_limpiar:
             pendiente = st.session_state.get(f'pendiente_comparables_{prop_name}', False)
+            # GUARDRAIL loop de rerun: si pendiente supera N renders sin interacción,
+            # se auto-limpia para romper el loop
+            if pendiente:
+                _render_key = f'_pendiente_render_count_{prop_name}'
+                count = st.session_state.get(_render_key, 0) + 1
+                st.session_state[_render_key] = count
+                if count > 5:
+                    st.session_state.pop(f'pendiente_comparables_{prop_name}', None)
+                    st.session_state.pop(_render_key, None)
+                    pendiente = False
+                    print(f"[DEBUG-GUARDRAIL] {prop_name}: pendiente_comparables auto-limpio tras {count} renders (loop guard)")
+            else:
+                st.session_state.pop(f'_pendiente_render_count_{prop_name}', None)
             if pendiente:
                 if st.button("📊 Comparables", type="primary", use_container_width=True, key=f"act_comp_{prop_name}"):
                     st.session_state[f'act_comparables_{prop_name}'] = True
