@@ -600,21 +600,27 @@ def mostrar_dashboard():
                     cache_v = cargar_cache_valuaciones()
                     cache_v.pop(prop_name, None)
                     guardar_cache_valuaciones(cache_v)
-                    print(f"[DEBUG-CLEAN] {prop_name}: Cache de comparables limpiado. UV preservada.")
+                    print(f"[DEBUG-CLEAN] {prop_name}: Cache de comparables limpiado.")
+                    # --- Lógica de Disco (Sólida) ---
+                    props = cargar_propiedades()
+                    for p in props:
+                        if p.get('nombre') == prop_name:
+                            uv = p.get('_ultima_valuacion', {})
+                            if not uv.get('manual_params'):
+                                p.pop('_ultima_valuacion', None)
+                                print(f"[DEBUG-CLEAN] {prop_name}: UV Auto borrada del disco.")
+                            else:
+                                print(f"[DEBUG-CLEAN] {prop_name}: UV Manual preservada en disco.")
+                            break
+                    guardar_propiedades(props)
                 except Exception as e:
                     print(f"[DEBUG-CLEAN] Error limpiando comparables {prop_name}: {e}")
-                
-                # Limpiar estado de sesión relativo a AUTO
+                # --- Limpieza de Session State ---
                 st.session_state.pop(f'preview_mode_{prop_name}', None)
-                
-                # GUARDRAIL RU-CLEAN-MANUAL-01: No borrar official_result si la fuente es manual
                 fuente_actual = st.session_state.get(f'fuente_activa_{prop_name}', p_obj.get('_ultima_valuacion', {}).get('fuente_activa', 'auto'))
                 if fuente_actual != 'manual':
                     st.session_state.pop(f'_official_result_{prop_name}', None)
-                
-                # Limpiar fuente_activa SIEMPRE para forzar lectura de UV disco y evitar loops
                 st.session_state.pop(f'fuente_activa_{prop_name}', None)
-                
                 st.session_state.pop(f'retro_active_{prop_name}', None)
                 st.session_state.pop(f'flex_active_{prop_name}', None)
                 st.session_state.pop(f'comp_excluded_{prop_name}', None)
@@ -624,7 +630,6 @@ def mostrar_dashboard():
                 st.session_state.pop(f'retro_btn_{prop_name}', None)
                 st.session_state.pop(f'flex_btn_{prop_name}', None)
                 st.session_state.pop(f'manual_preview_{prop_name}', None)
-                
                 st.session_state[f'pendiente_comparables_{prop_name}'] = True
                 print(f"[DEBUG-COMP-BTN] {prop_name}: pendiente_comparables=True — botón cambiará a Comparables")
                 st.rerun()
