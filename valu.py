@@ -400,44 +400,58 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                     st.rerun()
             else:
                 if st.button("🔄 Limpiar", type="secondary", use_container_width=True, key=f"cln_comps_{prop_name}"):
-                    st.error("🚨 LIMPIANDO TOTALMENTE...")
-                    # 1. Limpiar Cache Físico
+                    # --- NUCLEAR CLEAN: Direct File I/O to avoid any helper bugs ---
                     try:
-                        from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
-                        cache_v = cargar_cache_valuaciones()
-                        cache_v.pop(prop_name, None)
-                        guardar_cache_valuaciones(cache_v)
+                        import json
+                        import os
+                        
+                        # 1. Cache Clear
+                        cache_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'valuaciones_cache.json')
+                        if os.path.exists(cache_path):
+                            with open(cache_path, 'r', encoding='utf-8') as f:
+                                cache_v = json.load(f)
+                            cache_v.pop(prop_name, None)
+                            with open(cache_path, 'w', encoding='utf-8') as f:
+                                json.dump(cache_v, f, indent=2, ensure_ascii=False)
+                        
+                        # 2. Disk Properties Clear
+                        props_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'propiedades.json')
+                        if os.path.exists(props_path):
+                            with open(props_path, 'r', encoding='utf-8') as f:
+                                data = json.load(f)
+                            props = data.get('propiedades', [])
+                            for p in props:
+                                if p.get('nombre') == prop_name:
+                                    uv = p.get('_ultima_valuacion', {})
+                                    if uv and uv.get('manual_params'):
+                                        # Surgical remove of comparables only
+                                        uv['comps'] = []
+                                        uv['auto_valor_usd'] = 0
+                                        if uv.get('fuente') == 'auto':
+                                            uv['valor_usd'] = 0
+                                        p['_ultima_valuacion'] = uv
+                                    else:
+                                        p.pop('_ultima_valuacion', None)
+                                    break
+                            with open(props_path, 'w', encoding='utf-8') as f:
+                                json.dump({'propiedades': props}, f, indent=2, ensure_ascii=False)
+                        
+                        # 3. Session State Wipe
+                        keys_to_pop = [
+                            f'preview_mode_{prop_name}', f'_official_result_{prop_name}', 
+                            f'fuente_activa_{prop_name}', f'retro_active_{prop_name}', 
+                            f'flex_active_{prop_name}', f'comp_excluded_{prop_name}', 
+                            f'comp_selection_{prop_name}', f'retro_meses_{prop_name}', 
+                            f'retro_meses_slider_{prop_name}', f'retro_btn_{prop_name}', 
+                            f'flex_btn_{prop_name}', f'manual_preview_{prop_name}'
+                        ]
+                        for k in keys_to_pop:
+                            st.session_state.pop(k, None)
+                        
+                        st.session_state[f'pendiente_comparables_{prop_name}'] = True
+                        st.rerun()
                     except Exception as e:
-                        st.warning(f"Error cache: {e}")
-
-                    # 2. Limpiar Disco (Solo Auto)
-                    try:
-                        from parsers.propiedades import cargar_propiedades, guardar_propiedades
-                        props = cargar_propiedades()
-                        for p in props:
-                            if p.get('nombre') == prop_name:
-                                uv = p.get('_ultima_valuacion', {})
-                                if not uv.get('manual_params'):
-                                    p.pop('_ultima_valuacion', None)
-                                break
-                        guardar_propiedades(props)
-                    except Exception as e:
-                        st.warning(f"Error disco: {e}")
-
-                    # 3. Limpiar Session State (Toda la memoria de comparables)
-                    keys_to_pop = [
-                        f'preview_mode_{prop_name}', f'_official_result_{prop_name}', 
-                        f'fuente_activa_{prop_name}', f'retro_active_{prop_name}', 
-                        f'flex_active_{prop_name}', f'comp_excluded_{prop_name}', 
-                        f'comp_selection_{prop_name}', f'retro_meses_{prop_name}', 
-                        f'retro_meses_slider_{prop_name}', f'retro_btn_{prop_name}', 
-                        f'flex_btn_{prop_name}', f'manual_preview_{prop_name}'
-                    ]
-                    for k in keys_to_pop:
-                        st.session_state.pop(k, None)
-                    
-                    st.session_state[f'pendiente_comparables_{prop_name}'] = True
-                    st.rerun()
+                        st.error(f"Nuclear Clean failed: {e}")
         with col_btn:
             label = "🔙 Retro Activado" if retro_active else "🔙 Retro"
             if st.button(label, type="primary" if retro_active else "secondary", use_container_width=True, key=f'retro_btn_{prop_name}'):
@@ -628,46 +642,7 @@ def mostrar_dashboard():
         if p_obj:
             prop_name = p_obj.get('nombre', '')
             # Limpiar solo comparables: borra cache, conserva manual si existe (RU-CLEAN-MANUAL-01)
-            from parsers.debug_logger import log
-            clean_flag = st.session_state.pop(f"clean_comparables_{prop_name}", False)
-            log(f"[DEBUG-CLEAN-FLAG] {prop_name}: flag_set={clean_flag}")
-            if clean_flag:
-                try:
-                    from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
-                    cache_v = cargar_cache_valuaciones()
-                    cache_v.pop(prop_name, None)
-                    guardar_cache_valuaciones(cache_v)
-                    print(f"[DEBUG-CLEAN] {prop_name}: Cache de comparables limpiado.")
-                    # --- Lógica de Disco (Sólida) ---
-                    props = cargar_propiedades()
-                    for p in props:
-                        if p.get('nombre') == prop_name:
-                            uv = p.get('_ultima_valuacion', {})
-                            if not uv.get('manual_params'):
-                                p.pop('_ultima_valuacion', None)
-                                print(f"[DEBUG-CLEAN] {prop_name}: UV Auto borrada del disco.")
-                            else:
-                                print(f"[DEBUG-CLEAN] {prop_name}: UV Manual preservada en disco.")
-                            break
-                    guardar_propiedades(props)
-                except Exception as e:
-                    print(f"[DEBUG-CLEAN] Error limpiando comparables {prop_name}: {e}")
-                # --- Limpieza de Session State ---
-                st.session_state.pop(f'preview_mode_{prop_name}', None)
-                st.session_state.pop(f'_official_result_{prop_name}', None)
-                st.session_state.pop(f'fuente_activa_{prop_name}', None)
-                st.session_state.pop(f'retro_active_{prop_name}', None)
-                st.session_state.pop(f'flex_active_{prop_name}', None)
-                st.session_state.pop(f'comp_excluded_{prop_name}', None)
-                st.session_state.pop(f'comp_selection_{prop_name}', None)
-                st.session_state.pop(f'retro_meses_{prop_name}', None)
-                st.session_state.pop(f'retro_meses_slider_{prop_name}', None)
-                st.session_state.pop(f'retro_btn_{prop_name}', None)
-                st.session_state.pop(f'flex_btn_{prop_name}', None)
-                st.session_state.pop(f'manual_preview_{prop_name}', None)
-                st.session_state[f'pendiente_comparables_{prop_name}'] = True
-                log(f"[DEBUG-COMP-BTN] {prop_name}: pendiente_comparables=True — botón cambiará a Comparables")
-                st.rerun()
+
 
             # Solo aplicar preview manual si la fuente activa es 'manual'
             uv_saved = p_obj.get('_ultima_valuacion', {}) or {}
@@ -927,42 +902,47 @@ def mostrar_dashboard():
                           f"UV:fuente={uv_pre.get('fuente','N/A')}, UV:valor_usd={uv_pre.get('valor_usd','N/A')}, UV:auto_valor_usd={uv_pre.get('auto_valor_usd','N/A')}, UV:comps={uv_pre.get('comps','N/A')}")
                     cache_condition = (ya_valuado, not forzar, bool(entrada_antigua.get('resultado_completo')))
                     print(f"[CACHE-CHECK] {prop_name}: condiciones: ya_valuado={cache_condition[0]}, not forzar={cache_condition[1]}, tiene_resultado_completo={cache_condition[2]}, fuente_activa_saved={fuente_activa_saved}, entrada_keys={list(entrada_antigua.keys()) if entrada_antigua else 'vacia'}")
-                     # ── Gating: Si está marcado como pendiente, NO calcular nada (evita auto-restauración post-limpiar) ──
-                     if st.session_state.get(f'pendiente_comparables_{prop_name}', False):
-                         print(f"[DEBUG-GATE] {prop_name}: Estado PENDIENTE activo — saltando cálculo automático")
-                         resultado = {
-                             'valor_propiedad_usd': 0,
-                             'm2_base_venta': 0,
-                             'comparables_venta': [],
-                             'error': 'pendiente',
-                             'mensaje': 'Presione el botón Comparables para iniciar la valuación',
-                             '_cache': {'preview': False},
-                             'resolution_metadata': {'n_propiedades': 0}
-                         }
-                         usar_cache = False
-                         _sl.mark("after_gate_pendiente")
-                     else:
-                         # Intentar cache siempre (independientemente de fuente_activa) para preservar exclusion
-                         if ya_valuado and not forzar and bool(entrada_antigua.get('resultado_completo')):
-                        cached_result = entrada_antigua['resultado_completo']
-                        if cached_result.get('error'):
-                            print(f"[CACHE] {prop_name}: saltando resultado con error={cached_result['error']}")
-                        else:
-                            cached_fecha_ref = (cached_result.get('resolution_metadata') or {}).get('fecha_ref', '')
-                            cached_retro = (cached_result.get('_cache') or {}).get('retro_dias', 0)
-                            hoy = datetime.now().strftime('%Y-%m-%d')
-                            if cached_fecha_ref == hoy and cached_retro == retro_dias:
-                                resultado = cached_result
-                                usar_cache = True
-                                print(f"[CACHE] {prop_name}: usando resultado_completo grabado ({len(resultado.get('comparables_venta',[]))} comps, retro={cached_retro})")
-                            else:
-                                print(f"[CACHE] {prop_name}: cache stale (fecha_ref={cached_fecha_ref}, retro_cache={cached_retro}, retro_actual={retro_dias}, hoy={hoy}), recalculando")
+                    # ── SONDAS DE DIAGNÓSTICO ──
+                    st.write(f"🔍 DEBUG Disco UV: {p_obj.get('_ultima_valuacion', 'NONE')}")
+                    st.write(f"🔍 DEBUG Cache Result: {'EXISTE' if entrada_antigua.get('resultado_completo') else 'VACÍO'}")
+                    # ── FIN SONDAS ──
+
+                    # ── Gating: Si está marcado como pendiente, NO calcular nada (evita auto-restauración post-limpiar) ──
+                    if st.session_state.get(f'pendiente_comparables_{prop_name}', False):
+                        print(f"[DEBUG-GATE] {prop_name}: Estado PENDIENTE activo — saltando cálculo automático")
+                        resultado = {
+                            'valor_propiedad_usd': 0,
+                            'm2_base_venta': 0,
+                            'comparables_venta': [],
+                            'error': 'pendiente',
+                            'mensaje': 'Presione el botón Comparables para iniciar la valuación',
+                            '_cache': {'preview': False},
+                            'resolution_metadata': {'n_propiedades': 0}
+                        }
+                        usar_cache = False
+                        _sl.mark("after_gate_pendiente")
                     else:
-                        fallo_por = []
-                        if not ya_valuado: fallo_por.append("no_ya_valuado")
-                        if forzar: fallo_por.append("forzar=True")
-                        if not entrada_antigua.get('resultado_completo'): fallo_por.append("sin_resultado_completo")
-                        print(f"[CACHE-CHECK] {prop_name}: cache NO INTENTADO por: {', '.join(fallo_por)}")
+                        # Intentar cache siempre (independientemente de fuente_activa) para preservar exclusion
+                        if ya_valuado and not forzar and bool(entrada_antigua.get('resultado_completo')):
+                            cached_result = entrada_antigua['resultado_completo']
+                            if cached_result.get('error'):
+                                print(f"[CACHE] {prop_name}: saltando resultado con error={cached_result['error']}")
+                            else:
+                                cached_fecha_ref = (cached_result.get('resolution_metadata') or {}).get('fecha_ref', '')
+                                cached_retro = (cached_result.get('_cache') or {}).get('retro_dias', 0)
+                                hoy = datetime.now().strftime('%Y-%m-%d')
+                                if cached_fecha_ref == hoy and cached_retro == retro_dias:
+                                    resultado = cached_result
+                                    usar_cache = True
+                                    print(f"[CACHE] {prop_name}: usando resultado_completo grabado ({len(resultado.get('comparables_venta',[]))} comps, retro={cached_retro})")
+                                else:
+                                    print(f"[CACHE] {prop_name}: cache stale (fecha_ref={cached_fecha_ref}, retro_cache={cached_retro}, retro_actual={retro_dias}, hoy={hoy}), recalculando")
+                        else:
+                            fallo_por = []
+                            if not ya_valuado: fallo_por.append("no_ya_valuado")
+                            if forzar: fallo_por.append("forzar=True")
+                            if not entrada_antigua.get('resultado_completo'): fallo_por.append("sin_resultado_completo")
+                            print(f"[CACHE-CHECK] {prop_name}: cache NO INTENTADO por: {', '.join(fallo_por)}")
                     # Recalcular si cache miss: en Auto usa preview_mode real,
                     # en Manual fuerza preview=True para no pisar UV ni exclusion
                     if not usar_cache:
@@ -984,8 +964,8 @@ def mostrar_dashboard():
                         if resultado.get('error'):
                             print(f"[DEBUG] {prop_name}: RESULTADO CON ERROR, mensaje={resultado.get('mensaje')}")
 
-                     # ── TAREA-102: Fallback a UV snapshot si recálculo falló ──
-                     if not st.session_state.get(f'pendiente_comparables_{prop_name}', False) and ya_valuado and (resultado.get('error') or n_comps < 3):
+                    # ── TAREA-102: Fallback a UV snapshot si recálculo falló ──
+                    if ya_valuado and (resultado.get('error') or n_comps < 3):
                         uv_snap = p_obj.get('_ultima_valuacion', {})
                         uv_fuente = uv_snap.get('fuente', 'N/A')
                         uv_auto_valor = uv_snap.get('auto_valor_usd', 'N/A')

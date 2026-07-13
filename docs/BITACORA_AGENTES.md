@@ -1,6 +1,17 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-07-13 — TAREA-136: Eliminar bloque zombi de limpieza en valu.py
+
+### Contexto
+Se detectó que el botón "📊 Comparables" no funcionaba porque un bloque de código redundante ("zombi") en `valu.py` (líneas 645-684) forzaba el estado de la propiedad a "Pendiente" en cada renderizado, anulando la acción del botón y creando un ciclo de reinicio infinito.
+
+### Cambios (código)
+1. **`valu.py:645-684`** — Eliminación completa del bloque de limpieza redundante. La lógica de limpieza ahora reside exclusivamente en el botón "🔄 Limpiar".
+
+### Reglas de oro afectadas
+- **Estabilidad de UI**: Se restaura la funcionalidad del botón de activación de comparables.
+
 ## 2026-07-13 — TAREA-135: Limpiar preview y todos los comparables (pop _official_result incondicional)
 
 ### Contexto

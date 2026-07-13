@@ -102,4 +102,5 @@
 | TAREA-127 | Fix exclusion-applied state con 0 exclusiones (session_state) | `2135dea` | 2026-07-08 |
 | TAREA-127b | Fix EXCL-RESTORE pierde _comp_exclusion_applied con lista vacía + Guardrail RU-EXCL-APPLIED-01 | `fe504ba` | 2026-07-08 |
 | TAREA-128 | Desacoplar Ct del Anchor — Valuación Manual con Ct runtime | _(current)_ | 2026-07-09 |
-| TAREA-135 | Limpiar preview y todos los comparables (pop _official_result incondicional) | _(current)_ | 2026-07-13 |
+| TAREA-135 | Limpiar preview y todos los comparables (pop _official_result incondicional) | `b189961` | 2026-07-13 |
+| TAREA-136 | Eliminar bloque zombi de limpieza en valu.py | _(current)_ | 2026-07-13 |
