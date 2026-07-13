@@ -1,6 +1,26 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-07-13 — TAREA-135: Limpiar preview y todos los comparables (pop _official_result incondicional)
+
+### Contexto
+TAREA-134 había dejado el pop de `_official_result` condicional (`if fuente_actual != 'manual'`), causando que el header mostrara el resultado viejo de comparables después de limpiar para propiedades con fuente manual. Se cambió a pop incondicional. Adicionalmente, se eliminó la variable `fuente_actual` que ya no se usa.
+
+### Cambios (código)
+1. **`valu.py:619-621`** — Reemplazado:
+   ```python
+   fuente_actual = st.session_state.get(f'fuente_activa_{prop_name}', ...)
+   if fuente_actual != 'manual':
+       st.session_state.pop(f'_official_result_{prop_name}', None)
+   ```
+   Con:
+   ```python
+   st.session_state.pop(f'_official_result_{prop_name}', None)
+   ```
+
+### Reglas de oro afectadas
+- **RU-CLEAN-MANUAL-01**: No violada. `_official_result` es session state volátil, no afecta UV en disco. La UV manual se preserva intacta en disco (la lógica de disco ya discrimina por `manual_params` desde TAREA-134).
+
 ## 2026-07-12 — TAREA-134: Corregir botón "Limpiar" (RU-CLEAN-MANUAL-01)
 
 ### Contexto

@@ -617,9 +617,7 @@ def mostrar_dashboard():
                     print(f"[DEBUG-CLEAN] Error limpiando comparables {prop_name}: {e}")
                 # --- Limpieza de Session State ---
                 st.session_state.pop(f'preview_mode_{prop_name}', None)
-                fuente_actual = st.session_state.get(f'fuente_activa_{prop_name}', p_obj.get('_ultima_valuacion', {}).get('fuente_activa', 'auto'))
-                if fuente_actual != 'manual':
-                    st.session_state.pop(f'_official_result_{prop_name}', None)
+                st.session_state.pop(f'_official_result_{prop_name}', None)
                 st.session_state.pop(f'fuente_activa_{prop_name}', None)
                 st.session_state.pop(f'retro_active_{prop_name}', None)
                 st.session_state.pop(f'flex_active_{prop_name}', None)
