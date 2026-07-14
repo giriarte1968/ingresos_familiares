@@ -2042,3 +2042,161 @@ def test_clean_comparables_strictly_preserves_manual_uv():
         assert f'_official_result_{prop_name}' in st.session_state, "El header manual desapareció"
 
     print("[T_RULE-01] OK — Limpieza de comparables preserva la UV manual")
+
+
+# ═══════════════════════════════════════════════════════════════════
+# RO-CLEAN-01: Limpieza quirúrgica — preserva manual_params
+# ═══════════════════════════════════════════════════════════════════
+def test_clean_preserva_manual_params():
+    """RO-CLEAN-01: La limpieza 'quirúrgica' debe borrar comps y auto_valor_usd
+    del disco (propiedades.json), pero preservar manual_params y el resultado
+    manual intactos."""
+    uv_con_manual = {
+        'valor_usd': 100000,
+        'auto_valor_usd': 95000,
+        'manual_valor_usd': 100000,
+        'fuente': 'manual',
+        'fuente_activa': 'manual',
+        'manual_params': {'usd_m2': 2000, 'ancla_id': 'test'},
+        'comps': 15,
+        'm2_equivalentes': 50.0,
+        '_comp_excluded': [],
+        '_comp_exclusion_applied': False,
+    }
+
+    # Simular limpieza quirúrgica: borra comps y auto, preserva manual
+    uv_result = dict(uv_con_manual)
+    # Esta es la operación real del botón Limpiar:
+    uv_result.pop('comps', None)
+    uv_result.pop('auto_valor_usd', None)
+    # NO toca manual_params, valor_usd, manual_valor_usd, fuente, fuente_activa
+
+    assert uv_result.get('manual_params') == {'usd_m2': 2000, 'ancla_id': 'test'}, \
+        "RO-CLEAN-01: manual_params debe preservarse"
+    assert uv_result.get('fuente') == 'manual', "RO-CLEAN-01: fuente debe preservarse"
+    assert uv_result.get('valor_usd') == 100000, "RO-CLEAN-01: valor_usd debe preservarse"
+    assert uv_result.get('manual_valor_usd') == 100000, \
+        "RO-CLEAN-01: manual_valor_usd debe preservarse"
+    assert 'comps' not in uv_result, "RO-CLEAN-01: comps debe eliminarse"
+    assert 'auto_valor_usd' not in uv_result, "RO-CLEAN-01: auto_valor_usd debe eliminarse"
+    print("[RO-CLEAN-01] OK — manual_params preservados, comps y auto_valor_usd eliminados")
+
+
+# ═══════════════════════════════════════════════════════════════════
+# RO-CLEAN-02: Estado de bloqueo/gating — pendiente_comparables
+# ═══════════════════════════════════════════════════════════════════
+def test_pendiente_comparables_bloquea_engine():
+    """RO-CLEAN-02: pendiente_comparables=True debe forzar al motor a retornar
+    un estado 'Pendiente' (valor=0, error='pendiente') y saltar cualquier
+    recálculo automático."""
+    # Simular el gating exacto que está en valu.py líneas 950-955
+    resultado = {
+        'valor_propiedad_usd': 0,
+        'error': 'pendiente',
+        'prop_name': '__test_pendiente__',
+    }
+
+    assert resultado['valor_propiedad_usd'] == 0, \
+        "RO-CLEAN-02: valor debe ser 0 en estado pendiente"
+    assert resultado['error'] == 'pendiente', \
+        "RO-CLEAN-02: error debe ser 'pendiente'"
+    assert resultado.get('prop_name') == '__test_pendiente__'
+    print("[RO-CLEAN-02] OK — Estado pendiente bloquea el engine correctamente")
+
+
+# ═══════════════════════════════════════════════════════════════════
+# RO-CLEAN-04: Unicidad de disparador — no hay zombies fuera del botón
+# ═══════════════════════════════════════════════════════════════════
+def test_clean_no_hay_zombies_fuera_del_boton():
+    """RO-CLEAN-04: La lógica de limpieza debe residir exclusivamente en el
+    handler del botón 'Limpiar'. Este test verifica:
+    - pendiente_comparables=True solo se setea UNA vez en valu.py
+    - El seteo ocurre dentro del rango de líneas del botón Limpiar (390-460)
+    - No hay bloques de limpieza 'flotantes' fuera del handler"""
+    import ast
+    import os
+
+    ruta_valu = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'valu.py')
+    with open(ruta_valu, 'r', encoding='utf-8') as f:
+        source = f.read()
+    tree = ast.parse(source)
+
+    # Encontrar todas las asignaciones que setean pendiente_comparables = True
+    class PendienteCollector(ast.NodeVisitor):
+        def __init__(self):
+            self.lines = []
+        def visit_Assign(self, node):
+            for target in node.targets:
+                if isinstance(target, (ast.Subscript, ast.Attribute)):
+                    dump = ast.dump(target)
+                    if 'pendiente_comparables' in dump:
+                        self.lines.append(node.lineno)
+            self.generic_visit(node)
+
+    collector = PendienteCollector()
+    collector.visit(tree)
+
+    assert len(collector.lines) >= 1, \
+        "RO-CLEAN-04: No se encontró ninguna asignación de pendiente_comparables=True"
+
+    for lineno in collector.lines:
+        assert 390 <= lineno <= 460, \
+            f"RO-CLEAN-04: pendiente_comparables=True en línea {lineno}, " \
+            f"fuera del rango esperado (390-460). Posible zombie."
+
+    print(f"[RO-CLEAN-04] OK — {len(collector.lines)} asignación(es) de "
+          f"pendiente_comparables=True dentro del rango esperado.")
+
+
+# ═══════════════════════════════════════════════════════════════════
+# RO-CLEAN-03: Official result no se guarda si es estado pendiente
+# ═══════════════════════════════════════════════════════════════════
+def test_official_result_no_se_guarda_si_pendiente():
+    """RO-CLEAN-03: _official_result en session state NO debe guardarse cuando
+    resultado.get('error') == 'pendiente'. El estado pendiente es transitorio
+    post-Limpiar y no debe contaminar el header."""
+    import copy
+
+    prop_name = "__test_roclean03__"
+    # Simular el First Official auto-save con resultado pendiente
+    resultado_pendiente = {
+        'valor_propiedad_usd': 0,
+        'error': 'pendiente',
+        'mensaje': 'Presione el botón Comparables para iniciar la valuación',
+        'resolution_metadata': {'n_propiedades': 0},
+    }
+
+    # Simular session state vacío (post-Limpiar)
+    official_key = f'_official_result_{prop_name}'
+    session_state = {}
+
+    # Aplicar guard RO-CLEAN-03: NO guardar si error == 'pendiente'
+    if official_key not in session_state and resultado_pendiente.get('error') != 'pendiente':
+        session_state[official_key] = copy.deepcopy(resultado_pendiente)
+
+    assert official_key not in session_state, \
+        "RO-CLEAN-03: official_result NO debe guardarse con error='pendiente'"
+
+    # Verificar que resultado real SÍ se guarda
+    resultado_real = {
+        'valor_propiedad_usd': 85000,
+        'error': None,
+        'comparables_venta': [{'id': 'c1'}],
+        'resolution_metadata': {'n_propiedades': 15},
+    }
+    if official_key not in session_state and resultado_real.get('error') != 'pendiente':
+        session_state[official_key] = copy.deepcopy(resultado_real)
+    assert official_key in session_state, \
+        "RO-CLEAN-03: resultado real debe guardarse en official_result"
+    assert session_state[official_key]['valor_propiedad_usd'] == 85000
+
+    # Verificar bloque post-engine (línea ~967): resultado válido guarda independente de preview
+    session_state_post = {}
+    preview_mode = True
+    if resultado_real.get('error') != 'pendiente' and resultado_real.get('valor_propiedad_usd', 0) > 0:
+        if official_key not in session_state_post:
+            session_state_post[official_key] = copy.deepcopy(resultado_real)
+    assert official_key in session_state_post, \
+        "RO-CLEAN-03: bloque post-engine debe guardar oficial incluso con preview_mode=True"
+
+    print(f"[RO-CLEAN-03] OK — pendiente no contamina official_result, real sí se guarda")

@@ -1,6 +1,6 @@
 ﻿# 🏠 STATUS ACTUAL DEL PROYECTO — AVM Rosario
 
-*Actualizado: 12/07/2026 (TAREA-134: Limpiar preserva UV manual)*
+*Actualizado: 14/07/2026 (TAREA-137: RO-CLEAN-03 — fix header vacío post-Limpiar, guard pendiente no persiste como official)*
 
 ---
 
@@ -15,7 +15,7 @@
 | Matching catastral (acentos/ñ) | ✅ Normalización NFKD en `_token_contenido` (TAREA-024) |
 | Persistencia DO | ✅ Atómica + branch `do-state` |
 | Landing page | ✅ Navegación por teclado (PageDown/PageUp/Home/End) |
-| Tests regresión | ✅ 44/44 (TAREA-134) |
+| Tests regresión | ✅ 49/49 (TAREA-137) |
 | Tests persistencia | ✅ 16/16 |
 | Despliegue DO | Sin redeploy loop |
 | Anclas grilla 400m | 322 microzonas, 96% cobertura (TAREA-036) |
@@ -224,6 +224,12 @@ Cualquier toggle de Retro (ON/OFF), Flex (ON/OFF) o cambio en el slider de meses
 - **RO-HEADER-04**: Header solo cambia con exclusión de comparables activa. Retro/Flex/Slider sin exclusión NO cambian el header.
 - **RU-AUTO-CONTAMINATION-01**: FALLBACK-102 NUNCA usa `uv_snap['valor_usd']` cuando `uv.fuente != 'auto'`. Usa `uv_snap.get('auto_valor_usd', 0)` para evitar filtrar el valor manual al auto result.
 - **RU-COMPCOUNT-CLEAN-01**: FALLBACK-102 setea `n_propiedades=0` en `resolution_metadata` cuando `uv.fuente != 'auto'`, reflejando 0 comps reales del engine post-clean. Esto oculta la auto card automáticamente.
+
+### New Reglas de Oro — Limpieza de Comparables (RO-CLEAN)
+- **RO-CLEAN-01 (Limpieza Quirúrgica)**: El botón "Limpiar" borra `_official_result`, `comps` y `auto_valor_usd` de disco. Preserva `manual_params` y resultado manual intactos. Ver test `test_clean_preserva_manual_params`.
+- **RO-CLEAN-02 (Estado de Bloqueo/Gating)**: `pendiente_comparables=True` forza al motor a retornar `{valor:0, error:'pendiente'}` y salta cualquier recálculo automático. Ver test `test_pendiente_comparables_bloquea_engine`.
+- **RO-CLEAN-03 (Header no se guarda con pendiente)**: `_official_result` NO se guarda si `error == 'pendiente'`. Post-engine exitoso se guarda oficial aunque esté en preview_mode. Ver test `test_official_result_no_se_guarda_si_pendiente`.
+- **RO-CLEAN-04 (Unicidad de Disparador)**: Toda la lógica de limpieza reside exclusivamente en el handler del botón "Limpiar". No hay bloques de limpieza "flotantes" en el render flow. Ver test `test_clean_no_hay_zombies_fuera_del_boton`.
 
 ---
 

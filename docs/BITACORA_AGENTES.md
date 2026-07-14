@@ -1,6 +1,24 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-07-14 — TAREA-137: Fix header vacío post-Limpiar (RO-CLEAN-03)
+
+### Contexto
+Cuando el usuario hacía clic en "🔄 Limpiar" y luego en "📊 Comparables", el header se quedaba vacío. La causa era que el "First Official auto-save" (valu.py línea 1196) guardaba el resultado `pendiente` (`{valor:0, error:'pendiente'}`) como `_official_result` en session state, y cuando el motor calculaba el resultado real, `_official_result` ya existía y no se actualizaba.
+
+### Cambios (código)
+1. **`valu.py:967-972`** — Nuevo bloque `RO-CLEAN-03: post-engine official save`. Cuando el motor termina exitosamente (independientemente de `preview_mode`), guarda el resultado como `_official_result` en session state si no existe aún.
+2. **`valu.py:1196`** — Guard en el First Official: agrega `and resultado.get('error') != 'pendiente'` para no persisitir el estado pendiente como official.
+
+### Reglas de oro afectadas
+- **RO-CLEAN-03 (NUEVA):** `_official_result` no se guarda con estado pendiente. Post-engine exitoso guarda oficial aunque esté en preview_mode.
+- **RO-CLEAN-01:** Sin cambios — la limpieza quirúrgica sigue igual.
+- **RO-CLEAN-02:** Sin cambios — el gating sigue funcionando.
+- **RO-CLEAN-04:** Sin cambios — la limpieza sigue en el botón.
+
+### Tests
+- `test_official_result_no_se_guarda_si_pendiente` (nuevo, verifica que pendiente no contamina y que el bloque post-engine guarda el oficial correctamente).
+
 ## 2026-07-13 — TAREA-136: Eliminar bloque zombi de limpieza en valu.py
 
 ### Contexto

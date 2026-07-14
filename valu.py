@@ -964,6 +964,16 @@ def mostrar_dashboard():
                         if resultado.get('error'):
                             print(f"[DEBUG] {prop_name}: RESULTADO CON ERROR, mensaje={resultado.get('mensaje')}")
 
+                    # ── RO-CLEAN-03: Guardar oficial post-engine, independente de preview. ──
+                    # Cuando el motor termina realmente (no pendiente), guarda el resultado como oficial
+                    # para evitar que el header se quede vacío después de un ciclo Limpiar → 📊 Comparables
+                    if resultado.get('error') != 'pendiente' and resultado.get('valor_propiedad_usd', 0) > 0:
+                        off_key = f'_official_result_{prop_name}'
+                        if off_key not in st.session_state:
+                            import copy
+                            st.session_state[off_key] = copy.deepcopy(resultado)
+                            print(f"[DEBUG-OFFICIAL-POSTENGINE] {prop_name}: oficial guardado post-engine (error={resultado.get('error')})")
+                    
                     # ── TAREA-102: Fallback a UV snapshot si recálculo falló ──
                     if ya_valuado and (resultado.get('error') or n_comps < 3):
                         uv_snap = p_obj.get('_ultima_valuacion', {})
@@ -1191,9 +1201,10 @@ def mostrar_dashboard():
 
                 with profile_block("mostrar_detalle_valu_total", p_obj):
                     # ── Guardar resultado oficial si no existe (primera valuación / post-Limpiar) ──
+                    # RO-CLEAN-03: No guardar si es estado pendiente (valor=0, error='pendiente')
                     if not preview_mode:
                         official_key = f'_official_result_{prop_name}'
-                        if official_key not in st.session_state:
+                        if official_key not in st.session_state and resultado.get('error') != 'pendiente':
                             import copy
                             st.session_state[official_key] = copy.deepcopy(resultado)
                             print(f"[DEBUG-OFFICIAL-FIRST] {prop_name}: resultado oficial guardado por primera vez, valor=${resultado.get('valor_propiedad_usd',0):,.0f}, n_prop={resultado.get('resolution_metadata',{}).get('n_propiedades')}")
