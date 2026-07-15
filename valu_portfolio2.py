@@ -358,13 +358,6 @@ def _build_rows(propiedades: list[dict[str, Any]], resultados: dict[str, dict], 
         cache_meta = res.get('_cache', {}) or {}
         auto_valor_usd = float(cache_meta.get('auto_valor_usd', 0) or ultima.get('auto_valor_usd', 0) or 0)
         manual_valor_usd = float(cache_meta.get('manual_valor_usd', 0) or ultima.get('manual_valor_usd', 0) or 0)
-        if not auto_valor_usd:
-            fuente_activa = ultima.get('fuente_activa', 'auto')
-            if fuente_activa != 'manual':
-                auto_valor_usd = valor
-            print(f"[DEBUG-PORTFOLIO-BUILD] {nombre}: auto_valor_usd={auto_valor_usd}, "
-                  f"manual_valor_usd={manual_valor_usd}, fuente_activa={fuente_activa}, "
-                  f"valor_base={valor}")
 
         if comps >= 15:
             conf_label, conf_badge = "Alta", "green"
