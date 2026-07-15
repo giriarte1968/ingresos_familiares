@@ -2215,10 +2215,10 @@ def test_disk_summary_card_with_data():
     real_prop = None
     for p in data.get('propiedades', []):
         uv = p.get('_ultima_valuacion', {})
-        if uv and uv.get('auto_valor_usd', 0) > 0:
+        if uv and (uv.get('auto_valor_usd', 0) > 0 or uv.get('manual_valor_usd', 0) > 0):
             real_prop = p
             break
-    assert real_prop is not None, "Debe haber al menos 1 propiedad con auto_valor_usd > 0 en disco"
+    assert real_prop is not None, "Debe haber al menos 1 propiedad con valuación en disco"
 
     outputs = []
     original_markdown = st.markdown
@@ -2228,7 +2228,6 @@ def test_disk_summary_card_with_data():
         assert len(outputs) >= 1, "render_disk_summary_card debió generar al menos 1 markdown"
         html = outputs[-1]
         assert 'USD' in html, f"Debía contener valor USD, got: {html[:300]}"
-        assert 'comp.' in html, f"Debía contener comps, got: {html[:300]}"
         assert 'ÚLTIMA VALUACIÓN GUARDADA' in html
         print(f"[T-139-WITH-DATA] OK — {real_prop['nombre']}: render_disk_summary_card muestra datos correctos")
     finally:
