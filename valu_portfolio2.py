@@ -361,7 +361,11 @@ def _build_rows(propiedades: list[dict[str, Any]], resultados: dict[str, dict], 
             auto_valor_usd = uv_auto
         else:
             auto_valor_usd = 0
-        manual_valor_usd = float(ultima.get('manual_valor_usd', 0) or cache_meta.get('manual_valor_usd', 0) or 0)
+        uv_manual = float(ultima.get('manual_valor_usd', 0) or 0)
+        if uv_manual > 0:
+            manual_valor_usd = uv_manual
+        else:
+            manual_valor_usd = 0
 
         if comps >= 15:
             conf_label, conf_badge = "Alta", "green"
