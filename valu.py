@@ -912,6 +912,7 @@ def mostrar_dashboard():
                     # ── FIN SONDAS ──
 
                     # ── Gating: Si está marcado como pendiente, NO calcular nada (evita auto-restauración post-limpiar) ──
+                    skip_engine = False
                     if st.session_state.get(f'pendiente_comparables_{prop_name}', False):
                         print(f"[DEBUG-GATE] {prop_name}: Estado PENDIENTE activo — saltando cálculo automático")
                         resultado = {
@@ -924,6 +925,7 @@ def mostrar_dashboard():
                             'resolution_metadata': {'n_propiedades': 0}
                         }
                         usar_cache = False
+                        skip_engine = True
                         _sl.mark("after_gate_pendiente")
                     else:
                         # Intentar cache siempre (independientemente de fuente_activa) para preservar exclusion
@@ -949,7 +951,7 @@ def mostrar_dashboard():
                             print(f"[CACHE-CHECK] {prop_name}: cache NO INTENTADO por: {', '.join(fallo_por)}")
                     # Recalcular si cache miss: en Auto usa preview_mode real,
                     # en Manual fuerza preview=True para no pisar UV ni exclusion
-                    if not usar_cache:
+                    if not usar_cache and not skip_engine:
                         if fuente_activa_saved == 'auto':
                             print(f"[CACHE-CHECK] {prop_name}: llamando valuar_con_cache (forzar={forzar}, preview={preview_mode}, retro={retro_dias}, flex={flex_dormitorios})")
                             print(f"[DEBUG-FLEX-PASS] {prop_name}: flex_dormitorios={flex_dormitorios}" if flex_dormitorios else f"[DEBUG-FLEX-PASS] {prop_name}: flex_dormitorios=None, flex_active={flex_active}")
