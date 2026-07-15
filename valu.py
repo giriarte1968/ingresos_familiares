@@ -443,6 +443,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                             f'preview_mode_{prop_name}', f'_official_result_{prop_name}', 
                             f'fuente_activa_{prop_name}', f'retro_active_{prop_name}', 
                             f'flex_active_{prop_name}', f'comp_excluded_{prop_name}', 
+                            f'_comp_excluded_{prop_name}', f'_comp_exclusion_applied_{prop_name}',
                             f'comp_selection_{prop_name}', f'retro_meses_{prop_name}', 
                             f'retro_meses_slider_{prop_name}', f'retro_btn_{prop_name}', 
                             f'flex_btn_{prop_name}', f'manual_preview_{prop_name}'
