@@ -333,8 +333,21 @@ def render_header(prop, res):
 
 def render_disk_summary_card(prop):
     """Tarjeta full-width que muestra la última valuación guardada en disco (_ultima_valuacion).
-    Solo para valuación por comparables (auto). No toca session state."""
-    uv = prop.get('_ultima_valuacion', {}) or {}
+    Solo para valuación por comparables (auto). No toca session state.
+    Lee directamente de propiedades.json para evitar stale data del ciclo de render."""
+    import json, os
+    nombre = prop.get('nombre', '')
+    uv = {}
+    try:
+        props_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'propiedades.json')
+        with open(props_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        for p in data.get('propiedades', []):
+            if p.get('nombre') == nombre:
+                uv = p.get('_ultima_valuacion', {}) or {}
+                break
+    except Exception:
+        uv = prop.get('_ultima_valuacion', {}) or {}
     auto_valor = uv.get('auto_valor_usd', 0)
     comps = uv.get('comps', 0)
     if isinstance(comps, list):
