@@ -134,16 +134,71 @@
       "ct_annual_rate": -0.0006
     },
     {
+      "id": "fisherton",
+      "nombre": "Fisherton (Noroeste)",
+      "descripcion": "Fisherton: corredor Newbery, Eva Perón/Golf, periferia NW, límite Funes",
+      "tasa_depreciacion_anual": 0.006,
+      "cv_ref": 0.49,
+      "zonas_match_textual": [
+        "fisherton"
+      ],
+      "bbox": {
+        "lat_min": -32.945,
+        "lat_max": -32.90,
+        "lon_min": -60.78,
+        "lon_max": -60.72
+      },
+      "ct_annual_rate": 0.05,
+      "size_adjustment": {
+        "type": "piecewise_linear",
+        "points": [
+          {"m2": 0,   "factor": 1.10},
+          {"m2": 60,  "factor": 1.05},
+          {"m2": 100, "factor": 1.00},
+          {"m2": 150, "factor": 0.95},
+          {"m2": 250, "factor": 0.90}
+        ]
+      },
+      "subzonas": [
+        {
+          "id": "fisherton_newbery",
+          "nombre": "Fisherton Corredor Newbery",
+          "descripcion": "Av. Jorge Newbery: mixto comercial/residencial nuevo, Cinqueterre, Fisherton Work",
+          "lat_center": -32.920,
+          "lon_center": -60.756,
+          "radio_km": 1.5,
+          "pricing_ref": {"min": 1400, "max": 1600}
+        },
+        {
+          "id": "fisherton_golf",
+          "nombre": "Fisherton Eva Perón / Golf",
+          "descripcion": "Residencial premium: Único Golf, Abra Fisherton, Fisherton Soul, Jockey Club",
+          "lat_center": -32.933,
+          "lon_center": -60.770,
+          "radio_km": 1.5,
+          "pricing_ref": {"min": 1600, "max": 1700}
+        },
+        {
+          "id": "fisherton_periferia",
+          "nombre": "Fisherton Periferia NW",
+          "descripcion": "Wilder, extremo noroeste, zona en desarrollo, baja densidad",
+          "lat_center": -32.935,
+          "lon_center": -60.760,
+          "radio_km": 2.0,
+          "pricing_ref": {"min": 1200, "max": 1400}
+        }
+      ]
+    },
+    {
       "id": "norte",
       "nombre": "Norte",
-      "descripcion": "Alberdi, Arroyito, Fisherton y eje norte",
+      "descripcion": "Alberdi, Arroyito y eje norte",
       "tasa_depreciacion_anual": 0.006,
       "cv_ref": 0.489,
       "zonas_match_textual": [
         "norte",
         "alberdi",
-        "arroyito",
-        "fisherton"
+        "arroyito"
       ],
       "bbox": {
         "lat_min": -32.93,

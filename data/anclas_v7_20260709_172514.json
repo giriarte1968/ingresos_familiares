@@ -1419,7 +1419,7 @@
       "fuente": "grid_v7",
       "n_zonal": 8,
       "calle_principal": "de_las_acacias_carlos_pellegrini_fisherton",
-      "macrozona": "oeste"
+      "macrozona": "fisherton"
     },
     {
       "id": "de_mayo_norte",
@@ -2949,7 +2949,7 @@
       "fuente": "grid_v7",
       "n_zonal": 5,
       "calle_principal": "miglierini_los_pasos_fisherton",
-      "macrozona": "oeste"
+      "macrozona": "fisherton"
     },
     {
       "id": "milan_sur",
@@ -3264,7 +3264,7 @@
       "fuente": "grid_v7",
       "n_zonal": 5,
       "calle_principal": "newbery_jorge",
-      "macrozona": "oeste"
+      "macrozona": "fisherton"
     },
     {
       "id": "nicolas_retasado_sur",
