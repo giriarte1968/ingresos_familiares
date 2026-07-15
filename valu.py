@@ -898,7 +898,7 @@ def mostrar_dashboard():
                         flex_active = st.session_state.get(f'flex_active_{prop_name}', False)
                         # Restore flex from UV if session state was lost (Editar→Cancelar)
                         if not flex_active:
-                            uv_flex = uv.get('flex_dormitorios')
+                            uv_flex = p_obj.get('_ultima_valuacion', {}).get('flex_dormitorios')
                             if uv_flex is not None:
                                 flex_active = True
                                 st.session_state[f'flex_active_{prop_name}'] = True
