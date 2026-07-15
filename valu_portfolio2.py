@@ -356,7 +356,11 @@ def _build_rows(propiedades: list[dict[str, Any]], resultados: dict[str, dict], 
 
         # Dual values: auto (comparables) and manual — UV is source of truth
         cache_meta = res.get('_cache', {}) or {}
-        auto_valor_usd = float(ultima.get('auto_valor_usd', 0) or cache_meta.get('auto_valor_usd', 0) or 0)
+        uv_auto = float(ultima.get('auto_valor_usd', 0) or 0)
+        if uv_auto > 0:
+            auto_valor_usd = uv_auto
+        else:
+            auto_valor_usd = 0
         manual_valor_usd = float(ultima.get('manual_valor_usd', 0) or cache_meta.get('manual_valor_usd', 0) or 0)
 
         if comps >= 15:
