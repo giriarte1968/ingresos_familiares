@@ -345,7 +345,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         render_actions, render_header, render_rango, render_metricas,
         render_razonamiento, render_mapa_propiedad, render_tabla_comparables,
         render_catastro, render_street_view, render_historial, generar_reporte_pdf,
-        render_valuacion_manual,
+        render_valuacion_manual, render_disk_summary_card,
     )
     _dl.mark("after_imports")
 
@@ -355,6 +355,8 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     with profile_block("render_header", prop):
         render_header(prop, header_res)
     _dl.mark("after_render_header")
+
+    render_disk_summary_card(prop)
 
     st.markdown("<br>", unsafe_allow_html=True)
     if valor_usd > 0:

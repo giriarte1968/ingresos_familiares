@@ -331,6 +331,38 @@ def render_header(prop, res):
     """, unsafe_allow_html=True)
 
 
+def render_disk_summary_card(prop):
+    """Tarjeta full-width que muestra la última valuación guardada en disco (_ultima_valuacion).
+    Solo para valuación por comparables (auto). No toca session state."""
+    uv = prop.get('_ultima_valuacion', {}) or {}
+    auto_valor = uv.get('auto_valor_usd', 0)
+    comps = uv.get('comps', 0)
+    if isinstance(comps, list):
+        comps = len(comps)
+    m2_equiv = uv.get('m2_equivalentes', 0)
+    fuente = uv.get('fuente', 'auto')
+    fecha = uv.get('fecha', '')
+
+    if auto_valor > 0:
+        valor_str = f"${auto_valor:,.0f}"
+        comps_str = f"{comps} comp." if comps else "—"
+        m2_str = f"{m2_equiv:.1f} m²" if m2_equiv else "—"
+        meta_line = f"{valor_str} USD · {comps_str} · {m2_str}"
+        detail_line = f"{fuente.upper()} · Guardado: {fecha}" if fecha else fuente.upper()
+    else:
+        meta_line = "—"
+        detail_line = "Sin valuación guardada"
+
+    grad_disk = "linear-gradient(135deg, #374151 0%, #1F2937 100%)"
+    st.markdown(f"""
+    <div style="border:none;border-radius:12px;padding:14px 16px;background:{grad_disk};box-shadow:0 4px 12px rgba(0,0,0,0.15);text-align:center;">
+        <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.7);margin-bottom:4px;">ÚLTIMA VALUACIÓN GUARDADA</div>
+        <div style="font-size:15px;font-weight:600;color:#FFFFFF;">{meta_line}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.55);margin-top:2px;">{detail_line}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
 def render_rango(res, valor_usd):
     """Rango de 3 escenarios con barra visual."""
     v_cons = res.get('valor_venta_conservador', valor_usd)

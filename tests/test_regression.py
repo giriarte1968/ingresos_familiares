@@ -2200,3 +2200,56 @@ def test_official_result_no_se_guarda_si_pendiente():
         "RO-CLEAN-03: bloque post-engine debe guardar oficial incluso con preview_mode=True"
 
     print(f"[RO-CLEAN-03] OK — pendiente no contamina official_result, real sí se guarda")
+
+
+def test_disk_summary_card_with_data():
+    """TAREA-139: render_disk_summary_card muestra datos desde disco."""
+    from valu_detail_sections import render_disk_summary_card
+    import streamlit as st
+
+    prop = {
+        'nombre': 'TestDisk',
+        '_ultima_valuacion': {
+            'auto_valor_usd': 152936,
+            'manual_valor_usd': 0,
+            'comps': 30,
+            'm2_equivalentes': 88.85,
+            'fuente': 'auto',
+            'fecha': '14/07/2026 20:36',
+        }
+    }
+    # Mock streamlit to capture output
+    outputs = []
+    original_markdown = st.markdown
+    st.markdown = lambda *a, **kw: outputs.append(a[0]) if a else None
+    try:
+        render_disk_summary_card(prop)
+        assert len(outputs) >= 1, "render_disk_summary_card debió generar al menos 1 markdown"
+        html = outputs[-1]
+        assert '152,936' in html, f"Debía contener valor 152,936, got: {html[:200]}"
+        assert '30 comp.' in html, f"Debía contener 30 comp., got: {html[:200]}"
+        assert '88.8 m²' in html, f"Debía contener m2_equiv, got: {html[:200]}"
+        assert 'ÚLTIMA VALUACIÓN GUARDADA' in html
+        print("[T-139-WITH-DATA] OK — render_disk_summary_card muestra datos correctos")
+    finally:
+        st.markdown = original_markdown
+
+
+def test_disk_summary_card_empty_uv():
+    """TAREA-139: render_disk_summary_card con UV vacía no crashea."""
+    from valu_detail_sections import render_disk_summary_card
+    import streamlit as st
+
+    prop = {'nombre': 'TestDiskEmpty', '_ultima_valuacion': {}}
+    outputs = []
+    original_markdown = st.markdown
+    st.markdown = lambda *a, **kw: outputs.append(a[0]) if a else None
+    try:
+        render_disk_summary_card(prop)
+        assert len(outputs) >= 1, "render_disk_summary_card debió generar al menos 1 markdown"
+        html = outputs[-1]
+        assert '—' in html, f"Debía contener dash para UV vacía, got: {html[:200]}"
+        assert 'ÚLTIMA VALUACIÓN GUARDADA' in html
+        print("[T-139-EMPTY] OK — render_disk_summary_card con UV vacía muestra dashes")
+    finally:
+        st.markdown = original_markdown
