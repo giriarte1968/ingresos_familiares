@@ -354,10 +354,10 @@ def _build_rows(propiedades: list[dict[str, Any]], resultados: dict[str, dict], 
         cap_rate = float(res.get("cap_rate", 0) or 0)
         comps = int(meta.get("n_propiedades", meta.get("n_filtradas", 0)) or 0)
 
-        # Dual values: auto (comparables) and manual
+        # Dual values: auto (comparables) and manual — UV is source of truth
         cache_meta = res.get('_cache', {}) or {}
-        auto_valor_usd = float(cache_meta.get('auto_valor_usd', 0) or ultima.get('auto_valor_usd', 0) or 0)
-        manual_valor_usd = float(cache_meta.get('manual_valor_usd', 0) or ultima.get('manual_valor_usd', 0) or 0)
+        auto_valor_usd = float(ultima.get('auto_valor_usd', 0) or cache_meta.get('auto_valor_usd', 0) or 0)
+        manual_valor_usd = float(ultima.get('manual_valor_usd', 0) or cache_meta.get('manual_valor_usd', 0) or 0)
 
         if comps >= 15:
             conf_label, conf_badge = "Alta", "green"
