@@ -2244,3 +2244,132 @@ def test_disk_summary_card_empty_uv():
         print("[T-139-EMPTY] OK — render_disk_summary_card con UV vacía muestra dashes")
     finally:
         st.markdown = original_markdown
+
+
+# ========================================================================
+# TESTS MANUAL VALUATION CARD (render_manual_valuation_card)
+# ========================================================================
+def test_manual_valuation_card_with_data():
+    """render_manual_valuation_card muestra datos desde disco (manual independiente)."""
+    from valu_detail_sections import render_manual_valuation_card
+    import streamlit as st
+    import json, os
+
+    props_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'propiedades.json')
+    with open(props_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    real_prop = None
+    for p in data.get('propiedades', []):
+        uv = p.get('_ultima_valuacion', {})
+        if uv and uv.get('manual_valor_usd', 0) > 0 and uv.get('manual_params'):
+            real_prop = p
+            break
+    if real_prop is None:
+        print("[T-MANUAL-CARD] SKIP — no hay propiedad con manual_valor_usd > 0 en disco")
+        return
+
+    outputs = []
+    original_markdown = st.markdown
+    st.markdown = lambda *a, **kw: outputs.append(a[0]) if a else None
+    try:
+        render_manual_valuation_card(real_prop)
+        assert len(outputs) >= 1, "render_manual_valuation_card debió generar al menos 1 markdown"
+        html = outputs[-1]
+        assert 'VALUACIÓN MANUAL' in html
+        manual_uv = real_prop.get('_ultima_valuacion', {})
+        manual_v = manual_uv.get('manual_valor_usd', 0)
+        if manual_v > 0:
+            assert 'USD' in html or '$' in html, f"Debía contener valor USD, got: {html[:300]}"
+        print(f"[T-MANUAL-CARD-WITH-DATA] OK — {real_prop['nombre']}: render_manual_valuation_card OK (manual={manual_v})")
+    finally:
+        st.markdown = original_markdown
+
+
+def test_manual_valuation_card_empty_uv():
+    """render_manual_valuation_card con UV vacía no crashea."""
+    from valu_detail_sections import render_manual_valuation_card
+    import streamlit as st
+
+    prop = {'nombre': 'TestManualEmpty', '_ultima_valuacion': {}}
+    outputs = []
+    original_markdown = st.markdown
+    st.markdown = lambda *a, **kw: outputs.append(a[0]) if a else None
+    try:
+        render_manual_valuation_card(prop)
+        assert len(outputs) >= 1, "render_manual_valuation_card debió generar al menos 1 markdown"
+        html = outputs[-1]
+        assert '—' in html, f"Debía contener dash para UV vacía, got: {html[:200]}"
+        assert 'VALUACIÓN MANUAL' in html
+        print("[T-MANUAL-CARD-EMPTY] OK — render_manual_valuation_card con UV vacía muestra dashes")
+    finally:
+        st.markdown = original_markdown
+
+
+def test_manual_valuation_card_mock_data():
+    """render_manual_valuation_card con datos mock verifica fórmula y parámetros."""
+    from valu_detail_sections import render_manual_valuation_card
+    import streamlit as st
+
+    prop = {
+        'nombre': 'TestManualMock',
+        '_ultima_valuacion': {
+            'manual_valor_usd': 180000,
+            'manual_params': {
+                'ancla_id': 'P1200',
+                'usd_m2': 1100,
+                'factor_hedonico': 1.05,
+                'ajuste_pct': 5.0,
+                'incertidumbre_pct': 10.0,
+            },
+            'm2_equivalentes': 150.0,
+            'usdt_ars': 1500,
+            'fecha': '15/07/2026 10:30',
+        }
+    }
+
+    outputs = []
+    original_markdown = st.markdown
+    st.markdown = lambda *a, **kw: outputs.append(a[0]) if a else None
+    try:
+        render_manual_valuation_card(prop)
+        assert len(outputs) >= 1
+        html = outputs[-1]
+        assert 'VALUACIÓN MANUAL' in html
+        assert '180,000' in html.replace('\xa0', ' '), f"Debía mostrar valor 180,000 en html"
+        assert '1,100' in html.replace('\xa0', ' '), f"Debía mostrar usd_m2=1,100"
+        assert '150.0' in html, f"Debía mostrar m2_equiv=150.0"
+        assert 'P1200' in html, f"Debía mostrar ancla_id=P1200"
+        assert 'FH 1.05' in html, f"Debía mostrar factor_hedonico=1.05"
+        assert 'ajuste +5%' in html, f"Debía mostrar ajuste=+5%"
+        assert '10%' in html, f"Debía mostrar incertidumbre=10%"
+        print("[T-MANUAL-CARD-MOCK] OK — render_manual_valuation_card con datos mock: valor, fórmula, params correctos")
+    finally:
+        st.markdown = original_markdown
+
+
+def test_manual_valuation_card_no_params():
+    """render_manual_valuation_card con manual_valor_usd > 0 pero sin manual_params muestra dash."""
+    from valu_detail_sections import render_manual_valuation_card
+    import streamlit as st
+
+    prop = {
+        'nombre': 'TestManualNoParams',
+        '_ultima_valuacion': {
+            'manual_valor_usd': 50000,
+            'manual_params': {},
+            'm2_equivalentes': 100.0,
+        }
+    }
+
+    outputs = []
+    original_markdown = st.markdown
+    st.markdown = lambda *a, **kw: outputs.append(a[0]) if a else None
+    try:
+        render_manual_valuation_card(prop)
+        assert len(outputs) >= 1
+        html = outputs[-1]
+        assert 'VALUACIÓN MANUAL' in html
+        assert '—' in html, f"Sin manual_params debe mostrar dash, got: {html[:300]}"
+        print("[T-MANUAL-CARD-NO-PARAMS] OK — sin params muestra dash")
+    finally:
+        st.markdown = original_markdown

@@ -373,6 +373,75 @@ def render_disk_summary_card(prop):
     """, unsafe_allow_html=True)
 
 
+def render_manual_valuation_card(prop):
+    """Tarjeta full-width que muestra la última valuación manual guardada en disco.
+    Completamente independiente de la valuación por comparables.
+    Lee directamente de propiedades.json para evitar stale data del ciclo de render."""
+    import json, os
+    nombre = prop.get('nombre', '')
+    uv = {}
+    try:
+        props_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'propiedades.json')
+        with open(props_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        for p in data.get('propiedades', []):
+            if p.get('nombre') == nombre:
+                uv = p.get('_ultima_valuacion', {}) or {}
+                break
+    except Exception:
+        uv = {}
+
+    if not uv:
+        uv = prop.get('_ultima_valuacion', {}) or {}
+
+    manual_valor = uv.get('manual_valor_usd', 0)
+    manual_params = uv.get('manual_params', {}) or {}
+    m2_equiv = uv.get('m2_equivalentes', 0)
+    usdt_ars = uv.get('usdt_ars', 0)
+    fecha = uv.get('fecha', '')
+
+    if manual_valor > 0 and manual_params:
+        usd_m2 = manual_params.get('usd_m2', 0)
+        fh = manual_params.get('factor_hedonico', 1.0)
+        ajuste = manual_params.get('ajuste_pct', 0)
+        incert = manual_params.get('incertidumbre_pct', 0)
+        ancla = manual_params.get('ancla_id', '—')
+
+        valor_str = f"${manual_valor:,.0f}"
+        m2_str = f"{m2_equiv:.1f} m²" if m2_equiv else "—"
+        fh_str = f"FH {fh:.2f}" if fh != 1.0 else ""
+        ajuste_str = f"ajuste {ajuste:+.0f}%" if ajuste != 0 else ""
+        meta_parts = [x for x in [valor_str, f"${usd_m2:,.0f}/m²", m2_str, fh_str, ajuste_str] if x]
+        meta_line = " · ".join(meta_parts)
+
+        conservador = manual_valor * (1 - incert / 100) if incert else 0
+        optimista = manual_valor * (1 + incert / 100) if incert else 0
+        if conservador > 0 and optimista > 0:
+            formula_line = f"${usd_m2:,.0f}/m² × {m2_equiv:.1f} m² = ${manual_valor:,.0f} · rango ${conservador:,.0f}–${optimista:,.0f}"
+        else:
+            formula_line = f"${usd_m2:,.0f}/m² × {m2_equiv:.1f} m² = ${manual_valor:,.0f}"
+
+        param_line = f"Ancla: {ancla}"
+        if fh != 1.0:
+            param_line += f" · FH: {fh:.2f}"
+        if incert:
+            param_line += f" · Incertidumbre: {incert:.0f}%"
+    else:
+        meta_line = "—"
+        formula_line = "Sin valuación manual guardada"
+        param_line = ""
+
+    grad_manual = "linear-gradient(135deg, #6B21A8 0%, #4C1D95 100%)"
+    st.markdown(f"""
+    <div style="border:none;border-radius:12px;padding:14px 16px;background:{grad_manual};box-shadow:0 4px 12px rgba(0,0,0,0.15);text-align:center;">
+        <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.7);margin-bottom:4px;">VALUACIÓN MANUAL</div>
+        <div style="font-size:15px;font-weight:600;color:#FFFFFF;">{meta_line}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.55);margin-top:2px;">{formula_line}</div>
+        {'<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;">' + param_line + '</div>' if param_line else ''}
+    </div>
+    """, unsafe_allow_html=True)
+
+
 def render_rango(res, valor_usd):
     """Rango de 3 escenarios con barra visual."""
     v_cons = res.get('valor_venta_conservador', valor_usd)
