@@ -427,7 +427,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                                     uv = p.get('_ultima_valuacion', {})
                                     if uv and uv.get('manual_params'):
                                         # Surgical remove of comparables only
-                                        uv['comps'] = []
+                                        uv['comps'] = 0
                                         uv['auto_valor_usd'] = 0
                                         if uv.get('fuente') == 'auto':
                                             uv['valor_usd'] = 0
@@ -991,7 +991,9 @@ def mostrar_dashboard():
                               f"uv_fuente={uv_fuente}, uv_valor_usd={uv_snap.get('valor_usd', 'N/A')}, "
                               f"uv_auto_valor={uv_auto_valor}, uv_manual_valor={uv_manual_valor}, "
                               f"uv_comps={uv_snap.get('comps', 0)}")
-                        if uv_snap.get('valor_usd') and uv_snap.get('comps', 0) >= 3:
+                        uv_comps_raw = uv_snap.get('comps', 0)
+                        uv_comps = len(uv_comps_raw) if isinstance(uv_comps_raw, list) else uv_comps_raw
+                        if uv_snap.get('valor_usd') and uv_comps >= 3:
                             uv_valor = uv_snap['valor_usd']
                             if uv_fuente != 'auto':
                                 uv_auto = uv_snap.get('auto_valor_usd', 0)
@@ -999,7 +1001,6 @@ def mostrar_dashboard():
                                       f"UV fuente={uv_fuente} NO es 'auto' — "
                                       f"usando auto_valor_usd={uv_auto} en lugar de valor_usd={uv_valor}")
                                 uv_valor = uv_auto if uv_auto else 0
-                            uv_comps = uv_snap.get('comps', 0)
                             uv_m2_eq = uv_snap.get('m2_equivalentes', 0)
                             n_prop_fb = 0 if uv_fuente != 'auto' else uv_comps
                             print(f"[DEBUG-FALLBACK-102] {prop_name}: fallback APLICADO. "
