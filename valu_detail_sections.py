@@ -1766,6 +1766,7 @@ def render_valuacion_manual(prop, res):
             if not guardar_propiedades(props):
                 st.error("Error de escritura en propiedades.json. La valuacion manual NO se guardo.")
                 st.rerun()
+            prop['_ultima_valuacion'] = uv
             st.session_state.pop(ss_key, None)
             st.session_state.pop(f'_official_result_{nombre}', None)
             st.session_state.pop(f'preview_mode_{nombre}', None)
@@ -1794,12 +1795,13 @@ def render_valuacion_manual(prop, res):
                     st.error("Error de escritura en propiedades.json. La valuacion manual NO se elimino.")
                     print(f"[DEBUG-MANUAL-DELETE] {nombre}: guardar_propiedades FALLO")
                     st.rerun()
+                prop['_ultima_valuacion'] = uv
                 st.session_state.pop(ss_key, None)
                 st.session_state.pop(f'_official_result_{nombre}', None)
                 st.session_state.pop(f'preview_mode_{nombre}', None)
                 print(f"[DEBUG-OFFICIAL-CLEAN] {nombre}: _official_result y preview_mode limpiados tras eliminar manual")
                 st.session_state[f'manual_feedback_{nombre}'] = 'eliminado'
-                print(f"[DEBUG-MANUAL-DELETE] {nombre}: ELIMINACION EXITOSA")
+                print(f"[DEBUG-MANUAL-DELETE] {nombre}: ELIMINACION EXITOSA — prop actualizado en memoria")
                 st.rerun()
 
 
