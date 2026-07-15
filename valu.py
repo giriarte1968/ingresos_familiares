@@ -522,10 +522,12 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
  
         comparables = res.get('comparables_venta', [])
         n_comps = len(comparables)
-        with st.expander(f"Detalle de Comparables — {prop_name}", expanded=False):
-            st.caption(f"{n_comps} propiedades comparables")
-            render_tabla_comparables({**res, 'comparables_venta': comparables}, prop_name=prop_name)
-        _dl.mark("after_render_tabla_comparables")
+        es_pendiente = res.get('error') == 'pendiente'
+        if not es_pendiente:
+            with st.expander(f"Detalle de Comparables — {prop_name}", expanded=False):
+                st.caption(f"{n_comps} propiedades comparables")
+                render_tabla_comparables({**res, 'comparables_venta': comparables}, prop_name=prop_name)
+            _dl.mark("after_render_tabla_comparables")
 
     _dl.mark("after_section_comparables")
 
