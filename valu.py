@@ -911,10 +911,6 @@ def mostrar_dashboard():
                           f"UV:fuente={uv_pre.get('fuente','N/A')}, UV:valor_usd={uv_pre.get('valor_usd','N/A')}, UV:auto_valor_usd={uv_pre.get('auto_valor_usd','N/A')}, UV:comps={uv_pre.get('comps','N/A')}")
                     cache_condition = (ya_valuado, not forzar, bool(entrada_antigua.get('resultado_completo')))
                     print(f"[CACHE-CHECK] {prop_name}: condiciones: ya_valuado={cache_condition[0]}, not forzar={cache_condition[1]}, tiene_resultado_completo={cache_condition[2]}, fuente_activa_saved={fuente_activa_saved}, entrada_keys={list(entrada_antigua.keys()) if entrada_antigua else 'vacia'}")
-                    # ── SONDAS DE DIAGNÓSTICO ──
-                    st.write(f"🔍 DEBUG Disco UV: {p_obj.get('_ultima_valuacion', 'NONE')}")
-                    st.write(f"🔍 DEBUG Cache Result: {'EXISTE' if entrada_antigua.get('resultado_completo') else 'VACÍO'}")
-                    # ── FIN SONDAS ──
 
                     # ── Gating: Si está marcado como pendiente, NO calcular nada (evita auto-restauración post-limpiar) ──
                     skip_engine = False

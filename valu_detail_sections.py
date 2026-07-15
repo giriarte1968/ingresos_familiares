@@ -406,22 +406,39 @@ def render_manual_valuation_card(prop):
         ajuste = manual_params.get('ajuste_pct', 0)
         incert = manual_params.get('incertidumbre_pct', 0)
         ancla = manual_params.get('ancla_id', '—')
+        size_adj = uv.get('manual_size_adj', 1.0)
+        factor_const = uv.get('manual_factor_const', 1.0)
+        activos_total = uv.get('manual_activos_total', 0)
+        constr = uv.get('manual_constructora', '')
 
         valor_str = f"${manual_valor:,.0f}"
         m2_str = f"{m2_equiv:.1f} m²" if m2_equiv else "—"
         fh_str = f"FH {fh:.2f}" if fh != 1.0 else ""
         ajuste_str = f"ajuste {ajuste:+.0f}%" if ajuste != 0 else ""
-        meta_parts = [x for x in [valor_str, f"${usd_m2:,.0f}/m²", m2_str, fh_str, ajuste_str] if x]
+        const_str = f"Const {factor_const:.2f}" if factor_const != 1.0 else ""
+        size_str = f"size {size_adj:.3f}" if size_adj != 1.0 else ""
+        meta_parts = [x for x in [valor_str, f"${usd_m2:,.0f}/m²", m2_str, fh_str, const_str, size_str, ajuste_str] if x]
         meta_line = " · ".join(meta_parts)
+
+        formula_parts = [f"${usd_m2:,.0f}/m² × {m2_equiv:.1f} m²"]
+        if size_adj != 1.0:
+            formula_parts.append(f"× {size_adj:.3f} size")
+        if fh != 1.0:
+            formula_parts.append(f"× {fh:.2f} FH")
+        if factor_const != 1.0:
+            formula_parts.append(f"× {factor_const:.2f} const")
+        if activos_total > 0:
+            formula_parts.append(f"+ ${activos_total:,.0f} activos")
+        formula_line = " ".join(formula_parts) + f" = ${manual_valor:,.0f}"
 
         conservador = manual_valor * (1 - incert / 100) if incert else 0
         optimista = manual_valor * (1 + incert / 100) if incert else 0
         if conservador > 0 and optimista > 0:
-            formula_line = f"${usd_m2:,.0f}/m² × {m2_equiv:.1f} m² = ${manual_valor:,.0f} · rango ${conservador:,.0f}–${optimista:,.0f}"
-        else:
-            formula_line = f"${usd_m2:,.0f}/m² × {m2_equiv:.1f} m² = ${manual_valor:,.0f}"
+            formula_line += f" · rango ${conservador:,.0f}–${optimista:,.0f}"
 
         param_line = f"Ancla: {ancla}"
+        if constr:
+            param_line += f" · Constructora: {constr}"
         if fh != 1.0:
             param_line += f" · FH: {fh:.2f}"
         if incert:
@@ -1751,6 +1768,10 @@ def render_valuacion_manual(prop, res):
                     uv['fuente'] = 'manual'
                     uv['fuente_activa'] = 'manual'
                     uv['manual_params'] = manual_params
+                    uv['manual_size_adj'] = resultado_manual.get('size_adjustment', 1.0)
+                    uv['manual_factor_const'] = resultado_manual.get('factor_const', 1.0)
+                    uv['manual_activos_total'] = resultado_manual.get('valor_activos', {}).get('total', 0)
+                    uv['manual_constructora'] = resultado_manual.get('constructora', '')
                     uv['retro_dias'] = st.session_state.get(f'retro_meses_{nombre}', 0)
                     flex_active = st.session_state.get(f'flex_active_{nombre}', False)
                     uv['flex_dormitorios'] = [1, 2, 3, 4, 5] if flex_active else None
@@ -1782,14 +1803,22 @@ def render_valuacion_manual(prop, res):
                 for i, p in enumerate(props):
                     if p.get('nombre') == nombre:
                         uv = p.setdefault('_ultima_valuacion', {})
-                        uv['fuente'] = 'auto'
-                        uv['fuente_activa'] = 'auto'
+                        auto_valor = uv.get('auto_valor_usd', 0)
+                        if auto_valor > 0:
+                            uv['fuente'] = 'auto'
+                            uv['fuente_activa'] = 'auto'
+                            uv['valor_usd'] = auto_valor
+                        else:
+                            uv['fuente'] = 'auto'
+                            uv['fuente_activa'] = 'auto'
+                            uv['valor_usd'] = 0
                         uv.pop('manual_params', None)
                         uv['manual_valor_usd'] = 0
-                        auto_valor_previo = uv.get('auto_valor_usd', 'N/A')
-                        uv['valor_usd'] = uv.get('auto_valor_usd', 0)
-                        print(f"[DEBUG-DELETE-103] {nombre}: manual_valor_usd=0, valor_usd revertido a auto={uv['valor_usd']}, "
-                              f"auto_valor_usd_previo={auto_valor_previo}")
+                        uv.pop('manual_size_adj', None)
+                        uv.pop('manual_factor_const', None)
+                        uv.pop('manual_activos_total', None)
+                        uv.pop('manual_constructora', None)
+                        print(f"[DEBUG-DELETE-103] {nombre}: manual eliminado, auto_valor_usd={auto_valor}, valor_usd={uv['valor_usd']}")
                         break
                 if not guardar_propiedades(props):
                     st.error("Error de escritura en propiedades.json. La valuacion manual NO se elimino.")
@@ -1799,9 +1828,8 @@ def render_valuacion_manual(prop, res):
                 st.session_state.pop(ss_key, None)
                 st.session_state.pop(f'_official_result_{nombre}', None)
                 st.session_state.pop(f'preview_mode_{nombre}', None)
-                print(f"[DEBUG-OFFICIAL-CLEAN] {nombre}: _official_result y preview_mode limpiados tras eliminar manual")
-                st.session_state[f'manual_feedback_{nombre}'] = 'eliminado'
                 print(f"[DEBUG-MANUAL-DELETE] {nombre}: ELIMINACION EXITOSA — prop actualizado en memoria")
+                st.session_state[f'manual_feedback_{nombre}'] = 'eliminado'
                 st.rerun()
 
 
