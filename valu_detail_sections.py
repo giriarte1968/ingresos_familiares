@@ -354,7 +354,9 @@ def render_disk_summary_card(prop):
     if isinstance(comps, list):
         comps = len(comps)
     m2_equiv = uv.get('m2_equivalentes', 0)
-    fuente = uv.get('fuente', 'auto')
+    m2_micro = uv.get('m2_microzona', 0)
+    size_discount = uv.get('size_discount', 1.0)
+    activos_total = uv.get('valor_activos_total', 0)
     fecha = uv.get('fecha', '')
 
     if auto_valor > 0:
@@ -362,17 +364,20 @@ def render_disk_summary_card(prop):
         comps_str = f"{comps} comp." if comps else "—"
         m2_str = f"{m2_equiv:.1f} m²" if m2_equiv else "—"
         meta_line = f"{valor_str} USD · {comps_str} · {m2_str}"
-        detail_line = f"{fuente.upper()} · Guardado: {fecha}" if fecha else fuente.upper()
+        if m2_micro > 0 and m2_equiv > 0:
+            formula_line = f"${m2_micro:,.0f}/m² × {m2_equiv:.1f} m² × {size_discount:.3f} ajuste + ${activos_total:,.0f} extras = ${auto_valor:,.0f}"
+        else:
+            formula_line = fecha
     else:
         meta_line = "—"
-        detail_line = "Sin valuación guardada"
+        formula_line = "Sin valuación guardada"
 
     grad_disk = "linear-gradient(135deg, #374151 0%, #1F2937 100%)"
     st.markdown(f"""
     <div style="border:none;border-radius:12px;padding:14px 16px;background:{grad_disk};box-shadow:0 4px 12px rgba(0,0,0,0.15);text-align:center;">
-        <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.7);margin-bottom:4px;">ÚLTIMA VALUACIÓN GUARDADA</div>
+        <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.7);margin-bottom:4px;">VALUACIÓN POR COMPARABLES</div>
         <div style="font-size:15px;font-weight:600;color:#FFFFFF;">{meta_line}</div>
-        <div style="font-size:11px;color:rgba(255,255,255,0.55);margin-top:2px;">{detail_line}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.55);margin-top:2px;">{formula_line}</div>
     </div>
     """, unsafe_allow_html=True)
 

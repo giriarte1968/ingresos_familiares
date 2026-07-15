@@ -2234,8 +2234,7 @@ def test_disk_summary_card_with_data():
         render_disk_summary_card(real_prop)
         assert len(outputs) >= 1, "render_disk_summary_card debió generar al menos 1 markdown"
         html = outputs[-1]
-        assert 'ÚLTIMA VALUACIÓN GUARDADA' in html
-        # Si auto_valor_usd > 0, debe mostrar USD; si no, muestra "—"
+        assert 'VALUACIÓN POR COMPARABLES' in html
         auto_uv = real_prop.get('_ultima_valuacion', {}).get('auto_valor_usd', 0)
         if auto_uv > 0:
             assert 'USD' in html, f"Debía contener valor USD, got: {html[:300]}"
@@ -2260,7 +2259,7 @@ def test_disk_summary_card_empty_uv():
         assert len(outputs) >= 1, "render_disk_summary_card debió generar al menos 1 markdown"
         html = outputs[-1]
         assert '—' in html, f"Debía contener dash para UV vacía, got: {html[:200]}"
-        assert 'ÚLTIMA VALUACIÓN GUARDADA' in html
+        assert 'VALUACIÓN POR COMPARABLES' in html
         print("[T-139-EMPTY] OK — render_disk_summary_card con UV vacía muestra dashes")
     finally:
         st.markdown = original_markdown
