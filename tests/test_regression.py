@@ -2215,9 +2215,16 @@ def test_disk_summary_card_with_data():
     real_prop = None
     for p in data.get('propiedades', []):
         uv = p.get('_ultima_valuacion', {})
-        if uv and (uv.get('auto_valor_usd', 0) > 0 or uv.get('manual_valor_usd', 0) > 0):
+        if uv and uv.get('auto_valor_usd', 0) > 0:
             real_prop = p
             break
+    # Si no hay auto_valor, usar cualquier UV con datos
+    if real_prop is None:
+        for p in data.get('propiedades', []):
+            uv = p.get('_ultima_valuacion', {})
+            if uv and (uv.get('auto_valor_usd', 0) > 0 or uv.get('manual_valor_usd', 0) > 0):
+                real_prop = p
+                break
     assert real_prop is not None, "Debe haber al menos 1 propiedad con valuación en disco"
 
     outputs = []
@@ -2227,9 +2234,14 @@ def test_disk_summary_card_with_data():
         render_disk_summary_card(real_prop)
         assert len(outputs) >= 1, "render_disk_summary_card debió generar al menos 1 markdown"
         html = outputs[-1]
-        assert 'USD' in html, f"Debía contener valor USD, got: {html[:300]}"
         assert 'ÚLTIMA VALUACIÓN GUARDADA' in html
-        print(f"[T-139-WITH-DATA] OK — {real_prop['nombre']}: render_disk_summary_card muestra datos correctos")
+        # Si auto_valor_usd > 0, debe mostrar USD; si no, muestra "—"
+        auto_uv = real_prop.get('_ultima_valuacion', {}).get('auto_valor_usd', 0)
+        if auto_uv > 0:
+            assert 'USD' in html, f"Debía contener valor USD, got: {html[:300]}"
+        else:
+            assert '—' in html, f"Debía mostrar dash sin auto_valor, got: {html[:300]}"
+        print(f"[T-139-WITH-DATA] OK — {real_prop['nombre']}: render_disk_summary_card OK (auto={auto_uv})")
     finally:
         st.markdown = original_markdown
 

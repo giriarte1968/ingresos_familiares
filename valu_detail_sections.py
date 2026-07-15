@@ -350,8 +350,6 @@ def render_disk_summary_card(prop):
         uv = prop.get('_ultima_valuacion', {}) or {}
 
     auto_valor = uv.get('auto_valor_usd', 0)
-    manual_valor = uv.get('manual_valor_usd', 0)
-    valor_final = auto_valor if auto_valor > 0 else manual_valor
     comps = uv.get('comps', 0)
     if isinstance(comps, list):
         comps = len(comps)
@@ -359,8 +357,8 @@ def render_disk_summary_card(prop):
     fuente = uv.get('fuente', 'auto')
     fecha = uv.get('fecha', '')
 
-    if valor_final > 0:
-        valor_str = f"${valor_final:,.0f}"
+    if auto_valor > 0:
+        valor_str = f"${auto_valor:,.0f}"
         comps_str = f"{comps} comp." if comps else "—"
         m2_str = f"{m2_equiv:.1f} m²" if m2_equiv else "—"
         meta_line = f"{valor_str} USD · {comps_str} · {m2_str}"
