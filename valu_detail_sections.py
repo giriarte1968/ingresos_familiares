@@ -406,10 +406,44 @@ def render_manual_valuation_card(prop):
         ajuste = manual_params.get('ajuste_pct', 0)
         incert = manual_params.get('incertidumbre_pct', 0)
         ancla = manual_params.get('ancla_id', '—')
-        size_adj = uv.get('manual_size_adj', 1.0)
-        factor_const = uv.get('manual_factor_const', 1.0)
-        activos_total = uv.get('manual_activos_total', 0)
+
+        size_adj = uv.get('manual_size_adj')
+        factor_const = uv.get('manual_factor_const')
+        activos_total = uv.get('manual_activos_total')
         constr = uv.get('manual_constructora', '')
+
+        if size_adj is None:
+            try:
+                from parsers.mercado_inmobiliario import calcular_size_adjustment
+                from parsers.zonas_manager import resolver_macrozona
+                _mz = resolver_macrozona(prop)
+                size_adj = calcular_size_adjustment(m2_equiv, macrozona_id=_mz.get('macrozona_id'), ancla_id=ancla)
+            except Exception:
+                size_adj = 1.0
+        if factor_const is None:
+            factor_const = 1.0
+            try:
+                constr_nombre = prop.get('constructora', '')
+                if constr_nombre:
+                    import os, json as _json
+                    constr_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'constructoras_rosario.json')
+                    if os.path.exists(constr_path):
+                        with open(constr_path, 'r', encoding='utf-8') as f:
+                            for entry in _json.load(f):
+                                if constr_nombre.lower().strip() == entry.get('descripcion', '').lower().strip():
+                                    pct = entry.get('porcentaje', 0)
+                                    if manual_params.get('incluir_prima_const', True):
+                                        factor_const = 1.0 + pct / 100.0
+                                    constr = constr_nombre
+                                    break
+            except Exception:
+                pass
+        if activos_total is None:
+            try:
+                from parsers.mercado_inmobiliario import calcular_valor_activos
+                activos_total = calcular_valor_activos(prop, usd_m2).get('total', 0)
+            except Exception:
+                activos_total = 0
 
         valor_str = f"${manual_valor:,.0f}"
         m2_str = f"{m2_equiv:.1f} m²" if m2_equiv else "—"
