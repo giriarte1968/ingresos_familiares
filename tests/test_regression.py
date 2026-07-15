@@ -590,30 +590,20 @@ def test_auto_card_hidden_when_engine_failed_after_manual_save():
         from valu_detail_sections import render_header
         render_header(prop, res)
 
-        # Auto card ELIMINADA — no debe aparecer "POR COMPARABLES" en ningún markdown
-        auto_card_appears = False
+        # Cards ELIMINADAS — no debe aparecer "POR COMPARABLES" ni "MANUAL" en render_header
+        cards_appearing = []
         for md in captured_md:
             if 'POR COMPARABLES' in str(md):
-                auto_card_appears = True
-
-        assert not auto_card_appears, (
-            f"Auto card (POR COMPARABLES) fue eliminada. No debe aparecer en markdowns. "
-            f"Markdowns: {[m[:80] for m in captured_md]}"
-        )
-
-        # Verify manual card IS showing
-        manual_card_showing = False
-        for md in captured_md:
+                cards_appearing.append('auto')
             if 'MANUAL' in str(md):
-                if '735,013' in str(md) or '735013' in str(md):
-                    manual_card_showing = True
-        assert manual_card_showing, (
-            f"Manual card debe mostrar el valor guardado ($735,013). "
-            f"Markdowns: {[m[:80] for m in captured_md]}"
+                cards_appearing.append('manual')
+
+        assert not cards_appearing, (
+            f"Cards auto/manual eliminadas de render_header. No deben aparecer. "
+            f"Found: {cards_appearing}. Markdowns: {[m[:80] for m in captured_md]}"
         )
 
-        print(f"[TEST-AUTO-HIDDEN] OK — auto card eliminada, manual card visible. "
-              f"Auto appears={auto_card_appears}, Manual showing={manual_card_showing}")
+        print(f"[TEST-AUTO-HIDDEN] OK — ambas cards eliminadas de render_header.")
 
 
 def test_manual_card_shows_when_auto_0_comps():
@@ -687,28 +677,20 @@ def test_manual_card_shows_when_auto_0_comps():
         from valu_detail_sections import render_header
         render_header(prop, res)
 
-        # Auto card ELIMINADA — no debe aparecer "POR COMPARABLES"
-        auto_card_appears = False
-        # Manual card debe mostrar $735,013
-        manual_card_showing = False
+        # Cards ELIMINADAS — no debe aparecer "POR COMPARABLES" ni "MANUAL"
+        cards_appearing = []
         for md in captured_md:
             if 'POR COMPARABLES' in str(md):
-                auto_card_appears = True
+                cards_appearing.append('auto')
             if 'MANUAL' in str(md):
-                if '735,013' in str(md) or '735013' in str(md):
-                    manual_card_showing = True
+                cards_appearing.append('manual')
 
-        assert not auto_card_appears, (
-            f"Auto card (POR COMPARABLES) fue eliminada. No debe aparecer. "
-            f"Markdowns: {[m[:80] for m in captured_md]}"
-        )
-        assert manual_card_showing, (
-            f"Manual card debe mostrar el valor guardado ($735,013) aunque auto tenga 0 comps. "
-            f"Markdowns: {[m[:80] for m in captured_md]}"
+        assert not cards_appearing, (
+            f"Cards auto/manual eliminadas de render_header. No deben aparecer. "
+            f"Found: {cards_appearing}. Markdowns: {[m[:80] for m in captured_md]}"
         )
 
-        print(f"[TEST-MANUAL-0-COMPS] OK — auto card eliminada, manual card visible ($735,013). "
-              f"Auto appears={auto_card_appears}, Manual showing={manual_card_showing}")
+        print(f"[TEST-MANUAL-0-COMPS] OK — ambas cards eliminadas de render_header.")
 
 
 # ========================================================================
@@ -1295,30 +1277,20 @@ def test_fallback_102_auto_valor_not_manual():
 
         render_header(prop, res)
 
-        # Auto card ELIMINADA — no debe aparecer "POR COMPARABLES"
-        auto_card_appears = False
+        # Cards ELIMINADAS — no debe aparecer "POR COMPARABLES" ni "MANUAL"
+        cards_appearing = []
         for md in captured_md:
             if 'POR COMPARABLES' in str(md) or 'AUTO' in str(md):
-                auto_card_appears = True
-
-        assert not auto_card_appears, (
-            f"Auto card (POR COMPARABLES) fue eliminada. No debe aparecer. "
-            f"Markdowns: {[m[:100] for m in captured_md]}"
-        )
-
-        # Manual card: debe mostrar 200000
-        manual_has_manual_value = False
-        for md in captured_md:
+                cards_appearing.append('auto')
             if 'MANUAL' in str(md):
-                if '200,000' in str(md).replace('\xa0', ' ') or '200000' in str(md):
-                    manual_has_manual_value = True
-        assert manual_has_manual_value, (
-            f"Manual card debe mostrar el valor manual ($200,000). "
-            f"Markdowns: {[m[:100] for m in captured_md]}"
+                cards_appearing.append('manual')
+
+        assert not cards_appearing, (
+            f"Cards auto/manual eliminadas de render_header. No deben aparecer. "
+            f"Found: {cards_appearing}. Markdowns: {[m[:100] for m in captured_md]}"
         )
 
-        print(f"[T_S-18] OK — auto card eliminada, manual card showing. "
-              f"Auto appears={auto_card_appears}, manual_showing={manual_has_manual_value}")
+        print(f"[T_S-18] OK — ambas cards eliminadas de render_header.")
 
 
 def test_guardrail_auto_contamination():

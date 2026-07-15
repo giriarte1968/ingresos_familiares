@@ -266,21 +266,6 @@ def render_header(prop, res):
     m2_line_manual = f"m²/USD: ${m2_base_manual:,.0f} ({n_comps_manual} comp.)" if m2_base_manual > 0 else "—"
 
     card_key = f'fuente_cards_{nombre}'
-    grad_md = "linear-gradient(135deg,#006AFF 0%,#004FC4 100%)"
-
-    if tiene_manual:
-        col_manual = st.columns([1])
-        with col_manual[0]:
-            delta_str = f"{delta_pct:+.1f}%" if abs(delta_pct) > 0.01 else "—"
-            delta_color = "#FF6B6B" if delta_pct > 10 else "#6BCB7E" if delta_pct < -10 else "rgba(255,255,255,0.85)"
-            st.markdown(f"""
-            <div style="border:none;border-radius:12px;padding:16px;background:{grad_md};box-shadow:0 4px 12px rgba(0,0,0,0.15);text-align:center;">
-                <div style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.8);margin-bottom:4px;">MANUAL</div>
-                <div style="font-size:24px;font-weight:700;color:#FFFFFF;">{f'${v_manual:,.0f}' if v_manual else '—'}</div>
-                <div style="font-size:13px;color:{delta_color};margin-bottom:2px;">{f'${v_manual * dolar_manual:,.0f} ARS' if v_manual else '—'}</div>
-                <div style="font-size:11px;color:rgba(255,255,255,0.65);">Dólar ${dolar_manual:,.0f} · {m2_line_manual}</div>
-            </div>
-            """, unsafe_allow_html=True)
 
     # ─── Spacer ───
     st.markdown("<div style='margin:12px 0;'></div>", unsafe_allow_html=True)
