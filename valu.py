@@ -429,6 +429,8 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                                         # Surgical remove of comparables only
                                         uv['comps'] = 0
                                         uv['auto_valor_usd'] = 0
+                                        uv['_comp_exclusion_applied'] = False
+                                        uv['_comp_excluded'] = []
                                         if uv.get('fuente') == 'auto':
                                             uv['valor_usd'] = 0
                                         p['_ultima_valuacion'] = uv
