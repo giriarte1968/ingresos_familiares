@@ -647,7 +647,7 @@ def mostrar_dashboard():
             _cl.close()
 
         with profile_block("detalle_buscar_prop", None):
-            p_obj = next((p for p in propiedades if p['nombre'] == st.session_state.prop_sel), None)
+            p_obj = next((p for p in propiedades if p['nombre'].strip() == st.session_state.prop_sel.strip()), None)
         if p_obj:
             prop_name = p_obj.get('nombre', '')
             # Limpiar solo comparables: borra cache, conserva manual si existe (RU-CLEAN-MANUAL-01)
@@ -1227,6 +1227,12 @@ def mostrar_dashboard():
 
                 _sl.mark("after_render")
                 _sl.close()
+            except Exception as _e_outer:
+                import traceback as _tb2
+                _tb2_str = ''.join(_tb2.format_exception(type(_e_outer), _e_outer, _e_outer.__traceback__))
+                print(f"[ERROR-DETAIL-OUTER] {prop_name}: {_e_outer}")
+                print(f"[ERROR-DETAIL-OUTER] {prop_name} traceback:\n{_tb2_str}")
+                st.error(f"Error en detalle de {prop_name}: {_e_outer}")
             finally:
                 _loader.empty()
 
@@ -2033,7 +2039,7 @@ def main():
         if old_prop:
             _limpiar_y_borrar_cache_si_hay_manuales(old_prop)
             
-        prop_name = st.query_params['prop']
+        prop_name = st.query_params['prop'].strip()
         _limpiar_estado_propiedad(prop_name)
         st.session_state.prop_sel = prop_name
         st.session_state.vista_actual = 'dashboard'
