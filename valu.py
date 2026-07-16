@@ -1216,7 +1216,14 @@ def mostrar_dashboard():
                             import copy
                             st.session_state[official_key] = copy.deepcopy(resultado)
                             print(f"[DEBUG-OFFICIAL-FIRST] {prop_name}: resultado oficial guardado por primera vez, valor=${resultado.get('valor_propiedad_usd',0):,.0f}, n_prop={resultado.get('resolution_metadata',{}).get('n_propiedades')}")
-                    mostrar_detalle_valu(p_obj, resultado, actualizar_propiedad)
+                    try:
+                        mostrar_detalle_valu(p_obj, resultado, actualizar_propiedad)
+                    except Exception as e_render:
+                        import traceback as _tb
+                        _tb_str = ''.join(_tb.format_exception(type(e_render), e_render, e_render.__traceback__))
+                        print(f"[ERROR-RENDER] {prop_name}: {e_render}")
+                        print(f"[ERROR-RENDER] {prop_name} traceback:\n{_tb_str}")
+                        st.error(f"Error renderizando {prop_name}: {e_render}")
 
                 _sl.mark("after_render")
                 _sl.close()
