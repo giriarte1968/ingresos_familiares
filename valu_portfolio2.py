@@ -617,7 +617,7 @@ def _render_cards(rows: list[dict[str, Any]], page_size: int) -> None:
                 else:
                     price_block = f'''<div class="p2-price">—</div>'''
                 st.markdown(f'''
-                <a href="?prop={row['nombre']}" style="text-decoration:none;color:inherit;">
+                <a href="?prop={row['nombre']}" target="_self" style="text-decoration:none;color:inherit;">
                 <div class="p2-property-card" style="cursor:pointer;">
                     <div>{badges}</div>
                     <div class="p2-property-title">{row['nombre']}</div>
