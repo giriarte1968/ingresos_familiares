@@ -1,6 +1,8 @@
 {
-  "version": 2,
-  "fecha_creacion": "2026-05-17",
+  "version": 3,
+  "fecha_creacion": "2026-07-17",
+  "fecha_ct_update": "2026-07-17",
+  "ct_source": "ML hedonic + observed depreciation (old+new scraping combined, 11557 deptos venta)",
   "default_macrozona": "resto_rosario",
   "macrozonas": [
     {
@@ -82,7 +84,7 @@
           }
         }
       },
-      "ct_annual_rate": -0.0411
+      "ct_annual_rate": -0.0163
     },
     {
       "id": "macrocentro",
@@ -131,7 +133,7 @@
           }
         ]
       },
-      "ct_annual_rate": -0.0006
+      "ct_annual_rate": -0.0182
     },
     {
       "id": "fisherton",
@@ -148,7 +150,7 @@
         "lon_min": -60.78,
         "lon_max": -60.72
       },
-      "ct_annual_rate": 0.05,
+      "ct_annual_rate": -0.0287,
       "size_adjustment": {
         "type": "piecewise_linear",
         "points": [
@@ -231,7 +233,7 @@
           }
         ]
       },
-      "ct_annual_rate": -0.0665
+      "ct_annual_rate": -0.0265
     },
     {
       "id": "oeste",
@@ -282,7 +284,7 @@
           }
         ]
       },
-      "ct_annual_rate": -0.1949
+      "ct_annual_rate": -0.0284
     },
     {
       "id": "sur_default",
@@ -330,7 +332,7 @@
           }
         ]
       },
-      "ct_annual_rate": 0.0305
+      "ct_annual_rate": -0.0014
     },
     {
       "id": "resto_rosario",

@@ -213,6 +213,8 @@ def scrapear_propia(max_id, existing_urls, existing_ids, max_pages=30, limit_per
                     "tipo": tipo,
                     "id_propia": item_id,
                     "moneda": "USD",
+                    "antiquity": item.get("antiquity"),
+                    "delivery_year": item.get("delivery_year"),
                 })
                 new_in_page += 1
 
