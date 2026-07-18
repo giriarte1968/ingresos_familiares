@@ -753,6 +753,7 @@
 { "type": "Feature", "properties": { "element": "way", "id": 1468670901, "barrier_type": "soft", "name": "Bulevar Nicasio Oroño" }, "geometry": { "type": "LineString", "coordinates": [ [ -60.650155, -32.9316476 ], [ -60.6501299, -32.9315395 ], [ -60.6501041, -32.9314229 ] ] } },
 { "type": "Feature", "properties": { "element": "way", "id": 1486730725, "barrier_type": "soft", "name": "Bulevar 27 de Febrero" }, "geometry": { "type": "LineString", "coordinates": [ [ -60.6398695, -32.9683088 ], [ -60.6395656, -32.9683631 ] ] } },
 { "type": "Feature", "properties": { "element": "way", "id": 1494193225, "barrier_type": "soft", "name": "Bulevar 27 de Febrero" }, "geometry": { "type": "LineString", "coordinates": [ [ -60.6587101, -32.9648099 ], [ -60.658858, -32.9647829 ], [ -60.6599514, -32.9645819 ] ] } },
-{ "type": "Feature", "properties": { "element": "way", "id": 1494193226, "barrier_type": "soft", "name": "Bulevar 27 de Febrero" }, "geometry": { "type": "LineString", "coordinates": [ [ -60.6599895, -32.9647157 ], [ -60.6588853, -32.9649182 ], [ -60.6587402, -32.9649441 ] ] } }
+{ "type": "Feature", "properties": { "element": "way", "id": 1494193226, "barrier_type": "soft", "name": "Bulevar 27 de Febrero" }, "geometry": { "type": "LineString", "coordinates": [ [ -60.6599895, -32.9647157 ], [ -60.6588853, -32.9649182 ], [ -60.6587402, -32.9649441 ] ] } },
+{ "type": "Feature", "properties": { "element": "way", "id": 99900001, "barrier_type": "soft", "name": "Ituzaingó" }, "geometry": { "type": "LineString", "coordinates": [ [ -60.635, -32.962 ], [ -60.625, -32.962 ] ] } }
 ]
 }

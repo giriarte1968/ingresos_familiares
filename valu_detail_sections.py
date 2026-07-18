@@ -695,7 +695,8 @@ def render_tabla_comparables(res, prop_name=None):
         cols[5].write(str(c.get('dormitorios', '?')))
         cols[6].write(str((c.get('date_created') or '')[:10]) if c.get('date_created') else '')
         cols[7].write(((c.get('direccion_limpia') or c.get('direccion','')) or '')[:35])
-        cols[8].write(str(c.get('anio_estimado', '')) if c.get('anio_estimado') else '')
+        _ant = c.get('antiquity')
+        cols[8].write(str(datetime.now().year - _ant) if _ant else '')
         cols[9].write(f"{c.get('distancia_m', 0):.0f}m" if c.get('distancia_m') else '')
 
 
