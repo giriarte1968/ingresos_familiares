@@ -696,7 +696,7 @@ def render_tabla_comparables(res, prop_name=None):
         cols[6].write(str((c.get('date_created') or '')[:10]) if c.get('date_created') else '')
         cols[7].write(((c.get('direccion_limpia') or c.get('direccion','')) or '')[:35])
         _ant = c.get('antiquity')
-        cols[8].write(str(datetime.now().year - _ant) if _ant else '')
+        cols[8].write(str(datetime.now().year - _ant) if _ant is not None and _ant >= 0 else '')
         cols[9].write(f"{c.get('distancia_m', 0):.0f}m" if c.get('distancia_m') else '')
 
 
