@@ -700,7 +700,8 @@ def render_tabla_comparables(res, prop_name=None):
             _ae = c.get('anio_estimado')
             _year = _ae if _ae else None
         else:
-            _year = datetime.now().year - _ant
+            from datetime import datetime as _dt
+            _year = _dt.now().year - _ant
         cols[8].write(str(_year) if _year else '')
         cols[9].write(f"{c.get('distancia_m', 0):.0f}m" if c.get('distancia_m') else '')
 
