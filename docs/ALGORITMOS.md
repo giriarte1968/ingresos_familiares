@@ -311,19 +311,34 @@ Para garantizar la auditabilidad y el seguimiento de activos en el tiempo, se im
 
 ---
 
-## 11b. Ventanas Progresivas de Edad
+## 11b. Filtro ±10 Años Fijo (TAREA-138)
 
-La función `_filtrar_por_ventana_edad()` usa dos ventanas progresivas:
+La función `_filtrar_por_ventana_edad()` filtra comparables por una ventana FIJA de ±10 años alrededor del año del sujeto:
 
 ```
-±15 años → si n ≥ 5, acepta pool
-±30 años → si n ≥ 5, acepta pool (si ±15 no alcanzó)
-           si n < 5 en ambas, fallback al pool completo (P33)
+Ventana: ±10 años (fija, sin progresión)
+Umbral:  ≥ 10 comparables en rango para activar
+Fuente:  antiquity (Propia API) → ANIO_ACTUAL - antiquity
+Fallback: anio_estimado → anio_construccion
 ```
 
-El umbral es ≥5 porque el selector `seleccionar_percentil_por_edad()` ya discrimina entre 5-7 (P33_age_blend) y 8+ (P40/P45/P50). Antes se exigía ≥8, lo que impedía activar `P33_age_blend` para 5-7 comparables.
+**Reglas:**
+1. Si no hay `anio_sujeto` → no aplica filtro.
+2. Para cada comparable, calcular año usando `antiquity` como fuente primaria (con fallback a `anio_estimado`/`anio_construccion`).
+3. Si hay <10 comparables con año válido → no aplica filtro.
+4. Filtrar ±10 años alrededor de `anio_sujeto`.
+5. Si el pool filtrado tiene ≥10 comparables → retorna pool filtrado.
+6. Si no → retorna pool completo (sin filtro) y muestra mensaje al usuario.
 
-Esto evita que propiedades modernas en zonas con edificios viejos (ej. Centro) se vean contaminadas por comparables 25+ años más antiguos, manteniendo estabilidad en propiedades donde ±15 ya captura suficientes comparables de edad similar.
+**Mensaje cuando no aplica:**
+"No se pudo aplicar filtro de ±10 años (solo N comparables en rango). Usando pool completo. Use Retro para ampliar ventana temporal."
+
+**Justificación:**
+- `antiquity` es más confiable que `anio_estimado` (viene de la API de Propia, no de estimación catastral).
+- ±10 años es una ventana fija que evita contaminación de propiedades viejas con comparables nuevos.
+- El umbral de 10 asegura calidad estadística (coefficient of variation aceptable).
+- El filtro se aplica AL pool del cluster, no lo reemplaza (RO-08 se mantiene).
+- NO es depreciación (RO-03 se mantiene), es selección de comparables.
 
 ## 12. Valores de Referencia (TAREA-071 — Modelo Multiplicativo)
 

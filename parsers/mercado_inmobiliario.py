@@ -974,24 +974,19 @@ def enriquecer_anio_comparable(comp, max_dist_m=30, max_dist_exacta=200):
     return None
 
 
-def _filtrar_por_ventana_edad(pool, anio_sujeto, ventana=15, min_con_anio=5):
+def _filtrar_por_ventana_edad(pool, anio_sujeto, ventana=10, min_con_anio=10):
     """
-    Filtra comparables por ventana de edad alrededor del año sujeto.
+    Filtra comparables por ventana FIJA de anios alrededor del anio sujeto.
+
+    Usa 'antiquity' (edad en anios desde Propia API) como fuente primaria,
+    con fallback a 'anio_estimado' (catastro) y 'anio_construccion'.
 
     Reglas:
-    - Si no hay anio_sujeto → no aplica filtro.
-    - Si hay menos de 5 comparables con año → no aplica filtro.
-    - Prueba ±ventana (default 15) años.
-    - Si ±ventana tiene >=5 comparables → aplica filtro.
-    - Si no, prueba ±30 años.
-    - Si ±30 tiene >=5 comparables → aplica filtro.
-    - Si ninguna ventana llega a 5 → fallback al pool completo.
-
-    El selector posterior seleccionar_percentil_por_edad() decide:
-    - 5-7  → P33_age_blend
-    - 8-9  → P40_age
-    - 10-19 → P45_age
-    - 20+  → P50_age
+    - Si no hay anio_sujeto → no aplica filtro, retorna pool completo.
+    - Si hay menos de min_con_anio (10) con anio valido → no aplica filtro.
+    - Filtra ±ventana (10) anios usando ANIO_ACTUAL - antiquity como anio.
+    - Si el pool filtrado tiene >= min_con_anio → retorna pool filtrado.
+    - Si no → retorna pool completo (sin filtro).
 
     Returns:
         (pool_filtrado, age_filter_applied, n_age_filtered, anio_min, anio_max)
@@ -999,22 +994,33 @@ def _filtrar_por_ventana_edad(pool, anio_sujeto, ventana=15, min_con_anio=5):
     if not anio_sujeto:
         return pool, False, 0, 0, 0
 
-    pool_con_anio = [p for p in pool if p.get('anio_estimado')]
+    ANIO_ACTUAL = datetime.now().year
+    pool_con_anio = []
+    for p in pool:
+        ant = p.get('antiquity')
+        if ant is not None and ant >= 0:
+            p['_anio_construccion_calc'] = ANIO_ACTUAL - ant
+            pool_con_anio.append(p)
+        elif p.get('anio_estimado'):
+            p['_anio_construccion_calc'] = p['anio_estimado']
+            pool_con_anio.append(p)
+        elif p.get('anio_construccion'):
+            p['_anio_construccion_calc'] = p['anio_construccion']
+            pool_con_anio.append(p)
 
     if len(pool_con_anio) < min_con_anio:
         return pool, False, len(pool_con_anio), 0, 0
 
-    for ventana_actual in [ventana, 30]:
-        anio_min = anio_sujeto - ventana_actual
-        anio_max = anio_sujeto + ventana_actual
+    anio_min = anio_sujeto - ventana
+    anio_max = anio_sujeto + ventana
 
-        pool_age_filtered = [
-            p for p in pool_con_anio
-            if anio_min <= p['anio_estimado'] <= anio_max
-        ]
+    pool_age_filtered = [
+        p for p in pool_con_anio
+        if anio_min <= p['_anio_construccion_calc'] <= anio_max
+    ]
 
-        if len(pool_age_filtered) >= min_con_anio:
-            return pool_age_filtered, True, len(pool_age_filtered), anio_min, anio_max
+    if len(pool_age_filtered) >= min_con_anio:
+        return pool_age_filtered, True, len(pool_age_filtered), anio_min, anio_max
 
     return pool, False, len(pool_con_anio), 0, 0
 
@@ -1425,10 +1431,10 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         n_enriq_total = n_enriquecidos_alta + n_enriquecidos_media
         pct_enriq = (n_enriq_total / total_pool * 100) if total_pool else 0
 
-        # Sin filtro de edad (ML evidence: edad no es factor causal en Rosario)
-        pool_final = unicos
-        n_age_filtered = 0
-        age_filter_applied = False
+        # --- Filtro de edad FIJO ±10 años (TAREA-138) ---
+        # basado en antiquity (Propia API) como fuente primaria
+        pool_final, age_filter_applied, n_age_filtered, anio_min_filtro, anio_max_filtro = \
+            _filtrar_por_ventana_edad(unicos, anio_sujeto, ventana=10, min_con_anio=10)
 
         # Resolver macrozona para size adjustment
         macrozona_id = None
@@ -1689,6 +1695,11 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             'total_dias_ventana': window_dias_usado,
             'flex_dormitorios': flex_dormitorios,
             'sujeto_dormitorios': dormitorios,
+            # Filtro de edad ±10 años (TAREA-138)
+            'age_filter_applied': age_filter_applied,
+            'n_age_filtered': n_age_filtered,
+            'anio_min_filtro': anio_min_filtro if age_filter_applied else None,
+            'anio_max_filtro': anio_max_filtro if age_filter_applied else None,
         }
         
         return valor, len(pool_final), meta

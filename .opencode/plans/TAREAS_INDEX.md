@@ -105,3 +105,4 @@
 | TAREA-135 | Limpiar preview y todos los comparables (pop _official_result incondicional) | `b189961` | 2026-07-13 |
 | TAREA-136 | Eliminar bloque zombi de limpieza en valu.py | _(current)_ | 2026-07-13 |
 | TAREA-137 | Fix header vacío post-Limpiar: guard pendiente no persiste como official (RO-CLEAN-03) | _(current)_ | 2026-07-14 |
+| TAREA-138 | Filtro ±10 años fijo para comparables (usa antiquity como fuente primaria) | _(pending)_ | 2026-07-18 |

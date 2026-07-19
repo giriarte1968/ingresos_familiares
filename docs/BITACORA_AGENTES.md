@@ -1,6 +1,26 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-07-18 — TAREA-138: Filtro ±10 Años Fijo para Comparables
+
+### Contexto
+El filtro de edad (`_filtrar_por_ventana_edad`) fue deshabilitado en TAREA-078 porque "edad no es factor causal en Rosario". Sin embargo, análisis reciente mostró que propiedades viejas en zonas mixtas se contaminan con comparables nuevos de precio distinto. Se implementó un filtro **fijo de ±10 años** usando `antiquity` (Propia API) como fuente primaria.
+
+### Cambios (código)
+1. **`parsers/mercado_inmobiliario.py:977-1019`** — Reescritura completa de `_filtrar_por_ventana_edad()`. Ventana fija ±10 (no progresiva), fuente primaria `antiquity` (ANIO_ACTUAL - antiquity), fallback a `anio_estimado`/`anio_construccion`, umbral `min_con_anio=10`.
+2. **`parsers/mercado_inmobiliario.py:1434-1437`** — Reemplazo del bypass por call a `_filtrar_por_ventana_edad()`.
+3. **`parsers/mercado_inmobiliario.py:1698-1702`** — Agregado de campos `age_filter_applied`, `n_age_filtered`, `anio_min_filtro`, `anio_max_filtro` al meta dict.
+4. **`tests/test_age_blend_filter.py`** — Reescritura completa: 7 tests para ±10 fijo con antiquity.
+
+### Reglas de oro afectadas
+- **RO-03:** Sin violación — el filtro es de selección, no de depreciación.
+- **RO-08:** Sin violación — el filtro se aplica AL pool del cluster, no lo reemplaza.
+- **RO-12:** Sin cambios — la UI sigue llamando a `valuar_propiedad_v7()`.
+
+### Tests
+- 7/7 tests de `test_age_blend_filter.py` pasan.
+- 55/55 tests de `test_regression.py` pasan.
+
 ## 2026-07-14 — TAREA-137: Fix header vacío post-Limpiar (RO-CLEAN-03)
 
 ### Contexto

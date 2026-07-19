@@ -1,6 +1,6 @@
 ﻿# 🏠 STATUS ACTUAL DEL PROYECTO — AVM Rosario
 
-*Actualizado: 14/07/2026 (TAREA-137: RO-CLEAN-03 — fix header vacío post-Limpiar, guard pendiente no persiste como official)*
+*Actualizado: 18/07/2026 (TAREA-138: Filtro ±10 años fijo para comparables)*
 
 ---
 
@@ -15,11 +15,12 @@
 | Matching catastral (acentos/ñ) | ✅ Normalización NFKD en `_token_contenido` (TAREA-024) |
 | Persistencia DO | ✅ Atómica + branch `do-state` |
 | Landing page | ✅ Navegación por teclado (PageDown/PageUp/Home/End) |
-| Tests regresión | ✅ 49/49 (TAREA-137) |
+| Tests regresión | ✅ 55/55 (TAREA-138) |
 | Tests persistencia | ✅ 16/16 |
 | Despliegue DO | Sin redeploy loop |
 | Anclas grilla 400m | 322 microzonas, 96% cobertura (TAREA-036) |
 | Zonas comerciales | Martin(5) Pellegrini(8) Pichincha(4) PN(4) Abasto(3) — con filtro distancia |
+| Filtro ±10 años | ✅ Activado, usa antiquity como fuente primaria (TAREA-138) |
 
 ---
 
@@ -27,18 +28,19 @@
 
 | Métrica | Cantidad |
 |---------|----------|
-| Propiedades totales | 9,766 |
+| Propiedades totales | **21,828** (merge cache_scraping_nuevo_v2) |
 | Anclas disponibles | 322 microzonas (grilla 400m, TAREA-035) |
 | Cobertura anclas (prop ≤300m) | 96% (8.014/8.366) |
-| Con lat/lon | **9,754** (99.9%) |
-| Sin lat/lon | 12 (nunca las tuvo Propia) |
-| Con `calle_limpia`/`numero_limpio` | **8,782** (89.9%) |
-| Sin calle (no se pudo extraer) | 984 |
-| PH encontrado en catastro | **7,502** (TAREA-024) |
-| Sin PH en catastro | 1,280 |
-| Coords corregidas acumuladas | **~3,408** (3,289 TAREA-020 + 119 TAREA-024) |
-| Coords originales conservadas (≤60m) | ~4,084 |
-| Error promedio actual | 31m |
+| Con lat/lon | **21,828** (100%) |
+| Con `antiquity` válido | **18,725** (85.8%) |
+| Con `date_created` | **21,825** (100%) |
+| Con `calle_limpia`/`numero_limpio` | **20,822** (95.4%) |
+| Sin calle (no se pudo extraer) | 1,006 |
+| Zona: Rosario | 12,061 |
+| Zona: Otro | 9,334 |
+| Zona: Pellegrini | 248 |
+| Zona: Martin | 108 |
+| Zona: Centro | 23 |
 
 ---
 
