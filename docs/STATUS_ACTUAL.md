@@ -1,6 +1,6 @@
 ﻿# 🏠 STATUS ACTUAL DEL PROYECTO — AVM Rosario
 
-*Actualizado: 18/07/2026 (TAREA-138: Filtro ±10 años fijo para comparables)*
+*Actualizado: 19/07/2026 (TAREA-139: min_con_anio=3 + debug cleanup)*
 
 ---
 
@@ -15,12 +15,12 @@
 | Matching catastral (acentos/ñ) | ✅ Normalización NFKD en `_token_contenido` (TAREA-024) |
 | Persistencia DO | ✅ Atómica + branch `do-state` |
 | Landing page | ✅ Navegación por teclado (PageDown/PageUp/Home/End) |
-| Tests regresión | ✅ 55/55 (TAREA-138) |
+| Tests regresión | ✅ 64/64 (8 filtro edad + 55 regresión + 1 extra) |
 | Tests persistencia | ✅ 16/16 |
 | Despliegue DO | Sin redeploy loop |
 | Anclas grilla 400m | 322 microzonas, 96% cobertura (TAREA-036) |
 | Zonas comerciales | Martin(5) Pellegrini(8) Pichincha(4) PN(4) Abasto(3) — con filtro distancia |
-| Filtro ±10 años | ✅ Activado, usa antiquity como fuente primaria (TAREA-138) |
+| Filtro ±10 años | ✅ ±10 fijo, antiquity primario, min_con_anio=3 (TAREA-138/139) |
 
 ---
 
