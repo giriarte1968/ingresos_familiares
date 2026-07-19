@@ -34,8 +34,8 @@ def test_filtrar_por_ventana_edad_12_comps_en_rango():
     assert a_max == 2012
 
 
-def test_filtrar_por_ventana_edad_menos_de_10_en_rango():
-    """8 comps en rango (< 10) → fallback a pool completo (sin filtro)."""
+def test_filtrar_por_ventana_edad_8_en_rango():
+    """8 comps en rango → filtro ACTIVA (min_con_anio=1,只要有≥1 comp en rango)."""
     pool = [
         {'antiquity': 14, 'valor_m2': 1000},   # 2012
         {'antiquity': 15, 'valor_m2': 1100},   # 2011
@@ -53,8 +53,8 @@ def test_filtrar_por_ventana_edad_menos_de_10_en_rango():
         pool, anio_sujeto=2002, ventana=10
     )
 
-    assert applied is False
-    assert n_age == 10  # 10 con antiquity válido (todos tienen ant >= 0)
+    assert applied is True
+    assert n_age == 8  # los 8 en rango 1992-2012
 
 
 def test_filtrar_por_ventana_edad_sin_anio_sujeto():
@@ -149,3 +149,39 @@ def test_filtrar_por_ventana_edad_pool_vacio():
     pool_final, applied, n_age, _, _ = _filtrar_por_ventana_edad([], anio_sujeto=2010)
     assert applied is False
     assert n_age == 0
+
+
+def test_filtrar_por_ventana_edad_un_solo_comp_en_rango():
+    """2 comps en rango → fallback (min_con_anio=3, necesita≥3 para activar)."""
+    pool = [
+        {'antiquity': 5, 'valor_m2': 1500},    # 2021 (dentro de 2011-2031)
+        {'antiquity': 8, 'valor_m2': 1400},    # 2018 (dentro)
+        {'antiquity': 50, 'valor_m2': 1000},   # 1976 (fuera)
+        {'antiquity': 55, 'valor_m2': 900},    # 1971 (fuera)
+    ]
+
+    pool_final, applied, n_age, a_min, a_max = _filtrar_por_ventana_edad(
+        pool, anio_sujeto=2021, ventana=10
+    )
+
+    # 2 en rango < 3 → fallback
+    assert applied is False
+    assert n_age == 4  # todos con antiquity válido
+
+
+def test_filtrar_por_ventana_edad_tres_comps_en_rango():
+    """3 comps en rango → filtro ACTIVA (min_con_anio=3)."""
+    pool = [
+        {'antiquity': 5, 'valor_m2': 1500},    # 2021
+        {'antiquity': 8, 'valor_m2': 1400},    # 2018
+        {'antiquity': 10, 'valor_m2': 1300},   # 2016
+        {'antiquity': 50, 'valor_m2': 1000},   # 1976 (fuera)
+        {'antiquity': 55, 'valor_m2': 900},    # 1971 (fuera)
+    ]
+
+    pool_final, applied, n_age, a_min, a_max = _filtrar_por_ventana_edad(
+        pool, anio_sujeto=2021, ventana=10
+    )
+
+    assert applied is True
+    assert n_age == 3  # ant 5,8,10

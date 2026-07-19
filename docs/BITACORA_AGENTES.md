@@ -1,6 +1,23 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-07-19 — TAREA-139: Fix umbral min_con_anio en filtro ±10
+
+### Contexto
+El filtro ±10 años de TAREA-138 tenía `min_con_anio=10` como umbral. Debug log de Mabel mostró que solo 4 comps estaban en rango (1988-2008), pero el umbral de 10 impedía activar el filtro. Resultado: pool completo de 133 props sin filtrar.
+
+### Cambios (código)
+1. **`parsers/mercado_inmobiliario.py:977`** — `min_con_anio=10` → `min_con_anio=3` (mínimo que el motor necesita: n_v >= 3).
+2. **`parsers/mercado_inmobiliario.py:1437`** — Call site actualizado a `min_con_anio=3`.
+3. **`tests/test_age_blend_filter.py`** — Tests actualizados para umbral=3.
+
+### Reglas de oro afectadas
+- Sin violaciones. El filtro es de selección, no de depreciación (RO-03). Se aplica AL pool del cluster (RO-08).
+
+### Resultado
+- Mabel: 4 comps en 1996-2007 (antes: 30 random de 1976-2027)
+- 64/64 tests pasan
+
 ## 2026-07-18 — TAREA-138: Filtro ±10 Años Fijo para Comparables
 
 ### Contexto

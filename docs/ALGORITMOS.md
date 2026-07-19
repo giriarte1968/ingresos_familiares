@@ -311,13 +311,13 @@ Para garantizar la auditabilidad y el seguimiento de activos en el tiempo, se im
 
 ---
 
-## 11b. Filtro ±10 Años Fijo (TAREA-138)
+## 11b. Filtro ±10 Años Fijo (TAREA-138, TAREA-139)
 
 La función `_filtrar_por_ventana_edad()` filtra comparables por una ventana FIJA de ±10 años alrededor del año del sujeto:
 
 ```
 Ventana: ±10 años (fija, sin progresión)
-Umbral:  ≥ 10 comparables en rango para activar
+Umbral:  ≥ 3 comparables en rango para activar (mínimo que el motor necesita)
 Fuente:  antiquity (Propia API) → ANIO_ACTUAL - antiquity
 Fallback: anio_estimado → anio_construccion
 ```
@@ -325,9 +325,9 @@ Fallback: anio_estimado → anio_construccion
 **Reglas:**
 1. Si no hay `anio_sujeto` → no aplica filtro.
 2. Para cada comparable, calcular año usando `antiquity` como fuente primaria (con fallback a `anio_estimado`/`anio_construccion`).
-3. Si hay <10 comparables con año válido → no aplica filtro.
+3. Si hay <3 comparables con año válido → no aplica filtro.
 4. Filtrar ±10 años alrededor de `anio_sujeto`.
-5. Si el pool filtrado tiene ≥10 comparables → retorna pool filtrado.
+5. Si el pool filtrado tiene ≥3 comparables → retorna pool filtrado.
 6. Si no → retorna pool completo (sin filtro) y muestra mensaje al usuario.
 
 **Mensaje cuando no aplica:**
@@ -336,7 +336,7 @@ Fallback: anio_estimado → anio_construccion
 **Justificación:**
 - `antiquity` es más confiable que `anio_estimado` (viene de la API de Propia, no de estimación catastral).
 - ±10 años es una ventana fija que evita contaminación de propiedades viejas con comparables nuevos.
-- El umbral de 10 asegura calidad estadística (coefficient of variation aceptable).
+- El umbral de 3 es el mínimo que el motor necesita para computar (n_v >= 3).
 - El filtro se aplica AL pool del cluster, no lo reemplaza (RO-08 se mantiene).
 - NO es depreciación (RO-03 se mantiene), es selección de comparables.
 

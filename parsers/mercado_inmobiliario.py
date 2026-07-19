@@ -974,7 +974,7 @@ def enriquecer_anio_comparable(comp, max_dist_m=30, max_dist_exacta=200):
     return None
 
 
-def _filtrar_por_ventana_edad(pool, anio_sujeto, ventana=10, min_con_anio=10):
+def _filtrar_por_ventana_edad(pool, anio_sujeto, ventana=10, min_con_anio=3):
     """
     Filtra comparables por ventana FIJA de anios alrededor del anio sujeto.
 
@@ -992,6 +992,7 @@ def _filtrar_por_ventana_edad(pool, anio_sujeto, ventana=10, min_con_anio=10):
         (pool_filtrado, age_filter_applied, n_age_filtered, anio_min, anio_max)
     """
     if not anio_sujeto:
+        print(f"[DEBUG-AGE-FILTER] anio_sujeto=None, sin filtro")
         return pool, False, 0, 0, 0
 
     ANIO_ACTUAL = datetime.now().year
@@ -1008,7 +1009,10 @@ def _filtrar_por_ventana_edad(pool, anio_sujeto, ventana=10, min_con_anio=10):
             p['_anio_construccion_calc'] = p['anio_construccion']
             pool_con_anio.append(p)
 
+    print(f"[DEBUG-AGE-FILTER] anio_sujeto={anio_sujeto}, pool_total={len(pool)}, pool_con_anio={len(pool_con_anio)}, min_con_anio={min_con_anio}")
+
     if len(pool_con_anio) < min_con_anio:
+        print(f"[DEBUG-AGE-FILTER] pool_con_anio < min ({len(pool_con_anio)} < {min_con_anio}), sin filtro")
         return pool, False, len(pool_con_anio), 0, 0
 
     anio_min = anio_sujeto - ventana
@@ -1019,9 +1023,13 @@ def _filtrar_por_ventana_edad(pool, anio_sujeto, ventana=10, min_con_anio=10):
         if anio_min <= p['_anio_construccion_calc'] <= anio_max
     ]
 
+    print(f"[DEBUG-AGE-FILTER] ventana=[{anio_min},{anio_max}], pool_age_filtered={len(pool_age_filtered)}, min_con_anio={min_con_anio}")
+
     if len(pool_age_filtered) >= min_con_anio:
+        print(f"[DEBUG-AGE-FILTER] FILTRO APLICADO: {len(pool_age_filtered)} comps en ±{ventana} años")
         return pool_age_filtered, True, len(pool_age_filtered), anio_min, anio_max
 
+    print(f"[DEBUG-AGE-FILTER] pool_age_filtered < min ({len(pool_age_filtered)} < {min_con_anio}), fallback a pool completo")
     return pool, False, len(pool_con_anio), 0, 0
 
 
@@ -1433,8 +1441,27 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
 
         # --- Filtro de edad FIJO ±10 años (TAREA-138) ---
         # basado en antiquity (Propia API) como fuente primaria
+        print(f"[DEBUG-AGE-FILTER-CALL] anio_sujeto={anio_sujeto}, unicos={len(unicos)}, dormitorios={dormitorios}")
+        # Debug: show first 5 comps' age data
+        for i, p in enumerate(unicos[:5]):
+            ant = p.get('antiquity')
+            ae = p.get('anio_estimado')
+            ac = p.get('anio_construccion')
+            print(f"[DEBUG-AGE-FILTER-CALL] comp[{i}]: antiquity={ant}, anio_estimado={ae}, anio_construccion={ac}")
         pool_final, age_filter_applied, n_age_filtered, anio_min_filtro, anio_max_filtro = \
-            _filtrar_por_ventana_edad(unicos, anio_sujeto, ventana=10, min_con_anio=10)
+            _filtrar_por_ventana_edad(unicos, anio_sujeto, ventana=10, min_con_anio=3)
+        print(f"[DEBUG-AGE-FILTER-RESULT] age_filter_applied={age_filter_applied}, pool_final={len(pool_final)}, n_age_filtered={n_age_filtered}")
+        if pool_final and len(pool_final) > 0:
+            sample_years = []
+            for p in pool_final[:5]:
+                ant = p.get('antiquity')
+                if ant is not None and ant >= 0:
+                    sample_years.append(2026 - ant)
+                elif p.get('anio_estimado'):
+                    sample_years.append(p['anio_estimado'])
+                elif p.get('anio_construccion'):
+                    sample_years.append(p['anio_construccion'])
+            print(f"[DEBUG-AGE-FILTER-RESULT] sample years from pool_final: {sample_years}")
 
         # Resolver macrozona para size adjustment
         macrozona_id = None
@@ -3237,6 +3264,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
     # 1. Valuación VPP Híbrida v10.1 (Calibrada)
     dorms = prop.get('dormitorios', 2)
     anio_const = prop.get('anio_construccion', 2020)
+    print(f"[DEBUG-AGE-PROP] prop={prop.get('nombre','?')}, anio_construccion={prop.get('anio_construccion')}, antiguedad={prop.get('antiguedad')}, anio_const={anio_const}")
     
     # Encontrar ancla por coordenadas (v11.2) o por zona (fallback)
     valor_ancla_geo = 1500  # default
