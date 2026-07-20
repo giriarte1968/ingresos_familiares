@@ -978,13 +978,13 @@ def _filtrar_por_ventana_edad(pool, anio_sujeto, ventana=10, min_con_anio=3):
     """
     Filtra comparables por ventana FIJA de anios alrededor del anio sujeto.
 
-    Usa 'antiquity' (edad en anios desde Propia API) como fuente primaria,
-    con fallback a 'anio_estimado' (catastro) y 'anio_construccion'.
+    Usa 'antiquity' (edad en anios desde Propia API) como UNICA fuente de año.
+    Props sin antiquity válido (antiquity < 0 o None) son excluidas del filtro.
 
     Reglas:
     - Si no hay anio_sujeto → no aplica filtro, retorna pool completo.
-    - Si hay menos de min_con_anio (10) con anio valido → no aplica filtro.
-    - Filtra ±ventana (10) anios usando ANIO_ACTUAL - antiquity como anio.
+    - Si hay menos de min_con_anio con antiquity válido → no aplica filtro.
+    - Filtra ±ventana anios usando ANIO_ACTUAL - antiquity como anio.
     - Si el pool filtrado tiene >= min_con_anio → retorna pool filtrado.
     - Si no → retorna pool completo (sin filtro).
 
@@ -1000,12 +1000,6 @@ def _filtrar_por_ventana_edad(pool, anio_sujeto, ventana=10, min_con_anio=3):
         ant = p.get('antiquity')
         if ant is not None and ant >= 0:
             p['_anio_construccion_calc'] = ANIO_ACTUAL - ant
-            pool_con_anio.append(p)
-        elif p.get('anio_estimado'):
-            p['_anio_construccion_calc'] = p['anio_estimado']
-            pool_con_anio.append(p)
-        elif p.get('anio_construccion'):
-            p['_anio_construccion_calc'] = p['anio_construccion']
             pool_con_anio.append(p)
 
     if len(pool_con_anio) < min_con_anio:
@@ -1408,28 +1402,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 seen.add(key)
                 unicos.append(p)
         
-        # FASE 1: Enriquecer pool con año del catastro (solo informativo)
-        n_enriquecidos_alta = 0
-        n_enriquecidos_media = 0
-
-        for comp in unicos:
-            if comp.get('anio_construccion') or comp.get('anio_estimado'):
-                continue
-            enriq = enriquecer_anio_comparable(comp)
-            if enriq:
-                comp['anio_estimado'] = enriq['anio_estimado']
-                comp['anio_confianza'] = enriq['confianza']
-                comp['anio_ph_match'] = enriq['ph_match']
-                comp['anio_distancia_match'] = enriq['distancia_m']
-
-                if enriq['confianza'] == 'ALTA':
-                    n_enriquecidos_alta += 1
-                elif enriq['confianza'] == 'MEDIA':
-                    n_enriquecidos_media += 1
-
         total_pool = len(unicos)
-        n_enriq_total = n_enriquecidos_alta + n_enriquecidos_media
-        pct_enriq = (n_enriq_total / total_pool * 100) if total_pool else 0
 
         # --- Filtro de edad FIJO ±10 años (TAREA-138) ---
         # basado en antiquity (Propia API) como fuente primaria
@@ -1678,11 +1651,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             'p75_cluster': round(p75_cluster, 2) if p75_cluster is not None else None,
             # Fuente del rango
             'fuente_rango': fuente_rango,
-            # Enriquecimiento Fase 1 (catastro)
             'n_comparables_total': total_pool,
-            'n_con_anio_alta': n_enriquecidos_alta,
-            'n_con_anio_media': n_enriquecidos_media,
-            'pct_con_anio': round(pct_enriq, 1),
             # CV del pool (calidad de comparables)
             'cv_pool': round(_cv_pool, 4) if _cv_pool is not None else None,
             # Comparables reales (muestra de hasta 30/60)

@@ -118,30 +118,20 @@ def test_filtrar_por_ventana_edad_antiquity_zero():
     assert n_age == 10  # ant 0,2,4,6,8,10,12,14,15,15
 
 
-def test_filtrar_por_ventana_edad_fallback_anio_estimado():
-    """Cuando no hay antiquity, usa anio_estimado como fallback."""
+def test_filtrar_por_ventana_edad_sin_antiquity():
+    """Sin antiquity válido → no aplica filtro, retorna pool completo."""
     pool = [
-        {'anio_estimado': 2010, 'valor_m2': 1000},
-        {'anio_estimado': 2012, 'valor_m2': 1100},
-        {'anio_estimado': 2015, 'valor_m2': 1200},
-        {'anio_estimado': 2018, 'valor_m2': 1300},
-        {'anio_estimado': 2020, 'valor_m2': 1400},
-        {'anio_estimado': 2022, 'valor_m2': 1500},
-        {'anio_estimado': 2024, 'valor_m2': 1600},
-        {'anio_estimado': 2025, 'valor_m2': 1700},
-        {'anio_estimado': 2008, 'valor_m2': 1800},
-        {'anio_estimado': 2014, 'valor_m2': 1900},
-        {'anio_estimado': 2016, 'valor_m2': 2000},
-        {'anio_estimado': 1980, 'valor_m2': 2500},  # OUTSIDE
+        {'valor_m2': 1000},
+        {'valor_m2': 1100},
+        {'valor_m2': 1200},
     ]
 
-    # anio_sujeto=2016, ventana ±10: [2006, 2026]
     pool_final, applied, n_age, a_min, a_max = _filtrar_por_ventana_edad(
         pool, anio_sujeto=2016, ventana=10
     )
 
-    assert applied is True
-    assert n_age == 11  # anio_estimado 2008-2025
+    assert applied is False
+    assert len(pool_final) == 3
 
 
 def test_filtrar_por_ventana_edad_pool_vacio():
