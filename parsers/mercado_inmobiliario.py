@@ -1625,6 +1625,8 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             'percentil_usado': percentil_usado,
             'n_raw': n_raw,
             'n_filtradas': n_filtradas,
+            'n_pool_total': len(pool_final),
+            'n_mostrados': len(comparables_reales),
             'radio_usado': radio_usado,
             'fecha_ref': fecha_ref,
             'operacion': operacion,

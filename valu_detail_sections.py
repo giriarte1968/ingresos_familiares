@@ -214,10 +214,11 @@ def render_header(prop, res):
     v_auto = auto_result.get('valor_propiedad_usd', 0) if auto_result else 0
     v_manual = manual_result.get('valor_propiedad_usd', 0) if manual_result else 0
     n_comps_auto = (auto_result.get('resolution_metadata') or {}).get('n_propiedades', 0) if auto_result else 0
+    n_total_auto = (auto_result.get('resolution_metadata') or {}).get('n_pool_total', n_comps_auto) if auto_result else n_comps_auto
     dolar_auto = auto_result.get('usdt_ars', dolar) if auto_result else dolar
     m2_micro_auto = (auto_result.get('m2_microzona', auto_result.get('m2_base_venta', 0))
                      if auto_result else 0)
-    m2_line_auto = f"m²/USD en {zona}: ${m2_micro_auto:,.0f} ({n_comps_auto} comp.)" if m2_micro_auto > 0 else "—"
+    m2_line_auto = f"m²/USD en {zona}: ${m2_micro_auto:,.0f} ({n_total_auto} comp.)" if m2_micro_auto > 0 else "—"
     # Componentes de fórmula SIEMPRE desde auto_result (no display)
     auto_m2_equiv = auto_result.get("m2_equivalentes", 0) if auto_result else 0
     auto_size_discount = auto_result.get("size_discount", 1.0) if auto_result else 1.0
@@ -289,6 +290,12 @@ def render_header(prop, res):
     # ─── Property info card ───
     dot = '#16A34A' if n_comps >= 15 else '#F59E0B' if n_comps >= 8 else '#DC2626'
     conf = 'Alta confianza' if n_comps >= 15 else 'Confianza media' if n_comps >= 8 else 'Confianza baja'
+    n_total = (auto_result.get('resolution_metadata') or {}).get('n_pool_total', n_comps) if auto_result else n_comps
+    n_mostr = (auto_result.get('resolution_metadata') or {}).get('n_mostrados', n_comps) if auto_result else n_comps
+    if n_total > n_mostr:
+        count_str = f"({n_total} comparables, {n_mostr} en pantalla)"
+    else:
+        count_str = f"({n_comps} comparables)"
     st.markdown(f"""
     <div style="background:white;border-radius:16px;padding:28px;box-shadow:0 4px 12px rgba(0,0,0,0.08);">
         <div style="margin-bottom:12px;">
@@ -301,7 +308,7 @@ def render_header(prop, res):
         <div style="display:flex;align-items:center;margin-top:20px;">
             <span style="width:12px;height:12px;border-radius:50%;background:{dot};margin-right:8px;"></span>
             <span style="color:#1A2B5C;font-weight:600;font-size:14px;">{conf}</span>
-            <span style="color:#9CA3AF;font-size:14px;margin-left:8px;">({n_comps} comparables)</span>
+            <span style="color:#9CA3AF;font-size:14px;margin-left:8px;">{count_str}</span>
         </div>
     </div>
     """, unsafe_allow_html=True)

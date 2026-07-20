@@ -530,7 +530,11 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         es_pendiente = res.get('error') == 'pendiente'
         if not es_pendiente:
             with st.expander(f"Detalle de Comparables — {prop_name}", expanded=False):
-                st.caption(f"{n_comps} propiedades comparables")
+                n_total = res.get('resolution_metadata', {}).get('n_pool_total', n_comps)
+                if n_total > n_comps:
+                    st.caption(f"{n_comps} de {n_total} comparables (muestra)")
+                else:
+                    st.caption(f"{n_total} propiedades comparables")
                 render_tabla_comparables({**res, 'comparables_venta': comparables}, prop_name=prop_name)
             _dl.mark("after_render_tabla_comparables")
 
