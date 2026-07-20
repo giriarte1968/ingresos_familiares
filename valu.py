@@ -896,14 +896,6 @@ def mostrar_dashboard():
                                 st.session_state[retro_slider_key] = retro_dias
                                 print(f"[DEBUG-RETRO-FALLBACK] {prop_name}: restaurado slider retro={retro_dias}")
                         flex_active = st.session_state.get(f'flex_active_{prop_name}', False)
-                        # Restore flex from UV if session state was lost (Editar→Cancelar)
-                        if not flex_active:
-                            uv_flex = p_obj.get('_ultima_valuacion', {}).get('flex_dormitorios')
-                            if uv_flex is not None:
-                                flex_active = True
-                                st.session_state[f'flex_active_{prop_name}'] = True
-                                st.session_state[f'flex_dormitorios_{prop_name}'] = uv_flex
-                                print(f"[DEBUG-FLEX-FALLBACK] {prop_name}: restaurado desde UV — flex_dormitorios={uv_flex}")
                         flex_dormitorios = st.session_state.get(f'flex_dormitorios_{prop_name}', [1, 2, 3, 4, 5]) if flex_active else None
                     usar_cache = False
                     uv_pre = p_obj.get('_ultima_valuacion', {})
