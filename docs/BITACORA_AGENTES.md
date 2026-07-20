@@ -1,6 +1,45 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-07-20 — TAREA-140: Transparencia en cantidad de comparables
+
+### Contexto
+Cuando el motor retorna más comparables de los que muestra en pantalla (ej: 300 totales, 60 en pantalla), la UI no informaba esta diferencia. El usuario veía "60 comparables" sin saber que la valuación se calculó con 300.
+
+### Cambios
+1. **`parsers/mercado_inmobiliario.py:1626`** — Agregados `n_pool_total` y `n_mostrados` al meta dict retornado por `obtener_mediana_cluster_v2()`.
+2. **`valu.py:533`** — Caption sobre tabla de comparables ahora muestra "X de Y comparables (muestra)" cuando hay truncamiento.
+3. **`valu_detail_sections.py:304`** — Property card header muestra "(total comparables, mostrados en pantalla)".
+4. **`valu_detail_sections.py:220`** — Auto card m² line muestra total de comparables.
+
+### Reglas de oro afectadas
+- Sin violaciones. Solo se agregan metadatos al dict existente. No se modifica lógica de cálculo.
+
+### Resultado
+- 64/64 tests pasan
+- Validación automática OK
+- UI informa transparencia cuando pool > mostrados
+
+---
+
+## 2026-07-20 — Fix: "Sin Valor" en preview cuando n_comps < 3
+
+### Contexto
+Cuando pool tiene < 3 comparables (insuficiente para cálculo), `render_disk_summary_card()` mostraba la UV guardada en disco (potencialmente de un cálculo anterior). Resultado: m²=160 incorrecto visible en el preview.
+
+### Cambios
+1. **`valu_detail_sections.py:310`** — `render_disk_summary_card()` ahora recibe `insuficientes=False`. Cuando True, muestra "Sin Valor" en vez de la UV guardada.
+2. **`valu.py:360`** — Call site pasa `insuficientes=insuficientes` al render.
+
+### Reglas de oro afectadas
+- Sin violaciones. Cambio UI puro, no afecta lógica de valuación.
+
+### Resultado
+- 64/64 tests pasan
+- Validación automática OK
+
+---
+
 ## 2026-07-19 — TAREA-139: Fix umbral min_con_anio en filtro ±10
 
 ### Contexto

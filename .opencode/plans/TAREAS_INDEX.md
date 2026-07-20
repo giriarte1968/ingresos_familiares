@@ -107,3 +107,4 @@
 | TAREA-137 | Fix header vacío post-Limpiar: guard pendiente no persiste como official (RO-CLEAN-03) | _(current)_ | 2026-07-14 |
 | TAREA-138 | Filtro ±10 años fijo para comparables (usa antiquity como fuente primaria) | _(pending)_ | 2026-07-18 |
 | TAREA-139 | Fix umbral min_con_anio: 10→3 (mínimo que el motor necesita) | _(pending)_ | 2026-07-19 |
+| TAREA-140 | Transparencia en cantidad de comparables (muestra vs pool total) | `f690059` | 2026-07-20 |
