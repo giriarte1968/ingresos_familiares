@@ -307,7 +307,7 @@ def render_header(prop, res):
     """, unsafe_allow_html=True)
 
 
-def render_disk_summary_card(prop):
+def render_disk_summary_card(prop, insuficientes=False):
     """Tarjeta full-width que muestra la última valuación guardada en disco (_ultima_valuacion).
     Solo para valuación por comparables (auto). No toca session state.
     Lee directamente de propiedades.json para evitar stale data del ciclo de render."""
@@ -335,7 +335,10 @@ def render_disk_summary_card(prop):
     activos_total = uv.get('valor_activos_total', 0)
     fecha = uv.get('fecha', '')
 
-    if auto_valor > 0:
+    if insuficientes:
+        meta_line = "Sin Valor"
+        formula_line = "Comparables insuficientes para calcular"
+    elif auto_valor > 0:
         valor_str = f"${auto_valor:,.0f}"
         comps_str = f"{comps} comp." if comps else "—"
         m2_str = f"{m2_equiv:.1f} m²" if m2_equiv else "—"

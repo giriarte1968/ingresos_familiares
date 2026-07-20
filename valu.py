@@ -357,7 +357,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         render_header(prop, header_res)
     _dl.mark("after_render_header")
 
-    render_disk_summary_card(prop)
+    render_disk_summary_card(prop, insuficientes=insuficientes)
     render_manual_valuation_card(prop)
 
     st.markdown("<br>", unsafe_allow_html=True)
