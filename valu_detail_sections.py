@@ -722,7 +722,7 @@ def render_tabla_comparables(res, prop_name=None):
             meta = res.get('resolution_metadata', {})
             preview = {'vm2': vm2_micro, 'n_sel': n_sel, 'fallback': False,
                        'percentil_label': 'Motor', 'cv': meta.get('cv_pool', 0)}
-        elif len(selected_comps) >= 2:
+        elif len(selected_comps) >= 3:
             preview = calcular_vm2_por_seleccion(selected_comps, res)
         else:
             preview = None
