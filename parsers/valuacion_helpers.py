@@ -192,12 +192,13 @@ def ensamblar_metadata_resolucion(
         Dict 'resolution_metadata' completo
     """
     radio_usado = meta_venta.get('radio_usado')
+    percentil = meta_venta.get('percentil_usado', 'P33')
 
     if radio_usado:
         resolution = 'GEO'
-        if n_v >= 15:
+        if percentil == 'P50':
             confidence = 'ALTA'
-        elif n_v >= 8:
+        elif percentil in ('P45', 'P40'):
             confidence = 'MEDIA'
         else:
             confidence = 'BAJA'

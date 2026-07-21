@@ -288,8 +288,10 @@ def render_header(prop, res):
         st.warning(staleness_msg)
 
     # ─── Property info card ───
-    dot = '#16A34A' if n_comps >= 15 else '#F59E0B' if n_comps >= 8 else '#DC2626'
-    conf = 'Alta confianza' if n_comps >= 15 else 'Confianza media' if n_comps >= 8 else 'Confianza baja'
+    _meta = (auto_result.get('resolution_metadata') or {}) if auto_result else {}
+    _percentil = _meta.get('percentil_usado', 'P33')
+    dot = '#16A34A' if _percentil == 'P50' else '#F59E0B' if _percentil in ('P45', 'P40') else '#DC2626'
+    conf = 'Alta confianza' if _percentil == 'P50' else 'Confianza media' if _percentil in ('P45', 'P40') else 'Confianza baja'
     n_total = (auto_result.get('resolution_metadata') or {}).get('n_pool_total', n_comps) if auto_result else n_comps
     n_mostr = (auto_result.get('resolution_metadata') or {}).get('n_mostrados', n_comps) if auto_result else n_comps
     if n_total > n_mostr:

@@ -1260,8 +1260,9 @@ def mostrar_dashboard_propiedades(props, resultados):
                 cap = resultado.get('cap_rate', 0)
                 alq = resultado.get('alquiler_estimado_ars', 0)
                 n_comps = resultado.get('resolution_metadata', {}).get('n_propiedades', 0)
+                percentil = resultado.get('resolution_metadata', {}).get('percentil_usado', 'P33')
 
-                confianza_color = "🟢" if n_comps >= 15 else "🟡" if n_comps >= 8 else "🔴"
+                confianza_color = "🟢" if percentil == 'P50' else "🟡" if percentil in ('P45', 'P40') else "🔴"
 
                 with col:
                     # Card con estilo hover
@@ -1321,7 +1322,8 @@ def mostrar_detalle(prop, resultado, guardarin_propiedades_fn=None):
     
     # === HEADER ===
     n_comps = resultado.get('resolution_metadata', {}).get('n_propiedades', 0)
-    confianza = "ALTA" if n_comps >= 15 else "MEDIA" if n_comps >= 8 else "BAJA"
+    percentil = resultado.get('resolution_metadata', {}).get('percentil_usado', 'P33')
+    confianza = "ALTA" if percentil == 'P50' else "MEDIA" if percentil in ('P45', 'P40') else "BAJA"
     color = "🟢" if confianza == "ALTA" else "🟡" if confianza == "MEDIA" else "🔴"
 
     st.markdown(f"""

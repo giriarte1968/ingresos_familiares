@@ -146,10 +146,18 @@ def test_alquiler_roi_por_zona():
 # ─── TESTS ensamblar_metadata_resolucion ───
 
 def test_metadata_confianza_alta():
-    """Con n=20 y radio, debe dar ALTA."""
-    meta = {'radio_usado': 300, 'percentil_usado': 'P50_age', 'zona_resolucion': 'Centro'}
+    """Con radio y percentil P50, debe dar ALTA."""
+    meta = {'radio_usado': 300, 'percentil_usado': 'P50', 'zona_resolucion': 'Centro'}
     res = ensamblar_metadata_resolucion(meta, n_v=20, zona_txt='Centro')
     assert res['confidence'] == 'ALTA'
+    assert res['resolution'] == 'GEO'
+
+
+def test_metadata_confianza_media():
+    """Con radio y percentil P45, debe dar MEDIA."""
+    meta = {'radio_usado': 300, 'percentil_usado': 'P45', 'zona_resolucion': 'Martin'}
+    res = ensamblar_metadata_resolucion(meta, n_v=8, zona_txt='Martin')
+    assert res['confidence'] == 'MEDIA'
     assert res['resolution'] == 'GEO'
 
 
@@ -177,15 +185,12 @@ def test_metadata_sin_datos():
 
 def test_metadata_campos_completos():
     """Debe incluir todos los campos requeridos."""
-    meta = {'radio_usado': 500, 'percentil_usado': 'P45_age',
+    meta = {'radio_usado': 500, 'percentil_usado': 'P45',
             'zona_resolucion': 'Sexta', 'n_comparables_total': 30,
             'n_con_anio_alta': 25, 'pct_con_anio': 83.3,
-            'age_filter_applied': True, 'n_age_filtered': 16,
-            'age_window': '+/-15 years', 'rango_anio_usado': '1987-2017',
             'comparables_reales': [], 'fuente_rango': 'cluster_v2'}
     res = ensamblar_metadata_resolucion(meta, n_v=16, zona_txt='Sexta')
     assert res['n_propiedades'] == 16
-    assert res['percentil_usado'] == 'P45_age'
+    assert res['percentil_usado'] == 'P45'
     assert res['n_con_anio_alta'] == 25
-    assert res['age_filter_applied'] is True
-    assert res['n_age_filtered'] == 16
+    assert res['confidence'] == 'MEDIA'

@@ -127,10 +127,10 @@ def render_header(prop, res):
     nombre = prop.get('nombre', '')
     zona = prop.get('zona', 'Oeste')
     meta = res.get('resolution_metadata', {})
-    n_comps = meta.get('n_propiedades', 0)
+    percentil = meta.get('percentil_usado', 'P33')
 
-    dot = '#16A34A' if n_comps >= 15 else '#F59E0B' if n_comps >= 8 else '#DC2626'
-    conf = 'Alta confianza' if n_comps >= 15 else 'Confianza media' if n_comps >= 8 else 'Confianza baja'
+    dot = '#16A34A' if percentil == 'P50' else '#F59E0B' if percentil in ('P45', 'P40') else '#DC2626'
+    conf = 'Alta confianza' if percentil == 'P50' else 'Confianza media' if percentil in ('P45', 'P40') else 'Confianza baja'
     st.markdown(f"""
     <div style="background:white;border-radius:16px;padding:28px;box-shadow:0 4px 12px rgba(0,0,0,0.08);">
         <div style="margin-bottom:12px;">

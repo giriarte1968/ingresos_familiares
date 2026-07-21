@@ -32,7 +32,7 @@ def _calcular_mediana(precios):
 
 
 def _calcular_percentil_linear(precios, q):
-    """Pure Python percentile con interpolación lineal - equivalente a _calcular_percentil_linear(..., q)."""
+    """Pure Python percentile con interpolacion lineal - equivalente a _calcular_percentil_linear(..., q)."""
     if not precios:
         return 0.0
     s = sorted(precios)
@@ -46,6 +46,29 @@ def _calcular_percentil_linear(precios, q):
         return float(s[-1])
     frac = idx - lo
     return float(s[lo] * (1 - frac) + s[hi] * frac)
+
+
+def _mapear_confianza(percentil_usado):
+    """
+    Mapea percentil del motor a etiqueta de confianza (estandar industria).
+
+    Basado en Freddie Mac FSD y IAAO COV:
+    - P50: pool grande y homogeneo (n>=10, CV<25%) -> ALTA
+    - P45/P40: pool bueno/aceptable -> MEDIA
+    - P33: pool limitado -> BAJA
+
+    Args:
+        percentil_usado: String como 'P50', 'P45', 'P40', 'P33'
+
+    Returns:
+        'alta', 'media', o 'baja'
+    """
+    if percentil_usado == 'P50':
+        return 'alta'
+    elif percentil_usado in ('P45', 'P40'):
+        return 'media'
+    else:
+        return 'baja'
 
 
 def _precio_ajustado(c, macrozona_id=None):
@@ -978,15 +1001,15 @@ def _filtrar_por_ventana_edad(pool, anio_sujeto, ventana=10, min_con_anio=3):
     """
     Filtra comparables por ventana FIJA de anios alrededor del anio sujeto.
 
-    Usa 'antiquity' (edad en anios desde Propia API) como UNICA fuente de año.
-    Props sin antiquity válido (antiquity < 0 o None) son excluidas del filtro.
+    Usa 'antiquity' (edad en anios desde Propia API) como UNICA fuente de anio.
+    Props sin antiquity valido (antiquity < 0 o None) son excluidas del filtro.
 
     Reglas:
-    - Si no hay anio_sujeto → no aplica filtro, retorna pool completo.
-    - Si hay menos de min_con_anio con antiquity válido → no aplica filtro.
-    - Filtra ±ventana anios usando ANIO_ACTUAL - antiquity como anio.
-    - Si el pool filtrado tiene >= min_con_anio → retorna pool filtrado.
-    - Si no → retorna pool completo (sin filtro).
+    - Si no hay anio_sujeto -> no aplica filtro, retorna pool completo.
+    - Si hay menos de min_con_anio con antiquity valido -> no aplica filtro.
+    - Filtra +/-ventana anios usando ANIO_ACTUAL - antiquity como anio.
+    - Si el pool filtrado tiene >= min_con_anio -> retorna pool filtrado.
+    - Si no -> retorna pool completo (sin filtro).
 
     Returns:
         (pool_filtrado, age_filter_applied, n_age_filtered, anio_min, anio_max)
@@ -3205,10 +3228,9 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
     # Actualizamos el diccionario prop para que calcular_factores use la dinámica
     prop['antiguedad'] = antiguedad_dinamica 
     
-    # 1. Valuación VPP Híbrida v10.1 (Calibrada)
+    # 1. Valuacion VPP Hibrida v10.1 (Calibrada)
     dorms = prop.get('dormitorios', 2)
     anio_const = prop.get('anio_construccion', 2020)
-    print(f"[DEBUG-AGE-PROP] prop={prop.get('nombre','?')}, anio_construccion={prop.get('anio_construccion')}, antiguedad={prop.get('antiguedad')}, anio_const={anio_const}")
     
     # Encontrar ancla por coordenadas (v11.2) o por zona (fallback)
     valor_ancla_geo = 1500  # default
@@ -3700,7 +3722,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
         'm2_equivalentes': m2_equiv,
         'justificacion': justificacion,
         'rango_m2': f"USD {rango_venta['min']:,} - {rango_venta['max']:,}",
-        'confianza': 'alta' if n_v > 10 else 'media',
+        'confianza': _mapear_confianza(meta_venta.get('percentil_usado', 'P33')),
         'nlp_detecciones': [],
         'nlp_ajuste_pct': 0.0,
         'plusvalia_ciclo_usd': round(plusvalia_ciclo_usd, 0),
