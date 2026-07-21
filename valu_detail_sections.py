@@ -617,6 +617,8 @@ def render_tabla_comparables(res, prop_name=None):
         st.caption("Sin comparables disponibles")
         return
 
+    comparables = sorted(comparables, key=lambda c: c.get('precio', 0))
+
     # 1. Determinar estado de selección actual para controlar visibilidad de botones
     sel_key = f'comp_selection_{prop_name}'
     comp_ids = [_get_comp_id(c) for c in comparables]
@@ -665,6 +667,16 @@ def render_tabla_comparables(res, prop_name=None):
 
 
 
+    # Calcular mediana para highlight
+    precios_m2 = [c.get('precio_m2', 0) * c.get('time_adjustment', 1.0) for c in comparables]
+    precios_m2_sorted = sorted(precios_m2)
+    n_p = len(precios_m2_sorted)
+    if n_p % 2 == 1:
+        vm2_mediana = precios_m2_sorted[n_p // 2]
+    else:
+        vm2_mediana = (precios_m2_sorted[n_p // 2 - 1] + precios_m2_sorted[n_p // 2]) / 2
+    idx_mediana = min(range(n_p), key=lambda i: abs(precios_m2[i] - vm2_mediana))
+
     # Cabecera de la tabla
     hdr = st.columns([0.4, 0.5, 1.5, 0.8, 1.5, 0.6, 0.9, 2, 0.7, 0.6])
     hdr_labels = ['', '#', 'Precio USD', 'm²', 'Precio/m²', 'Dorm', 'Publicado', 'Dirección', 'Año', 'Dist']
@@ -675,6 +687,9 @@ def render_tabla_comparables(res, prop_name=None):
     for i, c in enumerate(comparables):
         comp_id = comp_ids[i]
         cols = st.columns([0.4, 0.5, 1.5, 0.8, 1.5, 0.6, 0.9, 2, 0.7, 0.6])
+
+        _is_med = (i == idx_mediana)
+        _bg = "background-color:#ffe0e0;padding:1px 4px;border-radius:3px;" if _is_med else ""
 
         # Sincronizar checkbox con stored_sel antes de crear widget
         chk_key = f'sel_comp_{prop_name}_{comp_id}'
@@ -689,32 +704,51 @@ def render_tabla_comparables(res, prop_name=None):
             if comp_id in stored_sel:
                 stored_sel.remove(comp_id)
 
-        cols[1].write(str(i+1))
-        cols[2].write(f"${c.get('precio', 0):,.0f}")
-        cols[3].write(f"{c.get('m2', 0):.0f}")
+        _style = f" style='{_bg}'" if _bg else ""
+        if _is_med:
+            cols[1].markdown(f"<span style='{_bg}'>{i+1}</span>", unsafe_allow_html=True)
+            cols[2].markdown(f"<span style='{_bg}'>${c.get('precio', 0):,.0f}</span>", unsafe_allow_html=True)
+            cols[3].markdown(f"<span style='{_bg}'>{c.get('m2', 0):.0f}</span>", unsafe_allow_html=True)
+        else:
+            cols[1].write(str(i+1))
+            cols[2].write(f"${c.get('precio', 0):,.0f}")
+            cols[3].write(f"{c.get('m2', 0):.0f}")
         # Precio/m2 con badges
         ta = c.get('time_adjustment', 1.0)
         bp = c.get('barrier_penalty', 1.0)
         vm2_orig = c.get('precio_m2', 0)
         vm2_ajust = c.get('precio_m2_ajustado', vm2_orig * ta)
         badges = ""
+        if _is_med:
+            badges += " <span style='background:#e74c3c;color:white;font-size:9px;padding:1px 4px;border-radius:6px;font-weight:bold;'>MED</span>"
         if ta != 1.0:
             badges += " <span style='background:#ff6b35;color:white;font-size:9px;padding:1px 4px;border-radius:6px;font-weight:bold;'>RETRO</span>"
         if badges:
-            cols[4].markdown(f"<span style='font-weight:bold'>${vm2_ajust:,.0f}</span>{badges}", unsafe_allow_html=True)
+            _vm2_style = f"color:#e74c3c;font-weight:bold" if _is_med else "font-weight:bold"
+            cols[4].markdown(f"<span style='{_vm2_style}'>${vm2_ajust:,.0f}</span>{badges}", unsafe_allow_html=True)
         else:
-            cols[4].markdown(f"<span style='color:#2ecc71;font-weight:bold'>${vm2_orig:,.0f}</span>", unsafe_allow_html=True)
-        cols[5].write(str(c.get('dormitorios', '?')))
-        cols[6].write(str((c.get('date_created') or '')[:10]) if c.get('date_created') else '')
-        cols[7].write(((c.get('direccion_limpia') or c.get('direccion','')) or '')[:35])
+            _vm2_style = f"color:#e74c3c;font-weight:bold" if _is_med else "color:#2ecc71;font-weight:bold"
+            cols[4].markdown(f"<span style='{_vm2_style}'>${vm2_orig:,.0f}</span>", unsafe_allow_html=True)
+        if _is_med:
+            cols[5].markdown(f"<span style='{_bg}'>{c.get('dormitorios', '?')}</span>", unsafe_allow_html=True)
+            cols[6].markdown(f"<span style='{_bg}'>{str((c.get('date_created') or '')[:10]) if c.get('date_created') else ''}</span>", unsafe_allow_html=True)
+            cols[7].markdown(f"<span style='{_bg}'>{((c.get('direccion_limpia') or c.get('direccion','')) or '')[:35]}</span>", unsafe_allow_html=True)
+        else:
+            cols[5].write(str(c.get('dormitorios', '?')))
+            cols[6].write(str((c.get('date_created') or '')[:10]) if c.get('date_created') else '')
+            cols[7].write(((c.get('direccion_limpia') or c.get('direccion','')) or '')[:35])
         _ant = c.get('antiquity')
         if _ant is not None and _ant >= 0:
             from datetime import datetime as _dt
             _year = _dt.now().year - _ant
         else:
             _year = None
-        cols[8].write(str(_year) if _year else '')
-        cols[9].write(f"{c.get('distancia_m', 0):.0f}m" if c.get('distancia_m') else '')
+        if _is_med:
+            cols[8].markdown(f"<span style='{_bg}'>{str(_year) if _year else ''}</span>", unsafe_allow_html=True)
+            cols[9].markdown(f"<span style='{_bg}'>{c.get('distancia_m', 0):.0f}m</span>" if c.get('distancia_m') else '', unsafe_allow_html=True)
+        else:
+            cols[8].write(str(_year) if _year else '')
+            cols[9].write(f"{c.get('distancia_m', 0):.0f}m" if c.get('distancia_m') else '')
 
 
     # Guardar selección actual

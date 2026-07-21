@@ -2028,9 +2028,11 @@ def calcular_size_adjustment(m2_equiv, macrozona_id=None, ancla_id=None):
         # Default curve for this macrozona
         adj = _interpolar_piecewise(m2_equiv, config.get("points", []))
     
-    # Guardrail: No premios para unidades chicas, EXCEPTO en subzonas premium
+    # Guardrail: No descuentos para unidades chicas (<100m²), No premios para unidades grandes
     if not is_premium_subzona:
-        return min(1.0, adj)
+        if m2_equiv < 100:
+            return max(1.0, adj)  # Nunca descuento para chicas
+        return min(1.0, adj)      # Nunca premium para grandes
         
     return adj
 
