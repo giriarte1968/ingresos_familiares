@@ -154,9 +154,9 @@ def test_filtrar_por_ventana_edad_un_solo_comp_en_rango():
         pool, anio_sujeto=2021, ventana=10
     )
 
-    # 2 en rango < 3 → fallback
-    assert applied is False
-    assert n_age == 4  # todos con antiquity válido
+    # 2 en rango < 3 → filtro SIEMPRE retorna pool filtrado (sin fallback)
+    assert applied is True
+    assert n_age == 2  # solo los 2 en rango
 
 
 def test_filtrar_por_ventana_edad_tres_comps_en_rango():

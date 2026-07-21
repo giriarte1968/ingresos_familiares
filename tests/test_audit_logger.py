@@ -24,7 +24,7 @@ def test_valuacion_retiene_audit_log():
         'ventilacion': 'simple', 'piso': 5, 'total_pisos': 10,
         'vista': 'frente', 'ubicacion_tipo': 'calle', 'gas_ok': 'si',
     }
-    r = valuar_propiedad_v7(prop, fecha_ref='2026-04')
+    r = valuar_propiedad_v7(prop, fecha_ref='2026-04', retro_dias=90)
     assert 'audit_log' in r, "El resultado debe contener audit_log"
     assert isinstance(r['audit_log'], dict), "audit_log debe ser un dict"
 
@@ -41,7 +41,7 @@ def test_audit_log_campos_minimos():
         'ventilacion': 'cruzada', 'piso': 3, 'total_pisos': 8,
         'vista': 'frente', 'ubicacion_tipo': 'calle', 'gas_ok': 'si',
     }
-    r = valuar_propiedad_v7(prop, fecha_ref='2026-04')
+    r = valuar_propiedad_v7(prop, fecha_ref='2026-04', retro_dias=90)
     audit = r['audit_log']
     
     secciones = ['propiedad', 'superficies', 'cluster_venta', 'factores', 'venta', 'alquiler', 'final']
@@ -76,7 +76,7 @@ def test_audit_log_valores_consistentes():
         'ventilacion': 'simple', 'piso': 5, 'total_pisos': 10,
         'vista': 'frente', 'ubicacion_tipo': 'calle', 'gas_ok': 'si',
     }
-    r = valuar_propiedad_v7(prop, fecha_ref='2026-04')
+    r = valuar_propiedad_v7(prop, fecha_ref='2026-04', retro_dias=90)
     audit = r['audit_log']
     
     assert r['valor_propiedad_usd'] == audit['final']['valor_venta'], \
@@ -99,7 +99,7 @@ def test_audit_log_valores_positivos():
         'ventilacion': 'simple', 'piso': 5, 'total_pisos': 10,
         'vista': 'frente', 'ubicacion_tipo': 'calle', 'gas_ok': 'si',
     }
-    r = valuar_propiedad_v7(prop, fecha_ref='2026-04')
+    r = valuar_propiedad_v7(prop, fecha_ref='2026-04', retro_dias=90)
     audit = r['audit_log']
     assert audit['final']['valor_venta'] > 0
     assert audit['final']['valor_realizable'] > 0
@@ -176,7 +176,7 @@ def test_audit_log_no_altera_resultado():
         'ventilacion': 'simple', 'piso': 5, 'total_pisos': 10,
         'vista': 'frente', 'ubicacion_tipo': 'calle', 'gas_ok': 'si',
     }
-    r = valuar_propiedad_v7(prop, fecha_ref='2026-04')
+    r = valuar_propiedad_v7(prop, fecha_ref='2026-04', retro_dias=90)
     # Verificar que los campos existentes sigan siendo del mismo tipo
     assert isinstance(r['valor_propiedad_usd'], (int, float))
     assert isinstance(r['m2_base_venta'], (int, float))
