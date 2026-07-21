@@ -551,7 +551,7 @@ def aplicar_cap_dinamico_factor(f_dict, meta_venta, n_v):
     return f_dict
 
 # --- CONFIGURACIÓN DE BÚSQUEDA GEOESPACIAL ---
-RADIOS_PROGRESIVOS = [300, 500, 800, 1000, 1500]  # metros
+RADIOS_PROGRESIVOS = [300, 500, 800, 1000]  # metros
 MIN_COMPARABLES = 10  # mínimo para considerar cluster válido
 MIN_COMPARABLES_FALLBACK = 5  # mínimo para fallback
 
@@ -1110,7 +1110,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         zona_original = zona
         zona_normalizada = normalizar_zona(zona)
         
-        RADIOS_PROGRESIVOS = [300, 500, 800, 1000, 1500]
+        RADIOS_PROGRESIVOS = [300, 500, 800, 1000]
         MIN_COMPARABLES = 10
         MIN_COMPARABLES_FALLBACK = 5
         from parsers.time_adjustment import get_natural_window_dias
@@ -1212,13 +1212,13 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                     mejor_resultado = (props_geo, radio, "busqueda_geografica")
                     break
             else:
-                # Fallback: mismo pero sin filtro de radio (1500m)
+                # Fallback: mismo pero sin filtro de radio (1000m)
                 for p in cache.get('propiedades', []):
                     p_lat = p.get('lat') or p.get('latitud')
                     p_lon = p.get('lon') or p.get('longitud')
                     if not (p_lat and p_lon): continue
                     dist = calcular_distancia_km(lat_ref, lon_ref, p_lat, p_lon)
-                    if dist > 1.5: continue
+                    if dist > 1.0: continue
                     if flex_dormitorios:
                         if p.get('dormitorios') not in flex_dormitorios and p.get('dormitorios') != dormitorios: continue
                     else:
@@ -1231,7 +1231,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 props_geo = aplicar_filtro_fecha(props_geo, fecha_ref)
                 
                 if len(props_geo) >= 2:
-                    mejor_resultado = (props_geo, 1500, "busqueda_geografica")
+                    mejor_resultado = (props_geo, 1000, "busqueda_geografica")
         
         # 2. Fallback: zona normalizada + radio progresivo (o time-expansion para PN)
         if mejor_resultado is None:
@@ -1240,7 +1240,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 # Ventana gobernada 100% por el slider (Suelo Natural: 180d)
                 dias_ventana = retro_dias * 30 if retro_dias > 0 else get_natural_window_dias()
                 
-                props = buscar_en_zona(zona_normalizada, dormitorios, operacion, lat_ref, lon_ref, 1500)
+                props = buscar_en_zona(zona_normalizada, dormitorios, operacion, lat_ref, lon_ref, 1000)
                 props = filtrar_por_fecha(props, fecha_ref, dias=dias_ventana)
                 
                 if len(props) >= 2:
@@ -1267,7 +1267,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                                     p['_time_adjustment'] = 1.0
                             except:
                                 p['_time_adjustment'] = 1.0
-                    mejor_resultado = (props, 1500, 'Puerto Norte')
+                    mejor_resultado = (props, 1000, 'Puerto Norte')
                 else:
                     mejor_resultado = None
             else:
