@@ -77,7 +77,8 @@ def _precio_ajustado(c, macrozona_id=None):
     adj = c.get('time_adjustment', c.get('_time_adjustment', 1.0))
     raw_val = precio * adj
     m2_comp = c.get('m2') or c.get('m2_cubiertos', 0)
-    adj_size = calcular_size_adjustment(m2_comp, macrozona_id)
+    dorms_comp = c.get('dormitorios')
+    adj_size = calcular_size_adjustment(m2_comp, macrozona_id, dormitorios=dorms_comp)
     norm_val = raw_val / adj_size if adj_size > 0 else raw_val
     if adj_size != 1.0:
         print(f"[DEBUG-SIZE-NORM] {c.get('direccion', 'comp')}: raw={raw_val:.2f}, adj={adj_size:.4f}, norm={norm_val:.2f}")
@@ -1042,18 +1043,19 @@ def _filtrar_por_ventana_edad(pool, anio_sujeto, ventana=10, min_con_anio=3):
     return pool_age_filtered, True, len(pool_age_filtered), anio_min, anio_max
 
 
-def _aplicar_size_adj_a_comparables(pool, subject_m2, macrozona_id=None):
+def _aplicar_size_adj_a_comparables(pool, subject_m2, macrozona_id=None, dormitorios=None):
     """
     Aplica size adjustment relativo a cada comparable.
     Normaliza el precio/m² de cada comp al tamaño del sujeto.
     """
-    subject_adj = calcular_size_adjustment(subject_m2, macrozona_id=macrozona_id)
+    subject_adj = calcular_size_adjustment(subject_m2, macrozona_id=macrozona_id, dormitorios=dormitorios)
     result = []
     for p in pool:
         comp_m2 = p.get('m2', 0) or p.get('m2_cubiertos', 0) or 0
         if comp_m2 <= 0:
             continue
-        comp_adj = calcular_size_adjustment(comp_m2, macrozona_id=macrozona_id)
+        comp_dorms = p.get('dormitorios')
+        comp_adj = calcular_size_adjustment(comp_m2, macrozona_id=macrozona_id, dormitorios=comp_dorms)
         if comp_adj <= 0:
             continue
         val = p.get('valor_m2', 0) * p.get('_time_adjustment', 1.0)
@@ -1551,7 +1553,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         else:
             # Percentil por calidad del pool (CV post-size_adj)
             if m2_equiv and macrozona_id and len(precios) >= 3:
-                _size_adj_prices = _aplicar_size_adj_a_comparables(pool_final, m2_equiv, macrozona_id)
+                _size_adj_prices = _aplicar_size_adj_a_comparables(pool_final, m2_equiv, macrozona_id, dormitorios=dormitorios)
                 _cv_pool = _calcular_cv(_size_adj_prices) if len(_size_adj_prices) >= 3 else 1.0
             else:
                 _cv_pool = _calcular_cv(precios) if len(precios) >= 3 else 1.0
@@ -1997,13 +1999,13 @@ def _cargar_size_adjustment_config():
 
 _SIZE_ADJ_CONFIG = None
 
-def calcular_size_adjustment(m2_equiv, macrozona_id=None, ancla_id=None):
+def calcular_size_adjustment(m2_equiv, macrozona_id=None, ancla_id=None, dormitorios=None):
     """
-    Ajuste por tamaño configurable por macrozona (TAREA-074).
+    Ajuste por tamaño configurable por macrozona y dormitorios.
     Lee curvas piecewise desde zonas_depreciacion.json.
+    Si existen curvas por dormitorios (by_dormitorios), usa la curva específica.
+    Si no, cae a la curva genérica (points).
     Retorna 1.0 si no hay config (sin ajuste).
-    IMPORTANTE: Solo aplica descuentos para unidades grandes, excepto en subzonas premium (ej. Puerto Norte)
-    donde el ML indica que las unidades grandes tienen un premio.
     """
     global _SIZE_ADJ_CONFIG
     if _SIZE_ADJ_CONFIG is None:
@@ -2016,24 +2018,33 @@ def calcular_size_adjustment(m2_equiv, macrozona_id=None, ancla_id=None):
     # Check subzona by anchor_id
     is_premium_subzona = False
     adj = 1.0
+    subzona_config = None
     if ancla_id and "subzonas" in config:
         for sub_id, sub in config["subzonas"].items():
             if any(mid in ancla_id for mid in sub.get("match_anchor_ids", [])):
-                adj = _interpolar_piecewise(m2_equiv, sub.get("points", []))
-                # Si la subzona tiene puntos > 1.0, la marcamos como premium
+                subzona_config = sub
                 if any(p.get('factor', 0) > 1.0 for p in sub.get('points', [])):
                     is_premium_subzona = True
                 break
-    else:
-        # Default curve for this macrozona
-        adj = _interpolar_piecewise(m2_equiv, config.get("points", []))
     
-    # Guardrail: No descuentos para unidades chicas (<100m²), No premios para unidades grandes
-    if not is_premium_subzona:
-        if m2_equiv < 100:
-            return max(1.0, adj)  # Nunca descuento para chicas
-        return min(1.0, adj)      # Nunca premium para grandes
-        
+    # Determinar qué curva usar: dorm-específica > subzona > genérica
+    points = None
+    if dormitorios is not None and "by_dormitorios" in config:
+        dorm_key = str(dormitorios)
+        by_dorm = config["by_dormitorios"]
+        if dorm_key in by_dorm:
+            points = by_dorm[dorm_key]
+        elif "default" in by_dorm:
+            points = by_dorm["default"]
+    
+    if points is None and subzona_config:
+        points = subzona_config.get("points", [])
+    
+    if points is None:
+        points = config.get("points", [])
+    
+    adj = _interpolar_piecewise(m2_equiv, points)
+    
     return adj
 
 # ─── CV_REF por macrozona (TAREA-111) ───
@@ -3386,7 +3397,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
     from parsers.zonas_manager import resolver_macrozona
     _mz_info = resolver_macrozona(prop)
     _ancla_id = str(ancla_seleccionada) if ancla_seleccionada is not None else None
-    size_discount = calcular_size_adjustment(m2_equiv, macrozona_id=_mz_info.get('macrozona_id'), ancla_id=_ancla_id)
+    size_discount = calcular_size_adjustment(m2_equiv, macrozona_id=_mz_info.get('macrozona_id'), ancla_id=_ancla_id, dormitorios=dorms)
     valor_venta = m2_equiv * m2_microzona * size_discount
     
     logger.info(f"--- CALCULO BASE (TAREA-073) ---")
@@ -4053,6 +4064,7 @@ def generar_resultado_manual(prop, manual_params, auto_result=None):
                 m2_equiv,
                 macrozona_id=_mz_info.get('macrozona_id'),
                 ancla_id=ancla_id_input,
+                dormitorios=prop.get('dormitorios'),
             )
     except:
         pass

@@ -414,7 +414,7 @@ def render_manual_valuation_card(prop):
                 from parsers.mercado_inmobiliario import calcular_size_adjustment
                 from parsers.zonas_manager import resolver_macrozona
                 _mz = resolver_macrozona(prop)
-                size_adj = calcular_size_adjustment(m2_equiv, macrozona_id=_mz.get('macrozona_id'), ancla_id=ancla)
+                size_adj = calcular_size_adjustment(m2_equiv, macrozona_id=_mz.get('macrozona_id'), ancla_id=ancla, dormitorios=prop.get('dormitorios'))
             except Exception:
                 size_adj = 1.0
         if factor_const is None:
@@ -1686,6 +1686,7 @@ def render_valuacion_manual(prop, res):
                 m2_eq,
                 macrozona_id=_mz_info.get('macrozona_id'),
                 ancla_id=ancla_sel if ancla_sel != "Sin Ancla" else None,
+                dormitorios=prop.get('dormitorios'),
             )
         except Exception:
             pass

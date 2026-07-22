@@ -106,7 +106,7 @@ def obtener_propiedades_propia(max_pages=20, limit_per_page=50):
                 
                 antiguedad = item.get('antiquity')
                 anio = None
-                if antiguedad and isinstance(antiguedad, (int, float)):
+                if antiguedad and isinstance(antiguedad, (int, float)) and antiguedad > 0:
                     anio = 2026 - int(antiguedad)
                 
                 valor_m2 = round(precio_usd / area, 2)
