@@ -743,10 +743,14 @@ def render_tabla_comparables(res, prop_name=None):
         n_total = len(comparables)
         selected_comps = [c for c in comparables if _get_comp_id(c) in selected_ids]
         if n_sel == n_total and n_sel >= 3:
-            # Sin exclusiones: usar el valor real del motor para coherencia header/tabla
-            vm2_micro = res.get('m2_microzona', res.get('m2_base_venta', 0))
+            raw_prices = sorted([c.get('precio_m2', 0) for c in comparables])
+            n_rp = len(raw_prices)
+            if n_rp % 2 == 1:
+                vm2_raw = raw_prices[n_rp // 2]
+            else:
+                vm2_raw = (raw_prices[n_rp // 2 - 1] + raw_prices[n_rp // 2]) / 2
             meta = res.get('resolution_metadata', {})
-            preview = {'vm2': vm2_micro, 'n_sel': n_sel, 'fallback': False,
+            preview = {'vm2': round(vm2_raw, 0), 'n_sel': n_sel, 'fallback': False,
                        'percentil_label': 'Motor', 'cv': meta.get('cv_pool', 0)}
         elif len(selected_comps) >= 3:
             preview = calcular_vm2_por_seleccion(selected_comps, res)
