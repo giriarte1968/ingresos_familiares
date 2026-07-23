@@ -3397,11 +3397,11 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
     from parsers.zonas_manager import resolver_macrozona
     _mz_info = resolver_macrozona(prop)
     _ancla_id = str(ancla_seleccionada) if ancla_seleccionada is not None else None
-    size_discount = calcular_size_adjustment(m2_equiv, macrozona_id=_mz_info.get('macrozona_id'), ancla_id=_ancla_id, dormitorios=dorms)
-    valor_venta = m2_equiv * m2_microzona * size_discount
+    size_discount = 1.0
+    valor_venta = m2_equiv * m2_microzona
     
     logger.info(f"--- CALCULO BASE (TAREA-073) ---")
-    logger.info(f"m2_equiv: {m2_equiv}, m2_microzona: {m2_microzona}, size_discount: {size_discount}")
+    logger.info(f"m2_equiv: {m2_equiv}, m2_microzona: {m2_microzona}")
     logger.info(f"valor_venta: {valor_venta}")
     
     # === ALQUILER: mantener lógica actual (con NLP y factores) ===
@@ -3706,7 +3706,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
         'valor_m2_actual_usd': round(valor_venta / m2_equiv, 2) if m2_equiv > 0 else 0,
         'm2_base_venta': round(m2_base_venta, 2),
         'm2_microzona': round(m2_microzona, 2),
-        'size_discount': round(size_discount, 4),
+        'size_discount': 1.0,
         'valor_activos_total': round(valor_activos['total'], 2),
         # Rango 3 escenarios
         'valor_venta_conservador': int(rango_venta['min']),
@@ -4092,7 +4092,7 @@ def generar_resultado_manual(prop, manual_params, auto_result=None):
     valor_activos = calcular_valor_activos(prop, usd_m2)
 
     ajuste_pct = manual_params.get('ajuste_pct', 0.0)
-    subtotal = (m2_equiv * usd_m2 * size_adj * factor_hedonico * factor_const) + valor_activos['total']
+    subtotal = (m2_equiv * usd_m2 * factor_hedonico * factor_const) + valor_activos['total']
     valor_venta = subtotal * (1 + ajuste_pct / 100.0)
 
     v_cons = valor_venta * (1 - incertidumbre_pct / 100.0)
@@ -4149,7 +4149,7 @@ def generar_resultado_manual(prop, manual_params, auto_result=None):
             'fuente': 'manual',
             'zona': prop.get('zona', ''),
         },
-        'size_adjustment': round(size_adj, 4),
+        'size_adjustment': 1.0,
         'macrozona_nombre': mz_nombre,
         'factor_total': factor_hedonico * factor_const,
         'factor_hedonico_efectivo': factor_hedonico,
