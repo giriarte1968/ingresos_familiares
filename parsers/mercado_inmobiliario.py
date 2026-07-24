@@ -71,20 +71,20 @@ def _mapear_confianza(percentil_usado):
         return 'baja'
 
 
-def _precio_ajustado(c, macrozona_id=None):
+def _precio_ajustado(c, macrozona_id=None, ancla_id=None):
     """Suma el ajuste temporal y normaliza el premio/descuento por tamaño del comparable."""
     precio = c.get('precio_m2', c.get('valor_m2', 0))
     adj = c.get('time_adjustment', c.get('_time_adjustment', 1.0))
     raw_val = precio * adj
     m2_comp = c.get('m2') or c.get('m2_cubiertos', 0)
     dorms_comp = c.get('dormitorios')
-    adj_size = calcular_size_adjustment(m2_comp, macrozona_id, dormitorios=dorms_comp)
+    adj_size = calcular_size_adjustment(m2_comp, macrozona_id, ancla_id=ancla_id, dormitorios=dorms_comp)
     norm_val = raw_val / adj_size if adj_size > 0 else raw_val
     if adj_size != 1.0:
         print(f"[DEBUG-SIZE-NORM] {c.get('direccion', 'comp')}: raw={raw_val:.2f}, adj={adj_size:.4f}, norm={norm_val:.2f}")
     return norm_val
 
-def _computar_vm2_core(comparables, percentil, apply_barrier=True, alpha=None, macrozona_id=None):
+def _computar_vm2_core(comparables, percentil, apply_barrier=True, alpha=None, macrozona_id=None, ancla_id=None):
     """
     NÚCLEO UNIFICADO DE CÁLCULO VM2 (TAREA-093)
     Centraliza la lógica de blend alpha y corrección de barrera para evitar divergencias
@@ -101,8 +101,8 @@ def _computar_vm2_core(comparables, percentil, apply_barrier=True, alpha=None, m
     same = [c for c in comparables if not c.get('_cross_soft', False)]
     cross = [c for c in comparables if c.get('_cross_soft', False)]
     
-    precios_same = sorted([_precio_ajustado(c, macrozona_id) for c in same])
-    precios_cross = sorted([_precio_ajustado(c, macrozona_id) for c in cross])
+    precios_same = sorted([_precio_ajustado(c, macrozona_id, ancla_id=ancla_id) for c in same])
+    precios_cross = sorted([_precio_ajustado(c, macrozona_id, ancla_id=ancla_id) for c in cross])
 
 
     pct_same = calcular_percentil(precios_same, percentil) if precios_same else None
@@ -136,14 +136,14 @@ def _computar_vm2_core(comparables, percentil, apply_barrier=True, alpha=None, m
     return vm2, len(precios_same), len(precios_cross), pct_same, pct_cross
 
 
-def _calcular_vm2_base(comparables, percentil, macrozona_id=None):
+def _calcular_vm2_base(comparables, percentil, macrozona_id=None, ancla_id=None):
     """
     Sustituye la lógica antigua por el núcleo unificado (TAREA-093).
     Llamada desde la UI para vistas previas.
     """
     # Para coherencia total con el motor, aplicamos barrera y alpha dinámico
     vm2, n_same, n_cross, pct_same, pct_cross = _computar_vm2_core(
-        comparables, percentil, apply_barrier=True, alpha=None, macrozona_id=macrozona_id
+        comparables, percentil, apply_barrier=True, alpha=None, macrozona_id=macrozona_id, ancla_id=ancla_id
     )
     return vm2, n_same, n_cross, pct_same, pct_cross
 
@@ -1065,7 +1065,7 @@ def _aplicar_size_adj_a_comparables(pool, subject_m2, macrozona_id=None, dormito
     return result
 
 
-def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=None, lon_ref=None, fecha_ref=None, anio_sujeto=None, tipo_inmueble=None, cache_scraping=None, retro_dias=0, flex_dormitorios=None, m2_equiv=None):
+def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=None, lon_ref=None, fecha_ref=None, anio_sujeto=None, tipo_inmueble=None, cache_scraping=None, retro_dias=0, flex_dormitorios=None, m2_equiv=None, ancla_id=None):
     """
     Obtiene la mediana del cluster desde cache_scraping.json.
     Versión v2 con metadata extendida Y radios progresivos.
@@ -1568,12 +1568,12 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         # Llamar al core unificado que maneja same/cross, blend alpha y barrera
         # Calculamos la versión normalizada (neutra)
         vm2_principal, n_same_core, n_cross_core, pct_same_core, pct_cross_core = _computar_vm2_core(
-            pool_final, percentil_venta, apply_barrier=True, alpha=None, macrozona_id=macrozona_id
+            pool_final, percentil_venta, apply_barrier=True, alpha=None, macrozona_id=macrozona_id, ancla_id=ancla_id
         )
         
         # Debug: Comparar con la mediana RAW (sin normalizar) para auditoría de doble conteo
         vm2_raw, _, _, _, _ = _computar_vm2_core(
-            pool_final, percentil_venta, apply_barrier=True, alpha=None, macrozona_id=None
+            pool_final, percentil_venta, apply_barrier=True, alpha=None, macrozona_id=None, ancla_id=None
         )
         print(f"[DEBUG-SIZE-MEDIAN] {zona}: Raw={vm2_raw:.2f}, Norm={vm2_principal:.2f}, Diff={vm2_raw - vm2_principal:.2f}")
         
@@ -2027,7 +2027,11 @@ def calcular_size_adjustment(m2_equiv, macrozona_id=None, ancla_id=None, dormito
                     is_premium_subzona = True
                 break
     
-    # Determinar qué curva usar: dorm-específica > subzona > genérica
+    # Determinar qué curva usar: subzona (con skip) > dorm-específica > subzona > genérica
+    # Si la subzona tiene skip_size_adj=True, retorna 1.0 directamente (sin normalización)
+    if subzona_config and subzona_config.get("skip_size_adj", False):
+        return 1.0
+    
     points = None
     if dormitorios is not None and "by_dormitorios" in config:
         dorm_key = str(dormitorios)
@@ -3307,7 +3311,8 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
             cache_scraping=cache_scraping_compartido,
             retro_dias=retro_dias,
             flex_dormitorios=flex_dormitorios,
-            m2_equiv=m2_equiv
+            m2_equiv=m2_equiv,
+            ancla_id=ancla_seleccionada
         )
 
     # Si v2 tiene valor y hay suficientes comparables (N >= 3), usarlo

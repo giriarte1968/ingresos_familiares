@@ -99,6 +99,7 @@
         },
         "subzonas": {
           "puerto_norte": {
+            "skip_size_adj": true,
             "match_anchor_ids": [
               "central_argentino_puerto_norte",
               "carballo_puerto_norte",
@@ -108,23 +109,11 @@
             "points": [
               {
                 "m2": 0,
-                "factor": 0.92
-              },
-              {
-                "m2": 60,
-                "factor": 0.96
-              },
-              {
-                "m2": 100,
-                "factor": 1.04
-              },
-              {
-                "m2": 150,
-                "factor": 1.29
+                "factor": 1.0
               },
               {
                 "m2": 250,
-                "factor": 1.38
+                "factor": 1.0
               }
             ]
           }
