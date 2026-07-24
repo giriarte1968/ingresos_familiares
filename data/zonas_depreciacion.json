@@ -10,15 +10,15 @@
       "nombre": "Puerto Norte",
       "descripcion": "Distrito Puerto Norte - zona premium junto al rio",
       "tasa_depreciacion_anual": 0.004,
-      "cv_ref": 0.4378,
+      "cv_ref": 0.339,
       "zonas_match_textual": [
         "puerto norte",
         "puertonorte"
       ],
       "bbox": {
-        "lat_min": -32.930,
+        "lat_min": -32.932,
         "lat_max": -32.918,
-        "lon_min": -60.675,
+        "lon_min": -60.672,
         "lon_max": -60.655
       },
       "size_adjustment": {
@@ -28,11 +28,19 @@
           {"m2": 250, "factor": 1.0}
         ],
         "by_dormitorios": {
+          "1": [
+            {"m2": 0, "factor": 1.0},
+            {"m2": 250, "factor": 1.0}
+          ],
           "2": [
             {"m2": 0, "factor": 1.0},
             {"m2": 250, "factor": 1.0}
           ],
           "3": [
+            {"m2": 0, "factor": 1.0},
+            {"m2": 250, "factor": 1.0}
+          ],
+          "4": [
             {"m2": 0, "factor": 1.0},
             {"m2": 250, "factor": 1.0}
           ],
@@ -42,7 +50,7 @@
           ]
         }
       },
-      "ct_annual_rate": 0.0768
+      "ct_annual_rate": 0.035
     },
     {
       "id": "centro_premium",

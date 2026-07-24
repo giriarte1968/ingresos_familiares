@@ -109,4 +109,5 @@
 | TAREA-139 | Fix umbral min_con_anio: 10→3 (mínimo que el motor necesita) | _(pending)_ | 2026-07-19 |
 | TAREA-140 | Transparencia en cantidad de comparables (muestra vs pool total) | `f690059` | 2026-07-20 |
 | TAREA-148 | Macrozona independiente Puerto Norte con curvas planas | `3d6da94` | 2026-07-24 |
-| TAREA-149 | Eliminar TASA_AJUSTE_PN hardcoded + usar ct_annual_rate real | _(pendiente)_ | 2026-07-24 |
+| TAREA-149 | Eliminar TASA_AJUSTE_PN hardcoded + usar ct_annual_rate real | `525844f` | 2026-07-24 |
+| TAREA-150 | Ajuste fino parámetros Puerto Norte (ct=+3.5%, cv=0.339) | _(pendiente)_ | 2026-07-24 |
