@@ -1118,9 +1118,6 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         from parsers.time_adjustment import get_natural_window_dias
         window_dias_usado = retro_dias * 30 if retro_dias > 0 else get_natural_window_dias()
         
-        # Puerto Norte: time-expansion en vez de radius-expansion
-        TASA_AJUSTE_PN = -0.045
-        
         from datetime import datetime, timedelta
         
         def filtrar_por_fecha(props, fecha_ref_str, dias=365):
@@ -1194,8 +1191,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         mejor_resultado = None
         
         # 1. Intentar búsqueda geográfica primero si hay coordenadas
-        # PN: salta Tier 1 (se contamina con Pichincha), va directo a Tier 2
-        if lat_ref is not None and lon_ref is not None and zona_normalizada != 'Puerto Norte':
+        if lat_ref is not None and lon_ref is not None:
             for radio in RADIOS_PROGRESIVOS:
                 props_geo = cluster_filters.filtrar_por_radio(
                     cache.get('propiedades', []), lat_ref, lon_ref,
@@ -1235,50 +1231,14 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 if len(props_geo) >= 2:
                     mejor_resultado = (props_geo, 1000, "busqueda_geografica")
         
-        # 2. Fallback: zona normalizada + radio progresivo (o time-expansion para PN)
+        # 2. Fallback: zona normalizada + radio progresivo
         if mejor_resultado is None:
-            if zona_normalizada == 'Puerto Norte':
-                # PN: No expande radio para no contaminar con Pichincha. 
-                # Ventana gobernada 100% por el slider (Suelo Natural: 180d)
-                dias_ventana = retro_dias * 30 if retro_dias > 0 else get_natural_window_dias()
-                
-                props = buscar_en_zona(zona_normalizada, dormitorios, operacion, lat_ref, lon_ref, 1000)
-                props = filtrar_por_fecha(props, fecha_ref, dias=dias_ventana)
-                
-                if len(props) >= 2:
-                    window_dias_usado = dias_ventana
-                    # Aplicar ajuste temporal (-4.5% anual) a comparables > 180 días
-                    try:
-                        if fecha_ref and fecha_ref.count('-') == 2:
-                            ref_dt = datetime.strptime(fecha_ref, '%Y-%m-%d')
-                        elif fecha_ref and fecha_ref.count('-') == 1:
-                            ref_dt = datetime.strptime(fecha_ref, '%Y-%m')
-                        else:
-                            ref_dt = datetime.now()
-                    except:
-                        ref_dt = datetime.now()
-                    for p in props:
-                        dc = p.get('date_created', '')
-                        if dc:
-                            try:
-                                dt = datetime.strptime(str(dc)[:10], '%Y-%m-%d')
-                                anios_desde_ref = max(0, (ref_dt - dt).days / 365.25)
-                                if (ref_dt - dt).days > get_natural_window_dias():
-                                    p['_time_adjustment'] = 1 + TASA_AJUSTE_PN * anios_desde_ref
-                                else:
-                                    p['_time_adjustment'] = 1.0
-                            except:
-                                p['_time_adjustment'] = 1.0
-                    mejor_resultado = (props, 1000, 'Puerto Norte')
-                else:
-                    mejor_resultado = None
-            else:
-                for radio in RADIOS_PROGRESIVOS:
-                    props = buscar_en_zona(zona_normalizada, dormitorios, operacion, lat_ref, lon_ref, radio, fecha_ref)
-                    props = aplicar_filtro_fecha(props, fecha_ref)
-                    if len(props) >= MIN_COMPARABLES:
-                        mejor_resultado = (props, radio, zona_normalizada)
-                        break
+            for radio in RADIOS_PROGRESIVOS:
+                props = buscar_en_zona(zona_normalizada, dormitorios, operacion, lat_ref, lon_ref, radio, fecha_ref)
+                props = aplicar_filtro_fecha(props, fecha_ref)
+                if len(props) >= MIN_COMPARABLES:
+                    mejor_resultado = (props, radio, zona_normalizada)
+                    break
         
         # 3. Último fallback: usar datos disponibles aunque sean mínimos
         if mejor_resultado is None:

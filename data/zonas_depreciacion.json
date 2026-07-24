@@ -10,7 +10,7 @@
       "nombre": "Puerto Norte",
       "descripcion": "Distrito Puerto Norte - zona premium junto al rio",
       "tasa_depreciacion_anual": 0.004,
-      "cv_ref": 0.339,
+      "cv_ref": 0.4378,
       "zonas_match_textual": [
         "puerto norte",
         "puertonorte"
@@ -42,7 +42,7 @@
           ]
         }
       },
-      "ct_annual_rate": -0.0163
+      "ct_annual_rate": 0.0768
     },
     {
       "id": "centro_premium",
