@@ -108,3 +108,4 @@
 | TAREA-138 | Filtro ±10 años fijo para comparables (usa antiquity como fuente primaria) | _(pending)_ | 2026-07-18 |
 | TAREA-139 | Fix umbral min_con_anio: 10→3 (mínimo que el motor necesita) | _(pending)_ | 2026-07-19 |
 | TAREA-140 | Transparencia en cantidad de comparables (muestra vs pool total) | `f690059` | 2026-07-20 |
+| TAREA-148 | Macrozona independiente Puerto Norte con curvas planas | _(pendiente)_ | 2026-07-24 |

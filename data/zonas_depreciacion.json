@@ -6,16 +6,54 @@
   "default_macrozona": "resto_rosario",
   "macrozonas": [
     {
+      "id": "puerto_norte",
+      "nombre": "Puerto Norte",
+      "descripcion": "Distrito Puerto Norte - zona premium junto al rio",
+      "tasa_depreciacion_anual": 0.004,
+      "cv_ref": 0.339,
+      "zonas_match_textual": [
+        "puerto norte",
+        "puertonorte"
+      ],
+      "bbox": {
+        "lat_min": -32.930,
+        "lat_max": -32.918,
+        "lon_min": -60.675,
+        "lon_max": -60.655
+      },
+      "size_adjustment": {
+        "type": "piecewise_linear",
+        "points": [
+          {"m2": 0, "factor": 1.0},
+          {"m2": 250, "factor": 1.0}
+        ],
+        "by_dormitorios": {
+          "2": [
+            {"m2": 0, "factor": 1.0},
+            {"m2": 250, "factor": 1.0}
+          ],
+          "3": [
+            {"m2": 0, "factor": 1.0},
+            {"m2": 250, "factor": 1.0}
+          ],
+          "default": [
+            {"m2": 0, "factor": 1.0},
+            {"m2": 250, "factor": 1.0}
+          ]
+        }
+      },
+      "ct_annual_rate": -0.0163
+    },
+    {
       "id": "centro_premium",
       "nombre": "Centro Premium",
-      "descripcion": "Martin, Pichincha, Puerto Norte, Bv Ono, Parque Espana y zonas premium consolidadas",
+      "descripcion": "Martin, Pichincha, Bv Ono, Parque Espana y zonas premium consolidadas",
       "tasa_depreciacion_anual": 0.004,
       "cv_ref": 0.339,
       "zonas_match_textual": [
         "centro",
         "martin",
         "pichincha",
-        "puerto norte",
         "bv orono",
         "bv ono",
         "parque espana",
@@ -96,27 +134,6 @@
             {"m2": 150, "factor": 1.0},
             {"m2": 250, "factor": 1.0}
           ]
-        },
-        "subzonas": {
-          "puerto_norte": {
-            "skip_size_adj": true,
-            "match_anchor_ids": [
-              "central_argentino_puerto_norte",
-              "carballo_puerto_norte",
-              "french_puerto_norte",
-              "junin_puerto_norte"
-            ],
-            "points": [
-              {
-                "m2": 0,
-                "factor": 1.0
-              },
-              {
-                "m2": 250,
-                "factor": 1.0
-              }
-            ]
-          }
         }
       },
       "ct_annual_rate": -0.0163

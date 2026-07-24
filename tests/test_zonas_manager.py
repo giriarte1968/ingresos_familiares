@@ -187,3 +187,43 @@ class TestPropiedadesReales:
         assert res["macrozona_id"] == "centro_premium"
 
 
+class TestPuertoNorte:
+    """Tests para macrozona independiente Puerto Norte (TAREA-148)."""
+
+    def test_puerto_norte_textual(self):
+        """Propiedad con zona 'Puerto Norte' resuelve a macrozona puerto_norte."""
+        res = resolver_macrozona({"zona": "Puerto Norte"})
+        assert res["macrozona_id"] == "puerto_norte"
+        assert res["confianza_macrozona"] == "ALTA"
+        assert res["metodo_match"] == "textual"
+
+    def test_puerto_norte_textual_lower(self):
+        """Propiedad con zona 'puerto norte' (minúsculas) resuelve a puerto_norte."""
+        res = resolver_macrozona({"zona": "puerto norte"})
+        assert res["macrozona_id"] == "puerto_norte"
+        assert res["confianza_macrozona"] == "ALTA"
+
+    def test_puerto_norte_bbox(self):
+        """Propiedad sin texto pero con coords dentro de Puerto Norte resuelve por bbox."""
+        res = resolver_macrozona({"lat": -32.9244, "lon": -60.6662})
+        assert res["macrozona_id"] == "puerto_norte"
+        assert res["confianza_macrozona"] == "MEDIA"
+        assert res["metodo_match"] == "bbox"
+
+    def test_puerto_norte_no_centro_premium(self):
+        """Puerto Norte ya no es parte de centro_premium."""
+        res = resolver_macrozona({"zona": "Puerto Norte"})
+        assert res["macrozona_id"] != "centro_premium"
+
+    def test_puerto_norte_tasa(self):
+        """Puerto Norte tiene misma tasa que centro_premium (0.004)."""
+        prop = {"zona": "Puerto Norte", "lat": -32.9244, "lon": -60.6662}
+        tasa, mz = obtener_tasa_depreciacion_macrozona(prop)
+        assert tasa == 0.004, f"puerto_norte deberia tener tasa 0.004, obtuvo {tasa}"
+
+    def test_centro_premium_sin_puerto_norte(self):
+        """Centro Premium ya no resuelve 'Puerto Norte'."""
+        res = resolver_macrozona({"zona": "Puerto Norte"})
+        assert res["macrozona_id"] != "centro_premium"
+
+
