@@ -1253,6 +1253,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 try:
                     from parsers.location_engine import check_barrier_crossing, cargar_barreras
                     barreras = cargar_barreras()
+                    
                     barreras_result = separar_por_barreras(
                         props=props, lat_ref=lat_ref, lon_ref=lon_ref,
                         check_barrier_fn=lambda p1, p2: check_barrier_crossing(p1, p2, barreras),
