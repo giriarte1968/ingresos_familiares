@@ -120,7 +120,8 @@ def filtrar_por_fecha(props: List[Dict], fecha_ref: Optional[str] = None,
 
 
 def separar_por_barreras(props: List[Dict], lat_ref: float, lon_ref: float,
-                          check_barrier_fn: Callable) -> Dict[str, List[Dict]]:
+                          check_barrier_fn: Callable,
+                          zona_ref: str = None) -> Dict[str, List[Dict]]:
     """
     Separa propiedades según su cruce de barreras geográficas.
     
@@ -129,6 +130,7 @@ def separar_por_barreras(props: List[Dict], lat_ref: float, lon_ref: float,
         lat_ref: Latitud de referencia
         lon_ref: Longitud de referencia
         check_barrier_fn: Función que dado (p1, p2, barriers) retorna False/'soft'/'hard'
+        zona_ref: Zona normalizada del subject (para excepción misma zona)
     
     Returns:
         Dict con 'same_side', 'cross_soft', 'excluded_hard'
@@ -143,6 +145,13 @@ def separar_por_barreras(props: List[Dict], lat_ref: float, lon_ref: float,
         if not p_lat or not p_lon:
             same_side.append(p)
             continue
+        
+        # Excepción: si subject y comparable están en la misma zona, ignorar barreras
+        p_zona = p.get('zona', '')
+        if zona_ref and p_zona and zona_ref == p_zona:
+            same_side.append(p)
+            continue
+        
         try:
             cruza = check_barrier_fn(
                 (lon_ref, lat_ref),

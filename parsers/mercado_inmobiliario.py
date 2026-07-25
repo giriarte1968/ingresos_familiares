@@ -1255,7 +1255,8 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                     barreras = cargar_barreras()
                     barreras_result = separar_por_barreras(
                         props=props, lat_ref=lat_ref, lon_ref=lon_ref,
-                        check_barrier_fn=lambda p1, p2: check_barrier_crossing(p1, p2, barreras)
+                        check_barrier_fn=lambda p1, p2: check_barrier_crossing(p1, p2, barreras),
+                        zona_ref=zona_normalizada
                     )
                     # Marcar penalizaciones en las propiedades
                     for p in props:
@@ -1343,7 +1344,8 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                     props=props,
                     lat_ref=lat_ref,
                     lon_ref=lon_ref,
-                    check_barrier_fn=lambda p1, p2: check_barrier_crossing(p1, p2, barreras)
+                    check_barrier_fn=lambda p1, p2: check_barrier_crossing(p1, p2, barreras),
+                    zona_ref=zona_normalizada
                 )
                 
                 same_side = barreras_result['same_side']
