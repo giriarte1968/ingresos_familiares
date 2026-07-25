@@ -348,86 +348,6 @@
       "type": "Feature",
       "properties": {
         "element": "way",
-        "id": 115883685,
-        "barrier_type": "soft",
-        "name": "Avenida Francia"
-      },
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            -60.662471,
-            -32.9298047
-          ],
-          [
-            -60.6622173,
-            -32.9299058
-          ],
-          [
-            -60.6621653,
-            -32.929965
-          ],
-          [
-            -60.6621466,
-            -32.930035
-          ],
-          [
-            -60.6621428,
-            -32.9301673
-          ],
-          [
-            -60.6621878,
-            -32.9303328
-          ],
-          [
-            -60.6623669,
-            -32.9307828
-          ],
-          [
-            -60.6623837,
-            -32.9308259
-          ],
-          [
-            -60.6624045,
-            -32.9308795
-          ],
-          [
-            -60.6624559,
-            -32.9310399
-          ],
-          [
-            -60.6624859,
-            -32.9311385
-          ]
-        ]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "element": "way",
-        "id": 115883689,
-        "barrier_type": "soft",
-        "name": "Avenida Francia"
-      },
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            -60.6623428,
-            -32.9285203
-          ],
-          [
-            -60.662322,
-            -32.9283313
-          ]
-        ]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "element": "way",
         "id": 115883704,
         "barrier_type": "soft",
         "name": "Avenida Aristóbulo del Valle"
@@ -2652,36 +2572,6 @@
       "type": "Feature",
       "properties": {
         "element": "way",
-        "id": 256732599,
-        "barrier_type": "soft",
-        "name": "Avenida Francia"
-      },
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            -60.6616108,
-            -32.9253988
-          ],
-          [
-            -60.6616174,
-            -32.9255458
-          ],
-          [
-            -60.6616724,
-            -32.9258451
-          ],
-          [
-            -60.6618447,
-            -32.9265201
-          ]
-        ]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "element": "way",
         "id": 256732602,
         "barrier_type": "soft",
         "name": "Avenida Ovidio Lagos"
@@ -2708,40 +2598,6 @@
           [
             -60.6608722,
             -32.9399458
-          ]
-        ]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "element": "way",
-        "id": 256741684,
-        "barrier_type": "soft",
-        "name": "Avenida Francia"
-      },
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            -60.663093,
-            -32.932226
-          ],
-          [
-            -60.6630635,
-            -32.9321144
-          ],
-          [
-            -60.6629886,
-            -32.9319845
-          ],
-          [
-            -60.6627202,
-            -32.9317092
-          ],
-          [
-            -60.6625766,
-            -32.9315448
           ]
         ]
       }
@@ -5096,44 +4952,6 @@
       "type": "Feature",
       "properties": {
         "element": "way",
-        "id": 320571120,
-        "barrier_type": "soft",
-        "name": "Avenida Francia"
-      },
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            -60.6618447,
-            -32.9265201
-          ],
-          [
-            -60.6619071,
-            -32.926707
-          ],
-          [
-            -60.6619518,
-            -32.926842
-          ],
-          [
-            -60.6621713,
-            -32.927487
-          ],
-          [
-            -60.6624177,
-            -32.9282081
-          ],
-          [
-            -60.6624771,
-            -32.9283325
-          ]
-        ]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "element": "way",
         "id": 322479726,
         "barrier_type": "soft",
         "name": "Bulevar 27 de Febrero"
@@ -6644,64 +6462,6 @@
       "type": "Feature",
       "properties": {
         "element": "way",
-        "id": 329503470,
-        "barrier_type": "soft",
-        "name": "Avenida Francia"
-      },
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            -60.6622363,
-            -32.9281141
-          ],
-          [
-            -60.6621216,
-            -32.9277921
-          ],
-          [
-            -60.6617814,
-            -32.9268848
-          ],
-          [
-            -60.6617618,
-            -32.9268214
-          ],
-          [
-            -60.6617365,
-            -32.9267391
-          ],
-          [
-            -60.6616794,
-            -32.9265534
-          ],
-          [
-            -60.6615558,
-            -32.9260437
-          ],
-          [
-            -60.661515,
-            -32.9258756
-          ],
-          [
-            -60.6614592,
-            -32.9255858
-          ],
-          [
-            -60.6614463,
-            -32.9255464
-          ],
-          [
-            -60.6614163,
-            -32.9254649
-          ]
-        ]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "element": "way",
         "id": 330169529,
         "barrier_type": "soft",
         "name": "Avenida Ovidio Lagos"
@@ -7260,72 +7020,6 @@
       "type": "Feature",
       "properties": {
         "element": "way",
-        "id": 331398337,
-        "barrier_type": "soft",
-        "name": "Avenida Francia"
-      },
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            -60.6623626,
-            -32.9311493
-          ],
-          [
-            -60.6623236,
-            -32.931023
-          ],
-          [
-            -60.6622599,
-            -32.9308341
-          ],
-          [
-            -60.6622406,
-            -32.9307808
-          ],
-          [
-            -60.6622249,
-            -32.9307374
-          ],
-          [
-            -60.6620528,
-            -32.9303508
-          ],
-          [
-            -60.6620277,
-            -32.9302842
-          ],
-          [
-            -60.6620125,
-            -32.9301955
-          ],
-          [
-            -60.6620104,
-            -32.9301255
-          ],
-          [
-            -60.6620125,
-            -32.9299929
-          ],
-          [
-            -60.6620059,
-            -32.9299062
-          ],
-          [
-            -60.661978,
-            -32.9298311
-          ],
-          [
-            -60.6618849,
-            -32.9296723
-          ]
-        ]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "element": "way",
         "id": 331403340,
         "barrier_type": "soft",
         "name": "Avenida Francia"
@@ -7428,48 +7122,6 @@
       "type": "Feature",
       "properties": {
         "element": "way",
-        "id": 333197589,
-        "barrier_type": "soft",
-        "name": "Avenida Francia"
-      },
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            -60.6624859,
-            -32.9311385
-          ],
-          [
-            -60.6625128,
-            -32.9312266
-          ],
-          [
-            -60.6625901,
-            -32.9313883
-          ],
-          [
-            -60.6628671,
-            -32.9317068
-          ],
-          [
-            -60.6631253,
-            -32.931965
-          ],
-          [
-            -60.6632182,
-            -32.9320951
-          ],
-          [
-            -60.6632693,
-            -32.9321935
-          ]
-        ]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "element": "way",
         "id": 340318932,
         "barrier_type": "soft",
         "name": "Avenida Francia"
@@ -7484,36 +7136,6 @@
           [
             -60.6690294,
             -32.9558403
-          ]
-        ]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "element": "way",
-        "id": 353486064,
-        "barrier_type": "soft",
-        "name": "Avenida Francia"
-      },
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            -60.6625766,
-            -32.9315448
-          ],
-          [
-            -60.6624837,
-            -32.9314383
-          ],
-          [
-            -60.6623903,
-            -32.9312393
-          ],
-          [
-            -60.6623626,
-            -32.9311493
           ]
         ]
       }
@@ -9524,32 +9146,6 @@
           [
             -60.6559351,
             -32.9654368
-          ]
-        ]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "element": "way",
-        "id": 474621227,
-        "barrier_type": "soft",
-        "name": "Avenida Francia"
-      },
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            -60.662322,
-            -32.9283313
-          ],
-          [
-            -60.6622886,
-            -32.9282374
-          ],
-          [
-            -60.6622363,
-            -32.9281141
           ]
         ]
       }
