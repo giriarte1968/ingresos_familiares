@@ -110,4 +110,7 @@
 | TAREA-140 | Transparencia en cantidad de comparables (muestra vs pool total) | `f690059` | 2026-07-20 |
 | TAREA-148 | Macrozona independiente Puerto Norte con curvas planas | `3d6da94` | 2026-07-24 |
 | TAREA-149 | Eliminar TASA_AJUSTE_PN hardcoded + usar ct_annual_rate real | `525844f` | 2026-07-24 |
-| TAREA-150 | Ajuste fino parámetros Puerto Norte (ct=+3.5%, cv=0.339) | _(pendiente)_ | 2026-07-24 |
+| TAREA-150 | Ajuste fino parámetros Puerto Norte (ct=+3.5%, cv=0.339) | `2da7818` | 2026-07-24 |
+| TAREA-151 | Reordenar barreras_rosario.json (soft antes que hard) | `e141789` | 2026-07-25 |
+| TAREA-152 | Eliminar 10 segmentos internos de Av. Francia en Puerto Norte | `52f2184` | 2026-07-25 |
+| TAREA-153 | Hacer barreras editables en UI | _(pendiente)_ | 2026-07-25 |
