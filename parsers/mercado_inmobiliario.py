@@ -1353,14 +1353,14 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 cross_soft = barreras_result['cross_soft']
                 excluded_hard = barreras_result['excluded_hard']
                 
-                # PASO 1: Convertir excluded_hard → cross_soft para zonas urbanas densas
-                ZONAS_BARRERA_BLANDA = ['Puerto Norte', 'Refinería', 'Centro', 'Alberto Olmedo']
-                if zona_normalizada in ZONAS_BARRERA_BLANDA and excluded_hard:
+                # PASO 1: Convertir excluded_hard → cross_soft solo si n_same_side == 0
+                # (fallback para zonas sinprops en misma zona)
+                if not same_side and excluded_hard:
                     for comp in excluded_hard:
                         comp['_penalizacion_barrier'] = 0.97
                         cross_soft.append(comp)
                     excluded_hard = []
-                    logger.info(f"[BARRERA_BLANDA] {zona_normalizada}: convirtiendo {len(cross_soft)} props (penalización 0.97)")
+                    logger.info(f"[BARRERA_FALLBACK-SAMEZONE] {zona_normalizada}: sin same_side, convirtiendo {len(cross_soft)} excluded_hard a cross_soft (0.97)")
                 
                 # PASO 2: Fallback si todas cruzan barrera dura
                 if not same_side and not cross_soft and len(excluded_hard) >= 5:
