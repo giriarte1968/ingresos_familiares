@@ -359,6 +359,8 @@ def render_tabla_comparables(res, prop_name=None):
         # Comparamos los IDs excluidos actuales con los guardados en el resultado
         all_ids = [_get_comp_id(c) for c in comparables]
         excluded_ids = [cid for cid in all_ids if cid not in selected_ids]
+        
+        print(f"[DEBUG-SELECCION] n_sel={n_sel}, excluded_ids={len(excluded_ids)}, precios={[f'{p:,.0f}' for p in precios_sorted]}")
         is_applied = set(res.get('_comp_excluded', [])) == set(excluded_ids) and res.get('_comp_exclusion_applied', False)
 
         meta = res.get('resolution_metadata', {})
@@ -388,6 +390,8 @@ def render_tabla_comparables(res, prop_name=None):
         _m2_puro_val = meta.get('_m2_puro') if not excluded_ids else None
         if _m2_puro_val is not None:
             p33_p50 = _m2_puro_val
+        
+        print(f"[DEBUG-SELECCION] p33_p50={p33_p50:,.0f}, _m2_puro_val={_m2_puro_val}, raw_promedio={raw_promedio:,.0f}, excluded={len(excluded_ids)}")
 
         col_a, col_b, col_c = st.columns([1, 2, 1.2])
         with col_a:
