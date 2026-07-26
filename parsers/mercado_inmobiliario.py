@@ -1199,7 +1199,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 )
                 props_geo = cluster_filters.filtrar_por_tipo_operacion_dorms(
                     props_geo, tipo=tipo_inmueble, operacion=operacion, dormitorios=dormitorios,
-                    tolerancia_dorms=0
+                    tolerancia_dorms=0, flex_dormitorios=flex_dormitorios
                 )
                 props_geo = [p for p in props_geo if p.get('valor_m2', 0) > 0]
                 

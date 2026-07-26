@@ -42,7 +42,8 @@ def filtrar_por_radio(props: List[Dict], lat_ref: float, lon_ref: float,
 def filtrar_por_tipo_operacion_dorms(props: List[Dict], tipo: Optional[str] = None,
                                       operacion: Optional[str] = None,
                                       dormitorios: Optional[int] = None,
-                                      tolerancia_dorms: int = 1) -> List[Dict]:
+                                      tolerancia_dorms: int = 1,
+                                      flex_dormitorios: Optional[list] = None) -> List[Dict]:
     """
     Filtra propiedades por tipo, operación y dormitorios con tolerancia.
     
@@ -51,7 +52,12 @@ def filtrar_por_tipo_operacion_dorms(props: List[Dict], tipo: Optional[str] = No
         tipo: Tipo de propiedad (ej: 'departamento', 'casa'). Si None, no filtra.
         operacion: Operación (ej: 'venta', 'alquiler'). Si None, no filtra.
         dormitorios: Cantidad de dormitorios. Si None, no filtra.
-        tolerancia_dorms: Tolerancia ± para dormitorios (default: 1)
+        tolerancia_dorms: Tolerancia ± para dormitorios (default: 1).
+                         Ignorado cuando flex_dormitorios no es None.
+        flex_dormitorios: Lista de dormitorios alternativos a incluir.
+                         Cuando se provee, reemplaza la tolerancia y acepta
+                         propiedades cuyo dorm count sea igual al del sujeto
+                         O pertenezca a la lista flex.
     
     Returns:
         Propiedades filtradas
@@ -70,8 +76,12 @@ def filtrar_por_tipo_operacion_dorms(props: List[Dict], tipo: Optional[str] = No
             p_dorms = p.get('dormitorios')
             if p_dorms is None:
                 continue
-            if abs(int(p_dorms) - dormitorios) > tolerancia_dorms:
-                continue
+            if flex_dormitorios is not None:
+                if int(p_dorms) != dormitorios and int(p_dorms) not in flex_dormitorios:
+                    continue
+            else:
+                if abs(int(p_dorms) - dormitorios) > tolerancia_dorms:
+                    continue
         resultado.append(p)
     return resultado
 
@@ -121,7 +131,8 @@ def filtrar_por_fecha(props: List[Dict], fecha_ref: Optional[str] = None,
 
 def separar_por_barreras(props: List[Dict], lat_ref: float, lon_ref: float,
                           check_barrier_fn: Callable,
-                          zona_ref: str = None) -> Dict[str, List[Dict]]:
+                          zona_ref: str = None,
+                          bbox_ref: Dict = None) -> Dict[str, List[Dict]]:
     """
     Separa propiedades según su cruce de barreras geográficas.
     
@@ -131,6 +142,7 @@ def separar_por_barreras(props: List[Dict], lat_ref: float, lon_ref: float,
         lon_ref: Longitud de referencia
         check_barrier_fn: Función que dado (p1, p2, barriers) retorna False/'soft'/'hard'
         zona_ref: Zona normalizada del subject (para excepción misma zona)
+        bbox_ref: Bounding box del subject {lat_min, lat_max, lon_min, lon_max}
     
     Returns:
         Dict con 'same_side', 'cross_soft', 'excluded_hard'
@@ -139,6 +151,13 @@ def separar_por_barreras(props: List[Dict], lat_ref: float, lon_ref: float,
     cross_soft = []
     excluded_hard = []
 
+    def _esta_en_bbox(p_lat, p_lon, bbox):
+        """Verifica si una propiedad está dentro del bbox."""
+        if not bbox:
+            return False
+        return (bbox.get('lat_min', -999) <= p_lat <= bbox.get('lat_max', 999) and
+                bbox.get('lon_min', -999) <= p_lon <= bbox.get('lon_max', 999))
+
     for p in props:
         p_lat = p.get('lat') or p.get('latitud')
         p_lon = p.get('lon') or p.get('longitud')
@@ -146,9 +165,15 @@ def separar_por_barreras(props: List[Dict], lat_ref: float, lon_ref: float,
             same_side.append(p)
             continue
         
-        # Excepción: si subject y comparable están en la misma zona, ignorar barreras
+        # Excepción: si subject y comparable están en la misma zona (por texto O bbox)
         p_zona = p.get('zona', '')
+        misma_zona = False
         if zona_ref and p_zona and zona_ref == p_zona:
+            misma_zona = True
+        elif bbox_ref and _esta_en_bbox(float(p_lat), float(p_lon), bbox_ref):
+            misma_zona = True
+        
+        if misma_zona:
             same_side.append(p)
             continue
         
