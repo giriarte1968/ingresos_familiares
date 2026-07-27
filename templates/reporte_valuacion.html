@@ -3,19 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <style>
-  @page {
-    size: A4;
-    margin: 20mm 18mm 25mm 18mm;
-    @bottom-center {
-      content: "VALU — Reporte de Valuación | Página " counter(page) " de " counter(pages);
-      font-size: 8px;
-      color: #94a3b8;
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-    }
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-family: Helvetica, Arial, sans-serif;
     color: #1e293b;
     font-size: 10px;
     line-height: 1.5;
@@ -24,16 +13,12 @@
   /* ── Cover ── */
   .cover {
     page-break-after: always;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
     text-align: center;
+    padding-top: 180px;
   }
   .cover-logo {
     font-size: 48px;
-    font-weight: 800;
+    font-weight: bold;
     color: #0f172a;
     letter-spacing: 4px;
     margin-bottom: 8px;
@@ -47,7 +32,7 @@
   }
   .cover-title {
     font-size: 22px;
-    font-weight: 700;
+    font-weight: bold;
     color: #0f172a;
     margin-bottom: 8px;
   }
@@ -66,7 +51,7 @@
   .section { margin-bottom: 18px; }
   .section-label {
     font-size: 9px;
-    font-weight: 700;
+    font-weight: bold;
     color: #10b981;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -79,8 +64,7 @@
 
   /* ── Value Cards ── */
   .value-card {
-    background: #f8fafc;
-    border-radius: 8px;
+    background-color: #f8fafc;
     padding: 14px 18px;
     margin-bottom: 12px;
     border-left: 4px solid #10b981;
@@ -88,7 +72,7 @@
   .value-card.purple { border-left-color: #7c3aed; }
   .value-card .label {
     font-size: 9px;
-    font-weight: 700;
+    font-weight: bold;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 4px;
@@ -97,7 +81,7 @@
   .value-card .label.purple { color: #7c3aed; }
   .value-card .amount {
     font-size: 22px;
-    font-weight: 800;
+    font-weight: bold;
     color: #0f172a;
   }
   .value-card .range {
@@ -111,18 +95,12 @@
     margin-top: 4px;
   }
 
-  /* ── Grid ── */
-  .grid-2 { display: flex; gap: 16px; }
-  .grid-2 > div { flex: 1; }
-  .grid-4 { display: flex; gap: 12px; }
-  .grid-4 > div { flex: 1; }
-
   /* ── KPI Box ── */
   .kpi-box {
-    background: #f8fafc;
-    border-radius: 6px;
+    background-color: #f8fafc;
     padding: 10px 12px;
     text-align: center;
+    border: 1px solid #e2e8f0;
   }
   .kpi-box .kpi-label {
     font-size: 8px;
@@ -132,7 +110,7 @@
   }
   .kpi-box .kpi-value {
     font-size: 16px;
-    font-weight: 700;
+    font-weight: bold;
     color: #0f172a;
     margin-top: 2px;
   }
@@ -145,9 +123,9 @@
     margin-top: 6px;
   }
   th {
-    background: #f1f5f9;
+    background-color: #f1f5f9;
     color: #475569;
-    font-weight: 600;
+    font-weight: bold;
     text-align: left;
     padding: 6px 8px;
     font-size: 8px;
@@ -160,13 +138,11 @@
     border-bottom: 1px solid #f1f5f9;
     color: #334155;
   }
-  tr:nth-child(even) { background: #fafbfc; }
 
   /* ── Disclaimer ── */
   .disclaimer {
-    background: #fffbeb;
+    background-color: #fffbeb;
     border: 1px solid #fde68a;
-    border-radius: 6px;
     padding: 12px 14px;
     font-size: 8px;
     color: #92400e;
@@ -190,12 +166,12 @@
 <!-- ═══════════════════════════════════════════════════════════════════ -->
 <div class="cover">
   <div class="cover-logo">VALU</div>
-  <div class="cover-sub">Valuación Inmobiliaria Profesional</div>
+  <div class="cover-sub">Valuacion Inmobiliaria Profesional</div>
   <div class="cover-title">{{ nombre }}</div>
   <div class="cover-address">{{ direccion }} — {{ zona }}</div>
   <div class="cover-meta">
-    Generado: {{ fecha_generacion }}<br>
-    Versión: {{ cache_version }} | Mercado: {{ fecha_scraping }}
+    Generado: {{ fecha_generacion }}<br/>
+    Version: {{ cache_version }} | Mercado: {{ fecha_scraping }}
   </div>
 </div>
 
@@ -206,20 +182,26 @@
   <div class="section-label">1. Resumen Ejecutivo</div>
 
   {% if tiene_auto and tiene_manual %}
-  <div class="grid-2">
-    <div class="value-card">
-      <div class="label green">VALOR DE MERCADO (Automático)</div>
-      <div class="amount">USD {{ v_auto }}</div>
-      <div class="range">Conservador: USD {{ v_auto_cons }} | Optimista: USD {{ v_auto_opt }}</div>
-      <div class="meta">{{ n_comps_auto }} comparables · ${{ v_auto_m2 }}/m² base</div>
-    </div>
-    <div class="value-card purple">
-      <div class="label purple">VALOR DEL TASADOR (Manual)</div>
-      <div class="amount">USD {{ v_manual }}</div>
-      <div class="range">Conservador: USD {{ v_manual_cons }} | Optimista: USD {{ v_manual_opt }}</div>
-      <div class="meta">Diferencia: {{ delta_manual }}% vs automático</div>
-    </div>
-  </div>
+  <table style="margin-bottom:12px;">
+    <tr>
+      <td style="width:50%; vertical-align:top; padding-right:8px;">
+        <div class="value-card">
+          <div class="label green">VALOR DE MERCADO (Automatico)</div>
+          <div class="amount">USD {{ v_auto }}</div>
+          <div class="range">Conservador: USD {{ v_auto_cons }} | Optimista: USD {{ v_auto_opt }}</div>
+          <div class="meta">{{ n_comps_auto }} comparables · ${{ v_auto_m2 }}/m2 base</div>
+        </div>
+      </td>
+      <td style="width:50%; vertical-align:top;">
+        <div class="value-card purple">
+          <div class="label purple">VALOR DEL TASADOR (Manual)</div>
+          <div class="amount">USD {{ v_manual }}</div>
+          <div class="range">Conservador: USD {{ v_manual_cons }} | Optimista: USD {{ v_manual_opt }}</div>
+          <div class="meta">Diferencia: {{ delta_manual }}% vs automatico</div>
+        </div>
+      </td>
+    </tr>
+  </table>
 
   <div class="value-card" style="border-left-color: #0f172a; text-align: center;">
     <div class="label" style="color: #0f172a;">VALOR ADOPTADO</div>
@@ -231,37 +213,27 @@
     <div class="label green">VALOR ESTIMADO</div>
     <div class="amount">USD {{ valor_unico }}</div>
     <div class="range">Conservador: USD {{ v_cons_unico }} | Optimista: USD {{ v_opt_unico }}</div>
-    <div class="meta">{{ n_comps_auto }} comparables · ${{ v_auto_m2 }}/m² base</div>
+    <div class="meta">{{ n_comps_auto }} comparables · ${{ v_auto_m2 }}/m2 base</div>
   </div>
   {% endif %}
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════════ -->
-<!-- 2. DESCRIPCIÓN DE LA PROPIEDAD -->
+<!-- 2. DESCRIPCION DE LA PROPIEDAD -->
 <!-- ═══════════════════════════════════════════════════════════════════ -->
 <div class="section">
-  <div class="section-label">2. Descripción de la Propiedad</div>
-  <div class="grid-4">
-    <div class="kpi-box">
-      <div class="kpi-label">m² Equivalentes</div>
-      <div class="kpi-value">{{ m2_eq }}</div>
-    </div>
-    <div class="kpi-box">
-      <div class="kpi-label">Dormitorios</div>
-      <div class="kpi-value">{{ dormitorios }}</div>
-    </div>
-    <div class="kpi-box">
-      <div class="kpi-label">Año Construcción</div>
-      <div class="kpi-value">{{ anio_const }}</div>
-    </div>
-    <div class="kpi-box">
-      <div class="kpi-label">Estado</div>
-      <div class="kpi-value">{{ estado }}</div>
-    </div>
-  </div>
-  <table class="mt-8">
+  <div class="section-label">2. Descripcion de la Propiedad</div>
+  <table style="margin-bottom:8px;">
+    <tr>
+      <td style="width:25%; text-align:center;"><div class="kpi-box"><div class="kpi-label">m2 Equiv.</div><div class="kpi-value">{{ m2_eq }}</div></div></td>
+      <td style="width:25%; text-align:center;"><div class="kpi-box"><div class="kpi-label">Dormitorios</div><div class="kpi-value">{{ dormitorios }}</div></div></td>
+      <td style="width:25%; text-align:center;"><div class="kpi-box"><div class="kpi-label">Ano Const.</div><div class="kpi-value">{{ anio_const }}</div></div></td>
+      <td style="width:25%; text-align:center;"><div class="kpi-box"><div class="kpi-label">Estado</div><div class="kpi-value">{{ estado }}</div></div></td>
+    </tr>
+  </table>
+  <table>
     <tr><td style="width:30%; color:#64748b;">Tipo</td><td>{{ tipo_inmueble }}</td></tr>
-    <tr><td style="color:#64748b;">Dirección</td><td>{{ direccion }}</td></tr>
+    <tr><td style="color:#64748b;">Direccion</td><td>{{ direccion }}</td></tr>
     <tr><td style="color:#64748b;">Zona</td><td>{{ zona }}</td></tr>
     {% if constructora %}<tr><td style="color:#64748b;">Constructora</td><td>{{ constructora }}</td></tr>{% endif %}
     {% if calidad_edificio %}<tr><td style="color:#64748b;">Calidad Edificio</td><td>{{ calidad_edificio }}</td></tr>{% endif %}
@@ -270,28 +242,18 @@
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════════ -->
-<!-- 3. MÉTRICAS DE INVERSIÓN -->
+<!-- 3. METRICAS DE INVERSION -->
 <!-- ═══════════════════════════════════════════════════════════════════ -->
 <div class="section">
-  <div class="section-label">3. Métricas de Inversión</div>
-  <div class="grid-4">
-    <div class="kpi-box">
-      <div class="kpi-label">Alquiler Est. (ARS)</div>
-      <div class="kpi-value">{{ alquiler_ars }}</div>
-    </div>
-    <div class="kpi-box">
-      <div class="kpi-label">Alquiler Est. (USD)</div>
-      <div class="kpi-value">{{ alquiler_usd }}</div>
-    </div>
-    <div class="kpi-box">
-      <div class="kpi-label">Cap Rate</div>
-      <div class="kpi-value">{{ cap_rate }}</div>
-    </div>
-    <div class="kpi-box">
-      <div class="kpi-label">Base m²</div>
-      <div class="kpi-value">{{ m2_base }}</div>
-    </div>
-  </div>
+  <div class="section-label">3. Metricas de Inversion</div>
+  <table>
+    <tr>
+      <td style="width:25%; text-align:center;"><div class="kpi-box"><div class="kpi-label">Alquiler Est. (ARS)</div><div class="kpi-value">{{ alquiler_ars }}</div></div></td>
+      <td style="width:25%; text-align:center;"><div class="kpi-box"><div class="kpi-label">Alquiler Est. (USD)</div><div class="kpi-value">{{ alquiler_usd }}</div></div></td>
+      <td style="width:25%; text-align:center;"><div class="kpi-box"><div class="kpi-label">Cap Rate</div><div class="kpi-value">{{ cap_rate }}</div></div></td>
+      <td style="width:25%; text-align:center;"><div class="kpi-box"><div class="kpi-label">Base m2</div><div class="kpi-value">{{ m2_base }}</div></div></td>
+    </tr>
+  </table>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════════ -->
@@ -299,17 +261,17 @@
 <!-- ═══════════════════════════════════════════════════════════════════ -->
 <div class="section page-break">
   <div class="section-label blue">4. Comparables Utilizados</div>
-  <p class="text-small text-muted mb-4">{{ n_comps_auto }} propiedades comparables seleccionadas por el motor de valuación</p>
+  <p class="text-small text-muted mb-4">{{ n_comps_auto }} propiedades comparables seleccionadas por el motor de valuacion</p>
 
   {% if comparables %}
   <table>
     <thead>
       <tr>
         <th>#</th>
-        <th>Dirección</th>
-        <th>m²</th>
+        <th>Direccion</th>
+        <th>m2</th>
         <th>Dorm</th>
-        <th>USD/m²</th>
+        <th>USD/m2</th>
         <th>USD Total</th>
         <th>Dist.</th>
         <th>Fuente</th>
@@ -331,17 +293,17 @@
     </tbody>
   </table>
   {% else %}
-  <p class="text-muted">No hay comparables detallados disponibles para esta valuación.</p>
+  <p class="text-muted">No hay comparables detallados disponibles para esta valuacion.</p>
   {% endif %}
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════════ -->
-<!-- 5. METODOLOGÍA -->
+<!-- 5. METODOLOGIA -->
 <!-- ═══════════════════════════════════════════════════════════════════ -->
 {% if razonamiento %}
 <div class="section">
-  <div class="section-label">5. Metodología y Razonamiento</div>
-  <div style="background:#f8fafc; border-radius:6px; padding:12px 14px; font-size:9px; color:#475569; line-height:1.7;">
+  <div class="section-label">5. Metodologia y Razonamiento</div>
+  <div style="background-color:#f8fafc; padding:12px 14px; font-size:9px; color:#475569; line-height:1.7;">
     {{ razonamiento }}
   </div>
 </div>
@@ -352,22 +314,24 @@
 <!-- ═══════════════════════════════════════════════════════════════════ -->
 <div class="section">
   <div class="section-label">6. Factores de Ajuste</div>
-  <div class="grid-2">
-    <div>
-      <table>
-        <tr><td style="color:#64748b;">Factor total</td><td style="font-weight:700;">{{ factor_total }}</td></tr>
-        <tr><td style="color:#64748b;">Depreciación</td><td style="font-weight:700;">{{ depreciacion }}</td></tr>
-        <tr><td style="color:#64748b;">Ajuste NLP</td><td style="font-weight:700;">{{ nlp_ajuste }}</td></tr>
-      </table>
-    </div>
-    <div>
-      <table>
-        <tr><td style="color:#64748b;">Calidad edificio</td><td style="font-weight:700;">{{ calidad_edificio }}</td></tr>
-        <tr><td style="color:#64748b;">CV pool</td><td style="font-weight:700;">{{ cv_pool }}</td></tr>
-        <tr><td style="color:#64748b;">Percentil</td><td style="font-weight:700;">{{ percentil }}</td></tr>
-      </table>
-    </div>
-  </div>
+  <table>
+    <tr>
+      <td style="width:50%; vertical-align:top;">
+        <table>
+          <tr><td style="color:#64748b;">Factor total</td><td style="font-weight:bold;">{{ factor_total }}</td></tr>
+          <tr><td style="color:#64748b;">Depreciacion</td><td style="font-weight:bold;">{{ depreciacion }}</td></tr>
+          <tr><td style="color:#64748b;">Ajuste NLP</td><td style="font-weight:bold;">{{ nlp_ajuste }}</td></tr>
+        </table>
+      </td>
+      <td style="width:50%; vertical-align:top;">
+        <table>
+          <tr><td style="color:#64748b;">Calidad edificio</td><td style="font-weight:bold;">{{ calidad_edificio }}</td></tr>
+          <tr><td style="color:#64748b;">CV pool</td><td style="font-weight:bold;">{{ cv_pool }}</td></tr>
+          <tr><td style="color:#64748b;">Percentil</td><td style="font-weight:bold;">{{ percentil }}</td></tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════════ -->
@@ -378,9 +342,9 @@
   <div class="section-label">7. Activos Adicionales</div>
   <table>
     {% for act in activos %}
-    <tr><td style="color:#64748b;">{{ act.nombre }}</td><td style="font-weight:700;">USD {{ act.valor }}</td></tr>
+    <tr><td style="color:#64748b;">{{ act.nombre }}</td><td style="font-weight:bold;">USD {{ act.valor }}</td></tr>
     {% endfor %}
-    <tr style="border-top:2px solid #e2e8f0;"><td style="font-weight:700;">Total activos</td><td style="font-weight:700;">USD {{ total_activos }}</td></tr>
+    <tr style="border-top:2px solid #e2e8f0;"><td style="font-weight:bold;">Total activos</td><td style="font-weight:bold;">USD {{ total_activos }}</td></tr>
   </table>
 </div>
 {% endif %}
@@ -391,24 +355,14 @@
 {% if catastro %}
 <div class="section">
   <div class="section-label">8. Datos Catastrales</div>
-  <div class="grid-4">
-    <div class="kpi-box">
-      <div class="kpi-label">PH</div>
-      <div class="kpi-value">{{ catastro.ph }}</div>
-    </div>
-    <div class="kpi-box">
-      <div class="kpi-label">Año Const.</div>
-      <div class="kpi-value">{{ catastro.anio }}</div>
-    </div>
-    <div class="kpi-box">
-      <div class="kpi-label">Sección</div>
-      <div class="kpi-value">{{ catastro.seccion }}</div>
-    </div>
-    <div class="kpi-box">
-      <div class="kpi-label">Gráfico</div>
-      <div class="kpi-value">{{ catastro.grafico }}</div>
-    </div>
-  </div>
+  <table>
+    <tr>
+      <td style="width:25%; text-align:center;"><div class="kpi-box"><div class="kpi-label">PH</div><div class="kpi-value">{{ catastro.ph }}</div></div></td>
+      <td style="width:25%; text-align:center;"><div class="kpi-box"><div class="kpi-label">Ano Const.</div><div class="kpi-value">{{ catastro.anio }}</div></div></td>
+      <td style="width:25%; text-align:center;"><div class="kpi-box"><div class="kpi-label">Seccion</div><div class="kpi-value">{{ catastro.seccion }}</div></div></td>
+      <td style="width:25%; text-align:center;"><div class="kpi-box"><div class="kpi-label">Grafico</div><div class="kpi-value">{{ catastro.grafico }}</div></div></td>
+    </tr>
+  </table>
 </div>
 {% endif %}
 
@@ -416,10 +370,10 @@
 <!-- DISCLAIMER -->
 <!-- ═══════════════════════════════════════════════════════════════════ -->
 <div class="disclaimer">
-  <strong>Aviso:</strong> Este informe ha sido generado automáticamente por el sistema VALU con base en datos de mercado
-  y algoritmos de valuación comparativa. Los valores estimados no constituyen una tasación oficial y deben ser
-  validados por un profesional habilitado. Los datos de mercado provienen de fuentes públicas y pueden no reflejar
-  condiciones transaccionales específicas. Versión: {{ cache_version }}.
+  <strong>Aviso:</strong> Este informe ha sido generado automaticamente por el sistema VALU con base en datos de mercado
+  y algoritmos de valuacion comparativa. Los valores estimados no constituyen una tasacion oficial y deben ser
+  validados por un profesional habilitado. Los datos de mercado provienen de fuentes publicas y pueden no reflejar
+  condiciones transaccionales especificas. Version: {{ cache_version }}.
 </div>
 
 </body>

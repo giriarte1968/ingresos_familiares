@@ -1232,10 +1232,13 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
         catastro=catastro_data,
     )
 
-    # ── Generar PDF con WeasyPrint ──
-    from weasyprint import HTML
-    pdf_bytes = HTML(string=html_content).write_pdf()
-    return pdf_bytes
+    # ── Generar PDF con xhtml2pdf ──
+    from xhtml2pdf import pisa
+    output = BytesIO()
+    pisa_status = pisa.CreatePDF(html_content, dest=output, encoding='utf-8')
+    if pisa_status.err:
+        raise RuntimeError(f"Error generando PDF: {pisa_status.err}")
+    return output.getvalue()
 
 
 # ─── HELPERS PARA ELIMINACION ───
