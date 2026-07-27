@@ -16,8 +16,9 @@ sys.path.insert(0, PROJECT_ROOT)
 
 from parsers.motor_vpp_core import load_anclas_config
 from parsers.time_adjustment import calcular_ct, meses_desde, es_nuevo
+from parsers.mercado_inmobiliario import calcular_size_adjustment
 
-FECHA_REF = datetime(2026, 6, 1)
+FECHA_REF = datetime(2026, 7, 27)
 
 def m2deg_lat(m):
     return m / 111000.0
@@ -93,7 +94,7 @@ def main():
         RUTA_OUT = os.path.join(PROJECT_ROOT, gen_cfg.get('output_dir', 'data'), out_name)
 
     print("Grid size: %dm, min props: %d" % (GRID_SIZE_M, MIN_PROPS))
-    print("Ct: usar ct_annual_rate por macrozona desde zonas_depreciacion.json")
+    print("Ct: ct_annual_rate por macrozona + size_adj por dormitorios")
 
     with open(RUTA_CACHE, encoding='utf-8') as f:
         cache = json.load(f)
@@ -121,18 +122,27 @@ def main():
             _mz_id = None
         ct = calcular_ct(m, es_nuevo_flag=is_new, macrozona_id=_mz_id)
 
+        # Size adjustment: normalizar por tamaño y dormitorios de la propiedad
+        m2_prop = p.get('m2') or p.get('m2_cubiertos', 0)
+        dorms_prop = p.get('dormitorios')
+        size_adj_prop = calcular_size_adjustment(m2_prop, _mz_id, dormitorios=dorms_prop) if m2_prop else 1.0
+        lista_hoy = round(vm2 * ct / size_adj_prop, 1) if size_adj_prop > 0 else round(vm2 * ct, 1)
+
         props.append({
             'lat': lat, 'lon': lon,
             'valor_m2': vm2,
-            'lista_hoy_unico': round(vm2 * ct, 2),
-            'lista_hoy_dual':  round(vm2 * ct, 2),
+            'lista_hoy_unico': lista_hoy,
+            'lista_hoy_dual':  lista_hoy,
             'ct_base': ct,
             'ct_aplicado': ct,
+            'size_adj': round(size_adj_prop, 4),
             'es_nuevo': is_new,
             'zona': p.get('zona', ''),
             'calle': p.get('calle_limpia', ''),
             'meses': m,
             'macrozona_id': _mz_id,
+            'm2': m2_prop,
+            'dormitorios': dorms_prop,
         })
     print("Props validas venta: %d (nuevo=%d, usado=%d)" % (len(props), n_nuevo, len(props)-n_nuevo))
 
@@ -206,7 +216,7 @@ def main():
             'usd_m2_raw': round(med_raw, 0),
             'avg_meses': round(avg_meses_val, 1),
             'diff_pct': round((med_d - med_u) / med_u * 100, 1) if med_u else 0,
-            'fecha_calibracion': '2026-06-01',
+            'fecha_calibracion': FECHA_REF.strftime('%Y-%m-%d'),
             'fuente': 'grid_v7',
             'n_zonal': n,
             'calle_principal': top1 if calles else '',
@@ -236,7 +246,10 @@ def main():
         'parametros': {
             'grid_size_m': GRID_SIZE_M,
             'min_props': MIN_PROPS,
+            'formula': 'vm2 * CT / size_adj(m2_prop, macrozona, dorms)',
             'ct_metodo': 'calcular_ct(pub_date, macrozona_id) con ct_annual_rate de zonas_depreciacion.json',
+            'size_adj_ref': 'calcular_size_adjustment(m2_prop, macrozona_id, dormitorios) por propiedad',
+            'fecha_ref': FECHA_REF.strftime('%Y-%m-%d'),
         },
         'total_props': len(props),
         'total_anclas': len(anclas),

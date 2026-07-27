@@ -98,7 +98,6 @@ def calcular_ct(meses, es_nuevo_flag=False, macrozona_id=None):
         tasa = get_ct_rate(macrozona_id)
         # Formula: CT = (1 + tasa)^(meses/12)
         ct = (1.0 + tasa) ** (meses / 12.0)
-        print(f"[DEBUG-CT] mz={macrozona_id} meses={meses:.2f} tasa={tasa:.4f} ct={ct:.4f}")
         return ct
     
     # Fallback: Tabla universal original

@@ -1651,12 +1651,12 @@ def test_ct_runtime_generar_resultado_manual():
     from parsers.mercado_inmobiliario import generar_resultado_manual
     from parsers.location_engine import cargar_anclas
     anclas = cargar_anclas()
-    de_mayo_sur = next((a for a in anclas if a['id'] == 'de_mayo_sur'), None)
-    assert de_mayo_sur is not None, "de_mayo_sur debe existir"
-    raw_val = de_mayo_sur['usd_m2_raw']
-    effective_val = de_mayo_sur['usd_m2']
-    assert raw_val > 0, f"de_mayo_sur usd_m2_raw debe > 0, got {raw_val}"
-    assert effective_val > 0, f"de_mayo_sur usd_m2 debe > 0, got {effective_val}"
+    acevedo_oeste = next((a for a in anclas if a['id'] == 'acevedo_oeste'), None)
+    assert acevedo_oeste is not None, "acevedo_oeste debe existir"
+    raw_val = acevedo_oeste['usd_m2_raw']
+    effective_val = acevedo_oeste['usd_m2']
+    assert raw_val > 0, f"acevedo_oeste usd_m2_raw debe > 0, got {raw_val}"
+    assert effective_val > 0, f"acevedo_oeste usd_m2 debe > 0, got {effective_val}"
     assert effective_val != raw_val, f"usd_m2 ({effective_val}) debe diferir de usd_m2_raw ({raw_val}) — Ct embedded"
 
     prop = {
@@ -1673,7 +1673,7 @@ def test_ct_runtime_generar_resultado_manual():
     }
     
     manual_params = {
-        'ancla_id': 'de_mayo_sur',
+        'ancla_id': 'acevedo_oeste',
         'usd_m2': effective_val,
         'usd_m2_raw': raw_val,
         'factor_hedonico': 1.0,
