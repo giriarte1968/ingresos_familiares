@@ -1232,13 +1232,19 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
         catastro=catastro_data,
     )
 
-    # ── Generar PDF con xhtml2pdf ──
-    from xhtml2pdf import pisa
-    output = BytesIO()
-    pisa_status = pisa.CreatePDF(html_content, dest=output, encoding='utf-8')
-    if pisa_status.err:
-        raise RuntimeError(f"Error generando PDF: {pisa_status.err}")
-    return output.getvalue()
+    # ── Generar PDF con Playwright (Chromium) ──
+    from playwright.sync_api import sync_playwright
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.set_content(html_content, wait_until='networkidle')
+        pdf_bytes = page.pdf(
+            format='A4',
+            print_background=True,
+            margin={'top': '0', 'bottom': '0', 'left': '0', 'right': '0'},
+        )
+        browser.close()
+    return pdf_bytes
 
 
 # ─── HELPERS PARA ELIMINACION ───
