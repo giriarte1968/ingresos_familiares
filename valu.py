@@ -1211,19 +1211,15 @@ def mostrar_dashboard():
                                         st.session_state.pop(f'_comp_exclusion_applied_{prop_name}', None)
 
                 with profile_block("mostrar_detalle_valu_total", p_obj):
-                    # ── Guardar resultado oficial si no existe o si fue forzado ──
+                    # ── Guardar resultado oficial si no existe (primera valuación / post-Limpiar) ──
                     # RO-CLEAN-03: No guardar si es estado pendiente (valor=0, error='pendiente')
+                    # RO-HEADER-04: NO actualizar con forzar (Retro/Flex) — solo con Aplicar selección
                     if not preview_mode:
                         official_key = f'_official_result_{prop_name}'
-                        existing = st.session_state.get(official_key)
-                        if resultado.get('error') != 'pendiente':
-                            if not existing or forzar:
-                                import copy
-                                st.session_state[official_key] = copy.deepcopy(resultado)
-                                if not existing:
-                                    print(f"[DEBUG-OFFICIAL-FIRST] {prop_name}: resultado oficial guardado por primera vez, valor=${resultado.get('valor_propiedad_usd',0):,.0f}, n_prop={resultado.get('resolution_metadata',{}).get('n_propiedades')}")
-                                else:
-                                    print(f"[DEBUG-OFFICIAL-UPDATE] {prop_name}: resultado oficial ACTUALIZADO (forzar), valor=${resultado.get('valor_propiedad_usd',0):,.0f}, n_prop={resultado.get('resolution_metadata',{}).get('n_propiedades')}")
+                        if official_key not in st.session_state and resultado.get('error') != 'pendiente':
+                            import copy
+                            st.session_state[official_key] = copy.deepcopy(resultado)
+                            print(f"[DEBUG-OFFICIAL-FIRST] {prop_name}: resultado oficial guardado por primera vez, valor=${resultado.get('valor_propiedad_usd',0):,.0f}, n_prop={resultado.get('resolution_metadata',{}).get('n_propiedades')}")
                     try:
                         mostrar_detalle_valu(p_obj, resultado, actualizar_propiedad)
                     except Exception as e_render:
