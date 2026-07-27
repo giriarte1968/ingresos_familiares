@@ -4082,22 +4082,13 @@ def generar_resultado_manual(prop, manual_params, auto_result=None):
     factor_hedonico = fh_raw if fh_raw != 0 else 1.0
     incertidumbre_pct = manual_params.get('incertidumbre_pct', 10.0)
 
-    # Size adjustment por macrozona (TAREA-077)
-    size_adj = 1.0
+    # Size adjustment ya integrado en ancla (lista_hoy = vm2 * CT / size_adj)
     mz_nombre = ""
     _mz_info = None
     try:
         from parsers.zonas_manager import resolver_macrozona
         _mz_info = resolver_macrozona(prop)
         mz_nombre = _mz_info.get('macrozona', '')
-        if manual_params.get('incluir_size_adj', True):
-            ancla_id_input = manual_params.get('ancla_id', None)
-            size_adj = calcular_size_adjustment(
-                m2_equiv,
-                macrozona_id=_mz_info.get('macrozona_id'),
-                ancla_id=ancla_id_input,
-                dormitorios=prop.get('dormitorios'),
-            )
     except:
         pass
 

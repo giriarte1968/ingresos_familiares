@@ -1535,7 +1535,6 @@ def render_valuacion_manual(prop, res):
                 'ajuste_pct': 0.0,
                 'incertidumbre_pct': 10.0,
                 'incluir_prima_const': True,
-                'incluir_size_adj': True,
             }
 
     saved = st.session_state[ss_key]
@@ -1620,21 +1619,13 @@ def render_valuacion_manual(prop, res):
         if tiene_ancla:
             st.caption("Valor determinado por el ancla. Deseleccioná el ancla para editar manualmente.")
 
-        # Checkboxes: ajuste por tamaño + prima de constructora
-        col_f, col_g = st.columns(2)
-        with col_f:
-            saved['incluir_size_adj'] = st.checkbox(
-                f"Ajuste por tamano ({_mz_name})",
-                value=saved.get('incluir_size_adj', True),
-                key=f"manual_incluir_size_{_safe_key(nombre)}",
-            )
-        with col_g:
-            constr_check_label = f"Prima de constructora ({constr_label})" if constr_label else "Prima de constructora"
-            saved['incluir_prima_const'] = st.checkbox(
-                constr_check_label,
-                value=saved.get('incluir_prima_const', True),
-                key=f"manual_incluir_const_{_safe_key(nombre)}",
-            )
+        # Checkbox: prima de constructora
+        constr_check_label = f"Prima de constructora ({constr_label})" if constr_label else "Prima de constructora"
+        saved['incluir_prima_const'] = st.checkbox(
+            constr_check_label,
+            value=saved.get('incluir_prima_const', True),
+            key=f"manual_incluir_const_{_safe_key(nombre)}",
+        )
 
         # Activos (solo lectura, inline)
         activos_parts = []
@@ -1690,20 +1681,10 @@ def render_valuacion_manual(prop, res):
 
     # Size adjustment
     size_adj = 1.0
-    if saved.get('incluir_size_adj', True):
-        try:
-            size_adj = calcular_size_adjustment(
-                m2_eq,
-                macrozona_id=_mz_info.get('macrozona_id'),
-                ancla_id=ancla_sel if ancla_sel != "Sin Ancla" else None,
-                dormitorios=prop.get('dormitorios'),
-            )
-        except Exception:
-            pass
-
     # Calcular preview matching generar_resultado_manual
+    # Size adjustment ya integrado en ancla (usd_m2 ya incluye size_adj)
     constr_mult = factor_const if saved.get('incluir_prima_const', True) else 1.0
-    pre_sub = m2_eq * usd_m2_input * size_adj * fh_eff * constr_mult
+    pre_sub = m2_eq * usd_m2_input * fh_eff * constr_mult
 
     pre_act = 0
     if cant_cocheras > 0:
@@ -1724,7 +1705,6 @@ def render_valuacion_manual(prop, res):
 
     constr_display = f"{constr_label}" if constr_label and saved.get('incluir_prima_const', True) else "—"
     constr_pct_str = f"+{pct_const}%" if pct_const > 0 else ("—" if not constr_label else f"{pct_const}%")
-    size_adj_str = f"{size_adj:.4f}" if saved.get('incluir_size_adj', True) else "1.0 (desactivado)"
 
     preview_html = f"""
     <div style="background:#ffffff;border:1px solid #d1d5db;border-radius:10px;padding:20px;margin:16px 0;">
@@ -1745,7 +1725,6 @@ def render_valuacion_manual(prop, res):
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px 16px;font-size:13px;color:#333333;">
         <div><span style="color:#000000;font-weight:600;">m² eq.:</span> {m2_eq:,.0f}</div>
         <div><span style="color:#000000;font-weight:600;">USD/m²:</span> ${usd_m2_input:,.0f}</div>
-        <div><span style="color:#000000;font-weight:600;">Size adj.:</span> {size_adj_str}</div>
         <div><span style="color:#000000;font-weight:600;">FH:</span> {(fh_eff-1.0)*100:+.1f}%</div>
         <div><span style="color:#000000;font-weight:600;">Constructora:</span> {constr_pct_str}</div>
         <div><span style="color:#000000;font-weight:600;">Ajuste %:</span> {ajuste_pct:+.1f}%</div>
@@ -1753,7 +1732,7 @@ def render_valuacion_manual(prop, res):
         <div><span style="color:#000000;font-weight:600;">Activos:</span> ${pre_act:,.0f}</div>
       </div>
       <div style="color:#333333;font-size:11px;margin-top:10px;padding-top:10px;border-top:1px solid #d1d5db;">
-        m2_eq x USD/m2 x size_adj x FH x constr + activos x (1 + ajuste)
+        m2_eq x USD/m2 x FH x constr + activos x (1 + ajuste)
       </div>
     </div>
     """
@@ -1780,7 +1759,6 @@ def render_valuacion_manual(prop, res):
                 ('incertidumbre_pct', inc),
                 ('ajuste_pct', ajuste_pct),
                 ('incluir_prima_const', saved.get('incluir_prima_const', True)),
-                ('incluir_size_adj', saved.get('incluir_size_adj', True)),
             ]
             for key, val in checks:
                 if saved_params.get(key) != val:
@@ -1800,7 +1778,6 @@ def render_valuacion_manual(prop, res):
                 'incertidumbre_pct': inc,
                 'ajuste_pct': ajuste_pct,
                 'incluir_prima_const': saved.get('incluir_prima_const', True),
-                'incluir_size_adj': saved.get('incluir_size_adj', True),
                 'fecha_guardado': datetime.now().isoformat(),
                 'valor_auto_snapshot': motor_valor,
             }

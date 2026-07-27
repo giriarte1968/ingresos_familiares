@@ -119,7 +119,7 @@ def test_manual_valuation_auto_updates_on_additive_change():
         'manual_params': {
             'ancla_id': 'some_id', 'usd_m2': 2000, 'factor_hedonico': 1.0, 
             'incertidumbre_pct': 10.0, 'ajuste_pct': 0.0, 
-            'incluir_prima_const': True, 'incluir_size_adj': True
+            'incluir_prima_const': True
         },
         'valor_usd': 100000 
     }
@@ -465,7 +465,6 @@ def test_ui_manual_save_visible_disabled_when_no_changes():
                 'incertidumbre_pct': 10.0,
                 'ajuste_pct': 0.0,
                 'incluir_prima_const': True,
-                'incluir_size_adj': True,
             },
             'valor_usd': 100000,
             'retro_dias': 36,
@@ -936,7 +935,7 @@ def test_ui_manual_limpiar_button_name():
             'fuente': 'manual', 'fuente_activa': 'manual',
             'manual_params': {'ancla_id': 'test', 'usd_m2': 2000, 'factor_hedonico': 1.0,
                               'incertidumbre_pct': 10.0, 'ajuste_pct': 0.0,
-                              'incluir_prima_const': True, 'incluir_size_adj': True},
+                              'incluir_prima_const': True},
             'valor_usd': 100000, 'retro_dias': 36, 'flex_dormitorios': None,
             '_comp_excluded': [], '_comp_exclusion_applied': False,
         }
@@ -1680,7 +1679,6 @@ def test_ct_runtime_generar_resultado_manual():
         'incertidumbre_pct': 10.0,
         'ajuste_pct': 0.0,
         'incluir_prima_const': False,
-        'incluir_size_adj': False,
     }
     
     result = generar_resultado_manual(prop, manual_params)
@@ -1713,7 +1711,6 @@ def test_ct_runtime_legacy_fallback():
         'incertidumbre_pct': 10.0,
         'ajuste_pct': 0.0,
         'incluir_prima_const': False,
-        'incluir_size_adj': False,
     }
     result = generar_resultado_manual(prop, manual_params)
     m2_base = result.get('m2_base_venta', 0)
@@ -1746,7 +1743,6 @@ def test_stress_santuario_manual():
         'ancla_id': 'Sin Ancla', 'usd_m2': 2000,
         'factor_hedonico': 1.0, 'incertidumbre_pct': 10.0,
         'ajuste_pct': 0.0, 'incluir_prima_const': False,
-        'incluir_size_adj': False,
     }
     st.session_state[f'fuente_{prop_name}'] = 'manual'
     st.session_state[f'modificado_{prop_name}'] = True
