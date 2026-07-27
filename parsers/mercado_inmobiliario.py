@@ -1437,7 +1437,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 'distancia_m': round(calcular_distancia_km(lat_ref, lon_ref, float(p['lat']), float(p['lon'])) * 1000, 0) if lat_ref and lon_ref and p.get('lat') and p.get('lon') else None,
                 '_cross_soft': p.get('_cross_soft', False),
             }
-            for p in pool_final[:60 if retro_dias > 0 else 30]
+            for p in pool_final[:120 if retro_dias > 0 else 76]
         ] if pool_final else []
         
         if not precios:
