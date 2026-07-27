@@ -71,8 +71,8 @@ def _mapear_confianza(percentil_usado):
         return 'baja'
 
 
-def _precio_ajustado(c, macrozona_id=None, ancla_id=None):
-    """Suma el ajuste temporal y normaliza el premio/descuento por tamaño del comparable."""
+def _precio_ajustado(c, macrozona_id=None, ancla_id=None, dormitorios_sujeto=None):
+    """Suma el ajuste temporal, normaliza por tamaño y aplica ratio dorm type (TAREA-154)."""
     precio = c.get('precio_m2', c.get('valor_m2', 0))
     adj = c.get('time_adjustment', c.get('_time_adjustment', 1.0))
     raw_val = precio * adj
@@ -82,9 +82,14 @@ def _precio_ajustado(c, macrozona_id=None, ancla_id=None):
     norm_val = raw_val / adj_size if adj_size > 0 else raw_val
     if adj_size != 1.0:
         print(f"[DEBUG-SIZE-NORM] {c.get('direccion', 'comp')}: raw={raw_val:.2f}, adj={adj_size:.4f}, norm={norm_val:.2f}")
+    if dormitorios_sujeto and dorms_comp and dorms_comp != dormitorios_sujeto:
+        adj_dorm = obtener_dorm_type_ratio(macrozona_id, dorms_comp, dormitorios_sujeto)
+        if adj_dorm != 1.0:
+            norm_val *= adj_dorm
+            print(f"[DEBUG-DORM-NORM] {c.get('direccion', 'comp')}: dorm_comp={dorms_comp}, dorm_suj={dormitorios_sujeto}, ratio={adj_dorm:.4f}, val={norm_val:.2f}")
     return norm_val
 
-def _computar_vm2_core(comparables, percentil, apply_barrier=True, alpha=None, macrozona_id=None, ancla_id=None):
+def _computar_vm2_core(comparables, percentil, apply_barrier=True, alpha=None, macrozona_id=None, ancla_id=None, dormitorios_sujeto=None):
     """
     NÚCLEO UNIFICADO DE CÁLCULO VM2 (TAREA-093)
     Centraliza la lógica de blend alpha y corrección de barrera para evitar divergencias
@@ -101,8 +106,8 @@ def _computar_vm2_core(comparables, percentil, apply_barrier=True, alpha=None, m
     same = [c for c in comparables if not c.get('_cross_soft', False)]
     cross = [c for c in comparables if c.get('_cross_soft', False)]
     
-    precios_same = sorted([_precio_ajustado(c, macrozona_id, ancla_id=ancla_id) for c in same])
-    precios_cross = sorted([_precio_ajustado(c, macrozona_id, ancla_id=ancla_id) for c in cross])
+    precios_same = sorted([_precio_ajustado(c, macrozona_id, ancla_id=ancla_id, dormitorios_sujeto=dormitorios_sujeto) for c in same])
+    precios_cross = sorted([_precio_ajustado(c, macrozona_id, ancla_id=ancla_id, dormitorios_sujeto=dormitorios_sujeto) for c in cross])
 
 
     pct_same = calcular_percentil(precios_same, percentil) if precios_same else None
@@ -136,14 +141,14 @@ def _computar_vm2_core(comparables, percentil, apply_barrier=True, alpha=None, m
     return vm2, len(precios_same), len(precios_cross), pct_same, pct_cross
 
 
-def _calcular_vm2_base(comparables, percentil, macrozona_id=None, ancla_id=None):
+def _calcular_vm2_base(comparables, percentil, macrozona_id=None, ancla_id=None, dormitorios_sujeto=None):
     """
     Sustituye la lógica antigua por el núcleo unificado (TAREA-093).
     Llamada desde la UI para vistas previas.
     """
     # Para coherencia total con el motor, aplicamos barrera y alpha dinámico
     vm2, n_same, n_cross, pct_same, pct_cross = _computar_vm2_core(
-        comparables, percentil, apply_barrier=True, alpha=None, macrozona_id=macrozona_id, ancla_id=ancla_id
+        comparables, percentil, apply_barrier=True, alpha=None, macrozona_id=macrozona_id, ancla_id=ancla_id, dormitorios_sujeto=dormitorios_sujeto
     )
     return vm2, n_same, n_cross, pct_same, pct_cross
 
@@ -179,12 +184,13 @@ def calcular_vm2_por_seleccion(comparables, resultado_original):
     _cv_ref = obtener_cv_ref(_mz_id)
     percentil, percentil_label = seleccionar_percentil_por_calidad_pool(n_sel, cv, cv_ref=_cv_ref)
     
+    dorm_sujeto = resultado_original.get('dormitorios')
     m2_eq = resultado_original.get('m2_equivalentes', 0)
     valor_activos = resultado_original.get('valor_activos', {}).get('total', 0)
     m2_base_orig = resultado_original.get('m2_base_venta', 1.0)
     valor_orig = resultado_original.get('valor_propiedad_usd', 0)
     
-    nuevo_vm2, n_same, n_cross, _, _ = _calcular_vm2_base(comparables, percentil, macrozona_id=_mz_id)
+    nuevo_vm2, n_same, n_cross, _, _ = _calcular_vm2_base(comparables, percentil, macrozona_id=_mz_id, dormitorios_sujeto=dorm_sujeto)
 
 
     if m2_eq > 0 and m2_base_orig > 0:
@@ -1531,7 +1537,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         # Llamar al core unificado que maneja same/cross, blend alpha y barrera
         # Calculamos la versión normalizada (neutra)
         vm2_principal, n_same_core, n_cross_core, pct_same_core, pct_cross_core = _computar_vm2_core(
-            pool_final, percentil_venta, apply_barrier=True, alpha=None, macrozona_id=macrozona_id, ancla_id=ancla_id
+            pool_final, percentil_venta, apply_barrier=True, alpha=None, macrozona_id=macrozona_id, ancla_id=ancla_id, dormitorios_sujeto=dormitorios
         )
         
         # Debug: Comparar con la mediana RAW (sin normalizar) para auditoría de doble conteo
@@ -2013,6 +2019,51 @@ def calcular_size_adjustment(m2_equiv, macrozona_id=None, ancla_id=None, dormito
     adj = _interpolar_piecewise(m2_equiv, points)
     
     return adj
+
+# ─── DORM TYPE RATIO (TAREA-154) ───
+_DORM_TYPE_CONFIG = None
+
+def _cargar_dorm_type_config():
+    """Carga dorm_type_ratios desde zonas_depreciacion.json"""
+    ruta = os.path.join(os.path.dirname(__file__), "..", "data", "zonas_depreciacion.json")
+    ruta = os.path.normpath(ruta)
+    if not os.path.exists(ruta):
+        return {}
+    import json
+    with open(ruta) as f:
+        cfg = json.load(f)
+    result = {}
+    for mz in cfg.get("macrozonas", []):
+        ratios_data = mz.get("dorm_type_ratios")
+        if ratios_data:
+            result[mz["id"]] = ratios_data
+    return result
+
+def obtener_dorm_type_ratio(macrozona_id, dorm_comp, dorm_sujeto):
+    """
+    Retorna ratio para normalizar precio_m2 del comp al nivel del sujeto.
+    Calcula: ratio_sujeto / ratio_comp desde zonas_depreciacion.json.
+    Retorna 1.0 si no hay config o si dorm_comp == dorm_sujeto.
+    """
+    global _DORM_TYPE_CONFIG
+    if _DORM_TYPE_CONFIG is None:
+        _DORM_TYPE_CONFIG = _cargar_dorm_type_config()
+
+    if not macrozona_id or dorm_comp == dorm_sujeto:
+        return 1.0
+
+    config = _DORM_TYPE_CONFIG.get(macrozona_id)
+    if not config:
+        return 1.0
+
+    ratios = config.get("ratios", {})
+    ratio_comp = ratios.get(str(dorm_comp))
+    ratio_sujeto = ratios.get(str(dorm_sujeto))
+
+    if ratio_comp is None or ratio_sujeto is None or ratio_comp <= 0:
+        return 1.0
+
+    return ratio_sujeto / ratio_comp
 
 # ─── CV_REF por macrozona (TAREA-111) ───
 _CV_REF_CONFIG = None
