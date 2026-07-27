@@ -1321,7 +1321,18 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
 
         
         props, radio_usado, zona_resol = mejor_resultado
-        
+
+        # Resolver macrozona ANTES del loop CT (fix: zona_resol no es macrozona_id)
+        macrozona_id_ct = None
+        try:
+            if lat_ref is not None and lon_ref is not None:
+                from parsers.zonas_manager import resolver_macrozona
+                _pseudo_prop_ct = {'zona': zona or '', 'lat': lat_ref, 'lon': lon_ref}
+                _mz_info_ct = resolver_macrozona(_pseudo_prop_ct)
+                macrozona_id_ct = _mz_info_ct.get('macrozona_id')
+        except Exception:
+            pass
+
         # === AJUSTE Ct PARA COMPARABLES > VENTANA NATURAL ===
         from parsers.time_adjustment import get_natural_window_dias, calcular_ct, meses_desde, es_nuevo
         natural_dias = get_natural_window_dias()
@@ -1332,7 +1343,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             try:
                 m = meses_desde(dc, fecha_ref)
                 if m is not None and m > natural_dias / 30:
-                    p['_time_adjustment'] = calcular_ct(m, es_nuevo(p), macrozona_id=zona_resol)
+                    p['_time_adjustment'] = calcular_ct(m, es_nuevo(p), macrozona_id=macrozona_id_ct)
             except Exception:
                 pass
 
