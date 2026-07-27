@@ -368,11 +368,6 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     render_manual_valuation_card(prop)
 
     st.markdown("<br>", unsafe_allow_html=True)
-    if valor_usd > 0:
-        with profile_block("render_rango", prop):
-            render_rango(display_result, valor_usd)
-        _dl.mark("after_render_rango")
-        st.markdown("<br>", unsafe_allow_html=True)
 
     if insuficientes:
         st.warning(
@@ -545,6 +540,12 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                 render_tabla_comparables({**res, 'comparables_venta': comparables}, prop_name=prop_name)
             _dl.mark("after_render_tabla_comparables")
 
+        # ── Range bar for Comparables ──
+        auto_cons = auto_result.get('valor_venta_conservador', 0)
+        auto_opt = auto_result.get('valor_venta_optimista', 0)
+        if auto_cons > 0 and auto_opt > 0:
+            render_rango(auto_result, auto_result.get('valor_propiedad_usd', 0))
+
     _dl.mark("after_section_comparables")
 
     # ─── 📐 Valuación Manual ───
@@ -555,6 +556,10 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     with st.expander(f"📐 Valuacion Manual — {prop_name}", expanded=False):
         with profile_block("render_valuacion_manual", prop):
             render_valuacion_manual(prop, res)
+        # ── Range bar for Manual valuation ──
+        manual_result = res.get('_manual_result')
+        if manual_result and manual_result.get('valor_venta_conservador', 0) > 0:
+            render_rango(manual_result, manual_result.get('valor_propiedad_usd', 0))
     _dl.mark("after_section_manual")
 
     # ─── 📋 Valuaciones ───
