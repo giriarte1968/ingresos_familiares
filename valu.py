@@ -102,10 +102,13 @@ def _limpiar_estado_propiedad(nombre: str) -> None:
     ]
     for p in _PREFIJOS:
         st.session_state.pop(f'{p}{_safe_key(nombre)}', None)
-    sufixo = f'sel_comp_{_safe_key(nombre)}_'
-    claves_a_borrar = [k for k in st.session_state.keys() if k.startswith(sufixo)]
-    for k in claves_a_borrar:
-        del st.session_state[k]
+        st.session_state.pop(f'{p}{nombre}', None)  # legacy unsanitized
+    # Clean sel_comp_ keys (both sanitized and legacy)
+    for _name_variant in [_safe_key(nombre), nombre]:
+        sufixo = f'sel_comp_{_name_variant}_'
+        claves_a_borrar = [k for k in st.session_state.keys() if k.startswith(sufixo)]
+        for k in claves_a_borrar:
+            del st.session_state[k]
 
 def _limpiar_y_borrar_cache_si_hay_manuales(nombre: str) -> None:
     """Soportar la logica de 'Limpiar Valuacion' al navegar fuera si hay cambios manuales."""
