@@ -226,4 +226,6 @@ def ensamblar_metadata_resolucion(
         '_m2_puro': meta_venta.get('_m2_puro'),
         'size_adj_factor': meta_venta.get('size_adj_factor'),
         'comparables_reales': meta_venta.get('comparables_reales', []),
+        'n_pool_total': meta_venta.get('n_pool_total', n_v),
+        'n_mostrados': meta_venta.get('n_mostrados', n_v),
     }
