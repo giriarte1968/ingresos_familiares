@@ -1131,7 +1131,7 @@ def mostrar_dashboard():
                                 resultado['_original_m2_puro'] = _meta.get('_m2_puro', 0)
                                 if excluded_ids:
                                         # Solo recalcular cuando hay exclusiones reales
-                                        comps_filtrados = [c for c in comps_orig if _get_comp_id(c) not in excluded_ids]
+                                        comps_filtrados = [c for i, c in enumerate(comps_orig) if _get_comp_id(c, i) not in excluded_ids]
                                         print(f"[DEBUG-EXCL] {prop_name}: calculando preview con {len(comps_filtrados)}/{len(comps_orig)} comps, m2_base_orig={resultado.get('m2_base_venta')}, m2_eq={resultado.get('m2_equivalentes')}")
                                         preview = calcular_vm2_por_seleccion(comps_filtrados, resultado)
                                         print(f"[DEBUG-EXCL] {prop_name}: preview result={preview.get('valor_total','None') if preview else 'None'}, fallback={preview.get('fallback') if preview else 'N/A'}")

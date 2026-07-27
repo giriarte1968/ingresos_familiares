@@ -611,7 +611,7 @@ def mostrar_dashboard():
                             from_apply = True
                         else:
                             # Leer desde widget keys (estado ACTUAL del checkbox, no stale sel_key)
-                            comp_ids = [_get_comp_id(c) for c in comps_orig]
+                            comp_ids = [_get_comp_id(c, i) for i, c in enumerate(comps_orig)]
                             primero = f'sel_comp_{prop_name}_{comp_ids[0]}' if comp_ids else None
                             if primero and primero in st.session_state:
                                 selected_ids = set()
@@ -630,7 +630,7 @@ def mostrar_dashboard():
                             resultado['_original_m2_puro'] = _meta.get('_m2_puro', 0)
                             if excluded_ids:
                                 # Solo recalcular cuando hay exclusiones reales
-                                comps_filtrados = [c for c in comps_orig if _get_comp_id(c) not in excluded_ids]
+                                comps_filtrados = [c for i, c in enumerate(comps_orig) if _get_comp_id(c, i) not in excluded_ids]
                                 if len(comps_filtrados) >= 2:
                                     precios = [c.get('precio_m2', 0) * c.get('time_adjustment', 1.0) for c in comps_filtrados]
                                     precios_sorted = sorted(precios)

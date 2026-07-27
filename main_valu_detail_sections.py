@@ -252,11 +252,12 @@ def render_mapa_propiedad(res):
         st.caption("Mapa no disponible")
 
 
-def _get_comp_id(c):
+def _get_comp_id(c, idx=0):
     """Genera un ID ├║nico y estable para un comparable basado en sus datos."""
     import hashlib
     # Usamos datos que no cambian entre renders para crear un hash estable
-    seed = f"{c.get('precio')}_{c.get('m2')}_{c.get('direccion_limpia') or c.get('direccion')}_{c.get('lat')}_{c.get('lon')}"
+    # idx previene colisiones cuando dos entries tienen mismos precio/m2/direccion/lat/lon
+    seed = f"{c.get('precio')}_{c.get('m2')}_{c.get('direccion_limpia') or c.get('direccion')}_{c.get('lat')}_{c.get('lon')}_{idx}"
     return hashlib.md5(seed.encode()).hexdigest()[:12]
 
 def render_tabla_comparables(res, prop_name=None):
@@ -299,7 +300,7 @@ def render_tabla_comparables(res, prop_name=None):
     sel_key = f'comp_selection_{prop_name}'
     
     # 1. Generar IDs estables para todos los comparables actuales
-    comp_ids = [_get_comp_id(c) for c in comparables]
+    comp_ids = [_get_comp_id(c, i) for i, c in enumerate(comparables)]
     
     # 2. Manejar el estado de selecci├│n basado en IDs (no ├¡ndices)
     stored_sel = st.session_state.get(sel_key, None)
@@ -355,13 +356,13 @@ def render_tabla_comparables(res, prop_name=None):
 
     # Rec├ílculo autom├ítico P33/P50 desde los seleccionados
     if selected_ids:
-        selected_comps = [c for c in comparables if _get_comp_id(c) in selected_ids]
+        selected_comps = [c for i, c in enumerate(comparables) if comp_ids[i] in selected_ids]
         precios = [c.get('precio_m2', 0) * c.get('time_adjustment', 1.0) for c in selected_comps]
         precios_sorted = sorted(precios)
         n_sel = len(precios_sorted)
         
         # Comparamos los IDs excluidos actuales con los guardados en el resultado
-        all_ids = [_get_comp_id(c) for c in comparables]
+        all_ids = [_get_comp_id(c, i) for i, c in enumerate(comparables)]
         excluded_ids = [cid for cid in all_ids if cid not in selected_ids]
         
         print(f"[DEBUG-SELECCION] n_sel={n_sel}, excluded_ids={len(excluded_ids)}, precios={[f'{p:,.0f}' for p in precios_sorted]}")
@@ -431,7 +432,7 @@ def render_tabla_comparables(res, prop_name=None):
     elif not selected_ids:
         st.warning("ΓÜá∩╕Å Seleccion├í al menos un comparable para calcular el valor.")
         if st.button("Seleccionar todos", key=f'sel_all_{_safe_key(prop_name)}'):
-            st.session_state[sel_key] = set([_get_comp_id(c) for c in comparables])
+            st.session_state[sel_key] = set([_get_comp_id(c, i) for i, c in enumerate(comparables)])
             # Limpiar exclusi├│n previa
             st.session_state.pop(f'comp_excluded_{prop_name}', None)
             st.rerun()

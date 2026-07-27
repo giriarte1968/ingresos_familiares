@@ -203,7 +203,7 @@ def test_comparables_banner_hidden_when_full_selection():
     prop_name = "TestBanner"
 
     from valu_detail_sections import _get_comp_id
-    real_ids = [_get_comp_id(c) for c in comparables]
+    real_ids = [_get_comp_id(c, i) for i, c in enumerate(comparables)]
     st.session_state[f'comp_selection_{prop_name}'] = set(real_ids)
     for rid in real_ids:
         st.session_state[f'sel_comp_{prop_name}_{rid}'] = True
@@ -238,7 +238,7 @@ def test_ui_apply_button_visible_when_all_selected():
            'retro_activo': False}
     prop_name = "TestApplyAll"
 
-    real_ids = [_get_comp_id(c) for c in comparables]
+    real_ids = [_get_comp_id(c, i) for i, c in enumerate(comparables)]
     st.session_state[f'comp_selection_{prop_name}'] = set(real_ids)
     for rid in real_ids:
         st.session_state[f'sel_comp_{prop_name}_{rid}'] = True
@@ -282,7 +282,7 @@ def test_ui_reset_all_visual_only():
            'retro_activo': False}
     prop_name = "TestResetVisual"
 
-    real_ids = [_get_comp_id(c) for c in comparables]
+    real_ids = [_get_comp_id(c, i) for i, c in enumerate(comparables)]
     # Only 4 out of 6 selected so the reset banner appears (len(current_sel)=4 < 6)
     st.session_state[f'comp_selection_{prop_name}'] = set(real_ids)
     st.session_state[f'comp_excluded_{prop_name}'] = ['c0', 'c1']
@@ -1011,7 +1011,7 @@ def test_exclusion_applied_flag_session_state_zero_exclusions():
                     'direccion': f'Calle {i} 123', 'lat': -34.0 - i*0.01, 'lon': -58.0 - i*0.01}
                    for i in range(6)]
     prop_name = "T_S14"
-    real_ids = [_get_comp_id(c) for c in comparables]
+    real_ids = [_get_comp_id(c, i) for i, c in enumerate(comparables)]
 
     # Simular res SIN flag (como si viniera de engine fresco — la key no existe)
     res = {'comparables_venta': comparables, '_n_excluidos': 0,
@@ -1064,7 +1064,7 @@ def test_exclusion_applied_flag_cleared_after_retro_toggle():
                     'direccion': f'Calle {i} 123', 'lat': -34.0 - i*0.01, 'lon': -58.0 - i*0.01}
                    for i in range(6)]
     prop_name = "T_S15"
-    real_ids = [_get_comp_id(c) for c in comparables]
+    real_ids = [_get_comp_id(c, i) for i, c in enumerate(comparables)]
 
     # Res SIN flag (engine fresco post-Retro)
     res = {'comparables_venta': comparables, '_n_excluidos': 0,
@@ -1114,7 +1114,7 @@ def test_exclusion_applied_flag_real_exclusions():
                     'direccion': f'Calle {i} 123', 'lat': -34.0 - i*0.01, 'lon': -58.0 - i*0.01}
                    for i in range(6)]
     prop_name = "T_S16"
-    real_ids = [_get_comp_id(c) for c in comparables]
+    real_ids = [_get_comp_id(c, i) for i, c in enumerate(comparables)]
     # Excluir los primeros 3 (sus IDs reales MD5)
     excluded_ids = real_ids[:3]
     selected_ids = real_ids[3:]
@@ -1165,7 +1165,7 @@ def test_exclusion_applied_flag_portfolio_reentry_zero_exclusions():
                     'direccion': f'Calle {i} 123', 'lat': -34.0 - i*0.01, 'lon': -58.0 - i*0.01}
                    for i in range(6)]
     prop_name = "T_S17"
-    real_ids = [_get_comp_id(c) for c in comparables]
+    real_ids = [_get_comp_id(c, i) for i, c in enumerate(comparables)]
 
     # Res CON flag (EXCL-RESTORE lo restauro correctamente)
     res = {'comparables_venta': comparables, '_n_excluidos': 0,

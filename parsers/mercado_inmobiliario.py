@@ -3171,10 +3171,11 @@ def obtener_nodos_dinamicos(lat, lon, tipo, operacion, dorms=2, fecha_ref=None):
         return {"error": str(e)}
 
 
-def _get_comp_id(c):
+def _get_comp_id(c, idx=0):
     """Genera un ID único y estable para un comparable basado en sus datos."""
     import hashlib
-    seed = f"{c.get('precio')}_{c.get('m2')}_{c.get('direccion_limpia') or c.get('direccion')}_{c.get('lat')}_{c.get('lon')}"
+    # idx previene colisiones cuando dos entries tienen mismos precio/m2/direccion/lat/lon
+    seed = f"{c.get('precio')}_{c.get('m2')}_{c.get('direccion_limpia') or c.get('direccion')}_{c.get('lat')}_{c.get('lon')}_{idx}"
     return hashlib.md5(seed.encode()).hexdigest()[:12]
 
 def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retro_dias=0, flex_dormitorios=None, comp_excluded=None):
