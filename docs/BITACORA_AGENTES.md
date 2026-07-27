@@ -4574,3 +4574,20 @@ El anchor `de_mayo_sur` tenía `usd_m2=2041` con `ct_table` embebido (ya elimina
 - data/anclas_v7_20260709_141003.json — Nuevos anclas con raw fields
 - tests/test_regression.py — 3 nuevos tests
 - docs/BITACORA_AGENTES.md — Esta entrada
+
+---
+
+## 2026-07-26 — TAREA-156: Preservar prefijos San/Santa/Santo en nombres de calles
+
+### Contexto
+`_RE_HON_NORM` en `parsers/mercado_inmobiliario.py:234` eliminaba "san", "santa", "santo" de TODOS los nombres de calles. Esto convertía "San Juan" en "juan", "San Lorenzo" en "lorenzo", etc. 2,130 propiedades (9.8%) estaban afectadas con calles distorsionadas.
+
+### Cambios
+1. **`parsers/mercado_inmobiliario.py:234-237`** — Removidos `san`, `santo`, `santa` del regex `_RE_HON_NORM`. "Santa fe" ya estaba protegido por el mecanismo `__santa_fe__` (líneas 253-256).
+2. **`cache_scraping.json`** — Re-normalizaron todas las calles (2,397 propiedades cambiaron).
+
+### Resultado
+- 2,397 propiedades corregidas (calles como "San Martin" → "san martin" en vez de "martin")
+- 55 tests pasaron
+- auto_validate: OK
+- Commit: `cb33f97`
