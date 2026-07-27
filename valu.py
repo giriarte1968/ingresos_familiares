@@ -1792,6 +1792,89 @@ def mostrar_dashboard():
                 st.rerun()
 
 
+        # --- Dorm Type Ratios (TAREA-154) ---
+        st.markdown("---")
+        with st.expander("🏠 Ratios por Tipo de Dormitorio (dorm_type_ratios)", expanded=False):
+            st.caption("Normaliza $/m² entre tipos de dormitorio en modo flex. "
+                       "Baseline=2 dorm (ratio=1.0). Valores >1.0 = premium sobre baseline.")
+            st.markdown("---")
+
+            _ruta_dt = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "zonas_depreciacion.json")
+            try:
+                with open(_ruta_dt, "r", encoding="utf-8") as _f:
+                    _dt_data = json.load(_f)
+            except:
+                _dt_data = {"macrozonas": []}
+
+            for _mz in _dt_data.get("macrozonas", []):
+                _dtr = _mz.get("dorm_type_ratios")
+                if not _dtr:
+                    continue
+
+                _baseline = _dtr.get("baseline", 2)
+                _ratios = _dtr.get("ratios", {})
+
+                st.markdown("**{}** ({}) — Baseline: {} dorm".format(
+                    _mz.get('nombre', _mz['id']), _mz['id'], _baseline))
+
+                _ratio_items = sorted(_ratios.items(), key=lambda x: int(x[0]))
+                _ratio_rows = [{"Dormitorios": int(k), "Ratio": float(v)} for k, v in _ratio_items]
+
+                _dt_edited = st.data_editor(
+                    _ratio_rows,
+                    column_config={
+                        "Dormitorios": st.column_config.NumberColumn("Dormitorios", disabled=True, min_value=1, max_value=6, step=1, format="%d"),
+                        "Ratio": st.column_config.NumberColumn(
+                            "Ratio", min_value=0.5, max_value=2.0, step=0.01, format="%.3f",
+                            help="Ratio relativo a baseline (1.0). >1.0 = premium. <1.0 = descuento."
+                        ),
+                    },
+                    hide_index=True,
+                    use_container_width=True,
+                    key="dtr_{}".format(_mz['id']),
+                    num_rows="fixed"
+                )
+
+                # Mini chart
+                try:
+                    _dx = [r["Dormitorios"] for _, r in _dt_edited.iterrows()]
+                    _dy = [r["Ratio"] for _, r in _dt_edited.iterrows()]
+                    _dfig = go.Figure()
+                    _dfig.add_trace(go.Bar(x=_dx, y=_dy, name=_mz.get("nombre", _mz["id"])))
+                    _dfig.add_hline(y=1.0, line_dash="dot", line_color="gray", annotation_text="Baseline")
+                    _dfig.update_layout(height=180, margin=dict(l=0, r=0, t=0, b=0),
+                                        xaxis_title="Dormitorios", yaxis_title="Ratio", showlegend=False)
+                    st.plotly_chart(_dfig, use_container_width=True, key="dtr_chart_{}".format(_mz['id']))
+                except:
+                    pass
+
+                st.markdown("---")
+
+            if st.button("💾 Guardar Ratios por Dormitorio", type="primary", use_container_width=True):
+                try:
+                    with open(_ruta_dt, "r", encoding="utf-8") as _f:
+                        _dt_save = json.load(_f)
+                    for _mz in _dt_save.get("macrozonas", []):
+                        _dtr = _mz.get("dorm_type_ratios")
+                        if not _dtr:
+                            continue
+                        _edited = st.session_state.get("dtr_{}".format(_mz['id']))
+                        if _edited is not None:
+                            _new_ratios = {}
+                            for _, _row in _edited.iterrows():
+                                _dorm_key = str(int(_row["Dormitorios"]))
+                                _new_ratios[_dorm_key] = round(float(_row["Ratio"]), 4)
+                            _dtr["ratios"] = _new_ratios
+                    with open(_ruta_dt, "w", encoding="utf-8") as _f:
+                        json.dump(_dt_save, _f, ensure_ascii=False, indent=2)
+                    import parsers.mercado_inmobiliario as _mi
+                    _mi._DORM_TYPE_CONFIG = None
+                    st.success("Ratios guardados. Cache invalidada.")
+                    st.rerun()
+                except Exception as _e:
+                    st.error(f"Error guardando ratios: {_e}")
+
+
         # ─── Profiling de rendimiento ───
         st.markdown("---")
         with st.expander("⏱️ Perfilado de Rendimiento", expanded=False):
