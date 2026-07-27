@@ -12,6 +12,10 @@ from parsers.mercado_inmobiliario import _calcular_mediana
 from parsers.cluster_filters import seleccionar_percentil_por_calidad_pool
 from streamlit.components.v1 import html
 
+def _safe_key(name):
+    """Sanitiza nombre de propiedad para usar como key de widget Streamlit."""
+    return name.replace(" ", "_").replace(".", "").replace(",", "").replace("'", "").replace('"', "").replace("/", "_").replace("\\", "_").replace("(", "").replace(")", "").replace("-", "_")
+
 
 def _limpiar_estado_propiedad_local(nombre: str) -> None:
     """Limpia TODO el estado de sesi├│n asociado a una propiedad."""
@@ -279,7 +283,7 @@ def render_tabla_comparables(res, prop_name=None):
         with col_info:
             st.info(f"ΓÜí Valuaci├│n calculada con {len(comparables)} comparables seleccionados ({n_excluidos} excluidos por el usuario).")
         with col_reset:
-            if st.button("Γå⌐∩╕Å Restablecer todos", key=f'reset_comp_sel_{prop_name}', use_container_width=True):
+            if st.button("Γå⌐∩╕Å Restablecer todos", key=f'reset_comp_sel_{_safe_key(prop_name)}', use_container_width=True):
                 st.session_state.pop(f'comp_selection_{prop_name}', None)
                 st.session_state.pop(f'comp_excluded_{prop_name}', None)
                 st.session_state[f'forzar_recalculo_{prop_name}'] = True
@@ -314,7 +318,7 @@ def render_tabla_comparables(res, prop_name=None):
         cols = st.columns([0.4, 0.5, 1.5, 0.8, 1.5, 0.6, 1, 2, 0.7, 0.6])
         
         # El valor del checkbox depende de si el ID est├í en el set de seleccionados
-        checked = cols[0].checkbox("", value=comp_id in stored_sel, key=f'sel_comp_{prop_name}_{comp_id}')
+        checked = cols[0].checkbox("", value=comp_id in stored_sel, key=f'sel_comp_{_safe_key(prop_name)}_{comp_id}')
         
         if checked:
             selected_ids.add(comp_id)
@@ -417,16 +421,16 @@ def render_tabla_comparables(res, prop_name=None):
                 # Bot├│n visible incluso si no hay exclusiones (todos seleccionados)
                 if st.button(
                     f"Γ£à Aplicar selecci├│n ({n_sel}/{len(comparables)})",
-                    key=f'apply_comp_sel_{prop_name}',
+                    key=f'apply_comp_sel_{_safe_key(prop_name)}',
                     type='primary',
                     use_container_width=True,
                 ):
-                    st.session_state[f'comp_excluded_{prop_name}'] = excluded
-                    st.session_state[f'forzar_recalculo_{prop_name}'] = True
+                    st.session_state[f'comp_excluded_{_safe_key(prop_name)}'] = excluded
+                    st.session_state[f'forzar_recalculo_{_safe_key(prop_name)}'] = True
                     st.rerun()
     elif not selected_ids:
         st.warning("ΓÜá∩╕Å Seleccion├í al menos un comparable para calcular el valor.")
-        if st.button("Seleccionar todos", key=f'sel_all_{prop_name}'):
+        if st.button("Seleccionar todos", key=f'sel_all_{_safe_key(prop_name)}'):
             st.session_state[sel_key] = set([_get_comp_id(c) for c in comparables])
             # Limpiar exclusi├│n previa
             st.session_state.pop(f'comp_excluded_{prop_name}', None)

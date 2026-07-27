@@ -16,6 +16,10 @@ from parsers.mercado_inmobiliario import _calcular_mediana
 from parsers.profiler import profile_block, profile_start, profile_end, StepLedger
 logger = logging.getLogger(__name__)
 
+def _safe_key(name):
+    """Sanitiza nombre de propiedad para usar como key de widget Streamlit."""
+    return name.replace(" ", "_").replace(".", "").replace(",", "").replace("'", "").replace('"', "").replace("/", "_").replace("\\", "_").replace("(", "").replace(")", "").replace("-", "_")
+
 # --- CONFIGURACI├ôN ---
 st.set_page_config(page_title="Valu ΓÇö Valuador de Propiedades", page_icon="≡ƒÅá", layout="wide")
 st.markdown(VALU_CSS, unsafe_allow_html=True)
@@ -80,9 +84,9 @@ def _limpiar_estado_propiedad(nombre: str) -> None:
         'manual_aj_', 'manual_inc_', 'clean_valuacion_',
     ]
     for p in _PREFIJOS:
-        st.session_state.pop(f'{p}{nombre}', None)
+        st.session_state.pop(f'{p}{_safe_key(nombre)}', None)
     # Escanear claves con doble sufijo din├ímico (sel_comp_{name}_{id})
-    sufixo = f'sel_comp_{nombre}_'
+    sufixo = f'sel_comp_{_safe_key(nombre)}_'
     claves_a_borrar = [k for k in st.session_state.keys() if k.startswith(sufixo)]
     for k in claves_a_borrar:
         del st.session_state[k]

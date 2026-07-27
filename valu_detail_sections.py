@@ -13,6 +13,11 @@ from valu_design import kpi_card, metric_card, range_bar, insights_card, propert
 from streamlit.components.v1 import html
 from parsers.mercado_inmobiliario import calcular_vm2_por_seleccion
 from parsers.debug_logger import log as _file_log
+
+def _safe_key(name):
+    """Sanitiza nombre de propiedad para usar como key de widget Streamlit."""
+    return name.replace(" ", "_").replace(".", "").replace(",", "").replace("'", "").replace('"', "").replace("/", "_").replace("\\", "_").replace("(", "").replace(")", "").replace("-", "_")
+
 _orig_print = print
 def _dbg_print(*args, **kwargs):
     _orig_print(*args, **kwargs)
@@ -123,7 +128,7 @@ def _set_fuente_activa(nombre, fuente):
             uv['fuente_activa'] = fuente
             break
     guardar_propiedades(props)
-    st.session_state[f'fuente_activa_{nombre}'] = fuente
+    st.session_state[f'fuente_activa_{_safe_key(nombre)}'] = fuente
     print(f"[DEBUG-FUENTE] {nombre}: fuente_activa={fuente} persistida en propiedades.json + session_state")
 
 
@@ -605,7 +610,7 @@ def render_tabla_comparables(res, prop_name=None):
     # Debug: dump selection state at entry
     _sel_key = f'comp_selection_{prop_name}'
     _sel_val = st.session_state.get(_sel_key, None)
-    _sel_comp_keys = [k for k in st.session_state if k.startswith(f'sel_comp_{prop_name}_')]
+    _sel_comp_keys = [k for k in st.session_state if k.startswith(f'sel_comp_{_safe_key(prop_name)}_')]
     _sel_comp_true = sum(1 for k in _sel_comp_keys if st.session_state[k])
     _comp_excl = st.session_state.get(f'comp_excluded_{prop_name}', None)
     _comp_excl_applied = st.session_state.get(f'_comp_exclusion_applied_{prop_name}', None)
@@ -630,14 +635,14 @@ def render_tabla_comparables(res, prop_name=None):
         else:
             stored_sel = set(comp_ids)
         st.session_state[sel_key] = stored_sel
-        print(f"[DEBUG-SEL-INIT] {prop_name}: stored_sel=None, reinicializado desde res._comp_excluded={excluded} → {len(stored_sel)} comps. Keys en session que matchean sel_comp_*: {sum(1 for k in st.session_state if k.startswith(f'sel_comp_{prop_name}_'))}")
+        print(f"[DEBUG-SEL-INIT] {prop_name}: stored_sel=None, reinicializado desde res._comp_excluded={excluded} → {len(stored_sel)} comps. Keys en session que matchean sel_comp_*: {sum(1 for k in st.session_state if k.startswith(f'sel_comp_{_safe_key(prop_name)}_'))}")
     if not isinstance(stored_sel, set):
         stored_sel = set(stored_sel)
 
     # Obtener selección actual desde los checkboxes en session_state (en vivo)
     current_sel = set()
     for cid in comp_ids:
-        chk_key = f'sel_comp_{prop_name}_{cid}'
+        chk_key = f'sel_comp_{_safe_key(prop_name)}_{cid}'
         if chk_key in st.session_state:
             if st.session_state[chk_key]:
                 current_sel.add(cid)
@@ -651,11 +656,11 @@ def render_tabla_comparables(res, prop_name=None):
             n_desel = len(comparables) - len(current_sel)
             st.info(f"⚡ {len(current_sel)}/{len(comparables)} comparables activos — {n_desel} desmarcado(s). Aplicar selección para recalcular.")
         with col_reset:
-            if st.button("↩️ Restablecer todos", key=f'reset_comp_sel_{prop_name}', use_container_width=True):
+            if st.button("↩️ Restablecer todos", key=f'reset_comp_sel_{_safe_key(prop_name)}', use_container_width=True):
                     # Solo efecto visual: seleccionar todos los comparables
                     for cid in comp_ids:
-                        st.session_state[f'sel_comp_{prop_name}_{cid}'] = True
-                    st.session_state[f'comp_selection_{prop_name}'] = set(comp_ids)
+                        st.session_state[f'sel_comp_{_safe_key(prop_name)}_{cid}'] = True
+                    st.session_state[f'comp_selection_{_safe_key(prop_name)}'] = set(comp_ids)
                     st.session_state.pop(f'comp_excluded_{prop_name}', None)
                     st.session_state.pop(f'_comp_exclusion_applied_{prop_name}', None)
                     st.session_state.pop(f'_comp_interacted_{prop_name}', None)
@@ -691,7 +696,7 @@ def render_tabla_comparables(res, prop_name=None):
         _is_med = (i == idx_mediana)
 
         # Sincronizar checkbox con stored_sel antes de crear widget
-        chk_key = f'sel_comp_{prop_name}_{comp_id}'
+        chk_key = f'sel_comp_{_safe_key(prop_name)}_{comp_id}'
         if chk_key not in st.session_state:
             st.session_state[chk_key] = comp_id in stored_sel
         checked = cols[0].checkbox("", key=chk_key)
@@ -743,13 +748,17 @@ def render_tabla_comparables(res, prop_name=None):
         n_total = len(comparables)
         selected_comps = [c for c in comparables if _get_comp_id(c) in selected_ids]
         if n_sel == n_total and n_sel >= 3:
-            raw_prices = sorted([c.get('precio_m2', 0) for c in comparables])
-            n_rp = len(raw_prices)
-            if n_rp % 2 == 1:
-                vm2_raw = raw_prices[n_rp // 2]
-            else:
-                vm2_raw = (raw_prices[n_rp // 2 - 1] + raw_prices[n_rp // 2]) / 2
             meta = res.get('resolution_metadata', {})
+            _m2_puro = meta.get('_m2_puro')
+            if _m2_puro and _m2_puro > 0:
+                vm2_raw = _m2_puro
+            else:
+                raw_prices = sorted([c.get('precio_m2', 0) for c in comparables])
+                n_rp = len(raw_prices)
+                if n_rp % 2 == 1:
+                    vm2_raw = raw_prices[n_rp // 2]
+                else:
+                    vm2_raw = (raw_prices[n_rp // 2 - 1] + raw_prices[n_rp // 2]) / 2
             preview = {'vm2': round(vm2_raw, 0), 'n_sel': n_sel, 'fallback': False,
                        'percentil_label': 'Motor', 'cv': meta.get('cv_pool', 0)}
         elif len(selected_comps) >= 3:
@@ -817,7 +826,7 @@ def render_tabla_comparables(res, prop_name=None):
                 # Botón visible SIEMPRE (incluye selección completa 6/6)
                     if st.button(
                         f"✅ Aplicar selección ({n_sel}/{len(comparables)})",
-                        key=f'apply_comp_sel_{prop_name}',
+                        key=f'apply_comp_sel_{_safe_key(prop_name)}',
                         type='primary',
                         use_container_width=True,
                     ):
@@ -827,14 +836,14 @@ def render_tabla_comparables(res, prop_name=None):
                         print(f"[DEBUG-APPLY] {prop_name}: retro_active={st.session_state.get('retro_active_' + prop_name, False)}, flex_active={st.session_state.get('flex_active_' + prop_name, False)}")
                         
                         # Sync slider value before applying selection
-                        slider_val = st.session_state.get(f'retro_meses_slider_{prop_name}', 36)
-                        st.session_state[f'retro_meses_{prop_name}'] = slider_val
+                        slider_val = st.session_state.get(f'retro_meses_slider_{_safe_key(prop_name)}', 36)
+                        st.session_state[f'retro_meses_{_safe_key(prop_name)}'] = slider_val
                         print(f"[DEBUG-APPLY] {prop_name}: slider_val={slider_val}")
                         
-                        st.session_state[f'comp_excluded_{prop_name}'] = excluded
-                        st.session_state[f'_comp_exclusion_applied_{prop_name}'] = True
-                        st.session_state[f'_comp_excluded_{prop_name}'] = excluded
-                        st.session_state[f'forzar_recalculo_{prop_name}'] = True
+                        st.session_state[f'comp_excluded_{_safe_key(prop_name)}'] = excluded
+                        st.session_state[f'_comp_exclusion_applied_{_safe_key(prop_name)}'] = True
+                        st.session_state[f'_comp_excluded_{_safe_key(prop_name)}'] = excluded
+                        st.session_state[f'forzar_recalculo_{_safe_key(prop_name)}'] = True
                         print(f"[DEBUG-APPLY] {prop_name}: Set forzar_recalculo=True, _comp_exclusion_applied=True, excluded={excluded}")
                         print(f"[DEBUG-APPLY] {prop_name} ===== FIN Aplicar selección =====, calling st.rerun()")
                         st.rerun()
@@ -842,10 +851,10 @@ def render_tabla_comparables(res, prop_name=None):
 
     elif not selected_ids:
         st.warning("⚠️ Seleccioná al menos un comparable para calcular el valor.")
-        if st.button("Seleccionar todos", key=f'sel_all_{prop_name}'):
+        if st.button("Seleccionar todos", key=f'sel_all_{_safe_key(prop_name)}'):
             st.session_state[sel_key] = set([_get_comp_id(c) for c in comparables])
             # Limpiar exclusión previa
-            st.session_state.pop(f'comp_excluded_{prop_name}', None)
+            st.session_state.pop(f'comp_excluded_{_safe_key(prop_name)}', None)
             st.rerun()
 
 
@@ -1062,9 +1071,9 @@ def render_historial(nombre):
                     f = r['timestamp'][:16]
                 labels.append(f"{f} - {r.get('razon_recalculo', '')}")
             with col1:
-                idx1 = st.selectbox("Primera valuacion", range(len(historial)), format_func=lambda i: labels[i], key=f"comp1_{nombre}")
+                idx1 = st.selectbox("Primera valuacion", range(len(historial)), format_func=lambda i: labels[i], key=f"comp1_{_safe_key(nombre)}")
             with col2:
-                idx2 = st.selectbox("Segunda valuacion", range(len(historial)), index=min(1, len(historial)-1), format_func=lambda i: labels[i], key=f"comp2_{nombre}")
+                idx2 = st.selectbox("Segunda valuacion", range(len(historial)), index=min(1, len(historial)-1), format_func=lambda i: labels[i], key=f"comp2_{_safe_key(nombre)}")
             if idx1 != idx2:
                 diff = comparar_valuaciones(nombre, ids[idx1], ids[idx2])
                 if diff.get('diferencias'):
@@ -1562,7 +1571,7 @@ def render_valuacion_manual(prop, res):
                 "Ancla",
                 options=ancla_display_list,
                 index=ancla_display_list.index(saved_display) if saved_display in ancla_display_list else 0,
-                key=f"manual_ancla_{nombre}",
+                key=f"manual_ancla_{_safe_key(nombre)}",
             )
             ancla_sel = "Sin Ancla"
             if ancla_display_sel in ancla_display_map:
@@ -1578,7 +1587,7 @@ def render_valuacion_manual(prop, res):
                 value=float(usd_display or 0),
                 step=50.0, format="%.0f",
                 disabled=tiene_ancla,
-                key=f"manual_usd_m2_{nombre}",
+                key=f"manual_usd_m2_{_safe_key(nombre)}",
             )
         with col_c:
             fh_delta_saved = (float(saved.get('factor_hedonico', default_factor_hedonico)) - 1.0) * 100
@@ -1587,7 +1596,7 @@ def render_valuacion_manual(prop, res):
                 min_value=-100.0, max_value=400.0,
                 value=fh_delta_saved,
                 step=1.0, format="%.1f",
-                key=f"manual_fh_{nombre}",
+                key=f"manual_fh_{_safe_key(nombre)}",
             )
             fh = 1.0 + (fh_delta / 100.0)
         with col_d:
@@ -1596,7 +1605,7 @@ def render_valuacion_manual(prop, res):
                 min_value=0.0, max_value=100.0,
                 value=float(saved.get('incertidumbre_pct', 10.0)),
                 step=1.0, format="%.0f",
-                key=f"manual_inc_{nombre}",
+                key=f"manual_inc_{_safe_key(nombre)}",
             )
         with col_e:
             ajuste_pct = st.number_input(
@@ -1604,7 +1613,7 @@ def render_valuacion_manual(prop, res):
                 min_value=-50.0, max_value=100.0,
                 value=float(saved.get('ajuste_pct', 0.0)),
                 step=1.0, format="%.1f",
-                key=f"manual_aj_{nombre}",
+                key=f"manual_aj_{_safe_key(nombre)}",
             )
         # Caption del ancla debajo de la fila
         if tiene_ancla:
@@ -1616,14 +1625,14 @@ def render_valuacion_manual(prop, res):
             saved['incluir_size_adj'] = st.checkbox(
                 f"Ajuste por tamano ({_mz_name})",
                 value=saved.get('incluir_size_adj', True),
-                key=f"manual_incluir_size_{nombre}",
+                key=f"manual_incluir_size_{_safe_key(nombre)}",
             )
         with col_g:
             constr_check_label = f"Prima de constructora ({constr_label})" if constr_label else "Prima de constructora"
             saved['incluir_prima_const'] = st.checkbox(
                 constr_check_label,
                 value=saved.get('incluir_prima_const', True),
-                key=f"manual_incluir_const_{nombre}",
+                key=f"manual_incluir_const_{_safe_key(nombre)}",
             )
 
         # Activos (solo lectura, inline)
@@ -1782,7 +1791,7 @@ def render_valuacion_manual(prop, res):
         can_save = usd_m2_input > 0 and params_changed
         
         if st.button("✅ Aplicar Selección", type="primary", use_container_width=True,
-                     key=f"manual_guardar_{nombre}", disabled=not can_save):
+                     key=f"manual_guardar_{_safe_key(nombre)}", disabled=not can_save):
             manual_params = {
                 'ancla_id': ancla_sel,
                 'usd_m2': usd_m2_input,
@@ -1850,14 +1859,14 @@ def render_valuacion_manual(prop, res):
             st.session_state.pop(ss_key, None)
             st.session_state.pop(f'_official_result_{nombre}', None)
             st.session_state.pop(f'preview_mode_{nombre}', None)
-            st.session_state[f'manual_feedback_{nombre}'] = 'guardado'
+            st.session_state[f'manual_feedback_{_safe_key(nombre)}'] = 'guardado'
             st.rerun()
 
 
     with col_btn2:
         if saved_params:
             if st.button("🔄 Limpiar", use_container_width=True,
-                         key=f"manual_eliminar_{nombre}"):
+                         key=f"manual_eliminar_{_safe_key(nombre)}"):
                 props = cargar_propiedades()
                 for i, p in enumerate(props):
                     if p.get('nombre') == nombre:
@@ -1888,7 +1897,7 @@ def render_valuacion_manual(prop, res):
                 st.session_state.pop(f'_official_result_{nombre}', None)
                 st.session_state.pop(f'preview_mode_{nombre}', None)
                 print(f"[DEBUG-MANUAL-DELETE] {nombre}: ELIMINACION EXITOSA — prop actualizado en memoria")
-                st.session_state[f'manual_feedback_{nombre}'] = 'eliminado'
+                st.session_state[f'manual_feedback_{_safe_key(nombre)}'] = 'eliminado'
                 st.rerun()
 
 

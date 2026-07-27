@@ -15,6 +15,10 @@ from parsers.mercado_inmobiliario import _calcular_mediana, _generar_html_mapa, 
 from parsers.profiler import profile_block, profile_start, profile_end, StepLedger
 from parsers.debug_logger import log as _file_log
 _orig_print = print
+
+def _safe_key(name):
+    """Sanitiza nombre de propiedad para usar como key de widget Streamlit."""
+    return name.replace(" ", "_").replace(".", "").replace(",", "").replace("'", "").replace('"', "").replace("/", "_").replace("\\", "_").replace("(", "").replace(")", "").replace("-", "_")
 def _dbg_print(*args, **kwargs):
     _orig_print(*args, **kwargs)
     msg = ' '.join(str(a) for a in args)
@@ -79,8 +83,8 @@ def _limpiar_estado_propiedad(nombre: str) -> None:
     """Limpia TODO el estado de sesion asociado a una propiedad."""
     if not nombre:
         return
-    _had_sel = f'comp_selection_{nombre}' in st.session_state
-    _n_sel_comp = sum(1 for k in st.session_state if k.startswith(f'sel_comp_{nombre}_'))
+    _had_sel = f'comp_selection_{_safe_key(nombre)}' in st.session_state
+    _n_sel_comp = sum(1 for k in st.session_state if k.startswith(f'sel_comp_{_safe_key(nombre)}_'))
     import traceback
     _caller = ''.join(traceback.format_stack()[-3:-1])
     print(f"[DEBUG-SEL-LIMPIAR] {nombre}: _limpiar_estado_propiedad called. had_comp_selection={_had_sel}, n_sel_comp_keys={_n_sel_comp}. Caller:\n{_caller}")
@@ -97,8 +101,8 @@ def _limpiar_estado_propiedad(nombre: str) -> None:
         'pendiente_comparables_', 'act_comparables_',
     ]
     for p in _PREFIJOS:
-        st.session_state.pop(f'{p}{nombre}', None)
-    sufixo = f'sel_comp_{nombre}_'
+        st.session_state.pop(f'{p}{_safe_key(nombre)}', None)
+    sufixo = f'sel_comp_{_safe_key(nombre)}_'
     claves_a_borrar = [k for k in st.session_state.keys() if k.startswith(sufixo)]
     for k in claves_a_borrar:
         del st.session_state[k]
