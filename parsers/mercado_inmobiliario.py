@@ -1344,6 +1344,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 m = meses_desde(dc, fecha_ref)
                 if m is not None and m > natural_dias / 30:
                     p['_time_adjustment'] = calcular_ct(m, es_nuevo(p), macrozona_id=macrozona_id_ct)
+                    print(f"[DEBUG-CT] mz={macrozona_id_ct} meses={m:.2f} props={p.get('direccion','')[:30]} ct={p['_time_adjustment']:.4f}")
             except Exception:
                 pass
 
