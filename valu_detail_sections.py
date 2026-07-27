@@ -128,7 +128,7 @@ def _set_fuente_activa(nombre, fuente):
             uv['fuente_activa'] = fuente
             break
     guardar_propiedades(props)
-    st.session_state[f'fuente_activa_{_safe_key(nombre)}'] = fuente
+    st.session_state[f'fuente_activa_{nombre}'] = fuente
     print(f"[DEBUG-FUENTE] {nombre}: fuente_activa={fuente} persistida en propiedades.json + session_state")
 
 
@@ -837,14 +837,14 @@ def render_tabla_comparables(res, prop_name=None):
                         print(f"[DEBUG-APPLY] {prop_name}: retro_active={st.session_state.get('retro_active_' + prop_name, False)}, flex_active={st.session_state.get('flex_active_' + prop_name, False)}")
                         
                         # Sync slider value before applying selection
-                        slider_val = st.session_state.get(f'retro_meses_slider_{_safe_key(prop_name)}', 36)
-                        st.session_state[f'retro_meses_{_safe_key(prop_name)}'] = slider_val
+                        slider_val = st.session_state.get(f'retro_meses_slider_{prop_name}', 36)
+                        st.session_state[f'retro_meses_{prop_name}'] = slider_val
                         print(f"[DEBUG-APPLY] {prop_name}: slider_val={slider_val}")
                         
-                        st.session_state[f'comp_excluded_{_safe_key(prop_name)}'] = excluded
-                        st.session_state[f'_comp_exclusion_applied_{_safe_key(prop_name)}'] = True
-                        st.session_state[f'_comp_excluded_{_safe_key(prop_name)}'] = excluded
-                        st.session_state[f'forzar_recalculo_{_safe_key(prop_name)}'] = True
+                        st.session_state[f'comp_excluded_{prop_name}'] = excluded
+                        st.session_state[f'_comp_exclusion_applied_{prop_name}'] = True
+                        st.session_state[f'_comp_excluded_{prop_name}'] = excluded
+                        st.session_state[f'forzar_recalculo_{prop_name}'] = True
                         print(f"[DEBUG-APPLY] {prop_name}: Set forzar_recalculo=True, _comp_exclusion_applied=True, excluded={excluded}")
                         print(f"[DEBUG-APPLY] {prop_name} ===== FIN Aplicar selección =====, calling st.rerun()")
                         st.rerun()
@@ -855,7 +855,7 @@ def render_tabla_comparables(res, prop_name=None):
         if st.button("Seleccionar todos", key=f'sel_all_{_safe_key(prop_name)}'):
             st.session_state[sel_key] = set([_get_comp_id(c, i) for i, c in enumerate(comparables)])
             # Limpiar exclusión previa
-            st.session_state.pop(f'comp_excluded_{_safe_key(prop_name)}', None)
+            st.session_state.pop(f'comp_excluded_{prop_name}', None)
             st.rerun()
 
 
