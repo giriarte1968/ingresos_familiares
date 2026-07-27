@@ -1094,7 +1094,19 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
     from datetime import datetime
     from parsers.valuacion_cache import CACHE_VERSION
 
-    # ── Preparar datos ──
+    # ── Preparar datos (con safety checks) ──
+    def _safe_int(v, default=0):
+        try:
+            return int(v) if v is not None else default
+        except (ValueError, TypeError):
+            return default
+
+    def _safe_float(v, default=0.0):
+        try:
+            return float(v) if v is not None else default
+        except (ValueError, TypeError):
+            return default
+
     manual_params = res.get('manual_params', {}) or {}
     if not manual_params and auto_result:
         manual_params = auto_result.get('_manual_params', {}) or {}
@@ -1102,34 +1114,35 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
     tiene_auto = bool(auto_result and auto_result.get('valor_propiedad_usd', 0) > 0)
 
     # Valores auto
-    v_auto = int(auto_result.get('valor_propiedad_usd', 0)) if auto_result else 0
-    v_auto_cons = int(auto_result.get('valor_venta_conservador', 0)) if auto_result else 0
-    v_auto_opt = int(auto_result.get('valor_venta_optimista', 0)) if auto_result else 0
-    v_auto_m2 = int(auto_result.get('m2_base_venta', 0)) if auto_result else 0
-    n_comps_auto = (auto_result or res).get('resolution_metadata', {}).get('n_propiedades', 0)
+    v_auto = _safe_int((auto_result or {}).get('valor_propiedad_usd'))
+    v_auto_cons = _safe_int((auto_result or {}).get('valor_venta_conservador'))
+    v_auto_opt = _safe_int((auto_result or {}).get('valor_venta_optimista'))
+    v_auto_m2 = _safe_int((auto_result or {}).get('m2_base_venta'))
+    n_comps_auto = _safe_int((auto_result or res or {}).get('resolution_metadata', {}).get('n_propiedades', 0))
 
     # Valores manual
-    v_manual = int(res.get('valor_propiedad_usd', 0))
-    v_manual_cons = int(res.get('valor_venta_conservador', 0))
-    v_manual_opt = int(res.get('valor_venta_optimista', 0))
+    v_manual = _safe_int(res.get('valor_propiedad_usd'))
+    v_manual_cons = _safe_int(res.get('valor_venta_conservador'))
+    v_manual_opt = _safe_int(res.get('valor_venta_optimista'))
     delta_manual = f"{((v_manual - v_auto) / v_auto * 100):+.1f}" if v_auto > 0 else "N/A"
 
     # Valor adoptado
     fuente_activa = res.get('_fuente_activa', 'auto')
     if tiene_manual and tiene_auto:
         valor_adoptado = v_manual if fuente_activa == 'manual' else v_auto
-        fuente_adoptada = "Manual (Tasador)" if fuente_activa == 'manual' else "Automática (Mercado)"
+        fuente_adoptada = "Manual (Tasador)" if fuente_activa == 'manual' else "Automatica (Mercado)"
     else:
         valor_adoptado = v_manual or v_auto
-        fuente_adoptada = "Automático" if tiene_auto else "Manual"
+        fuente_adoptada = "Automatico" if tiene_auto else "Manual"
 
-    # Métricas
-    alq_ars = int(res.get('alquiler_estimado_ars', 0))
-    dolar = res.get('usdt_ars', 1480)
+    # Metricas
+    alq_ars = _safe_int(res.get('alquiler_estimado_ars'))
+    dolar = _safe_float(res.get('usdt_ars'), 1480.0)
     alq_usd = int(alq_ars / dolar) if dolar > 0 else 0
-    cap_rate = res.get('cap_rate', 0.05)
-    m2_base = int(res.get('m2_base_venta', 0))
-    m2_eq = res.get('m2_equivalentes', prop.get('m2', 0))
+    cap_rate = _safe_float(res.get('cap_rate'), 0.05)
+    m2_base = _safe_int(res.get('m2_base_venta'))
+    m2_eq = res.get('m2_equivalentes') or prop.get('m2', 0)
+    m2_eq = _safe_float(m2_eq, 0.0)
 
     # Comparables
     comps = res.get('comparables_venta', [])
@@ -1196,7 +1209,7 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
         v_auto_cons=f"{v_auto_cons:,}",
         v_auto_opt=f"{v_auto_opt:,}",
         v_auto_m2=f"{v_auto_m2:,}",
-        n_comps_auto=n_comps_auto,
+        n_comps_auto=_safe_int(n_comps_auto),
         v_manual=f"{v_manual:,}",
         v_manual_cons=f"{v_manual_cons:,}",
         v_manual_opt=f"{v_manual_opt:,}",
@@ -1206,7 +1219,7 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
         valor_unico=f"{(v_manual or v_auto):,}",
         v_cons_unico=f"{(v_manual_cons or v_auto_cons):,}",
         v_opt_unico=f"{(v_manual_opt or v_auto_opt):,}",
-        m2_eq=f"{m2_eq:.1f}" if isinstance(m2_eq, float) else str(m2_eq),
+        m2_eq=f"{m2_eq:.1f}" if isinstance(m2_eq, (int, float)) else str(m2_eq or '0'),
         dormitorios=prop.get('dormitorios', ''),
         anio_const=prop.get('anio_construccion', '?'),
         estado=prop.get('estado_detalle', 'bueno'),
