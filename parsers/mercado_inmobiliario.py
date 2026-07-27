@@ -232,7 +232,7 @@ _RE_PIPE_NORM = re.compile(r'\s*\|.*$')
 _RE_NRO_NORM = re.compile(r'\b(nro|n|num|numero|numero)\b', re.IGNORECASE)
 _RE_ORD_NORM = re.compile(r'[\xb0\xba]')  # ordinal chars
 _RE_HON_NORM = re.compile(
-    r'\b(almirante|general|san|santo|santa|doctor|dra|don|dona'
+    r'\b(almirante|general|doctor|dra|don|dona'
     r'|padre|profesor|prof|teniente|coronel|comandante'
     r'|capitan|presidente|fray|monsenor|monseñor)\b', re.IGNORECASE)
 
