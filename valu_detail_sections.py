@@ -1087,310 +1087,155 @@ def render_historial(nombre):
 
 # ─── REPORTE PDF ───
 from io import BytesIO
-from fpdf import FPDF
+from jinja2 import Template
 
 def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> bytes:
+    """Genera reporte PDF profesional con WeasyPrint + template HTML."""
     from datetime import datetime
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_auto_page_break(auto=True, margin=18)
+    from parsers.valuacion_cache import CACHE_VERSION
 
-    w = pdf.w - 20
-
-    # Header
-    pdf.set_font("Helvetica", "B", 18)
-    pdf.set_text_color(15, 23, 42)
-    pdf.cell(w, 10, "VALU - Reporte de Valuacion", new_x="LMARGIN", new_y="NEXT")
-    pdf.set_font("Helvetica", "", 9)
-    pdf.set_text_color(100, 116, 139)
-    pdf.cell(w, 6, f"Generado: {datetime.now().strftime('%d/%m/%Y %H:%M')}", new_x="LMARGIN", new_y="NEXT")
-    pdf.ln(6)
-
-    # Propiedad
-    pdf.set_fill_color(248, 250, 252)
-    pdf.rect(10, pdf.get_y(), w, 40, "F")
-    y_start = pdf.get_y() + 4
-    pdf.set_xy(14, y_start)
-    pdf.set_font("Helvetica", "B", 7)
-    pdf.set_text_color(16, 185, 129)
-    pdf.cell(50, 5, "PROPIEDAD")
-    pdf.set_xy(14, y_start + 7)
-    pdf.set_font("Helvetica", "B", 13)
-    pdf.set_text_color(15, 23, 42)
-    pdf.cell(90, 7, prop.get("nombre", ""))
-    pdf.set_xy(14, y_start + 15)
-    pdf.set_font("Helvetica", "", 9)
-    pdf.set_text_color(100, 116, 139)
-    direccion = prop.get("direccion", "Rosario, Argentina")
-    tipo = prop.get("tipo_inmueble", "")
-    zona = prop.get("zona", "")
-    pdf.cell(90, 5, f"{direccion}  |  {tipo}  |  {zona}")
-    m2 = prop.get("m2_cubiertos", 0)
-    dorm = prop.get("dormitorios", 0)
-    anio = prop.get("anio_construccion", "?")
-    pdf.set_xy(110, y_start + 7)
-    pdf.set_font("Helvetica", "B", 10)
-    pdf.set_text_color(15, 23, 42)
-    pdf.cell(30, 6, f"{m2} m2")
-    pdf.set_xy(140, y_start + 7)
-    pdf.cell(30, 6, f"{dorm} dorm")
-    pdf.set_xy(170, y_start + 7)
-    pdf.cell(30, 6, f"Ano {anio}")
-    pdf.set_y(y_start + 44)
-    pdf.ln(4)
-
-    # ─── Opción B: Ambos valores (Auto + Manual) ───
+    # ── Preparar datos ──
     manual_params = res.get('manual_params', {}) or {}
     if not manual_params and auto_result:
         manual_params = auto_result.get('_manual_params', {}) or {}
     tiene_manual = bool(manual_params)
+    tiene_auto = bool(auto_result and auto_result.get('valor_propiedad_usd', 0) > 0)
 
-    if tiene_manual and auto_result:
-        # Valor Automático
-        v_auto = auto_result.get("valor_propiedad_usd", 0)
-        v_auto_cons = auto_result.get("valor_venta_conservador", 0)
-        v_auto_opt = auto_result.get("valor_venta_optimista", 0)
-        v_auto_m2 = auto_result.get("m2_base_venta", 0)
-        v_auto_n = auto_result.get("resolution_metadata", {}).get("n_propiedades", 0)
+    # Valores auto
+    v_auto = int(auto_result.get('valor_propiedad_usd', 0)) if auto_result else 0
+    v_auto_cons = int(auto_result.get('valor_venta_conservador', 0)) if auto_result else 0
+    v_auto_opt = int(auto_result.get('valor_venta_optimista', 0)) if auto_result else 0
+    v_auto_m2 = int(auto_result.get('m2_base_venta', 0)) if auto_result else 0
+    n_comps_auto = (auto_result or res).get('resolution_metadata', {}).get('n_propiedades', 0)
 
-        pdf.set_font("Helvetica", "B", 7)
-        pdf.set_text_color(16, 185, 129)
-        pdf.cell(w, 5, "VALOR DE MERCADO ESTADÍSTICO", new_x="LMARGIN", new_y="NEXT")
-        pdf.set_font("Helvetica", "B", 14)
-        pdf.set_text_color(0, 106, 255)
-        pdf.cell(w, 8, f"USD {v_auto:,.0f}", new_x="LMARGIN", new_y="NEXT")
-        pdf.set_font("Helvetica", "", 8)
-        pdf.set_text_color(100, 116, 139)
-        pdf.cell(w, 4, f"Conservador: USD {v_auto_cons:,.0f}  |  Optimista: USD {v_auto_opt:,.0f}", new_x="LMARGIN", new_y="NEXT")
-        pdf.cell(w, 4, f"{v_auto_n} comparables  ·  ${v_auto_m2:,.0f}/m² base", new_x="LMARGIN", new_y="NEXT")
-        pdf.ln(4)
+    # Valores manual
+    v_manual = int(res.get('valor_propiedad_usd', 0))
+    v_manual_cons = int(res.get('valor_venta_conservador', 0))
+    v_manual_opt = int(res.get('valor_venta_optimista', 0))
+    delta_manual = f"{((v_manual - v_auto) / v_auto * 100):+.1f}" if v_auto > 0 else "N/A"
 
-        # Valor Manual
-        v_manual = res.get("valor_propiedad_usd", 0)
-        v_manual_cons = res.get("valor_venta_conservador", 0)
-        v_manual_opt = res.get("valor_venta_optimista", 0)
-        delta = ((v_manual - v_auto) / v_auto * 100) if v_auto > 0 else 0
-
-        pdf.set_font("Helvetica", "B", 7)
-        pdf.set_text_color(124, 58, 237)  # purple for manual
-        pdf.cell(w, 5, "VALOR SEGÚN CRITERIO DEL TASADOR", new_x="LMARGIN", new_y="NEXT")
-        pdf.set_font("Helvetica", "B", 14)
-        pdf.set_text_color(124, 58, 237)
-        pdf.cell(w, 8, f"USD {v_manual:,.0f}  (Dif. {delta:+.1f}%)", new_x="LMARGIN", new_y="NEXT")
-        pdf.set_font("Helvetica", "", 8)
-        pdf.set_text_color(100, 116, 139)
-        pdf.cell(w, 4, f"Conservador: USD {v_manual_cons:,.0f}  |  Optimista: USD {v_manual_opt:,.0f}", new_x="LMARGIN", new_y="NEXT")
-
-        motivo = manual_params.get('motivo', '')
-        if motivo:
-            pdf.ln(2)
-            pdf.set_font("Helvetica", "I", 8)
-            pdf.set_text_color(100, 116, 139)
-            pdf.cell(w, 4, f"Motivo del ajuste: {motivo}", new_x="LMARGIN", new_y="NEXT")
-        pdf.ln(4)
-
-        # Hard block: divergencia > 5% sin motivo
-        from io import BytesIO
-        if abs(delta) > 5 and not manual_params.get('motivo', '').strip():
-            pdf.set_font("Helvetica", "B", 10)
-            pdf.set_text_color(220, 38, 38)
-            pdf.cell(w, 6, "(!) DOCUMENTE EL MOTIVO DEL AJUSTE PARA EXPORTAR ESTE INFORME", new_x="LMARGIN", new_y="NEXT")
-            pdf.ln(2)
-
-        pdf.set_draw_color(226, 232, 240)
-        pdf.line(10, pdf.get_y(), w + 10, pdf.get_y())
-        pdf.ln(4)
-
-        # Valor adoptado (fuente activa)
-        fuente_activa = res.get('_fuente_activa', 'auto')
-        if fuente_activa == 'manual':
-            adoptado = v_manual
-            label_fuente = "Manual (Tasador)"
-        else:
-            adoptado = v_auto
-            label_fuente = "Automática (Mercado)"
-        pdf.set_font("Helvetica", "B", 9)
-        pdf.set_text_color(15, 23, 42)
-        pdf.cell(w, 5, f"Valor adoptado: USD {adoptado:,.0f}  |  Fuente: {label_fuente}", new_x="LMARGIN", new_y="NEXT")
-        pdf.ln(4)
-
-        # Metricas clave (usar el res principal que ya incluye el resultado activo)
-        alq = res.get("alquiler_estimado_ars", 0)
-        cap = res.get("cap_rate", 0)
-        m2_base = res.get("m2_base_venta", 0)
-        m2_eq = res.get("m2_equivalentes", 0)
-        dolar = res.get("usdt_ars", 1480)
+    # Valor adoptado
+    fuente_activa = res.get('_fuente_activa', 'auto')
+    if tiene_manual and tiene_auto:
+        valor_adoptado = v_manual if fuente_activa == 'manual' else v_auto
+        fuente_adoptada = "Manual (Tasador)" if fuente_activa == 'manual' else "Automática (Mercado)"
     else:
-        # Solo automático: sección simple (comportamiento original)
-        pdf.set_font("Helvetica", "B", 7)
-        pdf.set_text_color(16, 185, 129)
-        pdf.cell(w, 5, "VALOR ESTIMADO", new_x="LMARGIN", new_y="NEXT")
-        valor_usd = res.get("valor_propiedad_usd", 0)
-        v_cons = res.get("valor_venta_conservador", 0)
-        v_opt = res.get("valor_venta_optimista", 0)
-        pdf.set_font("Helvetica", "B", 24)
-        pdf.set_text_color(0, 106, 255)
-        pdf.cell(w, 12, f"USD {valor_usd:,.0f}", new_x="LMARGIN", new_y="NEXT")
-        pdf.set_font("Helvetica", "", 9)
-        pdf.set_text_color(100, 116, 139)
-        pdf.cell(w, 5, f"Conservador: USD {v_cons:,.0f}  |  Optimista: USD {v_opt:,.0f}", new_x="LMARGIN", new_y="NEXT")
-        pdf.ln(6)
-        alq = res.get("alquiler_estimado_ars", 0)
-        cap = res.get("cap_rate", 0)
-        m2_base = res.get("m2_base_venta", 0)
-        m2_eq = res.get("m2_equivalentes", 0)
-        dolar = res.get("usdt_ars", 1480)
+        valor_adoptado = v_manual or v_auto
+        fuente_adoptada = "Automático" if tiene_auto else "Manual"
 
-    pdf.set_fill_color(248, 250, 252)
-    pdf.rect(10, pdf.get_y(), w, 28, "F")
-    y_met = pdf.get_y() + 4
-    labels_met = [
-        ("Alquiler estimado", f"ARS {alq:,.0f} / USD {alq/dolar:,.0f}"),
-        ("Cap Rate", f"{cap*100:.1f}%"),
-        ("Base m2", f"USD {m2_base:,.0f}"),
-        ("m2 equivalentes", f"{m2_eq:.1f}"),
-    ]
-    for i, (lbl, val) in enumerate(labels_met):
-        x = 14 + (i % 4) * 46
-        pdf.set_xy(x, y_met)
-        pdf.set_font("Helvetica", "", 7)
-        pdf.set_text_color(100, 116, 139)
-        pdf.cell(42, 4, lbl)
-        pdf.set_xy(x, y_met + 5)
-        pdf.set_font("Helvetica", "B", 10)
-        pdf.set_text_color(15, 23, 42)
-        pdf.cell(42, 6, val)
-    pdf.set_y(y_met + 32)
-
-    # Factores de ajuste
-    meta = res.get("resolution_metadata", {}) or {}
-    factor = res.get("factor_total", 1.0)
-    dep = res.get("delta_anti", 1.0)
-    nlp = res.get("nlp_ajuste", 0)
-    calidad = prop.get("calidad_edificio", "Estandar")
-
-    pdf.set_font("Helvetica", "B", 7)
-    pdf.set_text_color(16, 185, 129)
-    pdf.cell(w, 5, "FACTORES DE AJUSTE", new_x="LMARGIN", new_y="NEXT")
-    pdf.ln(2)
-    for lbl, val in [
-        ("Factor total", f"{(factor-1)*100:+.1f}%"),
-        ("Depreciacion", f"{(dep-1)*100:+.1f}%"),
-        ("Ajuste NLP", f"{nlp*100:+.1f}%"),
-        ("Calidad", calidad),
-    ]:
-        pdf.set_font("Helvetica", "", 9)
-        pdf.set_text_color(100, 116, 139)
-        pdf.cell(50, 5, lbl)
-        pdf.set_font("Helvetica", "B", 9)
-        pdf.set_text_color(15, 23, 42)
-        pdf.cell(30, 5, val, new_x="LMARGIN", new_y="NEXT")
-    pdf.ln(4)
-
-    # Activos adicionales (cocheras + baulera)
-    val_activos = res.get("valor_activos", {}) or {}
-    if val_activos.get("total", 0) > 0:
-        pdf.set_font("Helvetica", "B", 7)
-        pdf.set_text_color(16, 185, 129)
-        pdf.cell(w, 5, "ACTIVOS ADICIONALES", new_x="LMARGIN", new_y="NEXT")
-        pdf.ln(2)
-        for lbl, val in [
-            ("Cocheras", f"USD {val_activos.get('cocheras', 0):,.0f}"),
-            ("Baulera", f"USD {val_activos.get('baulera', 0):,.0f}"),
-            ("Total activos", f"USD {val_activos['total']:,.0f}"),
-        ]:
-            pdf.set_font("Helvetica", "", 9)
-            pdf.set_text_color(100, 116, 139)
-            pdf.cell(50, 5, lbl)
-            pdf.set_font("Helvetica", "B", 9)
-            pdf.set_text_color(15, 23, 42)
-            pdf.cell(30, 5, val, new_x="LMARGIN", new_y="NEXT")
-        pdf.ln(4)
+    # Métricas
+    alq_ars = int(res.get('alquiler_estimado_ars', 0))
+    dolar = res.get('usdt_ars', 1480)
+    alq_usd = int(alq_ars / dolar) if dolar > 0 else 0
+    cap_rate = res.get('cap_rate', 0.05)
+    m2_base = int(res.get('m2_base_venta', 0))
+    m2_eq = res.get('m2_equivalentes', prop.get('m2', 0))
 
     # Comparables
-    comps = res.get("comparables_venta", [])
-    n_comps = meta.get("n_propiedades", meta.get("n_filtradas", len(comps)))
-    precio_m2_prom = 0
-    dist_prom = 0
-    if comps:
-        precio_m2_prom = sum(c.get("precio_m2", 0) or 0 for c in comps) / len(comps)
-        dist_prom = sum(c.get("distancia_m", 0) or 0 for c in comps) / len(comps)
+    comps = res.get('comparables_venta', [])
+    comparables_list = []
+    for c in comps[:30]:  # max 30 en PDF
+        comparables_list.append({
+            'direccion': (c.get('direccion', '') or '')[:40],
+            'm2': c.get('m2', ''),
+            'dormitorios': c.get('dormitorios', ''),
+            'precio_m2': f"${c.get('precio_m2', 0):,.0f}",
+            'precio': f"${c.get('precio', 0):,.0f}",
+            'distancia_m': f"{c.get('distancia_m', 0):.0f}",
+            'fuente': c.get('fuente', '')[:10],
+        })
 
-    if n_comps >= 15:
-        conf = "Alta"
-    elif n_comps >= 8:
-        conf = "Media"
-    else:
-        conf = "Baja"
+    # Metadata
+    meta = res.get('resolution_metadata', {}) or {}
+    razonamiento = res.get('razonamiento', '')
 
-    pdf.set_font("Helvetica", "B", 7)
-    pdf.set_text_color(16, 185, 129)
-    pdf.cell(w, 5, "COMPARABLES", new_x="LMARGIN", new_y="NEXT")
-    pdf.ln(2)
-    for lbl, val in [
-        ("Cantidad", str(n_comps)),
-        ("Precio/m2 prom.", f"USD {precio_m2_prom:,.0f}"),
-        ("Distancia prom.", f"{dist_prom:.0f} m"),
-        ("Confianza", conf),
-    ]:
-        pdf.set_font("Helvetica", "", 9)
-        pdf.set_text_color(100, 116, 139)
-        pdf.cell(50, 5, lbl)
-        pdf.set_font("Helvetica", "B", 9)
-        pdf.set_text_color(15, 23, 42)
-        pdf.cell(30, 5, val, new_x="LMARGIN", new_y="NEXT")
-    pdf.ln(4)
+    # Activos
+    val_activos = res.get('valor_activos', {}) or {}
+    activos_list = []
+    if val_activos.get('cocheras', 0) > 0:
+        activos_list.append({'nombre': 'Cocheras', 'valor': f"{int(val_activos['cocheras']):,}"})
+    if val_activos.get('baulera', 0) > 0:
+        activos_list.append({'nombre': 'Baulera', 'valor': f"{int(val_activos['baulera']):,}"})
+    total_activos = int(val_activos.get('total', 0))
 
     # Catastro
-    catastro = res.get("catastro_detalle", None)
-    candidatos = catastro.get("candidatos", []) if catastro else []
-    if candidatos:
-        sel = next((c for c in candidatos if c.get("recomendado")), candidatos[0])
-        pdf.set_font("Helvetica", "B", 7)
-        pdf.set_text_color(16, 185, 129)
-        pdf.cell(w, 5, "CATASTRO", new_x="LMARGIN", new_y="NEXT")
-        pdf.ln(2)
-        ph = sel.get("ph", "")
-        anio_cat = int(float(sel["year"])) if sel.get("year") else "N/A"
-        secc = int(float(sel["seccion"])) if sel.get("seccion") else "-"
-        mza = int(float(sel["manzana"])) if sel.get("manzana") else "-"
-        graf = int(float(sel["grafico"])) if sel.get("grafico") else "-"
-        for lbl, val in [
-            ("PH", str(ph)),
-            ("Ano const.", str(anio_cat)),
-            ("Seccion", str(secc)),
-            ("Manzana", str(mza)),
-            ("Grafico", str(graf)),
-        ]:
-            pdf.set_font("Helvetica", "", 9)
-            pdf.set_text_color(100, 116, 139)
-            pdf.cell(30, 5, lbl)
-            pdf.set_font("Helvetica", "B", 9)
-            pdf.set_text_color(15, 23, 42)
-            pdf.cell(20, 5, val, new_x="LMARGIN", new_y="NEXT")
-        pdf.ln(4)
+    catastro_data = None
+    catastro = res.get('catastro_detalle')
+    if catastro:
+        candidatos = catastro.get('candidatos', [])
+        if candidatos:
+            sel = next((c for c in candidatos if c.get('recomendado')), candidatos[0])
+            catastro_data = {
+                'ph': sel.get('ph', 'N/A'),
+                'anio': int(float(sel['year'])) if sel.get('year') else 'N/A',
+                'seccion': int(float(sel['seccion'])) if sel.get('seccion') else '-',
+                'grafico': int(float(sel['grafico'])) if sel.get('grafico') else '-',
+            }
 
-    # Footer metadata
-    from parsers.valuacion_cache import CACHE_VERSION
+    # Fechas
     cache_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache_scraping.json")
     fecha_scraping = ""
     if os.path.exists(cache_path):
-        mtime = os.path.getmtime(cache_path)
-        fecha_scraping = datetime.fromtimestamp(mtime).strftime("%Y-%m-%d")
+        fecha_scraping = datetime.fromtimestamp(os.path.getmtime(cache_path)).strftime("%Y-%m-%d")
 
-    pdf.ln(4)
-    pdf.set_draw_color(226, 232, 240)
-    pdf.line(10, pdf.get_y(), w + 10, pdf.get_y())
-    pdf.ln(3)
-    pdf.set_font("Helvetica", "", 7)
-    pdf.set_text_color(148, 163, 184)
-    pdf.cell(w, 4, f"Version: {CACHE_VERSION}  |  Mercado: {fecha_scraping}", new_x="LMARGIN", new_y="NEXT")
-    if meta.get("age_blend_applied"):
-        alpha = meta.get("alpha_age_blend", 0)
-        n_age = meta.get("n_age_filtered", 0)
-        pdf.cell(w, 4, f"Age blend aplicado: alpha={alpha:.2f}, n_edad={n_age}", new_x="LMARGIN", new_y="NEXT")
+    # ── Renderizar template ──
+    template_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates", "reporte_valuacion.html")
+    with open(template_path, 'r', encoding='utf-8') as f:
+        template = Template(f.read())
 
-    return bytes(pdf.output())
+    html_content = template.render(
+        nombre=prop.get('nombre', ''),
+        direccion=prop.get('direccion', 'Rosario, Argentina'),
+        zona=prop.get('zona', ''),
+        fecha_generacion=datetime.now().strftime('%d/%m/%Y %H:%M'),
+        cache_version=CACHE_VERSION,
+        fecha_scraping=fecha_scraping,
+        tiene_auto=tiene_auto,
+        tiene_manual=tiene_manual,
+        v_auto=f"{v_auto:,}",
+        v_auto_cons=f"{v_auto_cons:,}",
+        v_auto_opt=f"{v_auto_opt:,}",
+        v_auto_m2=f"{v_auto_m2:,}",
+        n_comps_auto=n_comps_auto,
+        v_manual=f"{v_manual:,}",
+        v_manual_cons=f"{v_manual_cons:,}",
+        v_manual_opt=f"{v_manual_opt:,}",
+        delta_manual=delta_manual,
+        valor_adoptado=f"{valor_adoptado:,}",
+        fuente_adoptada=fuente_adoptada,
+        valor_unico=f"{(v_manual or v_auto):,}",
+        v_cons_unico=f"{(v_manual_cons or v_auto_cons):,}",
+        v_opt_unico=f"{(v_manual_opt or v_auto_opt):,}",
+        m2_eq=f"{m2_eq:.1f}" if isinstance(m2_eq, float) else str(m2_eq),
+        dormitorios=prop.get('dormitorios', ''),
+        anio_const=prop.get('anio_construccion', '?'),
+        estado=prop.get('estado_detalle', 'bueno'),
+        tipo_inmueble=prop.get('tipo_inmueble', ''),
+        constructora=prop.get('constructora', ''),
+        calidad_edificio=prop.get('calidad_edificio', 'estándar'),
+        piso=prop.get('piso', ''),
+        total_pisos=prop.get('total_pisos', ''),
+        alquiler_ars=f"{alq_ars:,}",
+        alquiler_usd=f"{alq_usd:,}",
+        cap_rate=f"{cap_rate*100:.1f}%",
+        m2_base=f"${m2_base:,}",
+        comparables=comparables_list,
+        razonamiento=razonamiento,
+        factor_total=f"{(res.get('factor_total', 1.0)-1)*100:+.1f}%",
+        depreciacion=f"{(res.get('delta_anti', 1.0)-1)*100:+.1f}%",
+        nlp_ajuste=f"{res.get('nlp_ajuste', 0)*100:+.1f}%",
+        cv_pool=f"{meta.get('cv_pool', 0):.3f}",
+        percentil=meta.get('percentil_usado', 'P50'),
+        tiene_activos=total_activos > 0,
+        activos=activos_list,
+        total_activos=f"{total_activos:,}",
+        catastro=catastro_data,
+    )
+
+    # ── Generar PDF con WeasyPrint ──
+    from weasyprint import HTML
+    pdf_bytes = HTML(string=html_content).write_pdf()
+    return pdf_bytes
 
 
 # ─── HELPERS PARA ELIMINACION ───
