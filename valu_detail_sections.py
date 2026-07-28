@@ -522,17 +522,21 @@ def render_metricas(prop, res, valor_usd, dolar):
     alq_min, alq_max = alq_r.get('min', 0), alq_r.get('max', 0)
     cap = res.get('cap_rate', 0)
 
-    # Fallback: si alquiler es 0 pero hay cap_rate y valor, recalcular
-    if (not alq_ars or alq_ars <= 0) and cap > 0 and valor_usd > 0:
+    # Recalcular alquiler cuando el valor cambió por exclusión de comps
+    if cap > 0 and valor_usd > 0:
         try:
             from parsers.motor_vpp_core import get_binance_usdt_ars
             dolar_fresh = get_binance_usdt_ars()
             if dolar_fresh > 0:
                 alq_usd_calc = valor_usd * cap / 12
-                alq_ars = int(alq_usd_calc * dolar_fresh)
-                alq_min = int(alq_ars * 0.85)
-                alq_max = int(alq_ars * 1.15)
-                dolar = dolar_fresh
+                alq_ars_new = int(alq_usd_calc * dolar_fresh)
+                # Usar el recalculado si difiere del cache (exclusión cambió valor)
+                if alq_ars_new != alq_ars:
+                    print(f"[DEBUG-ALQ-RECALC] {prop.get('nombre','')}: cache={alq_ars}, recalculado={alq_ars_new}, valor_usd={valor_usd}, cap={cap}")
+                    alq_ars = alq_ars_new
+                    alq_min = int(alq_ars * 0.85)
+                    alq_max = int(alq_ars * 1.15)
+                    dolar = dolar_fresh
         except Exception:
             pass
 
