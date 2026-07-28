@@ -509,6 +509,20 @@ def render_metricas(prop, res, valor_usd, dolar):
     alq_min, alq_max = alq_r.get('min', 0), alq_r.get('max', 0)
     cap = res.get('cap_rate', 0)
 
+    # Fallback: si alquiler es 0 pero hay cap_rate y valor, recalcular
+    if (not alq_ars or alq_ars <= 0) and cap > 0 and valor_usd > 0:
+        try:
+            from parsers.motor_vpp_core import get_binance_usdt_ars
+            dolar_fresh = get_binance_usdt_ars()
+            if dolar_fresh > 0:
+                alq_usd_calc = valor_usd * cap / 12
+                alq_ars = int(alq_usd_calc * dolar_fresh)
+                alq_min = int(alq_ars * 0.85)
+                alq_max = int(alq_ars * 1.15)
+                dolar = dolar_fresh
+        except Exception:
+            pass
+
     if alq_min > 0 and alq_max > 0:
         val_alq = f"${alq_min:,.0f} - ${alq_max:,.0f}"
     else:
@@ -1253,6 +1267,14 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
     meta = res.get('resolution_metadata', {}) or {}
     razonamiento = res.get('razonamiento', '')
 
+    # Subfactores hedonicos reales (necesario antes del razonamiento manual)
+    _fd = None
+    try:
+        from parsers.mercado_inmobiliario import calcular_factores_display
+        _fd = calcular_factores_display(prop)
+    except Exception:
+        pass
+
     # Razonamiento manual detallado
     razonamiento_manual = ''
     if tiene_manual and manual_params:
@@ -1423,14 +1445,6 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
     if os.path.exists(cache_path):
         fecha_scraping = datetime.fromtimestamp(os.path.getmtime(cache_path)).strftime("%Y-%m-%d")
 
-    # Subfactores hedonicos reales
-    _fd = None
-    try:
-        from parsers.mercado_inmobiliario import calcular_factores_display
-        _fd = calcular_factores_display(prop)
-    except Exception:
-        pass
-
     # CV cualitativo
     cv_qualitative = ''
     cv_pool_val = meta.get('cv_pool')
@@ -1474,8 +1488,14 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
         valor_unico=f"{(v_manual or v_auto):,}",
         v_cons_unico=f"{(v_manual_cons or v_auto_cons):,}",
         v_opt_unico=f"{(v_manual_opt or v_auto_opt):,}",
+        v_manual_m2=f"{int(v_manual / m2_eq):,}" if v_manual and m2_eq else "",
         m2_eq=f"{m2_eq:.1f}" if isinstance(m2_eq, (int, float)) else str(m2_eq or '0'),
+        m2_total=prop.get('m2', 0) or 0,
+        m2_cub=prop.get('m2_cubiertos', 0) or 0,
+        m2_desc=prop.get('m2_descubiertos', 0) or 0,
         dormitorios=prop.get('dormitorios', ''),
+        banos=prop.get('banos', prop.get('baños', '')),
+        antiguedad=prop.get('antiguedad', prop.get('antiquity', '')),
         anio_const=prop.get('anio_construccion', '?'),
         estado=prop.get('estado_detalle', 'bueno'),
         tipo_inmueble=prop.get('tipo_inmueble', ''),
@@ -1483,6 +1503,11 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
         calidad_edificio=prop.get('calidad_edificio', 'estándar'),
         piso=prop.get('piso', ''),
         total_pisos=prop.get('total_pisos', ''),
+        expensas=prop.get('expensas_ars', ''),
+        ambientes=prop.get('ambientes', ''),
+        orientacion=prop.get('orientacion', ''),
+        ventilacion=prop.get('ventilacion', ''),
+        amenities_list=', '.join(prop.get('detalles_categoria', [])[:5]) if prop.get('detalles_categoria') else '',
         alquiler_ars=f"{alq_ars:,}",
         alquiler_usd=f"{alq_usd:,}",
         cap_rate=f"{cap_rate*100:.1f}%",
@@ -1525,7 +1550,7 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
             f"from playwright.sync_api import sync_playwright; "
             f"p=sync_playwright().start(); b=p.chromium.launch(headless=True); "
             f"pg=b.new_page(); pg.set_content(open(r'{html_path}',encoding='utf-8').read(),wait_until='networkidle'); "
-            f"pg.pdf(path=r'{pdf_path}',format='A4',print_background=True,margin={{'top':'0','bottom':'0','left':'0','right':'0'}}); "
+            f"pg.pdf(path=r'{pdf_path}',format='A4',print_background=True); "
             f"b.close(); p.stop()"
         )
         result = subprocess.run(
