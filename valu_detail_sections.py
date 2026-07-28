@@ -1124,6 +1124,7 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
     v_manual = _safe_int(res.get('valor_propiedad_usd'))
     v_manual_cons = _safe_int(res.get('valor_venta_conservador'))
     v_manual_opt = _safe_int(res.get('valor_venta_optimista'))
+    v_manual_spread = f"{v_manual_opt - v_manual_cons:,}" if v_manual and v_manual_opt and v_manual_cons else "",
     delta_manual = f"{((v_manual - v_auto) / v_auto * 100):+.1f}" if v_auto > 0 else "N/A"
 
     # Valor adoptado
@@ -1430,6 +1431,19 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
     except Exception:
         pass
 
+    # CV cualitativo
+    cv_qualitative = ''
+    cv_pool_val = meta.get('cv_pool')
+    if cv_pool_val is not None:
+        if cv_pool_val < 0.10:
+            cv_qualitative = 'Pool altamente homogeneo'
+        elif cv_pool_val < 0.15:
+            cv_qualitative = 'Homogeneidad buena'
+        elif cv_pool_val < 0.20:
+            cv_qualitative = 'Heterogeneidad moderada'
+        else:
+            cv_qualitative = 'Pool heterogeneo'
+
     # ── Renderizar template ──
     template_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates", "reporte_valuacion.html")
     with open(template_path, 'r', encoding='utf-8') as f:
@@ -1447,11 +1461,13 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
         v_auto=f"{v_auto:,}",
         v_auto_cons=f"{v_auto_cons:,}",
         v_auto_opt=f"{v_auto_opt:,}",
+        v_auto_spread=f"{v_auto_opt - v_auto_cons:,}" if v_auto and v_auto_opt and v_auto_cons else "",
         v_auto_m2=f"{v_auto_m2:,}",
         n_comps_auto=_safe_int(n_comps_auto),
         v_manual=f"{v_manual:,}",
         v_manual_cons=f"{v_manual_cons:,}",
         v_manual_opt=f"{v_manual_opt:,}",
+        v_manual_spread=f"{v_manual_opt - v_manual_cons:,}" if v_manual and v_manual_opt and v_manual_cons else "",
         delta_manual=delta_manual,
         valor_adoptado=f"{valor_adoptado:,}",
         fuente_adoptada=fuente_adoptada,
@@ -1494,6 +1510,7 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
         fd_calidad_label=_fd.get('calidad_label', '') if _fd else '',
         fd_amenities_detalle=_fd.get('detalle_amenities', '') if _fd else '',
         radio_m=meta.get('radio_usado', 1000),
+        cv_qualitative=cv_qualitative,
     )
 
     # ── Generar PDF con Playwright (subprocess para evitar event loop de Streamlit) ──
