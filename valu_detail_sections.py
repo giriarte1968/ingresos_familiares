@@ -1222,17 +1222,20 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
                 _map_html_path = _f.name
             with _tf.NamedTemporaryFile(suffix='.png', delete=False) as _f:
                 _map_png_path = _f.name
+            _map_html_fwd = _map_html_path.replace(os.sep, '/')
+            _map_png_fwd = _map_png_path.replace(os.sep, '/')
             _map_script = (
-                f"from playwright.sync_api import sync_playwright\n"
-                f"p = sync_playwright().start()\n"
-                f"b = p.chromium.launch(headless=True)\n"
-                f"pg = b.new_page()\n"
-                f"pg.set_viewport_size({{'width': 800, 'height': 600}})\n"
-                f"pg.goto('file:///{_map_html_path.replace(os.sep, '/')}', wait_until='networkidle')\n"
-                f"import time; time.sleep(2)\n"
-                f"pg.screenshot(path='{_map_png_path}', full_page=False)\n"
-                f"b.close()\n"
-                f"p.stop()\n"
+                "from playwright.sync_api import sync_playwright\n"
+                "import time\n"
+                "p = sync_playwright().start()\n"
+                "b = p.chromium.launch(headless=True)\n"
+                "pg = b.new_page()\n"
+                "pg.set_viewport_size({'width': 800, 'height': 600})\n"
+                f"pg.goto('file:///{_map_html_fwd}', wait_until='networkidle')\n"
+                "time.sleep(2)\n"
+                f"pg.screenshot(path=r'{_map_png_fwd}', full_page=False)\n"
+                "b.close()\n"
+                "p.stop()\n"
             )
             import subprocess as _sp
             _sp.run([sys.executable, '-c', _map_script], capture_output=True, timeout=15)
