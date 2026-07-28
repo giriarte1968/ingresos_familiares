@@ -321,10 +321,11 @@ def render_header(prop, res):
     """, unsafe_allow_html=True)
 
 
-def render_disk_summary_card(prop, insuficientes=False):
+def render_disk_summary_card(prop, insuficientes=False, v_cons=0, v_opt=0, spread=0):
     """Tarjeta full-width que muestra la última valuación guardada en disco (_ultima_valuacion).
     Solo para valuación por comparables (auto). No toca session state.
-    Lee directamente de propiedades.json para evitar stale data del ciclo de render."""
+    Lee directamente de propiedades.json para evitar stale data del ciclo de render.
+    Si v_cons > 0 y v_opt > 0, incluye la barra de rango Conservador|Spread|Optimista dentro de la tarjeta."""
     import json, os
     nombre = prop.get('nombre', '')
     uv = {}
@@ -365,12 +366,17 @@ def render_disk_summary_card(prop, insuficientes=False):
         meta_line = "—"
         formula_line = "Sin valuación guardada"
 
+    _range_text = ""
+    if v_cons > 0 and v_opt > 0:
+        _range_text = f"Conservador ${v_cons:,.0f} · Spread {spread:.1f}% · Optimista ${v_opt:,.0f}"
+
     grad_disk = "linear-gradient(135deg, #374151 0%, #1F2937 100%)"
     st.markdown(f"""
     <div style="border:none;border-radius:12px;padding:14px 16px;background:{grad_disk};box-shadow:0 4px 12px rgba(0,0,0,0.15);text-align:center;">
         <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.7);margin-bottom:4px;">VALUACIÓN POR COMPARABLES</div>
         <div style="font-size:15px;font-weight:600;color:#FFFFFF;">{meta_line}</div>
         <div style="font-size:11px;color:rgba(255,255,255,0.55);margin-top:2px;">{formula_line}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.15);">{_range_text}</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -479,10 +485,16 @@ def render_manual_valuation_card(prop):
             param_line += f" · FH: {fh:.2f}"
         if incert:
             param_line += f" · Incertidumbre: {incert:.0f}%"
+
+        _range_text = ""
+        if conservador > 0 and optimista > 0:
+            _spread_manual = ((optimista - conservador) / manual_valor * 100) if manual_valor > 0 else 0
+            _range_text = f"Conservador ${conservador:,.0f} · Spread {_spread_manual:.1f}% · Optimista ${optimista:,.0f}"
     else:
         meta_line = "—"
         formula_line = "Sin valuación manual guardada"
         param_line = ""
+        _range_text = ""
 
     grad_manual = "linear-gradient(135deg, #6B21A8 0%, #4C1D95 100%)"
     st.markdown(f"""
@@ -491,6 +503,7 @@ def render_manual_valuation_card(prop):
         <div style="font-size:15px;font-weight:600;color:#FFFFFF;">{meta_line}</div>
         <div style="font-size:11px;color:rgba(255,255,255,0.55);margin-top:2px;">{formula_line}</div>
         {'<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;">' + param_line + '</div>' if param_line else ''}
+        <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.15);">{_range_text}</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -523,16 +536,17 @@ def render_metricas(prop, res, valor_usd, dolar):
         except Exception:
             pass
 
+    alq_usd = int(alq_ars / dolar) if dolar > 0 else 0
+    alq_line1 = f"${alq_ars:,.0f} ARS/mes"
+    alq_line2 = f"USD {alq_usd:,}" if alq_usd > 0 else ""
     if alq_min > 0 and alq_max > 0:
-        val_alq = f"${alq_min:,.0f} - ${alq_max:,.0f}"
-    else:
-        val_alq = f"${alq_ars:,.0f}"
+        alq_line2 += f" · Rango ${alq_min:,.0f}–${alq_max:,.0f}"
 
     m1, m2, m3 = st.columns(3)
     with m1:
-        st.markdown(metric_card("", "Alquiler Estimado", f"{val_alq} ARS", f"${alq_ars/dolar:,.0f} USD/mes promedio"), unsafe_allow_html=True)
+        st.markdown(metric_card("", "Alquiler Estimado", alq_line1, alq_line2), unsafe_allow_html=True)
     with m2:
-        st.markdown(metric_card("", "Cap Rate Neto", f"{cap*100:.1f}% anual", f"Cierre est: ${valor_usd*0.92:,.0f} USD", border_color="#16A34A"), unsafe_allow_html=True)
+        st.markdown(metric_card("", "Rentabilidad Neta", f"{cap*100:.1f}% anual", f"Cierre est: ${valor_usd*0.92:,.0f} USD", border_color="#16A34A"), unsafe_allow_html=True)
 
     valor_compra = prop.get('valor_compra_usd', 0)
     with m3:
@@ -1266,6 +1280,14 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
     # Metadata
     meta = res.get('resolution_metadata', {}) or {}
     razonamiento = res.get('razonamiento', '')
+
+    # Regenerate razonamiento if it contains placeholder text (same logic as render_razonamiento)
+    if razonamiento and 'incertidumbresignificativa' in razonamiento.replace(' ', ''):
+        try:
+            from parsers.mercado_inmobiliario import generar_razonamiento_valuacion
+            razonamiento = generar_razonamiento_valuacion(prop, res, meta)
+        except Exception:
+            pass
 
     # Subfactores hedonicos reales (necesario antes del razonamiento manual)
     _fd = None
