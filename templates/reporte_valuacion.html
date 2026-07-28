@@ -115,9 +115,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 24px;
-    padding-bottom: 16px;
-    border-bottom: 2px solid #e2e8f0;
+    background: white;
+    z-index: 100;
   }
   .header-left {
     display: flex;
@@ -132,7 +131,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 900;
     color: white;
   }
@@ -401,73 +400,36 @@
     </div>
   </div>
 
-  <!-- Property Tags -->
-  <div class="tags">
-    <span class="tag">{{ tipo_inmueble }}</span>
-    <span class="tag">Venta</span>
-    <span class="tag">AT {{ m2_eq }} m2</span>
-    <span class="tag">{{ dormitorios }} dorm.</span>
-    {% if anio_const %}<span class="tag">{{ anio_const }}</span>{% endif %}
-    {% if estado %}<span class="tag">{{ estado }}</span>{% endif %}
-    {% if piso %}<span class="tag">Piso {{ piso }}</span>{% endif %}
-  </div>
-
-  <!-- Valor Estimado -->
-  <div class="value-box">
-    <div class="value-box-title">Valor estimado del inmueble analizado</div>
-
-    <div class="value-cards">
-      {% if tiene_auto %}
-      <div class="value-card">
-        <div class="value-card-label">Valuacion Automatica (Mercado)</div>
-        <div class="value-card-currency">USD</div>
-        <div class="value-card-amount">{{ v_auto }}</div>
-        <div style="display:flex; justify-content:space-between; padding:0 10px; margin-top:8px;">
-          <div style="text-align:left;">
-            <div style="font-size:8px; color:#94a3b8;">Conservador</div>
-            <div style="font-size:12px; font-weight:700; color:#1e293b;">USD {{ v_auto_cons }}</div>
-          </div>
-          <div style="text-align:center;">
-            <div style="font-size:8px; color:#94a3b8;">Spread</div>
-            <div style="font-size:12px; font-weight:700; color:#64748b;">USD {{ v_auto_spread }}</div>
-          </div>
-          <div style="text-align:right;">
-            <div style="font-size:8px; color:#94a3b8;">Optimista</div>
-            <div style="font-size:12px; font-weight:700; color:#1e293b;">USD {{ v_auto_opt }}</div>
-          </div>
-        </div>
-        <div style="margin-top:8px; font-size:9px; color:#94a3b8; text-align:center;">{{ n_comps_auto }} comparables</div>
-      </div>
-      {% endif %}
-
-      {% if tiene_manual %}
-      <div class="value-card">
-        <div class="value-card-label">Valuacion Manual (Tasador)</div>
-        <div class="value-card-currency">USD</div>
-        <div class="value-card-amount">{{ v_manual }}</div>
-        <div style="display:flex; justify-content:space-between; padding:0 10px; margin-top:8px;">
-          <div style="text-align:left;">
-            <div style="font-size:8px; color:#94a3b8;">Conservador</div>
-            <div style="font-size:12px; font-weight:700; color:#1e293b;">USD {{ v_manual_cons }}</div>
-          </div>
-          <div style="text-align:center;">
-            <div style="font-size:8px; color:#94a3b8;">Spread</div>
-            <div style="font-size:12px; font-weight:700; color:#64748b;">USD {{ v_manual_spread }}</div>
-          </div>
-          <div style="text-align:right;">
-            <div style="font-size:8px; color:#94a3b8;">Optimista</div>
-            <div style="font-size:12px; font-weight:700; color:#1e293b;">USD {{ v_manual_opt }}</div>
-          </div>
-        </div>
-        <div style="margin-top:8px; font-size:9px; color:#94a3b8; text-align:center;">Delta vs auto: {{ delta_manual }}%</div>
-      </div>
-      {% endif %}
+  <!-- Caracteristicas de la Propiedad -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon">C</div>
+      <div class="section-title">Caracteristicas de la Propiedad</div>
     </div>
 
-    <!-- Valor Adoptado -->
-    <div style="background:#f1f5f9; border-radius:8px; padding:14px; text-align:center;">
-      <div style="font-size:11px; color:#64748b; margin-bottom:4px;">Valor Adoptado — {{ fuente_adoptada }}</div>
-      <div style="font-size:26px; font-weight:800; color:#10b981;">USD {{ valor_adoptado }}</div>
+    <div style="background:#f8fafc; border-radius:10px; padding:16px; border:1px solid #e2e8f0;">
+      <div style="font-size:16px; font-weight:700; color:#0f172a; margin-bottom:4px;">{{ nombre }}</div>
+      <div style="font-size:11px; color:#64748b; margin-bottom:14px;">{{ direccion }} — {{ zona }}</div>
+
+      <div class="two-col">
+        <div>
+          <table class="data-table">
+            <tr><td style="color:#64748b; font-weight:600;">Tipo inmueble</td><td>{{ tipo_inmueble }}</td></tr>
+            <tr><td style="color:#64748b; font-weight:600;">Superficie (m2 eq.)</td><td>{{ m2_eq }} m2</td></tr>
+            <tr><td style="color:#64748b; font-weight:600;">Dormitorios</td><td>{{ dormitorios }}</td></tr>
+            <tr><td style="color:#64748b; font-weight:600;">Estado</td><td>{{ estado }}</td></tr>
+            {% if anio_const %}<tr><td style="color:#64748b; font-weight:600;">Ano construccion</td><td>{{ anio_const }}</td></tr>{% endif %}
+          </table>
+        </div>
+        <div>
+          <table class="data-table">
+            {% if piso %}<tr><td style="color:#64748b; font-weight:600;">Piso</td><td>{{ piso }} de {{ total_pisos }}</td></tr>{% endif %}
+            {% if constructora %}<tr><td style="color:#64748b; font-weight:600;">Constructora</td><td>{{ constructora }}</td></tr>{% endif %}
+            {% if calidad_edificio %}<tr><td style="color:#64748b; font-weight:600;">Calidad edificio</td><td>{{ calidad_edificio }}</td></tr>{% endif %}
+            <tr><td style="color:#64748b; font-weight:600;">Operacion</td><td>Venta</td></tr>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -479,12 +441,6 @@
     </div>
 
     <div style="background:#f8fafc; border-radius:10px; padding:16px; border:1px solid #e2e8f0; margin-bottom:16px;">
-      <div style="font-size:11px; color:#64748b; margin-bottom:8px;">
-        <strong>Propiedad:</strong> {{ nombre }} | {{ tipo_inmueble }} | {{ dormitorios }} dorm. | {{ m2_eq }} m2 | {{ estado }}
-      </div>
-      <div style="font-size:11px; color:#64748b; margin-bottom:12px;">
-        <strong>Ubicacion:</strong> {{ direccion }} — {{ zona }} | Piso {{ piso }} de {{ total_pisos }}
-      </div>
 
       {% if tiene_auto %}
       <div style="background:white; border-radius:8px; padding:12px; border:1px solid #e2e8f0; margin-bottom:10px;">
@@ -497,8 +453,8 @@
             <div style="font-size:9px; color:#94a3b8;">{{ n_comps_auto }} comparables | {{ m2_base }}/m2 | {{ cv_qualitative }}</div>
           </div>
           <div style="text-align:right;">
-            <div style="font-size:10px; color:#64748b;">Rango</div>
-            <div style="font-size:11px; font-weight:600;">USD {{ v_auto_cons }} — {{ v_auto_opt }}</div>
+            <div style="font-size:10px; color:#64748b;">Conservador | Spread | Optimista</div>
+            <div style="font-size:11px; font-weight:600;">USD {{ v_auto_cons }} | USD {{ v_auto_spread }} | USD {{ v_auto_opt }}</div>
           </div>
         </div>
       </div>
@@ -515,8 +471,8 @@
             <div style="font-size:9px; color:#94a3b8;">Factor hedonico {{ fd_total }} | {{ fd_estado_label }}</div>
           </div>
           <div style="text-align:right;">
-            <div style="font-size:10px; color:#64748b;">Rango</div>
-            <div style="font-size:11px; font-weight:600;">USD {{ v_manual_cons }} — {{ v_manual_opt }}</div>
+            <div style="font-size:10px; color:#64748b;">Conservador | Spread | Optimista</div>
+            <div style="font-size:11px; font-weight:600;">USD {{ v_manual_cons }} | USD {{ v_manual_spread }} | USD {{ v_manual_opt }}</div>
           </div>
         </div>
       </div>
