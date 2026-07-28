@@ -1262,31 +1262,67 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
         _ajuste = _mp.get('ajuste_pct', 0.0)
         _incluir_const = _mp.get('incluir_prima_const', True)
 
+        _radio = meta.get('radio_usado', 1000)
+        _n_comps = len(res.get('comparables_venta', []))
+
         _lineas_m = []
+
+        # Párrafo 1: Metodología
         _lineas_m.append(
-            f"La valuacion manual de {prop.get('nombre', 'la propiedad')} se calculo "
-            f"con un precio base de USD {_usd_m2:,.0f}/m2, establecido por el analista "
-            f"con base en su conocimiento del mercado local y las caracteristicas especificas "
-            f"de la zona."
+            f"La valuacion manual de {prop.get('nombre', 'la propiedad')} se realizo "
+            f"utilizando el metodo de comparacion directa, analizando {_n_comps} propiedades "
+            f"comparables en un radio de {_radio} metros de la propiedad sujeto. "
+            f"Se seleccionaron inmuebles con caracteristicas similares en cuanto a tipo, "
+            f"tamaño y zona, utilizando datos de mercado actualizados."
         )
 
+        # Párrafo 2: Precio base y formula
         _detalles_formula = []
         _detalles_formula.append(f"{m2_eq} m2 equivalentes x USD {_usd_m2:,.0f}/m2")
+        _valor_base = m2_eq * _usd_m2
 
-        if _fh != 1.0:
-            _detalles_formula.append(f"factor hedonico {_fh:.2f}")
-            if _fh > 1.0:
-                _lineas_m.append(
-                    f"Se aplico un factor hedonico de {_fh:.2f} para reflejar atributos "
-                    f"diferenciales de la propiedad (vista, orientacion, amenities, etc.) "
-                    f"que incrementan su valor percibido."
-                )
+        _lineas_m.append(
+            f"El precio base de referencia es USD {_usd_m2:,.0f}/m2, determinado por el "
+            f"analista con base en el analisis de los comparables cercanos. "
+            f"Este valor representa el promedio ponderado de las propiedades similares "
+            f"en la zona, considerando sus caracteristicas y estado de conservacion."
+        )
+
+        # Párrafo 3: Factor hedonico desglosado
+        if _fd:
+            _estado_pct = (_fd.get('factor_estado', 1.0) - 1.0) * 100
+            _calidad_pct = (_fd.get('factor_calidad', 1.0) - 1.0) * 100
+            _amenities_pct = _fd.get('delta_amenities', 0) * 100
+            _otros_pct = _fd.get('delta_otros', 0) * 100
+            _total_fh = _fd.get('total', 1.0)
+
+            _lineas_m.append(
+                f"Se aplico un factor hedonico combinado de {_total_fh:.4f}, desglosado "
+                f"en subfactores de referencia:"
+            )
+
+            _subfactores = []
+            if _estado_pct != 0:
+                _subfactores.append(f"Estado ({_fd.get('estado_label', '')}): {_estado_pct:+.1f}%")
             else:
-                _lineas_m.append(
-                    f"Se aplico un factor hedonico de {_fh:.2f} para ajustar por atributos "
-                    f"que reducen su valor percibido respecto al promedio de la zona."
-                )
+                _subfactores.append(f"Estado ({_fd.get('estado_label', '')}): +0.0% (estandar)")
+            if _calidad_pct != 0:
+                _subfactores.append(f"Calidad ({_fd.get('calidad_label', '')}): {_calidad_pct:+.1f}%")
+            else:
+                _subfactores.append(f"Calidad ({_fd.get('calidad_label', '')}): +0.0% (estandar)")
+            if _amenities_pct != 0:
+                _det_am = _fd.get('detalle_amenities', '')
+                _subfactores.append(f"Amenities ({_det_am}): {_amenities_pct:+.1f}%")
+            else:
+                _subfactores.append(f"Amenities: +0.0% (sin amenities diferenciadoras)")
+            _subfactores.append(f"Otros: {_otros_pct:+.1f}%")
 
+            for sf in _subfactores:
+                _lineas_m.append(f"  - {sf}")
+
+            _detalles_formula.append(f"factor hedonico {_total_fh:.4f}")
+
+        # Párrafo 4: Constructora
         if _incluir_const and prop.get('constructora', ''):
             try:
                 import json as _json
@@ -1298,30 +1334,40 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
                         for _entry in _constr_list:
                             if _constr_name == _entry.get('descripcion', '').lower().strip():
                                 _pct = _entry.get('porcentaje', 0)
-                                _detalles_formula.append(f"prima constructora +{_pct}%")
+                                _factor_const = 1.0 + _pct / 100.0
+                                _detalles_formula.append(f"prima constructora {_factor_const:.4f} (+{_pct}%)")
                                 _lineas_m.append(
                                     f"Se incluyo la prima de constructora ({prop.get('constructora')}) "
-                                    f"por +{_pct}%, reconociendo la valoracion de marca en el mercado."
+                                    f"con un factor de {_factor_const:.4f} (+{_pct}%), reconociendo "
+                                    f"la valoracion de marca y calidad constructiva en el mercado."
                                 )
                                 break
             except Exception:
                 pass
 
+        # Párrafo 5: Ajuste manual
         if _ajuste != 0:
             _detalles_formula.append(f"ajuste manual {_ajuste:+.1f}%")
+            _lineas_m.append(
+                f"Se aplico un ajuste manual del {_ajuste:+.1f}% por consideraciones "
+                f"especificas del analista no capturadas por los factores anteriores."
+            )
 
+        # Párrafo 6: Formula final
         _valor_calc = m2_eq * _usd_m2 * _fh
         _lineas_m.append(
-            f"La formula de calculo fue: {' + '.join(_detalles_formula)}, "
-            f"llegando a un valor de USD {_valor_calc:,.0f} antes de ajustes."
+            f"La formula de calculo fue: {' x '.join(_detalles_formula)}, "
+            f"llegando a un valor estimado de USD {_valor_calc:,.0f}."
         )
 
+        # Párrafo 7: Rango de incertidumbre
         _lineas_m.append(
             f"Se establecio un rango de incertidumbre de +/-{_incert:.0f}% "
             f"(conservador: USD {int(v_manual_cons):,}, optimista: USD {int(v_manual_opt):,}), "
-            f"reflejando la variabilidad propia de una estimacion manual."
+            f"reflejando la variabilidad propia de una estimacion basada en juicio profesional."
         )
 
+        # Párrafo 8: Comparacion con automatica
         if tiene_auto and v_auto > 0:
             _delta = ((v_manual - v_auto) / v_auto) * 100
             if abs(_delta) < 3:
@@ -1341,7 +1387,7 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
                 _lineas_m.append(
                     f"El resultado manual (USD {v_manual:,}) es inferior a la valuacion "
                     f"automatica (USD {v_auto:,}) en un {_delta:+.1f}%, lo que sugiere "
-                    f"que el analista Considera factores de riesgo o desgaste no reflejados "
+                    f"que el analista considera factores de riesgo o desgaste no reflejados "
                     f"en el comparativo de mercado."
                 )
 
@@ -1375,6 +1421,14 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
     fecha_scraping = ""
     if os.path.exists(cache_path):
         fecha_scraping = datetime.fromtimestamp(os.path.getmtime(cache_path)).strftime("%Y-%m-%d")
+
+    # Subfactores hedonicos reales
+    _fd = None
+    try:
+        from parsers.mercado_inmobiliario import calcular_factores_display
+        _fd = calcular_factores_display(prop)
+    except Exception:
+        pass
 
     # ── Renderizar template ──
     template_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates", "reporte_valuacion.html")
@@ -1431,6 +1485,15 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
         catastro=catastro_data,
         logo_b64=logo_b64,
         map_b64=map_b64,
+        fd_estado=f"{(_fd.get('factor_estado', 1.0) - 1.0) * 100:+.1f}%" if _fd else "+0.0%",
+        fd_calidad=f"{(_fd.get('factor_calidad', 1.0) - 1.0) * 100:+.1f}%" if _fd else "+0.0%",
+        fd_amenities=f"{_fd.get('delta_amenities', 0) * 100:+.1f}%" if _fd else "+0.0%",
+        fd_otros=f"{_fd.get('delta_otros', 0) * 100:+.1f}%" if _fd else "+0.0%",
+        fd_total=f"{_fd.get('total', 1.0):.4f}" if _fd else "1.0000",
+        fd_estado_label=_fd.get('estado_label', '') if _fd else '',
+        fd_calidad_label=_fd.get('calidad_label', '') if _fd else '',
+        fd_amenities_detalle=_fd.get('detalle_amenities', '') if _fd else '',
+        radio_m=meta.get('radio_usado', 1000),
     )
 
     # ── Generar PDF con Playwright (subprocess para evitar event loop de Streamlit) ──

@@ -632,13 +632,15 @@
     <div class="two-col">
       <div>
         <table class="data-table">
-          <tr><td style="color:#64748b;">Factor total</td><td style="font-weight:700;">{{ factor_total }}</td></tr>
-          <tr><td style="color:#64748b;">Depreciacion (antiguedad)</td><td style="font-weight:700;">{{ depreciacion }}</td></tr>
-          <tr><td style="color:#64748b;">Ajuste NLP</td><td style="font-weight:700;">{{ nlp_ajuste }}</td></tr>
+          <tr><td style="color:#64748b;">Estado ({{ fd_estado_label }})</td><td style="font-weight:700;">{{ fd_estado }}</td></tr>
+          <tr><td style="color:#64748b;">Calidad edificio ({{ fd_calidad_label }})</td><td style="font-weight:700;">{{ fd_calidad }}</td></tr>
+          <tr><td style="color:#64748b;">Amenities{% if fd_amenities_detalle %} ({{ fd_amenities_detalle }}){% endif %}</td><td style="font-weight:700;">{{ fd_amenities }}</td></tr>
+          <tr><td style="color:#64748b;">Otros</td><td style="font-weight:700;">{{ fd_otros }}</td></tr>
         </table>
       </div>
       <div>
         <table class="data-table">
+          <tr><td style="color:#64748b;">Factor hedonico combinado</td><td style="font-weight:700;">{{ fd_total }}</td></tr>
           <tr><td style="color:#64748b;">CV del pool</td><td style="font-weight:700;">{{ cv_pool }}</td></tr>
           <tr><td style="color:#64748b;">Percentil usado</td><td style="font-weight:700;">{{ percentil }}</td></tr>
         </table>
