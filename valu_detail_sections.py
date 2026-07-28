@@ -497,13 +497,14 @@ def render_manual_valuation_card(prop):
         _range_text = ""
 
     grad_manual = "linear-gradient(135deg, #6B21A8 0%, #4C1D95 100%)"
+    _range_div = f'<div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.15);">{_range_text}</div>' if _range_text else ''
     st.markdown(f"""
     <div style="border:none;border-radius:12px;padding:14px 16px;background:{grad_manual};box-shadow:0 4px 12px rgba(0,0,0,0.15);text-align:center;">
         <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.7);margin-bottom:4px;">VALUACIÓN MANUAL</div>
         <div style="font-size:15px;font-weight:600;color:#FFFFFF;">{meta_line}</div>
         <div style="font-size:11px;color:rgba(255,255,255,0.55);margin-top:2px;">{formula_line}</div>
         {'<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;">' + param_line + '</div>' if param_line else ''}
-        <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.15);">{_range_text}</div>
+        {_range_div}
     </div>
     """, unsafe_allow_html=True)
 
@@ -515,24 +516,35 @@ def render_rango(res, valor_usd):
     st.markdown(range_bar(v_cons, v_opt, res.get('rango_venta', {}).get('spread_pct', 0)), unsafe_allow_html=True)
 
 
-def render_metricas(prop, res, valor_usd, dolar):
-    """Metricas de inversion: Alquiler, Cap Rate, Plusvalia."""
+def render_metricas(prop, res, valor_usd, dolar, auto_result=None, manual_result=None):
+    """Metricas de inversion: Alquiler, Cap Rate, Plusvalia.
+    Usa la MAYOR valuación (auto o manual) para calcular alquiler."""
     alq_ars = res.get('alquiler_estimado_ars', 0)
     alq_r = res.get('alquiler_rango', {})
     alq_min, alq_max = alq_r.get('min', 0), alq_r.get('max', 0)
     cap = res.get('cap_rate', 0)
 
-    # Recalcular alquiler cuando el valor cambió por exclusión de comps
-    if cap > 0 and valor_usd > 0:
+    # Usar la MAYOR valuación para alquiler
+    best_valor = valor_usd
+    best_cap = cap
+    if auto_result and manual_result:
+        auto_v = auto_result.get('valor_propiedad_usd', 0)
+        manual_v = manual_result.get('valor_propiedad_usd', 0)
+        if manual_v > auto_v:
+            best_valor = manual_v
+            best_cap = manual_result.get('cap_rate', cap)
+            print(f"[DEBUG-ALQ-HIGHER] {prop.get('nombre','')}: manual={manual_v} > auto={auto_v}, usando manual para alquiler")
+
+    # Recalcular alquiler con la mayor valuación
+    if best_cap > 0 and best_valor > 0:
         try:
             from parsers.motor_vpp_core import get_binance_usdt_ars
             dolar_fresh = get_binance_usdt_ars()
             if dolar_fresh > 0:
-                alq_usd_calc = valor_usd * cap / 12
+                alq_usd_calc = best_valor * best_cap / 12
                 alq_ars_new = int(alq_usd_calc * dolar_fresh)
-                # Usar el recalculado si difiere del cache (exclusión cambió valor)
                 if alq_ars_new != alq_ars:
-                    print(f"[DEBUG-ALQ-RECALC] {prop.get('nombre','')}: cache={alq_ars}, recalculado={alq_ars_new}, valor_usd={valor_usd}, cap={cap}")
+                    print(f"[DEBUG-ALQ-RECALC] {prop.get('nombre','')}: cache={alq_ars}, recalculado={alq_ars_new}, valor_usd={best_valor}, cap={best_cap}")
                     alq_ars = alq_ars_new
                     alq_min = int(alq_ars * 0.85)
                     alq_max = int(alq_ars * 1.15)

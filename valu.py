@@ -349,7 +349,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     _dl.mark("start")
 
     from valu_detail_sections import (
-        render_actions, render_header, render_rango, render_metricas,
+        render_actions, render_header, render_metricas,
         render_razonamiento, render_mapa_propiedad, render_tabla_comparables,
         render_catastro, render_street_view, render_historial, generar_reporte_pdf,
         render_valuacion_manual, render_disk_summary_card,
@@ -364,7 +364,10 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         render_header(prop, header_res)
     _dl.mark("after_render_header")
 
-    render_disk_summary_card(prop, insuficientes=insuficientes)
+    auto_cons = auto_result.get('valor_venta_conservador', 0)
+    auto_opt = auto_result.get('valor_venta_optimista', 0)
+    auto_spread = auto_result.get('rango_venta', {}).get('spread_pct', 0)
+    render_disk_summary_card(prop, insuficientes=insuficientes, v_cons=auto_cons, v_opt=auto_opt, spread=auto_spread)
     render_manual_valuation_card(prop)
 
     st.markdown("<br>", unsafe_allow_html=True)
@@ -384,7 +387,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
 
     if valor_usd > 0:
         with profile_block("render_metricas", prop):
-            render_metricas(prop, display_result, valor_usd, dolar)
+            render_metricas(prop, display_result, valor_usd, dolar, auto_result=auto_result, manual_result=manual_result)
         _dl.mark("after_render_metricas")
         st.markdown("<br>", unsafe_allow_html=True)
 
@@ -540,12 +543,6 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                 render_tabla_comparables({**res, 'comparables_venta': comparables}, prop_name=prop_name)
             _dl.mark("after_render_tabla_comparables")
 
-        # ── Range bar for Comparables ──
-        auto_cons = auto_result.get('valor_venta_conservador', 0)
-        auto_opt = auto_result.get('valor_venta_optimista', 0)
-        if auto_cons > 0 and auto_opt > 0:
-            render_rango(auto_result, auto_result.get('valor_propiedad_usd', 0))
-
     _dl.mark("after_section_comparables")
 
     # ─── 📐 Valuación Manual ───
@@ -556,10 +553,6 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     with st.expander(f"📐 Valuacion Manual — {prop_name}", expanded=False):
         with profile_block("render_valuacion_manual", prop):
             render_valuacion_manual(prop, res)
-        # ── Range bar for Manual valuation ──
-        manual_result = res.get('_manual_result')
-        if manual_result and manual_result.get('valor_venta_conservador', 0) > 0:
-            render_rango(manual_result, manual_result.get('valor_propiedad_usd', 0))
     _dl.mark("after_section_manual")
 
     # ─── 📋 Valuaciones ───
