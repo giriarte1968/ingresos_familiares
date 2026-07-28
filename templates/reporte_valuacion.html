@@ -118,6 +118,10 @@
     margin-bottom: 24px;
     padding-bottom: 16px;
     border-bottom: 2px solid #e2e8f0;
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 100;
   }
   .header-left {
     display: flex;
@@ -342,6 +346,20 @@
   .text-muted { color: #94a3b8; }
   .text-sm { font-size: 10px; }
   .page-break { page-break-before: always; }
+
+  @media print {
+    .header-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      z-index: 1000;
+    }
+    .page {
+      padding-top: 60mm;
+    }
+  }
 </style>
 </head>
 <body>
