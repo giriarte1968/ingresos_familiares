@@ -603,11 +603,23 @@
   {% if razonamiento %}
   <div class="section">
     <div class="section-header">
-      <div class="section-icon">3</div>
-      <div class="section-title">Razonamiento de la valuacion</div>
+      <div class="section-icon" style="background:linear-gradient(135deg, #3b82f6, #2563eb);">3</div>
+      <div class="section-title">Razonamiento — Valuacion Automatica (Mercado)</div>
     </div>
     <div style="background:#f8fafc; border-radius:10px; padding:16px; font-size:10px; color:#475569; line-height:1.7; border:1px solid #e2e8f0;">
       {{ razonamiento }}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if razonamiento_manual %}
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:linear-gradient(135deg, #8b5cf6, #7c3aed);">3b</div>
+      <div class="section-title">Razonamiento — Valuacion Manual (Tasador)</div>
+    </div>
+    <div style="background:#faf5ff; border-radius:10px; padding:16px; font-size:10px; color:#475569; line-height:1.7; border:1px solid #e9d5ff;">
+      {{ razonamiento_manual }}
     </div>
   </div>
   {% endif %}

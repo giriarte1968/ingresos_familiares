@@ -1249,6 +1249,101 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
     meta = res.get('resolution_metadata', {}) or {}
     razonamiento = res.get('razonamiento', '')
 
+    # Razonamiento manual detallado
+    razonamiento_manual = ''
+    if tiene_manual and manual_params:
+        _mp = manual_params
+        _usd_m2 = _mp.get('usd_m2', 0)
+        _fh = _mp.get('factor_hedonico', 1.0)
+        _incert = _mp.get('incertidumbre_pct', 10.0)
+        _ajuste = _mp.get('ajuste_pct', 0.0)
+        _incluir_const = _mp.get('incluir_prima_const', True)
+
+        _lineas_m = []
+        _lineas_m.append(
+            f"La valuacion manual de {prop.get('nombre', 'la propiedad')} se calculo "
+            f"con un precio base de USD {_usd_m2:,.0f}/m2, establecido por el analista "
+            f"con base en su conocimiento del mercado local y las caracteristicas especificas "
+            f"de la zona."
+        )
+
+        _detalles_formula = []
+        _detalles_formula.append(f"{m2_eq} m2 equivalentes x USD {_usd_m2:,.0f}/m2")
+
+        if _fh != 1.0:
+            _detalles_formula.append(f"factor hedonico {_fh:.2f}")
+            if _fh > 1.0:
+                _lineas_m.append(
+                    f"Se aplico un factor hedonico de {_fh:.2f} para reflejar atributos "
+                    f"diferenciales de la propiedad (vista, orientacion, amenities, etc.) "
+                    f"que incrementan su valor percibido."
+                )
+            else:
+                _lineas_m.append(
+                    f"Se aplico un factor hedonico de {_fh:.2f} para ajustar por atributos "
+                    f"que reducen su valor percibido respecto al promedio de la zona."
+                )
+
+        if _incluir_const and prop.get('constructora', ''):
+            try:
+                import json as _json
+                _constr_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "constructoras_rosario.json")
+                if os.path.exists(_constr_path):
+                    with open(_constr_path, 'r', encoding='utf-8') as _f:
+                        _constr_list = _json.load(_f)
+                        _constr_name = prop.get('constructora', '').lower().strip()
+                        for _entry in _constr_list:
+                            if _constr_name == _entry.get('descripcion', '').lower().strip():
+                                _pct = _entry.get('porcentaje', 0)
+                                _detalles_formula.append(f"prima constructora +{_pct}%")
+                                _lineas_m.append(
+                                    f"Se incluyo la prima de constructora ({prop.get('constructora')}) "
+                                    f"por +{_pct}%, reconociendo la valoracion de marca en el mercado."
+                                )
+                                break
+            except Exception:
+                pass
+
+        if _ajuste != 0:
+            _detalles_formula.append(f"ajuste manual {_ajuste:+.1f}%")
+
+        _valor_calc = m2_eq * _usd_m2 * _fh
+        _lineas_m.append(
+            f"La formula de calculo fue: {' + '.join(_detalles_formula)}, "
+            f"llegando a un valor de USD {_valor_calc:,.0f} antes de ajustes."
+        )
+
+        _lineas_m.append(
+            f"Se establecio un rango de incertidumbre de +/-{_incert:.0f}% "
+            f"(conservador: USD {int(v_manual_cons):,}, optimista: USD {int(v_manual_opt):,}), "
+            f"reflejando la variabilidad propia de una estimacion manual."
+        )
+
+        if tiene_auto and v_auto > 0:
+            _delta = ((v_manual - v_auto) / v_auto) * 100
+            if abs(_delta) < 3:
+                _lineas_m.append(
+                    f"El resultado manual (USD {v_manual:,}) es consistente con la "
+                    f"valuacion automatica (USD {v_auto:,}), con una diferencia del "
+                    f"{_delta:+.1f}%, lo que indica convergencia entre ambos metodos."
+                )
+            elif _delta > 0:
+                _lineas_m.append(
+                    f"El resultado manual (USD {v_manual:,}) supera a la valuacion "
+                    f"automatica (USD {v_auto:,}) en un {_delta:+.1f}%, lo que sugiere "
+                    f"que el analista identifico atributos de valor no capturados por "
+                    f"el algoritmo de mercado."
+                )
+            else:
+                _lineas_m.append(
+                    f"El resultado manual (USD {v_manual:,}) es inferior a la valuacion "
+                    f"automatica (USD {v_auto:,}) en un {_delta:+.1f}%, lo que sugiere "
+                    f"que el analista Considera factores de riesgo o desgaste no reflejados "
+                    f"en el comparativo de mercado."
+                )
+
+        razonamiento_manual = "\n\n".join(_lineas_m)
+
     # Activos
     val_activos = res.get('valor_activos', {}) or {}
     activos_list = []
@@ -1321,6 +1416,7 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
         m2_base=f"${m2_base:,}",
         comparables=comparables_list,
         razonamiento=razonamiento,
+        razonamiento_manual=razonamiento_manual,
         factor_total=f"{(res.get('factor_total', 1.0)-1)*100:+.1f}%",
         depreciacion=f"{(res.get('delta_anti', 1.0)-1)*100:+.1f}%",
         nlp_ajuste=f"{res.get('nlp_ajuste', 0)*100:+.1f}%",
