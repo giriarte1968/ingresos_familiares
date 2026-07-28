@@ -5,7 +5,17 @@
 <style>
   @page {
     size: A4;
+    margin: 0 0 14mm 0;
+    @bottom-center {
+      content: counter(page);
+      font-size: 10px;
+      color: #64748b;
+      font-weight: 600;
+    }
+  }
+  @page cover {
     margin: 0;
+    @bottom-center { content: none; }
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -22,6 +32,7 @@
     height: 297mm;
     position: relative;
     overflow: hidden;
+    page: cover;
     page-break-after: always;
     background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
     color: white;
@@ -115,28 +126,31 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    padding: 8px 0;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e2e8f0;
     background: white;
     z-index: 100;
   }
   .header-left {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
   }
   .header-logo {
-    width: 32px;
-    height: 32px;
+    width: 48px;
+    height: 48px;
     background: linear-gradient(135deg, #10b981, #34d399);
-    border-radius: 8px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
+    font-size: 22px;
     font-weight: 900;
     color: white;
   }
   .header-brand {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 700;
     color: #0f172a;
     letter-spacing: 2px;
@@ -345,14 +359,13 @@
   @media print {
     .header-bar {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
+      top: 0; left: 0; right: 0;
+      margin: 0;
       background: white;
       z-index: 1000;
     }
     .page {
-      padding-top: 60mm;
+      padding-top: 24mm;
     }
   }
 </style>
@@ -388,7 +401,7 @@
   <div class="header-bar">
     <div class="header-left">
       {% if logo_b64 %}
-      <img src="data:image/png;base64,{{ logo_b64 }}" style="width:32px;height:32px;border-radius:8px;object-fit:contain;">
+      <img src="data:image/png;base64,{{ logo_b64 }}" style="width:48px;height:48px;border-radius:10px;object-fit:contain;">
       {% else %}
       <div class="header-logo">V</div>
       {% endif %}
@@ -415,18 +428,28 @@
         <div>
           <table class="data-table">
             <tr><td style="color:#64748b; font-weight:600;">Tipo inmueble</td><td>{{ tipo_inmueble }}</td></tr>
-            <tr><td style="color:#64748b; font-weight:600;">Superficie (m2 eq.)</td><td>{{ m2_eq }} m2</td></tr>
+            <tr><td style="color:#64748b; font-weight:600;">Superficie total</td><td>{{ m2_total }} m2</td></tr>
+            <tr><td style="color:#64748b; font-weight:600;">Superficie cubierta</td><td>{{ m2_cub }} m2</td></tr>
+            <tr><td style="color:#64748b; font-weight:600;">Superficie descubierta</td><td>{{ m2_desc }} m2</td></tr>
+            <tr><td style="color:#64748b; font-weight:600;">m2 equivalentes</td><td>{{ m2_eq }} m2</td></tr>
             <tr><td style="color:#64748b; font-weight:600;">Dormitorios</td><td>{{ dormitorios }}</td></tr>
+            <tr><td style="color:#64748b; font-weight:600;">Banos</td><td>{{ banos }}</td></tr>
+            <tr><td style="color:#64748b; font-weight:600;">Antiguedad</td><td>{{ antiguedad }} anos</td></tr>
             <tr><td style="color:#64748b; font-weight:600;">Estado</td><td>{{ estado }}</td></tr>
-            {% if anio_const %}<tr><td style="color:#64748b; font-weight:600;">Ano construccion</td><td>{{ anio_const }}</td></tr>{% endif %}
           </table>
         </div>
         <div>
           <table class="data-table">
             {% if piso %}<tr><td style="color:#64748b; font-weight:600;">Piso</td><td>{{ piso }} de {{ total_pisos }}</td></tr>{% endif %}
+            <tr><td style="color:#64748b; font-weight:600;">Operacion</td><td>Venta</td></tr>
             {% if constructora %}<tr><td style="color:#64748b; font-weight:600;">Constructora</td><td>{{ constructora }}</td></tr>{% endif %}
             {% if calidad_edificio %}<tr><td style="color:#64748b; font-weight:600;">Calidad edificio</td><td>{{ calidad_edificio }}</td></tr>{% endif %}
-            <tr><td style="color:#64748b; font-weight:600;">Operacion</td><td>Venta</td></tr>
+            {% if anio_const %}<tr><td style="color:#64748b; font-weight:600;">Ano construccion</td><td>{{ anio_const }}</td></tr>{% endif %}
+            {% if expensas %}<tr><td style="color:#64748b; font-weight:600;">Expensas</td><td>ARS {{ expensas }}</td></tr>{% endif %}
+            {% if ambientes %}<tr><td style="color:#64748b; font-weight:600;">Ambientes</td><td>{{ ambientes }}</td></tr>{% endif %}
+            {% if orientacion %}<tr><td style="color:#64748b; font-weight:600;">Orientacion</td><td>{{ orientacion }}</td></tr>{% endif %}
+            {% if ventilacion %}<tr><td style="color:#64748b; font-weight:600;">Ventilacion</td><td>{{ ventilacion }}</td></tr>{% endif %}
+            {% if amenities_list %}<tr><td style="color:#64748b; font-weight:600;">Amenities</td><td>{{ amenities_list }}</td></tr>{% endif %}
           </table>
         </div>
       </div>
@@ -468,7 +491,7 @@
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <div>
             <div style="font-size:22px; font-weight:800; color:#0f172a;">USD {{ v_manual }}</div>
-            <div style="font-size:9px; color:#94a3b8;">Factor hedonico {{ fd_total }} | {{ fd_estado_label }}</div>
+            <div style="font-size:9px; color:#94a3b8;">{{ m2_eq }} m2 x USD {{ v_manual_m2 }}/m2</div>
           </div>
           <div style="text-align:right;">
             <div style="font-size:10px; color:#64748b;">Conservador | Spread | Optimista</div>
@@ -507,22 +530,21 @@
   </div>
 
   <!-- Metricas de Inversion -->
-  <div class="info-box">
-    <strong>Metricas de inversion:</strong>
-    Alquiler estimado: ARS {{ alquiler_ars }} (USD {{ alquiler_usd }}) |
-    Cap Rate: {{ cap_rate }} |
-    m2 equivalente: {{ m2_eq }} m2
+  <div class="info-box" style="page-break-inside:avoid;">
+    <strong>Metricas:</strong>
+    Alquiler: ARS {{ alquiler_ars }} (USD {{ alquiler_usd }}) |
+    Cap Rate: {{ cap_rate }}
   </div>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════ -->
 <!-- PAGE 3: COMPARABLES -->
 <!-- ═══════════════════════════════════════════════════════════════ -->
-<div class="page">
+<div class="page" style="page-break-before:always;">
   <div class="header-bar">
     <div class="header-left">
       {% if logo_b64 %}
-      <img src="data:image/png;base64,{{ logo_b64 }}" style="width:32px;height:32px;border-radius:8px;object-fit:contain;">
+      <img src="data:image/png;base64,{{ logo_b64 }}" style="width:48px;height:48px;border-radius:10px;object-fit:contain;">
       {% else %}
       <div class="header-logo">V</div>
       {% endif %}
@@ -538,7 +560,7 @@
       <div class="section-title">Ubicacion de comparables</div>
     </div>
     <div style="border-radius:10px; overflow:hidden; border:1px solid #e2e8f0;">
-      <img src="data:image/png;base64,{{ map_b64 }}" style="width:100%; height:auto; display:block;">
+      <img src="data:image/png;base64,{{ map_b64 }}" style="width:100%; max-height:200px; object-fit:cover; display:block;">
     </div>
     <div style="margin-top:6px; font-size:9px; color:#94a3b8; text-align:center;">
       Propiedad sujeto (rojo) y comparables (verdes) en radio de 1000m
@@ -591,11 +613,11 @@
 <!-- ═══════════════════════════════════════════════════════════════ -->
 <!-- PAGE 4: METODOLOGIA -->
 <!-- ═══════════════════════════════════════════════════════════════ -->
-<div class="page">
+<div class="page" style="page-break-before:always; page-break-after:auto;">
   <div class="header-bar">
     <div class="header-left">
       {% if logo_b64 %}
-      <img src="data:image/png;base64,{{ logo_b64 }}" style="width:32px;height:32px;border-radius:8px;object-fit:contain;">
+      <img src="data:image/png;base64,{{ logo_b64 }}" style="width:48px;height:48px;border-radius:10px;object-fit:contain;">
       {% else %}
       <div class="header-logo">V</div>
       {% endif %}
@@ -633,21 +655,12 @@
       <div class="section-icon">4</div>
       <div class="section-title">Factores de ajuste</div>
     </div>
-    <div class="two-col">
-      <div>
-        <table class="data-table">
-          <tr><td style="color:#64748b;">Estado ({{ fd_estado_label }})</td><td style="font-weight:700;">{{ fd_estado }}</td></tr>
-          <tr><td style="color:#64748b;">Calidad edificio ({{ fd_calidad_label }})</td><td style="font-weight:700;">{{ fd_calidad }}</td></tr>
-          <tr><td style="color:#64748b;">Amenities{% if fd_amenities_detalle %} ({{ fd_amenities_detalle }}){% endif %}</td><td style="font-weight:700;">{{ fd_amenities }}</td></tr>
-          <tr><td style="color:#64748b;">Otros</td><td style="font-weight:700;">{{ fd_otros }}</td></tr>
-        </table>
-      </div>
-      <div>
-        <table class="data-table">
-          <tr><td style="color:#64748b;">Factor hedonico combinado</td><td style="font-weight:700;">{{ fd_total }}</td></tr>
-        </table>
-      </div>
-    </div>
+    <table class="data-table">
+      <tr><td style="color:#64748b;">Estado ({{ fd_estado_label }})</td><td style="font-weight:700;">{{ fd_estado }}</td></tr>
+      <tr><td style="color:#64748b;">Calidad edificio ({{ fd_calidad_label }})</td><td style="font-weight:700;">{{ fd_calidad }}</td></tr>
+      <tr><td style="color:#64748b;">Amenities{% if fd_amenities_detalle %} ({{ fd_amenities_detalle }}){% endif %}</td><td style="font-weight:700;">{{ fd_amenities }}</td></tr>
+      <tr><td style="color:#64748b;">Otros</td><td style="font-weight:700;">{{ fd_otros }}</td></tr>
+    </table>
   </div>
 
   {% if catastro %}
