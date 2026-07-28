@@ -4287,7 +4287,10 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
         )
 
     meta_v = resultado.get('meta_venta', {}) or {}
-    barreras = meta_v.get('n_same_side', 0) > 0 and meta_v.get('n_cross_soft', 0) > 0
+    _n_same = meta_v.get('n_same_side', 0)
+    _n_cross = meta_v.get('n_cross_soft', 0)
+    _n_total = _n_same + _n_cross
+    barreras = _n_total > 0 and _n_cross > 0 and (_n_cross / _n_total) > 0.15
     if barreras and radio > 0:
         texto_mercado += (
             " Se identificaron propiedades al otro lado de barreras geográficas "
@@ -4301,6 +4304,18 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
         )
 
     lineas.append(texto_mercado)
+
+    # ─── PÁRRAFO 2b: Metodología ───
+    texto_metodologia = (
+        f"Para llegar a la estimación, se seleccionaron {n_comps} propiedades comparables "
+        f"en un radio de {radio} metros, filtradas por tipo de inmueble, operación y cantidad "
+        f"de dormitorios. Se aplicó una corrección temporal (CT) para normalizar los precios "
+        f"a valores actuales, y un ajuste de tamaño para compensar las diferencias entre "
+        f"unidades de distinto tamaño. El valor final se calculó como el percentil {meta.get('percentil_usado', 'P50')} "
+        f"del pool de precios ajustados, lo que representa una estimación conservadora "
+        f"que evita valores extremos."
+    )
+    lineas.append(texto_metodologia)
 
     # ─── PÁRRAFO 3: Factores estructurales (cualitativo) ───
     factores_pos = []
