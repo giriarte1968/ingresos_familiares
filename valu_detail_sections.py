@@ -5,7 +5,7 @@ Son llamadas desde mostrar_detalle_valu() en valu.py.
 """
 import streamlit as st
 import pandas as pd
-import json, os, logging
+import json, os, sys, logging
 
 logger = logging.getLogger(__name__)
 from datetime import datetime
@@ -1245,18 +1245,34 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
         catastro=catastro_data,
     )
 
-    # ── Generar PDF con Playwright (Chromium) ──
-    from playwright.sync_api import sync_playwright
-    with sync_playwright() as pw:
-        browser = pw.chromium.launch(headless=True)
-        page = browser.new_page()
-        page.set_content(html_content, wait_until='networkidle')
-        pdf_bytes = page.pdf(
-            format='A4',
-            print_background=True,
-            margin={'top': '0', 'bottom': '0', 'left': '0', 'right': '0'},
+    # ── Generar PDF con Playwright (subprocess para evitar event loop de Streamlit) ──
+    import subprocess, tempfile
+    with tempfile.NamedTemporaryFile(suffix='.html', delete=False, mode='w', encoding='utf-8') as f:
+        f.write(html_content)
+        html_path = f.name
+    with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as f:
+        pdf_path = f.name
+    try:
+        script = (
+            f"from playwright.sync_api import sync_playwright; "
+            f"p=sync_playwright().start(); b=p.chromium.launch(headless=True); "
+            f"pg=b.new_page(); pg.set_content(open(r'{html_path}',encoding='utf-8').read(),wait_until='networkidle'); "
+            f"pg.pdf(path=r'{pdf_path}',format='A4',print_background=True,margin={{'top':'0','bottom':'0','left':'0','right':'0'}}); "
+            f"b.close(); p.stop()"
         )
-        browser.close()
+        result = subprocess.run(
+            [sys.executable, '-c', script],
+            capture_output=True, text=True, timeout=30,
+        )
+        if result.returncode != 0:
+            raise RuntimeError(f"Playwright subprocess error: {result.stderr[:500]}")
+        with open(pdf_path, 'rb') as f:
+            pdf_bytes = f.read()
+    finally:
+        try: os.unlink(html_path)
+        except: pass
+        try: os.unlink(pdf_path)
+        except: pass
     return pdf_bytes
 
 
