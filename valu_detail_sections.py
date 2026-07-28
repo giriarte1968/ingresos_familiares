@@ -552,8 +552,9 @@ def render_metricas(prop, res, valor_usd, dolar, auto_result=None, manual_result
         manual_v = manual_result.get('valor_propiedad_usd', 0)
         if manual_v > auto_v:
             best_valor = manual_v
-            best_cap = manual_result.get('cap_rate', cap)
-            print(f"[DEBUG-ALQ-HIGHER] {prop.get('nombre','')}: manual={manual_v} > auto={auto_v}, usando manual para alquiler")
+            # SIEMPRE usar el cap_rate del mercado (auto), no el hardcodeado del manual (0.05)
+            best_cap = auto_result.get('cap_rate', cap)
+            print(f"[DEBUG-ALQ-HIGHER] {prop.get('nombre','')}: manual={manual_v} > auto={auto_v}, usando manual valor + auto cap_rate={best_cap}")
 
     # Recalcular alquiler con la mayor valuación
     if best_cap > 0 and best_valor > 0:
@@ -1315,13 +1316,16 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
 
     # Metadata
     meta = res.get('resolution_metadata', {}) or {}
-    razonamiento = res.get('razonamiento', '')
+    # Use auto_result for auto razonamiento (res may be manual_result when fuente_activa=='manual')
+    auto_source = auto_result or res
+    razonamiento = auto_source.get('razonamiento', '')
 
     # Regenerate razonamiento if it contains placeholder text (same logic as render_razonamiento)
     if razonamiento and 'incertidumbresignificativa' in razonamiento.replace(' ', ''):
         try:
             from parsers.mercado_inmobiliario import generar_razonamiento_valuacion
-            razonamiento = generar_razonamiento_valuacion(prop, res, meta)
+            _auto_meta = auto_source.get('resolution_metadata', {}) or {}
+            razonamiento = generar_razonamiento_valuacion(prop, auto_source, _auto_meta)
         except Exception:
             pass
 
