@@ -40,6 +40,12 @@
     align-items: center;
     gap: 12px;
   }
+  .cover-logo-img {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    object-fit: contain;
+  }
   .cover-logo-icon {
     width: 48px;
     height: 48px;
@@ -385,7 +391,11 @@
 <!-- ═══════════════════════════════════════════════════════════════ -->
 <div class="cover">
   <div class="cover-badge">
+    {% if logo_b64 %}
+    <img src="data:image/png;base64,{{ logo_b64 }}" class="cover-logo-img">
+    {% else %}
     <div class="cover-logo-icon">V</div>
+    {% endif %}
     <div class="cover-logo-text">VALU</div>
   </div>
   <div class="cover-divider"></div>
@@ -404,7 +414,11 @@
 <div class="page">
   <div class="header-bar">
     <div class="header-left">
+      {% if logo_b64 %}
+      <img src="data:image/png;base64,{{ logo_b64 }}" style="width:32px;height:32px;border-radius:8px;object-fit:contain;">
+      {% else %}
       <div class="header-logo">V</div>
+      {% endif %}
       <div class="header-brand">VALU</div>
     </div>
     <div class="header-right">
@@ -503,11 +517,30 @@
 <div class="page">
   <div class="header-bar">
     <div class="header-left">
+      {% if logo_b64 %}
+      <img src="data:image/png;base64,{{ logo_b64 }}" style="width:32px;height:32px;border-radius:8px;object-fit:contain;">
+      {% else %}
       <div class="header-logo">V</div>
+      {% endif %}
       <div class="header-brand">VALU</div>
     </div>
     <div class="header-right">Comparables</div>
   </div>
+
+  {% if map_b64 %}
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:linear-gradient(135deg, #3b82f6, #2563eb);">1</div>
+      <div class="section-title">Ubicacion de comparables</div>
+    </div>
+    <div style="border-radius:10px; overflow:hidden; border:1px solid #e2e8f0;">
+      <img src="data:image/png;base64,{{ map_b64 }}" style="width:100%; height:auto; display:block;">
+    </div>
+    <div style="margin-top:6px; font-size:9px; color:#94a3b8; text-align:center;">
+      Propiedad sujeto (rojo) y comparables (verdes) en radio de 1000m
+    </div>
+  </div>
+  {% endif %}
 
   <div class="section">
     <div class="section-header">
@@ -557,7 +590,11 @@
 <div class="page">
   <div class="header-bar">
     <div class="header-left">
+      {% if logo_b64 %}
+      <img src="data:image/png;base64,{{ logo_b64 }}" style="width:32px;height:32px;border-radius:8px;object-fit:contain;">
+      {% else %}
       <div class="header-logo">V</div>
+      {% endif %}
       <div class="header-brand">VALU</div>
     </div>
     <div class="header-right">Metodologia</div>

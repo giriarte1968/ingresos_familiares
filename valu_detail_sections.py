@@ -1147,6 +1147,7 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
     # Comparables
     comps = res.get('comparables_venta', [])
     comparables_list = []
+    comp_coords = []  # lat, lon for map
     for c in comps[:30]:  # max 30 en PDF
         comparables_list.append({
             'direccion': (c.get('direccion', '') or '')[:40],
@@ -1157,6 +1158,92 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
             'distancia_m': f"{c.get('distancia_m', 0):.0f}",
             'fuente': c.get('fuente', '')[:10],
         })
+        clat = c.get('lat') or c.get('latitud')
+        clon = c.get('lon') or c.get('longitud')
+        if clat and clon:
+            try:
+                comp_coords.append((float(clat), float(clon), (c.get('direccion') or '')[:30]))
+            except (ValueError, TypeError):
+                pass
+
+    # Coordenadas de la propiedad
+    prop_lat = prop.get('lat') or prop.get('latitud')
+    prop_lon = prop.get('lon') or prop.get('longitud')
+    try:
+        prop_lat = float(prop_lat) if prop_lat else None
+        prop_lon = float(prop_lon) if prop_lon else None
+    except (ValueError, TypeError):
+        prop_lat = prop_lon = None
+
+    # Logo como base64
+    logo_b64 = ""
+    try:
+        import base64 as _b64mod
+        logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "logovalu1.jpeg.png")
+        if os.path.exists(logo_path):
+            with open(logo_path, "rb") as _f:
+                logo_b64 = _b64mod.b64encode(_f.read()).decode()
+    except Exception:
+        pass
+
+    # Mapa de comparables como imagen (folium + Playwright screenshot)
+    map_b64 = ""
+    if prop_lat and prop_lon and comp_coords:
+        try:
+            import folium
+            from folium.plugins import MarkerCluster
+            _m = folium.Map(location=[prop_lat, prop_lon], zoom_start=15, tiles='cartodbpositron')
+            folium.Marker(
+                [prop_lat, prop_lon],
+                popup=f"<b>{prop.get('nombre', 'Propiedad')}</b>",
+                icon=folium.Icon(color='red', icon='home'),
+            ).add_to(_m)
+            folium.Circle(
+                [prop_lat, prop_lon],
+                radius=1000,
+                color='#3388ff',
+                fill=True,
+                fill_opacity=0.05,
+                weight=1,
+            ).add_to(_m)
+            for clat, clon, cdireccion in comp_coords:
+                folium.CircleMarker(
+                    [clat, clon],
+                    radius=5,
+                    color='#10b981',
+                    fill=True,
+                    fill_color='#10b981',
+                    fill_opacity=0.7,
+                    popup=cdireccion,
+                ).add_to(_m)
+            import tempfile as _tf
+            with _tf.NamedTemporaryFile(suffix='.html', delete=False) as _f:
+                _m.save(_f.name)
+                _map_html_path = _f.name
+            with _tf.NamedTemporaryFile(suffix='.png', delete=False) as _f:
+                _map_png_path = _f.name
+            _map_script = (
+                f"from playwright.sync_api import sync_playwright\n"
+                f"p = sync_playwright().start()\n"
+                f"b = p.chromium.launch(headless=True)\n"
+                f"pg = b.new_page()\n"
+                f"pg.set_viewport_size({{'width': 800, 'height': 600}})\n"
+                f"pg.goto('file:///{_map_html_path.replace(os.sep, '/')}', wait_until='networkidle')\n"
+                f"import time; time.sleep(2)\n"
+                f"pg.screenshot(path='{_map_png_path}', full_page=False)\n"
+                f"b.close()\n"
+                f"p.stop()\n"
+            )
+            import subprocess as _sp
+            _sp.run([sys.executable, '-c', _map_script], capture_output=True, timeout=15)
+            if os.path.exists(_map_png_path) and os.path.getsize(_map_png_path) > 100:
+                with open(_map_png_path, 'rb') as _f:
+                    map_b64 = _b64mod.b64encode(_f.read()).decode()
+            for _p in [_map_html_path, _map_png_path]:
+                try: os.unlink(_p)
+                except: pass
+        except Exception:
+            pass
 
     # Metadata
     meta = res.get('resolution_metadata', {}) or {}
@@ -1243,6 +1330,8 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
         activos=activos_list,
         total_activos=f"{total_activos:,}",
         catastro=catastro_data,
+        logo_b64=logo_b64,
+        map_b64=map_b64,
     )
 
     # ── Generar PDF con Playwright (subprocess para evitar event loop de Streamlit) ──
