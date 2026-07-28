@@ -118,10 +118,6 @@
     margin-bottom: 24px;
     padding-bottom: 16px;
     border-bottom: 2px solid #e2e8f0;
-    position: sticky;
-    top: 0;
-    background: white;
-    z-index: 100;
   }
   .header-left {
     display: flex;
@@ -454,6 +450,10 @@
             <div style="font-size:8px; color:#94a3b8;">Conservador</div>
             <div style="font-size:12px; font-weight:700; color:#1e293b;">USD {{ v_manual_cons }}</div>
           </div>
+          <div style="text-align:center;">
+            <div style="font-size:8px; color:#94a3b8;">Spread</div>
+            <div style="font-size:12px; font-weight:700; color:#64748b;">USD {{ v_manual_spread }}</div>
+          </div>
           <div style="text-align:right;">
             <div style="font-size:8px; color:#94a3b8;">Optimista</div>
             <div style="font-size:12px; font-weight:700; color:#1e293b;">USD {{ v_manual_opt }}</div>
@@ -494,7 +494,7 @@
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <div>
             <div style="font-size:22px; font-weight:800; color:#0f172a;">USD {{ v_auto }}</div>
-            <div style="font-size:9px; color:#94a3b8;">{{ n_comps_auto }} comparables | {{ m2_base }}/m2</div>
+            <div style="font-size:9px; color:#94a3b8;">{{ n_comps_auto }} comparables | {{ m2_base }}/m2 | {{ cv_qualitative }}</div>
           </div>
           <div style="text-align:right;">
             <div style="font-size:10px; color:#64748b;">Rango</div>
