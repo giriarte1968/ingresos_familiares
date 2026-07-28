@@ -4591,3 +4591,113 @@ El anchor `de_mayo_sur` tenía `usd_m2=2041` con `ct_table` embebido (ya elimina
 - 55 tests pasaron
 - auto_validate: OK
 - Commit: `cb33f97`
+
+---
+
+## 2026-07-28 — Fix: Header-bar se repite en todas las páginas del PDF
+
+### Contexto
+Cuando la tabla de comparables desbordaba a una nueva página en el PDF generado por Playwright, el header-bar (logo VALU + fecha) no se repetía en la página de continuación. Solo aparecía en la primera página de la sección de comparables.
+
+### Causa raíz
+El `@media print` solo tenía `.page { padding-top: 10mm }`. Sin `position: fixed` para `.header-bar`, el header era un elemento del flujo normal y no se repetía al desbordar.
+
+### Cambios
+1. **`templates/reporte_valuacion.html:359-370`** — `@media print` ahora incluye:
+   - `.header-bar { position: fixed; top:0; left:0; right:0; margin:0; background:white; z-index:1000; }`
+   - `.page { padding-top: 24mm; }` (espacio para el header fijo)
+   - `margin: 0` resetea las márgenes negativas originales (`margin: -30mm -25mm 24px -25mm`) que estaban diseñadas para el contexto `.page` y causarían desplazamiento con `position: fixed`.
+
+### Resultado
+- Header-bar se repite en TODAS las páginas impresas (excepto cover)
+- Cover page no tiene `.header-bar`, por lo que no se afecta
+- 55 tests pasan
+- Commit: `bc72447`
+
+---
+
+## 2026-07-28 — Fix: PDF header spacing, logo, date, footer divider + _fd UnboundLocalError
+
+### Contexto
+Problemas reportados en el PDF generado:
+1. Header comprimido sin espaciado adecuado
+2. Logo alineado a la izquierda sin centrado
+3. Lado derecho mostraba "Metodologia" en vez de fecha
+4. Cover page tenía header visible
+5. Footer sin línea divisoria
+6. Páginas en blanco al final
+7. Error `_fd` UnboundLocalError al generar PDF para Ayacucho
+
+### Cambios
+1. **`templates/reporte_valuacion.html`**:
+   - Header padding: `8px 0` → `16px 20px`, margin-bottom: `20px` → `28px`
+   - Logo: `margin-left: 20%` para centrar
+   - Lado derecho: `{{ date }}` en vez de "Metodologia"
+   - Cover: `.cover .header-bar { display: none !important; }`
+   - Footer: `border-top: 1px solid #e2e8f0` + `padding-top: 8px`
+   - Páginas en blanco: ya corregido con `page-break-after: auto`
+
+2. **`valu_detail_sections.py`**:
+   - `_fd` variable: inicialización movida desde línea 1441 hasta línea ~1270 (antes del bloque de razonamiento manual)
+
+### Resultado
+- Header espaciado y centrado con fecha correcta
+- Cover sin header, footer con divider
+- PDF genera correctamente para todas las propiedades
+- 55/55 tests pasan
+- Commit: `ecf161c`
+
+---
+
+## 2026-07-28 — Fix: Range bars como texto + formato alquiler + label rentabilidad
+
+### Contexto
+Los range bars (Conservador | Spread | Optimista) se mostraban como HTML crudo en la UI en vez de renderizarse. El usuario pidió que se muestren como texto plano DENTRO de la tarjeta de valuación.
+
+### Cambios
+1. **`valu_detail_sections.py` — `render_disk_summary_card()`**:
+   - Reemplazado HTML del range bar por texto: `Conservador $X · Spread Y% · Optimista $Z`
+   - Agregado `<div>` con `border-top` para separador visual
+
+2. **`valu_detail_sections.py` — `render_manual_valuation_card()`**:
+   - Mismo cambio: texto plano en vez de HTML
+   - Variable `_range_html` → `_range_text`
+
+3. **`valu_detail_sections.py` — `render_metricas()`**:
+   - Alquiler: formato `$ARS/mes  USD X · Rango $min–$max`
+   - "Cap Rate Neto" → "Rentabilidad Neta"
+
+### Resultado
+- Range bars se ven como texto legible dentro de las tarjetas
+- Alquiler muestra valor principal + rango
+- Label "Rentabilidad Neta" en vez de "Cap Rate Neto"
+- 55/55 tests pasan
+- Commit: `2cbdfeb`
+
+---
+
+## 2026-07-28 — Fix: Manual card empty state + alquiler usa mayor valuación
+
+### Contexto
+1. Al borrar la valuación manual (limpiar), la tarjeta mostraba HTML con border-top vacío
+2. El alquiler solo usaba la fuente activa (auto o manual), no la mayor valuación
+
+### Cambios
+1. **`valu_detail_sections.py` — `render_manual_valuation_card()`**:
+   - `_range_div` se renderiza solo si `_range_text` no está vacío
+   - Evita div con border-top vacío cuando no hay range
+
+2. **`valu_detail_sections.py` — `render_metricas()`**:
+   - Nuevos parámetros: `auto_result=None`, `manual_result=None`
+   - Compara `valor_propiedad_usd` de ambas fuentes
+   - Usa la MAYOR valuación para calcular alquiler
+   - Debug flag: `[DEBUG-ALQ-HIGHER]`
+
+3. **`valu.py`**:
+   - Pasa `auto_result` y `manual_result` a `render_metricas()`
+
+### Resultado
+- Manual card limpia sin HTML residual cuando está vacía
+- Alquiler siempre basado en la mayor valuación disponible
+- 55/55 tests pasan
+- Commit: `2f9e049`

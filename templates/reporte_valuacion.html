@@ -3,23 +3,31 @@
 <head>
 <meta charset="UTF-8">
 <style>
+  /*
+   * NOTAS SOBRE LAYOUT PDF con Playwright/Chromium:
+   * - position:fixed NO se repite en cada página en modo PDF.
+   * - Para encabezados repetidos se usa la técnica de <thead> en tablas
+   *   O se incluye el header manualmente en cada sección break-before:page.
+   * - min-height en .page causa páginas en blanco → se elimina.
+   * - Se usan break-before:page + break-inside:avoid en lugar de page-break-*.
+   */
+
   @page {
     size: A4;
-    margin: 0 0 14mm 0;
+    margin: 15mm 15mm 18mm 15mm;
     @bottom-center {
-      content: counter(page);
-      font-size: 10px;
+      content: "Página " counter(page);
+      font-size: 9px;
       color: #64748b;
-      font-weight: 600;
-      border-top: 1px solid #e2e8f0;
-      padding-top: 8px;
-      width: 160mm;
+      font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
     }
   }
+  /* La portada usa page named "cover" sin números de página */
   @page cover {
     margin: 0;
     @bottom-center { content: none; }
   }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
@@ -31,12 +39,12 @@
 
   /* ═══ COVER ═══ */
   .cover {
-    width: 100%;
+    page: cover;
+    width: 210mm;
     height: 297mm;
     position: relative;
     overflow: hidden;
-    page: cover;
-    page-break-after: always;
+    break-after: page;
     background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
     color: white;
     display: flex;
@@ -86,76 +94,59 @@
     margin: 40px auto;
     border-radius: 2px;
   }
-  .cover-title {
-    font-size: 32px;
-    font-weight: 700;
-    margin-bottom: 8px;
-  }
-  .cover-subtitle {
-    font-size: 16px;
-    color: #94a3b8;
-    margin-bottom: 60px;
-  }
-  .cover-address {
-    font-size: 20px;
-    font-weight: 600;
-    color: #e2e8f0;
-    margin-bottom: 8px;
-  }
-  .cover-zone {
-    font-size: 14px;
-    color: #94a3b8;
-    margin-bottom: 80px;
-  }
-  .cover-footer {
-    position: absolute;
-    bottom: 40px;
-    font-size: 10px;
-    color: #64748b;
-  }
-  .cover .header-bar { display: none !important; }
+  .cover-title     { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+  .cover-subtitle  { font-size: 16px; color: #94a3b8; margin-bottom: 60px; }
+  .cover-address   { font-size: 20px; font-weight: 600; color: #e2e8f0; margin-bottom: 8px; }
+  .cover-zone      { font-size: 14px; color: #94a3b8; margin-bottom: 80px; }
+  .cover-footer    { position: absolute; bottom: 40px; font-size: 10px; color: #64748b; }
 
-  /* ═══ PAGE LAYOUT ═══ */
-  .page {
-    width: 210mm;
-    min-height: 297mm;
-    padding: 30mm 25mm;
-    page-break-after: always;
-    position: relative;
+  /* ═══ PAGE WRAPPER ═══
+     Cada .page-content es una "página" del PDF.
+     break-before:page fuerza un salto antes del bloque.
+     No se usa min-height para evitar páginas en blanco.
+  */
+  .page-content {
+    break-before: page;
+    break-inside: auto;
   }
-  .page:last-child { page-break-after: auto; }
+  .page-content-first {
+    /* Primera página de contenido: sin break-before explícito */
+    break-before: auto;
+  }
 
-  /* ═══ HEADER BAR ═══ */
+  /* ═══ HEADER BAR (incluido manualmente en cada page-content) ═══ */
   .header-bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 20px;
-    margin-bottom: 28px;
+    padding: 12px 0 12px 0;
+    margin-bottom: 20px;
     border-bottom: 2px solid #e2e8f0;
-    background: white;
-    z-index: 100;
+    /* break-inside:avoid + after:avoid evita que el header quede
+       al final de una página sin contenido */
+    break-inside: avoid;
+    break-after: avoid;
   }
   .header-left {
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-left: 20%;
+    gap: 10px;
   }
   .header-logo {
-    width: 48px;
-    height: 48px;
+    width: 36px;
+    height: 36px;
     background: linear-gradient(135deg, #10b981, #34d399);
-    border-radius: 10px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 22px;
+    font-size: 18px;
     font-weight: 900;
     color: white;
+    flex-shrink: 0;
   }
   .header-brand {
-    font-size: 20px;
+    font-size: 17px;
     font-weight: 700;
     color: #0f172a;
     letter-spacing: 2px;
@@ -168,140 +159,64 @@
 
   /* ═══ SECTION ═══ */
   .section {
-    margin-bottom: 24px;
+    margin-bottom: 18px;
+    break-inside: avoid;
   }
   .section-header {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
+    break-after: avoid;   /* el título no queda huérfano al final de página */
   }
   .section-icon {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     background: linear-gradient(135deg, #10b981, #059669);
     border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 13px;
+    font-size: 12px;
     color: white;
     flex-shrink: 0;
   }
   .section-title {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
     color: #0f172a;
   }
-
-  /* ═══ TAGS ═══ */
-  .tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-bottom: 20px;
-  }
-  .tag {
-    background: #f1f5f9;
-    color: #475569;
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-size: 10px;
-    font-weight: 600;
-  }
-
-  /* ═══ VALUE CARDS ═══ */
-  .value-box {
-    border: 2px solid #dc2626;
-    border-radius: 12px;
-    padding: 24px;
-    margin-bottom: 24px;
-    background: #fefefe;
-  }
-  .value-box-title {
-    text-align: center;
-    font-size: 13px;
-    font-weight: 600;
-    color: #64748b;
-    margin-bottom: 20px;
-  }
-  .value-cards {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 20px;
-  }
-  .value-card {
-    flex: 1;
-    background: #f8fafc;
-    border-radius: 10px;
-    padding: 20px;
-    text-align: center;
-    border: 1px solid #e2e8f0;
-  }
-  .value-card-label {
-    font-size: 11px;
-    color: #64748b;
-    margin-bottom: 6px;
-    font-weight: 500;
-  }
-  .value-card-amount {
-    font-size: 28px;
-    font-weight: 800;
-    color: #0f172a;
-    line-height: 1.1;
-  }
-  .value-card-currency {
-    font-size: 14px;
-    font-weight: 600;
-    color: #64748b;
-  }
-
 
   /* ═══ KPI ROW ═══ */
   .kpi-row {
     display: flex;
-    gap: 16px;
-    margin-bottom: 20px;
+    gap: 14px;
+    margin-bottom: 16px;
+    break-inside: avoid;
   }
   .kpi-card {
     flex: 1;
     text-align: center;
-    padding: 16px 12px;
+    padding: 12px 10px;
     background: #f8fafc;
     border-radius: 10px;
     border: 1px solid #e2e8f0;
   }
-  .kpi-number {
-    font-size: 30px;
-    font-weight: 800;
-    color: #0f172a;
-    line-height: 1;
-  }
-  .kpi-label {
-    font-size: 10px;
-    font-weight: 700;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-top: 4px;
-  }
-  .kpi-desc {
-    font-size: 9px;
-    color: #94a3b8;
-    margin-top: 4px;
-    line-height: 1.3;
-  }
+  .kpi-number  { font-size: 24px; font-weight: 800; color: #0f172a; line-height: 1; }
+  .kpi-label   { font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+  .kpi-desc    { font-size: 9px; color: #94a3b8; margin-top: 4px; line-height: 1.3; }
 
   /* ═══ INFO BOX ═══ */
   .info-box {
     background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
     border: 1px solid #bbf7d0;
     border-radius: 10px;
-    padding: 16px;
+    padding: 12px;
     font-size: 10px;
     color: #166534;
     line-height: 1.6;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
+    break-inside: avoid;
   }
   .info-box strong { color: #15803d; }
 
@@ -310,76 +225,58 @@
     width: 100%;
     border-collapse: collapse;
     font-size: 10px;
-    margin-top: 8px;
+    margin-top: 6px;
   }
   .data-table th {
     background: #f1f5f9;
     color: #64748b;
     font-weight: 700;
     text-align: left;
-    padding: 8px 10px;
+    padding: 7px 9px;
     font-size: 9px;
     text-transform: uppercase;
     letter-spacing: 0.3px;
     border-bottom: 2px solid #e2e8f0;
   }
   .data-table td {
-    padding: 7px 10px;
+    padding: 6px 9px;
     border-bottom: 1px solid #f1f5f9;
     color: #334155;
   }
-  .data-table tr:nth-child(even) td {
-    background: #f8fafc;
-  }
+  .data-table tr:nth-child(even) td { background: #f8fafc; }
+
+  /* Tabla de comparables: se permite que rompa entre filas */
+  .data-table-auto { break-inside: auto; }
 
   /* ═══ TWO COLUMN ═══ */
-  .two-col {
-    display: flex;
-    gap: 20px;
-  }
-  .two-col > div {
-    flex: 1;
-  }
+  .two-col { display: flex; gap: 18px; }
+  .two-col > div { flex: 1; }
 
   /* ═══ DISCLAIMER ═══ */
   .disclaimer {
     background: #fffbeb;
     border: 1px solid #fde68a;
     border-radius: 10px;
-    padding: 16px;
+    padding: 12px;
     font-size: 9px;
     color: #92400e;
     line-height: 1.6;
-    margin-top: 30px;
+    margin-top: 20px;
+    break-inside: avoid;
   }
 
-  /* ═══ UTILITIES ═══ */
-  .mb-8 { margin-bottom: 8px; }
+  /* ═══ UTILIDADES ═══ */
+  .mb-8  { margin-bottom: 8px; }
   .mb-16 { margin-bottom: 16px; }
-  .mb-24 { margin-bottom: 24px; }
   .text-muted { color: #94a3b8; }
-  .text-sm { font-size: 10px; }
-  .page-break { page-break-before: always; }
-
-  @media print {
-    .header-bar {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      margin: 0;
-      background: white;
-      z-index: 1000;
-    }
-    .page {
-      padding-top: 24mm;
-    }
-  }
+  .text-sm    { font-size: 10px; }
 </style>
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!-- COVER PAGE -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PORTADA                                                    -->
+<!-- ═══════════════════════════════════════════════════════════ -->
 <div class="cover">
   <div class="cover-badge">
     {% if logo_b64 %}
@@ -399,36 +296,32 @@
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!-- PAGE 2: VALOR ESTIMADO -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<div class="page">
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PÁGINA 2: CARACTERÍSTICAS + VALUACIÓN                      -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="page-content-first">
+  <!-- Header repetido en cada página -->
   <div class="header-bar">
     <div class="header-left">
       {% if logo_b64 %}
-      <img src="data:image/png;base64,{{ logo_b64 }}" style="width:48px;height:48px;border-radius:10px;object-fit:contain;">
+      <img src="data:image/png;base64,{{ logo_b64 }}" style="width:36px;height:36px;border-radius:8px;object-fit:contain;">
       {% else %}
       <div class="header-logo">V</div>
       {% endif %}
       <div class="header-brand">VALU</div>
     </div>
-    <div class="header-right">
-      {{ fecha_generacion }}<br>
-      {{ cache_version }}
-    </div>
+    <div class="header-right">{{ fecha_generacion }}</div>
   </div>
 
-  <!-- Caracteristicas de la Propiedad -->
+  <!-- Características de la Propiedad -->
   <div class="section">
     <div class="section-header">
       <div class="section-icon">C</div>
       <div class="section-title">Caracteristicas de la Propiedad</div>
     </div>
-
-    <div style="background:#f8fafc; border-radius:10px; padding:16px; border:1px solid #e2e8f0;">
-      <div style="font-size:16px; font-weight:700; color:#0f172a; margin-bottom:4px;">{{ nombre }}</div>
-      <div style="font-size:11px; color:#64748b; margin-bottom:14px;">{{ direccion }} — {{ zona }}</div>
-
+    <div style="background:#f8fafc; border-radius:10px; padding:14px; border:1px solid #e2e8f0;">
+      <div style="font-size:15px; font-weight:700; color:#0f172a; margin-bottom:3px;">{{ nombre }}</div>
+      <div style="font-size:10px; color:#64748b; margin-bottom:12px;">{{ direccion }} — {{ zona }}</div>
       <div class="two-col">
         <div>
           <table class="data-table">
@@ -461,15 +354,13 @@
     </div>
   </div>
 
-  <!-- ═══ INFORME DE VALUACION ═══ -->
+  <!-- Informe de Valuacion -->
   <div class="section">
     <div class="section-header">
       <div class="section-icon" style="background:linear-gradient(135deg, #f59e0b, #d97706);">I</div>
       <div class="section-title">Informe de Valuacion</div>
     </div>
-
-    <div style="background:#f8fafc; border-radius:10px; padding:16px; border:1px solid #e2e8f0; margin-bottom:16px;">
-
+    <div style="background:#f8fafc; border-radius:10px; padding:14px; border:1px solid #e2e8f0; margin-bottom:14px;">
       {% if tiene_auto %}
       <div style="background:white; border-radius:8px; padding:12px; border:1px solid #e2e8f0; margin-bottom:10px;">
         <div style="font-size:10px; font-weight:700; color:#3b82f6; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">
@@ -477,7 +368,7 @@
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <div>
-            <div style="font-size:22px; font-weight:800; color:#0f172a;">USD {{ v_auto }}</div>
+            <div style="font-size:20px; font-weight:800; color:#0f172a;">USD {{ v_auto }}</div>
             <div style="font-size:9px; color:#94a3b8;">{{ n_comps_auto }} comparables | {{ m2_base }}/m2 | {{ cv_qualitative }}</div>
           </div>
           <div style="text-align:right;">
@@ -487,7 +378,6 @@
         </div>
       </div>
       {% endif %}
-
       {% if tiene_manual %}
       <div style="background:white; border-radius:8px; padding:12px; border:1px solid #e2e8f0;">
         <div style="font-size:10px; font-weight:700; color:#8b5cf6; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">
@@ -495,7 +385,7 @@
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <div>
-            <div style="font-size:22px; font-weight:800; color:#0f172a;">USD {{ v_manual }}</div>
+            <div style="font-size:20px; font-weight:800; color:#0f172a;">USD {{ v_manual }}</div>
             <div style="font-size:9px; color:#94a3b8;">{{ m2_eq }} m2 x USD {{ v_manual_m2 }}/m2</div>
           </div>
           <div style="text-align:right;">
@@ -505,12 +395,11 @@
         </div>
       </div>
       {% endif %}
-
       <div style="background:linear-gradient(135deg, #10b981, #059669); border-radius:8px; padding:12px; margin-top:10px; text-align:center;">
         <div style="font-size:10px; font-weight:600; color:white; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
           Valor Adoptado — {{ fuente_adoptada }}
         </div>
-        <div style="font-size:24px; font-weight:800; color:white;">USD {{ valor_adoptado }}</div>
+        <div style="font-size:22px; font-weight:800; color:white;">USD {{ valor_adoptado }}</div>
       </div>
     </div>
   </div>
@@ -523,7 +412,7 @@
       <div class="kpi-desc">Propiedades analizadas</div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-number">1000m</div>
+      <div class="kpi-number">{{ radio_m }}m</div>
       <div class="kpi-label">Radio</div>
       <div class="kpi-desc">Busqueda maxima</div>
     </div>
@@ -534,28 +423,28 @@
     </div>
   </div>
 
-  <!-- Metricas de Inversion -->
-  <div class="info-box" style="page-break-inside:avoid;">
+  <!-- Métricas de Inversión -->
+  <div class="info-box">
     <strong>Metricas:</strong>
     Alquiler: ARS {{ alquiler_ars }} (USD {{ alquiler_usd }}) |
     Cap Rate: {{ cap_rate }}
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!-- PAGE 3: COMPARABLES -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<div class="page" style="page-break-before:always;">
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PÁGINA 3: COMPARABLES                                      -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="page-content">
   <div class="header-bar">
     <div class="header-left">
       {% if logo_b64 %}
-      <img src="data:image/png;base64,{{ logo_b64 }}" style="width:48px;height:48px;border-radius:10px;object-fit:contain;">
+      <img src="data:image/png;base64,{{ logo_b64 }}" style="width:36px;height:36px;border-radius:8px;object-fit:contain;">
       {% else %}
       <div class="header-logo">V</div>
       {% endif %}
       <div class="header-brand">VALU</div>
     </div>
-    <div class="header-right">Comparables</div>
+    <div class="header-right">{{ fecha_generacion }}</div>
   </div>
 
   {% if map_b64 %}
@@ -565,10 +454,10 @@
       <div class="section-title">Ubicacion de comparables</div>
     </div>
     <div style="border-radius:10px; overflow:hidden; border:1px solid #e2e8f0;">
-      <img src="data:image/png;base64,{{ map_b64 }}" style="width:100%; max-height:200px; object-fit:cover; display:block;">
+      <img src="data:image/png;base64,{{ map_b64 }}" style="width:100%; max-height:190px; object-fit:cover; display:block;">
     </div>
-    <div style="margin-top:6px; font-size:9px; color:#94a3b8; text-align:center;">
-      Propiedad sujeto (rojo) y comparables (verdes) en radio de 1000m
+    <div style="margin-top:5px; font-size:9px; color:#94a3b8; text-align:center;">
+      Propiedad sujeto (rojo) y comparables (verdes) en radio de {{ radio_m }}m
     </div>
   </div>
   {% endif %}
@@ -581,7 +470,7 @@
     <p class="text-muted text-sm mb-16">{{ n_comps_auto }} propiedades comparables seleccionadas por el motor de valuacion.</p>
 
     {% if comparables %}
-    <table class="data-table">
+    <table class="data-table data-table-auto">
       <thead>
         <tr>
           <th>#</th>
@@ -615,20 +504,20 @@
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!-- PAGE 4: METODOLOGIA -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<div class="page" style="page-break-before:always; page-break-after:auto;">
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PÁGINA 4: METODOLOGÍA Y FACTORES                           -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="page-content">
   <div class="header-bar">
     <div class="header-left">
       {% if logo_b64 %}
-      <img src="data:image/png;base64,{{ logo_b64 }}" style="width:48px;height:48px;border-radius:10px;object-fit:contain;">
+      <img src="data:image/png;base64,{{ logo_b64 }}" style="width:36px;height:36px;border-radius:8px;object-fit:contain;">
       {% else %}
       <div class="header-logo">V</div>
       {% endif %}
       <div class="header-brand">VALU</div>
     </div>
-    <div class="header-right">{{ date }}</div>
+    <div class="header-right">{{ fecha_generacion }}</div>
   </div>
 
   {% if razonamiento %}
@@ -637,7 +526,7 @@
       <div class="section-icon" style="background:linear-gradient(135deg, #3b82f6, #2563eb);">3</div>
       <div class="section-title">Razonamiento — Valuacion Automatica (Mercado)</div>
     </div>
-    <div style="background:#f8fafc; border-radius:10px; padding:16px; font-size:10px; color:#475569; line-height:1.7; border:1px solid #e2e8f0;">
+    <div style="background:#f8fafc; border-radius:10px; padding:14px; font-size:10px; color:#475569; line-height:1.7; border:1px solid #e2e8f0; break-inside:auto;">
       {{ razonamiento }}
     </div>
   </div>
@@ -649,7 +538,7 @@
       <div class="section-icon" style="background:linear-gradient(135deg, #8b5cf6, #7c3aed);">3b</div>
       <div class="section-title">Razonamiento — Valuacion Manual (Tasador)</div>
     </div>
-    <div style="background:#faf5ff; border-radius:10px; padding:16px; font-size:10px; color:#475569; line-height:1.7; border:1px solid #e9d5ff;">
+    <div style="background:#faf5ff; border-radius:10px; padding:14px; font-size:10px; color:#475569; line-height:1.7; border:1px solid #e9d5ff; break-inside:auto;">
       {{ razonamiento_manual }}
     </div>
   </div>
@@ -706,7 +595,6 @@
   </div>
   {% endif %}
 
-  <!-- Disclaimer -->
   <div class="disclaimer">
     <strong>Aviso:</strong> Este informe ha sido generado automaticamente por el sistema VALU con base en datos de mercado
     y algoritmos de valuacion comparativa. Los valores estimados no constituyen una tasacion oficial y deben ser
