@@ -4317,6 +4317,35 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
     )
     lineas.append(texto_metodologia)
 
+    # ─── PÁRRAFO 2c: Calidad del pool (CV) ───
+    cv_pool = meta.get('cv_pool')
+    if cv_pool is not None:
+        if cv_pool < 0.10:
+            texto_cv = (
+                "El pool de comparables es altamente homogéneo, lo que indica que las "
+                "propiedades analizadas tienen características muy similares entre sí, "
+                "otorgando alta confianza en la estimación."
+            )
+        elif cv_pool < 0.15:
+            texto_cv = (
+                "El pool de comparables presenta una homogeneidad buena, con variaciones "
+                "moderadas entre las propiedades analizadas, lo que respalda la confiabilidad "
+                "del valor estimado."
+            )
+        elif cv_pool < 0.20:
+            texto_cv = (
+                "El pool de comparables tiene una heterogeneidad moderada, reflejando "
+                "diferencias entre las propiedades de la zona. El percentil seleccionado "
+                "help a mitigar el efecto de valores atípicos."
+            )
+        else:
+            texto_cv = (
+                "El pool de comparables es heterogéneo, con propiedades que presentan "
+                "características diversas. Se utilizó un percentil conservador para "
+                "minimizar el impacto de la variabilidad en la estimación."
+            )
+        lineas.append(texto_cv)
+
     # ─── PÁRRAFO 3: Factores estructurales (cualitativo) ───
     factores_pos = []
     factores_neg = []
