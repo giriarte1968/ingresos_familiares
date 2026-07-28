@@ -527,6 +527,26 @@ def render_metricas(prop, res, valor_usd, dolar, auto_result=None, manual_result
     # Usar la MAYOR valuación para alquiler
     best_valor = valor_usd
     best_cap = cap
+
+    # Leer valor manual directo de la propiedad si no hay manual_result
+    if not manual_result:
+        try:
+            import json, os
+            props_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'propiedades.json')
+            with open(props_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            nombre = prop.get('nombre', '')
+            for p in data.get('propiedades', []):
+                if p.get('nombre') == nombre:
+                    uv = p.get('_ultima_valuacion', {}) or {}
+                    manual_v = uv.get('manual_valor_usd', 0)
+                    if manual_v > 0:
+                        manual_result = {'valor_propiedad_usd': manual_v, 'cap_rate': cap}
+                        print(f"[DEBUG-ALQ-MANUAL-DISK] {nombre}: manual_valor_usd={manual_v} from disk")
+                    break
+        except Exception:
+            pass
+
     if auto_result and manual_result:
         auto_v = auto_result.get('valor_propiedad_usd', 0)
         manual_v = manual_result.get('valor_propiedad_usd', 0)
