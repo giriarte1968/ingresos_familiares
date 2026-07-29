@@ -1226,10 +1226,10 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
     fuente_activa = res.get('_fuente_activa', 'auto')
     if tiene_manual and tiene_auto:
         valor_adoptado = v_manual if fuente_activa == 'manual' else v_auto
-        fuente_adoptada = "Manual (Tasador)" if fuente_activa == 'manual' else "Automatica (Mercado)"
+        fuente_adoptada = "Manual (Tasador)" if fuente_activa == 'manual' else "Por Comparables"
     else:
         valor_adoptado = v_manual or v_auto
-        fuente_adoptada = "Automatico" if tiene_auto else "Manual"
+        fuente_adoptada = "Por Comparables" if tiene_auto else "Manual"
 
     # Metricas
     alq_ars = _safe_int(res.get('alquiler_estimado_ars'))
@@ -1253,7 +1253,7 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
             'precio_m2': f"${c.get('precio_m2', 0):,.0f}",
             'precio': f"${c.get('precio', 0):,.0f}",
             'distancia_m': f"{c.get('distancia_m', 0):.0f}",
-            'fuente': c.get('fuente', '')[:10],
+            'antiguedad': c.get('antiguedad', c.get('antiquity', '')),
         })
         clat = c.get('lat') or c.get('latitud')
         clon = c.get('lon') or c.get('longitud')
@@ -1327,10 +1327,10 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
                 "p = sync_playwright().start()\n"
                 "b = p.chromium.launch(headless=True)\n"
                 "pg = b.new_page()\n"
-                "pg.set_viewport_size({'width': 800, 'height': 600})\n"
+                "pg.set_viewport_size({'width': 900, 'height': 700})\n"
                 f"pg.goto('file:///{_map_html_fwd}', wait_until='networkidle')\n"
-                "time.sleep(2)\n"
-                f"pg.screenshot(path=r'{_map_png_fwd}', full_page=False)\n"
+                "time.sleep(3)\n"
+                f"pg.screenshot(path=r'{_map_png_fwd}', full_page=True)\n"
                 "b.close()\n"
                 "p.stop()\n"
             )
@@ -1582,7 +1582,7 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
         v_cons_unico=f"{(v_manual_cons or v_auto_cons):,}",
         v_opt_unico=f"{(v_manual_opt or v_auto_opt):,}",
         v_manual_m2=f"{int(v_manual / m2_eq):,}" if v_manual and m2_eq else "",
-        m2_eq=f"{m2_eq:.1f}" if isinstance(m2_eq, (int, float)) else str(m2_eq or '0'),
+        m2_eq=f"{m2_eq:.1f}" if isinstance(m2_eq, (int, float)) and m2_eq else "N/D",
         m2_total=prop.get('m2', 0) or 0,
         m2_cub=prop.get('m2_cubiertos', 0) or 0,
         m2_desc=prop.get('m2_descubiertos', 0) or 0,
@@ -1600,11 +1600,20 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
         ambientes=prop.get('ambientes', ''),
         orientacion=prop.get('orientacion', ''),
         ventilacion=prop.get('ventilacion', ''),
+        vista=prop.get('vista', ''),
+        m2_semi=prop.get('m2_semicubiertos', 0) or 0,
+        toilet=prop.get('toilet', False),
+        cocheras=prop.get('cocheras_cantidad', 0),
+        baulera=prop.get('baulera', False),
+        ascensores=prop.get('ascensores_edificio', ''),
+        seguridad=prop.get('seguridad', ''),
+        terminaciones=prop.get('terminaciones', ''),
+        descripcion_libre=prop.get('descripcion_libre', ''),
         amenities_list=', '.join(prop.get('detalles_categoria', [])[:5]) if prop.get('detalles_categoria') else '',
         alquiler_ars=f"{alq_ars:,}",
         alquiler_usd=f"{alq_usd:,}",
         cap_rate=f"{cap_rate*100:.1f}%",
-        m2_base=f"${m2_base:,}",
+        m2_base=f"${m2_base:,}" if m2_base else "N/D",
         comparables=comparables_list,
         razonamiento=razonamiento,
         razonamiento_manual=razonamiento_manual,
@@ -1639,10 +1648,11 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
     with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as f:
         pdf_path = f.name
     try:
+        _html_fwd = html_path.replace(os.sep, '/')
         script = (
             f"from playwright.sync_api import sync_playwright; "
             f"p=sync_playwright().start(); b=p.chromium.launch(headless=True); "
-            f"pg=b.new_page(); pg.set_content(open(r'{html_path}',encoding='utf-8').read(),wait_until='networkidle'); "
+            f"pg=b.new_page(); pg.goto('file:///{_html_fwd}', wait_until='networkidle'); "
             f"pg.pdf(path=r'{pdf_path}',format='A4',print_background=True); "
             f"b.close(); p.stop()"
         )

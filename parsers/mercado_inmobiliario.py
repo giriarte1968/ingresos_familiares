@@ -1426,17 +1426,43 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         except Exception:
             pass
 
-        precios = [p['valor_m2'] * p.get('_time_adjustment', 1.0) for p in pool_final]
+        # Normalizar moneda: alquileres en USD→ARS para evitar contaminación del cluster
+        _usdt_ars_alq = None
+        if operacion == 'alquiler':
+            try:
+                from parsers.motor_vpp_core import get_binance_usdt_ars
+                _usdt_ars_alq = get_binance_usdt_ars()
+            except Exception:
+                _usdt_ars_alq = None
+            _n_usd = sum(1 for p in pool_final if p.get('moneda') == 'USD')
+            _n_ars = sum(1 for p in pool_final if p.get('moneda') == 'ARS')
+            print(f"[DEBUG-ALQ-CURRENCY] zona={zona}, operacion={operacion}, usdt_ars={_usdt_ars_alq}, n_usd={_n_usd}, n_ars={_n_ars}, pool_total={len(pool_final)}")
+
+        precios = []
+        for p in pool_final:
+            vm2 = p.get('valor_m2', 0)
+            ta = p.get('_time_adjustment', 1.0)
+            # Si es alquiler y la entrada viene en USD/m², convertir a ARS/m²
+            if operacion == 'alquiler' and p.get('moneda') == 'USD' and _usdt_ars_alq and _usdt_ars_alq > 0:
+                vm2 = vm2 * _usdt_ars_alq
+            precios.append(vm2 * ta)
         n_raw = len(precios)
         
         # Build comparables_reales early so all return paths include them
-        comparables_reales = [
-            {
+        comparables_reales = []
+        for p in pool_final[:120 if retro_dias > 0 else 76]:
+            vm2_raw = p.get('valor_m2', 0)
+            vm2_ajustado = vm2_raw * p.get('_time_adjustment', 1.0)
+            # Normalizar moneda para alquileres USD→ARS
+            if operacion == 'alquiler' and p.get('moneda') == 'USD' and _usdt_ars_alq and _usdt_ars_alq > 0:
+                vm2_raw = vm2_raw * _usdt_ars_alq
+                vm2_ajustado = vm2_raw * p.get('_time_adjustment', 1.0)
+            comparables_reales.append({
                 'precio': p.get('precio'),
                 'm2': p.get('m2'),
-                'precio_m2': p.get('valor_m2'),
+                'precio_m2': round(vm2_raw, 2),
                 'time_adjustment': round(p.get('_time_adjustment', 1.0), 4),
-                'precio_m2_ajustado': round(p.get('valor_m2', 0) * p.get('_time_adjustment', 1.0), 2),
+                'precio_m2_ajustado': round(vm2_ajustado, 2),
                 'dormitorios': p.get('dormitorios'),
                 'direccion': (p.get('direccion_limpia') or p.get('direccion', ''))[:60],
                 'direccion_limpia': _formatear_direccion_limpia(p),
@@ -1448,9 +1474,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 'date_created': p.get('date_created', ''),
                 'distancia_m': round(calcular_distancia_km(lat_ref, lon_ref, float(p['lat']), float(p['lon'])) * 1000, 0) if lat_ref and lon_ref and p.get('lat') and p.get('lon') else None,
                 '_cross_soft': p.get('_cross_soft', False),
-            }
-            for p in pool_final[:120 if retro_dias > 0 else 76]
-        ] if pool_final else []
+            }) if pool_final else []
         
         if not precios:
             return 0.0, 0, {
@@ -3411,6 +3435,8 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
     with profile_block("cluster_alquiler", prop):
         m2_base_alq_raw, n_a, meta_alq = obtener_mediana_cluster_v2(zona=zona_alq, dormitorios=dorms, operacion='alquiler', lat_ref=lat, lon_ref=lon, fecha_ref=fecha_ref, tipo_inmueble=prop.get('tipo_inmueble') or prop.get('tipo') or 'departamento', cache_scraping=cache_scraping_compartido, flex_dormitorios=flex_dormitorios)
     
+    print(f"[DEBUG-ALQ-CLUSTER] prop={prop.get('nombre','?')[:30]}, zona_alq={zona_alq}, m2_base_alq_raw={m2_base_alq_raw}, n_alq={n_a}, operacion=alquiler")
+    
     # Fallback si no hay datos específicos (en ARS/m²)
     # Ajustar para entrar en rango:
     m2_base_alquiler = m2_base_alq_raw if m2_base_alq_raw > 0 else (11500 if dorms >= 2 else 13500)
@@ -4290,12 +4316,11 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
     _n_same = meta_v.get('n_same_side', 0)
     _n_cross = meta_v.get('n_cross_soft', 0)
     _n_total = _n_same + _n_cross
-    barreras = _n_total > 0 and _n_cross > 0 and (_n_cross / _n_total) > 0.15
+    barreras = _n_total > 0 and _n_cross > 0 and (_n_cross / _n_total) > 0.30
     if barreras and radio > 0:
         texto_mercado += (
-            " Se identificaron propiedades al otro lado de barreras geográficas "
-            "(vías del ferrocarril o avenidas principales) que fueron tratadas "
-            "por separado para evitar distorsiones en el análisis."
+            " Se verificó que algunas propiedades comparables al otro lado de "
+            "vías principales no presentan diferencias significativas de precio."
         )
     elif radio <= 500:
         texto_mercado += (
@@ -4309,11 +4334,10 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
     texto_metodologia = (
         f"Para llegar a la estimación, se seleccionaron {n_comps} propiedades comparables "
         f"en un radio de {radio} metros, filtradas por tipo de inmueble, operación y cantidad "
-        f"de dormitorios. Se aplicó una corrección temporal (CT) para normalizar los precios "
-        f"a valores actuales, y un ajuste de tamaño para compensar las diferencias entre "
-        f"unidades de distinto tamaño. El valor final se calculó como el percentil {meta.get('percentil_usado', 'P50')} "
-        f"del pool de precios ajustados, lo que representa una estimación conservadora "
-        f"que evita valores extremos."
+        f"de dormitorios. Se utilizaron propiedades de reciente venta para reflejar precios "
+        f"actualizados del mercado. El valor final se calculó como el percentil {meta.get('percentil_usado', 'P50')} "
+        f"del pool de precios, lo que representa una estimación conservadora "
+        f"que evita que valores extremos afecten la estimación."
     )
     lineas.append(texto_metodologia)
 
@@ -4335,8 +4359,9 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
         elif cv_pool < 0.20:
             texto_cv = (
                 "El pool de comparables tiene una heterogeneidad moderada, reflejando "
-                "diferencias entre las propiedades de la zona. El percentil seleccionado "
-                "help a mitigar el efecto de valores atípicos."
+                "diferencias entre las propiedades de la zona. Se utilizó el percentil "
+                "P50 para estimar el valor, lo que ayuda a evitar que valores extremos "
+                "afecten la estimación."
             )
         else:
             texto_cv = (
