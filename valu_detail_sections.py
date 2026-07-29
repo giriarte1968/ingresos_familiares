@@ -628,7 +628,9 @@ def render_metricas(prop, res, valor_usd, dolar, auto_result=None, manual_result
 def render_razonamiento(prop, res):
     """Razonamiento narrativo en expander."""
     razonamiento = res.get('razonamiento', '')
-    if razonamiento and 'incertidumbresignificativa' in razonamiento.replace(' ', ''):
+    _old_textos = ['correcci', 'percentil P50', 'percentil seleccionado help', 'barreras geogr']
+    _need_regen = ('incertidumbresignificativa' in razonamiento.replace(' ', '')) or any(t in razonamiento.lower() for t in _old_textos)
+    if razonamiento and _need_regen:
         from parsers.mercado_inmobiliario import generar_razonamiento_valuacion
         meta = res.get('resolution_metadata', {})
         razonamiento = generar_razonamiento_valuacion(prop, res, meta)
@@ -1359,8 +1361,10 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
     auto_source = auto_result or res
     razonamiento = auto_source.get('razonamiento', '')
 
-    # Regenerate razonamiento if it contains placeholder text (same logic as render_razonamiento)
-    if razonamiento and 'incertidumbresignificativa' in razonamiento.replace(' ', ''):
+    # Regenerate razonamiento if it contains placeholder text or old CT/P50/help text
+    _old_textos = ['correcci', 'percentil P50', 'percentil seleccionado help', 'barreras geogr']
+    _need_regen = ('incertidumbresignificativa' in razonamiento.replace(' ', '')) or any(t in razonamiento.lower() for t in _old_textos)
+    if razonamiento and _need_regen:
         try:
             from parsers.mercado_inmobiliario import generar_razonamiento_valuacion
             _auto_meta = auto_source.get('resolution_metadata', {}) or {}
