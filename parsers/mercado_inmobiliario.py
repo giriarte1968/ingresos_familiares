@@ -1415,6 +1415,26 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         pool_final, age_filter_applied, n_age_filtered, anio_min_filtro, anio_max_filtro = \
             _filtrar_por_ventana_edad(unicos, anio_sujeto, ventana=10, min_con_anio=3)
 
+        # Filtro de calidad para alquileres: rechazar entradas sospechosas
+        if operacion == 'alquiler' and pool_final:
+            n_antes = len(pool_final)
+            pool_final = [
+                p for p in pool_final
+                if not (
+                    # USD con valor_m2 > 30 → probablemente precio de venta
+                    (p.get('moneda') == 'USD' and (p.get('valor_m2', 0) or 0) > 30)
+                    or
+                    # ARS con valor_m2 < 500 → datos malos (habitación, alquiler semanal)
+                    (p.get('moneda') == 'ARS' and (p.get('valor_m2', 0) or 0) < 500)
+                    or
+                    # Precio total < 5000 → no es departamento completo
+                    ((p.get('precio', 0) or 0) < 5000)
+                )
+            ]
+            n_filtrados = n_antes - len(pool_final)
+            if n_filtrados > 0:
+                print(f"[DEBUG-ALQ-QUALITY] {n_filtrados} entradas sospechosas filtradas de alquiler (de {n_antes} a {len(pool_final)})")
+
         # Resolver macrozona para size adjustment
         macrozona_id = None
         try:
@@ -1434,6 +1454,10 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 _usdt_ars_alq = get_binance_usdt_ars()
             except Exception:
                 _usdt_ars_alq = None
+            # Fallback: usar tasa aproximada si API falla
+            if not _usdt_ars_alq or _usdt_ars_alq <= 0:
+                _usdt_ars_alq = 1200
+                print(f"[DEBUG-ALQ-CURRENCY] WARNING: API falló, usando fallback USDT/ARS={_usdt_ars_alq}")
             _n_usd = sum(1 for p in pool_final if p.get('moneda') == 'USD')
             _n_ars = sum(1 for p in pool_final if p.get('moneda') == 'ARS')
             print(f"[DEBUG-ALQ-CURRENCY] zona={zona}, operacion={operacion}, usdt_ars={_usdt_ars_alq}, n_usd={_n_usd}, n_ars={_n_ars}, pool_total={len(pool_final)}")
@@ -4319,8 +4343,8 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
     barreras = _n_total > 0 and _n_cross > 0 and (_n_cross / _n_total) > 0.30
     if barreras and radio > 0:
         texto_mercado += (
-            " Se verificó que algunas propiedades comparables al otro lado de "
-            "vías principales no presentan diferencias significativas de precio."
+            " Se verificó que las propiedades comparables cercanas a vías "
+            "principales mantienen precios similares a las del mismo lado."
         )
     elif radio <= 500:
         texto_mercado += (
@@ -4336,8 +4360,8 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
         f"en un radio de {radio} metros, filtradas por tipo de inmueble, operación y cantidad "
         f"de dormitorios. Se utilizaron propiedades de reciente venta para reflejar precios "
         f"actualizados del mercado. El valor final se calculó como el percentil {meta.get('percentil_usado', 'P50')} "
-        f"del pool de precios, lo que representa una estimación conservadora "
-        f"que evita que valores extremos afecten la estimación."
+        f"del pool de precios, lo que ayuda a evitar que valores extremos "
+        f"afecten la estimación."
     )
     lineas.append(texto_metodologia)
 
@@ -4360,8 +4384,8 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
             texto_cv = (
                 "El pool de comparables tiene una heterogeneidad moderada, reflejando "
                 "diferencias entre las propiedades de la zona. Se utilizó el percentil "
-                "P50 para estimar el valor, lo que ayuda a evitar que valores extremos "
-                "afecten la estimación."
+                "P50 para estimar el valor, lo que ayuda a mitigar el efecto de "
+                "valores atípicos."
             )
         else:
             texto_cv = (
