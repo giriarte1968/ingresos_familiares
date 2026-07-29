@@ -727,11 +727,19 @@ def render_tabla_comparables(res, prop_name=None):
     if stored_sel is None:
         excluded = res.get('_comp_excluded')
         if excluded:
-            stored_sel = set(cid for cid in comp_ids if cid not in excluded)
+            # Detectar si los IDs excluidos son del formato viejo (sin idx)
+            # Si ningun ID excluido matchea con los comp_ids actuales, son IDs viejos
+            old_format = not any(eid in comp_ids for eid in excluded)
+            if old_format:
+                print(f"[DEBUG-SEL-OLD-ID] {prop_name}: IDs excluidos no matchean formato actual (posible cambio de hash). Limpiando estado.")
+                excluded = None
+                res['_comp_excluded'] = None
+                res['_comp_exclusion_applied'] = False
+            stored_sel = set(cid for cid in comp_ids if cid not in excluded) if excluded else set(comp_ids)
         else:
             stored_sel = set(comp_ids)
         st.session_state[sel_key] = stored_sel
-        print(f"[DEBUG-SEL-INIT] {prop_name}: stored_sel=None, reinicializado desde res._comp_excluded={excluded} → {len(stored_sel)} comps. Keys en session que matchean sel_comp_*: {sum(1 for k in st.session_state if k.startswith(f'sel_comp_{_safe_key(prop_name)}_'))}")
+        print(f"[DEBUG-SEL-INIT] {prop_name}: stored_sel=None, reinicializado desde res._comp_excluded={excluded} → {len(stored_sel)} comps.")
     if not isinstance(stored_sel, set):
         stored_sel = set(stored_sel)
 
@@ -756,9 +764,9 @@ def render_tabla_comparables(res, prop_name=None):
                     # Solo efecto visual: seleccionar todos los comparables
                     for cid in comp_ids:
                         st.session_state[f'sel_comp_{_safe_key(prop_name)}_{cid}'] = True
-                    st.session_state[f'comp_selection_{_safe_key(prop_name)}'] = set(comp_ids)
-                    st.session_state.pop(f'comp_excluded_{prop_name}', None)
-                    st.session_state.pop(f'_comp_exclusion_applied_{prop_name}', None)
+                    st.session_state[sel_key] = set(comp_ids)
+                    st.session_state.pop(f'comp_excluded_{_safe_key(prop_name)}', None)
+                    st.session_state.pop(f'_comp_exclusion_applied_{_safe_key(prop_name)}', None)
                     st.session_state.pop(f'_comp_interacted_{prop_name}', None)
                     # FORZAR RECALCULO: Para que el motor vuelva a calcular la mediana del pool completo
                     st.session_state[f'forzar_recalculo_{prop_name}'] = True

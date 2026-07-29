@@ -568,34 +568,34 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
 
     # ─── ⚡ Acciones ───
     with st.expander(f"⚡ Acciones — {prop_name}", expanded=False):
-        with profile_block("generar_reporte_pdf", prop):
-            try:
-                pdf_bytes = generar_reporte_pdf(prop, display_result, auto_result=auto_result)
-            except Exception as e_pdf:
-                import traceback as _tb
-                _tb_str = ''.join(_tb.format_exception(type(e_pdf), e_pdf, e_pdf.__traceback__))
-                print(f"[ERROR-PDF] {prop_name}: {e_pdf}")
-                print(f"[ERROR-PDF] {prop_name} traceback:\n{_tb_str}")
-                pdf_bytes = None
-
         col1, col2, col3 = st.columns(3)
         with col1:
             hay_catastro = render_catastro(prop, res, compact=True)
         with col2:
             render_street_view(prop, compact=True)
         with col3:
-            if pdf_bytes:
-                with profile_block("download_button", prop):
+            if st.button("Generar PDF", key=f"btn_gen_pdf_{_safe_key(prop_name)}", use_container_width=True, type="primary"):
+                with st.spinner("Generando PDF..."):
+                    try:
+                        pdf_bytes = generar_reporte_pdf(prop, display_result, auto_result=auto_result)
+                    except Exception as e_pdf:
+                        import traceback as _tb
+                        _tb_str = ''.join(_tb.format_exception(type(e_pdf), e_pdf, e_pdf.__traceback__))
+                        print(f"[ERROR-PDF] {prop_name}: {e_pdf}")
+                        print(f"[ERROR-PDF] {prop_name} traceback:\n{_tb_str}")
+                        pdf_bytes = None
+                if pdf_bytes:
                     st.download_button(
-                        "Reporte PDF",
+                        "Descargar PDF",
                         data=pdf_bytes,
                         file_name=f"valuacion_{prop.get('nombre','propiedad').replace(' ','_')}.pdf",
                         mime="application/pdf",
-                        type="primary",
+                        type="secondary",
                         use_container_width=True,
+                        key=f"dl_pdf_{_safe_key(prop_name)}",
                     )
-            else:
-                st.warning("No se pudo generar el PDF. Ver consola para detalles.")
+                else:
+                    st.error("No se pudo generar el PDF. Ver consola para detalles.")
         _dl.mark("after_pdf_download")
 
         if hay_catastro:
