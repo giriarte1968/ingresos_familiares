@@ -1299,7 +1299,7 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
         try:
             import folium
             from folium.plugins import MarkerCluster
-            _m = folium.Map(location=[prop_lat, prop_lon], zoom_start=15, tiles='cartodbpositron')
+            _m = folium.Map(location=[prop_lat, prop_lon], zoom_start=14, tiles='cartodbpositron', width='100%', height='350px')
             folium.Marker(
                 [prop_lat, prop_lon],
                 popup=f"<b>{prop.get('nombre', 'Propiedad')}</b>",
@@ -1337,7 +1337,7 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
                 "p = sync_playwright().start()\n"
                 "b = p.chromium.launch(headless=True)\n"
                 "pg = b.new_page()\n"
-                "pg.set_viewport_size({'width': 900, 'height': 700})\n"
+                "pg.set_viewport_size({'width': 1200, 'height': 500})\n"
                 f"pg.goto('file:///{_map_html_fwd}', wait_until='networkidle')\n"
                 "time.sleep(3)\n"
                 f"pg.screenshot(path=r'{_map_png_fwd}', full_page=True)\n"
@@ -1622,6 +1622,26 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
         terminaciones=prop.get('terminaciones', ''),
         descripcion_libre=prop.get('descripcion_libre', ''),
         amenities_list=', '.join(prop.get('detalles_categoria', [])[:5]) if prop.get('detalles_categoria') else '',
+        balcon=prop.get('balcon', False),
+        tipo_balcon=prop.get('tipo_balcon', ''),
+        m2_semi_detalle=prop.get('m2_semicubiertos_detalle', ''),
+        disposicion=prop.get('disposicion', ''),
+        ubicacion_tipo=prop.get('ubicacion_tipo', ''),
+        reciclado=prop.get('reciclado', False),
+        reciclado_tipo=prop.get('reciclado_tipo', ''),
+        anio_reciclado=prop.get('anio_reciclado', ''),
+        gas_ok=prop.get('gas_ok', ''),
+        doble_ingreso=prop.get('doble_ingreso', False),
+        despensa=prop.get('despensa', False),
+        lavadero_independiente=prop.get('lavadero_independiente', False),
+        placares_completos=prop.get('placares_completos', False),
+        layout_flexible=prop.get('layout_flexible', False),
+        cocheras_tipo=prop.get('cocheras_tipo', ''),
+        valor_cochera_base=prop.get('valor_cochera_base', ''),
+        carpinteria=prop.get('carpinteria', ''),
+        terminaciones_suelo=prop.get('terminaciones_suelo', ''),
+        terminaciones_cocina=prop.get('terminaciones_cocina', ''),
+        ventilacion_bano=prop.get('ventilacion_bano', ''),
         alquiler_ars=f"{alq_ars:,}",
         alquiler_usd=f"{alq_usd:,}",
         cap_rate=f"{cap_rate*100:.1f}%",

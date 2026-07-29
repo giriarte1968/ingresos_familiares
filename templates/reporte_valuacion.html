@@ -151,7 +151,7 @@
   .text-sm    { font-size: 10px; }
 
   /* Mapa: forzar ancho completo y altura fija */
-  .map-img { width: 100%; max-height: 280px; object-fit: contain; display: block; border-radius: 10px; }
+  .map-img { width: 100%; object-fit: contain; display: block; border-radius: 10px; }
 </style>
 </head>
 <body>
@@ -170,7 +170,7 @@
   </div>
   <div class="cover-divider"></div>
   <div class="cover-title">Informe de Valuación</div>
-  <div class="cover-subtitle">Modelo de Valuación por Comparables (AVM)</div>
+  <div class="cover-subtitle">Modelo de Valuación por Comparables de Mercado</div>
   <div class="cover-address">{{ nombre }}</div>
   <div class="cover-zone">{{ direccion }} — {{ zona }}</div>
   <div class="cover-footer">
@@ -198,7 +198,7 @@
   <div class="section">
     <div class="section-header">
       <div class="section-icon">🏠</div>
-      <div class="section-title">Características de la Propiedad</div>
+      <div class="section-title" style="font-weight:800;">Características de la Propiedad</div>
     </div>
     <div style="background:#f8fafc; border-radius:10px; padding:14px; border:1px solid #e2e8f0;">
       <div style="font-size:15px; font-weight:700; color:#0f172a; margin-bottom:3px;">{{ nombre }}</div>
@@ -208,41 +208,53 @@
           <table class="data-table">
             {% if tipo_inmueble %}<tr><td style="color:#64748b;font-weight:600;">Tipo</td><td>{{ tipo_inmueble | capitalize }}</td></tr>{% endif %}
             {% if m2_cub and m2_cub != '0' %}<tr><td style="color:#64748b;font-weight:600;">Sup. cubierta</td><td>{{ m2_cub }} m²</td></tr>{% endif %}
-            {% if m2_semi and m2_semi != '0' %}<tr><td style="color:#64748b;font-weight:600;">Sup. semicubierta</td><td>{{ m2_semi }} m²</td></tr>{% endif %}
+            {% if m2_semi and m2_semi != '0' %}<tr><td style="color:#64748b;font-weight:600;">Sup. semicubierta</td><td>{{ m2_semi }} m²{% if m2_semi_detalle %} ({{ m2_semi_detalle }}){% endif %}</td></tr>{% endif %}
             {% if m2_desc and m2_desc != '0' %}<tr><td style="color:#64748b;font-weight:600;">Sup. descubierta</td><td>{{ m2_desc }} m²</td></tr>{% endif %}
             {% if m2_total and m2_total != '0' %}<tr><td style="color:#64748b;font-weight:600;">Sup. total</td><td>{{ m2_total }} m²</td></tr>{% endif %}
             {% if m2_eq and m2_eq != '0' %}<tr><td style="color:#64748b;font-weight:600;">m² equivalentes</td><td>{{ m2_eq }} m²</td></tr>{% endif %}
             {% if dormitorios %}<tr><td style="color:#64748b;font-weight:600;">Dormitorios</td><td>{{ dormitorios }}</td></tr>{% endif %}
             {% if ambientes %}<tr><td style="color:#64748b;font-weight:600;">Ambientes</td><td>{{ ambientes }}</td></tr>{% endif %}
             {% if banos %}<tr><td style="color:#64748b;font-weight:600;">Baños</td><td>{{ banos }}{% if toilet %} + toilette{% endif %}</td></tr>{% endif %}
+            {% if disposicion %}<tr><td style="color:#64748b;font-weight:600;">Disposición</td><td>{{ disposicion | capitalize }}</td></tr>{% endif %}
+            {% if ubicacion_tipo %}<tr><td style="color:#64748b;font-weight:600;">Ubicación</td><td>{{ ubicacion_tipo | capitalize }}</td></tr>{% endif %}
           </table>
         </div>
         <div>
           <table class="data-table">
             {% if piso %}<tr><td style="color:#64748b;font-weight:600;">Piso</td><td>{{ piso }}° de {{ total_pisos }}</td></tr>{% endif %}
             {% if anio_const and anio_const != '?' %}<tr><td style="color:#64748b;font-weight:600;">Año construcción</td><td>{{ anio_const }}{% if antiguedad and antiguedad != '0' %} ({{ antiguedad }} años){% endif %}</td></tr>{% endif %}
+            {% if reciclado %}<tr><td style="color:#64748b;font-weight:600;">Reciclado</td><td>Sí{% if reciclado_tipo %} ({{ reciclado_tipo | capitalize }}){% endif %}{% if anio_reciclado %} — {{ anio_reciclado }}{% endif %}</td></tr>{% endif %}
             {% if estado %}<tr><td style="color:#64748b;font-weight:600;">Estado</td><td>{{ estado | capitalize }}</td></tr>{% endif %}
             {% if calidad_edificio %}<tr><td style="color:#64748b;font-weight:600;">Calidad edificio</td><td>{{ calidad_edificio | capitalize }}</td></tr>{% endif %}
             {% if constructora %}<tr><td style="color:#64748b;font-weight:600;">Constructora</td><td>{{ constructora }}</td></tr>{% endif %}
             {% if orientacion %}<tr><td style="color:#64748b;font-weight:600;">Orientación</td><td>{{ orientacion | capitalize }}</td></tr>{% endif %}
             {% if ventilacion %}<tr><td style="color:#64748b;font-weight:600;">Ventilación</td><td>{{ ventilacion | capitalize }}</td></tr>{% endif %}
             {% if vista %}<tr><td style="color:#64748b;font-weight:600;">Vista</td><td>{{ vista | capitalize }}</td></tr>{% endif %}
+            {% if gas_ok %}<tr><td style="color:#64748b;font-weight:600;">Gas</td><td>{{ gas_ok | capitalize }}</td></tr>{% endif %}
             {% if expensas and expensas != '0' %}<tr><td style="color:#64748b;font-weight:600;">Expensas</td><td>ARS {{ expensas }}</td></tr>{% endif %}
           </table>
         </div>
       </div>
 
-      <!-- Fila 2 de características adicionales -->
-      {% if cocheras or baulera or amenities_list or seguridad or terminaciones or descripcion_libre %}
+      <!-- Fila 2: Amenities y extras -->
+      {% if cocheras or baulera or balcon or despensa or lavadero_independiente or placares_completos or doble_ingreso or layout_flexible or seguridad or ascensores or carpinteria or terminaciones_suelo or terminaciones_cocina or ventilacion_bano or amenities_list or descripcion_libre %}
       <div style="margin-top:10px; border-top:1px solid #e2e8f0; padding-top:10px;">
         <table class="data-table">
-          {% if cocheras %}<tr><td style="color:#64748b;font-weight:600;width:30%;">Cochera(s)</td><td>{{ cocheras }}</td></tr>{% endif %}
-          {% if baulera %}<tr><td style="color:#64748b;font-weight:600;">Baulera</td><td>Sí</td></tr>{% endif %}
+          {% if cocheras %}<tr><td style="color:#64748b;font-weight:600;width:30%;">Cochera(s)</td><td>{{ cocheras }}{% if cocheras_tipo %} ({{ cocheras_tipo | capitalize }}){% endif %}{% if valor_cochera_base %} — USD {{ valor_cochera_base }}{% endif %}</td></tr>{% endif %}
+          {% if balcon %}<tr><td style="color:#64748b;font-weight:600;">Balcón</td><td>Sí{% if tipo_balcon %} ({{ tipo_balcon | capitalize }}){% endif %}</td></tr>{% endif %}
+          {% if despensa %}<tr><td style="color:#64748b;font-weight:600;">Despensa</td><td>Sí</td></tr>{% endif %}
+          {% if lavadero_independiente %}<tr><td style="color:#64748b;font-weight:600;">Lavadero independiente</td><td>Sí</td></tr>{% endif %}
+          {% if placares_completos %}<tr><td style="color:#64748b;font-weight:600;">Placares completos</td><td>Sí</td></tr>{% endif %}
+          {% if doble_ingreso %}<tr><td style="color:#64748b;font-weight:600;">Doble ingreso</td><td>Sí</td></tr>{% endif %}
+          {% if layout_flexible %}<tr><td style="color:#64748b;font-weight:600;">Layout flexible</td><td>Sí</td></tr>{% endif %}
           {% if ascensores %}<tr><td style="color:#64748b;font-weight:600;">Ascensores</td><td>{{ ascensores }}</td></tr>{% endif %}
           {% if seguridad %}<tr><td style="color:#64748b;font-weight:600;">Seguridad</td><td>{{ seguridad | capitalize }}</td></tr>{% endif %}
-          {% if terminaciones %}<tr><td style="color:#64748b;font-weight:600;">Terminaciones</td><td>{{ terminaciones }}</td></tr>{% endif %}
+          {% if carpinteria %}<tr><td style="color:#64748b;font-weight:600;">Carpintería</td><td>{{ carpinteria | capitalize }}</td></tr>{% endif %}
+          {% if terminaciones_suelo %}<tr><td style="color:#64748b;font-weight:600;">Suelo</td><td>{{ terminaciones_suelo | capitalize }}</td></tr>{% endif %}
+          {% if terminaciones_cocina %}<tr><td style="color:#64748b;font-weight:600;">Cocina</td><td>{{ terminaciones_cocina | capitalize }}</td></tr>{% endif %}
+          {% if ventilacion_bano %}<tr><td style="color:#64748b;font-weight:600;">Ventilación baño</td><td>{{ ventilacion_bano | capitalize }}</td></tr>{% endif %}
           {% if amenities_list %}<tr><td style="color:#64748b;font-weight:600;">Amenities</td><td>{{ amenities_list }}</td></tr>{% endif %}
-          {% if descripcion_libre %}<tr><td style="color:#64748b;font-weight:600;">Observaciones</td><td>{{ descripcion_libre | capitalize }}</td></tr>{% endif %}
+          {% if descripcion_libre %}<tr><td style="color:#64748b;font-weight:600;">Observaciones</td><td>{{ descripcion_libre }}</td></tr>{% endif %}
         </table>
       </div>
       {% endif %}
