@@ -574,14 +574,12 @@ def render_metricas(prop, res, valor_usd, dolar, auto_result=None, manual_result
             pass
 
     alq_usd = int(alq_ars / dolar) if dolar > 0 else 0
-    alq_line1 = f"${alq_ars:,.0f} ARS/mes"
-    alq_line2 = f"USD {alq_usd:,}" if alq_usd > 0 else ""
-    if alq_min > 0 and alq_max > 0:
-        alq_line2 += f" · Rango ${alq_min:,.0f}–${alq_max:,.0f}"
+    alq_value = f"${alq_ars:,.0f} ARS / mes   USD {alq_usd:,}" if alq_usd > 0 else f"${alq_ars:,.0f} ARS / mes"
+    alq_sub = f"Rango: ${alq_min:,.0f} – ${alq_max:,.0f}" if alq_min > 0 and alq_max > 0 else "Sin datos de rango"
 
     m1, m2, m3 = st.columns(3)
     with m1:
-        st.markdown(metric_card("", "Alquiler Estimado", alq_line1, alq_line2), unsafe_allow_html=True)
+        st.markdown(metric_card("", "Alquiler", alq_value, alq_sub), unsafe_allow_html=True)
     with m2:
         st.markdown(metric_card("", "Rentabilidad Neta", f"{cap*100:.1f}% anual", f"Cierre est: ${valor_usd*0.92:,.0f} USD", border_color="#16A34A"), unsafe_allow_html=True)
 
@@ -593,6 +591,38 @@ def render_metricas(prop, res, valor_usd, dolar, auto_result=None, manual_result
             st.markdown(metric_card("", "Plusvalia", f"+${gain:,.0f} USD", f"{pct:+.1f}% desde compra", border_color="#F59E0B"), unsafe_allow_html=True)
         else:
             st.markdown(metric_card("", "Plusvalia", "-", "Sin datos de compra", border_color="#F59E0B"), unsafe_allow_html=True)
+
+    # Tarjeta de Rentabilidad de la inversión
+    expensas = prop.get('expensas_ars', 0)
+    mantenimiento = int(alq_ars * 0.065) if alq_ars > 0 else 0
+    vacancia = int(alq_ars * 0.04) if alq_ars > 0 else 0
+    cap_rate_pct = cap * 100
+    cap_rate_neto_pct = cap_rate_pct * 0.92
+
+    rentabilidad_html = f"""
+    <div style="background:white;border-radius:16px;padding:20px 24px;box-shadow:0 4px 12px rgba(0,0,0,0.08);margin-top:12px;">
+        <div style="font-size:14px;font-weight:700;color:#1A2B5C;margin-bottom:12px;">Rentabilidad de la inversión</div>
+        <div style="display:flex;gap:32px;margin-bottom:16px;">
+            <div>
+                <div style="color:#6B7280;font-size:12px;">Rentabilidad bruta</div>
+                <div style="color:#1A2B5C;font-size:18px;font-weight:700;">{cap_rate_pct:.1f}% anual</div>
+            </div>
+            <div>
+                <div style="color:#6B7280;font-size:12px;">Rentabilidad neta</div>
+                <div style="color:#16A34A;font-size:18px;font-weight:700;">{cap_rate_neto_pct:.1f}% anual</div>
+            </div>
+        </div>
+        <div style="border-top:1px solid #E5E7EB;padding-top:12px;">
+            <div style="color:#6B7280;font-size:12px;font-weight:600;margin-bottom:8px;">Costos del propietario:</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 24px;font-size:13px;color:#374151;">
+                <div>Expensas extraordinarias:</div><div style="text-align:right;">${expensas:,.0f} ARS/mes</div>
+                <div>Mantenimiento estimado:</div><div style="text-align:right;">${mantenimiento:,.0f} ARS/mes</div>
+                <div>Vacancia estimada (4%):</div><div style="text-align:right;">${vacancia:,.0f} ARS/mes</div>
+            </div>
+        </div>
+    </div>
+    """
+    st.markdown(rentabilidad_html, unsafe_allow_html=True)
 
 
 def render_razonamiento(prop, res):

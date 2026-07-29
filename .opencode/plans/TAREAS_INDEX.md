@@ -114,3 +114,4 @@
 | TAREA-151 | Reordenar barreras_rosario.json (soft antes que hard) | `e141789` | 2026-07-25 |
 | TAREA-152 | Eliminar 10 segmentos internos de Av. Francia en Puerto Norte | `52f2184` | 2026-07-25 |
 | TAREA-153 | Hacer barreras editables en UI | _(pendiente)_ | 2026-07-25 |
+| TAREA-154 | Rediseño UI: Tarjeta Alquiler con rango + Tarjeta Rentabilidad desglosada | _(pending)_ | 2026-07-28 |

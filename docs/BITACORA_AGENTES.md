@@ -1,6 +1,33 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-07-28 — TAREA-154: Rediseño UI Tarjeta Alquiler + Rentabilidad
+
+### Contexto
+Las tarjetas de métricas de inversión mostraban información incompleta:
+- Alquiler: mostraba rango en línea, sin prefijo "Rango:" explícito
+- "Cap Rate Neto" era poco intuitivo para usuario final
+- No había desglose de costos del propietario
+
+### Cambios
+1. **`valu_detail_sections.py:576-584`** — Tarjeta Alquiler: label "Alquiler Estimado" → "Alquiler", formato `$X ARS / mes   USD Y` + `Rango: $min – $max` explícito
+2. **`valu_detail_sections.py:586`** — "Rentabilidad Neta" ya estaba correctamente renombrado (Paso 2 completado previamente)
+3. **`valu_detail_sections.py:597-632`** — Nueva tarjeta "Rentabilidad de la inversión" con:
+   - Rentabilidad bruta (cap_rate × 100) y neta (× 0.92)
+   - Desglose: Expensas extraordinarias, Mantenimiento estimado (6.5% alquiler), Vacancia estimada (4%)
+4. **`auto_validate.py`** — Validación pasa correctamente
+
+### Reglas de oro afectadas
+- Sin violaciones. Solo cambios cosméticos de UI. No se modifica lógica de cálculo del motor.
+
+### Resultado
+- Validación automática OK
+- Tarjeta "Alquiler" muestra rango explícito con ARS + USD
+- Tarjeta "Rentabilidad Neta" (ya existente)
+- Nueva tarjeta "Rentabilidad de la inversión" con desglose completo
+
+---
+
 ## 2026-07-20 — TAREA-140: Transparencia en cantidad de comparables
 
 ### Contexto
@@ -4701,3 +4728,27 @@ Los range bars (Conservador | Spread | Optimista) se mostraban como HTML crudo e
 - Alquiler siempre basado en la mayor valuación disponible
 - 55/55 tests pasan
 - Commit: `2f9e049`
+
+---
+
+## 2026-07-28 — Fix: Razonamiento auto en PDF + alquiler usa cap_rate del mercado
+
+### Contexto
+1. El razonamiento automático no se enviaba al PDF cuando `fuente_activa == 'manual'`
+2. El alquiler usaba `cap_rate=0.05` (hardcodeado en `generar_resultado_manual`) en vez del mercado (0.0809)
+
+### Causa raíz
+1. `generar_reporte_pdf()` leía razonamiento de `display_result` (manual) en vez de `auto_result`
+2. `render_metricas()` línea 555: `best_cap = manual_result.get('cap_rate', cap)` → 0.05
+3. `generar_resultado_manual()` en `mercado_inmobiliario.py:4159` hardcodea `cap_rate = 0.05`
+
+### Cambios
+1. **`valu_detail_sections.py:1318-1326`** — Razonamiento auto se lee de `auto_result` parameter
+2. **`valu_detail_sections.py:555`** — `best_cap = auto_result.get('cap_rate', cap)` en vez de `manual_result.get('cap_rate', cap)`
+
+### Resultado
+- Razonamiento automático aparece en PDF
+- Alquiler usa cap_rate del mercado (8.09%) no el hardcodeado (5%)
+- Ayacucho: $39,514 × 0.0809 / 12 × 1,604 = $427,076 ARS/mes
+- 55/55 tests pasan
+- Commit: `fa1f7cd`
