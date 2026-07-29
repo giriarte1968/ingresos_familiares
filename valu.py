@@ -351,7 +351,8 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     from valu_detail_sections import (
         render_actions, render_header, render_metricas,
         render_razonamiento, render_mapa_propiedad, render_tabla_comparables,
-        render_catastro, render_street_view, render_historial, generar_reporte_pdf,
+        render_catastro, render_street_view, render_historial,
+        generar_reporte_pdf, generar_reporte_html, generar_reporte_pdf_bytes,
         render_valuacion_manual, render_disk_summary_card,
         render_manual_valuation_card,
     )
@@ -574,28 +575,51 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         with col2:
             render_street_view(prop, compact=True)
         with col3:
-            if st.button("Generar PDF", key=f"btn_gen_pdf_{_safe_key(prop_name)}", use_container_width=True, type="primary"):
-                with st.spinner("Generando PDF..."):
-                    try:
-                        pdf_bytes = generar_reporte_pdf(prop, display_result, auto_result=auto_result)
-                    except Exception as e_pdf:
-                        import traceback as _tb
-                        _tb_str = ''.join(_tb.format_exception(type(e_pdf), e_pdf, e_pdf.__traceback__))
-                        print(f"[ERROR-PDF] {prop_name}: {e_pdf}")
-                        print(f"[ERROR-PDF] {prop_name} traceback:\n{_tb_str}")
-                        pdf_bytes = None
-                if pdf_bytes:
-                    st.download_button(
-                        "Descargar PDF",
-                        data=pdf_bytes,
-                        file_name=f"valuacion_{prop.get('nombre','propiedad').replace(' ','_')}.pdf",
-                        mime="application/pdf",
-                        type="secondary",
-                        use_container_width=True,
-                        key=f"dl_pdf_{_safe_key(prop_name)}",
-                    )
-                else:
-                    st.error("No se pudo generar el PDF. Ver consola para detalles.")
+            if st.button("Vista Previa", key=f"btn_preview_{_safe_key(prop_name)}", use_container_width=True, type="primary"):
+                try:
+                    html_preview = generar_reporte_html(prop, display_result, auto_result=auto_result)
+                    st.session_state[f'pdf_preview_html_{prop_name}'] = html_preview
+                except Exception as e_prev:
+                    import traceback as _tb
+                    _tb_str = ''.join(_tb.format_exception(type(e_prev), e_prev, e_prev.__traceback__))
+                    print(f"[ERROR-PREVIEW] {prop_name}: {e_prev}")
+                    print(f"[ERROR-PREVIEW] {prop_name} traceback:\n{_tb_str}")
+                    st.error(f"Error generando preview: {e_prev}")
+
+            _preview_html = st.session_state.get(f'pdf_preview_html_{prop_name}')
+            if _preview_html:
+                st.markdown("---")
+                st.markdown("**Vista Previa del Reporte:**")
+                import base64 as _b64prev
+                _prev_b64 = _b64prev.b64encode(_preview_html.encode('utf-8')).decode()
+                st.components.v1.html(
+                    f'<iframe src="data:text/html;base64,{_prev_b64}" width="100%" height="800" style="border:1px solid #e2e8f0; border-radius:8px;"></iframe>',
+                    height=820,
+                    scrolling=True,
+                )
+                st.markdown("---")
+                if st.button("Descargar PDF", key=f"btn_gen_pdf_{_safe_key(prop_name)}", use_container_width=True, type="secondary"):
+                    with st.spinner("Generando PDF... (~30s)"):
+                        try:
+                            pdf_bytes = generar_reporte_pdf_bytes(prop, display_result, auto_result=auto_result)
+                        except Exception as e_pdf:
+                            import traceback as _tb
+                            _tb_str = ''.join(_tb.format_exception(type(e_pdf), e_pdf, e_pdf.__traceback__))
+                            print(f"[ERROR-PDF] {prop_name}: {e_pdf}")
+                            print(f"[ERROR-PDF] {prop_name} traceback:\n{_tb_str}")
+                            pdf_bytes = None
+                    if pdf_bytes:
+                        st.download_button(
+                            "Descargar PDF",
+                            data=pdf_bytes,
+                            file_name=f"valuacion_{prop.get('nombre','propiedad').replace(' ','_')}.pdf",
+                            mime="application/pdf",
+                            type="primary",
+                            use_container_width=True,
+                            key=f"dl_pdf_{_safe_key(prop_name)}",
+                        )
+                    else:
+                        st.error("No se pudo generar el PDF. Ver consola para detalles.")
         _dl.mark("after_pdf_download")
 
         if hay_catastro:

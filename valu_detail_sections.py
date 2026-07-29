@@ -1672,6 +1672,18 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
         cv_qualitative=cv_qualitative,
     )
 
+    return html_content
+
+
+def generar_reporte_html(prop: dict, res: dict, auto_result: dict = None) -> str:
+    """Genera HTML del reporte (para preview en iframe)."""
+    return generar_reporte_pdf(prop, res, auto_result)
+
+
+def generar_reporte_pdf_bytes(prop: dict, res: dict, auto_result: dict = None) -> bytes:
+    """Genera PDF a partir del HTML (Playwright subprocess)."""
+    html_content = generar_reporte_pdf(prop, res, auto_result)
+
     # ── Generar PDF con Playwright (subprocess para evitar event loop de Streamlit) ──
     import subprocess, tempfile
     with tempfile.NamedTemporaryFile(suffix='.html', delete=False, mode='w', encoding='utf-8') as f:
