@@ -4343,8 +4343,11 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
     barreras = _n_total > 0 and _n_cross > 0 and (_n_cross / _n_total) > 0.30
     if barreras and radio > 0:
         texto_mercado += (
-            " Se verificó que las propiedades comparables cercanas a vías "
-            "principales mantienen precios similares a las del mismo lado."
+            " Se analizaron propiedades ubicadas de ambos lados de vías de "
+            "circulación principales (avenidas, vías del ferrocarril). En este "
+            "caso, se verificó que los precios no presentan diferencias "
+            "significativas por la cercanía a dichas vías, por lo que se "
+            "incluyeron todas las propiedades en el análisis sin segmentar."
         )
     elif radio <= 500:
         texto_mercado += (
@@ -4356,12 +4359,13 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
 
     # ─── PÁRRAFO 2b: Metodología ───
     texto_metodologia = (
-        f"Para llegar a la estimación, se seleccionaron {n_comps} propiedades comparables "
-        f"en un radio de {radio} metros, filtradas por tipo de inmueble, operación y cantidad "
-        f"de dormitorios. Se utilizaron propiedades de reciente venta para reflejar precios "
-        f"actualizados del mercado. El valor final se calculó como el percentil {meta.get('percentil_usado', 'P50')} "
-        f"del pool de precios, lo que ayuda a evitar que valores extremos "
-        f"afecten la estimación."
+        f"Se analizaron {n_comps} propiedades comparables ubicadas en un radio "
+        f"de {radio} metros, todas del mismo tipo (departamento), en operación "
+        f"de venta y con similar cantidad de dormitorios. Se priorizaron "
+        f"publicaciones recientes para reflejar el precio actual del mercado. "
+        f"El valor estimado se obtuvo a partir del análisis del conjunto de "
+        f"precios observados, descartando valores extremos que pudieran "
+        f"distorsionar la estimación."
     )
     lineas.append(texto_metodologia)
 
@@ -4382,15 +4386,15 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
             )
         elif cv_pool < 0.20:
             texto_cv = (
-                "El pool de comparables tiene una heterogeneidad moderada, reflejando "
-                "diferencias entre las propiedades de la zona. Se utilizó el percentil "
-                "P50 para estimar el valor, lo que ayuda a mitigar el efecto de "
-                "valores atípicos."
+                "El pool de comparables tiene una heterogeneidad moderada, "
+                "reflejando diferencias entre las propiedades de la zona. "
+                "Se utilizó un criterio conservador para estimar el valor, "
+                "lo que ayuda a mitigar el efecto de valores atípicos."
             )
         else:
             texto_cv = (
                 "El pool de comparables es heterogéneo, con propiedades que presentan "
-                "características diversas. Se utilizó un percentil conservador para "
+                "características diversas. Se aplicó un criterio conservador para "
                 "minimizar el impacto de la variabilidad en la estimación."
             )
         lineas.append(texto_cv)

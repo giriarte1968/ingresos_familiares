@@ -1240,9 +1240,9 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
     m2_eq = res.get('m2_equivalentes') or prop.get('m2', 0)
     m2_eq = _safe_float(m2_eq, 0.0)
 
-    # Comparables — top 6 por relevancia para PDF (estandar industria)
+    # Comparables — top 76 por relevancia para PDF
     comps = res.get('comparables_venta', [])
-    comps_sorted = sorted(comps, key=lambda c: abs(c.get('precio_m2', 0) * c.get('time_adjustment', 1.0) - m2_base))[:6]
+    comps_sorted = sorted(comps, key=lambda c: abs(c.get('precio_m2', 0) * c.get('time_adjustment', 1.0) - m2_base))[:76]
     comparables_list = []
     comp_coords = []  # lat, lon for map
     for c in comps_sorted:
