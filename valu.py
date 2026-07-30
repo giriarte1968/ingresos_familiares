@@ -582,7 +582,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                     _prev_file = _tfprev.NamedTemporaryFile(suffix='.html', delete=False, mode='w', encoding='utf-8')
                     _prev_file.write(html_preview)
                     _prev_file.close()
-                    _prev_fwd = _prev_file.name.replace(os.sep, '/')
+                    _prev_fwd = _prev_file.name.replace('\\', '/')
                     st.session_state[f'pdf_preview_path_{prop_name}'] = _prev_fwd
                 except Exception as e_prev:
                     import traceback as _tb
