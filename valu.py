@@ -578,7 +578,12 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
             if st.button("Vista Previa", key=f"btn_preview_{_safe_key(prop_name)}", use_container_width=True, type="primary"):
                 try:
                     html_preview = generar_reporte_html(prop, display_result, auto_result=auto_result)
-                    st.session_state[f'pdf_preview_html_{prop_name}'] = html_preview
+                    import tempfile as _tfprev
+                    _prev_file = _tfprev.NamedTemporaryFile(suffix='.html', delete=False, mode='w', encoding='utf-8')
+                    _prev_file.write(html_preview)
+                    _prev_file.close()
+                    _prev_fwd = _prev_file.name.replace(os.sep, '/')
+                    st.session_state[f'pdf_preview_path_{prop_name}'] = _prev_fwd
                 except Exception as e_prev:
                     import traceback as _tb
                     _tb_str = ''.join(_tb.format_exception(type(e_prev), e_prev, e_prev.__traceback__))
@@ -586,17 +591,14 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                     print(f"[ERROR-PREVIEW] {prop_name} traceback:\n{_tb_str}")
                     st.error(f"Error generando preview: {e_prev}")
 
-            _preview_html = st.session_state.get(f'pdf_preview_html_{prop_name}')
-            if _preview_html:
-                st.markdown("---")
-                st.markdown("**Vista Previa del Reporte:**")
-                import base64 as _b64prev
-                _prev_b64 = _b64prev.b64encode(_preview_html.encode('utf-8')).decode()
+            _preview_path = st.session_state.get(f'pdf_preview_path_{prop_name}')
+            if _preview_path:
                 st.components.v1.html(
-                    f'<iframe src="data:text/html;base64,{_prev_b64}" width="100%" height="800" style="border:1px solid #e2e8f0; border-radius:8px;"></iframe>',
-                    height=820,
-                    scrolling=True,
+                    f'<script>window.open("file:///{_preview_path}", "_blank");</script>',
+                    height=0,
                 )
+                del st.session_state[f'pdf_preview_path_{prop_name}']
+                st.info("Abriendo vista previa en nuevo tab...")
                 st.markdown("---")
                 if st.button("Descargar PDF", key=f"btn_gen_pdf_{_safe_key(prop_name)}", use_container_width=True, type="secondary"):
                     with st.spinner("Generando PDF... (~30s)"):
