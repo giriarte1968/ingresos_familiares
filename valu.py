@@ -352,7 +352,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         render_actions, render_header, render_metricas,
         render_razonamiento, render_mapa_propiedad, render_tabla_comparables,
         render_catastro, render_street_view, render_historial,
-        generar_reporte_pdf, generar_reporte_html, generar_reporte_pdf_bytes,
+        generar_reporte_pdf, generar_reporte_pdf_bytes,
         render_valuacion_manual, render_disk_summary_card,
         render_manual_valuation_card,
     )
@@ -575,25 +575,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         with col2:
             render_street_view(prop, compact=True)
         with col3:
-            if st.button("Vista Previa", key=f"btn_preview_{_safe_key(prop_name)}", use_container_width=True, type="primary"):
-                try:
-                    html_preview = generar_reporte_html(prop, display_result, auto_result=auto_result)
-                    import tempfile as _tfprev
-                    _prev_file = _tfprev.NamedTemporaryFile(suffix='.html', delete=False, mode='w', encoding='utf-8', dir='.')
-                    _prev_file.write(html_preview)
-                    _prev_file.close()
-                    _prev_fwd = _prev_file.name.replace('\\', '/')
-                    import webbrowser
-                    webbrowser.open(f'file:///{_prev_fwd}')
-                    st.toast("Vista previa abierta en nuevo tab", icon="📄")
-                except Exception as e_prev:
-                    import traceback as _tb
-                    _tb_str = ''.join(_tb.format_exception(type(e_prev), e_prev, e_prev.__traceback__))
-                    print(f"[ERROR-PREVIEW] {prop_name}: {e_prev}")
-                    print(f"[ERROR-PREVIEW] {prop_name} traceback:\n{_tb_str}")
-                    st.error(f"Error generando preview: {e_prev}")
-
-            if st.button("Descargar PDF", key=f"btn_gen_pdf_{_safe_key(prop_name)}", use_container_width=True, type="secondary"):
+            if st.button("Generar PDF", key=f"btn_gen_pdf_{_safe_key(prop_name)}", use_container_width=True, type="primary"):
                 with st.spinner("Generando PDF... (~30s)"):
                     try:
                         pdf_bytes = generar_reporte_pdf_bytes(prop, display_result, auto_result=auto_result)
@@ -609,7 +591,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                         data=pdf_bytes,
                         file_name=f"valuacion_{prop.get('nombre','propiedad').replace(' ','_')}.pdf",
                         mime="application/pdf",
-                        type="primary",
+                        type="secondary",
                         use_container_width=True,
                         key=f"dl_pdf_{_safe_key(prop_name)}",
                     )
