@@ -167,6 +167,20 @@ def render_metricas(prop, res, valor_usd, dolar):
     alq_min, alq_max = alq_r.get('min', 0), alq_r.get('max', 0)
     cap = res.get('cap_rate', 0)
 
+    # Fallback: si alquiler es 0 pero hay cap_rate y valor, recalcular
+    if (not alq_ars or alq_ars <= 0) and cap > 0 and valor_usd > 0:
+        try:
+            from parsers.motor_vpp_core import get_binance_usdt_ars
+            dolar_fresh = get_binance_usdt_ars()
+            if dolar_fresh > 0:
+                alq_usd_calc = valor_usd * cap / 12
+                alq_ars = int(alq_usd_calc * dolar_fresh)
+                alq_min = int(alq_ars * 0.85)
+                alq_max = int(alq_ars * 1.15)
+                dolar = dolar_fresh
+        except Exception:
+            pass
+
     if alq_min > 0 and alq_max > 0:
         val_alq = f"${alq_min:,.0f} - ${alq_max:,.0f}"
     else:
@@ -366,7 +380,9 @@ def render_tabla_comparables(res, prop_name=None):
         excluded_ids = [cid for cid in all_ids if cid not in selected_ids]
         
         print(f"[DEBUG-SELECCION] n_sel={n_sel}, excluded_ids={len(excluded_ids)}, precios={[f'{p:,.0f}' for p in precios_sorted]}")
-        is_applied = set(res.get('_comp_excluded', [])) == set(excluded_ids) and res.get('_comp_exclusion_applied', False)
+        _res_excl = res.get('_comp_excluded', [])
+        no_exclusions = len(excluded_ids) == 0 and len(_res_excl) == 0
+        is_applied = no_exclusions or (set(_res_excl) == set(excluded_ids) and res.get('_comp_exclusion_applied', False))
 
         meta = res.get('resolution_metadata', {})
         _cv_approx = meta.get('cv_pool', 0.25)

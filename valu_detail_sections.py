@@ -887,8 +887,9 @@ def render_tabla_comparables(res, prop_name=None):
         if _res_excl is not None and _res_excl != comp_excluded:
             print(f"[GUARDRAIL] RU-EXCL-SOURCE-01: {prop_name}: res._comp_excluded={_res_excl} "
                   f"!= comp_excluded={comp_excluded}. Stale session state leaking!")
-        is_applied = set(comp_excluded) == set(excluded_ids) and comp_applied
-        print(f"[DEBUG-SEL-APPLIED] {prop_name}: is_applied={is_applied}, excluded_ids={excluded_ids}, comp_excluded={comp_excluded}, comp_applied={comp_applied}, n_sel={len(selected_ids)}/{len(comp_ids)}, stored_sel_len={len(stored_sel)}")
+        no_exclusions = len(excluded_ids) == 0 and len(comp_excluded) == 0
+        is_applied = no_exclusions or (set(comp_excluded) == set(excluded_ids) and comp_applied)
+        print(f"[DEBUG-SEL-APPLIED] {prop_name}: is_applied={is_applied}, no_exclusions={no_exclusions}, excluded_ids={excluded_ids}, comp_excluded={comp_excluded}, comp_applied={comp_applied}, n_sel={len(selected_ids)}/{len(comp_ids)}, stored_sel_len={len(stored_sel)}")
 
         # GUARDRAIL: detectar divergencia entre preview vm2 y header m2
         if preview and is_applied:
