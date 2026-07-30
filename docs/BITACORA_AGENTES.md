@@ -4752,3 +4752,25 @@ Los range bars (Conservador | Spread | Optimista) se mostraban como HTML crudo e
 - Ayacucho: $39,514 × 0.0809 / 12 × 1,604 = $427,076 ARS/mes
 - 55/55 tests pasan
 - Commit: `fa1f7cd`
+
+## 2026-07-30 — Fix: Botón "Aplicar selección" se muestra sin cambios
+
+### Contexto
+El botón "Aplicar selección" aparecía activo al entrar a una propiedad (ej: "Entre Rios") sin que el usuario haya desmarcado ningún comparable. Debería solo mostrarse cuando hay cambios activos.
+
+### Root Cause
+En `valu_detail_sections.py:890`, la fórmula era:
+```python
+is_applied = set(comp_excluded) == set(excluded_ids) and comp_applied
+```
+Con 0 exclusiones: `set([]) == set([])` → True, pero `comp_applied = False` (nunca se hizo apply), entonces `is_applied = False`. El botón mostraba "Aplicar selección" en vez de "Selección Aplicada".
+
+### Cambios
+1. **`valu_detail_sections.py:890`** — Agregado `no_exclusions = len(excluded_ids) == 0 and len(comp_excluded) == 0`; si ambas listas están vacías, `is_applied = True`
+2. **`main_valu_detail_sections.py:383`** — Mismo fix aplicado
+3. **`tests/test_regression.py`** — Tests T_S-15 y test_ui_apply_button actualizados para asertar comportamiento correcto
+
+### Resultado
+- 55/55 tests pasan
+- auto_validate: OK
+- Commit: `6f1bd9a`
