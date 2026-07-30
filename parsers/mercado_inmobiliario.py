@@ -1335,6 +1335,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
 
         # === AJUSTE Ct PARA COMPARABLES > VENTANA NATURAL ===
         from parsers.time_adjustment import get_natural_window_dias, calcular_ct, meses_desde, es_nuevo
+        from parsers.time_adjustment import calcular_ct_alquiler
         natural_dias = get_natural_window_dias()
         for p in props:
             dc = p.get('date_created', '')
@@ -1343,8 +1344,13 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             try:
                 m = meses_desde(dc, fecha_ref)
                 if m is not None and m > natural_dias / 30:
-                    p['_time_adjustment'] = calcular_ct(m, es_nuevo(p), macrozona_id=macrozona_id_ct)
-                    print(f"[DEBUG-CT] mz={macrozona_id_ct} meses={m:.2f} props={p.get('direccion','')[:30]} ct={p['_time_adjustment']:.4f}")
+                    if operacion == 'alquiler':
+                        _dorms_p = p.get('dormitorios', dormitorios)
+                        p['_time_adjustment'] = calcular_ct_alquiler(m, macrozona_id=macrozona_id_ct, dormitorios=_dorms_p)
+                        print(f"[DEBUG-CT-ALQ] mz={macrozona_id_ct} meses={m:.2f} dorm={_dorms_p} props={p.get('direccion','')[:30]} ct={p['_time_adjustment']:.4f}")
+                    else:
+                        p['_time_adjustment'] = calcular_ct(m, es_nuevo(p), macrozona_id=macrozona_id_ct)
+                        print(f"[DEBUG-CT] mz={macrozona_id_ct} meses={m:.2f} props={p.get('direccion','')[:30]} ct={p['_time_adjustment']:.4f}")
             except Exception:
                 pass
 

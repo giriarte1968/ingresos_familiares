@@ -1892,6 +1892,100 @@ def mostrar_dashboard():
                     st.error(f"Error guardando ratios: {_e}")
 
 
+        # --- CT Alquiler (TAREA-155) ---
+        st.markdown("---")
+        with st.expander("📈 CT Alquiler — Corrección Temporal para Alquileres", expanded=False):
+            st.caption("Tasa anual usada para ajustar alquileres viejos (>180 días) al valor presente. "
+                       "Fórmula: CT = (1 + tasa)^(meses/12). "
+                       "Fuente: Scrapaping propio + IPEC Sta.Fe (Jun 2026: +39.9% YoY).")
+            st.markdown("**Fórmula:** `alquiler_ajustado = alquiler_original × (1 + ct_alq_rate)^(meses/12)`")
+            st.markdown("---")
+
+            _ruta_ct = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "zonas_depreciacion.json")
+            try:
+                with open(_ruta_ct, "r", encoding="utf-8") as _f:
+                    _ct_data = json.load(_f)
+            except:
+                _ct_data = {"macrozonas": []}
+
+            # Referencia: fuentes oficiales
+            st.markdown("**Fuentes oficiales de referencia:**")
+            _fuentes_rows = [
+                {"Fuente": "IPEC Alquiler Sta. Fe", "Tasa YoY": "+39.9%", "Mes": "Jun 2026", "Alcance": "Santa Fe (Rosario)"},
+                {"Fuente": "ICL (BCRA)", "Tasa YoY": "+32.6%", "Mes": "May 2026", "Alcance": "Nacional"},
+                {"Fuente": "CESO Rosario", "Tasa YoY": "+32.1%", "Mes": "May 2026", "Alcance": "Rosario"},
+            ]
+            st.dataframe(_fuentes_rows, hide_index=True, use_container_width=True)
+            st.markdown("---")
+
+            # Editor por macrozona
+            for _mz in _ct_data.get("macrozonas", []):
+                _ct_rate = _mz.get("ct_alquiler_rate", 0.3014)
+                _ct_by_dorm = _mz.get("ct_alquiler_by_dormitorios", {})
+                _ct_fuente = _mz.get("ct_alquiler_fuente", "")
+                _ct_fecha = _mz.get("ct_alquiler_fecha", "")
+
+                st.markdown(f"**{_mz.get('nombre', _mz['id'])}** ({_mz['id']})")
+                if _ct_fuente:
+                    st.caption(f"Fuente: {_ct_fuente} | Fecha: {_ct_fecha}")
+
+                _ct_cols = st.columns([1, 2])
+                with _ct_cols[0]:
+                    _new_rate = st.number_input(
+                        "CT Alq Rate (anual)",
+                        min_value=-0.5, max_value=2.0, step=0.001, value=float(_ct_rate),
+                        format="%.4f",
+                        key=f"ct_alq_{_mz['id']}",
+                        help="Tasa anual. 0.3014 = +30.1% anual"
+                    )
+                with _ct_cols[1]:
+                    # Sub-editores por dormitorio
+                    _dorm_cols = st.columns(3)
+                    _new_by_dorm = {}
+                    for _di, _dk in enumerate(["1", "2", "3"]):
+                        with _dorm_cols[_di]:
+                            _old_val = float(_ct_by_dorm.get(_dk, _new_rate))
+                            _new_by_dorm[_dk] = st.number_input(
+                                f"CT {_dk}d",
+                                min_value=-0.5, max_value=2.0, step=0.001, value=_old_val,
+                                format="%.4f",
+                                key=f"ct_alq_{_mz['id']}_{_dk}",
+                                help=f"CT para {_dk} dormitorios"
+                            )
+
+                # Fórmula visible
+                _ejemplo_meses = 6
+                _ct_ejemplo = (1.0 + _new_rate) ** (_ejemplo_meses / 12.0)
+                st.caption(f"Ejemplo: 6 meses → CT = (1 + {_new_rate:.4f})^(6/12) = {_ct_ejemplo:.4f} "
+                           f"(ajuste de {_ct_ejemplo - 1:+.1%})")
+
+                st.markdown("---")
+
+            # Botón guardar
+            if st.button("💾 Guardar CT Alquiler", type="primary", use_container_width=True):
+                try:
+                    with open(_ruta_ct, "r", encoding="utf-8") as _f:
+                        _ct_save = json.load(_f)
+                    for _mz in _ct_save.get("macrozonas", []):
+                        _new_rate = st.session_state.get(f"ct_alq_{_mz['id']}")
+                        if _new_rate is not None:
+                            _mz["ct_alquiler_rate"] = round(float(_new_rate), 4)
+                        _new_by_dorm = {}
+                        for _dk in ["1", "2", "3"]:
+                            _val = st.session_state.get(f"ct_alq_{_mz['id']}_{_dk}")
+                            if _val is not None:
+                                _new_by_dorm[_dk] = round(float(_val), 4)
+                        if _new_by_dorm:
+                            _mz["ct_alquiler_by_dormitorios"] = _new_by_dorm
+                        _mz["ct_alquiler_fecha"] = datetime.now().strftime("%Y-%m-%d")
+                    _ct_save["fecha_ct_alquiler"] = datetime.now().strftime("%Y-%m-%d")
+                    with open(_ruta_ct, "w", encoding="utf-8") as _f:
+                        json.dump(_ct_save, _f, ensure_ascii=False, indent=2)
+                    st.success("CT Alquiler guardado.")
+                except Exception as _e:
+                    st.error(f"Error guardando CT Alquiler: {_e}")
+
+
         # ─── Profiling de rendimiento ───
         st.markdown("---")
         with st.expander("⏱️ Perfilado de Rendimiento", expanded=False):

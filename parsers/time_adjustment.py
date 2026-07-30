@@ -112,3 +112,35 @@ def calcular_lista_hoy(valor_m2, fecha_str, es_nuevo_flag=False, fecha_ref=None)
         return valor_m2
     ct = calcular_ct(m, es_nuevo_flag)
     return round(valor_m2 * ct, 2)
+
+
+def get_ct_alquiler_rate(macrozona_id=None, dormitorios=None):
+    """Retorna tasa anual CT alquiler desde zonas_depreciacion.json.
+    Si se especifica dormitorios, usa la tasa específica por dormitorio.
+    Si no, usa la tasa general de la macrozona."""
+    try:
+        import json, os
+        path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'zonas_depreciacion.json')
+        with open(path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        for mz in data.get('macrozonas', []):
+            if mz['id'] == macrozona_id:
+                if dormitorios is not None:
+                    by_dorm = mz.get('ct_alquiler_by_dormitorios', {})
+                    dorm_key = str(int(dormitorios)) if dormitorios else None
+                    if dorm_key and dorm_key in by_dorm:
+                        return by_dorm[dorm_key]
+                return mz.get('ct_alquiler_rate', 0.3014)
+    except Exception:
+        pass
+    return 0.3014  # Default: +30.1% anual (blend scraping + IPEC)
+
+
+def calcular_ct_alquiler(meses, macrozona_id=None, dormitorios=None):
+    """Calcula CT para alquiler: (1 + tasa_alquiler)^(meses/12).
+    Usa la tasa específica por dormitorio si está disponible."""
+    if meses is None:
+        return 1.0
+    tasa = get_ct_alquiler_rate(macrozona_id, dormitorios)
+    ct = (1.0 + tasa) ** (meses / 12.0)
+    return ct

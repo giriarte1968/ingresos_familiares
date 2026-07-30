@@ -89,8 +89,20 @@
       "ct_annual_rate": 0.035,
       "dorm_type_ratios": {
         "baseline": 2,
-        "ratios": {"1": 1.098, "2": 1.0, "3": 1.35}
-      }
+        "ratios": {
+          "1": 1.098,
+          "2": 1.0,
+          "3": 1.35
+        }
+      },
+      "ct_alquiler_rate": 0.3014,
+      "ct_alquiler_by_dormitorios": {
+        "1": 0.2934,
+        "2": 0.5021,
+        "3": 0.647
+      },
+      "ct_alquiler_fuente": "Scraping propio (60%) + IPEC Sta.Fe (40%)",
+      "ct_alquiler_fecha": "2026-07-30"
     },
     {
       "id": "centro_premium",
@@ -289,8 +301,21 @@
       "ct_annual_rate": -0.0163,
       "dorm_type_ratios": {
         "baseline": 2,
-        "ratios": {"1": 0.851, "2": 1.0, "3": 0.919, "4": 0.75}
-      }
+        "ratios": {
+          "1": 0.851,
+          "2": 1.0,
+          "3": 0.919,
+          "4": 0.75
+        }
+      },
+      "ct_alquiler_rate": 0.3014,
+      "ct_alquiler_by_dormitorios": {
+        "1": 0.2934,
+        "2": 0.5021,
+        "3": 0.647
+      },
+      "ct_alquiler_fuente": "Scraping propio (60%) + IPEC Sta.Fe (40%)",
+      "ct_alquiler_fecha": "2026-07-30"
     },
     {
       "id": "macrocentro",
@@ -460,8 +485,21 @@
       "ct_annual_rate": -0.0182,
       "dorm_type_ratios": {
         "baseline": 2,
-        "ratios": {"1": 1.35, "2": 1.0, "3": 1.014, "4": 1.075}
-      }
+        "ratios": {
+          "1": 1.35,
+          "2": 1.0,
+          "3": 1.014,
+          "4": 1.075
+        }
+      },
+      "ct_alquiler_rate": 0.3014,
+      "ct_alquiler_by_dormitorios": {
+        "1": 0.2934,
+        "2": 0.5021,
+        "3": 0.647
+      },
+      "ct_alquiler_fuente": "Scraping propio (60%) + IPEC Sta.Fe (40%)",
+      "ct_alquiler_fecha": "2026-07-30"
     },
     {
       "id": "fisherton",
@@ -641,13 +679,25 @@
           "pricing_ref": {
             "min": 1200,
             "max": 1400
-           }
+          }
         }
       ],
       "dorm_type_ratios": {
         "baseline": 2,
-        "ratios": {"1": 1.35, "2": 1.0, "3": 1.068}
-      }
+        "ratios": {
+          "1": 1.35,
+          "2": 1.0,
+          "3": 1.068
+        }
+      },
+      "ct_alquiler_rate": 0.3014,
+      "ct_alquiler_by_dormitorios": {
+        "1": 0.2934,
+        "2": 0.5021,
+        "3": 0.647
+      },
+      "ct_alquiler_fuente": "Scraping propio (60%) + IPEC Sta.Fe (40%)",
+      "ct_alquiler_fecha": "2026-07-30"
     },
     {
       "id": "norte",
@@ -812,8 +862,21 @@
       "ct_annual_rate": -0.0265,
       "dorm_type_ratios": {
         "baseline": 2,
-        "ratios": {"1": 1.35, "2": 1.0, "3": 1.163, "4": 0.864}
-      }
+        "ratios": {
+          "1": 1.35,
+          "2": 1.0,
+          "3": 1.163,
+          "4": 0.864
+        }
+      },
+      "ct_alquiler_rate": 0.3014,
+      "ct_alquiler_by_dormitorios": {
+        "1": 0.2934,
+        "2": 0.5021,
+        "3": 0.647
+      },
+      "ct_alquiler_fuente": "Scraping propio (60%) + IPEC Sta.Fe (40%)",
+      "ct_alquiler_fecha": "2026-07-30"
     },
     {
       "id": "oeste",
@@ -929,8 +992,21 @@
       "ct_annual_rate": -0.0284,
       "dorm_type_ratios": {
         "baseline": 2,
-        "ratios": {"1": 1.283, "2": 1.0, "3": 1.303, "4": 1.223}
-      }
+        "ratios": {
+          "1": 1.283,
+          "2": 1.0,
+          "3": 1.303,
+          "4": 1.223
+        }
+      },
+      "ct_alquiler_rate": 0.3014,
+      "ct_alquiler_by_dormitorios": {
+        "1": 0.2934,
+        "2": 0.5021,
+        "3": 0.647
+      },
+      "ct_alquiler_fuente": "Scraping propio (60%) + IPEC Sta.Fe (40%)",
+      "ct_alquiler_fecha": "2026-07-30"
     },
     {
       "id": "sur_default",
@@ -1069,8 +1145,21 @@
       "ct_annual_rate": -0.0014,
       "dorm_type_ratios": {
         "baseline": 2,
-        "ratios": {"1": 1.148, "2": 1.0, "3": 1.058, "4": 1.092}
-      }
+        "ratios": {
+          "1": 1.148,
+          "2": 1.0,
+          "3": 1.058,
+          "4": 1.092
+        }
+      },
+      "ct_alquiler_rate": 0.3014,
+      "ct_alquiler_by_dormitorios": {
+        "1": 0.2934,
+        "2": 0.5021,
+        "3": 0.647
+      },
+      "ct_alquiler_fuente": "Scraping propio (60%) + IPEC Sta.Fe (40%)",
+      "ct_alquiler_fecha": "2026-07-30"
     },
     {
       "id": "resto_rosario",
@@ -1107,8 +1196,23 @@
       "ct_annual_rate": -0.02,
       "dorm_type_ratios": {
         "baseline": 2,
-        "ratios": {"1": 1.2, "2": 1.0, "3": 1.05, "4": 0.9}
-      }
+        "ratios": {
+          "1": 1.2,
+          "2": 1.0,
+          "3": 1.05,
+          "4": 0.9
+        }
+      },
+      "ct_alquiler_rate": 0.3014,
+      "ct_alquiler_by_dormitorios": {
+        "1": 0.2934,
+        "2": 0.5021,
+        "3": 0.647
+      },
+      "ct_alquiler_fuente": "Scraping propio (60%) + IPEC Sta.Fe (40%)",
+      "ct_alquiler_fecha": "2026-07-30"
     }
-  ]
+  ],
+  "fecha_ct_alquiler": "2026-07-30",
+  "ct_alquiler_fuente": "scripts/ct_alquiler_analysis.py: +23.6% scraping + IPEC +39.9% -> blend +30.1%"
 }
