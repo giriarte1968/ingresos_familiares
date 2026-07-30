@@ -579,11 +579,13 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                 try:
                     html_preview = generar_reporte_html(prop, display_result, auto_result=auto_result)
                     import tempfile as _tfprev
-                    _prev_file = _tfprev.NamedTemporaryFile(suffix='.html', delete=False, mode='w', encoding='utf-8')
+                    _prev_file = _tfprev.NamedTemporaryFile(suffix='.html', delete=False, mode='w', encoding='utf-8', dir='.')
                     _prev_file.write(html_preview)
                     _prev_file.close()
                     _prev_fwd = _prev_file.name.replace('\\', '/')
-                    st.session_state[f'pdf_preview_path_{prop_name}'] = _prev_fwd
+                    import webbrowser
+                    webbrowser.open(f'file:///{_prev_fwd}')
+                    st.toast("Vista previa abierta en nuevo tab", icon="📄")
                 except Exception as e_prev:
                     import traceback as _tb
                     _tb_str = ''.join(_tb.format_exception(type(e_prev), e_prev, e_prev.__traceback__))
@@ -591,37 +593,28 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                     print(f"[ERROR-PREVIEW] {prop_name} traceback:\n{_tb_str}")
                     st.error(f"Error generando preview: {e_prev}")
 
-            _preview_path = st.session_state.get(f'pdf_preview_path_{prop_name}')
-            if _preview_path:
-                st.components.v1.html(
-                    f'<script>window.open("file:///{_preview_path}", "_blank");</script>',
-                    height=0,
-                )
-                del st.session_state[f'pdf_preview_path_{prop_name}']
-                st.info("Abriendo vista previa en nuevo tab...")
-                st.markdown("---")
-                if st.button("Descargar PDF", key=f"btn_gen_pdf_{_safe_key(prop_name)}", use_container_width=True, type="secondary"):
-                    with st.spinner("Generando PDF... (~30s)"):
-                        try:
-                            pdf_bytes = generar_reporte_pdf_bytes(prop, display_result, auto_result=auto_result)
-                        except Exception as e_pdf:
-                            import traceback as _tb
-                            _tb_str = ''.join(_tb.format_exception(type(e_pdf), e_pdf, e_pdf.__traceback__))
-                            print(f"[ERROR-PDF] {prop_name}: {e_pdf}")
-                            print(f"[ERROR-PDF] {prop_name} traceback:\n{_tb_str}")
-                            pdf_bytes = None
-                    if pdf_bytes:
-                        st.download_button(
-                            "Descargar PDF",
-                            data=pdf_bytes,
-                            file_name=f"valuacion_{prop.get('nombre','propiedad').replace(' ','_')}.pdf",
-                            mime="application/pdf",
-                            type="primary",
-                            use_container_width=True,
-                            key=f"dl_pdf_{_safe_key(prop_name)}",
-                        )
-                    else:
-                        st.error("No se pudo generar el PDF. Ver consola para detalles.")
+            if st.button("Descargar PDF", key=f"btn_gen_pdf_{_safe_key(prop_name)}", use_container_width=True, type="secondary"):
+                with st.spinner("Generando PDF... (~30s)"):
+                    try:
+                        pdf_bytes = generar_reporte_pdf_bytes(prop, display_result, auto_result=auto_result)
+                    except Exception as e_pdf:
+                        import traceback as _tb
+                        _tb_str = ''.join(_tb.format_exception(type(e_pdf), e_pdf, e_pdf.__traceback__))
+                        print(f"[ERROR-PDF] {prop_name}: {e_pdf}")
+                        print(f"[ERROR-PDF] {prop_name} traceback:\n{_tb_str}")
+                        pdf_bytes = None
+                if pdf_bytes:
+                    st.download_button(
+                        "Descargar PDF",
+                        data=pdf_bytes,
+                        file_name=f"valuacion_{prop.get('nombre','propiedad').replace(' ','_')}.pdf",
+                        mime="application/pdf",
+                        type="primary",
+                        use_container_width=True,
+                        key=f"dl_pdf_{_safe_key(prop_name)}",
+                    )
+                else:
+                    st.error("No se pudo generar el PDF. Ver consola para detalles.")
         _dl.mark("after_pdf_download")
 
         if hay_catastro:
