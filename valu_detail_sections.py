@@ -1299,7 +1299,7 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
         try:
             import folium
             from folium.plugins import MarkerCluster
-            _m = folium.Map(location=[prop_lat, prop_lon], zoom_start=14, tiles='cartodbpositron', width='100%', height='550px')
+            _m = folium.Map(location=[prop_lat, prop_lon], zoom_start=15, tiles='cartodbpositron', width='100%', height='600px')
             folium.Marker(
                 [prop_lat, prop_lon],
                 popup=f"<b>{prop.get('nombre', 'Propiedad')}</b>",
@@ -1337,7 +1337,7 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
                 "p = sync_playwright().start()\n"
                 "b = p.chromium.launch(headless=True)\n"
                 "pg = b.new_page()\n"
-                "pg.set_viewport_size({'width': 1200, 'height': 650})\n"
+                "pg.set_viewport_size({'width': 1200, 'height': 700})\n"
                 f"pg.goto('file:///{_map_html_fwd}', wait_until='networkidle')\n"
                 "time.sleep(3)\n"
                 f"pg.screenshot(path=r'{_map_png_fwd}', full_page=True)\n"
