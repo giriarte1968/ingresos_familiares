@@ -3574,20 +3574,21 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
         es_fallback = False
         confianza_alq = cap_info.get('confianza', 'MEDIA')
     else:
-        # FALLBACK: usar método existente con ROI zonal
+        # FALLBACK: ROI_ZONAL calibrado con CESO × 0.75 (TAREA-157)
+        # CESO Jul 2026: $500K (1d) × 0.75 = $375K referencial
         ROI_ZONAL = {
-            'centro': 0.048,
-            'martin': 0.048,
+            'centro': 0.055,    # Centro: alquileres más altos vs venta
+            'martin': 0.050,
             'pichincha': 0.050,
-            'abasto': 0.052,
-            'facultades': 0.055,
-            'sexta': 0.055,
-            'sur': 0.060,
-            'norte': 0.058,
-            'oeste': 0.060,
+            'abasto': 0.050,
+            'facultades': 0.050,
+            'sexta': 0.050,
+            'sur': 0.050,
+            'norte': 0.050,
+            'oeste': 0.050,
         }
         zona_key = zona_txt.lower().strip() if zona_txt else 'centro'
-        cap_rate = ROI_ZONAL.get(zona_key, 0.052)
+        cap_rate = ROI_ZONAL.get(zona_key, 0.050)
         
         # No recalcular: mantener el cálculo original
         # (alquiler_mensual_ars ya fue calculado arriba)
@@ -4000,23 +4001,23 @@ def calcular_cap_rate_local(lat_ref, lon_ref, dormitorios=2, tipo_inmueble='depa
 
 def calcular_cap_rate_fallback(zona_normalizada=None):
     """
-    Fallback: ROI zonal cuando no hay datos suficientes de alquiler.
+    Fallback: ROI zonal calibrado con CESO × 0.75 (TAREA-157).
     """
     ROI_ZONAL = {
-        'centro': 0.048,
-        'martin': 0.048,
+        'centro': 0.055,
+        'martin': 0.050,
         'pichincha': 0.050,
-        'abasto': 0.052,
-        'facultades': 0.055,
-        'sexta': 0.055,
-        'barrio': 0.055,
-        'sur': 0.060,
-        'norte': 0.058,
-        'oeste': 0.060,
+        'abasto': 0.050,
+        'facultades': 0.050,
+        'sexta': 0.050,
+        'barrio': 0.050,
+        'sur': 0.050,
+        'norte': 0.050,
+        'oeste': 0.050,
     }
     
     zona_key = zona_normalizada.lower().strip() if zona_normalizada else 'centro'
-    cap_rate = ROI_ZONAL.get(zona_key, 0.052)
+    cap_rate = ROI_ZONAL.get(zona_key, 0.050)
     
     return {
         'cap_rate': cap_rate,

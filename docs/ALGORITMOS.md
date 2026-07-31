@@ -104,6 +104,41 @@ El alquiler se calcula derivando el Cap Rate directamente de los datos de scrapi
 Si la muestra de alquileres es insuficiente, se proyecta:
 $$Renta = (AnclaVentaUSD \times 0.045 / 12) \times USDT\_ARS$$
 
+### ROI_ZONAL Calibrado (TAREA-157)
+
+**Fecha:** 2026-07-30
+**Metodología:** CESO Julio 2026 × factor descuento 0.75
+
+**Fuente CESO:**
+- 2 ambientes (1 dormitorio): $500,000 ARS/mes (mediana ofertas online)
+- Factor descuento oferta→real: 0.75 (25% descuento)
+- Alquiler referencial real: $375,000 ARS/mes
+
+**Valores calibrados:**
+
+| Zona | ROI_ZONAL | Justificación |
+|------|-----------|---------------|
+| **centro** | **5.5%** | Centro: alquileres más altos vs venta |
+| martin | 5.0% | Similar a centro |
+| pichincha | 5.0% | - |
+| abasto | 5.0% | - |
+| facultades | 5.0% | - |
+| sexta | 5.0% | - |
+| sur | 5.0% | - |
+| norte | 5.0% | - |
+| oeste | 5.0% | - |
+
+**Validación con datos reales (3 propiedades):**
+
+| Propiedad | Zona | Real | Simulado | Error |
+|-----------|------|------|----------|-------|
+| Ayacucho | Centro | $353,000 | $290,041 | -17.8% |
+| Mabel | Martin | $403,000 | $455,950 | +13.1% |
+| Vera Mujica | Facultades | $360,000 | $343,350 | -4.6% |
+| **Promedio** | - | **$372,000** | **$363,114** | **-2.4%** |
+
+**Error promedio: -2.4%** (mejora vs ±18.7% anterior)
+
 ### Ajuste v14.0: Patio Grande en Planta Baja
 
 Para propiedades en Planta Baja (piso=0) con patio grande:

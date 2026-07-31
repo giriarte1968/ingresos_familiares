@@ -153,6 +153,7 @@ donde:
 - `delta_anti` en alquiler = 0.0 SIEMPRE.
 - **GAP alquiler** = 0.96 (mercado más rígido que venta)
 - **ROI** = (alquiler_mensual × 12) / (valor_cierre_usd × usdt_ars)
+- **ROI_ZONAL calibrado (TAREA-157):** Centro=5.5%, resto=5.0% (CESO Jul 2026 × 0.75)
 
 ---
 
