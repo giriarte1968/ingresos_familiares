@@ -516,20 +516,20 @@ def render_rango(res, valor_usd):
     st.markdown(range_bar(v_cons, v_opt, res.get('rango_venta', {}).get('spread_pct', 0)), unsafe_allow_html=True)
 
 
-def render_metricas(prop, res, valor_usd, dolar, auto_result=None, manual_result=None):
-    """Metricas de inversion: Alquiler, Cap Rate, Plusvalia.
-    Lógica de alquiler:
-      - Caso 1 (solo manual): valor manual × ROI_ZONAL
-      - Caso 2 (solo auto): valor manual del disco × ROI_ZONAL (si existe), sino auto × ROI_ZONAL
-      - Caso 3 (ambas existen): valor auto × cap_rate auto (comparables como fuente)"""
-    alq_ars = res.get('alquiler_estimado_ars', 0)
-    alq_r = res.get('alquiler_rango', {})
-    alq_min, alq_max = alq_r.get('min', 0), alq_r.get('max', 0)
-    cap = res.get('cap_rate', 0)
+def _recalcular_alquiler(prop, res, auto_result=None, manual_result=None):
+    """Recalcula alquiler usando lógica unificada (3 casos).
+    Usado tanto por render_metricas (UI) como generar_reporte_pdf (PDF).
 
+    Returns:
+        dict con keys: alq_ars, alq_min, alq_max, cap_rate, dolar
+    """
     from parsers.mercado_inmobiliario import ROI_ZONAL
+    from parsers.motor_vpp_core import get_binance_usdt_ars
 
-    # Buscar zona para ROI_ZONAL
+    alq_ars = res.get('alquiler_estimado_ars', 0)
+    cap = res.get('cap_rate', 0)
+    dolar = res.get('usdt_ars', 1480.0)
+
     zona_txt = prop.get('zona', '') or ''
     zona_key = zona_txt.lower().strip() if zona_txt else 'centro'
     cap_rate_zonal = ROI_ZONAL.get(zona_key, 0.050)
@@ -548,53 +548,59 @@ def render_metricas(prop, res, valor_usd, dolar, auto_result=None, manual_result
                     manual_v = uv.get('manual_valor_usd', 0)
                     if manual_v > 0:
                         manual_result = {'valor_propiedad_usd': manual_v}
-                        print(f"[DEBUG-ALQ-MANUAL-DISK] {nombre}: manual_valor_usd={manual_v} from disk")
                     break
         except Exception:
             pass
 
     # ─── LÓGICA DE ALQUILER SEGÚN CASO ───
     if auto_result and manual_result:
-        # CASO 3: Ambas existen → usar comparables (auto) como fuente
-        best_valor = auto_result.get('valor_propiedad_usd', valor_usd)
+        best_valor = auto_result.get('valor_propiedad_usd', res.get('valor_propiedad_usd', 0))
         best_cap = auto_result.get('cap_rate', cap)
-        print(f"[DEBUG-ALQ-CASO3] {prop.get('nombre','')}: AMBAS, usando auto valor={best_valor}, auto cap={best_cap}")
     elif manual_result and not auto_result:
-        # CASO 1: Solo manual → valor manual × ROI_ZONAL
-        best_valor = manual_result.get('valor_propiedad_usd', valor_usd)
+        best_valor = manual_result.get('valor_propiedad_usd', res.get('valor_propiedad_usd', 0))
         best_cap = cap_rate_zonal
-        print(f"[DEBUG-ALQ-CASO1] {prop.get('nombre','')}: SOLO MANUAL, valor={best_valor}, ROI_ZONAL={best_cap}")
     else:
-        # CASO 2: Solo auto → buscar manual del disco, si existe usar manual × ROI_ZONAL
-        # Si no hay manual en disco, usar auto × ROI_ZONAL
-        manual_v = 0
-        if manual_result:
-            manual_v = manual_result.get('valor_propiedad_usd', 0)
+        manual_v = manual_result.get('valor_propiedad_usd', 0) if manual_result else 0
         if manual_v > 0:
             best_valor = manual_v
             best_cap = cap_rate_zonal
-            print(f"[DEBUG-ALQ-CASO2a] {prop.get('nombre','')}: SOLO AUTO + manual disco, valor={best_valor}, ROI_ZONAL={best_cap}")
         else:
-            best_valor = valor_usd
+            best_valor = res.get('valor_propiedad_usd', 0)
             best_cap = cap_rate_zonal
-            print(f"[DEBUG-ALQ-CASO2b] {prop.get('nombre','')}: SOLO AUTO sin manual disco, valor={best_valor}, ROI_ZONAL={best_cap}")
 
     # Recalcular alquiler
+    alq_min, alq_max = 0, 0
     if best_cap > 0 and best_valor > 0:
         try:
-            from parsers.motor_vpp_core import get_binance_usdt_ars
             dolar_fresh = get_binance_usdt_ars()
             if dolar_fresh > 0:
                 alq_usd_calc = best_valor * best_cap / 12
-                alq_ars_new = int(alq_usd_calc * dolar_fresh)
-                if alq_ars_new != alq_ars:
-                    print(f"[DEBUG-ALQ-RECALC] {prop.get('nombre','')}: cache={alq_ars}, recalculado={alq_ars_new}, valor={best_valor}, cap={best_cap}")
-                    alq_ars = alq_ars_new
-                    alq_min = int(alq_ars * 0.85)
-                    alq_max = int(alq_ars * 1.15)
-                    dolar = dolar_fresh
+                alq_ars = int(alq_usd_calc * dolar_fresh)
+                alq_min = int(alq_ars * 0.85)
+                alq_max = int(alq_ars * 1.15)
+                dolar = dolar_fresh
+                cap = best_cap
         except Exception:
             pass
+
+    return {
+        'alq_ars': alq_ars,
+        'alq_min': alq_min,
+        'alq_max': alq_max,
+        'cap_rate': cap,
+        'dolar': dolar,
+    }
+
+
+def render_metricas(prop, res, valor_usd, dolar, auto_result=None, manual_result=None):
+    """Metricas de inversion: Alquiler, Cap Rate, Plusvalia.
+    Lógica de alquiler unificada vía _recalcular_alquiler()."""
+    recalc = _recalcular_alquiler(prop, res, auto_result=auto_result, manual_result=manual_result)
+    alq_ars = recalc['alq_ars']
+    alq_min = recalc['alq_min']
+    alq_max = recalc['alq_max']
+    cap = recalc['cap_rate']
+    dolar = recalc['dolar']
 
     alq_usd = int(alq_ars / dolar) if dolar > 0 else 0
     alq_value = f"${alq_ars:,.0f} ARS / mes   USD {alq_usd:,}" if alq_usd > 0 else f"${alq_ars:,.0f} ARS / mes"
@@ -1265,11 +1271,12 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
         valor_adoptado = v_manual or v_auto
         fuente_adoptada = "Por Comparables" if tiene_auto else "Manual"
 
-    # Metricas
-    alq_ars = _safe_int(res.get('alquiler_estimado_ars'))
-    dolar = _safe_float(res.get('usdt_ars'), 1480.0)
-    alq_usd = int(alq_ars / dolar) if dolar > 0 else 0
-    cap_rate = _safe_float(res.get('cap_rate'), 0.05)
+    # Metricas — usar lógica unificada de alquiler
+    recalc = _recalcular_alquiler(prop, res, auto_result=auto_result)
+    alq_ars = recalc['alq_ars']
+    alq_usd = int(alq_ars / recalc['dolar']) if recalc['dolar'] > 0 else 0
+    cap_rate = recalc['cap_rate']
+    dolar = recalc['dolar']
     m2_base = _safe_int(res.get('m2_base_venta'))
     m2_eq = res.get('m2_equivalentes') or prop.get('m2', 0)
     m2_eq = _safe_float(m2_eq, 0.0)
@@ -1414,30 +1421,25 @@ def generar_reporte_pdf(prop: dict, res: dict, auto_result: dict = None) -> byte
         _ajuste = _mp.get('ajuste_pct', 0.0)
         _incluir_const = _mp.get('incluir_prima_const', True)
 
-        _radio = meta.get('radio_usado', 1000)
-        _n_comps = len(res.get('comparables_venta', []))
-
         _lineas_m = []
 
-        # Párrafo 1: Metodología
+        # Párrafo 1: Metodología (real — punto de referencia geográfico)
         _lineas_m.append(
-            f"La valuacion manual de {prop.get('nombre', 'la propiedad')} se realizo "
-            f"utilizando el metodo de comparacion directa, analizando {_n_comps} propiedades "
-            f"comparables en un radio de {_radio} metros de la propiedad sujeto. "
-            f"Se seleccionaron inmuebles con caracteristicas similares en cuanto a tipo, "
-            f"tamaño y zona, utilizando datos de mercado actualizados."
+            f"La valuación manual de {prop.get('nombre', 'la propiedad')} se realizó "
+            f"utilizando un punto de referencia geográfico como base de precio, "
+            f"considerando un radio de 400 metros alrededor de la propiedad."
         )
 
-        # Párrafo 2: Precio base y formula
+        # Párrafo 2: Precio base (real — ancla de zona)
         _detalles_formula = []
         _detalles_formula.append(f"{m2_eq} m2 equivalentes x USD {_usd_m2:,.0f}/m2")
         _valor_base = m2_eq * _usd_m2
 
         _lineas_m.append(
-            f"El precio base de referencia es USD {_usd_m2:,.0f}/m2, determinado por el "
-            f"analista con base en el analisis de los comparables cercanos. "
-            f"Este valor representa el promedio ponderado de las propiedades similares "
-            f"en la zona, considerando sus caracteristicas y estado de conservacion."
+            f"El precio base de referencia es USD {_usd_m2:,.0f}/m2, determinado a partir "
+            f"del punto geográfico más cercano a la ubicación de la propiedad. "
+            f"Este valor representa el precio de referencia de la zona considerando "
+            f"propiedades similares en tamaño y ubicación."
         )
 
         # Párrafo 3: Factor hedonico desglosado
