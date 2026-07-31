@@ -518,17 +518,23 @@ def render_rango(res, valor_usd):
 
 def render_metricas(prop, res, valor_usd, dolar, auto_result=None, manual_result=None):
     """Metricas de inversion: Alquiler, Cap Rate, Plusvalia.
-    Usa la MAYOR valuación (auto o manual) para calcular alquiler."""
+    Lógica de alquiler:
+      - Caso 1 (solo manual): valor manual × ROI_ZONAL
+      - Caso 2 (solo auto): valor manual del disco × ROI_ZONAL (si existe), sino auto × ROI_ZONAL
+      - Caso 3 (ambas existen): valor auto × cap_rate auto (comparables como fuente)"""
     alq_ars = res.get('alquiler_estimado_ars', 0)
     alq_r = res.get('alquiler_rango', {})
     alq_min, alq_max = alq_r.get('min', 0), alq_r.get('max', 0)
     cap = res.get('cap_rate', 0)
 
-    # Usar la MAYOR valuación para alquiler
-    best_valor = valor_usd
-    best_cap = cap
+    from parsers.mercado_inmobiliario import ROI_ZONAL
 
-    # Leer valor manual directo de la propiedad si no hay manual_result
+    # Buscar zona para ROI_ZONAL
+    zona_txt = prop.get('zona', '') or ''
+    zona_key = zona_txt.lower().strip() if zona_txt else 'centro'
+    cap_rate_zonal = ROI_ZONAL.get(zona_key, 0.050)
+
+    # Leer valor manual del disco si no hay manual_result en sesión
     if not manual_result:
         try:
             import json, os
@@ -541,22 +547,39 @@ def render_metricas(prop, res, valor_usd, dolar, auto_result=None, manual_result
                     uv = p.get('_ultima_valuacion', {}) or {}
                     manual_v = uv.get('manual_valor_usd', 0)
                     if manual_v > 0:
-                        manual_result = {'valor_propiedad_usd': manual_v, 'cap_rate': cap}
+                        manual_result = {'valor_propiedad_usd': manual_v}
                         print(f"[DEBUG-ALQ-MANUAL-DISK] {nombre}: manual_valor_usd={manual_v} from disk")
                     break
         except Exception:
             pass
 
+    # ─── LÓGICA DE ALQUILER SEGÚN CASO ───
     if auto_result and manual_result:
-        auto_v = auto_result.get('valor_propiedad_usd', 0)
-        manual_v = manual_result.get('valor_propiedad_usd', 0)
-        if manual_v > auto_v:
+        # CASO 3: Ambas existen → usar comparables (auto) como fuente
+        best_valor = auto_result.get('valor_propiedad_usd', valor_usd)
+        best_cap = auto_result.get('cap_rate', cap)
+        print(f"[DEBUG-ALQ-CASO3] {prop.get('nombre','')}: AMBAS, usando auto valor={best_valor}, auto cap={best_cap}")
+    elif manual_result and not auto_result:
+        # CASO 1: Solo manual → valor manual × ROI_ZONAL
+        best_valor = manual_result.get('valor_propiedad_usd', valor_usd)
+        best_cap = cap_rate_zonal
+        print(f"[DEBUG-ALQ-CASO1] {prop.get('nombre','')}: SOLO MANUAL, valor={best_valor}, ROI_ZONAL={best_cap}")
+    else:
+        # CASO 2: Solo auto → buscar manual del disco, si existe usar manual × ROI_ZONAL
+        # Si no hay manual en disco, usar auto × ROI_ZONAL
+        manual_v = 0
+        if manual_result:
+            manual_v = manual_result.get('valor_propiedad_usd', 0)
+        if manual_v > 0:
             best_valor = manual_v
-            # SIEMPRE usar el cap_rate del mercado (auto), no el hardcodeado del manual (0.05)
-            best_cap = auto_result.get('cap_rate', cap)
-            print(f"[DEBUG-ALQ-HIGHER] {prop.get('nombre','')}: manual={manual_v} > auto={auto_v}, usando manual valor + auto cap_rate={best_cap}")
+            best_cap = cap_rate_zonal
+            print(f"[DEBUG-ALQ-CASO2a] {prop.get('nombre','')}: SOLO AUTO + manual disco, valor={best_valor}, ROI_ZONAL={best_cap}")
+        else:
+            best_valor = valor_usd
+            best_cap = cap_rate_zonal
+            print(f"[DEBUG-ALQ-CASO2b] {prop.get('nombre','')}: SOLO AUTO sin manual disco, valor={best_valor}, ROI_ZONAL={best_cap}")
 
-    # Recalcular alquiler con la mayor valuación
+    # Recalcular alquiler
     if best_cap > 0 and best_valor > 0:
         try:
             from parsers.motor_vpp_core import get_binance_usdt_ars
@@ -565,7 +588,7 @@ def render_metricas(prop, res, valor_usd, dolar, auto_result=None, manual_result
                 alq_usd_calc = best_valor * best_cap / 12
                 alq_ars_new = int(alq_usd_calc * dolar_fresh)
                 if alq_ars_new != alq_ars:
-                    print(f"[DEBUG-ALQ-RECALC] {prop.get('nombre','')}: cache={alq_ars}, recalculado={alq_ars_new}, valor_usd={best_valor}, cap={best_cap}")
+                    print(f"[DEBUG-ALQ-RECALC] {prop.get('nombre','')}: cache={alq_ars}, recalculado={alq_ars_new}, valor={best_valor}, cap={best_cap}")
                     alq_ars = alq_ars_new
                     alq_min = int(alq_ars * 0.85)
                     alq_max = int(alq_ars * 1.15)

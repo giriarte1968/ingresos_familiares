@@ -20,6 +20,27 @@ from parsers.cluster_filters import (
 from parsers.valuacion_helpers import calcular_rango_venta, ensamblar_metadata_resolucion
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# ROI_ZONAL — Configuración editable (TAREA-157)
+# Calibrado con CESO Jul 2026 × 0.75 (factor descuento oferta→real)
+# Fuente: CESO 2amb(1d) = $500K → $375K real. ROI = $375K×12 / ($27K×1600) ≈ 10.5%
+# Ajustado a valores de mercado: Centro 5.5%, resto 5.0%
+# Para editar: modificar los valores directamente aquí.
+# ══════════════════════════════════════════════════════════════════════════════
+ROI_ZONAL = {
+    'centro': 0.055,
+    'martin': 0.050,
+    'pichincha': 0.050,
+    'abasto': 0.050,
+    'facultades': 0.050,
+    'sexta': 0.050,
+    'barrio': 0.050,
+    'sur': 0.050,
+    'norte': 0.050,
+    'oeste': 0.050,
+}
+
+
 def _calcular_mediana(precios):
     """Pure Python median - equivalente a _calcular_mediana()."""
     if not precios:
@@ -3576,17 +3597,6 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
     else:
         # FALLBACK: ROI_ZONAL calibrado con CESO × 0.75 (TAREA-157)
         # CESO Jul 2026: $500K (1d) × 0.75 = $375K referencial
-        ROI_ZONAL = {
-            'centro': 0.055,    # Centro: alquileres más altos vs venta
-            'martin': 0.050,
-            'pichincha': 0.050,
-            'abasto': 0.050,
-            'facultades': 0.050,
-            'sexta': 0.050,
-            'sur': 0.050,
-            'norte': 0.050,
-            'oeste': 0.050,
-        }
         zona_key = zona_txt.lower().strip() if zona_txt else 'centro'
         cap_rate = ROI_ZONAL.get(zona_key, 0.050)
         
@@ -4002,20 +4012,8 @@ def calcular_cap_rate_local(lat_ref, lon_ref, dormitorios=2, tipo_inmueble='depa
 def calcular_cap_rate_fallback(zona_normalizada=None):
     """
     Fallback: ROI zonal calibrado con CESO × 0.75 (TAREA-157).
+    Usa constante ROI_ZONAL del módulo (config editable).
     """
-    ROI_ZONAL = {
-        'centro': 0.055,
-        'martin': 0.050,
-        'pichincha': 0.050,
-        'abasto': 0.050,
-        'facultades': 0.050,
-        'sexta': 0.050,
-        'barrio': 0.050,
-        'sur': 0.050,
-        'norte': 0.050,
-        'oeste': 0.050,
-    }
-    
     zona_key = zona_normalizada.lower().strip() if zona_normalizada else 'centro'
     cap_rate = ROI_ZONAL.get(zona_key, 0.050)
     
@@ -4187,7 +4185,10 @@ def generar_resultado_manual(prop, manual_params, auto_result=None):
     }
 
     GAP_CIERRE = 0.92
-    cap_rate = 0.05
+    # ROI_ZONAL: usar cap_rate calibrado por zona (TAREA-157)
+    zona_txt = prop.get('zona', '') or ''
+    zona_key = zona_txt.lower().strip() if zona_txt else 'centro'
+    cap_rate = ROI_ZONAL.get(zona_key, 0.050)
     alquiler_mensual_usd = valor_venta * cap_rate / 12
     alquiler_mensual_ars = alquiler_mensual_usd * usdt_ars
 
