@@ -382,7 +382,8 @@ def render_tabla_comparables(res, prop_name=None):
         print(f"[DEBUG-SELECCION] n_sel={n_sel}, excluded_ids={len(excluded_ids)}, precios={[f'{p:,.0f}' for p in precios_sorted]}")
         _res_excl = res.get('_comp_excluded', [])
         no_exclusions = len(excluded_ids) == 0 and len(_res_excl) == 0
-        is_applied = no_exclusions or (set(_res_excl) == set(excluded_ids) and res.get('_comp_exclusion_applied', False))
+        _comp_applied = res.get('_comp_exclusion_applied', False)
+        is_applied = _comp_applied and (no_exclusions or set(_res_excl) == set(excluded_ids))
 
         meta = res.get('resolution_metadata', {})
         _cv_approx = meta.get('cv_pool', 0.25)

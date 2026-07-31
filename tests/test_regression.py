@@ -223,9 +223,9 @@ def test_comparables_banner_hidden_when_full_selection():
 
 
 def test_ui_apply_button_visible_when_all_selected():
-    """TAREA-120: Con selección completa (6/6) y sin exclusiones previas,
-    el botón debe mostrar 'Selección Aplicada' (disabled), NO 'Aplicar selección'.
-    Solo 'Aplicar selección' aparece cuando hay comps desmarcados.
+    """TAREA-120: Con selección completa (6/6) y fresh entry (sin apply previo),
+    el botón debe mostrar 'Aplicar selección' (active), NO 'Selección Aplicada'.
+    Solo 'Selección Aplicada' aparece después de hacer click en Apply.
     """
     import streamlit as st
     from unittest.mock import patch, MagicMock
@@ -264,12 +264,12 @@ def test_ui_apply_button_visible_when_all_selected():
             'Aplicar selección' in str(call) or 'apply_comp_sel' in str(call)
             for call in mock_btn.call_args_list
         )
-        assert called_with_applied, (
-            f"Con selección completa y sin exclusiones, debe mostrar 'Selección Aplicada' (disabled). "
+        assert called_with_apply, (
+            f"Fresh entry con selección completa debe mostrar 'Aplicar selección' (active). "
             f"Llamadas a st.button: {mock_btn.call_args_list}"
         )
-        assert not called_with_apply, (
-            f"NO debe mostrar 'Aplicar selección' cuando no hay exclusiones. "
+        assert not called_with_applied, (
+            f"NO debe mostrar 'Selección Aplicada' en fresh entry (nunca se hizo click). "
             f"Llamadas a st.button: {mock_btn.call_args_list}"
         )
         print(f"[TEST-UI-APPLY-BTN] OK — botón 'Selección Aplicada' con selección completa sin exclusiones")
@@ -1060,10 +1060,9 @@ def test_exclusion_applied_flag_session_state_zero_exclusions():
 
 
 def test_exclusion_applied_flag_cleared_after_retro_toggle():
-    """T_S-15: Retro toggle después de apply con 0 exclusiones → is_applied=True.
+    """T_S-15: Retro toggle después de apply con 0 exclusiones → is_applied=False.
     Simula que el callback Retro limpió los flags de session_state y el resultado
-    fresco no tiene el flag. Con 0 exclusiones, el estado natural (todos los comps)
-    se considera 'applied' porque no hay nada que aplicar.
+    fresco no tiene el flag. Con flags limpiados, el botón vuelve a 'Aplicar selección'.
     """
     import streamlit as st
     from unittest.mock import patch, MagicMock
@@ -1100,15 +1099,15 @@ def test_exclusion_applied_flag_cleared_after_retro_toggle():
 
         apply_calls = [call for call in mock_btn.call_args_list if 'Aplicar selección' in str(call)]
         applied_calls = [call for call in mock_btn.call_args_list if 'Selección Aplicada' in str(call)]
-        assert len(applied_calls) == 1, (
-            f"Con 0 exclusiones, debe mostrar '✅ Selección Aplicada' (no hay nada que aplicar). "
-            f"Applied calls: {applied_calls}"
-        )
-        assert len(apply_calls) == 0, (
-            f"NO debe mostrar 'Aplicar selección' cuando no hay exclusiones. "
+        assert len(apply_calls) >= 1, (
+            f"Con flags limpiados tras Retro toggle, debe mostrar 'Aplicar selección'. "
             f"Calls: {mock_btn.call_args_list}"
         )
-        print(f"[T_S-15] OK — is_applied=True con 0 exclusiones tras Retro toggle (estado natural)")
+        assert len(applied_calls) == 0, (
+            f"NO debe mostrar 'Selección Aplicada' cuando los flags fueron limpiados. "
+            f"Applied calls: {applied_calls}"
+        )
+        print(f"[T_S-15] OK — is_applied=False tras Retro toggle (flags limpiados)")
 
 
 def test_exclusion_applied_flag_real_exclusions():
