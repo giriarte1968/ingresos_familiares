@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<style>
+  @page {
+    size: A4;
+    margin: 15mm 15mm 18mm 15mm;
+    @bottom-center {
+      content: "Página " counter(page);
+      font-size: 9px;
+      color: #64748b;
+      font-family: 'Segoe UI', 'DejaVu Sans', 'Liberation Sans', Helvetica, Arial, sans-serif;
+    }
+  }
+  @page cover {
+    margin: 0;
+    @bottom-center { content: none; }
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', 'DejaVu Sans', 'Liberation Sans', Helvetica, Arial, sans-serif;
+    color: #1e293b;
+    font-size: 11px;
+    line-height: 1.5;
+    background: #fff;
+  }
+
+  /* ═══ COVER ═══ */
+  .cover {
+    page: cover;
+    width: 210mm;
+    height: 297mm;
+    position: relative;
+    overflow: hidden;
+    break-after: page;
+    background: linear-gradient(135deg, #0d4f4f 0%, #1a6b6b 50%, #0d4f4f 100%);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+  .cover-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cover-logo-img  { width: 240px; height: 240px; border-radius: 20px; object-fit: contain; }
+  .cover-logo-text { font-size: 36px; font-weight: 800; letter-spacing: 4px; color: white; }
+  .cover-divider   { width: 80px; height: 3px; background: linear-gradient(90deg, #ffffff, #94d0d0); margin: 40px auto; border-radius: 2px; }
+  .cover-title     { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+  .cover-subtitle  { font-size: 16px; color: #b0d0d0; margin-bottom: 60px; }
+  .cover-address   { font-size: 20px; font-weight: 600; color: #e2e8f0; margin-bottom: 8px; }
+  .cover-zone      { font-size: 14px; color: #b0d0d0; margin-bottom: 80px; }
+  .cover-footer    { position: absolute; bottom: 40px; font-size: 10px; color: #80b0b0; }
+
+  /* ═══ PAGE WRAPPER ═══ */
+  .page-content       { break-before: page; break-inside: auto; }
+  .page-content-first { break-before: auto; }
+
+  /* ═══ HEADER BAR ═══ */
+  .header-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 0; margin-bottom: 20px;
+    border-bottom: 2px solid #e2e8f0;
+    break-inside: avoid; break-after: avoid;
+  }
+  .header-left  { display: flex; align-items: center; gap: 10px; }
+  .header-logo  {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, #1a6b6b, #0d4f4f);
+    border-radius: 8px; display: flex; align-items: center;
+    justify-content: center; font-size: 14px; font-weight: 900; color: white; flex-shrink: 0;
+  }
+  .header-brand { font-size: 15px; font-weight: 700; color: #0f172a; letter-spacing: 1px; }
+  .header-right { font-size: 9px; color: #94a3b8; text-align: right; }
+
+  /* ═══ SECTION ═══ */
+  .section        { margin-bottom: 18px; break-inside: avoid; }
+  .section-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; break-after: avoid; }
+  .section-icon   {
+    width: 26px; height: 26px;
+    background: linear-gradient(135deg, #1a6b6b, #0d4f4f);
+    border-radius: 6px; display: flex; align-items: center;
+    justify-content: center; font-size: 12px; color: white; flex-shrink: 0;
+  }
+  .section-title  { font-size: 14px; font-weight: 700; color: #0f172a; }
+
+  /* ═══ KPI ROW ═══ */
+  .kpi-row   { display: flex; gap: 14px; margin-bottom: 16px; break-inside: avoid; }
+  .kpi-card  { flex: 1; text-align: center; padding: 12px 10px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0; }
+  .kpi-number { font-size: 24px; font-weight: 800; color: #0f172a; line-height: 1; }
+  .kpi-label  { font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+  .kpi-desc   { font-size: 9px; color: #94a3b8; margin-top: 4px; line-height: 1.3; }
+
+  /* ═══ INFO BOX ═══ */
+  .info-box {
+    background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+    border: 1px solid #bbf7d0; border-radius: 10px; padding: 12px;
+    font-size: 10px; color: #166534; line-height: 1.6; margin-bottom: 16px; break-inside: avoid;
+  }
+  .info-box strong { color: #15803d; }
+
+  /* ═══ TABLE ═══ */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 10px; margin-top: 6px; }
+  .data-table th {
+    background: #f1f5f9; color: #64748b; font-weight: 700; text-align: left;
+    padding: 7px 9px; font-size: 9px; text-transform: uppercase;
+    letter-spacing: 0.3px; border-bottom: 2px solid #e2e8f0;
+  }
+  .data-table td { padding: 6px 9px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+  .data-table tr:nth-child(even) td { background: #f8fafc; }
+  .data-table-auto { break-inside: auto; }
+
+  /* ═══ TWO COLUMN ═══ */
+  .two-col       { display: flex; gap: 18px; }
+  .two-col > div { flex: 1; }
+
+  /* ═══ DISCLAIMER ═══ */
+  .disclaimer {
+    background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px;
+    padding: 12px; font-size: 9px; color: #92400e; line-height: 1.6;
+    margin-top: 20px; break-inside: avoid;
+  }
+
+  /* ═══ UTILIDADES ═══ */
+  .mb-8  { margin-bottom: 8px; }
+  .mb-16 { margin-bottom: 16px; }
+  .text-muted { color: #94a3b8; }
+  .text-sm    { font-size: 10px; }
+
+  /* Mapa */
+  .map-img { width: 100%; display: block; border-radius: 10px; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PORTADA                                                    -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="cover">
+  <div class="cover-badge" style="position:relative;top:auto;transform:none;">
+    {% if logo_b64 %}
+    <img src="data:image/png;base64,{{ logo_b64 }}" class="cover-logo-img">
+    {% endif %}
+  </div>
+  <div class="cover-divider"></div>
+  <div class="cover-title">Informe de Valuación</div>
+  <div class="cover-subtitle">Modelo de Valuación por Comparables de Mercado</div>
+  <div class="cover-address">{{ nombre }}</div>
+  <div class="cover-zone">{{ direccion }} — {{ zona }}</div>
+  <div class="cover-footer">
+    Generado: {{ fecha_generacion }} | Versión: {{ cache_version }} | Datos al: {{ fecha_scraping }}
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PÁGINA 2: CARACTERÍSTICAS + VALUACIÓN                      -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="page-content-first">
+  <div class="header-bar">
+    <div class="header-left">
+      {% if logo_b64 %}
+      <img src="data:image/png;base64,{{ logo_b64 }}" style="width:36px;height:36px;border-radius:8px;object-fit:contain;">
+      {% endif %}
+      <div class="header-brand">TTL PROPIEDADES</div>
+    </div>
+    <div class="header-right">{{ fecha_generacion }}</div>
+  </div>
+
+  <!-- Características de la Propiedad -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon">🏠</div>
+      <div class="section-title" style="font-weight:800;">Características de la Propiedad</div>
+    </div>
+    <div style="background:#f8fafc; border-radius:10px; padding:14px; border:1px solid #e2e8f0;">
+      <div style="font-size:15px; font-weight:700; color:#0f172a; margin-bottom:3px;">{{ nombre }}</div>
+      <div style="font-size:10px; color:#64748b; margin-bottom:12px;">{{ direccion }}{% if zona %} — {{ zona }}{% endif %}</div>
+      <div class="two-col">
+        <div>
+          <table class="data-table">
+            {% if tipo_inmueble %}<tr><td style="color:#64748b;font-weight:600;">Tipo</td><td>{{ tipo_inmueble | capitalize }}</td></tr>{% endif %}
+            {% if m2_cub and m2_cub != '0' %}<tr><td style="color:#64748b;font-weight:600;">Sup. cubierta</td><td>{{ m2_cub }} m²</td></tr>{% endif %}
+            {% if m2_semi and m2_semi != '0' %}<tr><td style="color:#64748b;font-weight:600;">Sup. semicubierta</td><td>{{ m2_semi }} m²{% if m2_semi_detalle %} ({{ m2_semi_detalle }}){% endif %}</td></tr>{% endif %}
+            {% if m2_desc and m2_desc != '0' %}<tr><td style="color:#64748b;font-weight:600;">Sup. descubierta</td><td>{{ m2_desc }} m²</td></tr>{% endif %}
+            {% if m2_total and m2_total != '0' %}<tr><td style="color:#64748b;font-weight:600;">Sup. total</td><td>{{ m2_total }} m²</td></tr>{% endif %}
+            {% if m2_eq and m2_eq != '0' %}<tr><td style="color:#64748b;font-weight:600;">m² equivalentes</td><td>{{ m2_eq }} m²</td></tr>{% endif %}
+            {% if dormitorios %}<tr><td style="color:#64748b;font-weight:600;">Dormitorios</td><td>{{ dormitorios }}</td></tr>{% endif %}
+            {% if ambientes %}<tr><td style="color:#64748b;font-weight:600;">Ambientes</td><td>{{ ambientes }}</td></tr>{% endif %}
+            {% if banos %}<tr><td style="color:#64748b;font-weight:600;">Baños</td><td>{{ banos }}{% if toilet %} + toilette{% endif %}</td></tr>{% endif %}
+            {% if disposicion %}<tr><td style="color:#64748b;font-weight:600;">Disposición</td><td>{{ disposicion | capitalize }}</td></tr>{% endif %}
+            {% if ubicacion_tipo %}<tr><td style="color:#64748b;font-weight:600;">Ubicación</td><td>{{ ubicacion_tipo | capitalize }}</td></tr>{% endif %}
+          </table>
+        </div>
+        <div>
+          <table class="data-table">
+            {% if piso %}<tr><td style="color:#64748b;font-weight:600;">Piso</td><td>{{ piso }}° de {{ total_pisos }}</td></tr>{% endif %}
+            {% if anio_const and anio_const != '?' %}<tr><td style="color:#64748b;font-weight:600;">Año construcción</td><td>{{ anio_const }}{% if antiguedad and antiguedad != '0' %} ({{ antiguedad }} años){% endif %}</td></tr>{% endif %}
+            {% if reciclado %}<tr><td style="color:#64748b;font-weight:600;">Reciclado</td><td>Sí{% if reciclado_tipo %} ({{ reciclado_tipo | capitalize }}){% endif %}{% if anio_reciclado %} — {{ anio_reciclado }}{% endif %}</td></tr>{% endif %}
+            {% if estado %}<tr><td style="color:#64748b;font-weight:600;">Estado</td><td>{{ estado | capitalize }}</td></tr>{% endif %}
+            {% if calidad_edificio %}<tr><td style="color:#64748b;font-weight:600;">Calidad edificio</td><td>{{ calidad_edificio | capitalize }}</td></tr>{% endif %}
+            {% if constructora %}<tr><td style="color:#64748b;font-weight:600;">Constructora</td><td>{{ constructora }}</td></tr>{% endif %}
+            {% if orientacion %}<tr><td style="color:#64748b;font-weight:600;">Orientación</td><td>{{ orientacion | capitalize }}</td></tr>{% endif %}
+            {% if ventilacion %}<tr><td style="color:#64748b;font-weight:600;">Ventilación</td><td>{{ ventilacion | capitalize }}</td></tr>{% endif %}
+            {% if vista %}<tr><td style="color:#64748b;font-weight:600;">Vista</td><td>{{ vista | capitalize }}</td></tr>{% endif %}
+            {% if gas_ok %}<tr><td style="color:#64748b;font-weight:600;">Gas</td><td>{{ gas_ok | capitalize }}</td></tr>{% endif %}
+            {% if expensas and expensas != '0' %}<tr><td style="color:#64748b;font-weight:600;">Expensas</td><td>ARS {{ expensas }}</td></tr>{% endif %}
+          </table>
+        </div>
+      </div>
+
+      {% if cocheras or baulera or balcon or despensa or lavadero_independiente or placares_completos or doble_ingreso or layout_flexible or seguridad or ascensores or carpinteria or terminaciones_suelo or terminaciones_cocina or ventilacion_bano or amenities_list or descripcion_libre %}
+      <div style="margin-top:10px; border-top:1px solid #e2e8f0; padding-top:10px;">
+        <table class="data-table">
+          {% if cocheras %}<tr><td style="color:#64748b;font-weight:600;width:30%;">Cochera(s)</td><td>{{ cocheras }}{% if cocheras_tipo %} ({{ cocheras_tipo | capitalize }}){% endif %}{% if valor_cochera_base %} — USD {{ valor_cochera_base }}{% endif %}</td></tr>{% endif %}
+          {% if balcon %}<tr><td style="color:#64748b;font-weight:600;">Balcón</td><td>Sí{% if tipo_balcon %} ({{ tipo_balcon | capitalize }}){% endif %}</td></tr>{% endif %}
+          {% if despensa %}<tr><td style="color:#64748b;font-weight:600;">Despensa</td><td>Sí</td></tr>{% endif %}
+          {% if lavadero_independiente %}<tr><td style="color:#64748b;font-weight:600;">Lavadero independiente</td><td>Sí</td></tr>{% endif %}
+          {% if placares_completos %}<tr><td style="color:#64748b;font-weight:600;">Placares completos</td><td>Sí</td></tr>{% endif %}
+          {% if doble_ingreso %}<tr><td style="color:#64748b;font-weight:600;">Doble ingreso</td><td>Sí</td></tr>{% endif %}
+          {% if layout_flexible %}<tr><td style="color:#64748b;font-weight:600;">Layout flexible</td><td>Sí</td></tr>{% endif %}
+          {% if ascensores %}<tr><td style="color:#64748b;font-weight:600;">Ascensores</td><td>{{ ascensores }}</td></tr>{% endif %}
+          {% if seguridad %}<tr><td style="color:#64748b;font-weight:600;">Seguridad</td><td>{{ seguridad | capitalize }}</td></tr>{% endif %}
+          {% if carpinteria %}<tr><td style="color:#64748b;font-weight:600;">Carpintería</td><td>{{ carpinteria | capitalize }}</td></tr>{% endif %}
+          {% if terminaciones_suelo %}<tr><td style="color:#64748b;font-weight:600;">Suelo</td><td>{{ terminaciones_suelo | capitalize }}</td></tr>{% endif %}
+          {% if terminaciones_cocina %}<tr><td style="color:#64748b;font-weight:600;">Cocina</td><td>{{ terminaciones_cocina | capitalize }}</td></tr>{% endif %}
+          {% if ventilacion_bano %}<tr><td style="color:#64748b;font-weight:600;">Ventilación baño</td><td>{{ ventilacion_bano | capitalize }}</td></tr>{% endif %}
+          {% if amenities_list %}<tr><td style="color:#64748b;font-weight:600;">Amenities</td><td>{{ amenities_list }}</td></tr>{% endif %}
+          {% if descripcion_libre %}<tr><td style="color:#64748b;font-weight:600;">Observaciones</td><td>{{ descripcion_libre }}</td></tr>{% endif %}
+        </table>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Informe de Valuación -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:linear-gradient(135deg, #f59e0b, #d97706);">$</div>
+      <div class="section-title">Informe de Valuación</div>
+    </div>
+    <div style="background:#f8fafc; border-radius:10px; padding:14px; border:1px solid #e2e8f0; margin-bottom:14px;">
+
+      {% if tiene_auto %}
+      <div style="background:white; border-radius:8px; padding:12px; border:1px solid #e2e8f0; margin-bottom:10px;">
+        <div style="font-size:10px; font-weight:700; color:#3b82f6; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">
+          Valuación por Comparables de Mercado
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-size:20px; font-weight:800; color:#0f172a;">USD {{ v_auto }}</div>
+            <div style="font-size:9px; color:#94a3b8;">{{ n_comps_auto }} comparables | {{ m2_base }}/m² | {{ cv_qualitative }}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:10px; color:#64748b;">Conservador | Spread | Optimista</div>
+            <div style="font-size:11px; font-weight:600;">USD {{ v_auto_cons }} | USD {{ v_auto_spread }} | USD {{ v_auto_opt }}</div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if tiene_manual %}
+      <div style="background:white; border-radius:8px; padding:12px; border:1px solid #e2e8f0;">
+        <div style="font-size:10px; font-weight:700; color:#8b5cf6; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">
+          Valuación Manual (Tasador)
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-size:20px; font-weight:800; color:#0f172a;">USD {{ v_manual }}</div>
+            <div style="font-size:9px; color:#94a3b8;">{{ m2_eq }} m² × USD {{ v_manual_m2 }}/m²</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:10px; color:#64748b;">Conservador | Spread | Optimista</div>
+            <div style="font-size:11px; font-weight:600;">USD {{ v_manual_cons }} | USD {{ v_manual_spread }} | USD {{ v_manual_opt }}</div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div style="background:linear-gradient(135deg, #1a6b6b, #0d4f4f); border-radius:8px; padding:12px; margin-top:10px; text-align:center;">
+        <div style="font-size:10px; font-weight:600; color:white; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
+          Valor Adoptado — {{ fuente_adoptada }}
+        </div>
+        <div style="font-size:22px; font-weight:800; color:white;">USD {{ valor_adoptado }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-number">{{ n_comps_auto }}</div>
+      <div class="kpi-label">Comparables</div>
+      <div class="kpi-desc">Propiedades analizadas</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-number">{{ radio_m }}m</div>
+      <div class="kpi-label">Radio</div>
+      <div class="kpi-desc">Búsqueda máxima</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-number">{{ m2_base }}</div>
+      <div class="kpi-label">USD/m²</div>
+      <div class="kpi-desc">Valor base de referencia</div>
+    </div>
+  </div>
+
+  <!-- Métricas de Inversión -->
+  <div class="info-box">
+    <strong>Métricas de inversión:</strong>
+    Alquiler estimado: ARS {{ alquiler_ars }} (USD {{ alquiler_usd }}) |
+    Cap Rate anual: {{ cap_rate }}
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PÁGINA 3: COMPARABLES                                      -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="page-content">
+  <div class="header-bar">
+    <div class="header-left">
+      {% if logo_b64 %}
+      <img src="data:image/png;base64,{{ logo_b64 }}" style="width:36px;height:36px;border-radius:8px;object-fit:contain;">
+      {% endif %}
+      <div class="header-brand">TTL PROPIEDADES</div>
+    </div>
+    <div class="header-right">{{ fecha_generacion }}</div>
+  </div>
+
+  {% if map_b64 %}
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:linear-gradient(135deg, #3b82f6, #2563eb);">📍</div>
+      <div class="section-title">Ubicación de comparables</div>
+    </div>
+    <div style="border-radius:10px; border:1px solid #e2e8f0; background:#f8fafc; padding:4px;">
+      <img src="data:image/png;base64,{{ map_b64 }}" class="map-img">
+    </div>
+    <div style="margin-top:5px; font-size:9px; color:#94a3b8; text-align:center;">
+      Propiedad sujeto (rojo) y comparables (verde) en radio de {{ radio_m }}m
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon">📋</div>
+      <div class="section-title">Comparables utilizados</div>
+    </div>
+    <p class="text-muted text-sm mb-16">{{ n_comps_auto }} propiedades comparables seleccionadas dentro de un radio de {{ radio_m }}m.</p>
+
+    {% if comparables %}
+    <table class="data-table data-table-auto">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Dirección</th>
+          <th>m²</th>
+          <th>Dorm.</th>
+          <th>Antigüedad</th>
+          <th>USD/m²</th>
+          <th>USD Total</th>
+          <th>Dist.</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in comparables %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ c.direccion }}</td>
+          <td>{{ c.m2 }}</td>
+          <td>{{ c.dormitorios }}</td>
+          <td>{{ c.antiguedad }}</td>
+          <td>{{ c.precio_m2 }}</td>
+          <td>{{ c.precio }}</td>
+          <td>{{ c.distancia_m }}m</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="text-muted">No hay comparables disponibles.</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PÁGINA 4: METODOLOGÍA Y FACTORES                           -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="page-content">
+  <div class="header-bar">
+    <div class="header-left">
+      {% if logo_b64 %}
+      <img src="data:image/png;base64,{{ logo_b64 }}" style="width:36px;height:36px;border-radius:8px;object-fit:contain;">
+      {% endif %}
+      <div class="header-brand">TTL PROPIEDADES</div>
+    </div>
+    <div class="header-right">{{ fecha_generacion }}</div>
+  </div>
+
+  {% if razonamiento %}
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:linear-gradient(135deg, #3b82f6, #2563eb);">📝</div>
+      <div class="section-title">Análisis — Valuación por Comparables</div>
+    </div>
+    <div style="background:#f8fafc; border-radius:10px; padding:14px; font-size:10px; color:#475569; line-height:1.8; border:1px solid #e2e8f0; break-inside:auto;">
+      {{ razonamiento }}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if razonamiento_manual %}
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:linear-gradient(135deg, #8b5cf6, #7c3aed);">📝</div>
+      <div class="section-title">Análisis — Valuación Manual (Tasador)</div>
+    </div>
+    <div style="background:#faf5ff; border-radius:10px; padding:14px; font-size:10px; color:#475569; line-height:1.8; border:1px solid #e9d5ff; break-inside:auto;">
+      {{ razonamiento_manual }}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if tiene_manual %}
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon">⚙️</div>
+      <div class="section-title">Factores hedónicos aplicados</div>
+    </div>
+    <table class="data-table">
+      <tr><td style="color:#64748b;">Estado{% if fd_estado_label %} ({{ fd_estado_label }}){% endif %}</td><td style="font-weight:700;">{{ fd_estado }}</td></tr>
+      <tr><td style="color:#64748b;">Calidad edificio{% if fd_calidad_label %} ({{ fd_calidad_label }}){% endif %}</td><td style="font-weight:700;">{{ fd_calidad }}</td></tr>
+      <tr><td style="color:#64748b;">Amenities{% if fd_amenities_detalle %} ({{ fd_amenities_detalle }}){% endif %}</td><td style="font-weight:700;">{{ fd_amenities }}</td></tr>
+      <tr><td style="color:#64748b;">Otros</td><td style="font-weight:700;">{{ fd_otros }}</td></tr>
+      <tr style="border-top:2px solid #e2e8f0;"><td style="color:#0f172a;font-weight:700;">Factor total</td><td style="font-weight:800;color:#059669;">{{ fd_total }}</td></tr>
+    </table>
+    <p style="font-size:9px; color:#94a3b8; margin-top:6px; font-style:italic;">
+      Estos factores no impactan el cálculo por comparables; se muestran solo como referencia del análisis hedónico.
+    </p>
+  </div>
+  {% endif %}
+
+  {% if catastro %}
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon">📑</div>
+      <div class="section-title">Datos catastrales</div>
+    </div>
+    <div class="two-col">
+      <div>
+        <table class="data-table">
+          <tr><td style="color:#64748b;">PH</td><td>{{ catastro.ph }}</td></tr>
+          <tr><td style="color:#64748b;">Año construcción</td><td>{{ catastro.anio }}</td></tr>
+        </table>
+      </div>
+      <div>
+        <table class="data-table">
+          <tr><td style="color:#64748b;">Sección</td><td>{{ catastro.seccion }}</td></tr>
+          <tr><td style="color:#64748b;">Gráfico</td><td>{{ catastro.grafico }}</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if tiene_activos %}
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon">🏪</div>
+      <div class="section-title">Activos adicionales</div>
+    </div>
+    <table class="data-table">
+      {% for act in activos %}
+      <tr><td style="color:#64748b;">{{ act.nombre }}</td><td style="font-weight:700;">USD {{ act.valor }}</td></tr>
+      {% endfor %}
+      <tr style="border-top:2px solid #e2e8f0;"><td style="font-weight:700;">Total activos adicionales</td><td style="font-weight:700;">USD {{ total_activos }}</td></tr>
+    </table>
+  </div>
+  {% endif %}
+
+  <div class="disclaimer">
+    <strong>Aviso legal:</strong> Este informe fue generado automáticamente por TTL Propiedades mediante análisis
+    comparativo de mercado. Los valores estimados no constituyen una tasación oficial ni vinculante, y deben
+    ser validados por un profesional habilitado antes de cualquier decisión de compra, venta o hipoteca.
+    Los datos de mercado provienen de fuentes públicas y pueden no reflejar condiciones transaccionales específicas.
+  </div>
+</div>
+
+</body>
+</html>
