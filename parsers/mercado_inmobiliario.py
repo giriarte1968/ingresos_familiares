@@ -6,7 +6,7 @@ import unicodedata
 import logging
 from datetime import datetime
 from typing import Optional
-from parsers.location_engine import cargar_anclas, calcular_precio_m2, estimar_confianza, get_ancla_mas_cercana
+from parsers.location_engine import cargar_anclas, calcular_precio_m2, estimar_confianza, get_ancla_mas_cercana, cargar_precios_oficiales, obtener_precio_oficial
 from parsers import cluster_filters
 from parsers.cluster_filters import (
     filtrar_por_fecha,
@@ -4223,6 +4223,8 @@ def generar_resultado_manual(prop, manual_params, auto_result=None):
         'catastro_detalle': (auto_result or {}).get('catastro_detalle'),
         'fuente': 'manual',
         'manual_params': manual_params,
+        'fuente_m2': manual_params.get('fuente_m2', 'Ancla del cluster'),
+        'fuente_m2_detalle': manual_params.get('fuente_m2_detalle'),
         'retro_activo': (auto_result or {}).get('retro_activo', False),
         'total_dias_ventana': (auto_result or {}).get('total_dias_ventana', 180),
         'resolution_metadata': {

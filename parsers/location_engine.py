@@ -26,6 +26,57 @@ def cargar_barreras(path=None):
         data = json.load(f)
         return data.get("features", [])
 
+_precios_oficiales_cache = None
+
+def cargar_precios_oficiales(path=None):
+    global _precios_oficiales_cache
+    if _precios_oficiales_cache is not None and path is None:
+        return _precios_oficiales_cache
+    if path is None:
+        path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'precios_oficiales_rosario.json')
+    if not os.path.exists(path):
+        return None
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    _precios_oficiales_cache = data
+    return data
+
+def obtener_precio_oficial(zona_texto, dormitorios=None):
+    data = cargar_precios_oficiales()
+    if not data or "zonas" not in data:
+        return None
+    zona_lower = zona_texto.lower().strip() if zona_texto else ""
+    zonas = data["zonas"]
+    zona_match = None
+    for key, zdata in zonas.items():
+        if key.lower() == zona_lower or zdata.get("nombre", "").lower() == zona_lower:
+            zona_match = zdata
+            break
+    if not zona_match:
+        for key, zdata in zonas.items():
+            if zona_lower in key.lower() or key.lower() in zona_lower:
+                zona_match = zdata
+                break
+    if not zona_match:
+        return None
+    if dormitorios is not None and "por_dormitorio" in zona_match:
+        dorm_key = f"{dormitorios}d" if dormitorios <= 4 else "4d"
+        if dorm_key in zona_match["por_dormitorio"]:
+            return {
+                "usd_m2": zona_match["por_dormitorio"][dorm_key],
+                "fuente": zona_match.get("fuentes", ["desconocida"]),
+                "fecha": data.get("fecha_generacion", ""),
+                "zona": zona_match.get("nombre", zona_texto),
+                "confianza": zona_match.get("confianza", "estimada"),
+            }
+    return {
+        "usd_m2": zona_match.get("general", 0),
+        "fuente": zona_match.get("fuentes", ["desconocida"]),
+        "fecha": data.get("fecha_generacion", ""),
+        "zona": zona_match.get("nombre", zona_texto),
+        "confianza": zona_match.get("confianza", "estimada"),
+    }
+
 def distancia(lat1, lon1, lat2, lon2):
     R = 6371
     dlat = math.radians(lat2 - lat1)

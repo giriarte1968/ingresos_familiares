@@ -12,6 +12,7 @@ from datetime import datetime
 from valu_design import kpi_card, metric_card, range_bar, insights_card, property_card
 from streamlit.components.v1 import html
 from parsers.mercado_inmobiliario import calcular_vm2_por_seleccion
+from parsers.location_engine import obtener_precio_oficial, cargar_precios_oficiales
 from parsers.debug_logger import log as _file_log
 
 def _safe_key(name):
@@ -1815,9 +1816,20 @@ def render_valuacion_manual(prop, res):
     for a in anclas:
         aid = a.get('id', a.get('nombre', ''))
         v = a.get('usd_m2', 0)
-        ancla_display_map[f"{aid} (${v:,}/m2)"] = {'id': aid, 'usd_m2': v}
+        nombre_legible = a.get('nombre_legible', aid.replace('_', ' ').title())
+        macrozona = a.get('macrozona', '')
+        display_label = f"{nombre_legible} (${v:,}/m2) [{macrozona.upper()}]" if macrozona else f"{nombre_legible} (${v:,}/m2)"
+        ancla_display_map[display_label] = {'id': aid, 'usd_m2': v}
     ancla_display_list = sorted(ancla_display_map.keys())
     ancla_display_list = ["Sin Ancla"] + ancla_display_list
+
+    # ─── Precio oficial ───
+    zona_prop = (prop.get('zona') or '').lower().strip()
+    dorm_prop = prop.get('dormitorios')
+    precio_oficial = obtener_precio_oficial(zona_prop, dorm_prop)
+    oficial_display = None
+    if precio_oficial and precio_oficial.get('usd_m2', 0) > 0:
+        oficial_display = precio_oficial
 
     lat = prop.get('lat')
     lon = prop.get('lon')
@@ -1907,68 +1919,176 @@ def render_valuacion_manual(prop, res):
     with st.container(border=True):
         st.markdown("##### Parametros de Valuacion Manual")
 
-        # Fila única: Ancla | USD/m² | FH (%) | Inc. (±%) | Ajuste (%)
-        print(f"[DEBUG-VISUAL-101] {nombre}: layout single-row, ancla_id={saved.get('ancla_id')}, fh_delta={(float(saved.get('factor_hedonico', 1.0))-1.0)*100:+.1f}%, inc={saved.get('incertidumbre_pct')}, ajuste={saved.get('ajuste_pct')}")
-        col_a, col_b, col_c, col_d, col_e = st.columns([2, 1, 1, 1, 1])
-        with col_a:
-            saved_display = "Sin Ancla"
-            for dk in ancla_display_list:
-                if ancla_display_map.get(dk, {}).get('id') == saved.get('ancla_id', ''):
-                    saved_display = dk
-                    break
-            if saved_display == "Sin Ancla" and saved.get('ancla_id'):
-                saved_display = ancla_display_list[0]
-            ancla_display_sel = st.selectbox(
-                "Ancla",
-                options=ancla_display_list,
-                index=ancla_display_list.index(saved_display) if saved_display in ancla_display_list else 0,
-                key=f"manual_ancla_{_safe_key(nombre)}",
+        # Selector de fuente del valor m2
+        fuentes_options = ["Ancla del cluster"]
+        if oficial_display:
+            fuentes_options.append("Valor oficial (UdeSA)")
+        fuentes_options.append("Sin Ancla")
+
+        saved_fuente = saved.get('fuente_m2', 'Ancla del cluster')
+        if saved_fuente not in fuentes_options:
+            saved_fuente = fuentes_options[0]
+
+        fuente_sel = st.radio(
+            "Fuente del valor m2",
+            options=fuentes_options,
+            index=fuentes_options.index(saved_fuente) if saved_fuente in fuentes_options else 0,
+            horizontal=True,
+            key=f"manual_fuente_m2_{_safe_key(nombre)}",
+        )
+
+        # Fila: Ancla (si aplica) | USD/m² | FH (%) | Inc. (±%) | Ajuste (%)
+        print(f"[DEBUG-VISUAL-101] {nombre}: fuente={fuente_sel}, ancla_id={saved.get('ancla_id')}, fh_delta={(float(saved.get('factor_hedonico', 1.0))-1.0)*100:+.1f}%, inc={saved.get('incertidumbre_pct')}, ajuste={saved.get('ajuste_pct')}")
+
+        if fuente_sel == "Ancla del cluster":
+            col_a, col_b, col_c, col_d, col_e = st.columns([2, 1, 1, 1, 1])
+            with col_a:
+                saved_display = "Sin Ancla"
+                for dk in ancla_display_list:
+                    if ancla_display_map.get(dk, {}).get('id') == saved.get('ancla_id', ''):
+                        saved_display = dk
+                        break
+                if saved_display == "Sin Ancla" and saved.get('ancla_id'):
+                    saved_display = ancla_display_list[0]
+                ancla_display_sel = st.selectbox(
+                    "Ancla",
+                    options=ancla_display_list,
+                    index=ancla_display_list.index(saved_display) if saved_display in ancla_display_list else 0,
+                    key=f"manual_ancla_{_safe_key(nombre)}",
+                )
+                ancla_sel = "Sin Ancla"
+                if ancla_display_sel in ancla_display_map:
+                    ancla_sel = ancla_display_map[ancla_display_sel]['id']
+            with col_b:
+                tiene_ancla = ancla_sel != "Sin Ancla"
+                usd_display = saved.get('usd_m2', default_usd_m2)
+                if tiene_ancla and ancla_sel in ancla_options:
+                    usd_display = ancla_options[ancla_sel].get('usd_m2', usd_display)
+                usd_m2_input = st.number_input(
+                    "USD/m²",
+                    min_value=0.0, max_value=10000.0,
+                    value=float(usd_display or 0),
+                    step=50.0, format="%.0f",
+                    disabled=tiene_ancla,
+                    key=f"manual_usd_m2_{_safe_key(nombre)}",
+                )
+            with col_c:
+                fh_delta_saved = (float(saved.get('factor_hedonico', default_factor_hedonico)) - 1.0) * 100
+                fh_delta = st.number_input(
+                    "FH (Δ%)",
+                    min_value=-100.0, max_value=400.0,
+                    value=fh_delta_saved,
+                    step=1.0, format="%.1f",
+                    key=f"manual_fh_{_safe_key(nombre)}",
+                )
+                fh = 1.0 + (fh_delta / 100.0)
+            with col_d:
+                inc = st.number_input(
+                    "Inc. (±%)",
+                    min_value=0.0, max_value=100.0,
+                    value=float(saved.get('incertidumbre_pct', 10.0)),
+                    step=1.0, format="%.0f",
+                    key=f"manual_inc_{_safe_key(nombre)}",
+                )
+            with col_e:
+                ajuste_pct = st.number_input(
+                    "Ajuste (%)",
+                    min_value=-50.0, max_value=100.0,
+                    value=float(saved.get('ajuste_pct', 0.0)),
+                    step=1.0, format="%.1f",
+                    key=f"manual_aj_{_safe_key(nombre)}",
+                )
+            if tiene_ancla:
+                st.caption("Valor determinado por el ancla. Seleccioná 'Sin Ancla' para editar manualmente.")
+            ancla_sel_final = ancla_sel
+            usd_m2_oficial = None
+
+        elif fuente_sel == "Valor oficial (UdeSA)":
+            col_b, col_c, col_d, col_e = st.columns([1, 1, 1, 1])
+            ancla_sel_final = "Sin Ancla"
+            usd_oficial_val = oficial_display['usd_m2']
+            usd_m2_input = st.number_input(
+                "USD/m² (oficial)",
+                min_value=0.0, max_value=10000.0,
+                value=float(usd_oficial_val),
+                step=50.0, format="%.0f",
+                disabled=True,
+                key=f"manual_usd_m2_{_safe_key(nombre)}",
             )
-            ancla_sel = "Sin Ancla"
-            if ancla_display_sel in ancla_display_map:
-                ancla_sel = ancla_display_map[ancla_display_sel]['id']
-        with col_b:
-            tiene_ancla = ancla_sel != "Sin Ancla"
-            usd_display = saved.get('usd_m2', default_usd_m2)
-            if tiene_ancla and ancla_sel in ancla_options:
-                usd_display = ancla_options[ancla_sel].get('usd_m2', usd_display)
+            tiene_ancla = True
+            with col_b:
+                fh_delta_saved = (float(saved.get('factor_hedonico', default_factor_hedonico)) - 1.0) * 100
+                fh_delta = st.number_input(
+                    "FH (Δ%)",
+                    min_value=-100.0, max_value=400.0,
+                    value=fh_delta_saved,
+                    step=1.0, format="%.1f",
+                    key=f"manual_fh_{_safe_key(nombre)}",
+                )
+                fh = 1.0 + (fh_delta / 100.0)
+            with col_c:
+                inc = st.number_input(
+                    "Inc. (±%)",
+                    min_value=0.0, max_value=100.0,
+                    value=float(saved.get('incertidumbre_pct', 10.0)),
+                    step=1.0, format="%.0f",
+                    key=f"manual_inc_{_safe_key(nombre)}",
+                )
+            with col_d:
+                ajuste_pct = st.number_input(
+                    "Ajuste (%)",
+                    min_value=-50.0, max_value=100.0,
+                    value=float(saved.get('ajuste_pct', 0.0)),
+                    step=1.0, format="%.1f",
+                    key=f"manual_aj_{_safe_key(nombre)}",
+                )
+            fuente_detalle = oficial_display.get('fuente', ['N/A'])
+            fuente_fecha = oficial_display.get('fecha', 'N/A')
+            fuente_zona = oficial_display.get('zona', zona_prop)
+            st.caption(f"Fuente: {', '.join(fuente_detalle) if isinstance(fuente_detalle, list) else fuente_detalle} ({fuente_fecha}). Zona: {fuente_zona}. Precio de publicacion.")
+            usd_m2_oficial = oficial_display
+
+        else:
+            # Sin Ancla - libre
+            col_b, col_c, col_d, col_e = st.columns([1, 1, 1, 1])
+            ancla_sel_final = "Sin Ancla"
             usd_m2_input = st.number_input(
                 "USD/m²",
                 min_value=0.0, max_value=10000.0,
-                value=float(usd_display or 0),
+                value=float(saved.get('usd_m2', 0)),
                 step=50.0, format="%.0f",
-                disabled=tiene_ancla,
                 key=f"manual_usd_m2_{_safe_key(nombre)}",
             )
-        with col_c:
-            fh_delta_saved = (float(saved.get('factor_hedonico', default_factor_hedonico)) - 1.0) * 100
-            fh_delta = st.number_input(
-                "FH (Δ%)",
-                min_value=-100.0, max_value=400.0,
-                value=fh_delta_saved,
-                step=1.0, format="%.1f",
-                key=f"manual_fh_{_safe_key(nombre)}",
-            )
-            fh = 1.0 + (fh_delta / 100.0)
-        with col_d:
-            inc = st.number_input(
-                "Inc. (±%)",
-                min_value=0.0, max_value=100.0,
-                value=float(saved.get('incertidumbre_pct', 10.0)),
-                step=1.0, format="%.0f",
-                key=f"manual_inc_{_safe_key(nombre)}",
-            )
-        with col_e:
-            ajuste_pct = st.number_input(
-                "Ajuste (%)",
-                min_value=-50.0, max_value=100.0,
-                value=float(saved.get('ajuste_pct', 0.0)),
-                step=1.0, format="%.1f",
-                key=f"manual_aj_{_safe_key(nombre)}",
-            )
-        # Caption del ancla debajo de la fila
-        if tiene_ancla:
-            st.caption("Valor determinado por el ancla. Deseleccioná el ancla para editar manualmente.")
+            tiene_ancla = False
+            with col_b:
+                fh_delta_saved = (float(saved.get('factor_hedonico', default_factor_hedonico)) - 1.0) * 100
+                fh_delta = st.number_input(
+                    "FH (Δ%)",
+                    min_value=-100.0, max_value=400.0,
+                    value=fh_delta_saved,
+                    step=1.0, format="%.1f",
+                    key=f"manual_fh_{_safe_key(nombre)}",
+                )
+                fh = 1.0 + (fh_delta / 100.0)
+            with col_c:
+                inc = st.number_input(
+                    "Inc. (±%)",
+                    min_value=0.0, max_value=100.0,
+                    value=float(saved.get('incertidumbre_pct', 10.0)),
+                    step=1.0, format="%.0f",
+                    key=f"manual_inc_{_safe_key(nombre)}",
+                )
+            with col_d:
+                ajuste_pct = st.number_input(
+                    "Ajuste (%)",
+                    min_value=-50.0, max_value=100.0,
+                    value=float(saved.get('ajuste_pct', 0.0)),
+                    step=1.0, format="%.1f",
+                    key=f"manual_aj_{_safe_key(nombre)}",
+                )
+            st.caption("Ingresá el valor USD/m² manualmente.")
+            ancla_sel_final = "Sin Ancla"
+            usd_m2_oficial = None
 
         # Checkbox: prima de constructora
         constr_check_label = f"Prima de constructora ({constr_label})" if constr_label else "Prima de constructora"
@@ -2104,13 +2224,15 @@ def render_valuacion_manual(prop, res):
         if saved_params:
             # Comparar solo los parámetros editables
             checks = [
-                ('ancla_id', ancla_sel),
+                ('ancla_id', ancla_sel_final),
                 ('usd_m2', usd_m2_input),
                 ('factor_hedonico', fh),
                 ('incertidumbre_pct', inc),
                 ('ajuste_pct', ajuste_pct),
                 ('incluir_prima_const', saved.get('incluir_prima_const', True)),
             ]
+            if saved_params and 'fuente_m2' in saved_params:
+                checks.append(('fuente_m2', fuente_sel))
             for key, val in checks:
                 if saved_params.get(key) != val:
                     params_changed = True
@@ -2123,7 +2245,7 @@ def render_valuacion_manual(prop, res):
         if st.button("✅ Aplicar Selección", type="primary", use_container_width=True,
                      key=f"manual_guardar_{_safe_key(nombre)}", disabled=not can_save):
             manual_params = {
-                'ancla_id': ancla_sel,
+                'ancla_id': ancla_sel_final,
                 'usd_m2': usd_m2_input,
                 'factor_hedonico': fh,
                 'incertidumbre_pct': inc,
@@ -2131,6 +2253,8 @@ def render_valuacion_manual(prop, res):
                 'incluir_prima_const': saved.get('incluir_prima_const', True),
                 'fecha_guardado': datetime.now().isoformat(),
                 'valor_auto_snapshot': motor_valor,
+                'fuente_m2': fuente_sel,
+                'fuente_m2_detalle': usd_m2_oficial if usd_m2_oficial else None,
             }
             from parsers.mercado_inmobiliario import generar_resultado_manual
             resultado_manual = generar_resultado_manual(prop, manual_params, auto_result=auto_result)

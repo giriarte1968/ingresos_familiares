@@ -27,7 +27,8 @@
       "fuente": "grid_v7",
       "n_zonal": 13,
       "calle_principal": "acevedo",
-      "macrozona": "oeste"
+      "macrozona": "oeste",
+      "nombre_legible": "Acevedo y Avenida Juan José Paso"
     },
     {
       "id": "achira_oeste",
@@ -42,7 +43,8 @@
       "fuente": "grid_v7",
       "n_zonal": 7,
       "calle_principal": "achira",
-      "macrozona": "oeste"
+      "macrozona": "oeste",
+      "nombre_legible": "Achira y Pasaje Abipones"
     },
     {
       "id": "aduana_oeste",
@@ -57,7 +59,8 @@
       "fuente": "grid_v7",
       "n_zonal": 6,
       "calle_principal": "aduana",
-      "macrozona": "oeste"
+      "macrozona": "oeste",
+      "nombre_legible": "Aduana y Alejandro Gruning Rosas"
     },
     {
       "id": "agrelo_norte",
@@ -72,7 +75,8 @@
       "fuente": "grid_v7",
       "n_zonal": 24,
       "calle_principal": "agrelo",
-      "macrozona": "norte"
+      "macrozona": "norte",
+      "nombre_legible": "Agrelo y José C. Paz"
     },
     {
       "id": "agrelo_norte_2",
@@ -87,7 +91,8 @@
       "fuente": "grid_v7",
       "n_zonal": 16,
       "calle_principal": "agrelo",
-      "macrozona": "norte"
+      "macrozona": "norte",
+      "nombre_legible": "Agrelo y Piaggio"
     },
     {
       "id": "agrelo_norte_3",
@@ -102,7 +107,8 @@
       "fuente": "grid_v7",
       "n_zonal": 23,
       "calle_principal": "agrelo",
-      "macrozona": "norte"
+      "macrozona": "norte",
+      "nombre_legible": "Agrelo y Mariano Perdriel"
     },
     {
       "id": "aguado_norte",
@@ -117,7 +123,8 @@
       "fuente": "grid_v7",
       "n_zonal": 16,
       "calle_principal": "aguado",
-      "macrozona": "norte"
+      "macrozona": "norte",
+      "nombre_legible": "Aguado y Plumerillo"
     },
     {
       "id": "agustin_alvarez_norte",
@@ -132,7 +139,8 @@
       "fuente": "grid_v7",
       "n_zonal": 12,
       "calle_principal": "agustin_alvarez",
-      "macrozona": "norte"
+      "macrozona": "norte",
+      "nombre_legible": "Agustin_alvarez y Álvarez Thomas"
     },
     {
       "id": "alem_sur",
@@ -147,7 +155,8 @@
       "fuente": "grid_v7",
       "n_zonal": 209,
       "calle_principal": "alem",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Alem y Zeballos"
     },
     {
       "id": "alem_sur_2",
@@ -162,7 +171,8 @@
       "fuente": "grid_v7",
       "n_zonal": 22,
       "calle_principal": "alem",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Alem y Leandro N. Alem"
     },
     {
       "id": "alemania_centro",
@@ -177,7 +187,8 @@
       "fuente": "grid_v7",
       "n_zonal": 8,
       "calle_principal": "alemania",
-      "macrozona": "centro"
+      "macrozona": "centro",
+      "nombre_legible": "Alemania y Bahía Blanca"
     },
     {
       "id": "alippi_oeste",
@@ -192,7 +203,8 @@
       "fuente": "grid_v7",
       "n_zonal": 13,
       "calle_principal": "alippi",
-      "macrozona": "oeste"
+      "macrozona": "oeste",
+      "nombre_legible": "Alippi y Juan Aurelio Casacuberta"
     },
     {
       "id": "alippi_oeste_2",
@@ -207,7 +219,8 @@
       "fuente": "grid_v7",
       "n_zonal": 8,
       "calle_principal": "alippi",
-      "macrozona": "oeste"
+      "macrozona": "oeste",
+      "nombre_legible": "Alippi y Calle 1506"
     },
     {
       "id": "almafuerte_norte",
@@ -222,7 +235,8 @@
       "fuente": "grid_v7",
       "n_zonal": 28,
       "calle_principal": "almafuerte",
-      "macrozona": "norte"
+      "macrozona": "norte",
+      "nombre_legible": "Almafuerte y Reconquista"
     },
     {
       "id": "alsina_sur",
@@ -237,7 +251,8 @@
       "fuente": "grid_v7",
       "n_zonal": 38,
       "calle_principal": "alsina",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Alsina y Justo José De Urquiza"
     },
     {
       "id": "alsina_sur_2",
@@ -252,7 +267,8 @@
       "fuente": "grid_v7",
       "n_zonal": 13,
       "calle_principal": "alsina",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Alsina y Ituzaingó"
     },
     {
       "id": "alta_florida_rondeau_norte",
@@ -267,7 +283,8 @@
       "fuente": "grid_v7",
       "n_zonal": 32,
       "calle_principal": "alta_florida_rondeau",
-      "macrozona": "norte"
+      "macrozona": "norte",
+      "nombre_legible": "Alta_florida_rondeau y David Peña"
     },
     {
       "id": "alvarez_condarco_oeste",
@@ -282,7 +299,8 @@
       "fuente": "grid_v7",
       "n_zonal": 16,
       "calle_principal": "alvarez_condarco",
-      "macrozona": "oeste"
+      "macrozona": "oeste",
+      "nombre_legible": "Alvarez_condarco y Urdinarrain"
     },
     {
       "id": "alvarez_thomas_norte",
@@ -297,7 +315,8 @@
       "fuente": "grid_v7",
       "n_zonal": 21,
       "calle_principal": "alvarez_thomas",
-      "macrozona": "norte"
+      "macrozona": "norte",
+      "nombre_legible": "Alvarez_thomas y Álvarez Thomas"
     },
     {
       "id": "alvarez_thomas_norte_2",
@@ -312,7 +331,8 @@
       "fuente": "grid_v7",
       "n_zonal": 16,
       "calle_principal": "alvarez_thomas",
-      "macrozona": "norte"
+      "macrozona": "norte",
+      "nombre_legible": "Alvarez_thomas y Domingo Matheu"
     },
     {
       "id": "amenabar_sur",
@@ -327,7 +347,8 @@
       "fuente": "grid_v7",
       "n_zonal": 16,
       "calle_principal": "amenabar",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Amenabar y Rueda"
     },
     {
       "id": "amenabar_sur_2",
@@ -342,7 +363,8 @@
       "fuente": "grid_v7",
       "n_zonal": 17,
       "calle_principal": "amenabar",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Amenabar y Buenos Aires"
     },
     {
       "id": "amenabar_sur_3",
@@ -357,7 +379,8 @@
       "fuente": "grid_v7",
       "n_zonal": 30,
       "calle_principal": "amenabar",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Amenabar y Manuel Dorrego"
     },
     {
       "id": "amenabar_sur_4",
@@ -372,7 +395,8 @@
       "fuente": "grid_v7",
       "n_zonal": 10,
       "calle_principal": "amenabar",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Amenabar y Rueda"
     },
     {
       "id": "amenabar_sur_5",
@@ -387,7 +411,8 @@
       "fuente": "grid_v7",
       "n_zonal": 7,
       "calle_principal": "amenabar",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Amenabar y Gomensoro"
     },
     {
       "id": "anchorena_sur",
@@ -402,7 +427,8 @@
       "fuente": "grid_v7",
       "n_zonal": 12,
       "calle_principal": "anchorena",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Anchorena y Gregorio Aráoz De Lamadrid"
     },
     {
       "id": "anchorena_sur_2",
@@ -417,7 +443,8 @@
       "fuente": "grid_v7",
       "n_zonal": 15,
       "calle_principal": "anchorena",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Anchorena y Gregorio Aráoz De Lamadrid"
     },
     {
       "id": "apostoles_norte",
@@ -432,7 +459,8 @@
       "fuente": "grid_v7",
       "n_zonal": 8,
       "calle_principal": "apostoles",
-      "macrozona": "norte"
+      "macrozona": "norte",
+      "nombre_legible": "Apostoles y Spegazzini"
     },
     {
       "id": "argentino_oeste",
@@ -447,7 +475,8 @@
       "fuente": "grid_v7",
       "n_zonal": 24,
       "calle_principal": "argentino",
-      "macrozona": "oeste"
+      "macrozona": "oeste",
+      "nombre_legible": "Argentino y Bulevar Argentino"
     },
     {
       "id": "arijon_sur",
@@ -462,7 +491,8 @@
       "fuente": "grid_v7",
       "n_zonal": 17,
       "calle_principal": "arijon",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Arijon y Hilarión De La Quintana"
     },
     {
       "id": "arijon_sur_2",
@@ -477,7 +507,8 @@
       "fuente": "grid_v7",
       "n_zonal": 7,
       "calle_principal": "arijon",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Arijon y Avenida Manuel Arijón"
     },
     {
       "id": "arijon_sur_3",
@@ -492,7 +523,8 @@
       "fuente": "grid_v7",
       "n_zonal": 9,
       "calle_principal": "arijon",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Arijon y Hilarión De La Quintana"
     },
     {
       "id": "arijon_sur_4",
@@ -507,7 +539,8 @@
       "fuente": "grid_v7",
       "n_zonal": 6,
       "calle_principal": "arijon",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Arijon y Doctor Eugenio Malaponte"
     },
     {
       "id": "arribenos_norte",
@@ -522,7 +555,8 @@
       "fuente": "grid_v7",
       "n_zonal": 5,
       "calle_principal": "arribenos",
-      "macrozona": "norte"
+      "macrozona": "norte",
+      "nombre_legible": "Arribenos y Maestro Massa"
     },
     {
       "id": "artigas_norte",
@@ -537,7 +571,8 @@
       "fuente": "grid_v7",
       "n_zonal": 39,
       "calle_principal": "artigas",
-      "macrozona": "norte"
+      "macrozona": "norte",
+      "nombre_legible": "Artigas y José Hernández"
     },
     {
       "id": "avellaneda_norte",
@@ -552,7 +587,8 @@
       "fuente": "grid_v7",
       "n_zonal": 38,
       "calle_principal": "avellaneda",
-      "macrozona": "norte"
+      "macrozona": "norte",
+      "nombre_legible": "Avellaneda y Reconquista"
     },
     {
       "id": "avellaneda_norte_2",
@@ -567,7 +603,8 @@
       "fuente": "grid_v7",
       "n_zonal": 41,
       "calle_principal": "avellaneda",
-      "macrozona": "norte"
+      "macrozona": "norte",
+      "nombre_legible": "Avellaneda y Avenida Centenario Rosario Central"
     },
     {
       "id": "avellaneda_sur",
@@ -582,7 +619,8 @@
       "fuente": "grid_v7",
       "n_zonal": 46,
       "calle_principal": "avellaneda",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Avellaneda y Lavalle"
     },
     {
       "id": "avellaneda_sur_2",
@@ -597,7 +635,8 @@
       "fuente": "grid_v7",
       "n_zonal": 28,
       "calle_principal": "avellaneda",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Avellaneda y San Juan"
     },
     {
       "id": "avellaneda_y_gorriti_sur",
@@ -612,7 +651,8 @@
       "fuente": "grid_v7",
       "n_zonal": 6,
       "calle_principal": "avellaneda_y_gorriti",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Avellaneda_y_gorriti y Almirante Brown"
     },
     {
       "id": "ayacucho_sur",
@@ -627,7 +667,8 @@
       "fuente": "grid_v7",
       "n_zonal": 13,
       "calle_principal": "ayacucho",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Ayacucho y Leandro N. Alem"
     },
     {
       "id": "ayacucho_sur_2",
@@ -642,7 +683,8 @@
       "fuente": "grid_v7",
       "n_zonal": 7,
       "calle_principal": "ayacucho",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Ayacucho y Ayolas"
     },
     {
       "id": "ayacucho_sur_3",
@@ -657,7 +699,8 @@
       "fuente": "grid_v7",
       "n_zonal": 6,
       "calle_principal": "ayacucho",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Ayacucho y Aguirre"
     },
     {
       "id": "aymara_oeste",
@@ -672,7 +715,8 @@
       "fuente": "grid_v7",
       "n_zonal": 6,
       "calle_principal": "aymara",
-      "macrozona": "oeste"
+      "macrozona": "oeste",
+      "nombre_legible": "Aymara y La República"
     },
     {
       "id": "azcuenaga_oeste",
@@ -687,7 +731,8 @@
       "fuente": "grid_v7",
       "n_zonal": 10,
       "calle_principal": "azcuenaga",
-      "macrozona": "oeste"
+      "macrozona": "oeste",
+      "nombre_legible": "Azcuenaga y Ólmos"
     },
     {
       "id": "baigorria_norte",
@@ -702,7 +747,8 @@
       "fuente": "grid_v7",
       "n_zonal": 17,
       "calle_principal": "baigorria",
-      "macrozona": "norte"
+      "macrozona": "norte",
+      "nombre_legible": "Baigorria y Valentín Gómez"
     },
     {
       "id": "balcarce_sur",
@@ -717,7 +763,8 @@
       "fuente": "grid_v7",
       "n_zonal": 101,
       "calle_principal": "balcarce",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Balcarce y Córdoba"
     },
     {
       "id": "balcarce_sur_2",
@@ -732,7 +779,8 @@
       "fuente": "grid_v7",
       "n_zonal": 168,
       "calle_principal": "balcarce",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Balcarce y Bulevar Nicasio Oroño"
     },
     {
       "id": "balcarce_sur_3",
@@ -747,7 +795,8 @@
       "fuente": "grid_v7",
       "n_zonal": 8,
       "calle_principal": "balcarce",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Balcarce y Bulevar Nicasio Oroño"
     },
     {
       "id": "balcarce_sur_4",
@@ -762,7 +811,8 @@
       "fuente": "grid_v7",
       "n_zonal": 6,
       "calle_principal": "balcarce",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Balcarce y Rodrigo M. Ross"
     },
     {
       "id": "barra_oeste",
@@ -777,7 +827,8 @@
       "fuente": "grid_v7",
       "n_zonal": 8,
       "calle_principal": "barra",
-      "macrozona": "oeste"
+      "macrozona": "oeste",
+      "nombre_legible": "Barra y Carlos Forest"
     },
     {
       "id": "bernheim_oeste",
@@ -792,7 +843,8 @@
       "fuente": "grid_v7",
       "n_zonal": 6,
       "calle_principal": "bernheim",
-      "macrozona": "oeste"
+      "macrozona": "oeste",
+      "nombre_legible": "Bernheim y Avenida Bernheim"
     },
     {
       "id": "biedma_sur",
@@ -807,7 +859,8 @@
       "fuente": "grid_v7",
       "n_zonal": 20,
       "calle_principal": "biedma",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Biedma y Francisco Narciso Laprida"
     },
     {
       "id": "biedma_sur_2",
@@ -822,7 +875,8 @@
       "fuente": "grid_v7",
       "n_zonal": 8,
       "calle_principal": "biedma",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Biedma y Primero De Mayo"
     },
     {
       "id": "blanca_sur",
@@ -837,7 +891,8 @@
       "fuente": "grid_v7",
       "n_zonal": 6,
       "calle_principal": "blanca",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Blanca y España"
     },
     {
       "id": "bosco_centro",
@@ -852,7 +907,8 @@
       "fuente": "grid_v7",
       "n_zonal": 16,
       "calle_principal": "bosco",
-      "macrozona": "centro"
+      "macrozona": "centro",
+      "nombre_legible": "Bosco y Casilda"
     },
     {
       "id": "brasilia_oeste",
@@ -867,7 +923,8 @@
       "fuente": "grid_v7",
       "n_zonal": 7,
       "calle_principal": "brasilia",
-      "macrozona": "oeste"
+      "macrozona": "oeste",
+      "nombre_legible": "Brasilia y Blanqui"
     },
     {
       "id": "brown_centro",
@@ -882,7 +939,8 @@
       "fuente": "grid_v7",
       "n_zonal": 10,
       "calle_principal": "brown",
-      "macrozona": "centro"
+      "macrozona": "centro",
+      "nombre_legible": "Brown y Marcos Paz"
     },
     {
       "id": "brown_sur",
@@ -897,7 +955,8 @@
       "fuente": "grid_v7",
       "n_zonal": 137,
       "calle_principal": "brown",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Brown y Avenida Guillermo Wheelwright"
     },
     {
       "id": "brown_sur_2",
@@ -912,7 +971,8 @@
       "fuente": "grid_v7",
       "n_zonal": 168,
       "calle_principal": "brown",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Brown y Güemes"
     },
     {
       "id": "brown_sur_3",
@@ -927,7 +987,8 @@
       "fuente": "grid_v7",
       "n_zonal": 139,
       "calle_principal": "brown",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Brown y Almirante Brown"
     },
     {
       "id": "buenos_aires_sur",
@@ -942,7 +1003,8 @@
       "fuente": "grid_v7",
       "n_zonal": 38,
       "calle_principal": "buenos_aires",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Buenos_aires y Ocampo"
     },
     {
       "id": "buenos_aires_sur_2",
@@ -957,7 +1019,8 @@
       "fuente": "grid_v7",
       "n_zonal": 7,
       "calle_principal": "buenos_aires",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Buenos_aires y Avenida José Bermúdez"
     },
     {
       "id": "buenos_aires_sur_3",
@@ -972,7 +1035,8 @@
       "fuente": "grid_v7",
       "n_zonal": 27,
       "calle_principal": "buenos_aires",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Buenos_aires y Cochabamba"
     },
     {
       "id": "bufano_oeste",
@@ -987,7 +1051,8 @@
       "fuente": "grid_v7",
       "n_zonal": 7,
       "calle_principal": "bufano",
-      "macrozona": "oeste"
+      "macrozona": "oeste",
+      "nombre_legible": "Bufano y Irma Peirano"
     },
     {
       "id": "cafferata_sur",
@@ -1002,7 +1067,8 @@
       "fuente": "grid_v7",
       "n_zonal": 103,
       "calle_principal": "cafferata",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Cafferata y Santa Fe"
     },
     {
       "id": "cafferata_sur_2",
@@ -1017,7 +1083,8 @@
       "fuente": "grid_v7",
       "n_zonal": 62,
       "calle_principal": "cafferata",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Cafferata y San Luis"
     },
     {
       "id": "calle_oeste",
@@ -1032,7 +1099,8 @@
       "fuente": "grid_v7",
       "n_zonal": 9,
       "calle_principal": "calle",
-      "macrozona": "oeste"
+      "macrozona": "oeste",
+      "nombre_legible": "Calle y Avenida Morrison"
     },
     {
       "id": "campbell_centro",
@@ -1047,7 +1115,8 @@
       "fuente": "grid_v7",
       "n_zonal": 10,
       "calle_principal": "campbell",
-      "macrozona": "centro"
+      "macrozona": "centro",
+      "nombre_legible": "Campbell y Santa Fe"
     },
     {
       "id": "cangallo_centro",
@@ -1062,7 +1131,8 @@
       "fuente": "grid_v7",
       "n_zonal": 17,
       "calle_principal": "cangallo",
-      "macrozona": "centro"
+      "macrozona": "centro",
+      "nombre_legible": "Cangallo y Bulevar Nicolás Avellaneda"
     },
     {
       "id": "carballo_puerto_norte",
@@ -1077,7 +1147,8 @@
       "fuente": "grid_v7",
       "n_zonal": 60,
       "calle_principal": "carballo",
-      "macrozona": "puerto_norte"
+      "macrozona": "puerto_norte",
+      "nombre_legible": "Carballo y Domingo French"
     },
     {
       "id": "carballo_puerto_norte_2",
@@ -1092,7 +1163,8 @@
       "fuente": "grid_v7",
       "n_zonal": 30,
       "calle_principal": "carballo",
-      "macrozona": "puerto_norte"
+      "macrozona": "puerto_norte",
+      "nombre_legible": "Carballo y Gorriti"
     },
     {
       "id": "carhue_norte",
@@ -1107,7 +1179,8 @@
       "fuente": "grid_v7",
       "n_zonal": 6,
       "calle_principal": "carhue",
-      "macrozona": "norte"
+      "macrozona": "norte",
+      "nombre_legible": "Carhue y Urunday"
     },
     {
       "id": "carlos_colombres_norte",
@@ -1122,7 +1195,8 @@
       "fuente": "grid_v7",
       "n_zonal": 10,
       "calle_principal": "carlos_colombres",
-      "macrozona": "norte"
+      "macrozona": "norte",
+      "nombre_legible": "Carlos_colombres y Espigón Maciel"
     },
     {
       "id": "carlos_pellegrini_oeste",
@@ -1137,7 +1211,8 @@
       "fuente": "grid_v7",
       "n_zonal": 8,
       "calle_principal": "carlos_pellegrini",
-      "macrozona": "oeste"
+      "macrozona": "oeste",
+      "nombre_legible": "Carlos_pellegrini y Del Ceibal"
     },
     {
       "id": "castellanos_sur",
@@ -1152,7 +1227,8 @@
       "fuente": "grid_v7",
       "n_zonal": 5,
       "calle_principal": "castellanos",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Castellanos y Constitución"
     },
     {
       "id": "catamarca_sur",
@@ -1167,7 +1243,8 @@
       "fuente": "grid_v7",
       "n_zonal": 147,
       "calle_principal": "catamarca",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Catamarca y Presidente Roca"
     },
     {
       "id": "centenario_sur",
@@ -1182,7 +1259,8 @@
       "fuente": "grid_v7",
       "n_zonal": 6,
       "calle_principal": "centenario",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Centenario y Manuel Láinez"
     },
     {
       "id": "centeno_sur",
@@ -1197,7 +1275,8 @@
       "fuente": "grid_v7",
       "n_zonal": 18,
       "calle_principal": "centeno",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Centeno y Corrientes"
     },
     {
       "id": "centeno_sur_2",
@@ -1212,7 +1291,8 @@
       "fuente": "grid_v7",
       "n_zonal": 32,
       "calle_principal": "centeno",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Centeno y Ludwig Van Beethoven"
     },
     {
       "id": "central_argentino_puerto_norte",
@@ -1227,7 +1307,8 @@
       "fuente": "grid_v7",
       "n_zonal": 41,
       "calle_principal": "central_argentino",
-      "macrozona": "puerto_norte"
+      "macrozona": "puerto_norte",
+      "nombre_legible": "Central_argentino y Avenida Caseros"
     },
     {
       "id": "chacabuco_sur",
@@ -1242,7 +1323,8 @@
       "fuente": "grid_v7",
       "n_zonal": 8,
       "calle_principal": "chacabuco",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Chacabuco y Avenida Manuel Belgrano"
     },
     {
       "id": "chassaing_oeste",
@@ -1257,7 +1339,8 @@
       "fuente": "grid_v7",
       "n_zonal": 8,
       "calle_principal": "chassaing",
-      "macrozona": "oeste"
+      "macrozona": "oeste",
+      "nombre_legible": "Chassaing y Avenida Eva Perón"
     },
     {
       "id": "chizzini_bis_esquina_french_fisherton_centro",
@@ -1272,7 +1355,8 @@
       "fuente": "grid_v7",
       "n_zonal": 7,
       "calle_principal": "chizzini_bis_esquina_french_fisherton",
-      "macrozona": "centro"
+      "macrozona": "centro",
+      "nombre_legible": "Chizzini_bis_esquina_french_fisherton y Domingo French"
     },
     {
       "id": "chubut_oeste",
@@ -1287,7 +1371,8 @@
       "fuente": "grid_v7",
       "n_zonal": 5,
       "calle_principal": "chubut",
-      "macrozona": "oeste"
+      "macrozona": "oeste",
+      "nombre_legible": "Chubut y Colombia"
     },
     {
       "id": "colombia_oeste",
@@ -1302,7 +1387,8 @@
       "fuente": "grid_v7",
       "n_zonal": 11,
       "calle_principal": "colombia",
-      "macrozona": "oeste"
+      "macrozona": "oeste",
+      "nombre_legible": "Colombia y Casilda"
     },
     {
       "id": "colombres_oeste",
@@ -1317,7 +1403,8 @@
       "fuente": "grid_v7",
       "n_zonal": 6,
       "calle_principal": "colombres",
-      "macrozona": "oeste"
+      "macrozona": "oeste",
+      "nombre_legible": "Colombres y Ángel Carranza"
     },
     {
       "id": "colon_sur",
@@ -1332,7 +1419,8 @@
       "fuente": "grid_v7",
       "n_zonal": 127,
       "calle_principal": "colon",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Colon y Cochabamba"
     },
     {
       "id": "colon_sur_2",
@@ -1347,7 +1435,8 @@
       "fuente": "grid_v7",
       "n_zonal": 16,
       "calle_principal": "colon",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Colon y Necochea"
     },
     {
       "id": "comodoro_rivadavia_sur",
@@ -1362,7 +1451,8 @@
       "fuente": "grid_v7",
       "n_zonal": 5,
       "calle_principal": "comodoro_rivadavia",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Comodoro_rivadavia y Comodoro Rivadavia"
     },
     {
       "id": "condo_bauen_pilay_los_pasos_fisherton_oeste",
@@ -1377,7 +1467,8 @@
       "fuente": "grid_v7",
       "n_zonal": 9,
       "calle_principal": "condo_bauen_pilay_los_pasos_fisherton",
-      "macrozona": "oeste"
+      "macrozona": "oeste",
+      "nombre_legible": "Condo_bauen_pilay_los_pasos_fisherton y Cardenal"
     },
     {
       "id": "condo_del_bosque_fisherton_oeste",
@@ -1392,7 +1483,8 @@
       "fuente": "grid_v7",
       "n_zonal": 21,
       "calle_principal": "condo_del_bosque_fisherton",
-      "macrozona": "oeste"
+      "macrozona": "oeste",
+      "nombre_legible": "Condo_del_bosque_fisherton y Calle 14116"
     },
     {
       "id": "conscripto_bernardi_sur",
@@ -1407,7 +1499,8 @@
       "fuente": "grid_v7",
       "n_zonal": 5,
       "calle_principal": "conscripto_bernardi",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Conscripto_bernardi y Cabildo"
     },
     {
       "id": "constitucion_sur",
@@ -1422,7 +1515,8 @@
       "fuente": "grid_v7",
       "n_zonal": 52,
       "calle_principal": "constitucion",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Constitucion y Constitución"
     },
     {
       "id": "cordoba_sur",
@@ -1437,7 +1531,8 @@
       "fuente": "grid_v7",
       "n_zonal": 110,
       "calle_principal": "cordoba",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Cordoba y Córdoba"
     },
     {
       "id": "cordoba_sur_2",
@@ -1452,7 +1547,8 @@
       "fuente": "grid_v7",
       "n_zonal": 71,
       "calle_principal": "cordoba",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Cordoba y Santa Fe"
     },
     {
       "id": "cordoba_sur_3",
@@ -1467,7 +1563,8 @@
       "fuente": "grid_v7",
       "n_zonal": 32,
       "calle_principal": "cordoba",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Cordoba y Plataforma 27"
     },
     {
       "id": "corrientes_sur",
@@ -1482,7 +1579,8 @@
       "fuente": "grid_v7",
       "n_zonal": 11,
       "calle_principal": "corrientes",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Corrientes y José Gálvez"
     },
     {
       "id": "corrientes_sur_2",
@@ -1497,7 +1595,8 @@
       "fuente": "grid_v7",
       "n_zonal": 9,
       "calle_principal": "corrientes",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Corrientes y Entre Ríos"
     },
     {
       "id": "corrientes_sur_3",
@@ -1512,7 +1611,8 @@
       "fuente": "grid_v7",
       "n_zonal": 16,
       "calle_principal": "corrientes",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Corrientes y Paraguay"
     },
     {
       "id": "corvalan_puerto_norte",
@@ -1527,7 +1627,8 @@
       "fuente": "grid_v7",
       "n_zonal": 54,
       "calle_principal": "corvalan",
-      "macrozona": "puerto_norte"
+      "macrozona": "puerto_norte",
+      "nombre_legible": "Corvalan y Pasaje Corvalán"
     },
     {
       "id": "de_febrero_sur",
@@ -1542,7 +1643,8 @@
       "fuente": "grid_v7",
       "n_zonal": 196,
       "calle_principal": "de_febrero",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "De_febrero y Corrientes"
     },
     {
       "id": "de_febrero_sur_2",
@@ -1557,7 +1659,8 @@
       "fuente": "grid_v7",
       "n_zonal": 177,
       "calle_principal": "de_febrero",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "De_febrero y 3 De Febrero"
     },
     {
       "id": "de_febrero_sur_3",
@@ -1572,7 +1675,8 @@
       "fuente": "grid_v7",
       "n_zonal": 102,
       "calle_principal": "de_febrero",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "De_febrero y Mendoza"
     },
     {
       "id": "de_febrero_sur_4",
@@ -1587,7 +1691,8 @@
       "fuente": "grid_v7",
       "n_zonal": 27,
       "calle_principal": "de_febrero",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "De_febrero y Presidente Roca"
     },
     {
       "id": "de_julio_sur",
@@ -1602,7 +1707,8 @@
       "fuente": "grid_v7",
       "n_zonal": 244,
       "calle_principal": "de_julio",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "De_julio y Bulevar Nicasio Oroño"
     },
     {
       "id": "de_julio_sur_2",
@@ -1617,7 +1723,8 @@
       "fuente": "grid_v7",
       "n_zonal": 161,
       "calle_principal": "de_julio",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "De_julio y 3 De Febrero"
     },
     {
       "id": "de_julio_sur_3",
@@ -1632,7 +1739,8 @@
       "fuente": "grid_v7",
       "n_zonal": 144,
       "calle_principal": "de_julio",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "De_julio y Entre Ríos"
     },
     {
       "id": "de_julio_sur_4",
@@ -1647,7 +1755,8 @@
       "fuente": "grid_v7",
       "n_zonal": 18,
       "calle_principal": "de_julio",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "De_julio y 9 De Julio"
     },
     {
       "id": "de_mayo_norte",
@@ -1662,7 +1771,8 @@
       "fuente": "grid_v7",
       "n_zonal": 51,
       "calle_principal": "de_mayo",
-      "macrozona": "norte"
+      "macrozona": "norte",
+      "nombre_legible": "De_mayo y Bulevar General José Rondeau"
     },
     {
       "id": "de_noviembre_norte",
@@ -1677,7 +1787,8 @@
       "fuente": "grid_v7",
       "n_zonal": 22,
       "calle_principal": "de_noviembre",
-      "macrozona": "norte"
+      "macrozona": "norte",
+      "nombre_legible": "De_noviembre y Avenida Sorrento"
     },
     {
       "id": "de_septiembre_sur",
@@ -1692,7 +1803,8 @@
       "fuente": "grid_v7",
       "n_zonal": 13,
       "calle_principal": "de_septiembre",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "De_septiembre y Balcarce"
     },
     {
       "id": "dean_funes_sur",
@@ -1707,7 +1819,8 @@
       "fuente": "grid_v7",
       "n_zonal": 26,
       "calle_principal": "dean_funes",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Dean_funes y Vilazar"
     },
     {
       "id": "dean_funes_sur_2",
@@ -1722,7 +1835,8 @@
       "fuente": "grid_v7",
       "n_zonal": 27,
       "calle_principal": "dean_funes",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Dean_funes y Deán Gregorio Funes"
     },
     {
       "id": "dock_garden_aldea_oeste",
@@ -1737,7 +1851,8 @@
       "fuente": "grid_v7",
       "n_zonal": 19,
       "calle_principal": "dock_garden_aldea",
-      "macrozona": "oeste"
+      "macrozona": "oeste",
+      "nombre_legible": "Dock_garden_aldea y José Ingenieros"
     },
     {
       "id": "donado_oeste",
@@ -1752,7 +1867,8 @@
       "fuente": "grid_v7",
       "n_zonal": 8,
       "calle_principal": "donado",
-      "macrozona": "oeste"
+      "macrozona": "oeste",
+      "nombre_legible": "Donado y Derqui"
     },
     {
       "id": "dorrego_sur",
@@ -1767,7 +1883,8 @@
       "fuente": "grid_v7",
       "n_zonal": 397,
       "calle_principal": "dorrego",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Dorrego y Mariano Moreno"
     },
     {
       "id": "dublin_santa_fe_sur",
@@ -1782,7 +1899,8 @@
       "fuente": "grid_v7",
       "n_zonal": 5,
       "calle_principal": "dublin_santa_fe",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Dublin_santa_fe y José Gálvez"
     },
     {
       "id": "entre_rios_sur",
@@ -1797,7 +1915,8 @@
       "fuente": "grid_v7",
       "n_zonal": 212,
       "calle_principal": "entre_rios",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Entre_rios y Catamarca"
     },
     {
       "id": "entre_rios_sur_2",
@@ -1812,7 +1931,8 @@
       "fuente": "grid_v7",
       "n_zonal": 129,
       "calle_principal": "entre_rios",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Entre_rios y Justo José De Urquiza"
     },
     {
       "id": "entre_rios_sur_3",
@@ -1827,7 +1947,8 @@
       "fuente": "grid_v7",
       "n_zonal": 72,
       "calle_principal": "entre_rios",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Entre_rios y Bartolomé Mitre"
     },
     {
       "id": "ernesto_palacios_oeste",
@@ -1842,7 +1963,8 @@
       "fuente": "grid_v7",
       "n_zonal": 10,
       "calle_principal": "ernesto_palacios",
-      "macrozona": "oeste"
+      "macrozona": "oeste",
+      "nombre_legible": "Ernesto_palacios y Saladillo"
     },
     {
       "id": "escauriza_norte",
@@ -1857,7 +1979,8 @@
       "fuente": "grid_v7",
       "n_zonal": 11,
       "calle_principal": "escauriza",
-      "macrozona": "norte"
+      "macrozona": "norte",
+      "nombre_legible": "Escauriza y Pago Largo"
     },
     {
       "id": "espana_sur",
@@ -1872,7 +1995,8 @@
       "fuente": "grid_v7",
       "n_zonal": 98,
       "calle_principal": "espana",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Espana y Cochabamba"
     },
     {
       "id": "espana_sur_2",
@@ -1887,7 +2011,8 @@
       "fuente": "grid_v7",
       "n_zonal": 12,
       "calle_principal": "espana",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Espana y Rodrigo M. Ross"
     },
     {
       "id": "esteban_de_luca_sur",
@@ -1902,7 +2027,8 @@
       "fuente": "grid_v7",
       "n_zonal": 7,
       "calle_principal": "esteban_de_luca",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Esteban_de_luca y Avenida José De San Martín"
     },
     {
       "id": "eva_peron_centro",
@@ -1917,7 +2043,8 @@
       "fuente": "grid_v7",
       "n_zonal": 10,
       "calle_principal": "eva_peron",
-      "macrozona": "centro"
+      "macrozona": "centro",
+      "nombre_legible": "Eva_peron y Santa Fe"
     },
     {
       "id": "eva_peron_centro_2",
@@ -1932,7 +2059,8 @@
       "fuente": "grid_v7",
       "n_zonal": 16,
       "calle_principal": "eva_peron",
-      "macrozona": "centro"
+      "macrozona": "centro",
+      "nombre_legible": "Eva_peron y Tucumán"
     },
     {
       "id": "eva_peron_oeste",
@@ -1947,7 +2075,8 @@
       "fuente": "grid_v7",
       "n_zonal": 18,
       "calle_principal": "eva_peron",
-      "macrozona": "oeste"
+      "macrozona": "oeste",
+      "nombre_legible": "Eva_peron y Avenida Eva Perón"
     },
     {
       "id": "eva_peron_oeste_2",
@@ -1962,7 +2091,8 @@
       "fuente": "grid_v7",
       "n_zonal": 59,
       "calle_principal": "eva_peron",
-      "macrozona": "oeste"
+      "macrozona": "oeste",
+      "nombre_legible": "Eva_peron y Azcuénaga"
     },
     {
       "id": "eva_peron_oeste_3",
@@ -1977,7 +2107,8 @@
       "fuente": "grid_v7",
       "n_zonal": 11,
       "calle_principal": "eva_peron",
-      "macrozona": "oeste"
+      "macrozona": "oeste",
+      "nombre_legible": "Eva_peron y Navarro"
     },
     {
       "id": "felipe_more_sur",
@@ -1992,7 +2123,8 @@
       "fuente": "grid_v7",
       "n_zonal": 28,
       "calle_principal": "felipe_more",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Felipe_more y 3 De Febrero"
     },
     {
       "id": "forest_oeste",
@@ -2007,7 +2139,8 @@
       "fuente": "grid_v7",
       "n_zonal": 5,
       "calle_principal": "forest",
-      "macrozona": "oeste"
+      "macrozona": "oeste",
+      "nombre_legible": "Forest y Pérez Bulnes"
     },
     {
       "id": "forest_sur",
@@ -2022,7 +2155,8 @@
       "fuente": "grid_v7",
       "n_zonal": 13,
       "calle_principal": "forest",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Forest y Carlos Forest"
     },
     {
       "id": "francia_sur",
@@ -2037,7 +2171,8 @@
       "fuente": "grid_v7",
       "n_zonal": 73,
       "calle_principal": "francia",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Francia y Avenida Francia"
     },
     {
       "id": "francia_sur_2",
@@ -2052,7 +2187,8 @@
       "fuente": "grid_v7",
       "n_zonal": 140,
       "calle_principal": "francia",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Francia y Suipacha"
     },
     {
       "id": "francia_sur_3",
@@ -2067,7 +2203,8 @@
       "fuente": "grid_v7",
       "n_zonal": 66,
       "calle_principal": "francia",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Francia y Avenida Francia"
     },
     {
       "id": "francia_sur_4",
@@ -2082,7 +2219,8 @@
       "fuente": "grid_v7",
       "n_zonal": 25,
       "calle_principal": "francia",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Francia y Suipacha"
     },
     {
       "id": "francia_sur_5",
@@ -2097,7 +2235,8 @@
       "fuente": "grid_v7",
       "n_zonal": 20,
       "calle_principal": "francia",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Francia y Viamonte"
     },
     {
       "id": "francia_y_carballo_puerto_norte",
@@ -2112,7 +2251,8 @@
       "fuente": "grid_v7",
       "n_zonal": 10,
       "calle_principal": "francia_y_carballo",
-      "macrozona": "puerto_norte"
+      "macrozona": "puerto_norte",
+      "nombre_legible": "Francia_y_carballo y Avenida De La Costa Estanislao López"
     },
     {
       "id": "gaboto_sur",
@@ -2127,7 +2267,8 @@
       "fuente": "grid_v7",
       "n_zonal": 20,
       "calle_principal": "gaboto",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Gaboto y José De Amenábar"
     },
     {
       "id": "gaboto_sur_2",
@@ -2142,7 +2283,8 @@
       "fuente": "grid_v7",
       "n_zonal": 24,
       "calle_principal": "gaboto",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Gaboto y Manuel Dorrego"
     },
     {
       "id": "gabriel_carrasco_centro",
@@ -2157,7 +2299,8 @@
       "fuente": "grid_v7",
       "n_zonal": 6,
       "calle_principal": "gabriel_carrasco",
-      "macrozona": "centro"
+      "macrozona": "centro",
+      "nombre_legible": "Gabriel_carrasco y Gabriel Carrasco"
     },
     {
       "id": "gallini_centro",
@@ -2172,7 +2315,8 @@
       "fuente": "grid_v7",
       "n_zonal": 10,
       "calle_principal": "gallini",
-      "macrozona": "centro"
+      "macrozona": "centro",
+      "nombre_legible": "Gallini y Almafuerte"
     },
     {
       "id": "galvez_sur",
@@ -2187,7 +2331,8 @@
       "fuente": "grid_v7",
       "n_zonal": 20,
       "calle_principal": "galvez",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Galvez y Sarmiento"
     },
     {
       "id": "galvez_sur_2",
@@ -2202,7 +2347,8 @@
       "fuente": "grid_v7",
       "n_zonal": 6,
       "calle_principal": "galvez",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Galvez y Santiago"
     },
     {
       "id": "galvez_sur_3",
@@ -2217,7 +2363,8 @@
       "fuente": "grid_v7",
       "n_zonal": 25,
       "calle_principal": "galvez",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Galvez y Bulevar 27 De Febrero"
     },
     {
       "id": "galvez_sur_4",
@@ -2232,7 +2379,8 @@
       "fuente": "grid_v7",
       "n_zonal": 8,
       "calle_principal": "galvez",
-      "macrozona": "sur"
+      "macrozona": "sur",
+      "nombre_legible": "Galvez y José Gálvez"
     },
     {
       "id": "garcia_del_cossio_oeste",
@@ -2247,7 +2395,8 @@
       "fuente": "grid_v7",
       "n_zonal": 5,
       "calle_principal": "garcia_del_cossio",
-      "macrozona": "oeste"
+      "macrozona": "oeste",
+      "nombre_legible": "Garcia_del_cossio y García Del Cossio"
     },
     {
       "id": "gardelli_oeste",
@@ -2262,7 +2411,8 @@
       "fuente": "grid_v7",
       "n_zonal": 6,
       "calle_principal": "gardelli",
-      "macrozona": "oeste"
+      "macrozona": "oeste",
+      "nombre_legible": "Gardelli y Avenida Hernán Pujato"
     },
     {
       "id": "garibaldi_sur",

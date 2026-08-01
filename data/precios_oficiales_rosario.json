@@ -1,0 +1,211 @@
+{
+  "version": 1,
+  "fecha_generacion": "2026-08-01",
+  "descripcion": "Precios oficiales del metro cuadrado en USD para departamentos en venta en Rosario, Julio 2026. Fuente para futura valuacion manual.",
+  "moneda": "USD",
+  "tipo_operacion": "venta",
+  "tipo_propiedad": "departamento",
+  "nota_precio": "Precios de PUBLICACION (oferta). Cierre tipico 8-15% inferior.",
+  "fuentes": [
+    {
+      "id": "udesa_ml",
+      "nombre": "UdeSA + Mercado Libre",
+      "fecha": "2026-06",
+      "tipo": "mediana publicacion",
+      "url": "https://udesa.edu.ar/indices-mercado-libre"
+    },
+    {
+      "id": "futuraprop",
+      "nombre": "FuturaProp",
+      "fecha": "2026-08",
+      "tipo": "mediana publicacion",
+      "url": "https://www.futuraprop.com/valor-m2/rosario"
+    },
+    {
+      "id": "zonaprop",
+      "nombre": "Zonaprop",
+      "fecha": "2026-05",
+      "tipo": "precio medio publicacion",
+      "url": "https://www.zonaprop.com.ar"
+    },
+    {
+      "id": "roomix",
+      "nombre": "Roomix",
+      "fecha": "2026-04",
+      "tipo": "rango estimado",
+      "url": "https://www.roomix.ai"
+    }
+  ],
+  "zonas": {
+    "puerto_norte": {
+      "nombre": "Puerto Norte",
+      "macrozona_valu": "puerto_norte",
+      "general": 2600,
+      "por_dormitorio": {
+        "mono": 2400,
+        "1d": 2500,
+        "2d": 2610,
+        "3d": 2700,
+        "4d": 2800
+      },
+      "fuentes": ["zonaprop", "roomix"],
+      "confianza": "estimada"
+    },
+    "centro": {
+      "nombre": "Centro",
+      "macrozona_valu": "centro_premium",
+      "general": 2000,
+      "por_dormitorio": {
+        "mono": 1938,
+        "1d": 1900,
+        "2d": 1865,
+        "3d": 2122,
+        "4d": 2306
+      },
+      "fuentes": ["udesa_ml", "futuraprop"],
+      "confianza": "alta"
+    },
+    "pichincha": {
+      "nombre": "Pichincha (Alberto Olmedo)",
+      "macrozona_valu": "centro_premium",
+      "general": 2000,
+      "por_dormitorio": {
+        "mono": 1800,
+        "1d": 1900,
+        "2d": 2079,
+        "3d": 2100,
+        "4d": 2200
+      },
+      "fuentes": ["zonaprop", "roomix"],
+      "confianza": "estimada"
+    },
+    "triangulo_moderno": {
+      "nombre": "Triangulo Moderno",
+      "macrozona_valu": "centro_premium",
+      "general": 1950,
+      "por_dormitorio": {
+        "mono": 1800,
+        "1d": 1900,
+        "2d": 1987,
+        "3d": 2000,
+        "4d": 2100
+      },
+      "fuentes": ["zonaprop"],
+      "confianza": "estimada"
+    },
+    "norte": {
+      "nombre": "Rosario Norte",
+      "macrozona_valu": "norte",
+      "general": 1744,
+      "por_dormitorio": {
+        "mono": 1806,
+        "1d": 1750,
+        "2d": 1796,
+        "3d": 1746,
+        "4d": 1800
+      },
+      "fuentes": ["udesa_ml"],
+      "confianza": "alta"
+    },
+    "fisherton": {
+      "nombre": "Fisherton",
+      "macrozona_valu": "fisherton",
+      "general": 1600,
+      "por_dormitorio": {
+        "mono": 1500,
+        "1d": 1600,
+        "2d": 1500,
+        "3d": 1700,
+        "4d": 1800
+      },
+      "fuentes": ["roomix"],
+      "confianza": "estimada"
+    },
+    "oeste": {
+      "nombre": "Rosario Oeste",
+      "macrozona_valu": "oeste",
+      "general": 1183,
+      "por_dormitorio": {
+        "mono": 1100,
+        "1d": 1150,
+        "2d": 1167,
+        "3d": 1200,
+        "4d": 1250
+      },
+      "fuentes": ["udesa_ml"],
+      "confianza": "alta"
+    },
+    "echesortu": {
+      "nombre": "Echesortu",
+      "macrozona_valu": "macrocentro",
+      "general": 1050,
+      "por_dormitorio": {
+        "mono": 900,
+        "1d": 950,
+        "2d": 1075,
+        "3d": 1100,
+        "4d": 1200
+      },
+      "fuentes": ["roomix"],
+      "confianza": "estimada"
+    },
+    "sur": {
+      "nombre": "Rosario Sur",
+      "macrozona_valu": "sur_default",
+      "general": 935,
+      "por_dormitorio": {
+        "mono": 950,
+        "1d": 950,
+        "2d": 952,
+        "3d": 1000,
+        "4d": 1050
+      },
+      "fuentes": ["udesa_ml"],
+      "confianza": "alta"
+    },
+    "alberdi": {
+      "nombre": "Alberdi",
+      "macrozona_valu": "norte",
+      "general": 950,
+      "por_dormitorio": {
+        "mono": 800,
+        "1d": 850,
+        "2d": 975,
+        "3d": 1000,
+        "4d": 1100
+      },
+      "fuentes": ["roomix"],
+      "confianza": "estimada"
+    },
+    "rucci": {
+      "nombre": "Jose Ignacio Rucci",
+      "macrozona_valu": "sur_default",
+      "general": 490,
+      "por_dormitorio": {
+        "mono": 474,
+        "1d": 480,
+        "2d": 490,
+        "3d": 500,
+        "4d": 510
+      },
+      "fuentes": ["zonaprop"],
+      "confianza": "estimada"
+    }
+  },
+  "alquileres": {
+    "nota": "Solo disponible a nivel ciudad, no por zona especifica. Valores en ARS/m2.",
+    "deptos_ciudad": 9474,
+    "casas_ciudad": 6172,
+    "var_interanual_deptos": 0.364,
+    "var_interanual_casas": 0.349,
+    "fuente": "udesa_ml",
+    "fecha": "2026-06"
+  },
+  "tendencia": {
+    "var_interanual_deptos": 0.09,
+    "var_mensual_deptos": 0.007,
+    "acumulado_2026_deptos": 0.034,
+    "acumulado_desde_piso_2023": 0.25,
+    "fuente": "zonaprop"
+  }
+}
