@@ -788,6 +788,7 @@
       "ubicacion_tipo": "calle",
       "m2_cubiertos": 98,
       "dormitorios": 4,
+      "ambientes": 6,
       "baños": 2,
       "toilet": false,
       "baño_servicio": true,
@@ -821,10 +822,10 @@
       "despensa": false,
       "ascensores_edificio": 1,
       "detalles_categoria": [
-        "seguridad_porteria_24hs",
-        "amenity_esparcimiento"
+        "seguridad_24hs",
+        "seguridad_tag"
       ],
-      "descripcion_libre": "Calefactor en living, comedor diario integrado a cocina, esparcimiento en planta baja, seguridad nocturna.",
+      "descripcion_libre": "6 ambientes, 4 dorm, 2 baños. Piso 2do oriente este, vista lateral. Luminoso. Cocina con comedor diario, porcelanato. Placards, luminarias. Calefactor living. Portería 24hs con encargado, seguridad nocturna, tag de acceso. Puerta blindada. Esparcimiento en planta baja.",
       "valor_compra_usd": 0,
       "fecha_compra": null,
       "fecha_publicacion": "2026-08-03",
