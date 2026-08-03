@@ -1035,6 +1035,7 @@ def mostrar_dashboard():
                                 'm2_microzona': uv_m2_eq,
                                 'resolution_metadata': {'n_propiedades': n_prop_fb},
                                 'comparables_venta': resultado.get('comparables_venta', []),
+                                'mapa_html': resultado.get('mapa_html'),
                                 '_cache': {'preview': True, 'recalculado': False, 'guard_restored': False},
                                 'error': None,
                                 '_fallback_uv': True,
