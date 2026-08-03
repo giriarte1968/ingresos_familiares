@@ -2370,9 +2370,10 @@ def test_manual_valuation_card_no_params():
 
 @pytest.mark.core
 def test_fuente_m2_oficial():
-    """TAREA-161: generar_resultado_manual con fuente_m2='Valor oficial' usa precio oficial."""
+    """TAREA-161/162: generar_resultado_manual con fuente_m2='Valor oficial' usa precio oficial depreciado."""
     from parsers.mercado_inmobiliario import generar_resultado_manual
     from parsers.location_engine import obtener_precio_oficial
+    from parsers.zonas_manager import obtener_tasa_depreciacion_macrozona
 
     prop = {
         'nombre': 'test_oficial',
@@ -2389,6 +2390,20 @@ def test_fuente_m2_oficial():
     assert oficial is not None, "Precio oficial para Centro 3d debe existir"
     oficial_usd_m2 = oficial['usd_m2']
 
+    # Calcular depreciación esperada
+    _tasa_z, _ = obtener_tasa_depreciacion_macrozona(prop)
+    antiguedad = 2026 - 1971
+    delta_anti_raw = max(-0.60, -(_tasa_z * antiguedad))
+    UMBRAL = -0.18
+    ATENUACION = 0.35
+    if delta_anti_raw < UMBRAL:
+        exceso = delta_anti_raw - UMBRAL
+        delta_anti = UMBRAL + (exceso * ATENUACION)
+    else:
+        delta_anti = delta_anti_raw
+    factor_anti = max(0.40, 1.0 + delta_anti)
+    m2_base_esperado = round(oficial_usd_m2 * factor_anti, 2)
+
     manual_params = {
         'ancla_id': '_oficial',
         'usd_m2': float(oficial_usd_m2),
@@ -2403,10 +2418,10 @@ def test_fuente_m2_oficial():
     result = generar_resultado_manual(prop, manual_params)
     m2_base = result.get('m2_base_venta', 0)
     valor = result.get('valor_propiedad_usd', 0)
-    assert m2_base == oficial_usd_m2, f"m2_base_venta debe ser {oficial_usd_m2}, got {m2_base}"
+    assert m2_base == m2_base_esperado, f"m2_base_venta debe ser {m2_base_esperado} (oficial*factor_anti), got {m2_base}"
     assert valor > 0, f"valor_propiedad_usd debe > 0, got {valor}"
     assert result.get('fuente_m2') == 'Valor oficial', f"fuente_m2 debe ser 'Valor oficial', got {result.get('fuente_m2')}"
-    print(f"[T-TEST-FUENTE-OFICIAL] OK — oficial={oficial_usd_m2}/m2, valor={valor}")
+    print(f"[T-TEST-FUENTE-OFICIAL] OK — oficial={oficial_usd_m2}/m2, depreciado={m2_base}/m2, valor={valor}")
 
     # Comparar con ancla para verificar que son diferentes
     from parsers.location_engine import cargar_anclas
@@ -2429,3 +2444,69 @@ def test_fuente_m2_oficial():
         f"oficial_m2={oficial_usd_m2}, ancla_m2={ancla['usd_m2']}"
     )
     print(f"[T-TEST-FUENTE-OFICIAL] OK — oficial={valor} vs ancla={valor_ancla}, diferencia={abs(valor-valor_ancla):.0f}")
+
+
+@pytest.mark.core
+def test_fuente_m2_oficial_depreciacion():
+    """TAREA-162: Valor oficial aplica depreciación por antigüedad."""
+    from parsers.mercado_inmobiliario import generar_resultado_manual
+    from parsers.location_engine import obtener_precio_oficial
+    from parsers.zonas_manager import obtener_tasa_depreciacion_macrozona
+
+    prop = {
+        'nombre': 'test_deprec',
+        'tipo_inmueble': 'departamento',
+        'zona': 'Centro',
+        'direccion': 'Mitre 1473',
+        'lat': -32.9544, 'lon': -60.6416,
+        'm2': 206, 'm2_cubiertos': 206,
+        'dormitorios': 3,
+        'anio_construccion': 1971,
+    }
+
+    oficial = obtener_precio_oficial('Centro', 3)
+    usd_m2_original = oficial['usd_m2']
+
+    # Calcular factor_anti esperado
+    _tasa_z, _ = obtener_tasa_depreciacion_macrozona(prop)
+    antiguedad = 2026 - 1971
+    delta_anti_raw = max(-0.60, -(_tasa_z * antiguedad))
+    UMBRAL = -0.18
+    ATENUACION = 0.35
+    if delta_anti_raw < UMBRAL:
+        exceso = delta_anti_raw - UMBRAL
+        delta_anti = UMBRAL + (exceso * ATENUACION)
+    else:
+        delta_anti = delta_anti_raw
+    factor_anti = max(0.40, 1.0 + delta_anti)
+    usd_m2_esperado = round(usd_m2_original * factor_anti, 2)
+
+    manual_params = {
+        'ancla_id': '_oficial',
+        'usd_m2': float(usd_m2_original),
+        'factor_hedonico': 1.0,
+        'incertidumbre_pct': 10.0,
+        'ajuste_pct': 0.0,
+        'incluir_prima_const': False,
+        'fuente_m2': 'Valor oficial',
+    }
+
+    result = generar_resultado_manual(prop, manual_params)
+    assert result.get('factor_anti') == round(factor_anti, 4), \
+        f"factor_anti debe ser {factor_anti:.4f}, got {result.get('factor_anti')}"
+    assert result.get('m2_base_venta') == usd_m2_esperado, \
+        f"m2_base_venta debe ser {usd_m2_esperado}, got {result.get('m2_base_venta')}"
+    assert result.get('delta_anti') != 0, "delta_anti debe ser distinto de 0"
+    assert result.get('usd_m2_original') == usd_m2_original, \
+        f"usd_m2_original debe ser {usd_m2_original}, got {result.get('usd_m2_original')}"
+    assert result.get('usd_m2_ajustado') == usd_m2_esperado, \
+        f"usd_m2_ajustado debe ser {usd_m2_esperado}, got {result.get('usd_m2_ajustado')}"
+    print(f"[T-DEPREC-OFICIAL] OK — anti={antiguedad}y, tasa={_tasa_z}, factor={factor_anti:.4f}, m2={usd_m2_esperado}")
+
+    # Verificar que sin año NO aplica depreciación
+    prop_sin_anio = dict(prop)
+    prop_sin_anio['anio_construccion'] = 0
+    result_sin = generar_resultado_manual(prop_sin_anio, manual_params)
+    assert result_sin.get('factor_anti') == 1.0, "Sin año, factor_anti debe ser 1.0"
+    assert result_sin.get('m2_base_venta') == usd_m2_original, "Sin año, m2_base = oficial original"
+    print(f"[T-DEPREC-OFICIAL] OK — sin año, factor_anti=1.0, m2={usd_m2_original}")

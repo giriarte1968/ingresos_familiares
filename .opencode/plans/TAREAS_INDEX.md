@@ -118,3 +118,5 @@
 | TAREA-155 | CT Alquiler: configuración editable + función temporal + integración en cluster + UI editor | `f5938b2` | 2026-07-30 |
 | TAREA-156 | Refactor fórmula alquiler: eliminar GAP, cluster como primario, cap_rate como fallback | _(plan)_ | 2026-07-30 |
 | TAREA-157 | Calibración ROI_ZONAL con factor CESO × 0.75 | _(plan)_ | 2026-07-30 |
+| TAREA-161 | Valor oficial m2 en valuación manual + ancla renaming | `276e877` | 2026-08-03 |
+| TAREA-162 | Depreciación automática en Valor Oficial | _(pending)_ | 2026-08-03 |

@@ -2046,6 +2046,30 @@ def render_valuacion_manual(prop, res):
             st.caption(f"Fuente: {', '.join(fuente_detalle) if isinstance(fuente_detalle, list) else fuente_detalle} ({fuente_fecha}). Zona: {fuente_zona}. Precio de publicacion.")
             usd_m2_oficial = oficial_display
 
+            # Depreciación por antigüedad
+            try:
+                from parsers.zonas_manager import obtener_tasa_depreciacion_macrozona
+                _tasa_z, _ = obtener_tasa_depreciacion_macrozona(prop)
+                _anio = prop.get('anio_construccion', 0)
+                if _anio and _tasa_z:
+                    _anti = 2026 - int(_anio)
+                    _delta_raw = max(-0.60, -(_tasa_z * _anti))
+                    _umbral = -0.18
+                    _atenuacion = 0.35
+                    if _delta_raw < _umbral:
+                        _exceso = _delta_raw - _umbral
+                        _delta = _umbral + (_exceso * _atenuacion)
+                    else:
+                        _delta = _delta_raw
+                    _factor = max(0.40, 1.0 + _delta)
+                    _ajustado = float(usd_oficial_val) * _factor
+                    st.caption(
+                        f"Depreciación: {_delta*100:+.1f}% ({_anti} años × {_tasa_z*100:.1f}/año). "
+                        f"Valor ajustado: USD {int(_ajustado):,}/m²"
+                    )
+            except Exception:
+                pass
+
         else:
             # Fallback: no debería llegar aquí
             col_b, col_c, col_d, col_e = st.columns([1, 1, 1, 1])

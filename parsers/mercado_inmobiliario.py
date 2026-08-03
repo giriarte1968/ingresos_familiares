@@ -4138,6 +4138,33 @@ def generar_resultado_manual(prop, manual_params, auto_result=None):
     fh_raw = manual_params.get('factor_hedonico', 1.0)
     factor_hedonico = fh_raw if fh_raw != 0 else 1.0
     incertidumbre_pct = manual_params.get('incertidumbre_pct', 10.0)
+    fuente_m2 = manual_params.get('fuente_m2', 'Ancla del cluster')
+
+    # ─── Depreciación por antigüedad (solo Valor Oficial) ───
+    factor_anti = 1.0
+    delta_anti = 0.0
+    usd_m2_original = usd_m2
+    usd_m2_ajustado = None
+    if fuente_m2 == 'Valor oficial':
+        try:
+            from parsers.zonas_manager import obtener_tasa_depreciacion_macrozona
+            _tasa_zonal, _ = obtener_tasa_depreciacion_macrozona(prop)
+            anio_constr = prop.get('anio_construccion', 0)
+            if anio_constr and _tasa_zonal:
+                antiguedad = 2026 - int(anio_constr)
+                delta_anti_raw = max(-0.60, -(_tasa_zonal * antiguedad))
+                UMBRAL_PENALIZACION_SEVERA = -0.18
+                FACTOR_ATENUACION = 0.35
+                if delta_anti_raw < UMBRAL_PENALIZACION_SEVERA:
+                    exceso = delta_anti_raw - UMBRAL_PENALIZACION_SEVERA
+                    delta_anti = UMBRAL_PENALIZACION_SEVERA + (exceso * FACTOR_ATENUACION)
+                else:
+                    delta_anti = delta_anti_raw
+                factor_anti = max(0.40, 1.0 + delta_anti)
+                usd_m2 = round(usd_m2 * factor_anti, 2)
+                usd_m2_ajustado = usd_m2
+        except Exception:
+            pass
 
     # Size adjustment ya integrado en ancla (lista_hoy = vm2 * CT / size_adj)
     mz_nombre = ""
@@ -4240,7 +4267,10 @@ def generar_resultado_manual(prop, manual_params, auto_result=None):
         'factor_hedonico_efectivo': factor_hedonico,
         'factor_const': factor_const,
         'constructora': constr_nombre,
-        'delta_anti': 1.0,
+        'delta_anti': round(delta_anti, 4),
+        'factor_anti': round(factor_anti, 4),
+        'usd_m2_original': round(usd_m2_original, 2),
+        'usd_m2_ajustado': round(usd_m2_ajustado, 2) if usd_m2_ajustado is not None else None,
         'nlp_ajuste': 0,
         'sub_factors_breakdown': _calcular_sub_factors_breakdown(prop),
     }
