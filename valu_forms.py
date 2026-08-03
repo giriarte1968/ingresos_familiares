@@ -370,7 +370,7 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
             vent_bano_opts = ["natural", "forzada", "sin_ventana"]
             ventilacion_bano = st.selectbox("Ventilación baño", vent_bano_opts, index=vent_bano_opts.index(prop_inicial.get('ventilacion_bano', 'natural')) if prop_inicial.get('ventilacion_bano') in vent_bano_opts else 0, key=f"vent_bano_{key_suffix}")
             
-            amenities_opts = ["caldera_central", "radiadores", "seguridad_24hs", "seguridad_tag", "seguridad_camaras", "seguridad_totem", "parrilla_propia", "parrilla_compartida", "terraza_compartida", "pileta", "sum", "gym", "quincho", "marinas", "co_working"]
+            amenities_opts = ["caldera_central", "radiadores", "seguridad_24hs", "seguridad_tag", "seguridad_camaras", "seguridad_totem", "parrilla_propia", "parrilla_compartida", "terraza_compartida", "pileta", "sum", "gym", "quincho", "marinas", "co_working", "esparcimiento"]
             detalles_legacy = [('parrilla_compartida' if d == 'parrilla' else d) for d in prop_inicial.get('detalles_categoria', [])]
             detalles_default = [v for v in detalles_legacy if v in amenities_opts]
             detalles_cat = st.multiselect("Amenities / Extras", amenities_opts, default=detalles_default, key=f"detalles_{key_suffix}")

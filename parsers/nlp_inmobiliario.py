@@ -41,6 +41,7 @@ AMENITY_NLP_EXCLUSION_MAP = {
     "quincho": ["quincho", "quincho con parrilla"],
     "marinas": ["marina", "marinas", "amarre"],
     "co_working": ["co working", "coworking", "espacio cowork"],
+    "esparcimiento": ["esparcimiento", "salon de esparcimiento", "sala de esparcimiento"],
 }
 
 
