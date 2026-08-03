@@ -1405,6 +1405,15 @@ def valuar_con_cache(prop: dict,
         except Exception as e:
             logger.error(f"Error en valuar_propiedad_v7: {e}")
             resultado = {'error': str(e), 'valor_propiedad_usd': 0, 'comparables_venta': [], 'resolution_metadata': {}}
+            # TAREA-164: generar mapa fallback para que la UI no muestre "Mapa no disponible"
+            try:
+                from parsers.mercado_inmobiliario import _generar_html_mapa
+                resultado['mapa_html'] = _generar_html_mapa(prop, {
+                    'comparables_venta': [], 'valor_propiedad_usd': 0,
+                    'resolution_metadata': {'radio_usado': 300}
+                })
+            except Exception:
+                pass
         _vl.mark("after_valuar_propiedad_v7")
 
         resultado['_cache'] = {
