@@ -2011,7 +2011,7 @@ def render_valuacion_manual(prop, res):
                 value=float(usd_oficial_val),
                 step=50.0, format="%.0f",
                 disabled=True,
-                key=f"manual_usd_m2_{_safe_key(nombre)}",
+                key=f"manual_usd_m2_oficial_{_safe_key(nombre)}",
             )
             tiene_ancla = True
             with col_b:
