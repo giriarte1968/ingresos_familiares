@@ -95,10 +95,10 @@
     {
       "nombre": "Ayacucho",
       "tipo_inmueble": "departamento",
-      "zona": "Centro",
+      "zona": "República de la Sexta",
       "direccion": "Ayacucho 1805",
-      "lat": -32.960649375,
-      "lon": -60.629792125,
+      "lat": -32.9611391,
+      "lon": -60.6264443,
       "ubicacion_tipo": "calle",
       "m2_cubiertos": 27.05,
       "dormitorios": 1,
@@ -143,20 +143,20 @@
       "id": 10,
       "_ultima_valuacion": {
         "valor_usd": 39514.0,
-        "auto_valor_usd": 27872.0,
+        "auto_valor_usd": 27869.0,
         "manual_valor_usd": 39514.0,
-        "alquiler_ars": 301459.0,
-        "cap_rate": 0.0809,
+        "alquiler_ars": 236844.0,
+        "cap_rate": 0.0646,
         "m2_equivalentes": 28.9265,
         "comps": 10,
-        "m2_base_venta": 963.56,
-        "m2_microzona": 963.56,
+        "m2_base_venta": 963.43,
+        "m2_microzona": 963.43,
         "size_discount": 1.0,
         "valor_activos_total": 0.0,
-        "usdt_ars": 1604.3023,
-        "fecha": "28/07/2026 15:32",
+        "usdt_ars": 1578.6831,
+        "fecha": "03/08/2026 18:04",
         "cache_version": "v8b_import_fix_alquiler",
-        "timestamp": "2026-07-28T15:32:11.262857",
+        "timestamp": "2026-08-03T18:04:09.123995",
         "fuente": "manual",
         "fuente_activa": "manual",
         "manual_params": {
@@ -178,11 +178,7 @@
           5
         ],
         "_comp_excluded": [],
-        "_comp_exclusion_applied": false,
-        "manual_size_adj": 1.0,
-        "manual_factor_const": 1.0,
-        "manual_activos_total": 0.0,
-        "manual_constructora": ""
+        "_comp_exclusion_applied": false
       },
       "ambientes": 2,
       "disposicion": "frente",
@@ -781,7 +777,7 @@
     {
       "nombre": "Cochabamba 45",
       "tipo_inmueble": "departamento",
-      "zona": "República de la Sexta",
+      "zona": "Centro",
       "direccion": "Cochabamba 45",
       "lat": -32.9611391,
       "lon": -60.6264443,
@@ -838,7 +834,52 @@
       "cocheras_cantidad": 0,
       "cocheras_tipo": "cubierta",
       "valor_cochera_base": 15000.0,
-      "valor_baulera": 0.0
+      "valor_baulera": 0.0,
+      "_ultima_valuacion": {
+        "valor_usd": 115052.0,
+        "auto_valor_usd": 81806.0,
+        "manual_valor_usd": 115052.0,
+        "alquiler_ars": 652326.0,
+        "cap_rate": 0.05,
+        "m2_equivalentes": 98.0,
+        "comps": 29,
+        "m2_base_venta": 834.76,
+        "m2_microzona": 834.76,
+        "size_discount": 1.0,
+        "valor_activos_total": 0.0,
+        "usdt_ars": 1578.8833,
+        "fecha": "03/08/2026 17:06",
+        "cache_version": "v8b_import_fix_alquiler",
+        "timestamp": "2026-08-03T17:06:53.330823",
+        "fuente": "manual",
+        "fuente_activa": "manual",
+        "manual_params": {
+          "ancla_id": "colon_sur",
+          "usd_m2": 1174.0,
+          "factor_hedonico": 1.0,
+          "incertidumbre_pct": 10.0,
+          "ajuste_pct": 0.0,
+          "incluir_prima_const": true,
+          "fecha_guardado": "2026-08-03T17:07:17.220227",
+          "valor_auto_snapshot": 81806.0,
+          "fuente_m2": "Ancla del cluster",
+          "fuente_m2_detalle": null
+        },
+        "retro_dias": 60,
+        "flex_dormitorios": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "_comp_excluded": [],
+        "_comp_exclusion_applied": true,
+        "manual_size_adj": 1.0,
+        "manual_factor_const": 1.0,
+        "manual_activos_total": 0.0,
+        "manual_constructora": ""
+      }
     }
   ]
 }
