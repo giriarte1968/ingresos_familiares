@@ -22,23 +22,24 @@ from parsers.valuacion_helpers import calcular_rango_venta, ensamblar_metadata_r
 
 # ══════════════════════════════════════════════════════════════════════════════
 # ROI_ZONAL — Configuración editable (TAREA-157)
-# Calibrado con CESO Jul 2026 × 0.75 (factor descuento oferta→real)
-# Fuente: CESO 2amb(1d) = $500K → $375K real. ROI = $375K×12 / ($27K×1600) ≈ 10.5%
-# Ajustado a valores de mercado: Centro 5.5%, resto 5.0%
+# Calibrado con análisis de mercado Jul 2026 × 0.75 (factor descuento oferta→real)
+# Fuente: Análisis por zona basado en demanda, precio de compra y vacancia.
+# Centro 4.9% (alta demanda pero precio alto), default 4.9%.
 # Para editar: modificar los valores directamente aquí.
 # ══════════════════════════════════════════════════════════════════════════════
 ROI_ZONAL = {
-    'centro': 0.055,
-    'fisherton': 0.050,
-    'martin': 0.050,
-    'pichincha': 0.050,
-    'abasto': 0.050,
-    'facultades': 0.050,
-    'sexta': 0.050,
-    'barrio': 0.050,
-    'sur': 0.050,
-    'norte': 0.050,
-    'oeste': 0.050,
+    'centro': 0.049,
+    'fisherton': 0.049,
+    'martin': 0.041,
+    'pichincha': 0.044,
+    'abasto': 0.053,
+    'facultades': 0.059,
+    'sexta': 0.056,
+    'barrio': 0.049,
+    'sur': 0.054,
+    'norte': 0.045,
+    'oeste': 0.055,
+    'puerto_norte': 0.034,
 }
 
 
