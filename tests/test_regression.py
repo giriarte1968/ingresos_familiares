@@ -468,7 +468,7 @@ def test_ui_manual_save_visible_disabled_when_no_changes():
             'fuente': 'manual',
             'fuente_activa': 'manual',
             'manual_params': {
-                'ancla_id': 'Sin Ancla',
+                'ancla_id': '',
                 'usd_m2': 2000,
                 'factor_hedonico': 1.0,
                 'incertidumbre_pct': 10.0,
@@ -508,7 +508,7 @@ def test_ui_manual_save_visible_disabled_when_no_changes():
          patch('streamlit.metric'), \
          patch('streamlit.number_input', side_effect=_number_input_side_effect), \
          patch('streamlit.checkbox', return_value=True), \
-         patch('streamlit.selectbox', return_value='Sin Ancla'), \
+         patch('streamlit.selectbox', return_value='Ancla del cluster'), \
          patch('streamlit.expander') as mock_exp, \
          patch('streamlit.info'), \
          patch('streamlit.warning'), \
@@ -2366,3 +2366,66 @@ def test_manual_valuation_card_no_params():
         print("[T-MANUAL-CARD-NO-PARAMS] OK — sin params muestra dash")
     finally:
         st.markdown = original_markdown
+
+
+@pytest.mark.core
+def test_fuente_m2_oficial():
+    """TAREA-161: generar_resultado_manual con fuente_m2='Valor oficial' usa precio oficial."""
+    from parsers.mercado_inmobiliario import generar_resultado_manual
+    from parsers.location_engine import obtener_precio_oficial
+
+    prop = {
+        'nombre': 'test_oficial',
+        'tipo_inmueble': 'departamento',
+        'zona': 'Centro',
+        'direccion': 'Mitre 1473',
+        'lat': -32.9544, 'lon': -60.6416,
+        'm2': 206, 'm2_cubiertos': 206,
+        'dormitorios': 3,
+        'anio_construccion': 1971,
+    }
+
+    oficial = obtener_precio_oficial('Centro', 3)
+    assert oficial is not None, "Precio oficial para Centro 3d debe existir"
+    oficial_usd_m2 = oficial['usd_m2']
+
+    manual_params = {
+        'ancla_id': '_oficial',
+        'usd_m2': float(oficial_usd_m2),
+        'factor_hedonico': 1.0,
+        'incertidumbre_pct': 10.0,
+        'ajuste_pct': 0.0,
+        'incluir_prima_const': False,
+        'fuente_m2': 'Valor oficial',
+        'fuente_m2_detalle': oficial,
+    }
+
+    result = generar_resultado_manual(prop, manual_params)
+    m2_base = result.get('m2_base_venta', 0)
+    valor = result.get('valor_propiedad_usd', 0)
+    assert m2_base == oficial_usd_m2, f"m2_base_venta debe ser {oficial_usd_m2}, got {m2_base}"
+    assert valor > 0, f"valor_propiedad_usd debe > 0, got {valor}"
+    assert result.get('fuente_m2') == 'Valor oficial', f"fuente_m2 debe ser 'Valor oficial', got {result.get('fuente_m2')}"
+    print(f"[T-TEST-FUENTE-OFICIAL] OK — oficial={oficial_usd_m2}/m2, valor={valor}")
+
+    # Comparar con ancla para verificar que son diferentes
+    from parsers.location_engine import cargar_anclas
+    from parsers.mercado_inmobiliario import get_ancla_mas_cercana
+    anclas = cargar_anclas()
+    ancla = get_ancla_mas_cercana(prop['lat'], prop['lon'], anclas)
+    manual_params_ancla = {
+        'ancla_id': ancla['id'],
+        'usd_m2': ancla['usd_m2'],
+        'factor_hedonico': 1.0,
+        'incertidumbre_pct': 10.0,
+        'ajuste_pct': 0.0,
+        'incluir_prima_const': False,
+        'fuente_m2': 'Ancla del cluster',
+    }
+    result_ancla = generar_resultado_manual(prop, manual_params_ancla)
+    valor_ancla = result_ancla.get('valor_propiedad_usd', 0)
+    assert valor != valor_ancla, (
+        f"Valor oficial ({valor}) debe ser diferente al ancla ({valor_ancla}). "
+        f"oficial_m2={oficial_usd_m2}, ancla_m2={ancla['usd_m2']}"
+    )
+    print(f"[T-TEST-FUENTE-OFICIAL] OK — oficial={valor} vs ancla={valor_ancla}, diferencia={abs(valor-valor_ancla):.0f}")

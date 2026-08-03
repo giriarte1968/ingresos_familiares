@@ -1821,7 +1821,6 @@ def render_valuacion_manual(prop, res):
         display_label = f"{nombre_legible} (${v:,}/m2) [{macrozona.upper()}]" if macrozona else f"{nombre_legible} (${v:,}/m2)"
         ancla_display_map[display_label] = {'id': aid, 'usd_m2': v}
     ancla_display_list = sorted(ancla_display_map.keys())
-    ancla_display_list = ["Sin Ancla"] + ancla_display_list
 
     # ─── Precio oficial ───
     zona_prop = (prop.get('zona') or '').lower().strip()
@@ -1843,7 +1842,7 @@ def render_valuacion_manual(prop, res):
         ancla_por_zona = next((a for a in anclas if a.get('id', '').lower().startswith(zona_key)), None)
         if not ancla_por_zona:
             ancla_por_zona = next((a for a in anclas if zona_key in a.get('id', '').lower()), None)
-        default_ancla_id = ancla_por_zona.get('id', '') if ancla_por_zona else 'Sin Ancla'
+        default_ancla_id = ancla_por_zona.get('id', '') if ancla_por_zona else ''
         default_usd_m2 = ancla_por_zona.get('usd_m2', 0) if ancla_por_zona else 0
 
     # Factor hedonico default
@@ -1922,8 +1921,7 @@ def render_valuacion_manual(prop, res):
         # Selector de fuente del valor m2
         fuentes_options = ["Ancla del cluster"]
         if oficial_display:
-            fuentes_options.append("Valor oficial (UdeSA)")
-        fuentes_options.append("Sin Ancla")
+            fuentes_options.append("Valor oficial")
 
         saved_fuente = saved.get('fuente_m2', 'Ancla del cluster')
         if saved_fuente not in fuentes_options:
@@ -1943,12 +1941,12 @@ def render_valuacion_manual(prop, res):
         if fuente_sel == "Ancla del cluster":
             col_a, col_b, col_c, col_d, col_e = st.columns([2, 1, 1, 1, 1])
             with col_a:
-                saved_display = "Sin Ancla"
+                saved_display = ancla_display_list[0] if ancla_display_list else ''
                 for dk in ancla_display_list:
                     if ancla_display_map.get(dk, {}).get('id') == saved.get('ancla_id', ''):
                         saved_display = dk
                         break
-                if saved_display == "Sin Ancla" and saved.get('ancla_id'):
+                if not saved_display and saved.get('ancla_id') and ancla_display_list:
                     saved_display = ancla_display_list[0]
                 ancla_display_sel = st.selectbox(
                     "Ancla",
@@ -1956,11 +1954,11 @@ def render_valuacion_manual(prop, res):
                     index=ancla_display_list.index(saved_display) if saved_display in ancla_display_list else 0,
                     key=f"manual_ancla_{_safe_key(nombre)}",
                 )
-                ancla_sel = "Sin Ancla"
+                ancla_sel = ''
                 if ancla_display_sel in ancla_display_map:
                     ancla_sel = ancla_display_map[ancla_display_sel]['id']
             with col_b:
-                tiene_ancla = ancla_sel != "Sin Ancla"
+                tiene_ancla = bool(ancla_sel)
                 usd_display = saved.get('usd_m2', default_usd_m2)
                 if tiene_ancla and ancla_sel in ancla_options:
                     usd_display = ancla_options[ancla_sel].get('usd_m2', usd_display)
@@ -1999,13 +1997,13 @@ def render_valuacion_manual(prop, res):
                     key=f"manual_aj_{_safe_key(nombre)}",
                 )
             if tiene_ancla:
-                st.caption("Valor determinado por el ancla. Seleccioná 'Sin Ancla' para editar manualmente.")
+                st.caption("Valor determinado por el ancla seleccionada.")
             ancla_sel_final = ancla_sel
             usd_m2_oficial = None
 
-        elif fuente_sel == "Valor oficial (UdeSA)":
+        elif fuente_sel == "Valor oficial":
             col_b, col_c, col_d, col_e = st.columns([1, 1, 1, 1])
-            ancla_sel_final = "Sin Ancla"
+            ancla_sel_final = "_oficial"
             usd_oficial_val = oficial_display['usd_m2']
             usd_m2_input = st.number_input(
                 "USD/m² (oficial)",
@@ -2049,9 +2047,9 @@ def render_valuacion_manual(prop, res):
             usd_m2_oficial = oficial_display
 
         else:
-            # Sin Ancla - libre
+            # Fallback: no debería llegar aquí
             col_b, col_c, col_d, col_e = st.columns([1, 1, 1, 1])
-            ancla_sel_final = "Sin Ancla"
+            ancla_sel_final = ''
             usd_m2_input = st.number_input(
                 "USD/m²",
                 min_value=0.0, max_value=10000.0,
@@ -2087,7 +2085,7 @@ def render_valuacion_manual(prop, res):
                     key=f"manual_aj_{_safe_key(nombre)}",
                 )
             st.caption("Ingresá el valor USD/m² manualmente.")
-            ancla_sel_final = "Sin Ancla"
+            ancla_sel_final = ''
             usd_m2_oficial = None
 
         # Checkbox: prima de constructora
