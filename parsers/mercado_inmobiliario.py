@@ -29,6 +29,7 @@ from parsers.valuacion_helpers import calcular_rango_venta, ensamblar_metadata_r
 # ══════════════════════════════════════════════════════════════════════════════
 ROI_ZONAL = {
     'centro': 0.055,
+    'fisherton': 0.050,
     'martin': 0.050,
     'pichincha': 0.050,
     'abasto': 0.050,
