@@ -4416,9 +4416,9 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
         texto_mercado += (
             " Se analizaron propiedades ubicadas de ambos lados de vías de "
             "circulación principales (avenidas, vías del ferrocarril). En este "
-            "caso, se verificó que los precios no presentan diferencias "
-            "significativas por la cercanía a dichas vías, por lo que se "
-            "incluyeron todas las propiedades en el análisis sin segmentar."
+            "caso, se aplicó una penalización moderada por barreras de "
+            "circulación para reflejar la diferencia de precios por "
+            "cercanía a dichas vías."
         )
     elif radio <= 500:
         texto_mercado += (
@@ -4432,10 +4432,11 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
     texto_metodologia = (
         f"Se analizaron {n_comps} propiedades comparables ubicadas en un radio "
         f"de {radio} metros, todas del mismo tipo (departamento), en operación "
-        f"de venta y con similar cantidad de dormitorios. Se priorizaron "
-        f"publicaciones recientes para reflejar el precio actual del mercado. "
-        f"El valor estimado se obtuvo a partir del análisis del conjunto de "
-        f"precios observados, descartando valores extremos que pudieran "
+        f"de venta y con similar cantidad de dormitorios (con tolerancia para "
+        f"incluir propiedades de 1 a 5 dormitorios). Se utilizaron publicaciones "
+        f"del último año con ajuste temporal para reflejar el precio actual del "
+        f"mercado. El valor estimado se obtuvo a partir del análisis del conjunto "
+        f"de precios observados, descartando valores extremos que pudieran "
         f"distorsionar la estimación."
     )
     lineas.append(texto_metodologia)
@@ -4798,8 +4799,8 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
             )
         elif es_fallback:
             texto_renta_base += (
-                " La estimación de alquiler se realizó por referencia indirecta "
-                "debido a la escasez de propiedades en alquiler comparables en la zona."
+                " La estimación de alquiler se realizó por referencia cruzada "
+                "con indicadores de mercado de la zona."
             )
 
         lineas.append(texto_renta_base)
