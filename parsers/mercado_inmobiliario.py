@@ -1235,11 +1235,22 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 # Aplicar filtro de fecha
                 props_geo = aplicar_filtro_fecha(props_geo, fecha_ref)
                 
-                if len(props_geo) >= MIN_COMPARABLES:
+                # TAREA-163: Two-phase — contar SOLO mismos-dorm para el break
+                n_mismos = sum(1 for p in props_geo if p.get('dormitorios') == dormitorios)
+                n_flex = len(props_geo) - n_mismos
+                print(f"[DEBUG-FLEX-RADIO] Step1 radio={radio}m: total={len(props_geo)}, mismos={n_mismos}, flex={n_flex}, MIN={MIN_COMPARABLES}")
+                
+                # Break solo si hay suficientes MISMOS-dorm
+                if n_mismos >= MIN_COMPARABLES:
+                    mejor_resultado = (props_geo, radio, "busqueda_geografica")
+                    break
+                # Si flex está OFF, cualquier comp cuenta (lógica original)
+                elif flex_dormitorios is None and len(props_geo) >= MIN_COMPARABLES:
                     mejor_resultado = (props_geo, radio, "busqueda_geografica")
                     break
             else:
-                # Fallback: mismo pero sin filtro de radio (1000m)
+                # Fallback: Radio máximo 1000m, sin MIN_COMPARABLES
+                props_geo = []
                 for p in cache.get('propiedades', []):
                     p_lat = p.get('lat') or p.get('latitud')
                     p_lon = p.get('lon') or p.get('longitud')
@@ -1256,6 +1267,8 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                     props_geo.append(p)
                 
                 props_geo = aplicar_filtro_fecha(props_geo, fecha_ref)
+                n_mismos_fb = sum(1 for p in props_geo if p.get('dormitorios') == dormitorios)
+                print(f"[DEBUG-FLEX-RADIO] Step1 fallback 1000m: total={len(props_geo)}, mismos={n_mismos_fb}")
                 
                 if len(props_geo) >= 2:
                     mejor_resultado = (props_geo, 1000, "busqueda_geografica")
@@ -1265,7 +1278,15 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             for radio in RADIOS_PROGRESIVOS:
                 props = buscar_en_zona(zona_normalizada, dormitorios, operacion, lat_ref, lon_ref, radio, fecha_ref)
                 props = aplicar_filtro_fecha(props, fecha_ref)
-                if len(props) >= MIN_COMPARABLES:
+                # TAREA-163: Two-phase — contar SOLO mismos-dorm para el break
+                n_mismos_zona = sum(1 for p in props if p.get('dormitorios') == dormitorios)
+                n_flex_zona = len(props) - n_mismos_zona
+                print(f"[DEBUG-FLEX-RADIO] Step2 radio={radio}m zona={zona_normalizada}: total={len(props)}, mismos={n_mismos_zona}, flex={n_flex_zona}")
+                
+                if n_mismos_zona >= MIN_COMPARABLES:
+                    mejor_resultado = (props, radio, zona_normalizada)
+                    break
+                elif flex_dormitorios is None and len(props) >= MIN_COMPARABLES:
                     mejor_resultado = (props, radio, zona_normalizada)
                     break
         
@@ -1344,6 +1365,14 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
 
         
         props, radio_usado, zona_resol = mejor_resultado
+
+        # TAREA-163: Debug flag anti-regresión — validar que flex no destruyó mismos-dorm
+        if flex_dormitorios is not None and props:
+            _n_mismos_final = sum(1 for p in props if p.get('dormitorios') == dormitorios)
+            _n_total_final = len(props)
+            print(f"[DEBUG-FLEX-RADIO] Resultado: radio={radio_usado}m, source={zona_resol}, total={_n_total_final}, mismos={_n_mismos_final}, flex={_n_total_final - _n_mismos_final}")
+            if _n_mismos_final == 0 and _n_total_final > 0:
+                print(f"[DEBUG-FLEX-RADIO] WARNING: flex activo pero 0 mismos-dorm en pool de {_n_total_final} comps. Radio={radio_usado}m")
 
         # Resolver macrozona ANTES del loop CT (fix: zona_resol no es macrozona_id)
         macrozona_id_ct = None

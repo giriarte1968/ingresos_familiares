@@ -2510,3 +2510,76 @@ def test_fuente_m2_oficial_depreciacion():
     assert result_sin.get('factor_anti') == 1.0, "Sin año, factor_anti debe ser 1.0"
     assert result_sin.get('m2_base_venta') == usd_m2_original, "Sin año, m2_base = oficial original"
     print(f"[T-DEPREC-OFICIAL] OK — sin año, factor_anti=1.0, m2={usd_m2_original}")
+
+
+# === TAREA-163: flex_dormitorios two-phase search ===
+
+@pytest.mark.core
+def test_flex_on_preserves_same_dorm_comps():
+    """TAREA-163: flex ON debe PRESERVAR comparables de mismos dorm, no destruirlos."""
+    from parsers.mercado_inmobiliario import obtener_mediana_cluster_v2
+    
+    # Cochabamba 45: 4 dorm en Sexta
+    mediana_flex, n_flex, meta_flex = obtener_mediana_cluster_v2(
+        zona='Sexta', dormitorios=4, operacion='venta',
+        lat_ref=-32.9534, lon_ref=-60.6393,
+        flex_dormitorios=[1, 2, 3, 4, 5]
+    )
+    
+    mediana_no_flex, n_no_flex, meta_no_flex = obtener_mediana_cluster_v2(
+        zona='Sexta', dormitorios=4, operacion='venta',
+        lat_ref=-32.9534, lon_ref=-60.6393,
+        flex_dormitorios=None
+    )
+    
+    # Flex ON debe encontrar AL MENOS los mismos comps que flex OFF
+    assert n_flex >= n_no_flex, (
+        f"flex ON ({n_flex}) perdió comps vs flex OFF ({n_no_flex}). "
+        f"Radio flex={meta_flex.get('radio_usado')}m, radio no_flex={meta_no_flex.get('radio_usado')}m"
+    )
+    
+    # Flex ON debe tener radio >= radio de flex OFF (no más corto)
+    radio_flex = meta_flex.get('radio_usado', 0) or 0
+    radio_no_flex = meta_no_flex.get('radio_usado', 0) or 0
+    assert radio_flex >= radio_no_flex, (
+        f"flex ON radio ({radio_flex}m) < flex OFF radio ({radio_no_flex}m). "
+        f"flex destruyó el pool en vez de enriquecerlo"
+    )
+    print(f"[T-FLEX-PRESERVE] OK — flex ON: {n_flex} comps (radio {radio_flex}m), flex OFF: {n_no_flex} comps (radio {radio_no_flex}m)")
+
+
+@pytest.mark.core
+def test_flex_off_unchanged_behavior():
+    """TAREA-163: flex OFF no debe cambiar comportamiento pre-existente."""
+    from parsers.mercado_inmobiliario import obtener_mediana_cluster_v2
+    
+    # Mabel (1 dorm, Martin)
+    mediana, n, meta = obtener_mediana_cluster_v2(
+        zona='Martin', dormitorios=1, operacion='venta',
+        lat_ref=-32.9541, lon_ref=-60.6316,
+        flex_dormitorios=None
+    )
+    
+    # Debe encontrar comparables (sin flex es comportamiento original)
+    assert n >= 2, f"flex OFF encontró solo {n} comps (debería ser >= 2)"
+    assert meta.get('radio_usado', 0) > 0, "radio_usado no seteado"
+    print(f"[T-FLEX-OFF] OK — {n} comps, radio={meta.get('radio_usado')}m")
+
+
+@pytest.mark.core
+def test_contar_por_dormitorios():
+    """TAREA-163: contar_por_dormitorios desglosa correctamente mismos vs flex."""
+    from parsers.cluster_filters import contar_por_dormitorios
+    
+    comps = [
+        {'dormitorios': 4},
+        {'dormitorios': 4},
+        {'dormitorios': 3},
+        {'dormitorios': 2},
+        {'dormitorios': 4},
+    ]
+    result = contar_por_dormitorios(comps, dorm_sujeto=4)
+    assert result['n_mismos'] == 3, f"n_mismos debe ser 3, got {result['n_mismos']}"
+    assert result['n_flex'] == 2, f"n_flex debe ser 2, got {result['n_flex']}"
+    assert result['total'] == 5, f"total debe ser 5, got {result['total']}"
+    print(f"[T-CONTAR-DORM] OK — mismos={result['n_mismos']}, flex={result['n_flex']}, total={result['total']}")

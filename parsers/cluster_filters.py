@@ -86,6 +86,22 @@ def filtrar_por_tipo_operacion_dorms(props: List[Dict], tipo: Optional[str] = No
     return resultado
 
 
+def contar_por_dormitorios(comparables: List[Dict], dorm_sujeto: int) -> Dict:
+    """
+    TAREA-163: Desglosa comparables por dormitorios: mismos vs flex.
+    
+    Args:
+        comparables: Lista de propiedades comparables
+        dorm_sujeto: Cantidad de dormitorios del sujeto
+    
+    Returns:
+        Dict con n_mismos, n_flex, total
+    """
+    n_mismos = sum(1 for c in comparables if c.get('dormitorios') == dorm_sujeto)
+    n_flex = len(comparables) - n_mismos
+    return {'n_mismos': n_mismos, 'n_flex': n_flex, 'total': len(comparables)}
+
+
 def filtrar_por_fecha(props: List[Dict], fecha_ref: Optional[str] = None,
                       ventana_dias: int = 180) -> List[Dict]:
     """

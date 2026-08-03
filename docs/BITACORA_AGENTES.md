@@ -1,6 +1,35 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-08-03 — TAREA-163: Fix flex_dormitorios destruye pool de comparables
+
+### Contexto
+Cuando el usuario activa "Todos los dormitorios" (flex_dormitorios), la búsqueda geográfica progresiva se detenía en un radio MÁS CORTO (300m) porque los 2-3 dorm inflaban el pool y cumplían `MIN_COMPARABLES=10` antes de llegar al radio donde estaban los mismos-dorm (800m). Esto **destruía** el pool natural en vez de **enriquecerlo**.
+
+**Bug introducido en commit `b1c9717`** (25 Jul 2026): "Fix: flex dormitorios in primary search". El fix pasó `flex_dormitorios` a Step 1 (búsqueda geográfica progresiva), que antes siempre usaba `tolerancia_dorms=0`.
+
+**Ejemplo Cochabamba 45 (4 dorm):**
+- Flex OFF: radio 800m → 2 comps (ambos 4 dorm)
+- Flex ON: radio 300m → ~10 comps (mayoría 2-3 dorm, 0 comps 4 dorm)
+
+### Cambios
+1. **`mercado_inmobiliario.py:1223-1283`** — Two-phase search: break solo por `n_mismos >= MIN_COMPARABLES`. Si flex OFF, lógica original sin cambio.
+2. **`mercado_inmobiliario.py:1370-1378`** — Debug flag anti-regresión: WARNING si flex activo pero 0 mismos-dorm en pool.
+3. **`cluster_filters.py:89-103`** — Nueva función `contar_por_dormitorios()` para desglose mismos vs flex.
+4. **`test_regression.py`** — 3 tests nuevos: `test_flex_on_preserves_same_dorm_comps`, `test_flex_off_unchanged_behavior`, `test_contar_por_dormitorios`.
+5. **`docs/ALGORITMOS.md`** — Nueva sección 15: "Two-Phase Comparable Search — flex_dormitorios".
+
+### Reglas de oro afectadas
+- **Nueva: RO-FLEX-ENRICH**: flex_dormitorios SOLO enriquece, NUNCA destruye el pool de mismos-dorm.
+- Debug flags `[DEBUG-FLEX-RADIO]` en cada paso del radio loop para prevenir regresiones.
+
+### Resultado
+- 60 tests pasan (57 original + 3 nuevos)
+- Cochabamba 45 con flex ON ahora mantiene 4-dorm comps + agrega otros
+- Comportamiento sin flex sin cambios
+
+---
+
 ## 2026-07-28 — TAREA-154: Rediseño UI Tarjeta Alquiler + Rentabilidad
 
 ### Contexto

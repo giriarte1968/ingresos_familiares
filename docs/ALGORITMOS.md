@@ -545,7 +545,45 @@ valuar_propiedad_v7() → función principal (~400 líneas, 6 secciones)
   ├── SECCIÓN 5: Razonamiento narrativo
   └── SECCIÓN 6: Return con resultado completo
 
-## 15. Enriquecimiento de Año de Construcción para Comparables (3-Step Lookup)
+## 15. Two-Phase Comparable Search — flex_dormitorios (TAREA-163)
+
+Cuando "Todos los dormitorios" está activo, la búsqueda geográfica progresiva usa estrategia **two-phase** para preservar el pool natural de mismos-dorm:
+
+### Fase 1: Búsqueda progresiva (Step 1 y Step 2)
+```python
+for radio in [300, 500, 800, 1000]:
+    props = filtrar_por_radio(..., radio)
+    props = filtrar_por_tipo_operacion_dorms(..., flex_dormitorios=[1,2,3,4,5])
+    
+    n_mismos = sum(1 for p in props if p['dormitorios'] == dorm_sujeto)
+    
+    # Break SOLO si hay suficientes MISMOS-dorm
+    if n_mismos >= MIN_COMPARABLES:
+        break
+    # Si flex OFF, cualquier comp cuenta (lógica original)
+    elif flex_dormitorios is None and len(props) >= MIN_COMPARABLES:
+        break
+```
+
+### Fase 2: Enrichment
+Los comparables de otros dormitorios se agregan al pool ya seleccionado, nutriendo la muestra sin destruir la base de mismos-dorm.
+
+### Regla RO-FLEX-ENRICH
+**flex_dormitorios SOLO enriquece, NUNCA destruye** el pool de comparables del mismo dormitorio del sujeto.
+
+### Debug flags
+- `[DEBUG-FLEX-RADIO] Step1 radio=Xm: total=N, mismos=M, flex=F` — cada paso del radio loop
+- `[DEBUG-FLEX-RADIO] Step2 radio=Xm zona=Y: total=N, mismos=M, flex=F` — fallback zonal
+- `[DEBUG-FLEX-RADIO] WARNING: flex activo pero 0 mismos-dorm` — alerta anti-regresión
+
+### Referencia
+- Bug introducido: commit `b1c9717` (25 Jul 2026)
+- Fix: TAREA-163 (03 Aug 2026)
+- Archivos: `mercado_inmobiliario.py`, `cluster_filters.py`, `test_regression.py`
+
+---
+
+## 16. Enriquecimiento de Año de Construcción para Comparables (3-Step Lookup)
 
 `enriquecer_anio_comparable(comp, max_dist_m=30, max_dist_exacta=200)` asigna `anio_construccion` a cada comparable usando `rosario_avm_full.csv` como única fuente (el scraping no tiene año).
 
