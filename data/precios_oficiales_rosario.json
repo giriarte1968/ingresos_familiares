@@ -1,11 +1,11 @@
 {
-  "version": 1,
-  "fecha_generacion": "2026-08-01",
-  "descripcion": "Precios oficiales del metro cuadrado en USD para departamentos en venta en Rosario, Julio 2026. Fuente para futura valuacion manual.",
+  "version": 2,
+  "fecha_generacion": "2026-08-03",
+  "descripcion": "Precios BASE NUEVOS (no usados) del metro cuadrado en USD para departamentos en venta en Rosario, Julio 2026. Se aplican con depreciación por antigüedad en valuación manual.",
   "moneda": "USD",
   "tipo_operacion": "venta",
   "tipo_propiedad": "departamento",
-  "nota_precio": "Precios de PUBLICACION (oferta). Cierre tipico 8-15% inferior.",
+  "nota_precio": "Precios de PUBLICACION para propiedades NUEVAS. Para usados, se aplica factor de depreciación por antigüedad.",
   "fuentes": [
     {
       "id": "udesa_ml",
@@ -29,167 +29,148 @@
       "url": "https://www.zonaprop.com.ar"
     },
     {
-      "id": "roomix",
-      "nombre": "Roomix",
-      "fecha": "2026-04",
-      "tipo": "rango estimado",
-      "url": "https://www.roomix.ai"
+      "id": "analista",
+      "nombre": "Validación analista",
+      "fecha": "2026-08",
+      "tipo": "calibración manual",
+      "url": null
     }
   ],
   "zonas": {
     "puerto_norte": {
       "nombre": "Puerto Norte",
       "macrozona_valu": "puerto_norte",
-      "general": 2600,
+      "general": 3250,
       "por_dormitorio": {
-        "mono": 2400,
-        "1d": 2500,
-        "2d": 2610,
-        "3d": 2700,
-        "4d": 2800
+        "mono": 3000,
+        "1d": 3125,
+        "2d": 3260,
+        "3d": 3500,
+        "4d": 3500
       },
-      "fuentes": ["zonaprop", "roomix"],
-      "confianza": "estimada"
+      "fuentes": ["analista"],
+      "confianza": "calibrada",
+      "nota": "Mix $2,600 × 1.25"
     },
     "centro": {
       "nombre": "Centro",
       "macrozona_valu": "centro_premium",
-      "general": 2000,
+      "general": 2620,
       "por_dormitorio": {
-        "mono": 1938,
-        "1d": 1900,
-        "2d": 1865,
-        "3d": 2122,
-        "4d": 2306
+        "mono": 2420,
+        "1d": 2500,
+        "2d": 2640,
+        "3d": 2920,
+        "4d": 2920
       },
-      "fuentes": ["udesa_ml", "futuraprop"],
-      "confianza": "alta"
+      "fuentes": ["analista"],
+      "confianza": "calibrada",
+      "nota": "Mix Pichincha $2,079, Lourdes $1,791 × 1.28"
     },
     "pichincha": {
       "nombre": "Pichincha (Alberto Olmedo)",
       "macrozona_valu": "centro_premium",
-      "general": 2000,
+      "general": 2620,
       "por_dormitorio": {
-        "mono": 1800,
-        "1d": 1900,
-        "2d": 2079,
-        "3d": 2100,
-        "4d": 2200
+        "mono": 2420,
+        "1d": 2500,
+        "2d": 2640,
+        "3d": 2920,
+        "4d": 2920
       },
-      "fuentes": ["zonaprop", "roomix"],
-      "confianza": "estimada"
+      "fuentes": ["analista"],
+      "confianza": "calibrada",
+      "nota": "Hereda centro_premium"
     },
-    "triangulo_moderno": {
-      "nombre": "Triangulo Moderno",
-      "macrozona_valu": "centro_premium",
-      "general": 1950,
+    "macrocentro": {
+      "nombre": "Macrocentro",
+      "macrozona_valu": "macrocentro",
+      "general": 2240,
       "por_dormitorio": {
-        "mono": 1800,
-        "1d": 1900,
-        "2d": 1987,
-        "3d": 2000,
-        "4d": 2100
+        "mono": 2180,
+        "1d": 2190,
+        "2d": 2180,
+        "3d": 2400,
+        "4d": 2400
       },
-      "fuentes": ["zonaprop"],
-      "confianza": "estimada"
-    },
-    "norte": {
-      "nombre": "Rosario Norte",
-      "macrozona_valu": "norte",
-      "general": 1744,
-      "por_dormitorio": {
-        "mono": 1806,
-        "1d": 1750,
-        "2d": 1796,
-        "3d": 1746,
-        "4d": 1800
-      },
-      "fuentes": ["udesa_ml"],
-      "confianza": "alta"
+      "fuentes": ["analista"],
+      "confianza": "calibrada",
+      "nota": "Mix Centro UdeSA $2,000 × factor zonal, 6ta $1,616"
     },
     "fisherton": {
       "nombre": "Fisherton",
       "macrozona_valu": "fisherton",
-      "general": 1600,
+      "general": 2110,
       "por_dormitorio": {
-        "mono": 1500,
-        "1d": 1600,
-        "2d": 1500,
-        "3d": 1700,
-        "4d": 1800
+        "mono": 1880,
+        "1d": 2000,
+        "2d": 2120,
+        "3d": 2380,
+        "4d": 2380
       },
-      "fuentes": ["roomix"],
-      "confianza": "estimada"
+      "fuentes": ["analista"],
+      "confianza": "calibrada",
+      "nota": "Mix $1,690 × 1.25 + validación condominios"
+    },
+    "norte": {
+      "nombre": "Rosario Norte",
+      "macrozona_valu": "norte",
+      "general": 2070,
+      "por_dormitorio": {
+        "mono": 2030,
+        "1d": 2010,
+        "2d": 2080,
+        "3d": 2150,
+        "4d": 2150
+      },
+      "fuentes": ["analista"],
+      "confianza": "calibrada",
+      "nota": "Mix UdeSA Norte $1,746 × 1.18 (menos brecha)"
     },
     "oeste": {
       "nombre": "Rosario Oeste",
       "macrozona_valu": "oeste",
-      "general": 1183,
+      "general": 1510,
       "por_dormitorio": {
-        "mono": 1100,
-        "1d": 1150,
-        "2d": 1167,
-        "3d": 1200,
-        "4d": 1250
+        "mono": 1390,
+        "1d": 1460,
+        "2d": 1540,
+        "3d": 1640,
+        "4d": 1640
       },
-      "fuentes": ["udesa_ml"],
-      "confianza": "alta"
-    },
-    "echesortu": {
-      "nombre": "Echesortu",
-      "macrozona_valu": "macrocentro",
-      "general": 1050,
-      "por_dormitorio": {
-        "mono": 900,
-        "1d": 950,
-        "2d": 1075,
-        "3d": 1100,
-        "4d": 1200
-      },
-      "fuentes": ["roomix"],
-      "confianza": "estimada"
+      "fuentes": ["analista"],
+      "confianza": "calibrada",
+      "nota": "Mix UdeSA Oeste $1,167 × 1.29"
     },
     "sur": {
       "nombre": "Rosario Sur",
       "macrozona_valu": "sur_default",
-      "general": 935,
+      "general": 1220,
       "por_dormitorio": {
-        "mono": 950,
-        "1d": 950,
-        "2d": 952,
-        "3d": 1000,
-        "4d": 1050
+        "mono": 1150,
+        "1d": 1190,
+        "2d": 1220,
+        "3d": 1300,
+        "4d": 1300
       },
-      "fuentes": ["udesa_ml"],
-      "confianza": "alta"
+      "fuentes": ["analista"],
+      "confianza": "calibrada",
+      "nota": "Mix UdeSA Sur $952 × 1.28"
     },
-    "alberdi": {
-      "nombre": "Alberdi",
-      "macrozona_valu": "norte",
-      "general": 950,
+    "resto_rosario": {
+      "nombre": "Resto de Rosario",
+      "macrozona_valu": "resto_rosario",
+      "general": 780,
       "por_dormitorio": {
-        "mono": 800,
-        "1d": 850,
-        "2d": 975,
-        "3d": 1000,
-        "4d": 1100
+        "mono": 720,
+        "1d": 760,
+        "2d": 790,
+        "3d": 840,
+        "4d": 840
       },
-      "fuentes": ["roomix"],
-      "confianza": "estimada"
-    },
-    "rucci": {
-      "nombre": "Jose Ignacio Rucci",
-      "macrozona_valu": "sur_default",
-      "general": 490,
-      "por_dormitorio": {
-        "mono": 474,
-        "1d": 480,
-        "2d": 490,
-        "3d": 500,
-        "4d": 510
-      },
-      "fuentes": ["zonaprop"],
-      "confianza": "estimada"
+      "fuentes": ["analista"],
+      "confianza": "calibrada",
+      "nota": "Mix Rucci $594 × 1.30 + ajuste piso"
     }
   },
   "alquileres": {
