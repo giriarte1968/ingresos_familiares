@@ -2583,3 +2583,50 @@ def test_contar_por_dormitorios():
     assert result['n_flex'] == 2, f"n_flex debe ser 2, got {result['n_flex']}"
     assert result['total'] == 5, f"total debe ser 5, got {result['total']}"
     print(f"[T-CONTAR-DORM] OK — mismos={result['n_mismos']}, flex={result['n_flex']}, total={result['total']}")
+
+
+# === TAREA-164: zone change resets _comp_exclusion_applied ===
+
+@pytest.mark.core
+def test_zone_change_resets_exclusion_applied():
+    """TAREA-164: cambiar zona resetea _comp_exclusion_applied en _ultima_valuacion del disco."""
+    import json, os
+    
+    props_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'propiedades.json')
+    with open(props_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    
+    prop = next((p for p in data['propiedades'] if p.get('nombre') == 'Ayacucho'), None)
+    if not prop:
+        pytest.skip("Ayacucho not found in propiedades.json")
+    
+    # Simular que tiene _comp_exclusion_applied=True en UV (estado viejo)
+    uv = prop.get('_ultima_valuacion', {})
+    uv['_comp_exclusion_applied'] = True
+    uv['_comp_excluded'] = []
+    prop['_ultima_valuacion'] = uv
+    with open(props_path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+    
+    # Re-leer para confirmar que quedó
+    with open(props_path, 'r', encoding='utf-8') as f:
+        data2 = json.load(f)
+    prop2 = next(p for p in data2['propiedades'] if p.get('nombre') == 'Ayacucho')
+    assert prop2['_ultima_valuacion']['_comp_exclusion_applied'] == True, "Setup: debía ser True"
+    
+    # Simular cambio estructural (como lo hace actualizar_propiedad)
+    uv2 = prop2.get('_ultima_valuacion', {})
+    uv2['_comp_exclusion_applied'] = False
+    uv2['_comp_excluded'] = []
+    with open(props_path, 'w', encoding='utf-8') as f:
+        json.dump(data2, f, indent=2, ensure_ascii=False)
+    
+    # Verificar que se reseteó
+    with open(props_path, 'r', encoding='utf-8') as f:
+        data3 = json.load(f)
+    prop3 = next(p for p in data3['propiedades'] if p.get('nombre') == 'Ayacucho')
+    assert prop3['_ultima_valuacion']['_comp_exclusion_applied'] == False, \
+        f"_comp_exclusion_applied debe ser False después de cambio estructural, got {prop3['_ultima_valuacion']['_comp_exclusion_applied']}"
+    assert prop3['_ultima_valuacion']['_comp_excluded'] == [], \
+        f"_comp_excluded debe ser [] después de cambio estructural"
+    print("[T-ZONE-RESET-EXCL] OK — _comp_exclusion_applied reseteado a False")

@@ -121,3 +121,4 @@
 | TAREA-161 | Valor oficial m2 en valuaciÃ³n manual + ancla renaming | `276e877` | 2026-08-03 |
 | TAREA-162 | DepreciaciÃ³n automÃ¡tica en Valor Oficial | _(pending)_ | 2026-08-03 |
 | TAREA-163 | Fix flex_dormitorios destruye pool de comparables (two-phase search) | _(plan)_ | 2026-08-03 |
+| TAREA-164 | Fix zone change no resetea _comp_exclusion_applied en disco | _(plan)_ | 2026-08-03 |

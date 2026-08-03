@@ -631,8 +631,11 @@ def _should_restore_excl(resultado: dict, uv_excl: dict, prop_name: str,
     print(f"[DEBUG-STATE-RESTORE] {prop_name}: current_sel={current_sel}, "
           f"preview_mode={preview_mode}, forzar={forzar}, "
           f"_is_reset_state={_is_reset_state}, _is_fresh_preview={_is_fresh_preview}")
-    return bool(_restore_cond1 and _restore_cond2 and _restore_cond3
+    _result = bool(_restore_cond1 and _restore_cond2 and _restore_cond3
                 and not _is_reset_state and not _is_fresh_preview)
+    if _result:
+        print(f"[DEBUG-EXCL-RESTORE] {prop_name}: restaurando exclusión desde UV (cond1={_restore_cond1}, cond2={_restore_cond2}, cond3={_restore_cond3})")
+    return _result
 
 
 def mostrar_dashboard():
@@ -756,6 +759,12 @@ def mostrar_dashboard():
                     print(f"[DEBUG-SNC] {prop_name}: Cambio ESTRUCTURAL detectado. Reset total.")
                     from valu import _limpiar_estado_propiedad
                     _limpiar_estado_propiedad(prop_name)
+                    # TAREA-164: limpiar estado de exclusión en _ultima_valuacion del disco
+                    uv_disk = p_obj.get('_ultima_valuacion', {})
+                    if uv_disk:
+                        uv_disk['_comp_exclusion_applied'] = False
+                        uv_disk['_comp_excluded'] = []
+                        print(f"[DEBUG-EXCL-RESTORE] {prop_name}: _comp_exclusion_applied reseteado a False en disco (cambio estructural)")
                     try:
                         from parsers.valuacion_cache import cargar_cache_valuaciones, guardar_cache_valuaciones
                         cache_v = cargar_cache_valuaciones()
