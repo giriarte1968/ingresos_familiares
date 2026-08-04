@@ -883,21 +883,7 @@ def render_tabla_comparables(res, prop_name=None):
         n_sel = len(selected_ids)
         n_total = len(comparables)
         selected_comps = [c for i, c in enumerate(comparables) if comp_ids[i] in selected_ids]
-        if n_sel == n_total and n_sel >= 3:
-            meta = res.get('resolution_metadata', {})
-            _m2_puro = meta.get('_m2_puro')
-            if _m2_puro and _m2_puro > 0:
-                vm2_raw = _m2_puro
-            else:
-                raw_prices = sorted([c.get('precio_m2', 0) for c in comparables])
-                n_rp = len(raw_prices)
-                if n_rp % 2 == 1:
-                    vm2_raw = raw_prices[n_rp // 2]
-                else:
-                    vm2_raw = (raw_prices[n_rp // 2 - 1] + raw_prices[n_rp // 2]) / 2
-            preview = {'vm2': round(vm2_raw, 0), 'n_sel': n_sel, 'fallback': False,
-                       'percentil_label': 'Motor', 'cv': meta.get('cv_pool', 0)}
-        elif len(selected_comps) >= 3:
+        if len(selected_comps) >= 3:
             preview = calcular_vm2_por_seleccion(selected_comps, res)
         else:
             preview = None
