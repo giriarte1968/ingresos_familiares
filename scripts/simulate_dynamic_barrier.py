@@ -15,7 +15,7 @@ from parsers.mercado_inmobiliario import (
     normalizar_zona, calcular_distancia_km, _calcular_percentil_linear,
     _calcular_mediana, obtener_mediana_cluster_v2
 )
-from parsers.cluster_filters import seleccionar_percentil_por_calidad_pool, _calcular_cv
+from parsers.cluster_filters import seleccionar_percentil_por_calidad_pool, _calcular_cv, calcular_percentil
 from parsers.zonas_manager import resolver_macrozona
 
 ANIO_ACTUAL = datetime.now().year
@@ -213,7 +213,7 @@ def main():
         n_same = sum(1 for c in comps_norm if not c['_cross_soft'])
         n_cross = sum(1 for c in comps_norm if c['_cross_soft'])
 
-        # 4. Compute percentile for same and cross (using dynamic percentile like engine)
+        # 4. Compute percentile for same and cross (using discrete indexing like engine)
         same_prices = sorted([c['precio_normalizado'] for c in comps_norm if not c['_cross_soft']])
         cross_prices = sorted([c['precio_normalizado'] for c in comps_norm if c['_cross_soft']])
 
@@ -222,8 +222,9 @@ def main():
         _cv_ref = 0.339
         percentil_venta, _ = seleccionar_percentil_por_calidad_pool(len(same_prices), _cv_pool, cv_ref=_cv_ref)
 
-        pct_same = _calcular_percentil_linear(same_prices, percentil_venta) if len(same_prices) >= 2 else None
-        pct_cross = _calcular_percentil_linear(cross_prices, percentil_venta) if len(cross_prices) >= 2 else None
+        # Use discrete percentile (calcular_percentil) like engine, NOT linear interpolation
+        pct_same = calcular_percentil(same_prices, percentil_venta) if len(same_prices) >= 2 else None
+        pct_cross = calcular_percentil(cross_prices, percentil_venta) if len(cross_prices) >= 2 else None
 
         # Alpha (same-side weight)
         if n_same >= 15: alpha = 0.70
@@ -239,9 +240,10 @@ def main():
         else:
             blend_vm2 = 0
 
-        # --- Method 1: Current static 3% ---
-        static_penalty = compute_static_penalty(n_cross, n_total)
-        static_vm2 = blend_vm2 * (1 - static_penalty) if blend_vm2 > 0 else 0
+        # --- Method 1: Current engine result (m2_base_raw from obtener_mediana_cluster_v2) ---
+        # The engine already applies blend + barrier internally, so use its result directly
+        static_vm2 = m2_base_raw
+        static_penalty = 0  # Already baked into m2_base_raw by the engine
 
         # --- Method 2: Dynamic gap-based ---
         dynamic_penalty = compute_dynamic_penalty(pct_same, pct_cross, n_same, n_cross, n_total)

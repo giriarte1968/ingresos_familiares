@@ -248,58 +248,50 @@ Usa las funciones reales del motor (`_precio_ajustado`, `obtener_mediana_cluster
 
 ---
 
-## 13. Gradientes vs Escalones — Resumen Completo (2026-08-05, corregido)
+## 13. Gradientes vs Escalones — Resumen Completo (2026-08-05, corregido v2)
 
 ### Tabla de Valuaciones Finales
 
 | Propiedad | Stored | Static | DynA+P | IDW-p2 | IDW-p15 | DynA | Promedio |
 |-----------|--------|--------|--------|--------|---------|------|----------|
 | Mabel | $50,713 | $50,713 | $50,713 | $50,713 | $50,713 | $50,713 | $50,713 |
-| Ayacucho | $30,844 | $29,028 | $29,820 | $25,072 | $25,072 | $29,820 | $27,762 |
-| Vera Mujica | $0 | $57,827 | $58,299 | $60,051 | $60,051 | $58,952 | $59,036 |
-| P1200 | $115,944 | $106,347 | $109,747 | $78,690 | $78,690 | $109,747 | $93,338 |
-| Entre Rios | $54,605 | $54,605 | $54,605 | $65,149 | $61,976 | $54,605 | $58,188 |
-| Brown 2750 | $241,344 | $238,844 | $267,829 | $211,642 | $211,642 | $267,829 | $239,557 |
-| Francia 250b | $538,829 | $540,224 | $540,224 | $520,055 | $520,055 | $540,224 | $532,156 |
-| Mitre1473 | $217,838 | $217,839 | $217,839 | $205,999 | $205,999 | $217,839 | $213,103 |
-| Cochabamba 45 | $81,805 | $76,619 | $81,341 | $73,970 | $73,970 | $81,341 | $77,448 |
-| **TOTAL** | **$1,331,922** | **$1,372,046** | **$1,410,418** | **$1,291,340** | **$1,288,167** | **$1,411,070** | **$1,354,608** |
+| Ayacucho | $30,843 | $30,843 | $25,946 | $25,072 | $25,072 | $25,946 | $25,607 |
+| Vera Mujica | $61,185 | $61,185 | $63,023 | $58,783 | $59,250 | $63,023 | $61,053 |
+| P1200 | $111,296 | $111,296 | $112,384 | $88,963 | $88,963 | $112,482 | $102,778 |
+| Entre Rios | $54,203 | $54,203 | $54,203 | $65,149 | $63,203 | $54,203 | $58,192 |
+| Brown 2750 | $241,344 | $241,344 | $271,318 | $211,642 | $211,642 | $271,318 | $241,453 |
+| Francia 250b | $596,224 | $540,224 | $540,224 | $520,055 | $520,055 | $540,224 | $532,156 |
+| Mitre1473 | $217,838 | $217,838 | $217,839 | $205,999 | $205,999 | $217,839 | $213,103 |
+| Cochabamba 45 | $81,803 | $81,803 | $82,334 | $73,970 | $73,970 | $82,334 | $78,882 |
+| **TOTAL** | **$1,445,449** | **$1,389,449** | **$1,417,984** | **$1,300,346** | **$1,298,867** | **$1,418,083** | **$1,364,946** |
 
 ### Delta vs Stored (%)
 
 | Propiedad | Static | DynA+P | IDW-p2 | IDW-p15 | DynA | Promedio |
 |-----------|--------|--------|--------|---------|------|----------|
 | Mabel | +0.0% | +0.0% | +0.0% | +0.0% | +0.0% | +0.0% |
-| Ayacucho | -5.9% | -3.3% | -18.7% | -18.7% | -3.3% | -10.0% |
-| P1200 | -8.3% | -5.3% | -32.1% | -32.1% | -5.3% | -16.6% |
-| Entre Rios | +0.0% | +0.0% | +19.3% | +13.5% | +0.0% | +6.6% |
-| Brown 2750 | -1.0% | +11.0% | -12.3% | -12.3% | +11.0% | -0.7% |
-| Francia 250b | +0.3% | +0.3% | -3.5% | -3.5% | +0.3% | -1.2% |
+| Ayacucho | +0.0% | -15.9% | -18.7% | -18.7% | -15.9% | -13.8% |
+| Vera Mujica | +0.0% | +3.0% | -3.9% | -3.2% | +3.0% | -0.2% |
+| P1200 | +0.0% | +1.0% | -20.1% | -20.1% | +1.1% | -7.6% |
+| Entre Rios | +0.0% | +0.0% | +20.2% | +16.6% | +0.0% | +7.4% |
+| Brown 2750 | +0.0% | +12.4% | -12.3% | -12.3% | +12.4% | +0.0% |
+| Francia 250b | -9.4% | -9.4% | -12.8% | -12.8% | -9.4% | -10.7% |
 | Mitre1473 | +0.0% | +0.0% | -5.4% | -5.4% | +0.0% | -2.2% |
-| Cochabamba 45 | -6.3% | -0.6% | -9.6% | -9.6% | -0.6% | -5.3% |
+| Cochabamba 45 | +0.0% | +0.6% | -9.6% | -9.6% | +0.6% | -3.6% |
 
-### Percentiles usados por propiedad
+### Root cause: Static = engine result (m2_base_raw)
 
-| Propiedad | n | CV | Percentil | Label |
-|-----------|---|------|-----------|-------|
-| Mabel | 19 | 0.227 | P50 | ALTA |
-| Ayacucho | 6 | 0.300 | P40 | MEDIA |
-| Vera Mujica | 11 | 0.200 | P50 | ALTA |
-| P1200 | 10 | 0.250 | P50 | ALTA |
-| Entre Rios | 87 | 0.150 | P50 | ALTA |
-| Brown 2750 | 26 | 0.200 | P50 | ALTA |
-| Francia 250b | 51 | 0.180 | P50 | ALTA |
-| Mitre1473 | 37 | 0.220 | P50 | ALTA |
-| Cochabamba 45 | 29 | 0.250 | P50 | ALTA |
+La columna **Static** es ahora el resultado EXACTO del engine (`obtener_mediana_cluster_v2()`), no una recomputación. Coincide con Stored en 8/9 propiedades.
+
+**Francia 250b (-9.4%)**: El `auto_valor_usd` stored ($596,224) no equals `m2b * m2eq` ($540,224). Fue computado con parámetros diferentes (retro_dias o flex) en algún momento.
 
 ### Hallazgos clave
 
-1. **Static (engine actual) está MUY CERCA del stored** — 6/8 propiedades con delta <1%
-2. **DynA+P overcorrecta** — Brown 2750 +11%, Cochabamba 45 -0.6% (mejor que static)
-3. **IDW SUBESTIMA** — Entre Rios +19%, P1200 -32%
-4. **Mabel es idéntica en todos los métodos** — 19 comps, 0 cross, sin barreras
-5. **Las simulaciones anteriores estaban mal** — usaban P33 en vez de P50 dinámico
+1. **Static = Stored en 8/9 propiedades** — el engine actual ya es correcto
+2. **DynA+P overcorrecta** — Brown 2750 +12.4%, Ayacucho -15.9%
+3. **IDW SUBESTIMA** — Entre Rios +20%, P1200 -20%
+4. **Cochabamba 45: DynA+P mejora** — de 0% a +0.6% (cross comps más caros)
 
 ### Conclusión
 
-El engine actual (Static) ya produce resultados muy cercanos al stored. Las mejoras dinámicas (DynA+P) ayudan en casos con barreras significativas (Cochabamba 45: -6.3% → -0.6%) pero overcorrectan en otros (Brown 2750: -1.0% → +11.0%).
+El engine actual (Static) ya produce resultados correctos. Las mejoras dinámicas no son necesarias para la mayoría de propiedades. Solo Cochabamba 45 seBeneficia de DynA+P.
