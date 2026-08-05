@@ -295,3 +295,280 @@ La columna **Static** es ahora el resultado EXACTO del engine (`obtener_mediana_
 ### Conclusión
 
 El engine actual (Static) ya produce resultados correctos. Las mejoras dinámicas no son necesarias para la mayoría de propiedades. Solo Cochabamba 45 seBeneficia de DynA+P.
+
+---
+
+## 14. Detalle Paso a Paso por Propiedad y Método
+
+### Fórmulas comunes
+
+```
+m2_equivalentes (m2eq) = m2_cubiertos + m2_semicubiertos * 0.5 + m2_descubiertos * 0.3
+USD = m2eq * m2_base
+```
+
+### Método 1: STATIC (engine actual)
+```
+1. obtener_mediana_cluster_v2() → pool de comparables
+2. _precio_ajustado() → precio normalizado por comp (CT + size_adj + dorm_ratio)
+3. seleccionar_percentil_por_calidad_pool(n, CV) → percentil (P33/P40/P50)
+4. calcular_percentil(precios, percentil) → P_same, P_cross (indexación discreta)
+5. alpha = 0.50-0.70 según n_same
+6. blend = alpha * P_same + (1-alpha) * P_cross
+7. penalty = (n_cross/n_total) * 0.03
+8. m2_base = blend * (1 - penalty)
+9. USD = m2eq * m2_base
+```
+
+### Método 2: DynA+P (Dynamic Alpha + Penalty)
+```
+1-4. Igual que Static (pool, normalización, percentil)
+5. gap = (P_same - P_cross) / P_same
+6. dyn_alpha = f(gap): si gap>5% → 0.70+gap*0.5 (max 0.85)
+                       si gap<-5% → 0.50+gap*0.5 (min 0.40)
+                       si |gap|<=5% → default (0.50-0.70)
+7. dyn_blend = dyn_alpha * P_same + (1-dyn_alpha) * P_cross
+8. dyn_penalty = min(gap*0.5, 0.15) * (n_cross/n_total) [solo si gap>0]
+9. m2_base = dyn_blend * (1 - dyn_penalty)
+10. USD = m2eq * m2_base
+```
+
+### Método 3: IDW-p2 (Inverse Distance Weighting, power=2)
+```
+1-3. Igual que Static (pool, normalización, percentil)
+4. Para cada comp: weight = 1 / dist_m^2
+5. Ordenar por precio_normalizado
+6. Encontrar P{percentil} de valores ponderados (weighted cumulative)
+7. USD = m2eq * idw_value
+```
+
+### Método 4: IDW-p15 (power=1.5)
+```
+Igual que IDW-p2 pero weight = 1 / dist_m^1.5
+```
+
+### Método 5: DynA (Dynamic Alpha, sin penalty)
+```
+Igual que DynA+P pero sin paso 8 (sin penalización por barrera)
+```
+
+---
+
+### MABEL (1 dorm, 39.5 m², Centro, retro=60d)
+
+| Paso | Valor |
+|------|-------|
+| m2eq | 42.3 m² |
+| Pool | 19 comps, radio=300m, 19 same, 0 cross |
+| CV | 0.2698 |
+| Percentil | P50 (n=19, CV<0.339) |
+| P50 same | $1,199/m² |
+| P50 cross | N/A |
+| Alpha | 0.70 (n_same=19) |
+| Blend | $1,199 (same only) |
+| **Static** | **$1,198.8/m² × 42.3 = $50,713** |
+| **DynA+P** | **$1,198.8/m² × 42.3 = $50,713** (gap=0, penalty=0) |
+| **IDW-p2** | **$1,199/m² × 42.3 = $50,713** |
+| **IDW-p15** | **$1,199/m² × 42.3 = $50,713** |
+| **DynA** | **$1,198.8/m² × 42.3 = $50,713** |
+
+Todos los métodos coinciden: 0 cross comps, sin barreras, pool homogéneo.
+
+---
+
+### AYACUCHO (1 dorm, 27 m², Rep. de la Sexta, retro=60d)
+
+| Paso | Valor |
+|------|-------|
+| m2eq | 28.9 m² |
+| Pool | 6 comps, radio=300m, 3 same, 3 cross |
+| CV | 0.1866 |
+| Percentil | P33 (n=6, CV<0.339 → P40, pero P33 por pool chico) |
+| P33 same | $867/m² |
+| P33 cross | $923/m² |
+| Alpha | 0.50 (n_same=3) |
+| Blend (static) | 0.50 × $867 + 0.50 × $923 = $895 |
+| Static engine | $1,066.3/m² (engine usa P40, no P33) |
+| **Static** | **$1,066.3 × 28.9 = $30,843** |
+| gap | ($867 - $923) / $867 = -6.5% (cross más caro) |
+| dyn_alpha | 0.47 (gap < -5% → favorece cross) |
+| dyn_blend | 0.47 × $867 + 0.53 × $923 = $897 |
+| dyn_penalty | 0 (gap negativo) |
+| **DynA+P** | **$897 × 28.9 = $25,946** (-15.9%) |
+| **IDW-p2** | **$867 × 28.9 = $25,072** (-18.7%) |
+| **IDW-p15** | **$867 × 28.9 = $25,072** (-18.7%) |
+| **DynA** | **$897 × 28.9 = $25,946** (-15.9%) |
+
+El engine usa P40 (interno), la simulación usa P33. El engine produce $1,066.3 vs blend estático $895 — el engine tiene un path interno diferente.
+
+---
+
+### VERA MUJICA (1 dorm, 35.5 m², Norte, retro=60d)
+
+| Paso | Valor |
+|------|-------|
+| m2eq | 40.6 m² |
+| Pool | 24 comps, radio=300m, 14 same, 10 cross |
+| CV | 0.1185 |
+| Percentil | P50 |
+| P50 same | $1,459/m² |
+| P50 cross | $1,625/m² |
+| Alpha | 0.60 (n_same=14) |
+| Blend (static) | 0.60 × $1,459 + 0.40 × $1,625 = $1,525 |
+| Static engine | $1,506.3/m² |
+| **Static** | **$1,506.3 × 40.6 = $61,185** |
+| gap | ($1,459 - $1,625) / $1,459 = -11.4% |
+| dyn_alpha | 0.44 |
+| dyn_blend | 0.44 × $1,459 + 0.56 × $1,625 = $1,552 |
+| **DynA+P** | **$1,552 × 40.6 = $63,023** (+3.0%) |
+| **IDW-p2** | **$1,447 × 40.6 = $58,783** (-3.9%) |
+| **IDW-p15** | **$1,459 × 40.6 = $59,250** (-3.2%) |
+| **DynA** | **$1,552 × 40.6 = $63,023** (+3.0%) |
+
+Cross comps son más caros (gap negativo). DynA+P da más peso a cross → resultado más alto.
+
+---
+
+### P1200 (2 dorm, 83 m², Norte, retro=60d)
+
+| Paso | Valor |
+|------|-------|
+| m2eq | 88.8 m² |
+| Pool | 37 comps, radio=300m, 24 same, 13 cross |
+| CV | 0.2264 |
+| Percentil | P50 |
+| P50 same | $1,268/m² |
+| P50 cross | $1,262/m² |
+| Alpha | 0.70 (n_same=24) |
+| Blend | 0.70 × $1,268 + 0.30 × $1,262 = $1,266 |
+| Static engine | $1,252.6/m² |
+| **Static** | **$1,252.6 × 88.8 = $111,296** |
+| gap | ($1,268 - $1,262) / $1,268 = +0.5% |
+| dyn_alpha | 0.70 (gap < 5% → default) |
+| dyn_blend | $1,266 |
+| dyn_penalty | 0.09% (gap pequeño) |
+| **DynA+P** | **$1,265 × 88.8 = $112,384** (+1.0%) |
+| **IDW-p2** | **$1,001 × 88.8 = $88,963** (-20.1%) |
+| **IDW-p15** | **$1,001 × 88.8 = $88,963** (-20.1%) |
+| **DynA** | **$1,266 × 88.8 = $112,482** (+1.1%) |
+
+Same y cross casi iguales (gap +0.5%). IDW subestima fuertemente porque el comp más cercano es barato.
+
+---
+
+### ENTRE RIOS (1 dorm, 34 m², Centro, retro=0d)
+
+| Paso | Valor |
+|------|-------|
+| m2eq | 34.0 m² |
+| Pool | 42 comps, radio=300m, 42 same, 0 cross |
+| CV | 0.2273 |
+| Percentil | P50 |
+| P50 same | $1,588/m² |
+| Alpha | 0.70 (n_same=42) |
+| Blend | $1,588 (same only) |
+| Static engine | $1,594.2/m² |
+| **Static** | **$1,594.2 × 34.0 = $54,203** |
+| **DynA+P** | **$1,588 × 34.0 = $54,203** (0 cross, sin variación) |
+| **IDW-p2** | **$1,916 × 34.0 = $65,149** (+20.2%) |
+| **IDW-p15** | **$1,859 × 34.0 = $63,203** (+16.6%) |
+| **DynA** | **$1,588 × 34.0 = $54,203** |
+
+0 cross comps. IDW overestima porque los comps más cercanos son más caros que la mediana.
+
+---
+
+### BROWN 2750 (2 dorm, 96 m², Centro, retro=0d)
+
+| Paso | Valor |
+|------|-------|
+| m2eq | 98.7 m² |
+| Pool | 26 comps, radio=300m, 20 same, 6 cross |
+| CV | 0.2633 |
+| Percentil | P50 |
+| P50 same | $2,176/m² |
+| P50 cross | $3,083/m² |
+| Alpha | 0.70 (n_same=20) |
+| Blend | 0.70 × $2,176 + 0.30 × $3,083 = $2,448 |
+| Static engine | $2,445.2/m² |
+| **Static** | **$2,445.2 × 98.7 = $241,344** |
+| gap | ($2,176 - $3,083) / $2,176 = -43.9% (cross MUY más caro) |
+| dyn_alpha | 0.40 (gap < -5% → floor) |
+| dyn_blend | 0.40 × $2,176 + 0.60 × $3,083 = $2,721 |
+| **DynA+P** | **$2,721 × 98.7 = $271,318** (+12.4%) |
+| **IDW-p2** | **$2,145 × 98.7 = $211,642** (-12.3%) |
+| **IDW-p15** | **$2,145 × 98.7 = $211,642** (-12.3%) |
+| **DynA** | **$2,721 × 98.7 = $271,318** (+12.4%) |
+
+Cross comps son 44% más caros. DynA+P overcorrecta dando 60% de peso a cross.
+
+---
+
+### FRANCIA 250b (3 dorm, 160 m², Puerto Norte, retro=60d)
+
+| Paso | Valor |
+|------|-------|
+| m2eq | 160.0 m² |
+| Pool | 51 comps, radio=500m, 51 same, 0 cross |
+| CV | 0.2667 |
+| Percentil | P50 |
+| P50 same | $3,376/m² |
+| Alpha | 0.70 (n_same=51) |
+| Blend | $3,376 (same only) |
+| Static engine | $3,376.4/m² |
+| **Static** | **$3,376.4 × 160.0 = $540,224** |
+| **DynA+P** | **$540,224** (0 cross, sin variación) |
+| **IDW-p2** | **$3,250 × 160.0 = $520,055** (-12.8% vs stored) |
+| **IDW-p15** | **$3,250 × 160.0 = $520,055** (-12.8%) |
+| **DynA** | **$540,224** |
+
+Stored = $596,224 pero engine retorna $540,224. Diferencia de $56K: stored fue computado con parámetros diferentes.
+
+---
+
+### MITRE1473 (3 dorm, 206 m², Centro, retro=60d)
+
+| Paso | Valor |
+|------|-------|
+| m2eq | 222.2 m² |
+| Pool | 37 comps, radio=300m, 37 same, 0 cross |
+| CV | 0.2634 |
+| Percentil | P50 |
+| P50 same | $980/m² |
+| Alpha | 0.70 (n_same=37) |
+| Blend | $980 (same only) |
+| Static engine | $980.4/m² |
+| **Static** | **$980.4 × 222.2 = $217,838** |
+| **DynA+P** | **$217,839** (0 cross) |
+| **IDW-p2** | **$927 × 222.2 = $205,999** (-5.4%) |
+| **IDW-p15** | **$927 × 222.2 = $205,999** (-5.4%) |
+| **DynA** | **$217,839** |
+
+Pool grande, 0 cross. IDW subestima porque los comps más cercanos son más baratos.
+
+---
+
+### COCHABAMBA 45 (4 dorm, 98 m², Rep. de la Sexta, retro=60d)
+
+| Paso | Valor |
+|------|-------|
+| m2eq | 98.0 m² |
+| Pool | 29 comps, radio=800m, 5 same, 24 cross |
+| CV | 0.1597 |
+| Percentil | P40 (n=5, CV<0.339) |
+| P40 same | $755/m² |
+| P40 cross | $898/m² |
+| Alpha | 0.55 (n_same=5) |
+| Blend (static) | 0.55 × $755 + 0.45 × $898 = $819 |
+| Static engine | $834.7/m² |
+| **Static** | **$834.7 × 98.0 = $81,803** |
+| gap | ($755 - $898) / $755 = -19.0% (cross más caro) |
+| dyn_alpha | 0.40 (gap < -5% → floor) |
+| dyn_blend | 0.40 × $755 + 0.60 × $898 = $840 |
+| dyn_penalty | 0 (gap negativo) |
+| **DynA+P** | **$840 × 98.0 = $82,334** (+0.6%) |
+| **IDW-p2** | **$755 × 98.0 = $73,970** (-9.6%) |
+| **IDW-p15** | **$755 × 98.0 = $73,970** (-9.6%) |
+| **DynA** | **$840 × 98.0 = $82,334** (+0.6%) |
+
+Solo 5 same-dorm (4d) en 800m. Cross comps son 19% más caros. DynA+P mejora ligeramente (+0.6%). IDW subestima porque el comp más cercano (9m) tiene precio bajo ($1,005/m² raw).
