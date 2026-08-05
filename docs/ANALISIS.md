@@ -196,3 +196,130 @@ Si texto y bbox discrepan, **texto gana** (línea 120).
 
 ### Tests
 - `tests/test_regression.py` — 61 tests
+
+---
+
+## 11. Comparación Real: Motor Actual vs IDW Gradient (2026-08-04)
+
+**Script**: `scripts/compare_real_vs_idw.py`
+**Fix**: Agregado `_pool_final` a meta dict en `obtener_mediana_cluster_v2()` (todos los return paths)
+
+Usa las funciones reales del motor (`_precio_ajustado`, `obtener_mediana_cluster_v2`) con los mismos params del stored (retro, flex). Solo cambia la ponderación.
+
+| Prop | N | Same | Cross | Radio | Retro | Current | IDW-p2 | IDW-p15 | dIDWp2 |
+|------|---|------|-------|-------|-------|---------|--------|---------|--------|
+| Mabel | 19 | 19 | 0 | 300m | 60d | $46,017 | $46,122 | $46,122 | +0.2% |
+| Ayacucho | 5 | 2 | 3 | 300m | 0d | $29,613 | $25,072 | $25,072 | -15.3% |
+| Vera Mujica | 11 | 4 | 7 | 300m | 0d | $57,827 | $60,051 | $60,051 | +3.8% |
+| P1200 | 12 | 8 | 4 | 300m | 60d | $102,021 | $78,690 | $78,690 | -22.9% |
+| Entre Rios | 87 | 87 | 0 | 300m | 36d | $51,389 | $57,137 | $54,181 | +11.2% |
+| Brown 2750 | 26 | 20 | 6 | 300m | 0d | $233,517 | $210,726 | $210,726 | -9.8% |
+| Francia 250b | 51 | 51 | 0 | 500m | 60d | $481,095 | $472,889 | $479,350 | -1.7% |
+| Mitre1473 | 37 | 37 | 0 | 300m | 60d | $202,562 | $205,999 | $205,999 | +1.7% |
+| Cochabamba 45 | 29 | 5 | 24 | 800m | 60d | $74,458 | $64,685 | $64,685 | -13.1% |
+| **TOTAL** | | | | | | **$1,278,497** | **$1,221,370** | **$1,224,876** | **-4.5%** |
+
+### Hallazgos
+- **IDW-p2 = IDW-p15 en la mayoría** — pools chicos (5-37 comps), la potencia no importa
+- **IDW SUBESTIMA** cuando comp cercano es atípico barato: P1200 (-23%), Ayacucho (-15%), Cochabamba (-13%)
+- **IDW SOBRESTIMA** cuando comp cercano es más caro: Entre Rios (+11%)
+- **Total IDW es -4.5% vs Current** — blend+barrier da valores más altos
+- **Stored ≠ Current** — cache cambió desde la valuación stored (nuevos props, precios actualizados)
+
+### m2_base por método
+
+| Prop | Stored | Current | IDW-p2 | IDW-p15 |
+|------|--------|---------|--------|---------|
+| Mabel | $1,269 | $1,088 | $1,090 | $1,090 |
+| Ayacucho | $1,006 | $1,024 | $867 | $867 |
+| P1200 | $1,334 | $1,148 | $886 | $886 |
+| Brown 2750 | $2,445 | $2,366 | $2,135 | $2,135 |
+| Francia 250b | $3,018 | $3,007 | $2,956 | $2,996 |
+| Cochabamba 45 | $835 | $760 | $660 | $660 |
+
+---
+
+## 12. Bug: dorm_type_ratio invertido en scripts de simulación
+
+**Archivo**: `scripts/simulate_apples.py` línea 102
+**Bug**: `return r_comp / r_suj` (invertido)
+**Correcto**: `return ratio_sujeto / ratio_comp` (como en `mercado_inmobiliario.py:2184`)
+**También**: `dorm_sujeto=2` hardcodeado en vez de usar el dorm real del sujeto
+
+---
+
+## 13. Gradientes vs Escalones — Resumen Completo (2026-08-04)
+
+### Tabla de Valuaciones Finales
+
+| Propiedad | Stored | Static | DynA+P | IDW-p2 | IDW-p15 | DynA | Promedio |
+|-----------|--------|--------|--------|--------|---------|------|----------|
+| Mabel | $53,695 | $46,015 | $46,015 | $46,120 | $46,120 | $46,015 | $46,057 |
+| Ayacucho | $30,844 | $29,028 | $29,820 | $25,072 | $25,072 | $29,820 | $27,762 |
+| Vera Mujica | $0 | $57,827 | $58,299 | $60,051 | $60,051 | $58,952 | $59,036 |
+| P1200 | $115,944 | $99,852 | $104,729 | $78,690 | $78,690 | $104,729 | $93,338 |
+| Entre Rios | $54,605 | $51,388 | $51,388 | $57,137 | $54,181 | $51,388 | $53,096 |
+| Brown 2750 | $241,344 | $233,517 | $259,627 | $210,726 | $210,726 | $259,627 | $234,844 |
+| Francia 250b | $538,829 | $481,140 | $481,140 | $472,889 | $479,395 | $481,140 | $479,140 |
+| Mitre1473 | $217,838 | $202,562 | $202,562 | $205,999 | $205,999 | $202,562 | $203,936 |
+| Cochabamba 45 | $81,805 | $74,456 | $79,250 | $64,682 | $64,682 | $79,250 | $72,464 |
+| **TOTAL** | **$1,334,904** | **$1,275,785** | **$1,312,830** | **$1,221,366** | **$1,224,916** | **$1,313,483** | **$1,269,676** |
+
+### Delta vs Stored (%)
+
+| Propiedad | Static | DynA+P | IDW-p2 | IDW-p15 | DynA | Promedio |
+|-----------|--------|--------|--------|---------|------|----------|
+| Mabel | -14.3% | -14.3% | -14.1% | -14.1% | -14.3% | -14.2% |
+| Ayacucho | -5.9% | -3.3% | -18.7% | -18.7% | -3.3% | -10.0% |
+| P1200 | -13.9% | -9.7% | -32.1% | -32.1% | -9.7% | -19.5% |
+| Entre Rios | -5.9% | -5.9% | +4.6% | -0.8% | -5.9% | -2.8% |
+| Brown 2750 | -3.2% | +7.6% | -12.7% | -12.7% | +7.6% | -2.7% |
+| Francia 250b | -10.7% | -10.7% | -12.2% | -11.0% | -10.7% | -11.1% |
+| Mitre1473 | -7.0% | -7.0% | -5.4% | -5.4% | -7.0% | -6.4% |
+| Cochabamba 45 | -9.0% | -3.1% | -20.9% | -20.9% | -3.1% | -11.4% |
+
+### Métodos testeados (14 variantes en 5 scripts)
+
+| # | Método | Script | Mean Δ% |
+|---|--------|--------|---------|
+| 1 | Current blend+barrier (3%) | Engine real | — |
+| 2 | IDW pure p=2 | simulate_idw.py | +12.4% |
+| 3 | IDW + hard barriers | simulate_idw_improved.py | +15.4% |
+| 4 | IDW + dorm+size sim | simulate_idw_improved.py | +14.3% |
+| 5 | IDW + dorm+size + HB | simulate_idw_improved.py | +18.5% |
+| 6 | IDW + HB + floor 50m | simulate_idw_improved.py | +23.3% |
+| 7 | IDW + HB + p=1.5 | simulate_idw_improved.py | +21.2% |
+| 8 | IDW + HB + floor + p1.5 | simulate_idw_improved.py | +25.3% |
+| 9 | IDW-P33 (all comps) | simulate_hybrid.py | -3.0% |
+| 10 | IDW-D (dorm±1) | simulate_hybrid.py | -5.3% |
+| 11 | IDW-DE (exact dorm) | simulate_hybrid.py | -0.0% |
+| 12 | IDW-DE-HB (exact+barriers) | simulate_hybrid.py | +4.2% |
+| 13 | IDW-DE-HB-F50 (+floor) | simulate_hybrid.py | +7.9% |
+| 14 | **DynA+P (alpha dinámico)** | simulate_dynamic_barrier.py | **-1.6%** |
+
+### Hallazgos clave
+
+1. **El 3% de penalización es 12.8x demasiado bajo** para barreras STRONG (gap promedio 38.3%)
+2. **IDW puro overestima +12-25%** porque los comps más cercanos suelen ser más caros
+3. **IDW con dorm+size similarity NO mejora** — el problema no es la similaridad, es la ponderación
+4. **Floor 50m WORSENA** — limita la influencia de comps cercanos que son buenos comparables
+5. **Hybrid IDW-P33** es el más cercano a Current (mean -3.0%), pero pierde la lógica de barreras
+6. **Dynamic Alpha es la mejor mejora** — adapta la ponderación según la dirección del gap de precios
+7. **Cross comps son MÁS CAROS** en 6/9 propiedades — el penalización estática SOBRE-penaliza
+8. **Gradient vs escalón**: 78.3% de transiciones en Rosario son suaves. Solo 27-Feb y ferrocarril crean saltos discretos
+
+### Fórmula Dynamic Alpha (implementada en `simulate_dynamic_barrier.py`)
+
+```python
+gap = (same_P33 - cross_P33) / same_P33
+if gap > 0.05:    # cross más barato → favorecer same
+    alpha = min(0.70 + gap * 0.5, 0.85)
+elif gap < -0.05: # cross más caro → favorecer cross
+    alpha = max(0.50 + gap * 0.5, 0.40)  # floor 0.40
+else:             # gap pequeño → default
+    alpha = default based on n_same count
+```
+
+### Conclusión
+
+**Dynamic Alpha es la mejor opción** — reduce el delta total de -4.4% a -1.6% sin cambiar la arquitectura del engine. El problema principal no es blend vs IDW, sino que el alpha estático (0.50-0.70) no se adapta a la dirección del gap de precios.
