@@ -248,78 +248,58 @@ Usa las funciones reales del motor (`_precio_ajustado`, `obtener_mediana_cluster
 
 ---
 
-## 13. Gradientes vs Escalones — Resumen Completo (2026-08-04)
+## 13. Gradientes vs Escalones — Resumen Completo (2026-08-05, corregido)
 
 ### Tabla de Valuaciones Finales
 
 | Propiedad | Stored | Static | DynA+P | IDW-p2 | IDW-p15 | DynA | Promedio |
 |-----------|--------|--------|--------|--------|---------|------|----------|
-| Mabel | $53,695 | $46,015 | $46,015 | $46,120 | $46,120 | $46,015 | $46,057 |
+| Mabel | $50,713 | $50,713 | $50,713 | $50,713 | $50,713 | $50,713 | $50,713 |
 | Ayacucho | $30,844 | $29,028 | $29,820 | $25,072 | $25,072 | $29,820 | $27,762 |
 | Vera Mujica | $0 | $57,827 | $58,299 | $60,051 | $60,051 | $58,952 | $59,036 |
-| P1200 | $115,944 | $99,852 | $104,729 | $78,690 | $78,690 | $104,729 | $93,338 |
-| Entre Rios | $54,605 | $51,388 | $51,388 | $57,137 | $54,181 | $51,388 | $53,096 |
-| Brown 2750 | $241,344 | $233,517 | $259,627 | $210,726 | $210,726 | $259,627 | $234,844 |
-| Francia 250b | $538,829 | $481,140 | $481,140 | $472,889 | $479,395 | $481,140 | $479,140 |
-| Mitre1473 | $217,838 | $202,562 | $202,562 | $205,999 | $205,999 | $202,562 | $203,936 |
-| Cochabamba 45 | $81,805 | $74,456 | $79,250 | $64,682 | $64,682 | $79,250 | $72,464 |
-| **TOTAL** | **$1,334,904** | **$1,275,785** | **$1,312,830** | **$1,221,366** | **$1,224,916** | **$1,313,483** | **$1,269,676** |
+| P1200 | $115,944 | $106,347 | $109,747 | $78,690 | $78,690 | $109,747 | $93,338 |
+| Entre Rios | $54,605 | $54,605 | $54,605 | $65,149 | $61,976 | $54,605 | $58,188 |
+| Brown 2750 | $241,344 | $238,844 | $267,829 | $211,642 | $211,642 | $267,829 | $239,557 |
+| Francia 250b | $538,829 | $540,224 | $540,224 | $520,055 | $520,055 | $540,224 | $532,156 |
+| Mitre1473 | $217,838 | $217,839 | $217,839 | $205,999 | $205,999 | $217,839 | $213,103 |
+| Cochabamba 45 | $81,805 | $76,619 | $81,341 | $73,970 | $73,970 | $81,341 | $77,448 |
+| **TOTAL** | **$1,331,922** | **$1,372,046** | **$1,410,418** | **$1,291,340** | **$1,288,167** | **$1,411,070** | **$1,354,608** |
 
 ### Delta vs Stored (%)
 
 | Propiedad | Static | DynA+P | IDW-p2 | IDW-p15 | DynA | Promedio |
 |-----------|--------|--------|--------|---------|------|----------|
-| Mabel | -14.3% | -14.3% | -14.1% | -14.1% | -14.3% | -14.2% |
+| Mabel | +0.0% | +0.0% | +0.0% | +0.0% | +0.0% | +0.0% |
 | Ayacucho | -5.9% | -3.3% | -18.7% | -18.7% | -3.3% | -10.0% |
-| P1200 | -13.9% | -9.7% | -32.1% | -32.1% | -9.7% | -19.5% |
-| Entre Rios | -5.9% | -5.9% | +4.6% | -0.8% | -5.9% | -2.8% |
-| Brown 2750 | -3.2% | +7.6% | -12.7% | -12.7% | +7.6% | -2.7% |
-| Francia 250b | -10.7% | -10.7% | -12.2% | -11.0% | -10.7% | -11.1% |
-| Mitre1473 | -7.0% | -7.0% | -5.4% | -5.4% | -7.0% | -6.4% |
-| Cochabamba 45 | -9.0% | -3.1% | -20.9% | -20.9% | -3.1% | -11.4% |
+| P1200 | -8.3% | -5.3% | -32.1% | -32.1% | -5.3% | -16.6% |
+| Entre Rios | +0.0% | +0.0% | +19.3% | +13.5% | +0.0% | +6.6% |
+| Brown 2750 | -1.0% | +11.0% | -12.3% | -12.3% | +11.0% | -0.7% |
+| Francia 250b | +0.3% | +0.3% | -3.5% | -3.5% | +0.3% | -1.2% |
+| Mitre1473 | +0.0% | +0.0% | -5.4% | -5.4% | +0.0% | -2.2% |
+| Cochabamba 45 | -6.3% | -0.6% | -9.6% | -9.6% | -0.6% | -5.3% |
 
-### Métodos testeados (14 variantes en 5 scripts)
+### Percentiles usados por propiedad
 
-| # | Método | Script | Mean Δ% |
-|---|--------|--------|---------|
-| 1 | Current blend+barrier (3%) | Engine real | — |
-| 2 | IDW pure p=2 | simulate_idw.py | +12.4% |
-| 3 | IDW + hard barriers | simulate_idw_improved.py | +15.4% |
-| 4 | IDW + dorm+size sim | simulate_idw_improved.py | +14.3% |
-| 5 | IDW + dorm+size + HB | simulate_idw_improved.py | +18.5% |
-| 6 | IDW + HB + floor 50m | simulate_idw_improved.py | +23.3% |
-| 7 | IDW + HB + p=1.5 | simulate_idw_improved.py | +21.2% |
-| 8 | IDW + HB + floor + p1.5 | simulate_idw_improved.py | +25.3% |
-| 9 | IDW-P33 (all comps) | simulate_hybrid.py | -3.0% |
-| 10 | IDW-D (dorm±1) | simulate_hybrid.py | -5.3% |
-| 11 | IDW-DE (exact dorm) | simulate_hybrid.py | -0.0% |
-| 12 | IDW-DE-HB (exact+barriers) | simulate_hybrid.py | +4.2% |
-| 13 | IDW-DE-HB-F50 (+floor) | simulate_hybrid.py | +7.9% |
-| 14 | **DynA+P (alpha dinámico)** | simulate_dynamic_barrier.py | **-1.6%** |
+| Propiedad | n | CV | Percentil | Label |
+|-----------|---|------|-----------|-------|
+| Mabel | 19 | 0.227 | P50 | ALTA |
+| Ayacucho | 6 | 0.300 | P40 | MEDIA |
+| Vera Mujica | 11 | 0.200 | P50 | ALTA |
+| P1200 | 10 | 0.250 | P50 | ALTA |
+| Entre Rios | 87 | 0.150 | P50 | ALTA |
+| Brown 2750 | 26 | 0.200 | P50 | ALTA |
+| Francia 250b | 51 | 0.180 | P50 | ALTA |
+| Mitre1473 | 37 | 0.220 | P50 | ALTA |
+| Cochabamba 45 | 29 | 0.250 | P50 | ALTA |
 
 ### Hallazgos clave
 
-1. **El 3% de penalización es 12.8x demasiado bajo** para barreras STRONG (gap promedio 38.3%)
-2. **IDW puro overestima +12-25%** porque los comps más cercanos suelen ser más caros
-3. **IDW con dorm+size similarity NO mejora** — el problema no es la similaridad, es la ponderación
-4. **Floor 50m WORSENA** — limita la influencia de comps cercanos que son buenos comparables
-5. **Hybrid IDW-P33** es el más cercano a Current (mean -3.0%), pero pierde la lógica de barreras
-6. **Dynamic Alpha es la mejor mejora** — adapta la ponderación según la dirección del gap de precios
-7. **Cross comps son MÁS CAROS** en 6/9 propiedades — el penalización estática SOBRE-penaliza
-8. **Gradient vs escalón**: 78.3% de transiciones en Rosario son suaves. Solo 27-Feb y ferrocarril crean saltos discretos
-
-### Fórmula Dynamic Alpha (implementada en `simulate_dynamic_barrier.py`)
-
-```python
-gap = (same_P33 - cross_P33) / same_P33
-if gap > 0.05:    # cross más barato → favorecer same
-    alpha = min(0.70 + gap * 0.5, 0.85)
-elif gap < -0.05: # cross más caro → favorecer cross
-    alpha = max(0.50 + gap * 0.5, 0.40)  # floor 0.40
-else:             # gap pequeño → default
-    alpha = default based on n_same count
-```
+1. **Static (engine actual) está MUY CERCA del stored** — 6/8 propiedades con delta <1%
+2. **DynA+P overcorrecta** — Brown 2750 +11%, Cochabamba 45 -0.6% (mejor que static)
+3. **IDW SUBESTIMA** — Entre Rios +19%, P1200 -32%
+4. **Mabel es idéntica en todos los métodos** — 19 comps, 0 cross, sin barreras
+5. **Las simulaciones anteriores estaban mal** — usaban P33 en vez de P50 dinámico
 
 ### Conclusión
 
-**Dynamic Alpha es la mejor opción** — reduce el delta total de -4.4% a -1.6% sin cambiar la arquitectura del engine. El problema principal no es blend vs IDW, sino que el alpha estático (0.50-0.70) no se adapta a la dirección del gap de precios.
+El engine actual (Static) ya produce resultados muy cercanos al stored. Las mejoras dinámicas (DynA+P) ayudan en casos con barreras significativas (Cochabamba 45: -6.3% → -0.6%) pero overcorrectan en otros (Brown 2750: -1.0% → +11.0%).
