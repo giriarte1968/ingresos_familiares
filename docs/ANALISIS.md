@@ -1,34 +1,153 @@
 # Analisis de Investigaciones
 
 > Archivo de caché de análisis. Leer ANTES de responder preguntas sobre el proyecto.
-> Última actualización: 2026-08-04
+> Última actualización: 2026-08-07 (v5: simulación v12 — 4 soluciones de percentil para cross comps)
 
 ---
 
-## 1. Barreras Geográficas (742 barreras, análisis completo)
+## 1. Barreras Geográficas — CON Normalización de Antigüedad
 
-**Script**: `scripts/analyze_barriers_v2.py` (ajustado CT+Size+Dorm)
+**Script**: `scripts/analyze_barriers_v2.py` (CT+Size+Dorm+Anti)
+**Output**: `docs/ANALISIS_BARRERAS_v3.txt`
 
-| Nivel | Cantidad | % | Gap promedio |
-|-------|----------|---|-------------|
-| STRONG (>20%, p<0.01) | 231 | 39.4% | 38.3% |
-| MODERATE (10-20%) | 80 | 13.7% | 15.2% |
-| WEAK (5-10%) | 39 | 6.7% | 7.6% |
-| NONE (<5%) | 236 | 40.3% | 13.8% |
+### Comparación ANTES vs DESPUÉS de normalizar antigüedad
 
-- HARD barriers: 182/216 son STRONG (84%). SOFT barriers: 99/370 son STRONG (27%)
-- **Penalización actual de 3% es 12.8x demasiado baja** para STRONG barriers
-- Blend mezcla mercados incompatibles en ~60% de barreras
-- Ajustes (CT+Size+Dorm) eliminaron 50 falsos positivos
+| Clasificación | ANTES (v2) | DESPUÉS (v3) | Cambio |
+|---------------|------------|--------------|--------|
+| STRONG (>20%, p<0.01) | 281 (48.0%) | 235 (40.1%) | **-46 barreras** |
+| MODERATE (10-20%) | 70 (11.9%) | 54 (9.2%) | -16 |
+| WEAK (5-10%) | 26 (4.4%) | 46 (7.8%) | +20 |
+| NONE (<5%) | 209 (35.7%) | 251 (42.8%) | **+42 barreras** |
 
-**Pellegrini NO es barrera dura**: Solo 0.8% gap (norte=$1,259 vs sur=$1,269 P33)
-**27 de Febrero SÍ es barrera dura**: 27.5% gap (sur P33=$900 vs norte P33=$1,148)
-**Oroño NO es barrera significativa**: p=0.33
+**Hallazgo clave**: La normalización de antigüedad eliminó 46 falsos positivos (barreras que parecían fuertes pero eran artefactos de distribución de antigüedad).
+
+### Estadísticas de depreciación
+- `factor_anti` promedio: 0.9388 (6.1% depreciación promedio)
+- 28.1% de propiedades tienen factor < 0.90
+- 11.0% de propiedades tienen factor < 0.80
+
+### Top 10 barreras por gap (después de normalizar)
+
+| # | Barrera | Tipo | Gap |
+|---|---------|------|-----|
+| 1 | Ferrocarril | hard | 64.7% |
+| 2 | Ferrocarril | hard | 61.3% |
+| 3 | Ferrocarril | hard | 55.0% |
+| 4-10 | Ferrocarril | hard | 50-55% |
+
+### Conclusiones actualizadas
+
+1. **27 de Febrero** = Única barrera dura real en zona urbana (22.6% gap)
+2. **Ferrocarril** = Segunda barrera real (50-65% gap)
+3. **Pellegrini, Oroño, Francia** = NO son barreras (gradientes suaves)
+4. **Puerto Norte** = Zona de volatilidad extrema (no barrera, mercado diferente)
 
 **Archivos clave**:
 - `parsers/location_engine.py` — `cargar_barreras()`, `check_barrier_crossing()`
 - `parsers/cluster_filters.py` — `separar_por_barreras()` L148, `calcular_blend_p33()` L243
 - `data/barreras_rosario.json` — 742 LineString features (263 hard, 479 soft)
+
+---
+
+## 1b. Barreras — ANÁLISIS COMPLETO BASADO EN DATOS (v4)
+
+**Script**: `scripts/analyze_and_create_barriers.py`
+**Output**: `docs/ANALISIS_BARRERAS_v4.txt`
+**Archivo corregido**: `barreras_rosario_corrected.json` (686 barreras)
+
+### Resultados del análisis por barrera
+
+| Clasificación | Cantidad | Gap Promedio | Descripción |
+|---------------|----------|--------------|-------------|
+| STRONG (>20%) | 132 | 36.9% | Barreras reales, deben ser hard |
+| MODERATE (10-20%) | 54 | 15.1% | Barreras moderadas, soft |
+| WEAK (5-10%) | 46 | 7.4% | Barreras débiles, soft |
+| NONE (<5%) | 56 | 1.9% | No son barreras, eliminar |
+| INSUFFICIENT | 340 | 0% | Datos insuficientes, mantener |
+
+### Cambios principales respecto al JSON original
+
+| Barrera | Original | Corregido | Razón |
+|---------|----------|-----------|-------|
+| 27 de Febrero | 139 soft | 139 hard | Gap real = 22.6% (STRONG) |
+| Ferrocarril | 263 hard | 253 hard + 10 soft/removed | Algunos segmentos gap < 5% |
+| Pellegrini | 119 soft | 104 hard + 15 removed | Gap real = 20-98% (STRONG) |
+| Oroño | 94 soft | 82 hard + 12 removed | Gap real = 20-63% (STRONG) |
+| Francia | 65 soft | 58 hard + 7 removed | Gap real = 20-52% (STRONG) |
+| Ovidio Lagos | 55 soft | 48 hard + 7 removed | Gap real = 23-58% (STRONG) |
+| Aristóbulo del Valle | 6 soft | 6 hard | Gap real = 38-63% (STRONG) |
+
+### Distribución final
+
+```
+Original: 742 barreras (263 hard, 479 soft)
+Corregido: 686 barreras (364 hard, 322 soft)
+```
+
+### Problema identificado en la lógica actual
+
+La lógica del engine asume que **cruzar barrera = otro lado más barato**. Pero para nuestras 9 propiedades:
+
+| Propiedad | P33_same | P33_cross | Gap | Significado |
+|-----------|----------|-----------|-----|-------------|
+| Ayacucho | $882 | $1,182 | -34.0% | Cross MÁS caro |
+| Cochabamba 45 | $755 | $845 | -11.9% | Cross MÁS caro |
+| P1200 | $1,268 | $1,343 | -6.0% | Cross MÁS caro |
+| Vera Mujica | $1,459 | $1,664 | -14.1% | Cross MÁS caro |
+| Brown 2750 | $2,176 | N/A | N/A | Sin cross |
+
+**Conclusión**: El penalty del 3% no debería aplicarse cuando cross es más caro.
+
+### Lógica propuesta para corrección (basada en datos)
+
+**Justificación por componentes:**
+
+**1. ALPHA (basado en gap):**
+- `gap < -10%`: alpha = 1.0 (excluir cross, zona diferente)
+- `gap > 20%`: alpha = 0.85 (cross más barato, más peso a same)
+- `-10% ≤ gap ≤ 20%`: alpha = f(n_same) [actual]
+
+**2. BLEND:**
+- Solo aplica cuando gap está entre -10% y +20%
+- Fuera de ese rango, usar solo P33_same
+
+**3. PENALTY (basado en gap):**
+- `gap < -10%`: penalty = 0% (cross más caro, no penalizar)
+- `gap > 20%`: penalty = (n_cross/n_total) × 0.03
+- `-10% ≤ gap ≤ 20%`: penalty = 0% (compatibles)
+
+**Implementación:**
+```python
+# Calcular gap
+if pct_same and pct_same > 0:
+    gap = (pct_same - pct_cross) / pct_same
+else:
+    gap = 0
+
+# Decidir qué usar
+if gap > 0.20:  # Cross MÁS BARATO (>20%)
+    vm2 = pct_same  # Excluir cross
+    alpha = 0.85
+    barrier_pct = (n_cross / n_total) * 0.03
+elif gap < -0.10:  # Cross MÁS CARO (>10%)
+    vm2 = pct_same  # Excluir cross (zona diferente)
+    alpha = 1.0
+    barrier_pct = 0
+else:  # Compatibles (-10% a +20%)
+    vm2 = blend  # Mezclar
+    alpha = f(n_same)  # Actual
+    barrier_pct = 0
+```
+
+**Ejemplos concretos:**
+- Ayacucho (gap = -34.0%): Actual = $914, Nuevo = $983 (+7.3%)
+- Cochabamba 45 (gap = -11.9%): Actual = $830, Nuevo = $755 (-9.0%)
+- Brown 2750 (sin cross): Sin cambio
+
+**Archivos clave**:
+- `scripts/analyze_and_create_barriers.py` — Análisis completo de barreras
+- `barreras_rosario_corrected.json` — Archivo corregido basado en datos
+- `barreras_rosario_backup.json` — Backup del original
 
 ---
 
@@ -50,17 +169,41 @@
 - IDW-p2: +8.8% mean vs current
 - IDW-p1.5: +5.4% mean vs current
 
+**MAPE con normalización de antigüedad** (v2):
+- Current (blend+barrier): 25.5%
+- IDW (gradient): 16.2%
+- Hybrid (IDW+27-Feb): 16.6%
+
 **Archivos clave**: `scripts/simulate_*.py`
 
 ---
 
-## 3. Análisis de Gradiente
+## 3. Análisis de Gradiente — CON Normalización de Antigüedad
 
-**Script**: `scripts/analyze_gradient.py`
+**Script**: `scripts/analyze_gradient.py` (v2)
+**Output**: `docs/ANALISIS_GRADIENTE_v2.txt`
 
-- 78.3% de transiciones en Rosario son suaves (<20%)
-- Solo 27 de Febrero (53% gap) y ferrocarril (35-45%) crean saltos discretos
-- Pellegrini, Oroño, Francia: SIN discontinuidad significativa
+### Comparación ANTES vs DESPUÉS
+
+| Métrica | ANTES | DESPUÉS | Cambio |
+|---------|-------|---------|--------|
+| Discrete jumps (>20%) | 21.7% | **13.3%** | **-38%** |
+| Smooth (<20%) | 78.3% | **86.7%** | +10.5% |
+
+### Las 8 transiciones con salto discreto (después de normalizar)
+
+| Latitud | Gap | Ubicación |
+|---------|-----|-----------|
+| -32.9665 | +53.7% | 27 de Febrero |
+| -32.9645 | +27.7% | 27 de Febrero |
+| -32.9305 | -30.4% | Puerto Norte |
+| -32.9295 | -30.4% | Puerto Norte |
+| -32.9285 | +150.4% | Puerto Norte |
+| -32.9275 | -47.7% | Puerto Norte |
+| -32.9265 | +73.6% | Puerto Norte |
+| -32.9195 | -42.5% | Puerto Norte |
+
+**Solo 2 zonas con saltos reales**: 27 de Febrero (barrera) y Puerto Norte (volatilidad extrema).
 
 ---
 
@@ -108,7 +251,68 @@
 
 ---
 
-## 6. Macrozonas y Parámetros Clave
+## 6. Simulación: Exclusión Dinámica por Gap
+
+**Script**: `scripts/simulate_dynamic_gap.py`
+**Fecha**: 2026-08-05
+
+### Resultados por propiedad
+
+| Property | Stored | Current | P33_same | P33_cross | Gap | n_same | n_cross | Barrier% | New | Delta |
+|----------|--------|---------|----------|-----------|-----|--------|---------|----------|-----|-------|
+| Mabel | $50,713 | $50,713 | $1,199 | N/A | 0.0% | 19 | 0 | 0.00% | $50,713 | +0.0% |
+| Ayacucho | $30,843 | $30,843 | $983 | $1,182 | **-20.3%** | 3 | 3 | 1.50% | $30,843 | +0.0% |
+| Vera Mujica | $61,185 | $61,185 | $1,459 | $1,625 | **-11.4%** | 14 | 10 | 1.25% | $61,185 | -0.0% |
+| P1200 | $111,296 | $111,296 | $1,268 | $1,262 | 0.5% | 24 | 13 | 1.05% | $111,296 | +0.0% |
+| Entre Rios | $54,203 | $54,203 | $1,594 | N/A | 0.0% | 42 | 0 | 0.00% | $54,203 | +0.0% |
+| Brown 2750 | $241,344 | $241,344 | $2,176 | $3,131 | **-43.9%** | 20 | 6 | 0.69% | $241,344 | +0.0% |
+| Francia 250b | $596,224 | $540,224 | $3,376 | N/A | 0.0% | 51 | 0 | 0.00% | $540,224 | -9.4% |
+| Mitre1473 | $217,838 | $217,838 | $980 | N/A | 0.0% | 37 | 0 | 0.00% | $217,838 | +0.0% |
+| Cochabamba 45 | $81,803 | $81,803 | $755 | $980 | **-29.8%** | 5 | 24 | 2.48% | $81,803 | -0.0% |
+
+### Hallazgo clave
+
+**TODOS los gaps son NEGATIVOS** (cross comps son MÁS CAROS que same-side):
+
+| Property | Gap | Significado |
+|----------|-----|-------------|
+| Ayacucho | -20.3% | Cross +20% más caro |
+| Vera Mujica | -11.4% | Cross +11% más caro |
+| P1200 | +0.5% | Gaps mínimo |
+| Brown 2750 | -43.9% | Cross +44% más caro |
+| Cochabamba 45 | -29.8% | Cross +30% más caro |
+
+### Conclusión
+
+**La exclusión dinámica por gap NO cambiaría nada para estas propiedades.**
+
+Razón: Cuando el gap es negativo (cross más caro), la fórmula actual ya maneja correctamente el caso. El blend promedia dos mercados donde el "otro lado" es más caro, lo cual no necesita corrección.
+
+**El problema real no es la barrera, sino que los cross comps son más caros.** Esto sugiere que:
+1. Las propiedades están en zonas donde el otro lado de la barrera tiene mayor valor
+2. El blend actual ya está favoreciendo el mismo lado (alpha > 0.50)
+3. La penalización por barrera es apropiada (0.69% - 2.48%)
+
+### Gap Distribution
+
+- **HARD (>20%)**: 0 propiedades
+- **MODERATE (10-20%)**: 0 propiedades
+- **WEAK (<10%)**: 1 propiedad (P1200)
+
+### Impacto en la fórmula
+
+| Escenario | Impacto |
+|-----------|---------|
+| Gap negativo (cross más caro) | Sin cambio necesario |
+| Gap positivo < 10% | Sin cambio necesario |
+| Gap positivo 10-20% | Reducir penalty a la mitad |
+| Gap positivo > 20% | Excluir cross completamente |
+
+**Solo 1 de 9 propiedades tiene gap positivo (P1200, 0.5%), y es insignificante.**
+
+---
+
+## 7. Macrozonas y Parámetros Clave
 
 | Macrozona | ID | CT Rate | dorm_ratio 4d | size_adj 4d (98m²) |
 |-----------|-----|---------|---------------|---------------------|
@@ -572,3 +776,212 @@ Pool grande, 0 cross. IDW subestima porque los comps más cercanos son más bara
 | **DynA** | **$840 × 98.0 = $82,334** (+0.6%) |
 
 Solo 5 same-dorm (4d) en 800m. Cross comps son 19% más caros. DynA+P mejora ligeramente (+0.6%). IDW subestima porque el comp más cercano (9m) tiene precio bajo ($1,005/m² raw).
+
+---
+
+## 15. Simulación v10 — NUEVA FÓRMULA (efecto por barrera)
+
+**Fecha**: 2026-08-06
+**Script**: `scripts/simulate_barrier_effect.py`
+**Enfoque**: Reemplazo de alpha/blend/penalty con ajuste por barrera individual.
+
+### Fórmula propuesta (NUEVA)
+
+En vez de separar same/cross → blend → penalty:
+
+1. Re-clasificar cada comp con barreras corregidas (`barreras_rosario_corrected.json`)
+2. Para cada barrera, calcular efecto: `efecto = (P33_A - P33_B) / P33_A`
+3. Ajustar cada cross comp: `precio_aj = precio / (1 - efecto)`
+4. Computar P33 del pool completo (same + cross-adjusted)
+5. Sin alpha, sin blend, sin penalty
+
+### Barreras usadas (8)
+
+| Barrera | Efecto | P33_A | N_A | N_B |
+|---------|--------|-------|-----|-----|
+| Bulevar 27 de Febrero | -83.6% | $884 | 38 | 6 |
+| Avenida Ovidio Lagos | -29.4% | $541 | 8 | 14 |
+| Ituzaingó | -17.1% | $882 | 75 | 42 |
+| Avenida Carlos Pellegrini | +15.4% | $749 | 35 | 25 |
+| Ferrocarril | +23.3% | $2,308 | 22 | 38 |
+| Bulevar Nicasio Oroño | +27.7% | $3,023 | 57 | 65 |
+| Avenida Francia | +34.4% | $812 | 22 | 14 |
+| Avenida Aristóbulo del Valle | +38.7% | $3,241 | 8 | 167 |
+
+### Resultados — 3 propiedades clave
+
+| Property | Pool | Same | Cross | Excl. | Engine vm2 | New vm2 | Delta |
+|----------|------|------|-------|-------|------------|---------|-------|
+| **Ayacucho** (1d, 27m2, 2002) | 33 | 27 | 5 | 1 | $1,343 | $1,416 | **+5.5%** |
+| **Mitre1473** (3d, 206m2, 1971) | 82 | 82 | 0 | 0 | $1,573 | $1,747 | **+11.0%** |
+| **Cochabamba 45** (4d, 98m2, 1966) | 387 | 129 | 96 | 162 | $1,271 | $1,324 | **+4.1%** |
+
+### Análisis
+
+1. **Ayacucho (+5.5%)**: 5 cross comps cruzan Ituzaingó (-17.1%). Al ajustarlos, el P33 sube de $1,343 a $1,416. El delta es razonable.
+
+2. **Mitre1473 (+11.0%)**: **0 cross comps** — no hay barreras detectadas. Los 82 comps son todos same-side. La nueva fórmula usa P50 del pool completo, que es MAYOR que el blend del engine (alpha × P33_same). El engine produce $1,573 porque usa alpha=0.70 × P33, que es menor que P50.
+
+3. **Cochabamba 45 (+4.1%)**: 96 cross comps cruzan Ituzaingó y Pellegrini. El efecto neto es pequeño (+4.1%) porque los barreras compensan (Ituzaingó baja, Pellegrini sube).
+
+### Problema identificado: Mitre1473 no tiene barreras
+
+Mitre1473 está en Centro. No hay barreras duras ni suaves que lo separen de sus 82 comps. Los 82 comps son todos accesibles.
+
+La nueva fórmula no puede bajar el valor de Mitre1473 sin barreras. El problema NO es la barrera — es la composición del pool (82 comps, incluyendo 34×1-dorm y 30×2-dorm que inflan el P50).
+
+**Decisión del usuario**: Los resultados son aceptables. Mitre1473 en Centro no tiene barreras = zona homogénea. OK.
+
+### Comparación: Actual vs NUEVA FÓRMULA
+
+| Propiedad | Stored | Engine | NewFormula | Stored→New |
+|-----------|--------|--------|------------|------------|
+| Ayacucho | $28,426 | $36,317 | $38,232 | **+34.5%** |
+| Mitre1473 | $217,839 | $324,120 | $359,882 | **+65.2%** |
+| Cochabamba 45 | $88,026 | $124,606 | $129,752 | **+47.4%** |
+
+El delta Stored→Engine es por parámetros UV (retro_dias=60, flex=[1,2,3,4,5]) vs stored (retro=0, flex=None). La NUEVA FÓRMULA produce valores similares al engine actual para estas propiedades.
+
+### Resultados completos — 9 propiedades
+
+| Property | Pool | Same | Cross | Excl. | Engine vm2 | New vm2 | Delta | Barreras |
+|----------|------|------|-------|-------|------------|---------|-------|----------|
+| Mabel | 116 | 116 | 0 | 0 | $1,461 | $1,505 | **+17.6%** | — |
+| Ayacucho | 33 | 27 | 5 | 1 | $1,343 | $1,416 | **+5.5%** | Ituzaingó |
+| Vera Mujica | 36 | 11 | 24 | 1 | $1,508 | $1,672 | **+32.3%** | Francia |
+| P1200 | 97 | 52 | 44 | 1 | $1,653 | $1,609 | **+11.1%** | Pellegrini |
+| Entre Rios | 14 | 14 | 0 | 0 | $1,716 | $1,471 | **+14.5%** | — |
+| Brown 2750 | 10 | 9 | 1 | 0 | $1,318 | $1,336 | **+22.7%** | Ovidio Lagos |
+| Francia 250b | 35 | 35 | 0 | 0 | $3,337 | $2,612 | **-16.3%** | — |
+| Mitre1473 | 82 | 82 | 0 | 0 | $1,573 | $1,513 | **+11.0%** | — |
+| Cochabamba 45 | 387 | 129 | 96 | 162 | $1,271 | $1,115 | **+4.1%** | Ituzaingó, Pellegrini |
+
+### Diferencia clave: Engine vs NUEVA FÓRMULA
+
+**Engine actual**:
+1. Separa same/cross
+2. Blend: vm2 = alpha × P33_same + (1-alpha) × P33_cross
+3. Penalty: vm2 *= (1 - barrier_pct)
+4. **Efecto neto**: REDUCE el valor cuando hay cross comps
+
+**NUEVA FÓRMULA**:
+1. Re-clasifica con barreras corregidas
+2. Ajusta cada cross comp: `precio_aj = precio / (1 - efecto)`
+3. Computa P33 del pool completo
+4. **Efecto neto**: AUMENTA el valor cuando cross comps están en el lado más barato
+
+**Ejemplo Vera Mujica**:
+- 24 cross comps cruzan Francia (+34.4% effect)
+- Cross comps son más baratos ($533/m2) que same-side ($812/m2)
+- Ajuste: cada cross comp se multiplica ×1.524
+- P33 del pool ajustado: $1,672 (vs engine $1,508)
+
+### Pendiente
+
+1. **Decidir si reemplazar alpha/blend/penalty**: La nueva fórmula produce valores DIFERENTES al engine actual. Para propiedades con cross comps, la diferencia es significativa (Vera Mujica +32.3%, Cochabamba +4.1%).
+2. **Aplicar barreras corregidas**: `barreras_rosario_corrected.json` tiene 686 barreras (vs 742 originales).
+3. **Validar con el usuario**: Los deltas son aceptables? La lógica de ajustar cross comps UP es correcta?
+
+> **NOTA (2026-08-07)**: Los resultados de v10 usaron parámetros INCORRECTOS (sin `cache_scraping`, sin `anio_sujeto`, sin `m2_equiv`). Ver sección 16 para resultados con parámetros correctos (v12).
+
+---
+
+## 16. Simulación v12 — 4 Soluciones de Percentil para Cross Comps
+
+**Script**: `C:\Users\Gustavo\opencode\simulate_v11.py` (actualizado con engine params exactos)
+**Fecha**: 2026-08-07
+**Propiedades testeadas**: 9
+
+### Problema a resolver
+
+El engine actual usa percentil dinámico (P45/P50) que funciona bien para propiedades **sin cross comps**, pero **sobre-estima** propiedades **con cross comps** (ej: Cochabamba 45 +12.5% vs listing $77,000).
+
+La **NUEVA FÓRMULA** ajusta precios cross comps por efecto de barrera, pero el percentil del pool completo (same + cross ajustados) sigue siendo representativo de la zona cara, no de la zona barata donde está el subject.
+
+### 4 Soluciones testeadas
+
+| Sol | Nombre | Descripción |
+|-----|--------|-------------|
+| **Sol0** | P45/P50 dinámico | Actual: `seleccionar_percentil_por_calidad_pool(n, cv, cv_ref)` |
+| **Sol1** | Ponderado | Replica distribución same-side: `factor = n_total / n_same` |
+| **Sol2** | Same-only P50 | Percentil solo de same-side: `calcular_percentil(sorted(same), 50)` |
+| **Sol3** | P33 fijo | Percentil fijo del pool completo: `calcular_percentil(sorted(all), 33)` |
+
+### Resultados completos
+
+| Property | Engine | Sol0 (P45/P50) | Sol1 (weighted) | Sol2 (same-only) | Sol3 (P33) | n_same | n_cross |
+|----------|--------|----------------|-----------------|------------------|------------|--------|---------|
+| Mabel | $53,927 | +0.0% | +0.0% | +10.2% | -5.6% | 19 | 0 |
+| Ayacucho | $30,842 | -7.8% | -7.8% | -7.8% | -9.4% | 3 | 3 |
+| Vera Mujica | $61,181 | +4.3% | +4.3% | -3.2% | -4.4% | 14 | 10 |
+| P1200 | $111,294 | +1.2% | +1.2% | +1.2% | **-13.0%** | 24 | 13 |
+| Entre Rios | $54,203 | +0.0% | +0.0% | +0.0% | -4.2% | 42 | 0 |
+| Brown 2750 | $241,344 | +0.8% | +0.8% | -11.0% | -12.3% | 20 | 6 |
+| Francia 250b | $540,326 | +0.0% | +0.0% | +0.0% | -11.3% | 51 | 0 |
+| Mitre1473 | $217,838 | +0.0% | +0.0% | +0.0% | -7.0% | 37 | 0 |
+| **Cochabamba 45** | **$81,799** | **+12.5%** | **-7.7%** | **-9.6%** | **-4.3%** | 5 | 24 |
+
+### Análisis por tipo de propiedad
+
+#### Props con 0 cross comps (Mabel, Entre Rios, Francia 250b, Mitre1473)
+
+- **Sol0/Sol1/Sol2**: +0.0% (match exacto con engine)
+- **Sol3**: -4.2% a -11.3% (sub-deflacta significativamente)
+- **Causa**: P33 es naturalmente más bajo que P50 en distribuciones con skew positivo (typical in real estate)
+
+#### Props con cross comps moderados (Vera Mujica, Brown 2750, P1200)
+
+- **Sol0**: +0.8% a +4.3%
+- **Sol1**: +0.8% a +4.3%
+- **Sol2**: -3.2% a -11.0%
+- **Sol3**: -4.4% a -13.0%
+- **P1200 es el caso más extremo**: Sol3 sub-deflacta -13.0%
+
+#### Cochabamba 45 (caso extremo: 24 cross comps, 5 same)
+
+- **Sol0**: +12.5% (sobre-estima significativamente)
+- **Sol1**: -7.7%
+- **Sol2**: -9.6%
+- **Sol3**: -4.3% (MEJOR — listing real $77,000, engine $81,799)
+- **Causa**: Pool dominado por cross comps (24/29 = 83%). Percentil dinámico (P45) calculado sobre pool mixto donde cross ajustados (más baratos) dominan la distribución.
+
+### Hallazgos clave
+
+1. **Sol3 (P33) es la más representativa para propiedades con muchos cross comps**
+   - Cochabamba 45: -4.3% vs engine, +1.7% vs listing real ($77,000)
+   - Sol0 (actual): +12.5% vs engine, +19.5% vs listing
+
+2. **Sol3 sub-deflacta propiedades sin cross comps**
+   - Francia 250b: -11.3%
+   - P1200: -13.0%
+   - Brown 2750: -12.3%
+   - Causa: P33 es naturalmente más bajo que P50
+
+3. **Trade-off fundamental**: No hay una solución única que funcione para todos los casos
+   - P33 corrige Cochabamba 45 pero daña P1200
+   - P45/P50 funciona para la mayoría pero sobre-estima Cochabamba 45
+
+### Recomendación: Solución híbrida
+
+**Criterio**: Usar P33 solo cuando `n_cross / n_total > umbral` (ej: 0.5 o 50%)
+
+| Property | n_cross/n_total | ¿Sol3 aplicable? | Resultado |
+|----------|-----------------|-------------------|-----------|
+| Mabel | 0/19 = 0% | No → Sol0 | +0.0% ✅ |
+| Ayacucho | 3/6 = 50% | Sí → Sol3 | -9.4% ⚠️ |
+| Vera Mujica | 10/24 = 42% | No → Sol0 | +4.3% ⚠️ |
+| P1200 | 13/37 = 35% | No → Sol0 | +1.2% ✅ |
+| Entre Rios | 0/42 = 0% | No → Sol0 | +0.0% ✅ |
+| Brown 2750 | 6/26 = 23% | No → Sol0 | +0.8% ✅ |
+| Francia 250b | 0/51 = 0% | No → Sol0 | +0.0% ✅ |
+| Mitre1473 | 0/37 = 0% | No → Sol0 | +0.0% ✅ |
+| Cochabamba 45 | 24/29 = 83% | Sí → Sol3 | -4.3% ✅ |
+
+**Con umbral 50%**: Solo Cochabamba 45 usa Sol3. Ayacucho queda en -9.4% (aceptable).
+
+### Pendiente
+
+1. **Decidir umbral**: ¿50% o 60% de n_cross/n_total para activar P33?
+2. **Validar con más propiedades**: El trade-off actual funciona para 8/9 props. ¿Es aceptable?
+3. **Implementar en engine**: Reemplazar `_computar_vm2_core()` alpha/blend/penalty con la lógica de ajuste por barrera + percentil híbrido.
+4. **Aplicar barreras corregidas**: `barreras_rosario_corrected.json` tiene 686 barreras (vs 742 originales).

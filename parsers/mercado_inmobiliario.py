@@ -103,13 +103,10 @@ def _precio_ajustado(c, macrozona_id=None, ancla_id=None, dormitorios_sujeto=Non
     dorms_comp = c.get('dormitorios')
     adj_size = calcular_size_adjustment(m2_comp, macrozona_id, ancla_id=ancla_id, dormitorios=dorms_comp)
     norm_val = raw_val / adj_size if adj_size > 0 else raw_val
-    if adj_size != 1.0:
-        print(f"[DEBUG-SIZE-NORM] {c.get('direccion', 'comp')}: raw={raw_val:.2f}, adj={adj_size:.4f}, norm={norm_val:.2f}")
     if dormitorios_sujeto and dorms_comp and dorms_comp != dormitorios_sujeto:
         adj_dorm = obtener_dorm_type_ratio(macrozona_id, dorms_comp, dormitorios_sujeto)
         if adj_dorm != 1.0:
             norm_val *= adj_dorm
-            print(f"[DEBUG-DORM-NORM] {c.get('direccion', 'comp')}: dorm_comp={dorms_comp}, dorm_suj={dormitorios_sujeto}, ratio={adj_dorm:.4f}, val={norm_val:.2f}")
     return norm_val
 
 def _computar_vm2_core(comparables, percentil, apply_barrier=True, alpha=None, macrozona_id=None, ancla_id=None, dormitorios_sujeto=None):
@@ -1356,6 +1353,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 'insuficientes_comparables': True,
                 'n_comparables': n_available,
                 'comparables_reales': comparables_reales,
+                '_pool_final': [],
                 'retro_activo': bool(retro_dias),
                 'total_dias_ventana': retro_dias * 30 if retro_dias > 0 else get_natural_window_dias(),
                 'debug': f'Solo {n_available} comparables encontrados. '
@@ -1569,6 +1567,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 'zona_original': zona_original,
                 'zona_resolucion': zona_resol,
                 'comparables_reales': comparables_reales,
+                '_pool_final': pool_final,
             }
         
         if len(precios) < 3:
@@ -1584,6 +1583,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 'zona_original': zona_original,
                 'zona_resolucion': zona_resol,
                 'comparables_reales': comparables_reales,
+                '_pool_final': pool_final,
                 'n_insuficiente': True,
                 '_m2_puro': _m2_puro_n3,
             }
@@ -1646,10 +1646,6 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 _cv_pool = _calcular_cv(precios) if len(precios) >= 3 else 1.0
             _cv_ref = obtener_cv_ref(macrozona_id)
             percentil_venta, percentil_usado = seleccionar_percentil_por_calidad_pool(len(precios), _cv_pool, cv_ref=_cv_ref)
-            try:
-                print(f"[DEBUG-CV-POOL] zona={zona}, n={len(precios)}, cv={_cv_pool:.4f}, cv_ref={_cv_ref}, ratio={_cv_pool/_cv_ref:.4f}" if _cv_ref else f"[DEBUG-CV-POOL] zona={zona}, n={len(precios)}, cv={_cv_pool:.4f}, cv_ref=LEGACY")
-            except Exception:
-                pass
             logger.info(f"[CV_POOL] n={len(precios)}, cv={_cv_pool:.4f}, cv_ref={_cv_ref}, percentil={percentil_venta} ({percentil_usado})")
         
         # Llamar al core unificado que maneja same/cross, blend alpha y barrera
@@ -1657,12 +1653,6 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         vm2_principal, n_same_core, n_cross_core, pct_same_core, pct_cross_core = _computar_vm2_core(
             pool_final, percentil_venta, apply_barrier=True, alpha=None, macrozona_id=macrozona_id, ancla_id=ancla_id, dormitorios_sujeto=dormitorios
         )
-        
-        # Debug: Comparar con la mediana RAW (sin normalizar) para auditoría de doble conteo
-        vm2_raw, _, _, _, _ = _computar_vm2_core(
-            pool_final, percentil_venta, apply_barrier=True, alpha=None, macrozona_id=None, ancla_id=None
-        )
-        print(f"[DEBUG-SIZE-MEDIAN] {zona}: Raw={vm2_raw:.2f}, Norm={vm2_principal:.2f}, Diff={vm2_raw - vm2_principal:.2f}")
         
         # Calcular percentiles del cluster completo (para dispersión estadística y rango)
         precios_todos = []
@@ -1770,6 +1760,8 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
             'cv_pool': round(_cv_pool, 4) if _cv_pool is not None else None,
             # Comparables reales (muestra de hasta 30/60)
             'comparables_reales': comparables_reales,
+            # Pool completo post-filtros (para simulaciones externas)
+            '_pool_final': pool_final,
             # M² puro sin barrera (para display en header)
             '_m2_puro': round(m2_puro, 2) if barrier_pct == 0 else round(vm2_principal / (1 - barrier_pct), 2),
             'barrier_pct': barrier_pct,
