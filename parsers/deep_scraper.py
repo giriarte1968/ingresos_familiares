@@ -75,6 +75,7 @@ def scrape_property_detail(prop):
         if year:
             print(f"Found year {year} for {url}")
             prop['anio_construccion'] = year
+            prop['antiquity'] = 2026 - year
         else:
             print(f"No year found in {url}")
             
@@ -104,15 +105,15 @@ def enrich_cache_targeted(lat=None, lon=None, radius=1.0):
     
     # Si no hay coordenadas, enriquecer todas las que tengan URL
     if lat is None or lon is None:
-        to_enrich = [p for p in props if p.get('url') and ('anio_construccion' not in p or p['anio_construccion'] is None)]
-        print(f"Full enrichment: {len(to_enrich)} properties to process.")
+        to_enrich = [p for p in props if p.get('antiquity') == -1 and p.get('url')]
+        print(f"Full enrichment: {len(to_enrich)} properties with antiquity=-1.")
     else:
         to_enrich = []
         for p in props:
             p_lat, p_lon = p.get('lat'), p.get('lon')
             if not p_lat or not p_lon: continue
             if get_dist(lat, lon, p_lat, p_lon) <= radius:
-                if 'anio_construccion' not in p or p['anio_construccion'] is None:
+                if p.get('antiquity') == -1:
                     to_enrich.append(p)
         print(f"Targeted enrichment: {len(to_enrich)} properties found near target.")
     
@@ -120,8 +121,8 @@ def enrich_cache_targeted(lat=None, lon=None, radius=1.0):
         print("No properties to enrich.")
         return
     
-    # Limitar a 50 para evitar bloqueos
-    to_enrich = to_enrich[:50]
+    # Limitar a 100 para la primera corrida
+    to_enrich = to_enrich[:100]
     print(f"Processing {len(to_enrich)} properties...")
     
     with ThreadPoolExecutor(max_workers=5) as executor:

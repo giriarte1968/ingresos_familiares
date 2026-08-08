@@ -1,0 +1,124 @@
+﻿Loading data...
+Loaded 16949 venta properties
+
+================================================================================
+ANALYSIS: PRICE GRADIENT BY LATITUDE BANDS
+================================================================================
+
+Latitude bands (size=0.002, ~222m):
+                Lat Range      N    RAW P33    ADJ P33                 Zone    Near Barrier
+-----------------------------------------------------------------------------------------------
+    -32.9800 to   -32.9780     63 $      586 $      709                 Otro               -
+    -32.9780 to   -32.9760     82 $      618 $      728                 Otro               -
+    -32.9760 to   -32.9740    103 $      582 $      670                 Otro               -
+    -32.9740 to   -32.9720    116 $      680 $      836                 Otro               -
+    -32.9720 to   -32.9700     84 $      625 $      789                 Otro               -
+    -32.9700 to   -32.9680    155 $      686 $      844                 Otro               -
+    -32.9680 to   -32.9660    255 $      925 $     1052              Rosario               -
+    -32.9660 to   -32.9640    266 $     1000 $     1190                 Otro   27 de Febrero
+    -32.9640 to   -32.9620    323 $     1104 $     1267              Rosario   27 de Febrero
+    -32.9620 to   -32.9600    457 $     1207 $     1369                 Otro               -
+    -32.9600 to   -32.9580    586 $     1497 $     1376              Rosario               -
+    -32.9580 to   -32.9560    829 $     1441 $     1385              Rosario               -
+    -32.9560 to   -32.9540    878 $     1456 $     1392              Rosario               -
+    -32.9540 to   -32.9520   1091 $     1500 $     1448              Rosario               -
+    -32.9520 to   -32.9500   1161 $     1435 $     1329              Rosario               -
+    -32.9500 to   -32.9480   1276 $     1438 $     1307              Rosario      Pellegrini
+    -32.9480 to   -32.9460    944 $     1318 $     1313              Rosario      Pellegrini
+    -32.9460 to   -32.9440    594 $     1121 $     1221              Rosario               -
+    -32.9440 to   -32.9420    678 $     1185 $     1290              Rosario               -
+    -32.9420 to   -32.9400   1057 $     1531 $     1464              Rosario           Oro±o
+    -32.9400 to   -32.9380    708 $     1397 $     1368              Rosario  Oro±o, Francia
+    -32.9380 to   -32.9360    670 $     1229 $     1273                 Otro         Francia
+    -32.9360 to   -32.9340    548 $     1267 $     1265                 Otro               -
+    -32.9340 to   -32.9320    670 $     1443 $     1473                 Otro               -
+    -32.9320 to   -32.9300    213 $     1154 $     1390                 Otro               -
+    -32.9300 to   -32.9280    160 $      862 $     1118                 Otro               -
+    -32.9280 to   -32.9260    203 $     1190 $     1354                 Otro               -
+    -32.9260 to   -32.9240    245 $     1302 $     1464                 Otro               -
+    -32.9240 to   -32.9220    206 $     1147 $     1405                 Otro               -
+    -32.9220 to   -32.9200    268 $     1277 $     1403                 Otro               -
+
+================================================================================
+DEEP DIVE: PELLEGRINI CORRIDOR
+================================================================================
+
+Properties within ~300m of Pellegrini barrier:
+  Total: 3379
+  South: 1685
+  North: 1694
+
+Zone distribution (text labels):
+  Rosario             : 1998 props, RAW avg=$1639, ADJ avg=$1550
+  Otro                : 1347 props, RAW avg=$1641, ADJ avg=$1548
+  Pellegrini          :   12 props, RAW avg=$1434, ADJ avg=$1563
+  Martin              :   10 props, RAW avg=$1586, ADJ avg=$1562
+  Centro              :    8 props, RAW avg=$2111, ADJ avg=$1976
+  Pichincha           :    3 props, RAW avg=$2284, ADJ avg=$2024
+  Abasto              :    1 props, RAW avg=$1169, ADJ avg=$1374
+
+Price comparison (ADJUSTED):
+  South: P33=$1337, avg=$1580
+  North: P33=$1304, avg=$1522
+
+================================================================================
+DEEP DIVE: 27 DE FEBRERO CORRIDOR
+================================================================================
+
+Properties within ~300m of 27 de Febrero barrier:
+  Total: 844
+  South: 351
+  North: 493
+
+Zone distribution (text labels):
+  Otro                :  422 props, RAW avg=$1147, ADJ avg=$1305
+  Rosario             :  415 props, RAW avg=$1309, ADJ avg=$1450
+  Sexta               :    3 props, RAW avg=$2047, ADJ avg=$2553
+  Martin              :    2 props, RAW avg=$869, ADJ avg=$1313
+  Abasto              :    2 props, RAW avg=$1151, ADJ avg=$1634
+
+Price comparison (ADJUSTED):
+  South: P33=$1043, avg=$1317
+  North: P33=$1279, avg=$1427
+
+================================================================================
+ANALYSIS: PREMIUM STRIPS BETWEEN BARRIERS
+================================================================================
+
+                    Strip      N    RAW P33    ADJ P33                      Character
+-------------------------------------------------------------------------------------
+              Sur of 27-Feb   1564 $      608 $      718                 Otro / Rosario
+       27-Feb to Pellegrini   6019 $     1384 $     1363                 Rosario / Otro
+        Pellegrini to Oro±o   3593 $     1320 $     1307                 Rosario / Otro
+           Oro±o to Francia   1139 $     1410 $     1380                 Rosario / Otro
+           North of Francia   3184 $     1302 $     1383                 Otro / Rosario
+
+================================================================================
+RECOMMENDATIONS: CORRIDOR CONFIGURATION
+================================================================================
+
+1. PELLEGRINI CORRIDOR:
+   - Premium zone ($2,083/m2 text-labeled)
+   - Barrier does NOT create price discontinuity
+   - Configuration: DO NOT use as barrier for same-zone properties
+   - Use: Zone override (Pellegrini = premium, regardless of barrier)
+
+2. 27 DE FEBRERO:
+   - TRUE barrier (53% price gap)
+   - South: $658/m2 (affordable residential)
+   - North: $1,500-1,700/m2 (urban core)
+   - Configuration: HARD barrier (exclude cross comps)
+   - Or: Very high penalty (40-50%)
+
+3. ORO╤O:
+   - NOT a significant barrier
+   - Configuration: Ignore or very low penalty
+
+4. FRANCIA:
+   - Marginal barrier (20% gap)
+   - Configuration: Moderate penalty (15-20%)
+
+5. FERROCARRIL (railway):
+   - STRONG barrier (35-45% gap)
+   - Configuration: HARD barrier (already excluded)
+

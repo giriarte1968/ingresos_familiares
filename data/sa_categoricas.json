@@ -1,0 +1,619 @@
+{
+  "generated": "2026-08-08T11:11:17.782542",
+  "method": "categorical",
+  "categories": {
+    "1": [
+      [
+        0,
+        45,
+        "chico"
+      ],
+      [
+        45,
+        75,
+        "mediano"
+      ],
+      [
+        75,
+        9999,
+        "grande"
+      ]
+    ],
+    "2": [
+      [
+        0,
+        75,
+        "chico"
+      ],
+      [
+        75,
+        130,
+        "mediano"
+      ],
+      [
+        130,
+        9999,
+        "grande"
+      ]
+    ],
+    "3": [
+      [
+        0,
+        115,
+        "chico"
+      ],
+      [
+        115,
+        210,
+        "mediano"
+      ],
+      [
+        210,
+        9999,
+        "grande"
+      ]
+    ],
+    "4": [
+      [
+        0,
+        180,
+        "chico"
+      ],
+      [
+        180,
+        320,
+        "mediano"
+      ],
+      [
+        320,
+        9999,
+        "grande"
+      ]
+    ]
+  },
+  "data": {
+    "centro_premium": {
+      "1": {
+        "factors": {
+          "chico": 0.9686,
+          "mediano": 1.0,
+          "grande": 0.7848
+        },
+        "medians": {
+          "chico": 1725.88,
+          "mediano": 1781.82,
+          "grande": 1398.36
+        },
+        "counts": {
+          "chico": 2339,
+          "mediano": 1855,
+          "grande": 326
+        }
+      },
+      "2": {
+        "factors": {
+          "chico": 0.8155,
+          "mediano": 1.0,
+          "grande": 0.7917
+        },
+        "medians": {
+          "chico": 1630.9,
+          "mediano": 2000.0,
+          "grande": 1583.33
+        },
+        "counts": {
+          "chico": 1024,
+          "mediano": 1650,
+          "grande": 354
+        }
+      },
+      "3": {
+        "factors": {
+          "chico": 0.9149,
+          "mediano": 1.0,
+          "grande": 0.6922
+        },
+        "medians": {
+          "chico": 1860.0,
+          "mediano": 2033.05,
+          "grande": 1407.21
+        },
+        "counts": {
+          "chico": 704,
+          "mediano": 1193,
+          "grande": 331
+        }
+      },
+      "4": {
+        "factors": {
+          "chico": 0.9785,
+          "mediano": 1.0,
+          "grande": 0.8325
+        },
+        "medians": {
+          "chico": 1372.34,
+          "mediano": 1402.49,
+          "grande": 1167.64
+        },
+        "counts": {
+          "chico": 71,
+          "mediano": 175,
+          "grande": 48
+        }
+      }
+    },
+    "fisherton": {
+      "1": {
+        "factors": {
+          "chico": 1.2055,
+          "mediano": 1.0,
+          "grande": 0.7386
+        },
+        "medians": {
+          "chico": 2040.0,
+          "mediano": 1692.31,
+          "grande": 1250.0
+        },
+        "counts": {
+          "chico": 45,
+          "mediano": 75,
+          "grande": 42
+        }
+      },
+      "2": {
+        "factors": {
+          "chico": 0.7673,
+          "mediano": 1.0,
+          "grande": 0.5705
+        },
+        "medians": {
+          "chico": 1307.69,
+          "mediano": 1704.2,
+          "grande": 972.22
+        },
+        "counts": {
+          "chico": 31,
+          "mediano": 174,
+          "grande": 78
+        }
+      },
+      "3": {
+        "factors": {
+          "chico": 1.1544,
+          "mediano": 1.0,
+          "grande": 0.8399
+        },
+        "medians": {
+          "chico": 1566.27,
+          "mediano": 1356.78,
+          "grande": 1139.6
+        },
+        "counts": {
+          "chico": 52,
+          "mediano": 261,
+          "grande": 150
+        }
+      },
+      "4": {
+        "factors": {
+          "chico": 0.9135,
+          "mediano": 1.0,
+          "grande": 0.7719
+        },
+        "medians": {
+          "chico": 1301.78,
+          "mediano": 1425.12,
+          "grande": 1100.0
+        },
+        "counts": {
+          "chico": 16,
+          "mediano": 149,
+          "grande": 67
+        }
+      }
+    },
+    "macrocentro": {
+      "1": {
+        "factors": {
+          "chico": 0.9479,
+          "mediano": 1.0,
+          "grande": 0.5
+        },
+        "medians": {
+          "chico": 1421.8,
+          "mediano": 1500.0,
+          "grande": 750.0
+        },
+        "counts": {
+          "chico": 495,
+          "mediano": 414,
+          "grande": 141
+        }
+      },
+      "2": {
+        "factors": {
+          "chico": 1.2203,
+          "mediano": 1.0,
+          "grande": 0.7914
+        },
+        "medians": {
+          "chico": 1115.94,
+          "mediano": 914.47,
+          "grande": 723.68
+        },
+        "counts": {
+          "chico": 324,
+          "mediano": 440,
+          "grande": 157
+        }
+      },
+      "3": {
+        "factors": {
+          "chico": 1.1534,
+          "mediano": 1.0,
+          "grande": 1.0711
+        },
+        "medians": {
+          "chico": 997.77,
+          "mediano": 865.08,
+          "grande": 926.57
+        },
+        "counts": {
+          "chico": 120,
+          "mediano": 294,
+          "grande": 166
+        }
+      },
+      "4": {
+        "factors": {
+          "chico": 0.8092,
+          "mediano": 1.0,
+          "grande": 1.2614
+        },
+        "medians": {
+          "chico": 750.0,
+          "mediano": 926.83,
+          "grande": 1169.13
+        },
+        "counts": {
+          "chico": 52,
+          "mediano": 91,
+          "grande": 59
+        }
+      }
+    },
+    "norte": {
+      "1": {
+        "factors": {
+          "chico": 1.0716,
+          "mediano": 1.0,
+          "grande": 0.514
+        },
+        "medians": {
+          "chico": 1521.74,
+          "mediano": 1420.0,
+          "grande": 729.93
+        },
+        "counts": {
+          "chico": 68,
+          "mediano": 93,
+          "grande": 89
+        }
+      },
+      "2": {
+        "factors": {
+          "chico": 1.047,
+          "mediano": 1.0,
+          "grande": 0.7759
+        },
+        "medians": {
+          "chico": 944.59,
+          "mediano": 902.18,
+          "grande": 700.0
+        },
+        "counts": {
+          "chico": 86,
+          "mediano": 231,
+          "grande": 112
+        }
+      },
+      "3": {
+        "factors": {
+          "chico": 1.0026,
+          "mediano": 1.0,
+          "grande": 1.0019
+        },
+        "medians": {
+          "chico": 830.36,
+          "mediano": 828.22,
+          "grande": 829.79
+        },
+        "counts": {
+          "chico": 71,
+          "mediano": 181,
+          "grande": 102
+        }
+      },
+      "4": {
+        "factors": {
+          "chico": 0.8583,
+          "mediano": 1.0,
+          "grande": 0.8815
+        },
+        "medians": {
+          "chico": 718.56,
+          "mediano": 837.21,
+          "grande": 738.0
+        },
+        "counts": {
+          "chico": 37,
+          "mediano": 61,
+          "grande": 22
+        }
+      }
+    },
+    "oeste": {
+      "1": {
+        "factors": {
+          "chico": 1.5429,
+          "mediano": 1.0,
+          "grande": 0.7384
+        },
+        "medians": {
+          "chico": 1200.0,
+          "mediano": 777.78,
+          "grande": 574.32
+        },
+        "counts": {
+          "chico": 15,
+          "mediano": 16,
+          "grande": 28
+        }
+      },
+      "2": {
+        "factors": {
+          "chico": 1.3637,
+          "mediano": 1.0,
+          "grande": 0.8122
+        },
+        "medians": {
+          "chico": 866.67,
+          "mediano": 635.51,
+          "grande": 516.13
+        },
+        "counts": {
+          "chico": 44,
+          "mediano": 119,
+          "grande": 73
+        }
+      },
+      "3": {
+        "factors": {
+          "chico": 1.1055,
+          "mediano": 1.0,
+          "grande": 0.9511
+        },
+        "medians": {
+          "chico": 714.29,
+          "mediano": 646.15,
+          "grande": 614.53
+        },
+        "counts": {
+          "chico": 22,
+          "mediano": 76,
+          "grande": 23
+        }
+      },
+      "4": {
+        "factors": {
+          "chico": 1.0327,
+          "mediano": 1.0,
+          "grande": 0.8499
+        },
+        "medians": {
+          "chico": 639.53,
+          "mediano": 619.27,
+          "grande": 526.32
+        },
+        "counts": {
+          "chico": 16,
+          "mediano": 34,
+          "grande": 4
+        }
+      }
+    },
+    "puerto_norte": {
+      "1": {
+        "factors": {
+          "chico": 0.6596,
+          "mediano": 1.0,
+          "grande": 0.4631
+        },
+        "medians": {
+          "chico": 1531.25,
+          "mediano": 2321.43,
+          "grande": 1075.0
+        },
+        "counts": {
+          "chico": 50,
+          "mediano": 85,
+          "grande": 17
+        }
+      },
+      "2": {
+        "factors": {
+          "chico": 0.7659,
+          "mediano": 1.0,
+          "grande": 1.0386
+        },
+        "medians": {
+          "chico": 1638.67,
+          "mediano": 2139.53,
+          "grande": 2222.01
+        },
+        "counts": {
+          "chico": 12,
+          "mediano": 74,
+          "grande": 19
+        }
+      },
+      "3": {
+        "factors": {
+          "chico": 0.9988,
+          "mediano": 1.0,
+          "grande": 0.8065
+        },
+        "medians": {
+          "chico": 2996.25,
+          "mediano": 3000.0,
+          "grande": 2419.35
+        },
+        "counts": {
+          "chico": 6,
+          "mediano": 26,
+          "grande": 15
+        }
+      },
+      "4": {
+        "factors": {
+          "chico": 1.0,
+          "mediano": 1.0,
+          "grande": 1.0
+        },
+        "medians": {
+          "chico": null,
+          "mediano": 1164.38,
+          "grande": null
+        },
+        "counts": {
+          "chico": 0,
+          "mediano": 2,
+          "grande": 0
+        }
+      }
+    },
+    "resto_rosario": {
+      "1": {
+        "factors": {
+          "chico": 0.8518,
+          "mediano": 1.0,
+          "grande": 1.0
+        },
+        "medians": {
+          "chico": 1405.41,
+          "mediano": 1650.0,
+          "grande": null
+        },
+        "counts": {
+          "chico": 5,
+          "mediano": 4,
+          "grande": 0
+        }
+      },
+      "2": {
+        "factors": {
+          "chico": 1.0527,
+          "mediano": 1.0,
+          "grande": 1.0
+        },
+        "medians": {
+          "chico": 1343.28,
+          "mediano": 1276.03,
+          "grande": null
+        },
+        "counts": {
+          "chico": 13,
+          "mediano": 4,
+          "grande": 0
+        }
+      },
+      "3": {
+        "factors": {
+          "chico": 1.0,
+          "mediano": 1.0,
+          "grande": 1.0
+        },
+        "medians": {
+          "chico": null,
+          "mediano": 1137.14,
+          "grande": null
+        },
+        "counts": {
+          "chico": 0,
+          "mediano": 5,
+          "grande": 0
+        }
+      }
+    },
+    "sur_default": {
+      "1": {
+        "factors": {
+          "chico": 1.306,
+          "mediano": 1.0,
+          "grande": 0.6465
+        },
+        "medians": {
+          "chico": 1040.0,
+          "mediano": 796.3,
+          "grande": 514.84
+        },
+        "counts": {
+          "chico": 33,
+          "mediano": 40,
+          "grande": 36
+        }
+      },
+      "2": {
+        "factors": {
+          "chico": 1.1963,
+          "mediano": 1.0,
+          "grande": 0.8666
+        },
+        "medians": {
+          "chico": 742.86,
+          "mediano": 620.97,
+          "grande": 538.12
+        },
+        "counts": {
+          "chico": 67,
+          "mediano": 174,
+          "grande": 91
+        }
+      },
+      "3": {
+        "factors": {
+          "chico": 0.9444,
+          "mediano": 1.0,
+          "grande": 1.0861
+        },
+        "medians": {
+          "chico": 562.5,
+          "mediano": 595.63,
+          "grande": 646.9
+        },
+        "counts": {
+          "chico": 64,
+          "mediano": 131,
+          "grande": 64
+        }
+      },
+      "4": {
+        "factors": {
+          "chico": 1.0338,
+          "mediano": 1.0,
+          "grande": 0.9086
+        },
+        "medians": {
+          "chico": 664.56,
+          "mediano": 642.86,
+          "grande": 584.11
+        },
+        "counts": {
+          "chico": 35,
+          "mediano": 39,
+          "grande": 15
+        }
+      }
+    }
+  }
+}

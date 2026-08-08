@@ -1,0 +1,98 @@
+﻿Loading data...
+Loaded 742 barriers
+Loaded 16949 venta properties
+
+--- Adjustment Statistics ---
+  RAW       : avg=$1538, P50=$1517, P33=$1194
+  +CT       : avg=$1516, P50=$1497, P33=$1177
+  +Size     : avg=$1493, P50=$1474, P33=$1145
+  +Dorm     : avg=$1445, P50=$1415, P33=$1128
+  +Anti     : avg=$1518, P50=$1484, P33=$1240
+
+--- Depreciation Stats ---
+  factor_anti avg: 0.9388
+  factor_anti min: 0.6730
+  factor_anti max: 1.0000
+  Props with factor < 0.90: 4755 (28.1%)
+  Props with factor < 0.80: 1868 (11.0%)
+
+--- Macrozone Distribution ---
+  centro_premium      : 10170 props, avg=$1683/m2 (adjusted+anti)
+  macrocentro         :  2784 props, avg=$1313/m2 (adjusted+anti)
+  norte               :  1183 props, avg=$997/m2 (adjusted+anti)
+  fisherton           :  1183 props, avg=$1595/m2 (adjusted+anti)
+  sur                 :   816 props, avg=$795/m2 (adjusted+anti)
+  oeste               :   486 props, avg=$905/m2 (adjusted+anti)
+  puerto_norte        :   295 props, avg=$2584/m2 (adjusted+anti)
+  resto_rosario       :    32 props, avg=$1368/m2 (adjusted+anti)
+
+================================================================================
+BARRIER ANALYSIS ù RAW PRICES
+================================================================================
+  Processing barrier 200/742...
+  Processing barrier 400/742...
+  Processing barrier 600/742...
+
+Analyzed: 586 barriers (skipped: 156)
+
+Classification:
+  STRONG    :  281 (48.0%)
+  MODERATE  :   70 (11.9%)
+  WEAK      :   26 (4.4%)
+  NONE      :  209 (35.7%)
+
+Gap statistics:
+  STRONG    : avg=35.3%
+  MODERATE  : avg=14.4%
+  WEAK      : avg=7.7%
+  NONE      : avg=13.3%
+
+Top 10 by gap:
+  1.                    Ferrocarril   hard gap= 74.0% P33_A=$541 P33_B=$2081
+  2.                    Ferrocarril   hard gap= 74.0% P33_A=$2081 P33_B=$541
+  3.                    Ferrocarril   hard gap= 52.0% P33_A=$447 P33_B=$932
+  4.                    Ferrocarril   hard gap= 51.9% P33_A=$1154 P33_B=$2400
+  5.                    Ferrocarril   hard gap= 49.9% P33_A=$447 P33_B=$893
+  6.                    Ferrocarril   hard gap= 49.9% P33_A=$1385 P33_B=$694
+  7.          Bulevar Nicasio Oro±o   soft gap= 49.8% P33_A=$1000 P33_B=$1990
+  8.                    Ferrocarril   hard gap= 47.7% P33_A=$488 P33_B=$932
+  9.                    Ferrocarril   hard gap= 47.7% P33_A=$932 P33_B=$488
+  10.                    Ferrocarril   hard gap= 47.7% P33_A=$932 P33_B=$488
+
+================================================================================
+BARRIER ANALYSIS ù ADJUSTED PRICES
+================================================================================
+  Processing barrier 200/742...
+  Processing barrier 400/742...
+  Processing barrier 600/742...
+
+Analyzed: 586 barriers (skipped: 156)
+
+Classification:
+  STRONG    :  235 (40.1%)
+  MODERATE  :   54 (9.2%)
+  WEAK      :   46 (7.8%)
+  NONE      :  251 (42.8%)
+
+Gap statistics:
+  STRONG    : avg=36.9%
+  MODERATE  : avg=15.1%
+  WEAK      : avg=7.4%
+  NONE      : avg=11.9%
+
+Top 10 by gap:
+  1.                    Ferrocarril   hard gap= 64.7% P33_A=$1117 P33_B=$3165
+  2.                    Ferrocarril   hard gap= 61.3% P33_A=$1217 P33_B=$3141
+  3.                    Ferrocarril   hard gap= 55.0% P33_A=$2905 P33_B=$1307
+  4.                    Ferrocarril   hard gap= 55.0% P33_A=$1307 P33_B=$2905
+  5.                    Ferrocarril   hard gap= 55.0% P33_A=$1307 P33_B=$2903
+  6.                    Ferrocarril   hard gap= 54.5% P33_A=$1321 P33_B=$2903
+  7.                    Ferrocarril   hard gap= 52.6% P33_A=$1311 P33_B=$2765
+  8.                    Ferrocarril   hard gap= 51.7% P33_A=$1402 P33_B=$2903
+  9.                    Ferrocarril   hard gap= 51.6% P33_A=$1403 P33_B=$2903
+  10.                    Ferrocarril   hard gap= 50.0% P33_A=$2903 P33_B=$1451
+
+================================================================================
+COMPARISON: RAW vs ADJUSTED
+================================================================================
+See analysis above for both modes.

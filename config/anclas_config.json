@@ -83,7 +83,7 @@
   },
   "runtime": {
     "active_anchor_file": "data\\anclas_v7_20260727_164600.json",
-    "cache_version": "v7_retro_cache_fix",
+    "cache_version": "v8b_import_fix_alquiler",
     "cache_ttl_minutes": 60
   }
 }
