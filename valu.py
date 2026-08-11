@@ -321,7 +321,8 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     elif official_res:
         header_res = official_res
     else:
-        header_res = res
+        # Sin resultado oficial: header muestra "sin valor"
+        header_res = {'valor_propiedad_usd': 0, 'error': 'pendiente'}
 
 
     auto_result = res.get('_auto_result', res)
@@ -337,7 +338,8 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     insuficientes = (
         auto_result.get('error') in ['insuficientes_comparables', 'pendiente'] or
         st.session_state.get(f'pendiente_comparables_{prop_name_tmp}', False) or
-        auto_result.get('valor_propiedad_usd', 0) == 0
+        auto_result.get('valor_propiedad_usd', 0) == 0 or
+        f'_official_result_{prop_name_tmp}' not in st.session_state
     )
 
     nombre = prop.get('nombre', '')
@@ -1221,15 +1223,19 @@ def mostrar_dashboard():
                                         st.session_state.pop(f'_comp_exclusion_applied_{prop_name}', None)
 
                 with profile_block("mostrar_detalle_valu_total", p_obj):
-                    # ── Guardar resultado oficial si no existe (primera valuación / post-Limpiar) ──
-                    # RO-CLEAN-03: No guardar si es estado pendiente (valor=0, error='pendiente')
-                    # RO-HEADER-04: NO actualizar con forzar (Retro/Flex) — solo con Aplicar selección
-                    if not preview_mode:
-                        official_key = f'_official_result_{prop_name}'
-                        if official_key not in st.session_state and resultado.get('error') != 'pendiente':
+                    # ── Guardar resultado oficial SOLO con Aplicar selección ──
+                    # RO-HEADER-04: NO guardar en primera corrida del engine — solo cuando usuario aplica
+                    official_key = f'_official_result_{prop_name}'
+                    if resultado.get('_comp_exclusion_applied') and resultado.get('error') != 'pendiente':
+                        if official_key not in st.session_state:
                             import copy
                             st.session_state[official_key] = copy.deepcopy(resultado)
-                            print(f"[DEBUG-OFFICIAL-FIRST] {prop_name}: resultado oficial guardado por primera vez, valor=${resultado.get('valor_propiedad_usd',0):,.0f}, n_prop={resultado.get('resolution_metadata',{}).get('n_propiedades')}")
+                            print(f"[DEBUG-OFFICIAL-FIRST] {prop_name}: resultado oficial guardado por primera vez (post-apply), valor=${resultado.get('valor_propiedad_usd',0):,.0f}, n_prop={resultado.get('resolution_metadata',{}).get('n_propiedades')}")
+                        else:
+                            # Actualizar solo si vino de Aplicar selección
+                            import copy
+                            st.session_state[official_key] = copy.deepcopy(resultado)
+                            print(f"[DEBUG-OFFICIAL-UPDATE] {prop_name}: resultado oficial actualizado (post-apply), valor=${resultado.get('valor_propiedad_usd',0):,.0f}")
                     try:
                         mostrar_detalle_valu(p_obj, resultado, actualizar_propiedad)
                     except Exception as e_render:
