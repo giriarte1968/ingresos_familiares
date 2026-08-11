@@ -368,7 +368,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     auto_cons = auto_result.get('valor_venta_conservador', 0)
     auto_opt = auto_result.get('valor_venta_optimista', 0)
     auto_spread = auto_result.get('rango_venta', {}).get('spread_pct', 0)
-    render_disk_summary_card(prop, insuficientes=insuficientes, v_cons=auto_cons, v_opt=auto_opt, spread=auto_spread)
+    render_disk_summary_card(prop, insuficientes=insuficientes, v_cons=auto_cons, v_opt=auto_opt, spread=auto_spread, auto_result=auto_result)
     render_manual_valuation_card(prop)
 
     st.markdown("<br>", unsafe_allow_html=True)

@@ -322,34 +322,51 @@ def render_header(prop, res):
     """, unsafe_allow_html=True)
 
 
-def render_disk_summary_card(prop, insuficientes=False, v_cons=0, v_opt=0, spread=0):
-    """Tarjeta full-width que muestra la última valuación guardada en disco (_ultima_valuacion).
-    Solo para valuación por comparables (auto). No toca session state.
-    Lee directamente de propiedades.json para evitar stale data del ciclo de render.
-    Si v_cons > 0 y v_opt > 0, incluye la barra de rango Conservador|Spread|Optimista dentro de la tarjeta."""
+def render_disk_summary_card(prop, insuficientes=False, v_cons=0, v_opt=0, spread=0, auto_result=None):
+    """Tarjeta full-width que muestra la valuación por comparables en tiempo real y sincronizada.
+    Prioriza los valores calculados en vivo (auto_result) y usa _ultima_valuacion de disco como fallback."""
     import json, os
     nombre = prop.get('nombre', '')
-    uv = {}
-    try:
-        props_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'propiedades.json')
-        with open(props_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-        for p in data.get('propiedades', []):
-            if p.get('nombre') == nombre:
-                uv = p.get('_ultima_valuacion', {}) or {}
-                break
-    except Exception:
-        uv = prop.get('_ultima_valuacion', {}) or {}
+    
+    if auto_result and auto_result.get('valor_propiedad_usd', 0) > 0:
+        auto_valor = auto_result.get('valor_propiedad_usd', 0)
+        comps_list = auto_result.get('comparables_venta', [])
+        comps = len(comps_list) if comps_list is not None and len(comps_list) > 0 else auto_result.get('n_comps', 0)
+        m2_equiv = prop.get('m2_equivalentes') or prop.get('m2_cubiertos') or auto_result.get('m2_equivalentes', 0) or 0
+        m2_micro = auto_result.get('m2_microzona', 0) or auto_result.get('m2_base_venta', 0) or 0
+        size_discount = auto_result.get('size_discount', 1.0)
+        activos_total = auto_result.get('valor_activos_total', 0)
+        fecha = "En vivo"
+        
+        # Sincronizar rango si está disponible en auto_result
+        if auto_result.get('valor_venta_conservador'):
+            v_cons = auto_result.get('valor_venta_conservador')
+        if auto_result.get('valor_venta_optimista'):
+            v_opt = auto_result.get('valor_venta_optimista')
+        if auto_result.get('rango_venta', {}).get('spread_pct'):
+            spread = auto_result.get('rango_venta', {}).get('spread_pct')
+    else:
+        uv = {}
+        try:
+            props_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'propiedades.json')
+            with open(props_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            for p in data.get('propiedades', []):
+                if p.get('nombre') == nombre:
+                    uv = p.get('_ultima_valuacion', {}) or {}
+                    break
+        except Exception:
+            uv = prop.get('_ultima_valuacion', {}) or {}
 
-    auto_valor = uv.get('auto_valor_usd', 0)
-    comps = uv.get('comps', 0)
-    if isinstance(comps, list):
-        comps = len(comps)
-    m2_equiv = uv.get('m2_equivalentes', 0)
-    m2_micro = uv.get('m2_microzona', 0)
-    size_discount = uv.get('size_discount', 1.0)
-    activos_total = uv.get('valor_activos_total', 0)
-    fecha = uv.get('fecha', '')
+        auto_valor = uv.get('auto_valor_usd', 0)
+        comps = uv.get('comps', 0)
+        if isinstance(comps, list):
+            comps = len(comps)
+        m2_equiv = uv.get('m2_equivalentes', 0)
+        m2_micro = uv.get('m2_microzona', 0)
+        size_discount = uv.get('size_discount', 1.0)
+        activos_total = uv.get('valor_activos_total', 0)
+        fecha = uv.get('fecha', '')
 
     if insuficientes:
         meta_line = "Sin Valor"
