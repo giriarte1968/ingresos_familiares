@@ -807,14 +807,11 @@ def mostrar_dashboard():
                 cache_preview = resultado_cacheado.get('_cache', {}).get('preview', True)
                 cache_valido = resultado_cacheado.get('valor_propiedad_usd') and not resultado_cacheado.get('error')
                 print(f"[DEBUG-FLOW] {p_obj['nombre']}: Pendiente - cache_exists={bool(resultado_cacheado)}, cache_preview={cache_preview}, cache_error={resultado_cacheado.get('error')}, cache_valido={cache_valido}")
-                # Auto-run solo en primera entrada (sin UV y sin flag de limpieza)
+                # Primera entrada SIN CACHE: NO auto-run — esperar clic en Comparables
                 if not resultado_cacheado and not cache_valido:
                     es_post_limpiar = st.session_state.get(f'pendiente_comparables_{p_obj["nombre"]}', False)
                     if not es_post_limpiar:
-                        print(f"[DEBUG-FLOW] {p_obj['nombre']}: Primera entrada SIN CACHE — auto-run preview")
-                        forzar = True
-                        preview_mode = True
-                        st.session_state[f'preview_mode_{p_obj["nombre"]}'] = True
+                        print(f"[DEBUG-FLOW] {p_obj['nombre']}: Primera entrada SIN CACHE — esperando clic en Comparables (sin auto-run)")
                     else:
                         print(f"[DEBUG-FLOW] {p_obj['nombre']}: Estado Post-Limpiar — NO auto-run, esperando clic en Comparables")
                 if resultado_cacheado and cache_preview:
@@ -864,6 +861,8 @@ def mostrar_dashboard():
                 act_comps = st.session_state.pop(f'act_comparables_{p_obj["nombre"]}', False)
                 print(f"[DEBUG-COMP-BTN] {p_obj['nombre']}: act_comparables={act_comps} — {'saltea' if act_comps else 'NO saltea'} early return Pendiente")
                 if not forzar and not retro_btn_clicked and not cache_valido and not act_comps:
+                    # Marcar como pendiente para evitar auto-run en reruns
+                    st.session_state[f'pendiente_comparables_{p_obj["nombre"]}'] = True
                     st.info(f"**{p_obj['nombre']}** está pendiente de valuación. "
                             "Usa los controles Retro/Flex para generar una previsualización.")
                     
