@@ -1601,22 +1601,47 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 pass
 
         
-        # === APLICAR BARRERAS VECTORIALES (Rosario) ===
+        # === APLICAR BARRERAS GEOGRÁFICAS (Rosario) ===
+        # Blending same-side / cross-soft para evitar contaminación
         same_side = []
         cross_soft = []
         if lat_ref and lon_ref and props:
             try:
-                for p in props:
-                    p_lat = float(p.get('lat', 0) or 0)
-                    p_lon = float(p.get('lon', 0) or 0)
-                    b_name, b_info, coords = detectar_barrera_vector(lat_ref, lon_ref, p_lat, p_lon)
-                    if b_name:
-                        p['_cross_soft'] = True
-                        cross_soft.append(p)
-                    else:
-                        p['_cross_soft'] = False
-                        same_side.append(p)
-                props = same_side + cross_soft
+                from parsers.location_engine import check_barrier_crossing, cargar_barreras
+                barreras = cargar_barreras()
+                
+                barreras_result = separar_por_barreras(
+                    props=props,
+                    lat_ref=lat_ref,
+                    lon_ref=lon_ref,
+                    check_barrier_fn=lambda p1, p2: check_barrier_crossing(p1, p2, barreras),
+                    zona_ref=zona_normalizada
+                )
+                
+                same_side = barreras_result['same_side']
+                cross_soft = barreras_result['cross_soft']
+                excluded_hard = barreras_result.get('excluded_hard', [])
+                
+                if not same_side and excluded_hard:
+                    for comp in excluded_hard:
+                        comp['_penalizacion_barrier'] = 0.97
+                        cross_soft.append(comp)
+                    excluded_hard = []
+                
+                if not same_side and not cross_soft and len(excluded_hard) >= 5:
+                    for comp in excluded_hard:
+                        comp['_penalizacion_barrier'] = 0.97
+                        cross_soft.append(comp)
+                    excluded_hard = []
+                
+                for p in same_side:
+                    p['_cross_soft'] = False
+                for p in cross_soft:
+                    p['_cross_soft'] = True
+                
+                props_barrier = same_side + cross_soft
+                if props_barrier:
+                    props = props_barrier
             except Exception:
                 pass
         
