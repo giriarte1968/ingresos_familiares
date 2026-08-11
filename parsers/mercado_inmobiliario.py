@@ -4802,8 +4802,11 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
 
     # Ascensores
     asc = prop.get('ascensores_edificio')
-    if asc is not None and total_pisos > 3 and asc <= 1 and piso > 2:
-        factores_neg.append("el edificio tiene un solo ascensor, lo que puede generar demoras en horas pico")
+    if asc is not None and total_pisos > 3:
+        if asc == 0:
+            factores_neg.append("el edificio no tiene ascensor, lo que dificulta el acceso a pisos superiores")
+        elif asc <= 1 and piso > 2:
+            factores_neg.append("el edificio tiene un solo ascensor, lo que puede generar demoras en horas pico")
 
     # Armar párrafo de factores
     if factores_pos or factores_neg:
