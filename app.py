@@ -3458,9 +3458,10 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
                                           key=f"calidad_{key_suffix}")
         
     with col4:
-        terminaciones_suelo = st.selectbox("Suelo", ["madera_noble", "porcelanato", "ceramico", "estandar"],
-                                          index=["madera_noble", "porcelanato", "ceramico", "estandar"].index(prop_inicial.get('terminaciones_suelo', 'estandar')) if prop_inicial.get('terminaciones_suelo') in ["madera_noble", "porcelanato", "ceramico", "estandar"] else 3,
-                                          key=f"suelo_{key_suffix}")
+        suelos_app = ["madera_noble", "porcelanato", "ceramico", "vinilico", "estandar"]
+        suelo_inicial_app = prop_inicial.get('terminaciones_suelo', 'estandar')
+        suelo_default_app = [s.strip() for s in suelo_inicial_app.split(',') if s.strip() in suelos_app] if suelo_inicial_app else ['estandar']
+        terminaciones_suelo = st.multiselect("Suelo (puede seleccionar varios)", suelos_app, default=suelo_default_app, key=f"suelo_{key_suffix}")
         carpinteria = st.selectbox("Carpintería", ["piso_techo", "dvh", "estandar"], 
                                   index=["piso_techo", "dvh", "estandar"].index(prop_inicial.get('carpinteria', 'estandar')) if prop_inicial.get('carpinteria') in ["piso_techo", "dvh", "estandar"] else 2,
                                   key=f"carp_{key_suffix}")
@@ -3482,7 +3483,8 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
         # Fase 3: placares, despensa, ascensores
         placares_completos = st.checkbox("Placares completos", value=prop_inicial.get('placares_completos', False), key=f"placares_{key_suffix}")
         despensa = st.checkbox("Despensa", value=prop_inicial.get('despensa', False), key=f"despensa_{key_suffix}")
-        ascensores_edificio = st.number_input("Ascensores del edificio", min_value=1, max_value=4, value=int(prop_inicial.get('ascensores_edificio', 2) or 2), key=f"ascensores_{key_suffix}")
+        _asc_val_app = prop_inicial.get('ascensores_edificio')
+        ascensores_edificio = st.number_input("Ascensores del edificio", min_value=0, max_value=4, value=int(_asc_val_app) if _asc_val_app is not None else 2, key=f"ascensores_{key_suffix}")
         detalles_cat = st.multiselect("Amenities / Extras", [
             "caldera_central", "radiadores", "seguridad_24hs", "seguridad_tag", "seguridad_camaras", "seguridad_totem",
             "aberturas_premium", "parrilla_propia", "parrilla_compartida", "terraza_compartida", "pileta", "sum", "gym"
@@ -3516,7 +3518,7 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
             'm2_descubiertos_propios': m2_descubiertos_propios, 'm2_descubiertos_comun_exclusivo': m2_descubiertos_comun_exclusivo,
             'tipo_balcon': prop_inicial.get('tipo_balcon', 'ninguno'),
             'orientacion': orientacion, 'ventilacion': ventilacion, 'estado_detalle': estado_detalle,
-            'calidad_edificio': calidad_edificio, 'seguridad': seguridad_val, 'terminaciones_suelo': terminaciones_suelo,
+            'calidad_edificio': calidad_edificio, 'seguridad': seguridad_val, 'terminaciones_suelo': ','.join(terminaciones_suelo) if terminaciones_suelo else 'estandar',
             'carpinteria': carpinteria, 'cocheras_cantidad': cocheras_cantidad, 'cocheras_tipo': cocheras_tipo, 'valor_cochera_base': valor_cochera_base, 'valor_baulera': valor_baulera, 'doble_ingreso': doble_ingreso,
             'lavadero_independiente': lavadero_independiente, 'reciclado': tiene_reciclado, 'reciclado_tipo': reciclado_tipo,
             'anio_reciclado': anio_reciclado, 'ventilacion_bano': ventilacion_bano, 'layout_flexible': layout_flexible,
