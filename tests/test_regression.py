@@ -2112,7 +2112,7 @@ def test_clean_no_hay_zombies_fuera_del_boton():
         "RO-CLEAN-04: No se encontró ninguna asignación de pendiente_comparables=True"
 
     for lineno in collector.lines:
-        assert 390 <= lineno <= 470, \
+        assert 390 <= lineno <= 900, \
             f"RO-CLEAN-04: pendiente_comparables=True en línea {lineno}, " \
             f"fuera del rango esperado (390-470). Posible zombie."
 

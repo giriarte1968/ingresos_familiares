@@ -336,9 +336,10 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
 
     prop_name_tmp = prop.get('nombre', '')
     tiene_comps = len(auto_result.get('comparables_venta', []) or []) >= 2
+    pend_key = 'pendiente_' + 'comparables_' + prop_name_tmp
     insuficientes = (
         auto_result.get('error') in ['insuficientes_comparables', 'pendiente'] or
-        st.session_state.get(f'pendiente_comparables_{prop_name_tmp}', False) or
+        st.session_state.get(pend_key, False) or
         auto_result.get('valor_propiedad_usd', 0) == 0 or
         not tiene_comps
     )

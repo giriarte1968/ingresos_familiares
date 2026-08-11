@@ -3736,7 +3736,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
     _mz_info = resolver_macrozona(prop)
     _ancla_id = str(ancla_seleccionada) if ancla_seleccionada is not None else None
     size_discount = 1.0
-    valor_venta = m2_equiv * m2_microzona
+    valor_venta = m2_equiv * m2_microzona * factor_disposicion
     
     logger.info(f"--- CALCULO BASE (TAREA-073) ---")
     logger.info(f"m2_equiv: {m2_equiv}, m2_microzona: {m2_microzona}")
