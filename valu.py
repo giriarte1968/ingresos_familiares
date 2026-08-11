@@ -992,15 +992,7 @@ def mostrar_dashboard():
                         if resultado.get('error'):
                             print(f"[DEBUG] {prop_name}: RESULTADO CON ERROR, mensaje={resultado.get('mensaje')}")
 
-                    # ── RO-CLEAN-03: Guardar oficial post-engine, independente de preview. ──
-                    # Cuando el motor termina realmente (no pendiente), guarda el resultado como oficial
-                    # para evitar que el header se quede vacío después de un ciclo Limpiar → 📊 Comparables
-                    if resultado.get('error') != 'pendiente' and resultado.get('valor_propiedad_usd', 0) > 0:
-                        off_key = f'_official_result_{prop_name}'
-                        if off_key not in st.session_state:
-                            import copy
-                            st.session_state[off_key] = copy.deepcopy(resultado)
-                            print(f"[DEBUG-OFFICIAL-POSTENGINE] {prop_name}: oficial guardado post-engine (error={resultado.get('error')})")
+
                     
                     # ── TAREA-102: Fallback a UV snapshot si recálculo falló ──
                     if ya_valuado and (resultado.get('error') or n_comps < 3):
@@ -1197,32 +1189,7 @@ def mostrar_dashboard():
                                                 resultado['valor_venta_conservador'] = 0
                                                 resultado['valor_venta_optimista'] = 0
                                                 resultado['_n_excluidos'] = len(excluded_ids)
-                                                if (from_apply or not preview_mode) and resultado.get('valor_propiedad_usd', 0) > 0 and resultado.get('error') != 'pendiente':
-                                                    try:
-                                                        from parsers.valuacion_cache import cargar_cache_valuaciones, persistir_valuacion
-                                                        _cache_v = cargar_cache_valuaciones()
-                                                        if '_cache' in resultado:
-                                                            resultado['_cache']['preview'] = False
-                                                        print(f"[DEBUG-PERSIST] {prop_name}: PERSISTIENDO A DISCO: valor_usd={resultado.get('valor_propiedad_usd')}, valor_m2={resultado.get('valor_m2')}, m2_base={resultado.get('m2_base_venta')}, n_comps={len(resultado.get('comparables_venta',[]))}")
-                                                        persistir_valuacion(prop_name, p_obj, resultado, _cache_v, commit=True)
-                                                        import copy
-                                                        st.session_state[f'_official_result_{prop_name}'] = copy.deepcopy(resultado)
-                                                        print(f"[DEBUG-OFFICIAL] {prop_name}: resultado oficial guardado en disco y session_state")
-                                                    except Exception as e:
-                                                        logger.warning(f"[APPLY] {prop_name}: No se pudo persistir a disco: {e}")
-                                                    finally:
-                                                        if f'forzar_recalculo_{prop_name}' in st.session_state:
-                                                            del st.session_state[f'forzar_recalculo_{prop_name}']
-                                                            print(f"[DEBUG-FLOW] {prop_name}: forzar_recalculo limpiado post-persist")
-                                                else:
-                                                    if preview_mode:
-                                                        print(f"[DEBUG-PERSIST-SKIP] {prop_name}: preview activo, NO persiste (from_apply={from_apply})")
-                                                    if resultado.get('_comp_exclusion_applied'):
-                                                        print(f"[DEBUG-EXCL-FLAG] {prop_name}: _comp_exclusion_applied ya=True, PRESERVADO")
-                                                    else:
-                                                        resultado['_comp_exclusion_applied'] = False
-                                                        st.session_state.pop(f'_comp_exclusion_applied_{prop_name}', None)
-                                                print(f"[APPLY] {prop_name}: <2 comps y sin valor original, header limpiado")
+                                                print(f"[APPLY] {prop_name}: preview procesado")
                                 
                                 resultado['_comp_excluded'] = excluded_ids
                                 if from_apply:
