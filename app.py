@@ -3458,7 +3458,7 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
                                           key=f"calidad_{key_suffix}")
         
     with col4:
-        suelos_app = ["madera_noble", "porcelanato", "ceramico", "vinilico", "estandar"]
+        suelos_app = ["madera", "porcelanato", "ceramico", "vinilico", "estandar"]
         suelo_inicial_app = prop_inicial.get('terminaciones_suelo', 'estandar')
         suelo_default_app = [s.strip() for s in suelo_inicial_app.split(',') if s.strip() in suelos_app] if suelo_inicial_app else ['estandar']
         terminaciones_suelo = st.multiselect("Suelo (puede seleccionar varios)", suelos_app, default=suelo_default_app, key=f"suelo_{key_suffix}")

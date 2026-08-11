@@ -316,7 +316,7 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
             calidades = ["premium", "media", "economica"]
             calidad_edificio = st.selectbox("Calidad", calidades, index=calidades.index(prop_inicial.get('calidad_edificio', 'media')) if prop_inicial.get('calidad_edificio') in calidades else 1, key=f"calidad_{key_suffix}")
             
-            suelos = ["madera_noble", "porcelanato", "ceramico", "vinilico", "estandar"]
+            suelos = ["madera", "porcelanato", "ceramico", "vinilico", "estandar"]
             suelo_inicial = prop_inicial.get('terminaciones_suelo', 'estandar')
             # Handle both single value and comma-separated multi-value
             suelo_default = [s.strip() for s in suelo_inicial.split(',') if s.strip() in suelos] if suelo_inicial else ['estandar']

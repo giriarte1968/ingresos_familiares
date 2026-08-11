@@ -106,7 +106,7 @@ def factor_terminaciones(prop):
     
     factor = 0.95
     for t in tipos:
-        if "madera_noble" in t:
+        if "madera" in t:
             factor = max(factor, 1.04)
         elif "porcelanato" in t:
             factor = max(factor, 1.02)
