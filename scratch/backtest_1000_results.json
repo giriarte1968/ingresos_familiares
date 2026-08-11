@@ -1,0 +1,13 @@
+{
+  "n_total": 0,
+  "mape_s1": NaN,
+  "mape_v8f": NaN,
+  "medape_s1": NaN,
+  "medape_v8f": NaN,
+  "r2_s1": NaN,
+  "r2_v8f": NaN,
+  "within_10_s1": NaN,
+  "within_10_v8f": NaN,
+  "within_15_s1": NaN,
+  "within_15_v8f": NaN
+}

@@ -65,18 +65,21 @@ def build_context(prop, cache_data):
         auto_result = {'valor_propiedad_usd': uv.get('auto_valor_usd', 0)} if uv.get('auto_valor_usd', 0) > 0 else auto_result
 
     manual_params = res.get('manual_params', {}) or {}
+    if not manual_params and auto_result:
+        manual_params = auto_result.get('_manual_params', {}) or {}
     tiene_manual = bool(manual_params)
-    tiene_auto = bool(auto_result.get('valor_propiedad_usd', 0) > 0)
+    tiene_auto = bool(auto_result and auto_result.get('valor_propiedad_usd', 0) > 0)
 
     v_auto = safe_int(auto_result.get('valor_propiedad_usd'))
     v_auto_cons = safe_int(auto_result.get('valor_venta_conservador'))
     v_auto_opt = safe_int(auto_result.get('valor_venta_optimista'))
     v_auto_m2 = safe_int(auto_result.get('m2_base_venta'))
-    n_comps_auto = safe_int(res.get('resolution_metadata', {}).get('n_propiedades', 0))
+    n_comps_auto = safe_int((auto_result or res or {}).get('resolution_metadata', {}).get('n_propiedades', 0))
 
     v_manual = safe_int(res.get('valor_propiedad_usd'))
     v_manual_cons = safe_int(res.get('valor_venta_conservador'))
     v_manual_opt = safe_int(res.get('valor_venta_optimista'))
+    delta_manual = f"{((v_manual - v_auto) / v_auto * 100):+.1f}" if v_auto > 0 else "N/A"
 
     fuente_activa = res.get('_fuente_activa', 'auto')
     if tiene_manual and tiene_auto:
@@ -116,7 +119,7 @@ def build_context(prop, cache_data):
         clon = c.get('lon') or c.get('longitud')
         if clat and clon:
             try:
-                comp_coords.append((float(clat), float(clon)))
+                comp_coords.append((float(clat), float(clon), (c.get('direccion') or '')[:30]))
             except (ValueError, TypeError):
                 pass
 
@@ -137,8 +140,8 @@ def build_context(prop, cache_data):
             _m = folium.Map(location=[prop_lat, prop_lon], zoom_start=15, tiles='cartodbpositron', width='100%', height='600px')
             folium.Marker([prop_lat, prop_lon], popup=f"<b>{prop.get('nombre', '')}</b>", icon=folium.Icon(color='red', icon='home')).add_to(_m)
             folium.Circle([prop_lat, prop_lon], radius=1000, color='#3388ff', fill=True, fill_opacity=0.05, weight=1).add_to(_m)
-            for clat, clon in comp_coords:
-                folium.CircleMarker([clat, clon], radius=5, color='#1a6b6b', fill=True, fill_color='#1a6b6b', fill_opacity=0.7).add_to(_m)
+            for clat, clon, cdireccion in comp_coords:
+                folium.CircleMarker([clat, clon], radius=5, color='#10b981', fill=True, fill_color='#10b981', fill_opacity=0.7, popup=cdireccion).add_to(_m)
             with tempfile.NamedTemporaryFile(suffix='.html', delete=False) as f:
                 _m.save(f.name)
                 _map_html = f.name
@@ -161,20 +164,22 @@ def build_context(prop, cache_data):
         except Exception:
             pass
 
-    # Razonamiento — regenerar con alquiler fresco para consistencia
+    # Metadata
     meta = res.get('resolution_metadata', {}) or {}
-    razonamiento = auto_result.get('razonamiento', '')
-    if razonamiento and alq_ars > 0:
-        # Actualizar alquiler en el resultado antes de regenerar
-        res['alquiler_estimado_ars'] = alq_ars
-        res['cap_rate'] = cap_rate
-        res['usdt_ars'] = dolar
-        auto_result['alquiler_estimado_ars'] = alq_ars
-        auto_result['cap_rate'] = cap_rate
-        auto_result['usdt_ars'] = dolar
+    # Use auto_result for auto razonamiento (res may be manual_result when fuente_activa=='manual')
+    auto_source = auto_result or res
+    razonamiento = auto_source.get('razonamiento', '')
+
+    # Always regenerate razonamiento with fresh data (alquiler, etc.) for consistency
+    if razonamiento:
         try:
             from parsers.mercado_inmobiliario import generar_razonamiento_valuacion
-            razonamiento = generar_razonamiento_valuacion(prop, auto_result, meta)
+            _auto_meta = auto_source.get('resolution_metadata', {}) or {}
+            # Inject fresh alquiler into auto_source so razonamiento uses consistent values
+            auto_source['alquiler_estimado_ars'] = alq_ars
+            auto_source['cap_rate'] = cap_rate
+            auto_source['usdt_ars'] = dolar
+            razonamiento = generar_razonamiento_valuacion(prop, auto_source, _auto_meta)
         except Exception:
             pass
 
@@ -185,61 +190,200 @@ def build_context(prop, cache_data):
     except Exception:
         pass
 
-    # Razonamiento manual
+    # Razonamiento manual detallado (match app's 8 paragraphs)
     razonamiento_manual = ''
     if tiene_manual and manual_params:
         _mp = manual_params
         _usd_m2 = _mp.get('usd_m2', 0)
         _fh = _mp.get('factor_hedonico', 1.0)
         _incert = _mp.get('incertidumbre_pct', 10.0)
+        _ajuste = _mp.get('ajuste_pct', 0.0)
+        _incluir_const = _mp.get('incluir_prima_const', True)
+
         _lineas_m = []
-        _lineas_m.append(
-            f"Se realizó una valuación manual utilizando el <strong>punto de referencia geográfico</strong> "
-            f"más cercano a la propiedad, considerando un radio de 400 metros alrededor de la sujeto. "
-            f"El punto de referencia selected (ancla) tiene un valor de <strong>USD {_usd_m2}/m²</strong> "
-            f"en el mercado de venta."
-        )
-        _lineas_m.append(
-            f"El <strong>factor hedónico</strong> aplicado es de <strong>{_fh:.2f}</strong>, "
-            f"lo que representa un ajuste del {((_fh - 1.0) * 100):+.1f}% sobre el valor del punto de referencia."
-        )
-        _lineas_m.append(
-            f"El valor final se calcula multiplicando los metros cuadrados equivalentes ({m2_eq:.1f} m²) "
-            f"por el valor del punto de referencia (USD {_usd_m2}/m²) y el factor hedónico ({_fh:.2f})."
-        )
-        razonamiento_manual = '<br><br>'.join(_lineas_m)
 
-    # Catastro
+        # Párrafo 1: Metodología
+        _lineas_m.append(
+            f"La valuación manual de {prop.get('nombre', 'la propiedad')} se realizó "
+            f"utilizando un punto de referencia geográfico como base de precio, "
+            f"considerando un radio de 400 metros alrededor de la propiedad."
+        )
+
+        # Párrafo 2: Precio base
+        _detalles_formula = []
+        _detalles_formula.append(f"{m2_eq} m2 equivalentes x USD {_usd_m2:,.0f}/m2")
+        _valor_base = m2_eq * _usd_m2
+
+        _lineas_m.append(
+            f"El precio base de referencia es USD {_usd_m2:,.0f}/m2, determinado a partir "
+            f"del punto geográfico más cercano a la ubicación de la propiedad. "
+            f"Este valor representa el precio de referencia de la zona considerando "
+            f"propiedades similares en tamaño y ubicación."
+        )
+
+        # Párrafo 3: Factor hedonico desglosado
+        if _fd:
+            _estado_pct = (_fd.get('factor_estado', 1.0) - 1.0) * 100
+            _calidad_pct = (_fd.get('factor_calidad', 1.0) - 1.0) * 100
+            _amenities_pct = _fd.get('delta_amenities', 0) * 100
+            _otros_pct = _fd.get('delta_otros', 0) * 100
+            _total_fh = _fd.get('total', 1.0)
+
+            _lineas_m.append(
+                f"Se aplico un factor hedonico combinado de {_total_fh:.4f}, desglosado "
+                f"en subfactores de referencia:"
+            )
+
+            _subfactores = []
+            if _estado_pct != 0:
+                _subfactores.append(f"Estado ({_fd.get('estado_label', '')}): {_estado_pct:+.1f}%")
+            else:
+                _subfactores.append(f"Estado ({_fd.get('estado_label', '')}): +0.0% (estandar)")
+            if _calidad_pct != 0:
+                _subfactores.append(f"Calidad ({_fd.get('calidad_label', '')}): {_calidad_pct:+.1f}%")
+            else:
+                _subfactores.append(f"Calidad ({_fd.get('calidad_label', '')}): +0.0% (estandar)")
+            if _amenities_pct != 0:
+                _det_am = _fd.get('detalle_amenities', '')
+                _subfactores.append(f"Amenities ({_det_am}): {_amenities_pct:+.1f}%")
+            else:
+                _subfactores.append(f"Amenities: +0.0% (sin amenities diferenciadoras)")
+            _subfactores.append(f"Otros: {_otros_pct:+.1f}%")
+
+            for sf in _subfactores:
+                _lineas_m.append(f"  - {sf}")
+
+            _detalles_formula.append(f"factor hedonico {_total_fh:.4f}")
+
+        # Párrafo 4: Constructora
+        if _incluir_const and prop.get('constructora', ''):
+            try:
+                import json as _json
+                _constr_path = os.path.join(BASE_DIR, "constructoras_rosario.json")
+                if os.path.exists(_constr_path):
+                    with open(_constr_path, 'r', encoding='utf-8') as _f:
+                        _constr_list = _json.load(_f)
+                        _constr_name = prop.get('constructora', '').lower().strip()
+                        for _entry in _constr_list:
+                            if _constr_name == _entry.get('descripcion', '').lower().strip():
+                                _pct = _entry.get('porcentaje', 0)
+                                _factor_const = 1.0 + _pct / 100.0
+                                _detalles_formula.append(f"prima constructora {_factor_const:.4f} (+{_pct}%)")
+                                _lineas_m.append(
+                                    f"Se incluyo la prima de constructora ({prop.get('constructora')}) "
+                                    f"con un factor de {_factor_const:.4f} (+{_pct}%), reconociendo "
+                                    f"la valoracion de marca y calidad constructiva en el mercado."
+                                )
+                                break
+            except Exception:
+                pass
+
+        # Párrafo 5: Ajuste manual
+        if _ajuste != 0:
+            _detalles_formula.append(f"ajuste manual {_ajuste:+.1f}%")
+            _lineas_m.append(
+                f"Se aplico un ajuste manual del {_ajuste:+.1f}% por consideraciones "
+                f"especificas del analista no capturadas por los factores anteriores."
+            )
+
+        # Párrafo 6: Formula final
+        _valor_calc = m2_eq * _usd_m2 * _fh
+        _lineas_m.append(
+            f"La formula de calculo fue: {' x '.join(_detalles_formula)}, "
+            f"llegando a un valor estimado de USD {_valor_calc:,.0f}."
+        )
+
+        # Párrafo 7: Rango de incertidumbre
+        _lineas_m.append(
+            f"Se establecio un rango de incertidumbre de +/-{_incert:.0f}% "
+            f"(conservador: USD {int(v_manual_cons):,}, optimista: USD {int(v_manual_opt):,}), "
+            f"reflejando la variabilidad propia de una estimacion basada en juicio profesional."
+        )
+
+        # Párrafo 8: Comparacion con automatica
+        if tiene_auto and v_auto > 0:
+            _delta = ((v_manual - v_auto) / v_auto) * 100
+            if abs(_delta) < 3:
+                _lineas_m.append(
+                    f"El resultado manual (USD {v_manual:,}) es consistente con la "
+                    f"valuacion automatica (USD {v_auto:,}), con una diferencia del "
+                    f"{_delta:+.1f}%, lo que indica convergencia entre ambos metodos."
+                )
+            elif _delta > 0:
+                _lineas_m.append(
+                    f"El resultado manual (USD {v_manual:,}) supera a la valuacion "
+                    f"automatica (USD {v_auto:,}) en un {_delta:+.1f}%, lo que sugiere "
+                    f"que el analista identifico atributos de valor no capturados por "
+                    f"el algoritmo de mercado."
+                )
+            else:
+                _lineas_m.append(
+                    f"El resultado manual (USD {v_manual:,}) es inferior a la valuacion "
+                    f"automatica (USD {v_auto:,}) en un {_delta:+.1f}%, lo que sugiere "
+                    f"que el analista considera factores de riesgo o desgaste no reflejados "
+                    f"en el comparativo de mercado."
+                )
+
+        razonamiento_manual = "\n\n".join(_lineas_m)
+
+    # Catastro — match app: reads from res (catastro_detalle with candidatos)
     catastro_data = None
-    catastro = prop.get('catastro', {})
+    catastro = res.get('catastro_detalle')
     if catastro:
-        catastro_data = {
-            'ph': catastro.get('ph', '—'),
-            'anio': catastro.get('anio_construccion', '—'),
-            'seccion': catastro.get('seccion', '—'),
-            'grafico': catastro.get('grafico', '—'),
-        }
+        candidatos = catastro.get('candidatos', [])
+        if candidatos:
+            sel = next((c for c in candidatos if c.get('recomendado')), candidatos[0])
+            catastro_data = {
+                'ph': sel.get('ph', 'N/A'),
+                'anio': int(float(sel['year'])) if sel.get('year') else 'N/A',
+                'seccion': int(float(sel['seccion'])) if sel.get('seccion') else '-',
+                'grafico': int(float(sel['grafico'])) if sel.get('grafico') else '-',
+            }
+    if not catastro_data:
+        catastro = prop.get('catastro', {})
+        if catastro:
+            catastro_data = {
+                'ph': catastro.get('ph', '—'),
+                'anio': catastro.get('anio_construccion', '—'),
+                'seccion': catastro.get('seccion', '—'),
+                'grafico': catastro.get('grafico', '—'),
+            }
 
-    # Activos
+    # Activos — match app: reads from res (valor_activos dict from calcular_valor_activos)
+    val_activos = res.get('valor_activos', {}) or {}
     activos_list = []
-    total_activos = 0
-    for a in prop.get('activos', []):
-        v = safe_int(a.get('valor'))
-        if v > 0:
-            activos_list.append({'nombre': a.get('nombre', '?'), 'valor': f"{v:,}"})
-            total_activos += v
+    if val_activos.get('cocheras', 0) > 0:
+        activos_list.append({'nombre': 'Cocheras', 'valor': f"{int(val_activos['cocheras']):,}"})
+    if val_activos.get('baulera', 0) > 0:
+        activos_list.append({'nombre': 'Baulera', 'valor': f"{int(val_activos['baulera']):,}"})
+    total_activos = int(val_activos.get('total', 0))
+    # Fallback to prop activos if res has none
+    if not activos_list:
+        for a in prop.get('activos', []):
+            v = safe_int(a.get('valor'))
+            if v > 0:
+                activos_list.append({'nombre': a.get('nombre', '?'), 'valor': f"{v:,}"})
+                total_activos += v
 
-    # CV qualitative
-    cv = meta.get('cv_pool', 0)
-    if cv < 0.2:
-        cv_qualitative = "Alta confianza"
-    elif cv < 0.3:
-        cv_qualitative = "Confianza media"
+    # CV cualitativo — match app thresholds exactly
+    cv_pool_val = meta.get('cv_pool')
+    cv_qualitative = ''
+    if cv_pool_val is not None:
+        if cv_pool_val < 0.10:
+            cv_qualitative = 'Pool altamente homogeneo'
+        elif cv_pool_val < 0.15:
+            cv_qualitative = 'Homogeneidad buena'
+        elif cv_pool_val < 0.20:
+            cv_qualitative = 'Heterogeneidad moderada'
+        else:
+            cv_qualitative = 'Pool heterogeneo'
+
+    # Fechas — match app: uses mtime of cache_scraping.json
+    cache_scraping_path = os.path.join(BASE_DIR, "cache_scraping.json")
+    if os.path.exists(cache_scraping_path):
+        fecha_scraping = datetime.fromtimestamp(os.path.getmtime(cache_scraping_path)).strftime("%Y-%m-%d")
     else:
-        cv_qualitative = "Mayor dispersión"
-
-    # Fecha scraping
-    fecha_scraping = cache_data.get('cache_meta', {}).get('fecha', '—') if cache_data else '—'
+        fecha_scraping = cache_data.get('cache_meta', {}).get('fecha', '—') if cache_data else '—'
 
     ctx = dict(
         nombre=prop.get('nombre', ''),
@@ -260,6 +404,7 @@ def build_context(prop, cache_data):
         v_manual_cons=f"{v_manual_cons:,}",
         v_manual_opt=f"{v_manual_opt:,}",
         v_manual_spread=f"{v_manual_opt - v_manual_cons:,}" if v_manual and v_manual_opt and v_manual_cons else "",
+        delta_manual=delta_manual,
         valor_adoptado=f"{valor_adoptado:,}",
         fuente_adoptada=fuente_adoptada,
         v_manual_m2=f"{int(v_manual / m2_eq):,}" if v_manual and m2_eq else "",
@@ -318,6 +463,17 @@ def build_context(prop, cache_data):
         comparables=comparables_list,
         razonamiento=razonamiento,
         razonamiento_manual=razonamiento_manual,
+        factor_total=f"{(res.get('factor_total', 1.0)-1)*100:+.1f}%",
+        depreciacion=f"{(res.get('delta_anti', 1.0)-1)*100:+.1f}%",
+        nlp_ajuste=f"{res.get('nlp_ajuste', 0)*100:+.1f}%",
+        cv_pool=f"{meta.get('cv_pool', 0):.3f}",
+        percentil=meta.get('percentil_usado', 'P50'),
+        tiene_activos=total_activos > 0,
+        activos=activos_list,
+        total_activos=f"{total_activos:,}",
+        catastro=catastro_data,
+        logo_b64=logo_b64,
+        map_b64=map_b64,
         fd_estado=f"{(_fd.get('factor_estado', 1.0) - 1.0) * 100:+.1f}%" if _fd else "+0.0%",
         fd_calidad=f"{(_fd.get('factor_calidad', 1.0) - 1.0) * 100:+.1f}%" if _fd else "+0.0%",
         fd_amenities=f"{_fd.get('delta_amenities', 0) * 100:+.1f}%" if _fd else "+0.0%",
@@ -328,12 +484,6 @@ def build_context(prop, cache_data):
         fd_amenities_detalle=_fd.get('detalle_amenities', '') if _fd else '',
         radio_m=meta.get('radio_usado', 1000),
         cv_qualitative=cv_qualitative,
-        tiene_activos=total_activos > 0,
-        activos=activos_list,
-        total_activos=f"{total_activos:,}",
-        catastro=catastro_data,
-        logo_b64=logo_b64,
-        map_b64=map_b64,
     )
     return ctx
 

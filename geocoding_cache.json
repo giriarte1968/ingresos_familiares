@@ -503,5 +503,180 @@
       "input": "Avenida Francia 250 bis",
       "tiene_bis": true
     }
+  },
+  "pellegrini 1200": {
+    "lat": -32.9569614,
+    "lon": -60.6421636,
+    "status": "low_confidence",
+    "score": 6.83916990920427e-05,
+    "type": "house",
+    "ancla_id": "auto_gap_medio_804",
+    "ancla_usd": 1380,
+    "distancia_km": 0.22,
+    "_fuente": "nominatim",
+    "_debug": {
+      "pasos": [
+        "Cache MISS",
+        "Catastro CSV MISS",
+        "Nominatim structured",
+        "Nominatim OK lat=-32.95696 lon=-60.64216 score=6.83916990920427e-05 type=house",
+        "Validacion status=low_confidence",
+        "Fallback: free-form query",
+        "Free-form OK lat=-32.95696 lon=-60.64216"
+      ],
+      "errores": [],
+      "input": "Pellegrini 1200",
+      "tiene_bis": false
+    }
+  },
+  "pellegrini 1350": {
+    "lat": -32.9565828,
+    "lon": -60.6443129,
+    "status": "low_confidence",
+    "score": 9.99999999995449e-06,
+    "type": "house",
+    "ancla_id": "macrocentro_sur_san_martin",
+    "ancla_usd": 1350,
+    "distancia_km": 0.22,
+    "_fuente": "nominatim",
+    "_debug": {
+      "pasos": [
+        "Cache MISS",
+        "Catastro CSV MISS",
+        "Nominatim structured",
+        "Nominatim OK lat=-32.95658 lon=-60.64431 score=9.99999999995449e-06 type=house",
+        "Validacion status=low_confidence",
+        "Fallback: free-form query",
+        "Free-form OK lat=-32.95658 lon=-60.64431"
+      ],
+      "errores": [],
+      "input": "Pellegrini 1350",
+      "tiene_bis": false
+    }
+  },
+  "pellegrini 1250": {
+    "lat": -32.9568191,
+    "lon": -60.6429513,
+    "status": "low_confidence",
+    "score": 9.99999999995449e-06,
+    "type": "house",
+    "ancla_id": "auto_gap_medio_804",
+    "ancla_usd": 1380,
+    "distancia_km": 0.22,
+    "_fuente": "nominatim",
+    "_debug": {
+      "pasos": [
+        "Cache MISS",
+        "Catastro CSV MISS",
+        "Nominatim structured",
+        "Nominatim OK lat=-32.95682 lon=-60.64295 score=9.99999999995449e-06 type=house",
+        "Validacion status=low_confidence",
+        "Fallback: free-form query",
+        "Free-form OK lat=-32.95682 lon=-60.64295"
+      ],
+      "errores": [],
+      "input": "Pellegrini 1250",
+      "tiene_bis": false
+    }
+  },
+  "3 de febrero 520": {
+    "lat": -32.9541101,
+    "lon": -60.6316406,
+    "status": "low_confidence",
+    "score": 9.99999999995449e-06,
+    "type": "house",
+    "ancla_id": "auto_gap_medio_916",
+    "ancla_usd": 1690,
+    "distancia_km": 0.24,
+    "_fuente": "nominatim",
+    "_debug": {
+      "pasos": [
+        "Cache MISS",
+        "Catastro CSV MISS",
+        "Nominatim structured",
+        "Nominatim OK lat=-32.95411 lon=-60.63164 score=9.99999999995449e-06 type=house",
+        "Validacion status=low_confidence",
+        "Fallback: free-form query",
+        "Free-form OK lat=-32.95411 lon=-60.63164"
+      ],
+      "errores": [],
+      "input": "3 de Febrero 520",
+      "tiene_bis": false
+    }
+  },
+  "entre ríos  400": {
+    "lat": -32.9412249,
+    "lon": -60.6397994,
+    "status": "low_confidence",
+    "score": 6.83916990920427e-05,
+    "type": "house",
+    "ancla_id": "macrocentro_salta_lagos",
+    "ancla_usd": 1620,
+    "distancia_km": 0.14,
+    "_fuente": "nominatim",
+    "_debug": {
+      "pasos": [
+        "Cache MISS",
+        "Catastro CSV MISS",
+        "Nominatim structured",
+        "Nominatim OK lat=-32.94122 lon=-60.63980 score=6.83916990920427e-05 type=house",
+        "Validacion status=low_confidence",
+        "Fallback: free-form query",
+        "Free-form OK lat=-32.94122 lon=-60.63980"
+      ],
+      "errores": [],
+      "input": "Entre Ríos  400",
+      "tiene_bis": false
+    }
+  },
+  "mitre 1473": {
+    "lat": -32.9544322,
+    "lon": -60.6415903,
+    "status": "low_confidence",
+    "score": 9.99999999995449e-06,
+    "type": "house",
+    "ancla_id": "auto_gap_medio_804",
+    "ancla_usd": 1380,
+    "distancia_km": 0.07,
+    "_fuente": "nominatim",
+    "_debug": {
+      "pasos": [
+        "Cache MISS",
+        "Catastro CSV MISS",
+        "Nominatim structured",
+        "Nominatim OK lat=-32.95443 lon=-60.64159 score=9.99999999995449e-06 type=house",
+        "Validacion status=low_confidence",
+        "Fallback: free-form query",
+        "Free-form OK lat=-32.95443 lon=-60.64159"
+      ],
+      "errores": [],
+      "input": "Mitre 1473",
+      "tiene_bis": false
+    }
+  },
+  "cochabamba 45": {
+    "lat": -32.9611391,
+    "lon": -60.6264443,
+    "status": "low_confidence",
+    "score": 9.99999999995449e-06,
+    "type": "house",
+    "ancla_id": "martin_rio_urquiza",
+    "ancla_usd": 1850,
+    "distancia_km": 0.35,
+    "_fuente": "nominatim",
+    "_debug": {
+      "pasos": [
+        "Cache MISS",
+        "Catastro CSV MISS",
+        "Nominatim structured",
+        "Nominatim OK lat=-32.96114 lon=-60.62644 score=9.99999999995449e-06 type=house",
+        "Validacion status=low_confidence",
+        "Fallback: free-form query",
+        "Free-form OK lat=-32.96114 lon=-60.62644"
+      ],
+      "errores": [],
+      "input": "Cochabamba 45",
+      "tiene_bis": false
+    }
   }
 }

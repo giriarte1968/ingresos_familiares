@@ -28,7 +28,8 @@ API_FIELDS = (
     "id,title,slug,price,area,bedrooms,bathrooms,"
     "address,latitude,longitude,operation_id,"
     "antiquity,delivery_year,currency_id,"
-    "hide_price,published_on_portal"
+    "hide_price,published_on_portal,"
+    "date_created"
 )
 
 
@@ -215,6 +216,7 @@ def scrapear_propia(max_id, existing_urls, existing_ids, max_pages=30, limit_per
                     "moneda": "USD",
                     "antiquity": item.get("antiquity"),
                     "delivery_year": item.get("delivery_year"),
+                    "date_created": item.get("date_created"),
                 })
                 new_in_page += 1
 

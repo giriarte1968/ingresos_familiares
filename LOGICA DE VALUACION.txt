@@ -1,0 +1,31 @@
+LOGICA DE VALUACION
+Comparación: Flujo "Supersimple" vs Código Real
+Tu flujo simplificado tiene 7 pasos secuenciales. El código real ejecuta los pasos 3-7 como una única operación atómica al final. Estas son las discrepancias:
+
+Tabla resumen
+Paso	Tu flujo	Código real	Discrepancia
+1. Búsqueda geográfica	Radios progresivos	3 niveles de fallback (geo, zona+geo, solo zona) con filtro fecha integrado	Menor — mismo concepto, más complejo
+2. CT (fecha)	A props >6 meses	Mismo trigger, pero 2 funciones CT (venta/alquiler), tasas por macrozona	Menor — mismo concepto, más matices
+3. Normalización tamaño	Paso separado después de CT	Se aplica DENTRO de _precio_ajustado(), que se llama al FINAL en _computar_vm2_core()	GRANDES — no es un paso independiente
+4. Normalización dormitorio	Paso separado después de tamaño	Se aplica DENTRO de _precio_ajustado(), inmediatamente después de tamaño	GRANDES — no es un paso independiente
+5. Lógica barrera	Filtro de barrera	Multiphase: split pool, percentiles separados, alpha blend (0.50-0.70), penalidad proporcional (máx 3%)	GRANDES — mucho más complejo que un filtro
+6. Cochera/adicionales	Sumo valores adicionales	Se aplica FUERA de obtener_mediana_cluster_v2(), en valuar_propiedad_v7() como USD adicional al total	GRANDES — alcance incorrecto
+7. Valuación (P50)	P50	Venta: percentil dinámico (P33-P60 según CV) + alpha blend + penalidad barrera. Alquiler: mediana pura	GRANDES — "P50" solo es correcto para alquiler
+Pasos faltantes en tu flujo simplificado
+Paso	Código real
+Filtro IQR	Filtro robusto de outliers (0.6x-1.6x mediana) antes de la valuación
+Filtro de edad	±10 años del año de construcción del sujeto
+Deduplicación	Por (precio, m2, zona)
+Conversión moneda	USD→ARS para alquiler vía Binance
+Filtro calidad alquiler	Filtra datos sospechosos (USD m2 > 30, ARS m2 < 500)
+Insight arquitectónico clave
+La discrepancia más importante: Tamaño, dormitorio y barrera NO son etapas secuenciales como sugiere tu flujo. Todo está anidado dentro de _precio_ajustado() y _computar_vm2_core(), que se ejecutan como una sola operación atómica al final.
+
+El orden real dentro de esa operación atómica es:
+
+Separar same/cross por _cross_soft
+Para cada comparable: _precio_ajustado() = precio_m2 * CT / size_adj * dorm_ratio
+Calcular percentil separadamente para pool same y cross
+Alpha-blend de los dos percentiles
+Aplicar penalidad proporcional de barrera
+Entonces el flujo real es: CT → Tamaño → Dormitorio → Percentil → Blend → Penalidad barrera, todo dentro de una llamada, en vez de etapas separadas aplicadas al pool completo.

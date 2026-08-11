@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Simulacion con efecto de barrera v9.
+Simulacion con efecto de barrera v10.
 NUEVA FORMULA: Reemplaza alpha/blend/penalty con ajuste individual por barrera.
 
 Flujo:
-1. Llamar engine para obtener pool_final (comps filtrados por geo/dorms/CT/size)
+1. Llamar engine para obtener pool_final (SIN age filter para pool grande)
 2. RE-CLASIFICAR cada comp con barreras corrected (mismas reglas que engine)
 3. Para comps cross: detectar QUE barrera cruzan, aplicar efecto individual
 4. Calcular P33 de TODO el pool ajustado (same + cross-adjusted)
@@ -36,6 +36,8 @@ with open('propiedades.json', 'r', encoding='utf-8') as f:
     propiedades = json.load(f)['propiedades']
 print(f"  Props prueba: {len(propiedades)}")
 
+TARGET_PROPS = ['Mabel', 'Ayacucho', 'Vera Mujica', 'P1200', 'Entre Rios', 'Brown 2750', 'Francia 250b', 'Mitre1473', 'Cochabamba 45']
+
 
 # --- FUNCIONES AUXILIARES ---
 def haversine_m(lat1, lon1, lat2, lon2):
@@ -54,16 +56,15 @@ def _intersect(p1, p2, p3, p4):
 
 
 def check_barrier_crossing_with_name(p1, p2, barriers):
-    """Igual que engine pero retorna nombre de barrera detectada."""
     for b in barriers:
-        props = b.get('properties', {})
-        bt = props.get('barrier_type')
+        props_b = b.get('properties', {})
+        bt = props_b.get('barrier_type')
         if not bt:
             continue
         coords = b.get('geometry', {}).get('coordinates', [])
         for i in range(len(coords) - 1):
             if _intersect(p1, p2, coords[i], coords[i + 1]):
-                return bt, props.get('name', '')
+                return bt, props_b.get('name', '')
     return False, None
 
 
@@ -180,21 +181,23 @@ for nombre, data in sorted(efectos.items(), key=lambda x: x[1]['efecto']):
 
 # --- 3. SIMULACION: NUEVA FORMULA ---
 print("\n" + "=" * 140)
-print("SIMULACION v9 - NUEVA FORMULA (sin alpha/blend/penalty)")
+print("SIMULACION v10 - NUEVA FORMULA (sin alpha/blend/penalty)")
 print("=" * 140)
 print("Date:", datetime.now().strftime('%Y-%m-%d %H:%M'))
+print("Pool: SIN age filter (para tener datos suficientes)")
 print()
-print("%-18s %10s %10s %10s %8s %7s %7s %10s" % (
-    "Property", "Stored", "Engine", "NewFormula", "Delta%", "n_s", "n_c", "Barriers"))
-print("-" * 140)
 
 from parsers.mercado_inmobiliario import (
     obtener_mediana_cluster_v2, _precio_ajustado,
+    calcular_size_adjustment, obtener_dorm_type_ratio,
 )
 from parsers.cluster_filters import calcular_percentil
 
 for prop in propiedades:
     nombre = prop['nombre']
+    if nombre not in TARGET_PROPS:
+        continue
+
     uv = prop.get('_ultima_valuacion', {})
     stored = uv.get('auto_valor_usd', 0)
 
@@ -208,14 +211,16 @@ for prop in propiedades:
             print("%-18s SKIP: missing lat/lon/dorms" % nombre)
             continue
 
-        # 1. Llamar engine para obtener pool_final (con anio_sujeto para age filter)
-        anio_const = prop.get('anio_construccion', 2020)
+        print("\n" + "=" * 140)
+        print("PROPIEDAD: %s | zona=%s | dorms=%d | m2=%.0f | anio=%s" % (
+            nombre, prop.get('zona'), dorms, m2, prop.get('anio_construccion')))
+
+        # 1. Llamar engine SIN anio_sujeto (pool grande para analisis)
         vm2_engine, n_pool, meta = obtener_mediana_cluster_v2(
             zona=prop.get('zona', ''),
             dormitorios=dorms, operacion='venta',
             lat_ref=lat, lon_ref=lon,
             fecha_ref='2026-04',
-            anio_sujeto=anio_const,
             tipo_inmueble=prop.get('tipo_inmueble') or prop.get('tipo') or 'departamento',
             retro_dias=uv.get('retro_dias', 0),
             flex_dormitorios=uv.get('flex_dormitorios', None),
@@ -228,12 +233,16 @@ for prop in propiedades:
         percentil = meta.get('percentil_usado', 'P33')
         pctl_num = int(''.join(filter(str.isdigit, percentil))) if percentil else 33
 
-        # 2. RE-CLASIFICAR con barreras corrected (mismas reglas que engine)
+        print("Engine: vm2=%.0f, value=$%s, pool=%d, percentil=%s, macrozona=%s" % (
+            vm2_engine or 0, "{:,}".format(engine_value), len(pool_final), percentil, macrozona_id))
+
+        # 2. RE-CLASIFICAR con barreras corrected
         zona_ref = prop.get('zona', '')
         misma_zona_count = 0
 
         precios_same = []
         precios_cross = []
+        precios_excluded = []
         barreras_detectadas = []
         comps_detalle = []
 
@@ -246,54 +255,48 @@ for prop in propiedades:
             comp_lon = comp.get('lon')
             if not comp_lat or not comp_lon:
                 precios_same.append(precio)
-                comps_detalle.append({'nombre': comp.get('direccion', '?'), 'tipo': 'same', 'precio': precio, 'razon': 'sin_coords'})
+                comps_detalle.append({'nombre': comp.get('direccion', '?')[:40], 'tipo': 'same', 'precio': precio, 'precio_aj': precio, 'razon': 'sin_coords'})
                 continue
 
             try:
                 comp_lat, comp_lon = float(comp_lat), float(comp_lon)
             except:
                 precios_same.append(precio)
-                comps_detalle.append({'nombre': comp.get('direccion', '?'), 'tipo': 'same', 'precio': precio, 'razon': 'coords_invalid'})
+                comps_detalle.append({'nombre': comp.get('direccion', '?')[:40], 'tipo': 'same', 'precio': precio, 'precio_aj': precio, 'razon': 'coords_invalid'})
                 continue
 
-            # Misma zona exception (como en engine)
             comp_zona = comp.get('zona', '')
             if zona_ref and comp_zona and zona_ref == comp_zona:
                 precios_same.append(precio)
                 misma_zona_count += 1
-                comps_detalle.append({'nombre': comp.get('direccion', '?'), 'tipo': 'same', 'precio': precio, 'razon': f'misma_zona={zona_ref}'})
+                comps_detalle.append({'nombre': comp.get('direccion', '?')[:40], 'tipo': 'same', 'precio': precio, 'precio_aj': precio, 'razon': f'misma_zona={zona_ref}'})
                 continue
 
-            # Detectar cruce de barrera
             bt, barrier_name = check_barrier_crossing_with_name(
                 (lon, lat), (comp_lon, comp_lat), barreras
             )
 
             if bt == 'hard':
-                # Hard barrier: excluir del pool (como en engine)
-                comps_detalle.append({'nombre': comp.get('direccion', '?'), 'tipo': 'excluded', 'precio': precio, 'razon': f'hard:{barrier_name}'})
-                continue
+                precios_excluded.append(precio)
+                comps_detalle.append({'nombre': comp.get('direccion', '?')[:40], 'tipo': 'excluded', 'precio': precio, 'precio_aj': precio, 'razon': f'hard:{barrier_name}'})
             elif bt == 'soft':
-                # Soft barrier: clasificar como cross
                 efecto_data = efectos.get(barrier_name, None)
                 if efecto_data:
                     efecto = efecto_data['efecto']
                     precio_aj = precio / (1 - efecto) if efecto != 1.0 else precio
                 else:
-                    # Sin efecto calculado: mantener precio original (cross pero sin ajuste)
                     efecto = 0.0
                     precio_aj = precio
 
                 precios_cross.append(precio_aj)
                 barreras_detectadas.append(barrier_name or f'soft_{bt}')
                 comps_detalle.append({
-                    'nombre': comp.get('direccion', '?'), 'tipo': 'cross', 'precio': precio,
+                    'nombre': comp.get('direccion', '?')[:40], 'tipo': 'cross', 'precio': precio,
                     'precio_aj': precio_aj, 'barrera': barrier_name, 'efecto': efecto
                 })
             else:
-                # No barrier: same-side
                 precios_same.append(precio)
-                comps_detalle.append({'nombre': comp.get('direccion', '?'), 'tipo': 'same', 'precio': precio, 'razon': 'sin_barrera'})
+                comps_detalle.append({'nombre': comp.get('direccion', '?')[:40], 'tipo': 'same', 'precio': precio, 'precio_aj': precio, 'razon': 'sin_barrera'})
 
         # 3. NUEVA FORMULA: P33 de TODO el pool ajustado
         all_prices = sorted(precios_same + precios_cross)
@@ -305,32 +308,44 @@ for prop in propiedades:
         new_value = round(vm2_new * m2) if vm2_new and m2 else 0
 
         # 4. Estadisticas
-        p33_same = calcular_percentil(precios_same, pctl_num) if precios_same else None
-        p33_cross = calcular_percentil(precios_cross, pctl_num) if precios_cross else None
-
         unique_barriers = list(set(barreras_detectadas))
 
-        delta_stored = ((new_value - stored) / stored * 100) if stored else 0
-
-        print("%-18s $%9s $%9s $%9s %+7.1f%% %5d %5d" % (
-            nombre,
-            "${:,}".format(stored),
-            "${:,}".format(round(engine_value)),
-            "${:,}".format(new_value),
-            delta_stored,
-            len(precios_same),
-            len(precios_cross),
-        ))
+        print("\nPOOL ANALYSIS:")
+        print("  Same-side:     %d comps" % len(precios_same))
+        print("  Cross-soft:    %d comps" % len(precios_cross))
+        print("  Excluded-hard: %d comps" % len(precios_excluded))
+        print("  Total used:    %d comps" % len(all_prices))
         if unique_barriers:
-            print("  ^ Barreras: %s" % ", ".join(unique_barriers))
+            print("  Barreras:      %s" % ", ".join(unique_barriers))
 
-        # 5. Detalle de ajustes (solo si hay cross comps)
+        p33_same = calcular_percentil(sorted(precios_same), pctl_num) if precios_same else None
+        p33_cross = calcular_percentil(sorted(precios_cross), pctl_num) if precios_cross else None
+
+        print("\nRESULTADOS:")
+        print("  Engine (alpha/blend/penalty): vm2=$%s, value=$%s" % (
+            "{:,.0f}".format(vm2_engine or 0), "{:,}".format(engine_value)))
+        print("  NewFormula (per-barrier+P33): vm2=$%s, value=$%s" % (
+            "{:,.0f}".format(vm2_new or 0), "{:,}".format(new_value)))
+        if engine_value and new_value:
+            delta = ((new_value - engine_value) / engine_value) * 100
+            print("  Delta: %+.1f%%" % delta)
+
+        # 5. Detalle de cross comps
         if precios_cross:
-            print(f"    P33_same=${p33_same:.0f} P33_cross_aj=${p33_cross:.0f}" if p33_same and p33_cross else "")
+            print("\nCROSS COMPS DETALLE:")
             for d in comps_detalle:
-                if d['tipo'] == 'cross' and d.get('efecto', 0) != 0:
+                if d['tipo'] == 'cross':
                     pct = d['efecto'] * 100
-                    print(f"    -> {d['nombre']}: ${d['precio']:.0f} -> ${d['precio_aj']:.0f} ({pct:+.1f}% por {d['barrera']})")
+                    print("  -> %s: $%.0f -> $%.0f (%+.1f%% por %s)" % (
+                        d['nombre'], d['precio'], d['precio_aj'], pct, d['barrera']))
+
+        # 6. Percentiles del pool
+        print("\nPERCENTILES (all adjusted prices):")
+        if all_prices:
+            s = sorted(all_prices)
+            for pctl in [25, 33, 50, 75]:
+                val = compute_percentil(pctl, s)
+                print("  P%d: $%s" % (pctl, "{:,.0f}".format(val)))
 
     except Exception as e:
         import traceback
@@ -339,19 +354,14 @@ for prop in propiedades:
 
 
 # --- RESUMEN ---
-print()
-print("=" * 140)
+print("\n" + "=" * 140)
 print("RESUMEN")
 print("=" * 140)
 print()
-print("Stored    = valor en propiedades.json (_ultima_valuacion.auto_valor_usd)")
-print("Engine    = valor con logica ACTUAL (alpha/blend/penalty 3%)")
-print("NewFormula= valor con NUEVA formula (P33 de pool ajustado por barrera)")
-print("Delta%    = cambio NewFormula vs. Stored")
+print("Engine    = valor con logica ACTUAL (alpha * P33_same + (1-alpha) * P33_cross - 3%% penalty)")
+print("NewFormula= valor con NUEVA formula (P33 de pool ajustado por barrera individual)")
 print()
 print("NUEVA FORMULA:")
-print("  1. Llamar engine para obtener pool_final (comps filtrados)")
-print("  2. Re-clasificar con barreras corrected (same/cross/excluded)")
-print("  3. Para cross: precio_aj = precio / (1 - efecto_barrera)")
-print("  4. vm2 = P33 de TODOS los precios ajustados (same + cross)")
-print("  5. Sin alpha, sin blend, sin penalty del 3%")
+print("  1. Para cada comp cross: precio_aj = precio / (1 - efecto_barrera)")
+print("  2. vm2 = percentil(pool) de TODOS los precios ajustados (same + cross-adjusted)")
+print("  3. Sin alpha, sin blend, sin penalty del 3%%")

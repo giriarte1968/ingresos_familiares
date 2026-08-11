@@ -1,0 +1,43 @@
+{
+  "error": "insuficientes_comparables",
+  "mensaje": "No se encontraron suficientes comparables (mínimo 3). Utilice la Valuación Manual o ajuste Retro/Flex.",
+  "n_comps": 2,
+  "comparables_venta": [
+    {
+      "precio": 480000.0,
+      "m2": 166.54,
+      "precio_m2": 2882.19,
+      "time_adjustment": 0.9782,
+      "precio_m2_ajustado": 2819.28,
+      "dormitorios": 3,
+      "direccion": "Condominios del Alto 1 Puerto Norte",
+      "direccion_limpia": "del Alto Puerto Norte 1",
+      "lat": -32.92891,
+      "lon": -60.66469,
+      "zona": "Puerto Norte",
+      "tipo": "Departamento",
+      "antiquity": 10,
+      "date_created": "2025-06-19T12:20:11.404Z",
+      "distancia_m": 295.0,
+      "_cross_soft": true
+    },
+    {
+      "precio": 820000.0,
+      "m2": 178.0,
+      "precio_m2": 4606.74,
+      "time_adjustment": 0.9248,
+      "precio_m2_ajustado": 4260.43,
+      "dormitorios": 3,
+      "direccion": "Av. Madres Plaza de Mayo 2830 Puerto Norte",
+      "direccion_limpia": "Madres Plaza de Mayo Puerto Norte 2830",
+      "lat": -32.92741,
+      "lon": -60.65837,
+      "zona": "Puerto Norte",
+      "tipo": "Departamento",
+      "antiquity": 10,
+      "date_created": "2022-09-09T05:00:08.000Z",
+      "distancia_m": 481.0,
+      "_cross_soft": true
+    }
+  ],
+  "mapa_html": 

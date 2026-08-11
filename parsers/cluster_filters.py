@@ -76,8 +76,15 @@ def filtrar_por_tipo_operacion_dorms(props: List[Dict], tipo: Optional[str] = No
             p_dorms = p.get('dormitorios')
             if p_dorms is None:
                 continue
-            if flex_dormitorios is not None:
-                if int(p_dorms) != dormitorios and int(p_dorms) not in flex_dormitorios:
+            if flex_dormitorios is not None and flex_dormitorios != 0:
+                if isinstance(flex_dormitorios, (int, float)):
+                    d_margin = int(flex_dormitorios)
+                    valid_dorms = set(range(max(1, dormitorios - d_margin), min(5, dormitorios + d_margin + 1)))
+                elif isinstance(flex_dormitorios, (list, tuple, set)):
+                    valid_dorms = set(flex_dormitorios)
+                else:
+                    valid_dorms = {dormitorios}
+                if int(p_dorms) not in valid_dorms:
                     continue
             else:
                 if abs(int(p_dorms) - dormitorios) > tolerancia_dorms:

@@ -26,6 +26,34 @@ from parsers.valuacion_helpers import calcular_rango_venta, ensamblar_metadata_r
 # Fuente: Análisis por zona basado en demanda, precio de compra y vacancia.
 # Centro 4.9% (alta demanda pero precio alto), default 4.9%.
 # Para editar: modificar los valores directamente aquí.
+import json
+import os
+import re
+import math
+import unicodedata
+import logging
+from datetime import datetime
+from typing import Optional
+from parsers.location_engine import cargar_anclas, calcular_precio_m2, estimar_confianza, get_ancla_mas_cercana, cargar_precios_oficiales, obtener_precio_oficial
+from parsers import cluster_filters
+from parsers.cluster_filters import (
+    filtrar_por_fecha,
+    separar_por_barreras,
+    calcular_percentil,
+    calcular_blend_p33,
+    seleccionar_percentil_por_edad,
+    seleccionar_percentil_por_calidad_pool,
+    _calcular_cv,
+)
+from parsers.valuacion_helpers import calcular_rango_venta, ensamblar_metadata_resolucion
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# ROI_ZONAL — Configuración editable (TAREA-157)
+# Calibrado con análisis de mercado Jul 2026 × 0.75 (factor descuento oferta→real)
+# Fuente: Análisis por zona basado en demanda, precio de compra y vacancia.
+# Centro 4.9% (alta demanda pero precio alto), default 4.9%.
+# Para editar: modificar los valores directamente aquí.
 # ══════════════════════════════════════════════════════════════════════════════
 ROI_ZONAL = {
     'centro': 0.049,
@@ -42,9 +70,7 @@ ROI_ZONAL = {
     'puerto_norte': 0.034,
 }
 
-
 def _calcular_mediana(precios):
-    """Pure Python median - equivalente a _calcular_mediana()."""
     if not precios:
         return 0.0
     s = sorted(precios)
@@ -53,9 +79,7 @@ def _calcular_mediana(precios):
         return float(s[n // 2])
     return (s[n // 2 - 1] + s[n // 2]) / 2.0
 
-
 def _calcular_percentil_linear(precios, q):
-    """Pure Python percentile con interpolacion lineal - equivalente a _calcular_percentil_linear(..., q)."""
     if not precios:
         return 0.0
     s = sorted(precios)
@@ -71,108 +95,273 @@ def _calcular_percentil_linear(precios, q):
     return float(s[lo] * (1 - frac) + s[hi] * frac)
 
 
+# ==============================================================================
+# MODELO v8f: SA CONTINUO + FLEX DORM EMPIRICO + BARRERAS VECTORIALES (V8F PRODUCTION)
+# ==============================================================================
+_sa_cont_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'sa_continuous.json')
+try:
+    with open(_sa_cont_path, 'r', encoding='utf-8') as _f:
+        sa_cont_data = json.load(_f)
+except Exception:
+    sa_cont_data = {}
+
+_flex_dorm_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'flex_dorm_factors.json')
+try:
+    with open(_flex_dorm_path, 'r', encoding='utf-8') as _f:
+        flex_dorm_data = json.load(_f).get('data', {})
+except Exception:
+    flex_dorm_data = {}
+
+_barreras_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'barreras_rosario.json')
+try:
+    with open(_barreras_path, 'r', encoding='utf-8') as _f:
+        barreras_data = json.load(_f)
+        barreras_features = barreras_data.get('features', [])
+except Exception:
+    barreras_data = {}
+    barreras_features = []
+
+SA_CONTINUOUS_BOUNDS_2SIGMA = {
+    "centro_premium": (0.780, 1.250),
+    "macrocentro": (0.727, 1.375),
+    "puerto_norte": (0.807, 1.238),
+    "norte": (0.781, 1.281),
+    "oeste": (0.746, 1.340),
+    "fisherton": (0.793, 1.261),
+    "sur_default": (0.848, 1.179),
+    "_global": (0.775, 1.290),
+}
+
+MACROZONE_BARRIER_GAP_FALLBACKS = {
+    'centro_premium': 0.1588,
+    'macrocentro': 0.2014,
+    'puerto_norte': 0.0567,
+    'norte': 0.3741,
+    'oeste': 0.1469,
+    'fisherton': 0.0,
+    'sur_default': 0.0725,
+    'resto_rosario': 0.1692,
+}
+
+BARRIER_VECTOR_INFO = {
+    "Vías FC Rosario Central": {"cheaper_side": "LEFT", "gap": 0.2014},
+    "Vías FC Barrio Martin / Puerto": {"cheaper_side": "RIGHT", "gap": 0.1588},
+    "Av. Pellegrini (Macrocentro / Abasto)": {"cheaper_side": "RIGHT", "gap": 0.1250},
+    "Av. Francia (Centro / Puerto Norte)": {"cheaper_side": "LEFT", "gap": 0.1450},
+    "Av. 27 de Febrero (Macrocentro / Sur)": {"cheaper_side": "RIGHT", "gap": 0.1820},
+}
+
+def get_beta_continuous(macrozona_id, dorms=1):
+    mz = sa_cont_data.get('macrozonas', {}).get(macrozona_id or '_global', {})
+    d_str = str(min(max(dorms or 1, 1), 4))
+    beta = mz.get(d_str, mz.get('all', -0.18))
+    if beta is None or beta >= 0:
+        beta = mz.get('all', -0.18)
+    if beta is None or beta >= 0:
+        beta = sa_cont_data.get('beta_global_all', -0.18)
+    return max(-0.35, min(-0.05, beta))
+
+def sa_factor_continuous(m2_sujeto, m2_comp, macrozona_id=None, dorms=1):
+    if not m2_sujeto or not m2_comp or m2_comp <= 0 or m2_sujeto <= 0:
+        return 1.0
+    beta = get_beta_continuous(macrozona_id, dorms)
+    ratio = (m2_sujeto / m2_comp) ** beta
+    bounds = SA_CONTINUOUS_BOUNDS_2SIGMA.get(macrozona_id, SA_CONTINUOUS_BOUNDS_2SIGMA['_global'])
+    return max(bounds[0], min(bounds[1], ratio))
+
+def _obtener_flex_fallback_dinamico():
+    tot = 0
+    w = {'1': 0.0, '2': 0.0, '3': 0.0, '4': 0.0}
+    for mz, data in flex_dorm_data.items():
+        if mz == '_global' or not isinstance(data, dict): continue
+        n = data.get('n', data.get('n_props', 100))
+        ratios = data.get('ratios_vs_2d', {})
+        if not ratios: continue
+        tot += n
+        for d in ['1', '2', '3', '4']:
+            w[d] += ratios.get(d, 1.0) * n
+    if tot > 0:
+        return {d: round(w[d] / tot, 4) for d in ['1', '2', '3', '4']}
+    return {'1': 1.0845, '2': 1.0, '3': 0.9831, '4': 0.8178}
+
+def factor_dorm_flex(dorms_sujeto, dorms_comp, macrozona_id=None):
+    if not dorms_sujeto or not dorms_comp or dorms_sujeto == dorms_comp:
+        return 1.0
+    mz_data = flex_dorm_data.get(macrozona_id or '', {})
+    if not mz_data:
+        mz_data = flex_dorm_data.get('_global', {})
+    ratios = mz_data.get('ratios_vs_2d', {})
+    if not ratios:
+        ratios = _obtener_flex_fallback_dinamico()
+    r_suj = ratios.get(str(dorms_sujeto), 1.0)
+    r_comp = ratios.get(str(dorms_comp), 1.0)
+    if not r_suj or not r_comp or r_comp == 0:
+        return 1.0
+    factor = r_suj / r_comp
+    return max(0.50, min(2.00, factor))
+
+def get_closest_segment_side(px, py, segment_coords):
+    if not segment_coords or len(segment_coords) < 2: return "LEFT", 999.0
+    min_d = 999.0
+    best_cross = 0.0
+    for i in range(len(segment_coords)-1):
+        ax, ay = segment_coords[i]
+        bx, by = segment_coords[i+1]
+        v_x, v_y = bx - ax, by - ay
+        w_x, w_y = px - ax, py - ay
+        c1 = w_x * v_x + w_y * v_y
+        c2 = v_x * v_x + v_y * v_y
+        b = c1 / c2 if c2 > 0 else 0
+        b = max(0.0, min(1.0, b))
+        closest_x = ax + b * v_x
+        closest_y = ay + b * v_y
+        d = math.hypot(px - closest_x, py - closest_y)
+        if d < min_d:
+            min_d = d
+            best_cross = v_x * (py - ay) - v_y * (px - ax)
+    side = "LEFT" if best_cross >= 0 else "RIGHT"
+    return side, min_d
+
+def detectar_barrera_vector(lat_suj, lon_suj, lat_comp, lon_comp):
+    if not lat_suj or not lon_suj or not lat_comp or not lon_comp:
+        return None, {}, []
+    for barrera in barreras_features:
+        props_b = barrera.get('properties', {})
+        nombre = props_b.get('name', '?')
+        geom = barrera.get('geometry', {})
+        coords = geom.get('coordinates', [])
+        if not coords or len(coords) < 2: continue
+        for i in range(len(coords) - 1):
+            bx1, by1 = coords[i]  # bx=lon, by=lat
+            bx2, by2 = coords[i+1]
+            dx_p = lon_comp - lon_suj
+            dy_p = lat_comp - lat_suj
+            dx_b = bx2 - bx1
+            dy_b = by2 - by1
+            denom = dx_p * dy_b - dy_p * dx_b
+            if abs(denom) < 1e-12: continue
+            t = ((bx1 - lon_suj) * dy_b - (by1 - lat_suj) * dx_b) / denom
+            u = ((bx1 - lon_suj) * dy_p - (by1 - lat_suj) * dx_p) / denom
+            if 0 <= t <= 1 and 0 <= u <= 1:
+                return nombre, BARRIER_VECTOR_INFO.get(nombre, {}), coords
+    return None, {}, []
+
+def calcular_factor_penalty_vector(lat_suj, lon_suj, lat_comp, lon_comp, macrozona_id=None):
+    if not lat_suj or not lon_suj or not lat_comp or not lon_comp:
+        return 1.0
+    barrier_name, b_info, coords = detectar_barrera_vector(lat_suj, lon_suj, lat_comp, lon_comp)
+    if not barrier_name:
+        return 1.0
+    side_suj, _ = get_closest_segment_side(lon_suj, lat_suj, coords)
+    side_comp, _ = get_closest_segment_side(lon_comp, lat_comp, coords)
+    if side_suj == side_comp: return 1.0
+    gap_fallback = MACROZONE_BARRIER_GAP_FALLBACKS.get(macrozona_id or '', 0.1692)
+    cheaper_side = b_info.get('cheaper_side')
+    gap = b_info.get('gap', gap_fallback)
+    penalty = gap / 2.0
+    if side_suj == cheaper_side and side_comp != cheaper_side:
+        factor = 1.0 - penalty
+    elif side_suj != cheaper_side and side_comp == cheaper_side:
+        factor = 1.0 / max(1.0 - penalty, 0.70)
+    else:
+        factor = 1.0
+    return max(0.70, min(1.43, factor))
+
+def _precio_ajustado(c, macrozona_id=None, ancla_id=None, dormitorios_sujeto=None, m2_sujeto=None, lat_suj=None, lon_suj=None):
+    """Calcula precio normalizado v8f: Ct * SA Continuo * Flex-Dorm Ratio * Vector Barriers."""
+    precio = c.get('precio_m2', c.get('valor_m2', 0))
+    adj = c.get('time_adjustment', c.get('_time_adjustment', 1.0))
+    raw_val = precio * adj
+    if not raw_val or raw_val <= 0:
+        return 0.0
+    m2_comp = c.get('m2') or c.get('m2_cubiertos', 0) or 0
+    dorms_comp = c.get('dormitorios', dormitorios_sujeto)
+    
+    if m2_sujeto and m2_comp > 0:
+        ratio_sa = sa_factor_continuous(m2_sujeto, m2_comp, macrozona_id, dorms=dormitorios_sujeto)
+    else:
+        adj_size = calcular_size_adjustment(m2_comp, macrozona_id, ancla_id=ancla_id, dormitorios=dorms_comp)
+        ratio_sa = (1.0 / adj_size) if adj_size > 0 else 1.0
+
+    norm_val = raw_val * ratio_sa
+    
+    if dormitorios_sujeto and dorms_comp and dorms_comp != dormitorios_sujeto:
+        adj_dorm = factor_dorm_flex(dormitorios_sujeto, dorms_comp, macrozona_id)
+        if adj_dorm != 1.0:
+            norm_val *= adj_dorm
+            
+    if lat_suj and lon_suj and c.get('lat') and c.get('lon'):
+        f_vector = calcular_factor_penalty_vector(lat_suj, lon_suj, float(c['lat']), float(c['lon']), macrozona_id)
+        norm_val *= f_vector
+        
+    return norm_val
+
+def _computar_vm2_core(comparables, percentil, apply_barrier=True, alpha=None, macrozona_id=None, ancla_id=None, dormitorios_sujeto=None, m2_sujeto=None, lat_suj=None, lon_suj=None):
+    """
+    NÚCLEO UNIFICADO DE CÁLCULO VM2 v8f
+    Mezcla Inverse-Variance Weighting entre same vs cross dorm pools.
+    """
+    from parsers.cluster_filters import calcular_percentil, _calcular_cv
+    
+    same = [c for c in comparables if not c.get('_cross_soft', False)]
+    cross = [c for c in comparables if c.get('_cross_soft', False)]
+    
+    # Submarket price band filter for flex comps (filters out luxury penthouses / semi-pisos)
+    if len(cross) >= 5:
+        vm2_flex = sorted([_precio_ajustado(c, macrozona_id, ancla_id=ancla_id, dormitorios_sujeto=dormitorios_sujeto, m2_sujeto=m2_sujeto, lat_suj=lat_suj, lon_suj=lon_suj) for c in cross])
+        vm2_flex = [p for p in vm2_flex if p and p > 0]
+        if vm2_flex:
+            ancla = vm2_flex[len(vm2_flex) // 2]
+            cv_flex = _calcular_cv(vm2_flex) if len(vm2_flex) >= 3 else 0.30
+            dynamic_ratio = max(0.35, min(0.75, 2.0 * cv_flex))
+            lo_band = ancla * (1 - dynamic_ratio)
+            hi_band = ancla * (1 + dynamic_ratio)
+            cross_filtrados = [c for c in cross if lo_band <= _precio_ajustado(c, macrozona_id, ancla_id=ancla_id, dormitorios_sujeto=dormitorios_sujeto, m2_sujeto=m2_sujeto, lat_suj=lat_suj, lon_suj=lon_suj) <= hi_band]
+            if len(cross_filtrados) >= 4:
+                cross = cross_filtrados
+    
+    precios_same = sorted([_precio_ajustado(c, macrozona_id, ancla_id=ancla_id, dormitorios_sujeto=dormitorios_sujeto, m2_sujeto=m2_sujeto, lat_suj=lat_suj, lon_suj=lon_suj) for c in same])
+    precios_same = [p for p in precios_same if p and p > 0]
+    
+    precios_cross = sorted([_precio_ajustado(c, macrozona_id, ancla_id=ancla_id, dormitorios_sujeto=dormitorios_sujeto, m2_sujeto=m2_sujeto, lat_suj=lat_suj, lon_suj=lon_suj) for c in cross])
+    precios_cross = [p for p in precios_cross if p and p > 0]
+
+    pct_same = calcular_percentil(precios_same, percentil) if precios_same else None
+    pct_cross = calcular_percentil(precios_cross, percentil) if precios_cross else None
+
+    # Inverse-Variance Weighting
+    if pct_same is not None and pct_cross is not None:
+        cv_same = _calcular_cv(precios_same) if len(precios_same) >= 3 else 0.25
+        cv_cross = _calcular_cv(precios_cross) if len(precios_cross) >= 3 else 0.35
+        var_same = (cv_same ** 2) + 0.0001
+        var_cross = (cv_cross ** 2) + 0.0001
+        w_same = len(precios_same) / var_same
+        w_cross = len(precios_cross) / var_cross
+        alpha_eff = w_same / (w_same + w_cross)
+        vm2 = alpha_eff * pct_same + (1.0 - alpha_eff) * pct_cross
+    elif pct_same is not None:
+        vm2 = pct_same
+    elif pct_cross is not None:
+        vm2 = pct_cross
+    else:
+        vm2 = 0.0
+
+    return round(vm2, 2), len(precios_same), len(precios_cross), pct_same, pct_cross
+
+def _calcular_vm2_base(comparables, percentil, macrozona_id=None, ancla_id=None, dormitorios_sujeto=None, m2_sujeto=None, lat_suj=None, lon_suj=None):
+    vm2, n_same, n_cross, pct_same, pct_cross = _computar_vm2_core(
+        comparables, percentil, apply_barrier=True, alpha=None, macrozona_id=macrozona_id, ancla_id=ancla_id, dormitorios_sujeto=dormitorios_sujeto, m2_sujeto=m2_sujeto, lat_suj=lat_suj, lon_suj=lon_suj
+    )
+    return vm2, n_same, n_cross, pct_same, pct_cross
+
+
 def _mapear_confianza(percentil_usado):
-    """
-    Mapea percentil del motor a etiqueta de confianza (estandar industria).
-
-    Basado en Freddie Mac FSD y IAAO COV:
-    - P50: pool grande y homogeneo (n>=10, CV<25%) -> ALTA
-    - P45/P40: pool bueno/aceptable -> MEDIA
-    - P33: pool limitado -> BAJA
-
-    Args:
-        percentil_usado: String como 'P50', 'P45', 'P40', 'P33'
-
-    Returns:
-        'alta', 'media', o 'baja'
-    """
     if percentil_usado == 'P50':
         return 'alta'
     elif percentil_usado in ('P45', 'P40'):
         return 'media'
     else:
         return 'baja'
-
-
-def _precio_ajustado(c, macrozona_id=None, ancla_id=None, dormitorios_sujeto=None):
-    """Suma el ajuste temporal, normaliza por tamaño y aplica ratio dorm type (TAREA-154)."""
-    precio = c.get('precio_m2', c.get('valor_m2', 0))
-    adj = c.get('time_adjustment', c.get('_time_adjustment', 1.0))
-    raw_val = precio * adj
-    m2_comp = c.get('m2') or c.get('m2_cubiertos', 0)
-    dorms_comp = c.get('dormitorios')
-    adj_size = calcular_size_adjustment(m2_comp, macrozona_id, ancla_id=ancla_id, dormitorios=dorms_comp)
-    norm_val = raw_val / adj_size if adj_size > 0 else raw_val
-    if dormitorios_sujeto and dorms_comp and dorms_comp != dormitorios_sujeto:
-        adj_dorm = obtener_dorm_type_ratio(macrozona_id, dorms_comp, dormitorios_sujeto)
-        if adj_dorm != 1.0:
-            norm_val *= adj_dorm
-    return norm_val
-
-def _computar_vm2_core(comparables, percentil, apply_barrier=True, alpha=None, macrozona_id=None, ancla_id=None, dormitorios_sujeto=None):
-    """
-    NÚCLEO UNIFICADO DE CÁLCULO VM2 (TAREA-093)
-    Centraliza la lógica de blend alpha y corrección de barrera para evitar divergencias
-    entre el motor oficial y la vista previa de la UI.
-    
-    Args:
-        comparables: lista de objetos con 'precio_m2', 'time_adjustment' y '_cross_soft'.
-        percentil: percentil a calcular (ej. 33, 45, 50).
-        apply_barrier: si True, aplica la penalización por comparables cruzando calle.
-        alpha: si es None, usa la escala dinámica basada en n_same.
-    """
-    from parsers.cluster_filters import calcular_percentil, calcular_blend_p33
-    
-    same = [c for c in comparables if not c.get('_cross_soft', False)]
-    cross = [c for c in comparables if c.get('_cross_soft', False)]
-    
-    precios_same = sorted([_precio_ajustado(c, macrozona_id, ancla_id=ancla_id, dormitorios_sujeto=dormitorios_sujeto) for c in same])
-    precios_cross = sorted([_precio_ajustado(c, macrozona_id, ancla_id=ancla_id, dormitorios_sujeto=dormitorios_sujeto) for c in cross])
-
-
-    pct_same = calcular_percentil(precios_same, percentil) if precios_same else None
-    pct_cross = calcular_percentil(precios_cross, percentil) if precios_cross else None
-
-    # 1. Determinación de Alpha
-    if alpha is None:
-        n_same = len(precios_same)
-        if n_same >= 15: alpha = 0.70
-        elif n_same >= 8: alpha = 0.60
-        elif n_same >= 5: alpha = 0.55
-        else: alpha = 0.50
-    
-    # 2. Blend Alpha
-    vm2 = calcular_blend_p33(pct_same, pct_cross, alpha=alpha)
-    if vm2 is None:
-        vm2 = 0.0
-
-    # 3. Corrección de Barrera
-    if apply_barrier and vm2 > 0:
-        n_cross = len(precios_cross)
-        n_total = len(precios_cross) + len(precios_same)
-        if n_total > 0 and n_cross > 0:
-            barrier_pct = (n_cross / n_total) * 0.03
-            vm2 = round(vm2 * (1 - barrier_pct), 2)
-        else:
-            vm2 = round(vm2, 2)
-    else:
-        vm2 = round(vm2, 2)
-
-    return vm2, len(precios_same), len(precios_cross), pct_same, pct_cross
-
-
-def _calcular_vm2_base(comparables, percentil, macrozona_id=None, ancla_id=None, dormitorios_sujeto=None):
-    """
-    Sustituye la lógica antigua por el núcleo unificado (TAREA-093).
-    Llamada desde la UI para vistas previas.
-    """
-    # Para coherencia total con el motor, aplicamos barrera y alpha dinámico
-    vm2, n_same, n_cross, pct_same, pct_cross = _computar_vm2_core(
-        comparables, percentil, apply_barrier=True, alpha=None, macrozona_id=macrozona_id, ancla_id=ancla_id, dormitorios_sujeto=dormitorios_sujeto
-    )
-    return vm2, n_same, n_cross, pct_same, pct_cross
-
-
 
 def calcular_vm2_por_seleccion(comparables, resultado_original):
     """
@@ -1254,8 +1443,15 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                     if not (p_lat and p_lon): continue
                     dist = calcular_distancia_km(lat_ref, lon_ref, p_lat, p_lon)
                     if dist > 1.0: continue
-                    if flex_dormitorios:
-                        if p.get('dormitorios') not in flex_dormitorios and p.get('dormitorios') != dormitorios: continue
+                    if flex_dormitorios and flex_dormitorios != 0:
+                        if isinstance(flex_dormitorios, (int, float)):
+                            d_margin = int(flex_dormitorios)
+                            valid_flex_set = set(range(max(1, dormitorios - d_margin), min(5, dormitorios + d_margin + 1)))
+                        elif isinstance(flex_dormitorios, (list, tuple, set)):
+                            valid_flex_set = set(flex_dormitorios)
+                        else:
+                            valid_flex_set = {dormitorios}
+                        if p.get('dormitorios') not in valid_flex_set: continue
                     else:
                         if p.get('dormitorios') != dormitorios: continue
                     if p.get('operacion') != operacion: continue
@@ -1405,55 +1601,24 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 pass
 
         
-# === APLICAR BARRERAS GEOGRÁFICAS (Rosario) ===
-# Blending same-side / cross-soft para evitar contaminación
+        # === APLICAR BARRERAS VECTORIALES (Rosario) ===
         same_side = []
         cross_soft = []
-        
         if lat_ref and lon_ref and props:
             try:
-                from parsers.location_engine import check_barrier_crossing, cargar_barreras
-                barreras = cargar_barreras()
-                
-                barreras_result = separar_por_barreras(
-                    props=props,
-                    lat_ref=lat_ref,
-                    lon_ref=lon_ref,
-                    check_barrier_fn=lambda p1, p2: check_barrier_crossing(p1, p2, barreras),
-                    zona_ref=zona_normalizada
-                )
-                
-                same_side = barreras_result['same_side']
-                cross_soft = barreras_result['cross_soft']
-                excluded_hard = barreras_result['excluded_hard']
-                
-                # PASO 1: Convertir excluded_hard → cross_soft solo si n_same_side == 0
-                # (fallback para zonas sinprops en misma zona)
-                if not same_side and excluded_hard:
-                    for comp in excluded_hard:
-                        comp['_penalizacion_barrier'] = 0.97
-                        cross_soft.append(comp)
-                    excluded_hard = []
-                    logger.info(f"[BARRERA_FALLBACK-SAMEZONE] {zona_normalizada}: sin same_side, convirtiendo {len(cross_soft)} excluded_hard a cross_soft (0.97)")
-                
-                # PASO 2: Fallback si todas cruzan barrera dura
-                if not same_side and not cross_soft and len(excluded_hard) >= 5:
-                    for comp in excluded_hard:
-                        comp['_penalizacion_barrier'] = 0.97
-                        cross_soft.append(comp)
-                    excluded_hard = []
-                    logger.info(f"[BARRERA_FALLBACK] usando {len(cross_soft)} props vía fallback (penalización 0.97)")
-                
-                for p in same_side:
-                    p['_cross_soft'] = False
-                for p in cross_soft:
-                    p['_cross_soft'] = True
-                
-                props_barrier = same_side + cross_soft
-                if len(props_barrier) < len(props):
-                    props = props_barrier
-            except Exception as e:
-                pass  # Si falla, continuar sin barreras
+                for p in props:
+                    p_lat = float(p.get('lat', 0) or 0)
+                    p_lon = float(p.get('lon', 0) or 0)
+                    b_name, b_info, coords = detectar_barrera_vector(lat_ref, lon_ref, p_lat, p_lon)
+                    if b_name:
+                        p['_cross_soft'] = True
+                        cross_soft.append(p)
+                    else:
+                        p['_cross_soft'] = False
+                        same_side.append(p)
+                props = same_side + cross_soft
+            except Exception:
+                pass
         
         # DEDUPLICAR
         seen = set()
@@ -1651,7 +1816,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
         # Llamar al core unificado que maneja same/cross, blend alpha y barrera
         # Calculamos la versión normalizada (neutra)
         vm2_principal, n_same_core, n_cross_core, pct_same_core, pct_cross_core = _computar_vm2_core(
-            pool_final, percentil_venta, apply_barrier=True, alpha=None, macrozona_id=macrozona_id, ancla_id=ancla_id, dormitorios_sujeto=dormitorios
+            pool_final, percentil_venta, apply_barrier=True, alpha=None, macrozona_id=macrozona_id, ancla_id=ancla_id, dormitorios_sujeto=dormitorios, m2_sujeto=m2_equiv, lat_suj=lat_ref, lon_suj=lon_ref
         )
         
         # Calcular percentiles del cluster completo (para dispersión estadística y rango)
@@ -1682,12 +1847,12 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 alpha_opt = 0.55
             alpha_opt = max(0.55, min(0.70, alpha_opt))
             base_conservadora = p25_cluster if p25_cluster else vm2_principal
-            base_mercado = p50_cluster if p50_cluster else vm2_principal
+            base_mercado = vm2_principal
             base_optimista = p75_cluster if p75_cluster else vm2_principal
             fuente_rango = 'percentiles+alpha'
         elif len(precios_todos) >= 4:
             base_conservadora = p25_cluster
-            base_mercado = p50_cluster
+            base_mercado = vm2_principal
             base_optimista = p75_cluster
             alpha_opt = 0.70
             ratio = 1.0
@@ -3509,7 +3674,18 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
     with profile_block("cluster_alquiler", prop):
         m2_base_alq_raw, n_a, meta_alq = obtener_mediana_cluster_v2(zona=zona_alq, dormitorios=dorms, operacion='alquiler', lat_ref=lat, lon_ref=lon, fecha_ref=fecha_ref, tipo_inmueble=prop.get('tipo_inmueble') or prop.get('tipo') or 'departamento', cache_scraping=cache_scraping_compartido, flex_dormitorios=flex_dormitorios)
     
-    print(f"[DEBUG-ALQ-CLUSTER] prop={prop.get('nombre','?')[:30]}, zona_alq={zona_alq}, m2_base_alq_raw={m2_base_alq_raw}, n_alq={n_a}, operacion=alquiler")
+    # Factor de castigo fisico por disposicion (Planta Baja Interno)
+    # Planta baja interna sin balcon a la calle aplica factor 0.83 (-17% vs comps promedio)
+    piso_val = prop.get('piso')
+    vista_val = str(prop.get('vista', '')).lower()
+    factor_disposicion = 0.83 if (piso_val == 0 and vista_val == 'interna') else 1.0
+    
+    m2_microzona = m2_base_venta
+    valor_venta = m2_equiv * m2_microzona * factor_disposicion
+    
+    logger.info(f"--- CALCULO BASE (TAREA-073 + v8f) ---")
+    logger.info(f"m2_equiv: {m2_equiv}, m2_microzona: {m2_microzona}, factor_disposicion: {factor_disposicion}")
+    logger.info(f"valor_venta: {valor_venta}")
     
     # Fallback si no hay datos específicos (en ARS/m²)
     # Ajustar para entrar en rango:
