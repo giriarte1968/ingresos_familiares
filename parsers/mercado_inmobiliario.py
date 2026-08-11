@@ -4747,8 +4747,12 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
 
     # Balcón
     t_balcon = prop.get('tipo_balcon', 'ninguno').lower()
+    tipo_inm = prop.get('tipo_inmueble', '').lower()
     if t_balcon in ('terraza',):
-        factores_pos.append("la terraza exclusiva funciona como una extensión del living y es un diferencial importante")
+        if tipo_inm in ('casa', 'ph'):
+            factores_neutros.append("cuenta con terraza, complemento habitual en viviendas de este tipo")
+        else:
+            factores_pos.append("la terraza exclusiva funciona como una extensión del living y es un diferencial importante")
     elif t_balcon in ('L',):
         factores_pos.append("el balcón en L ofrece un espacio exterior de mayor aprovechamiento")
     elif t_balcon in ('corrido',):
