@@ -100,17 +100,19 @@ def factor_ventilacion(prop):
 
 
 def factor_terminaciones(prop):
-    """Factor según terminaciones de suelo"""
+    """Factor según terminaciones de suelo (máximo entre tipos seleccionados)"""
     terminaciones = prop.get("terminaciones_suelo", "estandar").lower()
+    tipos = [t.strip() for t in terminaciones.split(",") if t.strip()]
     
-    if "madera_noble" in terminaciones:
-        return 1.04
-    elif "porcelanato" in terminaciones:
-        return 1.02
-    elif "ceramico" in terminaciones:
-        return 1.00
-    else:
-        return 0.95
+    factor = 0.95
+    for t in tipos:
+        if "madera_noble" in t:
+            factor = max(factor, 1.04)
+        elif "porcelanato" in t:
+            factor = max(factor, 1.02)
+        elif "ceramico" in t:
+            factor = max(factor, 1.00)
+    return factor
 
 
 def calcular_valor_vpp(prop, m2_base_zona):

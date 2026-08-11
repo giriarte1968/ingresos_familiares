@@ -3099,8 +3099,13 @@ def calcular_valor_m2(prop_data, fecha):
     vent_key = prop_data.get("ventilacion", "simple").lower().strip()
     factor_vent = f_p["ventilacion"].get(vent_key, 1.00)
 
-    suelo_key = prop_data.get("terminaciones_suelo", "estandar").lower().replace(" ", "_")
-    factor_suelo = f_p["terminaciones_suelo"].get(suelo_key, 1.00)
+    suelo_raw = prop_data.get("terminaciones_suelo", "estandar")
+    suelo_types = [s.strip().lower().replace(" ", "_") for s in suelo_raw.split(",") if s.strip()]
+    # Take the best factor among selected floor types
+    factor_suelo = max(
+        (f_p.get("terminaciones_suelo", {}).get(s, 1.00) for s in suelo_types),
+        default=1.00
+    )
 
     cocina_key = prop_data.get("distribucion_cocina", "integrada").lower().replace(" ", "_")
     factor_cocina = f_p["distribucion_cocina"].get(cocina_key, 1.00)

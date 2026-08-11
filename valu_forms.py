@@ -317,7 +317,10 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
             calidad_edificio = st.selectbox("Calidad", calidades, index=calidades.index(prop_inicial.get('calidad_edificio', 'media')) if prop_inicial.get('calidad_edificio') in calidades else 1, key=f"calidad_{key_suffix}")
             
             suelos = ["madera_noble", "porcelanato", "ceramico", "vinilico", "estandar"]
-            terminaciones_suelo = st.selectbox("Suelo", suelos, index=suelos.index(prop_inicial.get('terminaciones_suelo', 'estandar')) if prop_inicial.get('terminaciones_suelo') in suelos else 3, key=f"suelo_{key_suffix}")
+            suelo_inicial = prop_inicial.get('terminaciones_suelo', 'estandar')
+            # Handle both single value and comma-separated multi-value
+            suelo_default = [s.strip() for s in suelo_inicial.split(',') if s.strip() in suelos] if suelo_inicial else ['estandar']
+            terminaciones_suelo = st.multiselect("Suelo (puede seleccionar varios)", suelos, default=suelo_default, key=f"suelo_{key_suffix}")
             
             carps = ["piso_techo", "dvh", "estandar"]
             carpinteria = st.selectbox("Carpintería", carps, index=carps.index(prop_inicial.get('carpinteria', 'estandar')) if prop_inicial.get('carpinteria') in carps else 2, key=f"carp_{key_suffix}")
@@ -423,7 +426,7 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
         'tipo_balcon': tipo_balcon, 'orientacion': orientacion,
         'ventilacion': ventilacion, 'estado_detalle': estado_detalle,
         'calidad_edificio': calidad_edificio, 'seguridad': seg,
-         'terminaciones_suelo': terminaciones_suelo, 'carpinteria': carpinteria,
+         'terminaciones_suelo': ','.join(terminaciones_suelo) if terminaciones_suelo else 'estandar', 'carpinteria': carpinteria,
          'terminaciones_cocina': term_cocina, 'preinstalacion_aa': preinst_aa,
          'cocheras_cantidad': cocheras_cantidad, 'cocheras_tipo': cocheras_tipo, 'valor_cochera_base': valor_cochera_base,
          'valor_baulera': valor_baulera, 'doble_ingreso': doble_ingreso,
