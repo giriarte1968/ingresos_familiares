@@ -333,7 +333,12 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     else:
         display_result = auto_result
 
-    insuficientes = auto_result.get('error') == 'insuficientes_comparables'
+    prop_name_tmp = prop.get('nombre', '')
+    insuficientes = (
+        auto_result.get('error') in ['insuficientes_comparables', 'pendiente'] or
+        st.session_state.get(f'pendiente_comparables_{prop_name_tmp}', False) or
+        auto_result.get('valor_propiedad_usd', 0) == 0
+    )
 
     nombre = prop.get('nombre', '')
     dolar = display_result.get('usdt_ars', 1480)

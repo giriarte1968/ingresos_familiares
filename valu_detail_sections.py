@@ -368,9 +368,11 @@ def render_disk_summary_card(prop, insuficientes=False, v_cons=0, v_opt=0, sprea
         activos_total = uv.get('valor_activos_total', 0)
         fecha = uv.get('fecha', '')
 
-    if insuficientes:
+    is_pending = (auto_result and auto_result.get('error') == 'pendiente')
+    if insuficientes or is_pending:
         meta_line = "Sin Valor"
-        formula_line = "Comparables insuficientes para calcular"
+        formula_line = "Presione el botón Comparables para iniciar la valuación" if is_pending else "Comparables insuficientes para calcular"
+        _range_text = ""
     elif auto_valor > 0:
         valor_str = f"${auto_valor:,.0f}"
         comps_str = f"{comps} comp." if comps else "—"
@@ -380,13 +382,13 @@ def render_disk_summary_card(prop, insuficientes=False, v_cons=0, v_opt=0, sprea
             formula_line = f"${m2_micro:,.0f}/m² × {m2_equiv:.1f} m² × {size_discount:.3f} ajuste + ${activos_total:,.0f} extras = ${auto_valor:,.0f}"
         else:
             formula_line = fecha
+        _range_text = ""
+        if v_cons > 0 and v_opt > 0:
+            _range_text = f"Conservador ${v_cons:,.0f} · Spread {spread:.1f}% · Optimista ${v_opt:,.0f}"
     else:
         meta_line = "—"
         formula_line = "Sin valuación guardada"
-
-    _range_text = ""
-    if v_cons > 0 and v_opt > 0:
-        _range_text = f"Conservador ${v_cons:,.0f} · Spread {spread:.1f}% · Optimista ${v_opt:,.0f}"
+        _range_text = ""
 
     grad_disk = "linear-gradient(135deg, #374151 0%, #1F2937 100%)"
     st.markdown(f"""

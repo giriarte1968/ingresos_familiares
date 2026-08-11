@@ -727,31 +727,7 @@
       "cocheras_cantidad": 0,
       "cocheras_tipo": "cubierta",
       "valor_cochera_base": 15000.0,
-      "valor_baulera": 0.0,
-      "_ultima_valuacion": {
-        "valor_usd": 189684.0,
-        "auto_valor_usd": 189684.0,
-        "manual_valor_usd": 0,
-        "alquiler_ars": 604769.0,
-        "cap_rate": 0.05,
-        "m2_equivalentes": 98.0,
-        "comps": 10,
-        "m2_base_venta": 1935.55,
-        "m2_microzona": 1935.55,
-        "size_discount": 1.0,
-        "valor_activos_total": 0.0,
-        "usdt_ars": 1579.6839,
-        "fecha": "10/08/2026 21:43",
-        "cache_version": "v8b_import_fix_alquiler",
-        "timestamp": "2026-08-10T21:43:06.648392",
-        "fuente": "auto",
-        "fuente_activa": "auto",
-        "manual_params": null,
-        "retro_dias": 0,
-        "flex_dormitorios": 1,
-        "_comp_excluded": [],
-        "_comp_exclusion_applied": true
-      }
+      "valor_baulera": 0.0
     }
   ]
 }
