@@ -368,7 +368,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     auto_cons = auto_result.get('valor_venta_conservador', 0)
     auto_opt = auto_result.get('valor_venta_optimista', 0)
     auto_spread = auto_result.get('rango_venta', {}).get('spread_pct', 0)
-    render_disk_summary_card(prop, insuficientes=insuficientes, v_cons=auto_cons, v_opt=auto_opt, spread=auto_spread, auto_result=auto_result)
+    render_disk_summary_card(prop, insuficientes=insuficientes, v_cons=auto_cons, v_opt=auto_opt, spread=auto_spread)
     render_manual_valuation_card(prop)
 
     st.markdown("<br>", unsafe_allow_html=True)
@@ -1197,6 +1197,31 @@ def mostrar_dashboard():
                                                 resultado['valor_venta_conservador'] = 0
                                                 resultado['valor_venta_optimista'] = 0
                                                 resultado['_n_excluidos'] = len(excluded_ids)
+                                                if (from_apply or not preview_mode) and resultado.get('valor_propiedad_usd', 0) > 0 and resultado.get('error') != 'pendiente':
+                                                    try:
+                                                        from parsers.valuacion_cache import cargar_cache_valuaciones, persistir_valuacion
+                                                        _cache_v = cargar_cache_valuaciones()
+                                                        if '_cache' in resultado:
+                                                            resultado['_cache']['preview'] = False
+                                                        print(f"[DEBUG-PERSIST] {prop_name}: PERSISTIENDO A DISCO: valor_usd={resultado.get('valor_propiedad_usd')}, valor_m2={resultado.get('valor_m2')}, m2_base={resultado.get('m2_base_venta')}, n_comps={len(resultado.get('comparables_venta',[]))}")
+                                                        persistir_valuacion(prop_name, p_obj, resultado, _cache_v, commit=True)
+                                                        import copy
+                                                        st.session_state[f'_official_result_{prop_name}'] = copy.deepcopy(resultado)
+                                                        print(f"[DEBUG-OFFICIAL] {prop_name}: resultado oficial guardado en disco y session_state")
+                                                    except Exception as e:
+                                                        logger.warning(f"[APPLY] {prop_name}: No se pudo persistir a disco: {e}")
+                                                    finally:
+                                                        if f'forzar_recalculo_{prop_name}' in st.session_state:
+                                                            del st.session_state[f'forzar_recalculo_{prop_name}']
+                                                            print(f"[DEBUG-FLOW] {prop_name}: forzar_recalculo limpiado post-persist")
+                                                else:
+                                                    if preview_mode:
+                                                        print(f"[DEBUG-PERSIST-SKIP] {prop_name}: preview activo, NO persiste (from_apply={from_apply})")
+                                                    if resultado.get('_comp_exclusion_applied'):
+                                                        print(f"[DEBUG-EXCL-FLAG] {prop_name}: _comp_exclusion_applied ya=True, PRESERVADO")
+                                                    else:
+                                                        resultado['_comp_exclusion_applied'] = False
+                                                        st.session_state.pop(f'_comp_exclusion_applied_{prop_name}', None)
                                                 print(f"[APPLY] {prop_name}: <2 comps y sin valor original, header limpiado")
                                 
                                 resultado['_comp_excluded'] = excluded_ids
