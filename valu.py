@@ -335,11 +335,12 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         display_result = auto_result
 
     prop_name_tmp = prop.get('nombre', '')
+    tiene_comps = len(auto_result.get('comparables_venta', []) or []) >= 2
     insuficientes = (
         auto_result.get('error') in ['insuficientes_comparables', 'pendiente'] or
         st.session_state.get(f'pendiente_comparables_{prop_name_tmp}', False) or
         auto_result.get('valor_propiedad_usd', 0) == 0 or
-        f'_official_result_{prop_name_tmp}' not in st.session_state
+        not tiene_comps
     )
 
     nombre = prop.get('nombre', '')
