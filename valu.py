@@ -920,17 +920,12 @@ def mostrar_dashboard():
                         print(f"[DEBUG-REENTRY] {prop_name}: params desde UV — retro={retro_dias}, flex={flex_dormitorios}")
                     else:
                         st.session_state[vista_key] = True
-                        retro_active = st.session_state.get(f'retro_active_{prop_name}', False)
-                        retro_meses = st.session_state.get(f'retro_meses_{prop_name}', 36) if retro_active else 0
-                        retro_dias = retro_meses if retro_active else 0
-                        # Restore retro slider if session state was lost (Editar->Cancelar)
-                        if retro_active:
-                            retro_slider_key = f'retro_meses_slider_{prop_name}'
-                            if retro_slider_key not in st.session_state:
-                                st.session_state[retro_slider_key] = retro_dias
-                                print(f"[DEBUG-RETRO-FALLBACK] {prop_name}: restaurado slider retro={retro_dias}")
-                        flex_active = st.session_state.get(f'flex_active_{prop_name}', False)
-                        flex_dormitorios = [1, 2, 3, 4, 5] if flex_active else 1
+                        uv_default = p_obj.get('_ultima_valuacion', {})
+                        retro_active = st.session_state.get(f'retro_active_{prop_name}', True)
+                        retro_meses = st.session_state.get(f'retro_meses_{prop_name}', uv_default.get('retro_dias') or 60)
+                        retro_dias = retro_meses if retro_active else (uv_default.get('retro_dias') or 60)
+                        flex_active = st.session_state.get(f'flex_active_{prop_name}', True)
+                        flex_dormitorios = st.session_state.get(f'flex_dormitorios_{prop_name}', uv_default.get('flex_dormitorios') or [1, 2, 3, 4, 5])
                     usar_cache = False
                     uv_pre = p_obj.get('_ultima_valuacion', {})
                     print(f"[DEBUG] {prop_name}: pre-valuacion params: forzar={forzar}, ya_valuado={ya_valuado}, retro_active={retro_active}, retro_dias={retro_dias}, flex_active={flex_active}, preview_mode={preview_mode}, "
