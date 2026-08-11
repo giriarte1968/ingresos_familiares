@@ -363,7 +363,7 @@ def render_disk_summary_card(prop, insuficientes=False, v_cons=0, v_opt=0, sprea
         if isinstance(comps, list):
             comps = len(comps)
         m2_equiv = uv.get('m2_equivalentes', 0)
-        m2_micro = uv.get('m2_microzona', 0)
+        m2_micro = uv.get('m2_microzona') or uv.get('m2_base_venta', 0)
         size_discount = uv.get('size_discount', 1.0)
         activos_total = uv.get('valor_activos_total', 0)
         fecha = uv.get('fecha', '')

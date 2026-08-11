@@ -218,7 +218,7 @@ def persistir_valuacion(nombre: str, prop: dict, resultado: dict, cache: dict, c
                                 'm2_equivalentes': resultado.get('m2_equivalentes'),
                                 'comps': resultado.get('resolution_metadata', {}).get('n_propiedades', 0),
                                 'm2_base_venta': resultado.get('m2_base_venta', 0),
-                                'm2_microzona': resultado.get('m2_microzona', 0),
+                                'm2_microzona': resultado.get('m2_microzona') or resultado.get('m2_base_venta', 0),
                                 'size_discount': resultado.get('size_discount', 1.0),
                                 'valor_activos_total': resultado.get('valor_activos_total', 0),
                                 'usdt_ars': resultado.get('usdt_ars', 0),
