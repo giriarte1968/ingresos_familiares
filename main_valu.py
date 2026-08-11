@@ -582,7 +582,7 @@ def mostrar_dashboard():
                                 flex_active = True
                                 st.session_state[f'flex_active_{prop_name}'] = True
                                 print(f"[DEBUG-FLEX-FALLBACK] {prop_name}: restaurado desde UV — flex_dormitorios={uv_flex}")
-                        flex_dormitorios = [1, 2, 3, 4, 5] if flex_active else None
+                        flex_dormitorios = [1, 2, 3, 4, 5] if flex_active else 1
                     resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios, preview=preview_mode, manual_data=st.session_state.get(f'manual_preview_{prop_name}', None))
                     _sl.mark("after_valuar_con_cache")
 

@@ -2303,7 +2303,7 @@ def render_valuacion_manual(prop, res):
                     uv['manual_constructora'] = resultado_manual.get('constructora', '')
                     uv['retro_dias'] = st.session_state.get(f'retro_meses_{nombre}', 0)
                     flex_active = st.session_state.get(f'flex_active_{nombre}', False)
-                    uv['flex_dormitorios'] = [1, 2, 3, 4, 5] if flex_active else None
+                    uv['flex_dormitorios'] = [1, 2, 3, 4, 5] if flex_active else 1
                     if old_comp_exclusion_applied:
                         uv['_comp_excluded'] = old_comp_excluded
                         uv['_comp_exclusion_applied'] = True

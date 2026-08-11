@@ -71,7 +71,7 @@
         "fuente_activa": "auto",
         "manual_params": null,
         "retro_dias": 60,
-        "flex_dormitorios": null,
+        "flex_dormitorios": 1,
         "_comp_excluded": [],
         "_comp_exclusion_applied": true
       },
@@ -240,13 +240,7 @@
         "fuente_activa": "auto",
         "manual_params": null,
         "retro_dias": 60,
-        "flex_dormitorios": [
-          1,
-          2,
-          3,
-          4,
-          5
-        ],
+        "flex_dormitorios": 1,
         "_comp_excluded": [],
         "_comp_exclusion_applied": false
       }
@@ -341,13 +335,7 @@
         "fuente_activa": "auto",
         "manual_params": null,
         "retro_dias": 60,
-        "flex_dormitorios": [
-          1,
-          2,
-          3,
-          4,
-          5
-        ],
+        "flex_dormitorios": 1,
         "_comp_excluded": [],
         "_comp_exclusion_applied": false
       }
@@ -421,7 +409,7 @@
         "fuente_activa": "auto",
         "manual_params": null,
         "retro_dias": 0,
-        "flex_dormitorios": null,
+        "flex_dormitorios": 1,
         "_comp_excluded": [],
         "_comp_exclusion_applied": false
       }
@@ -505,7 +493,7 @@
         "fuente_activa": "auto",
         "manual_params": null,
         "retro_dias": 0,
-        "flex_dormitorios": null,
+        "flex_dormitorios": 1,
         "_comp_excluded": [],
         "_comp_exclusion_applied": false
       }
@@ -590,13 +578,7 @@
         "fuente_activa": "auto",
         "manual_params": null,
         "retro_dias": 60,
-        "flex_dormitorios": [
-          1,
-          2,
-          3,
-          4,
-          5
-        ],
+        "flex_dormitorios": 1,
         "_comp_excluded": [],
         "_comp_exclusion_applied": false
       }
@@ -678,13 +660,7 @@
         "fuente_activa": "auto",
         "manual_params": null,
         "retro_dias": 60,
-        "flex_dormitorios": [
-          1,
-          2,
-          3,
-          4,
-          5
-        ],
+        "flex_dormitorios": 1,
         "_comp_excluded": [],
         "_comp_exclusion_applied": false
       },
@@ -772,13 +748,7 @@
         "fuente_activa": "auto",
         "manual_params": null,
         "retro_dias": 60,
-        "flex_dormitorios": [
-          1,
-          2,
-          3,
-          4,
-          5
-        ],
+        "flex_dormitorios": 1,
         "_comp_excluded": [],
         "_comp_exclusion_applied": true
       }

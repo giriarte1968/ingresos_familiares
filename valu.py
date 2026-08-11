@@ -504,7 +504,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                     print(f"[DEBUG-SEL-POP] {prop_name}: Flex on_change → comp_selection_ removed={_had_sel}")
                     st.info("🔄 Modo Flex modificado. Los comparables se actualizaron. "
                             "Todos están seleccionados por defecto.")
-                st.checkbox("🔍 Todos los dormitorios", key=flex_key, on_change=_on_flex_change)
+                st.checkbox("🔍 Incluir todas las tipologías (1d a 5d)", key=flex_key, on_change=_on_flex_change, help="Por defecto, la Selección Natural incluye tipologías cercanas D±1. Tildá para incluir tipologías distantes.")
         with col_slider:
             if retro_active:
                 def _on_retro_slider_change(prop_name=prop_name):
@@ -925,7 +925,7 @@ def mostrar_dashboard():
                                 st.session_state[retro_slider_key] = retro_dias
                                 print(f"[DEBUG-RETRO-FALLBACK] {prop_name}: restaurado slider retro={retro_dias}")
                         flex_active = st.session_state.get(f'flex_active_{prop_name}', False)
-                        flex_dormitorios = st.session_state.get(f'flex_dormitorios_{prop_name}', [1, 2, 3, 4, 5]) if flex_active else None
+                        flex_dormitorios = [1, 2, 3, 4, 5] if flex_active else 1
                     usar_cache = False
                     uv_pre = p_obj.get('_ultima_valuacion', {})
                     print(f"[DEBUG] {prop_name}: pre-valuacion params: forzar={forzar}, ya_valuado={ya_valuado}, retro_active={retro_active}, retro_dias={retro_dias}, flex_active={flex_active}, preview_mode={preview_mode}, "
