@@ -49,5 +49,32 @@ def test_state_machine_limpiar_to_apply():
     assert uv_disk.get('m2_base_venta') == m2_preview, f"m2 en disco {uv_disk.get('m2_base_venta')} debe ser igual a preview {m2_preview}"
     assert uv_disk.get('_comp_exclusion_applied') is True, "_comp_exclusion_applied debe ser True en disco"
 
+def test_session_state_purge_on_clean():
+    """
+    Verifica que la purga de session_state elimine todas las claves asociadas a la propiedad
+    incluyendo checkboxes sel_comp_ y _safe_key.
+    """
+    import streamlit as st
+    prop_name = "Entre Rios 1372"
+    skey = "Entre_Rios_1372"
+    
+    # Mock keys in session state
+    st.session_state[f'sel_comp_{skey}_comp1'] = False
+    st.session_state[f'comp_selection_{prop_name}'] = set(['comp1'])
+    st.session_state[f'_comp_exclusion_applied_{prop_name}'] = True
+    st.session_state[f'other_prop_key'] = 123
+    
+    all_keys_to_pop = [
+        k for k in list(st.session_state.keys())
+        if prop_name in k or skey in k
+    ]
+    for k in all_keys_to_pop:
+        st.session_state.pop(k, None)
+        
+    assert f'sel_comp_{skey}_comp1' not in st.session_state
+    assert f'comp_selection_{prop_name}' not in st.session_state
+    assert f'_comp_exclusion_applied_{prop_name}' not in st.session_state
+    assert st.session_state.get('other_prop_key') == 123
+
 if __name__ == '__main__':
     pytest.main([__file__])

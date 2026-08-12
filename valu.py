@@ -459,21 +459,17 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                             with open(props_path, 'w', encoding='utf-8') as f:
                                 json.dump({'propiedades': props}, f, indent=2, ensure_ascii=False)
                         
-                        # 3. Session State Wipe
-                        keys_to_pop = [
-                            f'preview_mode_{prop_name}', f'_official_result_{prop_name}', 
-                            f'fuente_activa_{prop_name}', f'retro_active_{prop_name}', 
-                            f'flex_active_{prop_name}', f'comp_excluded_{prop_name}', 
-                            f'_comp_excluded_{prop_name}', f'_comp_exclusion_applied_{prop_name}',
-                            f'comp_selection_{prop_name}', f'retro_meses_{prop_name}', 
-                            f'retro_meses_slider_{prop_name}', f'retro_btn_{prop_name}', 
-                            f'flex_btn_{prop_name}', f'manual_preview_{prop_name}',
-                            f'forzar_recalculo_{prop_name}', f'vista_valuacion_{prop_name}'
+                        # 3. Comprehensive Session State Wipe for this property
+                        skey = _safe_key(prop_name)
+                        all_keys_to_pop = [
+                            k for k in list(st.session_state.keys())
+                            if prop_name in k or skey in k
                         ]
-                        for k in keys_to_pop:
+                        for k in all_keys_to_pop:
                             st.session_state.pop(k, None)
                         
                         st.session_state[f'pendiente_comparables_{prop_name}'] = True
+                        print(f"[DEBUG-NUCLEAR-CLEAN] {prop_name}: {len(all_keys_to_pop)} session state keys purgadas.")
                         st.rerun()
                     except Exception as e:
                         st.error(f"Nuclear Clean failed: {e}")
