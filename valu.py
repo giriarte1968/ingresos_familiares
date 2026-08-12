@@ -902,39 +902,28 @@ def mostrar_dashboard():
                     _sl.mark("before_valuar")
                     prop_name = p_obj.get('nombre', '')
                     vista_key = f'vista_valuacion_{prop_name}'
-                    # Re-entry: leer params desde UV oficial (consistente con disco)
+                    # Re-entry: usar defaults del engine, NO restaurar desde UV
+                    # (los valores en UV son defaults del engine, no selecciones del usuario)
                     if ya_valuado and not forzar and not st.session_state.get(vista_key, False):
-                        uv = p_obj.get('_ultima_valuacion', {})
-                        retro_dias = uv.get('retro_dias')
-                        flex_dormitorios = uv.get('flex_dormitorios')
-                        if retro_dias is None:
-                            cache_params = entrada_antigua.get('resultado_completo', {}).get('_cache', {})
-                            retro_dias = cache_params.get('retro_dias', 36)
-                            print(f"[DEBUG-REENTRY] {prop_name}: retro desde cache (UV legacy)")
-                        if flex_dormitorios is None:
-                            cache_params = entrada_antigua.get('resultado_completo', {}).get('_cache', {})
-                            flex_dormitorios = cache_params.get('flex_dormitorios', None)
-                            print(f"[DEBUG-REENTRY] {prop_name}: flex desde cache (UV legacy)")
-                        retro_active = retro_dias > 0
-                        flex_active = flex_dormitorios is not None
-                        retro_meses = retro_dias if retro_active else 0
+                        retro_active = True
+                        retro_dias = 60
+                        flex_active = True
+                        flex_dormitorios = [1, 2, 3, 4, 5]
+                        retro_meses = retro_dias
                         st.session_state[f'retro_active_{prop_name}'] = retro_active
-                        if retro_dias > 0:
-                            st.session_state[f'retro_meses_{prop_name}'] = retro_dias
-                            st.session_state[f'retro_meses_slider_{prop_name}'] = retro_dias
+                        st.session_state[f'retro_meses_{prop_name}'] = retro_dias
+                        st.session_state[f'retro_meses_slider_{prop_name}'] = retro_dias
                         st.session_state[f'flex_active_{prop_name}'] = flex_active
-                        if flex_active and flex_dormitorios is not None:
-                            st.session_state[f'flex_dormitorios_{prop_name}'] = flex_dormitorios
+                        st.session_state[f'flex_dormitorios_{prop_name}'] = flex_dormitorios
                         st.session_state[vista_key] = True
-                        print(f"[DEBUG-REENTRY] {prop_name}: params desde UV — retro={retro_dias}, flex={flex_dormitorios}")
+                        print(f"[DEBUG-REENTRY] {prop_name}: params desde defaults — retro={retro_dias}, flex={flex_dormitorios}")
                     else:
                         st.session_state[vista_key] = True
-                        uv_default = p_obj.get('_ultima_valuacion', {})
                         retro_active = st.session_state.get(f'retro_active_{prop_name}', True)
-                        retro_meses = st.session_state.get(f'retro_meses_{prop_name}', uv_default.get('retro_dias') or 60)
-                        retro_dias = retro_meses if retro_active else (uv_default.get('retro_dias') or 60)
+                        retro_meses = st.session_state.get(f'retro_meses_{prop_name}', 60)
+                        retro_dias = retro_meses if retro_active else 60
                         flex_active = st.session_state.get(f'flex_active_{prop_name}', True)
-                        flex_dormitorios = st.session_state.get(f'flex_dormitorios_{prop_name}', uv_default.get('flex_dormitorios') or [1, 2, 3, 4, 5])
+                        flex_dormitorios = st.session_state.get(f'flex_dormitorios_{prop_name}', [1, 2, 3, 4, 5])
                     usar_cache = False
                     uv_pre = p_obj.get('_ultima_valuacion', {})
                     print(f"[DEBUG] {prop_name}: pre-valuacion params: forzar={forzar}, ya_valuado={ya_valuado}, retro_active={retro_active}, retro_dias={retro_dias}, flex_active={flex_active}, preview_mode={preview_mode}, "
