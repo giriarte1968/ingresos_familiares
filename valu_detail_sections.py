@@ -858,9 +858,6 @@ def render_tabla_comparables(res, prop_name=None):
 
         if checked:
             selected_ids.add(comp_id)
-        else:
-            if comp_id in stored_sel:
-                stored_sel.remove(comp_id)
 
         _rc = "color:#c0392b;" if _is_med else ""
         cols[1].markdown(f"<span style='{_rc}'>{i+1}</span>", unsafe_allow_html=True)
