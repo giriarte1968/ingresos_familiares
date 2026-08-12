@@ -741,11 +741,13 @@ def render_mapa_propiedad(res):
 
 
 def _get_comp_id(c, idx=0):
-    """Genera un ID único y estable para un comparable basado en sus datos."""
+    """Genera un ID único y estable para un comparable basado en sus datos propios (sin depender del índice)."""
     import hashlib
-    # Usamos datos que no cambian entre renders para crear un hash estable
-    # idx previene colisiones cuando dos entries tienen mismos precio/m2/direccion/lat/lon
-    seed = f"{c.get('precio')}_{c.get('m2')}_{c.get('direccion_limpia') or c.get('direccion')}_{c.get('lat')}_{c.get('lon')}_{idx}"
+    cid = c.get('id') or c.get('link') or c.get('url')
+    if cid:
+        seed = str(cid)
+    else:
+        seed = f"{c.get('precio')}_{c.get('m2')}_{c.get('direccion_limpia') or c.get('direccion')}_{c.get('lat')}_{c.get('lon')}"
     return hashlib.md5(seed.encode()).hexdigest()[:12]
 
 def render_tabla_comparables(res, prop_name=None):
