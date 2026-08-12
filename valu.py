@@ -465,7 +465,8 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                             f'_comp_excluded_{prop_name}', f'_comp_exclusion_applied_{prop_name}',
                             f'comp_selection_{prop_name}', f'retro_meses_{prop_name}', 
                             f'retro_meses_slider_{prop_name}', f'retro_btn_{prop_name}', 
-                            f'flex_btn_{prop_name}', f'manual_preview_{prop_name}'
+                            f'flex_btn_{prop_name}', f'manual_preview_{prop_name}',
+                            f'forzar_recalculo_{prop_name}', f'vista_valuacion_{prop_name}'
                         ]
                         for k in keys_to_pop:
                             st.session_state.pop(k, None)
