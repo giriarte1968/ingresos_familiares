@@ -974,10 +974,15 @@ def render_tabla_comparables(res, prop_name=None):
                         print(f"[DEBUG-APPLY] {prop_name}: n_sel={n_sel}, n_total={len(comparables)}, n_excluded={len(excluded)}")
                         print(f"[DEBUG-APPLY] {prop_name}: retro_active={st.session_state.get('retro_active_' + prop_name, False)}, flex_active={st.session_state.get('flex_active_' + prop_name, False)}")
                         
-                        # Sync slider value before applying selection
-                        slider_val = st.session_state.get(f'retro_meses_slider_{prop_name}', 36)
-                        st.session_state[f'retro_meses_{prop_name}'] = slider_val
-                        print(f"[DEBUG-APPLY] {prop_name}: slider_val={slider_val}")
+                        # Sync slider value before applying selection only if retro_active is True
+                        retro_act = st.session_state.get(f'retro_active_{prop_name}', False)
+                        if retro_act:
+                            slider_val = st.session_state.get(f'retro_meses_slider_{prop_name}', 36)
+                            st.session_state[f'retro_meses_{prop_name}'] = slider_val
+                        else:
+                            st.session_state[f'retro_meses_{prop_name}'] = 0
+                            st.session_state.pop(f'retro_meses_slider_{prop_name}', None)
+                        print(f"[DEBUG-APPLY] {prop_name}: retro_act={retro_act}, retro_meses={st.session_state.get('retro_meses_' + prop_name)}")
                         
                         st.session_state[f'comp_excluded_{prop_name}'] = excluded
                         st.session_state[f'_comp_exclusion_applied_{prop_name}'] = True
