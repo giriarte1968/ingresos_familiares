@@ -3735,8 +3735,20 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
     from parsers.zonas_manager import resolver_macrozona
     _mz_info = resolver_macrozona(prop)
     _ancla_id = str(ancla_seleccionada) if ancla_seleccionada is not None else None
+    # Factor de castigo físico por acceso por escalera (sin ascensor)
+    ascensores_val = prop.get('ascensores_edificio') if prop.get('ascensores_edificio') is not None else prop.get('ascensores')
+    if ascensores_val == 0 and piso_val is not None and piso_val > 0:
+        if piso_val == 1:
+            factor_escalera = 0.95
+        elif piso_val == 2:
+            factor_escalera = 0.85
+        else:
+            factor_escalera = 0.80
+    else:
+        factor_escalera = 1.0
+
     size_discount = 1.0
-    valor_venta = m2_equiv * m2_microzona * factor_disposicion
+    valor_venta = m2_equiv * m2_microzona * factor_disposicion * factor_escalera
     
     logger.info(f"--- CALCULO BASE (TAREA-073) ---")
     logger.info(f"m2_equiv: {m2_equiv}, m2_microzona: {m2_microzona}")
