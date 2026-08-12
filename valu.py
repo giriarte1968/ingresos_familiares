@@ -321,7 +321,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     elif official_res:
         header_res = official_res
     else:
-        # Sin resultado oficial: header muestra "sin valor"
+        # RO-HEADER-04: Sin resultado oficial → header muestra "sin valor"
         header_res = {'valor_propiedad_usd': 0, 'error': 'pendiente'}
 
 
@@ -337,11 +337,13 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     prop_name_tmp = prop.get('nombre', '')
     tiene_comps = len(auto_result.get('comparables_venta', []) or []) >= 2
     pend_key = 'pendiente_' + 'comparables_' + prop_name_tmp
+    # RO-HEADER-04: Sin resultado oficial → mostrar "sin valor" en header Y disk card
     insuficientes = (
         auto_result.get('error') in ['insuficientes_comparables', 'pendiente'] or
         st.session_state.get(pend_key, False) or
         auto_result.get('valor_propiedad_usd', 0) == 0 or
-        not tiene_comps
+        not tiene_comps or
+        not official_res
     )
 
     nombre = prop.get('nombre', '')
