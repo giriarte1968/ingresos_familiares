@@ -812,11 +812,14 @@ def mostrar_dashboard():
                 cache_preview = resultado_cacheado.get('_cache', {}).get('preview', True)
                 cache_valido = resultado_cacheado.get('valor_propiedad_usd') and not resultado_cacheado.get('error')
                 print(f"[DEBUG-FLOW] {p_obj['nombre']}: Pendiente - cache_exists={bool(resultado_cacheado)}, cache_preview={cache_preview}, cache_error={resultado_cacheado.get('error')}, cache_valido={cache_valido}")
-                # Primera entrada SIN CACHE: NO auto-run — esperar clic en Comparables
+                # Primera entrada SIN CACHE: auto-run preview (resultado se muestra como preview, NO como oficial)
                 if not resultado_cacheado and not cache_valido:
                     es_post_limpiar = st.session_state.get(f'pendiente_comparables_{p_obj["nombre"]}', False)
                     if not es_post_limpiar:
-                        print(f"[DEBUG-FLOW] {p_obj['nombre']}: Primera entrada SIN CACHE — esperando clic en Comparables (sin auto-run)")
+                        print(f"[DEBUG-FLOW] {p_obj['nombre']}: Primera entrada SIN CACHE — auto-run preview")
+                        forzar = True
+                        preview_mode = True
+                        st.session_state[f'preview_mode_{p_obj["nombre"]}'] = True
                     else:
                         print(f"[DEBUG-FLOW] {p_obj['nombre']}: Estado Post-Limpiar — NO auto-run, esperando clic en Comparables")
                 if resultado_cacheado and cache_preview:
