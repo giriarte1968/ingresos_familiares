@@ -678,5 +678,30 @@
       "input": "Cochabamba 45",
       "tiene_bis": false
     }
+  },
+  "entre rios 1372": {
+    "lat": -32.9530046,
+    "lon": -60.6427417,
+    "status": "low_confidence",
+    "score": 9.99999999995449e-06,
+    "type": "house",
+    "ancla_id": "auto_gap_medio_806",
+    "ancla_usd": 1490,
+    "distancia_km": 0.17,
+    "_fuente": "nominatim",
+    "_debug": {
+      "pasos": [
+        "Cache MISS",
+        "Catastro CSV MISS",
+        "Nominatim structured",
+        "Nominatim OK lat=-32.95300 lon=-60.64274 score=9.99999999995449e-06 type=house",
+        "Validacion status=low_confidence",
+        "Fallback: free-form query",
+        "Free-form OK lat=-32.95300 lon=-60.64274"
+      ],
+      "errores": [],
+      "input": "Entre Rios 1372",
+      "tiene_bis": false
+    }
   }
 }
