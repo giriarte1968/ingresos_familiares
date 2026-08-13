@@ -414,10 +414,10 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
             pendiente = st.session_state.get(f'pendiente_comparables_{prop_name}', False)
             if pendiente:
                 if st.button("📊 Comparables", type="primary", use_container_width=True, key=f"act_comp_{prop_name}"):
-                    st.session_state[f'act_comparables_{prop_name}'] = True
+                    st.session_state[f'act_comp_{prop_name}'] = True
                     st.session_state[f'preview_mode_{prop_name}'] = True
                     st.session_state.pop(f'pendiente_comparables_{prop_name}', None)
-                    print(f"[DEBUG-COMP-BTN] {prop_name}: 📊 Comparables clickeado — act_comparables=True, preview_mode=True")
+                    print(f"[DEBUG-COMP-BTN] {prop_name}: 📊 Comparables clickeado — act_comp=True, preview_mode=True")
                     st.rerun()
             else:
                 if st.button("🔄 Limpiar", type="secondary", use_container_width=True, key=f"cln_comps_{prop_name}"):
@@ -890,8 +890,8 @@ def mostrar_dashboard():
                     print(f"[DEBUG-FLOW] {p_obj['nombre']}: Pendiente con cache oficial valido — heredando params: retro={_retro}d, flex={_flex}")
                 # Si es re-entry pasivo (sin recalculación forzada), mostrar vacío
                 # (no mostrar vacío si hay preview valido en cache)
-                act_comps = st.session_state.pop(f'act_comparables_{p_obj["nombre"]}', False)
-                print(f"[DEBUG-COMP-BTN] {p_obj['nombre']}: act_comparables={act_comps} — {'saltea' if act_comps else 'NO saltea'} early return Pendiente")
+                act_comps = st.session_state.pop(f'act_comp_{p_obj["nombre"]}', False) or st.session_state.pop(f'act_comparables_{p_obj["nombre"]}', False)
+                print(f"[DEBUG-COMP-BTN] {p_obj['nombre']}: act_comps={act_comps} — {'saltea' if act_comps else 'NO saltea'} early return Pendiente")
                 if not ya_valuado and not forzar and not retro_btn_clicked and not cache_valido and not act_comps:
                     # Marcar como pendiente sólo si la propiedad NO está valuada
                     st.session_state[f'pendiente_comparables_{p_obj["nombre"]}'] = True
