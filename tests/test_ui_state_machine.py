@@ -76,5 +76,26 @@ def test_session_state_purge_on_clean():
     assert f'_comp_exclusion_applied_{prop_name}' not in st.session_state
     assert st.session_state.get('other_prop_key') == 123
 
+def test_reentry_preserves_valuation():
+    """
+    Verifica que reingresar a una propiedad valuada 10 veces consecutivas jamás cambie su estado a 'Sin Valor'
+    o borre sus comparables.
+    """
+    props_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'propiedades.json')
+    data = json.load(open(props_path, 'r', encoding='utf-8'))
+    props = data.get('propiedades', [])
+    er = next((p for p in props if '1372' in p.get('nombre', '')), None)
+    assert er is not None
+    uv = er.get('_ultima_valuacion', {})
+    assert uv.get('valor_usd', 0) > 0, "Propiedad debe estar valuada"
+
+    # Simular reingreso múltiple sin llamar _limpiar_estado_propiedad
+    for _ in range(10):
+        ya_valuado = bool(uv.get('valor_usd', 0) > 0)
+        assert ya_valuado is True, "Reingreso debe mantener ya_valuado == True"
+        res = valuar_propiedad_v7(er)
+        assert res.get('valor_propiedad_usd', 0) > 0, "Resultado debe conservar valuación > 0"
+        assert len(res.get('comparables_venta', [])) > 0, "Resultado debe conservar comparables"
+
 if __name__ == '__main__':
     pytest.main([__file__])

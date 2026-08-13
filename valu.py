@@ -2257,13 +2257,7 @@ def main():
 
     # ─── Interceptar ?prop=xxx antes de cualquier check de landing ───
     if 'prop' in st.query_params:
-        # Limpiar la propiedad que estamos dejando antes de entrar a la nueva
-        old_prop = st.session_state.get('prop_sel')
-        if old_prop:
-            _limpiar_y_borrar_cache_si_hay_manuales(old_prop)
-            
         prop_name = st.query_params['prop'].strip()
-        _limpiar_estado_propiedad(prop_name)
         st.session_state.prop_sel = prop_name
         st.session_state.vista_actual = 'dashboard'
         st.query_params.clear()
