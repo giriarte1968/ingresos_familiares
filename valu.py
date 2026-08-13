@@ -924,7 +924,8 @@ def mostrar_dashboard():
                     _sl.mark("before_valuar")
                     prop_name = p_obj.get('nombre', '')
                     vista_key = f'vista_valuacion_{prop_name}'
-                    # Re-entry: restaurar parámetros guardados desde _ultima_valuacion en propiedades.json
+                    if ya_valuado:
+                        st.session_state.pop(f'pendiente_comparables_{prop_name}', None)
                     if ya_valuado and not forzar and not st.session_state.get(vista_key, False):
                         uv = p_obj.get('_ultima_valuacion', {})
                         retro_dias = uv.get('retro_dias')
@@ -960,9 +961,9 @@ def mostrar_dashboard():
                     cache_condition = (ya_valuado, not forzar, bool(entrada_antigua.get('resultado_completo')))
                     print(f"[CACHE-CHECK] {prop_name}: condiciones: ya_valuado={cache_condition[0]}, not forzar={cache_condition[1]}, tiene_resultado_completo={cache_condition[2]}, fuente_activa_saved={fuente_activa_saved}, entrada_keys={list(entrada_antigua.keys()) if entrada_antigua else 'vacia'}")
 
-                    # ── Gating: Si está marcado como pendiente, NO calcular nada (evita auto-restauración post-limpiar) ──
+                    # ── Gating: Si está marcado como pendiente y NO está valuado, saltar cálculo ──
                     skip_engine = False
-                    if st.session_state.get(f'pendiente_comparables_{prop_name}', False):
+                    if not ya_valuado and st.session_state.get(f'pendiente_comparables_{prop_name}', False):
                         print(f"[DEBUG-GATE] {prop_name}: Estado PENDIENTE activo — saltando cálculo automático")
                         resultado = {
                             'valor_propiedad_usd': 0,
