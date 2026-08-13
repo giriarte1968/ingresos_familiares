@@ -390,7 +390,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         with profile_block("generar_reporte_pdf", prop):
             pdf_bytes = generar_reporte_pdf(prop, res)
 
-        col1, col2, col3 = st.columns(3)
+        col1, col2, col3, col4 = st.columns(4)
         with col1:
             hay_catastro = render_catastro(prop, res, compact=True)
         with col2:
@@ -398,13 +398,37 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         with col3:
             with profile_block("download_button", prop):
                 st.download_button(
-                    "Reporte PDF",
+                    "📄 PDF Estándar",
                     data=pdf_bytes,
                     file_name=f"valuacion_{prop.get('nombre','propiedad').replace(' ','_')}.pdf",
                     mime="application/pdf",
-                    type="primary",
+                    type="secondary",
                     use_container_width=True,
                 )
+        with col4:
+            if st.button("🏠 Reporte TTL", key=f"main_btn_ttl_{prop.get('nombre')}", use_container_width=True, type="primary"):
+                with st.spinner("Generando Reporte TTL..."):
+                    try:
+                        from gen_pdf_ttl import load_cache, build_context, render_html, html_to_pdf
+                        cache_data = load_cache(prop.get('nombre', ''))
+                        ctx = build_context(prop, cache_data=cache_data, res_in=res)
+                        html_content = render_html(ctx)
+                        pdf_ttl_bytes = html_to_pdf(html_content)
+                    except Exception as e_ttl:
+                        print(f"[ERROR-MAIN-TTL] {prop.get('nombre')}: {e_ttl}")
+                        pdf_ttl_bytes = None
+                if pdf_ttl_bytes:
+                    st.download_button(
+                        "Descargar PDF TTL",
+                        data=pdf_ttl_bytes,
+                        file_name=f"reporte_ttl_{prop.get('nombre','propiedad').replace(' ','_')}.pdf",
+                        mime="application/pdf",
+                        type="primary",
+                        use_container_width=True,
+                        key=f"main_dl_ttl_{prop.get('nombre')}",
+                    )
+                else:
+                    st.error("No se pudo generar el Reporte TTL.")
         _dl.mark("after_pdf_download")
 
         if hay_catastro:

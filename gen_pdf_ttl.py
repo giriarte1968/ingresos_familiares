@@ -43,12 +43,16 @@ def load_cache(nombre):
     return {'resultado': entry.get('resultado_completo', {}), 'cache_meta': entry}
 
 
-def build_context(prop, cache_data):
+def build_context(prop, cache_data=None, res_in=None, auto_result_in=None):
     from parsers.valuacion_cache import CACHE_VERSION
     from parsers.mercado_inmobiliario import calcular_factores_display
 
-    res = cache_data.get('resultado', {}) if cache_data else {}
-    auto_result = res.get('_auto_result', res)
+    if cache_data:
+        res = cache_data.get('resultado', {})
+        auto_result = res.get('_auto_result', res)
+    else:
+        res = res_in or {}
+        auto_result = auto_result_in or res
 
     # Usar UV de la propiedad si tiene manual (más reciente que cache)
     uv = prop.get('_ultima_valuacion', {}) or {}

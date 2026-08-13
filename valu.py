@@ -577,14 +577,14 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
 
     # ─── ⚡ Acciones ───
     with st.expander(f"⚡ Acciones — {prop_name}", expanded=False):
-        col1, col2, col3 = st.columns(3)
+        col1, col2, col3, col4 = st.columns(4)
         with col1:
             hay_catastro = render_catastro(prop, res, compact=True)
         with col2:
             render_street_view(prop, compact=True)
         with col3:
-            if st.button("Generar PDF", key=f"btn_gen_pdf_{_safe_key(prop_name)}", use_container_width=True, type="primary"):
-                with st.spinner("Generando PDF... (~30s)"):
+            if st.button("📄 PDF Estándar", key=f"btn_gen_pdf_{_safe_key(prop_name)}", use_container_width=True, type="secondary"):
+                with st.spinner("Generando PDF Estándar... (~30s)"):
                     try:
                         pdf_bytes = generar_reporte_pdf_bytes(prop, display_result, auto_result=auto_result)
                     except Exception as e_pdf:
@@ -595,16 +595,42 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                         pdf_bytes = None
                 if pdf_bytes:
                     st.download_button(
-                        "Descargar PDF",
+                        "Descargar PDF Estándar",
                         data=pdf_bytes,
                         file_name=f"valuacion_{prop.get('nombre','propiedad').replace(' ','_')}.pdf",
                         mime="application/pdf",
-                        type="secondary",
+                        type="primary",
                         use_container_width=True,
                         key=f"dl_pdf_{_safe_key(prop_name)}",
                     )
                 else:
                     st.error("No se pudo generar el PDF. Ver consola para detalles.")
+        with col4:
+            if st.button("🏠 Reporte TTL", key=f"btn_gen_pdf_ttl_{_safe_key(prop_name)}", use_container_width=True, type="primary"):
+                with st.spinner("Generando Reporte TTL... (~10s)"):
+                    try:
+                        from gen_pdf_ttl import load_cache, build_context, render_html, html_to_pdf
+                        cache_data = load_cache(prop_name)
+                        ctx = build_context(prop, cache_data=cache_data, res_in=display_result, auto_result_in=auto_result)
+                        html_content = render_html(ctx)
+                        pdf_ttl_bytes = html_to_pdf(html_content)
+                    except Exception as e_ttl:
+                        import traceback as _tb
+                        _tb_str = ''.join(_tb.format_exception(type(e_ttl), e_ttl, e_ttl.__traceback__))
+                        print(f"[ERROR-PDF-TTL] {prop_name}: {e_ttl}\n{_tb_str}")
+                        pdf_ttl_bytes = None
+                if pdf_ttl_bytes:
+                    st.download_button(
+                        "Descargar PDF TTL",
+                        data=pdf_ttl_bytes,
+                        file_name=f"reporte_ttl_{prop.get('nombre','propiedad').replace(' ','_')}.pdf",
+                        mime="application/pdf",
+                        type="secondary",
+                        use_container_width=True,
+                        key=f"dl_pdf_ttl_{_safe_key(prop_name)}",
+                    )
+                else:
+                    st.error("No se pudo generar el Reporte TTL.")
         _dl.mark("after_pdf_download")
 
         if hay_catastro:
