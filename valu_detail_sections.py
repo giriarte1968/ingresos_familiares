@@ -334,8 +334,12 @@ def render_disk_summary_card(prop, insuficientes=False, v_cons=0, v_opt=0, sprea
         comps = len(comps_list) if comps_list is not None and len(comps_list) > 0 else auto_result.get('n_comps', 0)
         m2_equiv = prop.get('m2_equivalentes') or prop.get('m2_cubiertos') or auto_result.get('m2_equivalentes', 0) or 0
         m2_micro = auto_result.get('m2_microzona', 0) or auto_result.get('m2_base_venta', 0) or 0
-        size_discount = auto_result.get('size_discount', 1.0)
         activos_total = auto_result.get('valor_activos_total', 0)
+        size_discount = auto_result.get('size_discount', 1.0)
+        if m2_micro > 0 and m2_equiv > 0 and auto_valor > 0:
+            effective_ajuste = (auto_valor - activos_total) / (m2_micro * m2_equiv)
+            if effective_ajuste > 0:
+                size_discount = effective_ajuste
         fecha = "En vivo"
         
         # Sincronizar rango si está disponible en auto_result
@@ -364,8 +368,12 @@ def render_disk_summary_card(prop, insuficientes=False, v_cons=0, v_opt=0, sprea
             comps = len(comps)
         m2_equiv = uv.get('m2_equivalentes', 0)
         m2_micro = uv.get('m2_microzona') or uv.get('m2_base_venta', 0)
-        size_discount = uv.get('size_discount', 1.0)
         activos_total = uv.get('valor_activos_total', 0)
+        size_discount = uv.get('size_discount', 1.0)
+        if m2_micro > 0 and m2_equiv > 0 and auto_valor > 0:
+            effective_ajuste = (auto_valor - activos_total) / (m2_micro * m2_equiv)
+            if effective_ajuste > 0:
+                size_discount = effective_ajuste
         fecha = uv.get('fecha', '')
 
     is_pending = (auto_result and auto_result.get('error') == 'pendiente')
