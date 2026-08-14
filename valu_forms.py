@@ -362,11 +362,11 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
             
             baños = st.number_input("Baños", min_value=0, max_value=10, value=int(prop_inicial.get('baños', 0) or 0), key=f"baños_{key_suffix}")
             
-            tipos_balcon = ["ninguno", "corrido", "L", "frances", "terraza"]
+            tipos_balcon = ["ninguno", "corrido", "L", "frances", "terraza", "terraza_servicio"]
             tipo_balcon = st.selectbox("Tipo balcón/terraza", tipos_balcon,
                 index=tipos_balcon.index(prop_inicial.get('tipo_balcon', 'ninguno')) if prop_inicial.get('tipo_balcon') in tipos_balcon else 0,
                 key=f"t_balcon_{key_suffix}",
-                help="Tipo de balcón o terraza privada. Afecta el factor de valuación.")
+                help="Tipo de balcón o terraza privada. 'terraza_servicio' indica terraza trasera técnica/tender.")
             
             _asc_val = prop_inicial.get('ascensores_edificio')
             ascensores = st.number_input("Ascensores", min_value=0, max_value=4, value=int(_asc_val) if _asc_val is not None else 2, key=f"ascensores_{key_suffix}")

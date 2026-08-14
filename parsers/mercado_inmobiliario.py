@@ -4765,7 +4765,9 @@ def generar_razonamiento_valuacion(prop, resultado, meta):
     # Balcón
     t_balcon = prop.get('tipo_balcon', 'ninguno').lower()
     tipo_inm = prop.get('tipo_inmueble', '').lower()
-    if t_balcon in ('terraza',):
+    if t_balcon in ('terraza_servicio', 'servicio', 'trasera', 'terraza_trasera'):
+        factores_neutros.append("dispone de una terraza de servicio al contrafrente destinada a lavadero y tender, un atributo funcional complementario que no interfiere con los espacios principales")
+    elif t_balcon in ('terraza',):
         if tipo_inm in ('casa', 'ph'):
             factores_neutros.append("cuenta con terraza, complemento habitual en viviendas de este tipo")
         else:
