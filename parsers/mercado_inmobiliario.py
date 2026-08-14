@@ -1426,12 +1426,7 @@ def obtener_mediana_cluster_v2(zona, dormitorios, operacion='venta', lat_ref=Non
                 n_flex = len(props_geo) - n_mismos
                 print(f"[DEBUG-FLEX-RADIO] Step1 radio={radio}m: total={len(props_geo)}, mismos={n_mismos}, flex={n_flex}, MIN={MIN_COMPARABLES}")
                 
-                # Break solo si hay suficientes MISMOS-dorm (usa solo mismos-dorm) o suficiente pool total (flex)
-                if n_mismos >= MIN_COMPARABLES:
-                    props_mismos = [p for p in props_geo if p.get('dormitorios') == dormitorios]
-                    mejor_resultado = (props_mismos, radio, "busqueda_geografica")
-                    break
-                elif len(props_geo) >= MIN_COMPARABLES:
+                if len(props_geo) >= MIN_COMPARABLES:
                     mejor_resultado = (props_geo, radio, "busqueda_geografica")
                     break
             else:

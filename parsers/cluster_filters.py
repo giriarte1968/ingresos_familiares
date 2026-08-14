@@ -76,7 +76,7 @@ def filtrar_por_tipo_operacion_dorms(props: List[Dict], tipo: Optional[str] = No
             p_dorms = p.get('dormitorios')
             if p_dorms is None:
                 continue
-            effective_flex = 1 if flex_dormitorios is None else flex_dormitorios
+            effective_flex = flex_dormitorios if flex_dormitorios is not None else tolerancia_dorms
             if effective_flex != 0:
                 if isinstance(effective_flex, (int, float)):
                     d_margin = int(effective_flex)
