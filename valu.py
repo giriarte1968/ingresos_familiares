@@ -1007,8 +1007,8 @@ def mostrar_dashboard():
                             print(f"[CACHE-CHECK] {prop_name}: fuente=manual, recargando con preview=True (preserva UV/exclusion)")
                             resultado = valuar_con_cache(p_obj, forzar_recalculo=forzar, consultar_infomapa=False, retro_dias=retro_dias, flex_dormitorios=flex_dormitorios, preview=True, manual_data=None)
                     _sl.mark("after_valuar_con_cache")
+                    n_comps = len(resultado.get('comparables_venta', []))
                     if not usar_cache:
-                        n_comps = len(resultado.get('comparables_venta', []))
                         print(f"[DEBUG] {prop_name}: post-valuacion: error={resultado.get('error')}, n_comps={n_comps}, valor_usd={resultado.get('valor_propiedad_usd')}, m2_base={resultado.get('m2_base_venta')}, m2_eq={resultado.get('m2_equivalentes')}")
                         if resultado.get('error'):
                             print(f"[DEBUG] {prop_name}: RESULTADO CON ERROR, mensaje={resultado.get('mensaje')}")
