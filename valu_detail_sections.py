@@ -864,7 +864,7 @@ def render_tabla_comparables(res, prop_name=None):
         chk_key = f'sel_comp_{_safe_key(prop_name)}_{comp_id}'
         if chk_key not in st.session_state:
             st.session_state[chk_key] = comp_id in stored_sel
-        checked = cols[0].checkbox("", key=chk_key)
+        checked = cols[0].checkbox("Seleccionar comparable", label_visibility="collapsed", key=chk_key)
 
         if checked:
             selected_ids.add(comp_id)

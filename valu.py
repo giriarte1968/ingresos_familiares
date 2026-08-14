@@ -981,10 +981,8 @@ def mostrar_dashboard():
                             if cached_result.get('error'):
                                 print(f"[CACHE] {prop_name}: saltando resultado con error={cached_result['error']}")
                             else:
-                                cached_fecha_ref = (cached_result.get('resolution_metadata') or {}).get('fecha_ref', '')
                                 cached_retro = (cached_result.get('_cache') or {}).get('retro_dias', 0)
-                                hoy = datetime.now().strftime('%Y-%m-%d')
-                                if cached_fecha_ref == hoy and cached_retro == retro_dias:
+                                if cached_retro == retro_dias:
                                     resultado = cached_result
                                     usar_cache = True
                                     print(f"[CACHE] {prop_name}: usando resultado_completo grabado ({len(resultado.get('comparables_venta',[]))} comps, retro={cached_retro})")
