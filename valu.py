@@ -408,7 +408,21 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     with st.expander(f"📊 Valuación por Comparables — {prop_name}", expanded=False):
         retro_key = f'retro_active_{prop_name}'
         flex_key = f'flex_active_{prop_name}'
+        uv_dict = prop.get('_ultima_valuacion', {})
+        stored_retro = uv_dict.get('retro_dias', 0)
+        stored_flex = uv_dict.get('flex_dormitorios', 1)
+
+        if retro_key not in st.session_state:
+            st.session_state[retro_key] = (stored_retro > 0)
+        if flex_key not in st.session_state:
+            st.session_state[flex_key] = (isinstance(stored_flex, list) or (stored_flex is not None and stored_flex != 1))
+
         retro_active = st.session_state.get(retro_key, False)
+        if retro_active:
+            if f'retro_meses_{prop_name}' not in st.session_state:
+                st.session_state[f'retro_meses_{prop_name}'] = stored_retro if stored_retro > 0 else 36
+            if f'retro_meses_slider_{prop_name}' not in st.session_state:
+                st.session_state[f'retro_meses_slider_{prop_name}'] = stored_retro if stored_retro > 0 else 36
         col_limpiar, col_btn, col_cb, col_slider = st.columns([1.2, 1.2, 1.0, 2.6])
         with col_limpiar:
             pendiente = st.session_state.get(f'pendiente_comparables_{prop_name}', False)
@@ -530,7 +544,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                             "Todos están seleccionados por defecto.")
                 _slider_key = f'retro_meses_slider_{prop_name}'
                 if _slider_key not in st.session_state:
-                    st.session_state[_slider_key] = 36
+                    st.session_state[_slider_key] = stored_retro if stored_retro > 0 else 36
                 st.slider("Meses atrás", 12, 60,
                           key=_slider_key, on_change=_on_retro_slider_change)
 
