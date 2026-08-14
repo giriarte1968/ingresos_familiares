@@ -56,7 +56,7 @@ entre_rios = {
     19: "frente",                 # vista (a la calle)
     20: "frente",                 # disposicion
     21: "si",                     # gas_ok
-    22: "terraza",                # tipo_balcon (Terraza: si, tender)
+    22: "terraza_servicio",       # tipo_balcon (Terraza: si, tender)
     23: "este",                   # orientacion
     24: "cruzada",                # ventilacion
     25: "regular",                # estado_detalle
