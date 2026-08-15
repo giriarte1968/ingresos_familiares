@@ -906,6 +906,11 @@ def mostrar_dashboard():
                 # (no mostrar vacío si hay preview valido en cache)
                 act_comps = st.session_state.pop(f'act_comp_{p_obj["nombre"]}', False) or st.session_state.pop(f'act_comparables_{p_obj["nombre"]}', False)
                 print(f"[DEBUG-COMP-BTN] {p_obj['nombre']}: act_comps={act_comps} — {'saltea' if act_comps else 'NO saltea'} early return Pendiente")
+                if act_comps:
+                    forzar = True
+                    preview_mode = True
+                    st.session_state[f'preview_mode_{p_obj["nombre"]}'] = True
+                    st.session_state.pop(f'pendiente_comparables_{p_obj["nombre"]}', None)
                 if not ya_valuado and not forzar and not retro_btn_clicked and not cache_valido and not act_comps:
                     # Marcar como pendiente sólo si la propiedad NO está valuada
                     st.session_state[f'pendiente_comparables_{p_obj["nombre"]}'] = True
