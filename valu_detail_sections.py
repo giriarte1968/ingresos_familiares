@@ -551,34 +551,27 @@ def render_manual_valuation_card(prop):
     
     fin_html = ""
     if cape_val > 0 and noi_usd > 0:
-        fin_html = f"""
-        <div style="display:flex;justify-content:space-around;margin-top:10px;padding-top:10px;border-top:1px dashed rgba(255,255,255,0.2);">
-            <div style="text-align:center;">
-                <div style="font-size:10px;color:rgba(255,255,255,0.6);">CAPE INMOBILIARIO</div>
-                <div style="font-size:16px;font-weight:700;color:{diag_color};">{cape_val:.1f}x</div>
-            </div>
-            <div style="text-align:center;">
-                <div style="font-size:10px;color:rgba(255,255,255,0.6);">NOI ANUAL NETO</div>
-                <div style="font-size:16px;font-weight:700;color:#10B981;">USD ${noi_usd:,.0f}</div>
-            </div>
-            <div style="text-align:center;">
-                <div style="font-size:10px;color:rgba(255,255,255,0.6);">RETORNO TOTAL (TIR)</div>
-                <div style="font-size:16px;font-weight:700;color:#F59E0B;">{tir_val:.1f}% p.a.</div>
-            </div>
-        </div>
-        <div style="font-size:10px;color:rgba(255,255,255,0.65);margin-top:6px;font-style:italic;">{diag_label}</div>
-        """
+        fin_html = (
+            f'<div style="display:flex;justify-content:space-around;margin-top:10px;padding-top:10px;border-top:1px dashed rgba(255,255,255,0.2);">'
+            f'<div style="text-align:center;"><div style="font-size:10px;color:rgba(255,255,255,0.6);">CAPE INMOBILIARIO</div><div style="font-size:16px;font-weight:700;color:{diag_color};">{cape_val:.1f}x</div></div>'
+            f'<div style="text-align:center;"><div style="font-size:10px;color:rgba(255,255,255,0.6);">NOI ANUAL NETO</div><div style="font-size:16px;font-weight:700;color:#10B981;">USD ${noi_usd:,.0f}</div></div>'
+            f'<div style="text-align:center;"><div style="font-size:10px;color:rgba(255,255,255,0.6);">RETORNO TOTAL (TIR)</div><div style="font-size:16px;font-weight:700;color:#F59E0B;">{tir_val:.1f}% p.a.</div></div>'
+            f'</div>'
+            f'<div style="font-size:10px;color:rgba(255,255,255,0.65);margin-top:6px;font-style:italic;">{diag_label}</div>'
+        )
 
-    st.markdown(f"""
-    <div style="border:none;border-radius:12px;padding:14px 16px;background:{grad_manual};box-shadow:0 4px 12px rgba(0,0,0,0.15);text-align:center;">
-        <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.8);margin-bottom:4px;">VALUACIÓN MANUAL · SIMULADOR FINANCIERO & CAPE</div>
-        <div style="font-size:15px;font-weight:600;color:#FFFFFF;">{meta_line}</div>
-        <div style="font-size:11px;color:rgba(255,255,255,0.55);margin-top:2px;">{formula_line}</div>
-        {'<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;">' + param_line + '</div>' if param_line else ''}
-        {_range_div}
-        {fin_html}
-    </div>
-    """, unsafe_allow_html=True)
+    param_div = f'<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;">{param_line}</div>' if param_line else ''
+    card_html = (
+        f'<div style="border:none;border-radius:12px;padding:14px 16px;background:{grad_manual};box-shadow:0 4px 12px rgba(0,0,0,0.15);text-align:center;">'
+        f'<div style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.8);margin-bottom:4px;">VALUACIÓN MANUAL · SIMULADOR FINANCIERO & CAPE</div>'
+        f'<div style="font-size:15px;font-weight:600;color:#FFFFFF;">{meta_line}</div>'
+        f'<div style="font-size:11px;color:rgba(255,255,255,0.55);margin-top:2px;">{formula_line}</div>'
+        f'{param_div}'
+        f'{_range_div}'
+        f'{fin_html}'
+        f'</div>'
+    )
+    st.markdown(card_html, unsafe_allow_html=True)
 
 
 def render_rango(res, valor_usd):
