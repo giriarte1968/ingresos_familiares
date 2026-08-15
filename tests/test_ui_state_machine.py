@@ -48,6 +48,10 @@ def test_state_machine_limpiar_to_apply():
     assert uv_disk.get('valor_usd') == val_preview, f"Valor en disco {uv_disk.get('valor_usd')} debe ser igual a preview {val_preview}"
     assert uv_disk.get('m2_base_venta') == m2_preview, f"m2 en disco {uv_disk.get('m2_base_venta')} debe ser igual a preview {m2_preview}"
     assert uv_disk.get('_comp_exclusion_applied') is True, "_comp_exclusion_applied debe ser True en disco"
+    
+    # 5. Restaurar estado original de disco
+    with open(props_path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
 
 def test_session_state_purge_on_clean():
     """
