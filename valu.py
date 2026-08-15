@@ -998,8 +998,9 @@ def mostrar_dashboard():
                         # Intentar cache siempre (independientemente de fuente_activa) para preservar exclusion
                         if ya_valuado and not forzar and bool(entrada_antigua.get('resultado_completo')):
                             cached_result = entrada_antigua['resultado_completo']
-                            if cached_result.get('error'):
-                                print(f"[CACHE] {prop_name}: saltando resultado con error={cached_result['error']}")
+                            has_comps = len(cached_result.get('comparables_venta', [])) > 0
+                            if cached_result.get('error') or not has_comps:
+                                print(f"[CACHE] {prop_name}: saltando resultado cacheado invalido (error={cached_result.get('error')}, has_comps={has_comps})")
                             else:
                                 cached_fecha_ref = (cached_result.get('resolution_metadata') or {}).get('fecha_ref', '')
                                 cached_retro = (cached_result.get('_cache') or {}).get('retro_dias', 0)
