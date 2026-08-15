@@ -246,7 +246,9 @@ def render_header(prop, res):
     #   no hay un auto_valor_usd oficial en UV (evita fuga de valor manual en auto card).
     ya_valuado = bool(uv_dict.get('valor_usd'))
     preview_mode = res.get('_cache', {}).get('preview', False)
-    n_comps_auto_hide = (auto_result.get('resolution_metadata') or {}).get('n_propiedades', 0) if auto_result else 0
+    meta_comps = (auto_result.get('resolution_metadata') or {}).get('n_propiedades', 0) if auto_result else 0
+    list_comps = len(auto_result.get('comparables_venta', [])) if auto_result else 0
+    n_comps_auto_hide = meta_comps if meta_comps > 0 else list_comps
     
     ocultar_auto = n_comps_auto_hide < 3 or (fuente_activa == 'manual' and not uv_dict.get('auto_valor_usd', 0) > 0)
     if n_comps_auto_hide < 3 or (preview_mode and not ya_valuado):

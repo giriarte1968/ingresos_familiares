@@ -3516,6 +3516,11 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
         logger.info(f"[FECHA] Usando fecha actual por defecto: {fecha_ref}")
     
     prop = sanitizar_propiedad(propiedad)
+    uv_stored = propiedad.get('_ultima_valuacion', {}) or {}
+    if (retro_dias is None or retro_dias == 0):
+        stored_r = uv_stored.get('retro_dias') or propiedad.get('retro_dias', 0)
+        if stored_r and stored_r > 0:
+            retro_dias = stored_r
     from parsers.profiler import profile_block
     with profile_block("load_cache_cached"):
         cache = load_cache_cached()

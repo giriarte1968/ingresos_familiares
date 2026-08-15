@@ -964,12 +964,13 @@ def mostrar_dashboard():
                             flex_dormitorios = st.session_state.get(f'flex_dormitorios_{prop_name}', stored_flex)
                         print(f"[DEBUG-REENTRY-PERSISTENT] {prop_name}: ya_valuado=True -> retro={retro_dias}d (active={retro_active}), flex={flex_dormitorios} (active={flex_active}), uv_valor={uv.get('valor_usd')}")
                     else:
-                        retro_active = st.session_state.get(f'retro_active_{prop_name}', False)
-                        retro_meses = st.session_state.get(f'retro_meses_{prop_name}', uv.get('retro_dias') or 60)
-                        retro_dias = retro_meses if retro_active else 0
+                        stored_retro = uv.get('retro_dias') or p_obj.get('retro_dias') or 0
+                        retro_active = st.session_state.get(f'retro_active_{prop_name}', (stored_retro > 0))
+                        retro_meses = st.session_state.get(f'retro_meses_{prop_name}', stored_retro or 60)
+                        retro_dias = retro_meses if retro_active else stored_retro
                         flex_active = st.session_state.get(f'flex_active_{prop_name}', False)
                         flex_dormitorios = st.session_state.get(f'flex_dormitorios_{prop_name}', 1) if flex_active else 1
-                        print(f"[DEBUG-REENTRY-UNVALUED] {prop_name}: ya_valuado=False -> retro={retro_dias}d, flex={flex_dormitorios}")
+                        print(f"[DEBUG-REENTRY-UNVALUED] {prop_name}: ya_valuado=False -> retro={retro_dias}d (stored={stored_retro}), flex={flex_dormitorios}")
                     usar_cache = False
                     uv_pre = p_obj.get('_ultima_valuacion', {})
                     print(f"[DEBUG] {prop_name}: pre-valuacion params: forzar={forzar}, ya_valuado={ya_valuado}, retro_active={retro_active}, retro_dias={retro_dias}, flex_active={flex_active}, preview_mode={preview_mode}, "
