@@ -145,11 +145,12 @@ def calcular_evaluacion_financiera(prop: Dict[str, Any], resultado_avm: Dict[str
 
 
 def generar_razonamiento_cliente_financiero(prop_nombre: str, fin_data: Dict[str, Any]) -> str:
-    """Genera un texto explicativo en lenguaje simple para clientes, vendedores e inversores."""
+    """Genera una explicación pedagógica, clara y comercial para clientes, compradores e inversores."""
     valor_usd = fin_data.get('valor_propiedad_usd', 0)
     alq_ars = fin_data.get('alquiler_bruto_mensual_ars', 0)
     noi_usd = fin_data.get('noi_anual_usd', 0)
     noi_mes = fin_data.get('noi_mensual_usd', 0)
+    noi_mes_ars = fin_data.get('noi_mensual_ars', 0)
     cape = fin_data.get('cape_inmobiliario', 0)
     neto_pct = fin_data.get('cap_rate_neto', 0)
     plus_pct = fin_data.get('plusvalia_anual_estimada', 0)
@@ -159,23 +160,37 @@ def generar_razonamiento_cliente_financiero(prop_nombre: str, fin_data: Dict[str
     if valor_usd <= 0 or alq_ars <= 0:
         return "El análisis financiero se encuentra pendiente de estimación de mercado."
         
+    # Párrafo 1: Tiempo de recupero directo y claridad de flujo neto
     p1 = (
-        f"Con un precio estimado de USD {valor_usd:,.0f} y un alquiler de referencia de ARS ${alq_ars:,.0f}/mes, "
-        f"el inmueble genera un ingreso libre de bolsillo (NOI) de USD {noi_mes:,.0f}/mes (USD {noi_usd:,.0f}/año), "
-        f"descontando vacancia, expensas del propietario y fondo de conservación."
+        f"⏱️ TIEMPO DE RECUPERO: Comprando a USD {valor_usd:,.0f}, la inversión se paga al 100% únicamente con alquileres netos en {cape:.1f} años "
+        f"(o un rendimiento libre de gastos del {neto_pct:.1f}% anual en dólares). "
+        f"💵 INGRESO DE BOLSILLO: Descontando rotación/vacancia, expensas de propietario y arreglos de mantenimiento, "
+        f"te quedan libres USD ${noi_mes:,.0f}/mes (aprox. ARS ${noi_mes_ars:,.0f}/mes de caja limpia)."
     )
     
+    # Párrafo 2: Posicionamiento comercial en castellano simple (Marketing)
     if diag == "OPORTUNIDAD":
-        p2 = f"Para un comprador o inversor, la propiedad se posiciona como una oportunidad atractiva (CAPE {cape:.1f}x), requiriendo menos años de renta para amortizarse que el promedio del mercado."
+        p2 = (
+            f"🏷️ OPORTUNIDAD DE COMPRA: El inmueble se encuentra a un precio de entrada muy atractivo. "
+            f"Al pagar menos dólares por cada unidad de alquiler generado, tu capital se amortiza más rápido que el promedio de la zona."
+        )
     elif diag == "FAIR_VALUE":
-        p2 = f"Para un comprador o inversor, la propiedad se encuentra en un valor equilibrado de mercado (CAPE {cape:.1f}x), perfectamente alineada con los parámetros de la zona."
+        p2 = (
+            f"🏷️ PRECIO EN EJE DE MERCADO: El inmueble cotiza a un valor equilibrado y competitivo. "
+            f"Está perfectamente alineado con los precios y rentabilidades reales que hoy se firman en la zona."
+        )
     else:
-        p2 = f"Para un comprador o inversor, la propiedad cotiza en un rango de valor superior (CAPE {cape:.1f}x), sustentado en su ubicación o atributos de calidad."
+        p2 = (
+            f"🏷️ ACTIVO PREMIUM REVALORIZADO: La propiedad cotiza en la franja alta de valor de la zona, "
+            f"sustentada en su alta liquidez, calidad de edificación y constante demanda inquilina que preserva el patrimonio."
+        )
         
+    # Párrafo 3: Rendimiento Total Combinado (Renta + Plusvalía)
     p3 = (
-        f"En resumen, ofrece un rendimiento total estimado del {tir_pct:.1f}% anual en dólares, "
-        f"sumando un rendimiento por alquiler neto del {neto_pct:.1f}% más una plusvalía proyectada del m² del +{plus_pct:.1f}% anual."
+        f"🚀 RENTABILIDAD TOTAL COMBINADA: Sumando el cobro neto del alquiler ({neto_pct:.1f}% anual) "
+        f"más la revalorización estimada del metro cuadrado en esta microzona (+{plus_pct:.1f}% anual en USD), "
+        f"esta propiedad te genera un retorno total proyectado del {tir_pct:.1f}% anual en dólares."
     )
     
-    return f"{p1} {p2} {p3}"
+    return f"{p1}\n\n{p2}\n\n{p3}"
 
