@@ -4085,6 +4085,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
         'resolution_metadata': resolution_metadata,
         'comparables_venta': comparables_venta,
         'retro_activo': meta_venta.get('retro_activo', False),
+        'retro_dias': retro_dias,
         'total_dias_ventana': meta_venta.get('total_dias_ventana', 180),
         'flex_dormitorios': meta_venta.get('flex_dormitorios', None),
         'sujeto_dormitorios': meta_venta.get('sujeto_dormitorios', None),

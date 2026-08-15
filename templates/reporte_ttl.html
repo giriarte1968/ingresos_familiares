@@ -375,8 +375,8 @@
         </table>
       </div>
 
-      <div style="margin-top:6px; font-size:8.5px; color:#475569; font-style:italic;">
-        <strong>Diagnóstico Financiero:</strong> {{ fin_eval.etiqueta_diagnostico }}. El rango razonable de valuación por rentabilidad en {{ zona }} (Income Approach entre 16.0x y 20.0x NOI) se ubica entre <strong>USD ${{ "{:,.0f}".format(fin_eval.rango_income_approach.min) }}</strong> y <strong>USD ${{ "{:,.0f}".format(fin_eval.rango_income_approach.max) }}</strong>.
+      <div style="margin-top:8px; padding:8px 10px; background:#eff6ff; border-radius:6px; border-left:3px solid #2563eb; font-size:8.5px; color:#1e3a8a; line-height:1.4;">
+        <strong>Conclusión de Decisión para el Cliente:</strong> {{ fin_eval.razonamiento_cliente }}
       </div>
     </div>
   </div>

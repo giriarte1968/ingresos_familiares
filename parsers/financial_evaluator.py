@@ -105,7 +105,8 @@ def calcular_evaluacion_financiera(prop: Dict[str, Any], resultado_avm: Dict[str
         etiqueta_diagnostico = "Múltiplo Exigente / Rendimiento Ajustado (Premium)"
         color_diagnostico = "#fd7e14"
         
-    return {
+    # 8. Razonamiento en lenguaje claro para el cliente
+    res_dict = {
         'valor_propiedad_usd': round(valor_prop_usd, 0),
         'usdt_ars': round(usdt_ars, 2),
         # P&L Operativo
@@ -138,3 +139,43 @@ def calcular_evaluacion_financiera(prop: Dict[str, Any], resultado_avm: Dict[str
         'etiqueta_diagnostico': etiqueta_diagnostico,
         'color_diagnostico': color_diagnostico,
     }
+    
+    res_dict['razonamiento_cliente'] = generar_razonamiento_cliente_financiero(prop.get('nombre', 'la propiedad'), res_dict)
+    return res_dict
+
+
+def generar_razonamiento_cliente_financiero(prop_nombre: str, fin_data: Dict[str, Any]) -> str:
+    """Genera un texto explicativo en lenguaje simple para clientes, vendedores e inversores."""
+    valor_usd = fin_data.get('valor_propiedad_usd', 0)
+    alq_ars = fin_data.get('alquiler_bruto_mensual_ars', 0)
+    noi_usd = fin_data.get('noi_anual_usd', 0)
+    noi_mes = fin_data.get('noi_mensual_usd', 0)
+    cape = fin_data.get('cape_inmobiliario', 0)
+    neto_pct = fin_data.get('cap_rate_neto', 0)
+    plus_pct = fin_data.get('plusvalia_anual_estimada', 0)
+    tir_pct = fin_data.get('retorno_total_tir', 0)
+    diag = fin_data.get('diagnostico_cape', '')
+    
+    if valor_usd <= 0 or alq_ars <= 0:
+        return "El análisis financiero se encuentra pendiente de estimación de mercado."
+        
+    p1 = (
+        f"Con un precio estimado de USD {valor_usd:,.0f} y un alquiler de referencia de ARS ${alq_ars:,.0f}/mes, "
+        f"el inmueble genera un ingreso libre de bolsillo (NOI) de USD {noi_mes:,.0f}/mes (USD {noi_usd:,.0f}/año), "
+        f"descontando vacancia, expensas del propietario y fondo de conservación."
+    )
+    
+    if diag == "OPORTUNIDAD":
+        p2 = f"Para un comprador o inversor, la propiedad se posiciona como una oportunidad atractiva (CAPE {cape:.1f}x), requiriendo menos años de renta para amortizarse que el promedio del mercado."
+    elif diag == "FAIR_VALUE":
+        p2 = f"Para un comprador o inversor, la propiedad se encuentra en un valor equilibrado de mercado (CAPE {cape:.1f}x), perfectamente alineada con los parámetros de la zona."
+    else:
+        p2 = f"Para un comprador o inversor, la propiedad cotiza en un rango de valor superior (CAPE {cape:.1f}x), sustentado en su ubicación o atributos de calidad."
+        
+    p3 = (
+        f"En resumen, ofrece un rendimiento total estimado del {tir_pct:.1f}% anual en dólares, "
+        f"sumando un rendimiento por alquiler neto del {neto_pct:.1f}% más una plusvalía proyectada del m² del +{plus_pct:.1f}% anual."
+    )
+    
+    return f"{p1} {p2} {p3}"
+
