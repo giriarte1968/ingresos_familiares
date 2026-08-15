@@ -56,10 +56,10 @@ from parsers.valuacion_helpers import calcular_rango_venta, ensamblar_metadata_r
 # Para editar: modificar los valores directamente aquí.
 # ══════════════════════════════════════════════════════════════════════════════
 ROI_ZONAL = {
-    'centro': 0.049,
+    'centro': 0.052,
     'fisherton': 0.049,
-    'martin': 0.041,
-    'pichincha': 0.044,
+    'martin': 0.055,
+    'pichincha': 0.052,
     'abasto': 0.053,
     'facultades': 0.059,
     'sexta': 0.056,
@@ -67,7 +67,7 @@ ROI_ZONAL = {
     'sur': 0.054,
     'norte': 0.045,
     'oeste': 0.055,
-    'puerto_norte': 0.034,
+    'puerto_norte': 0.038,
 }
 
 def _calcular_mediana(precios):
