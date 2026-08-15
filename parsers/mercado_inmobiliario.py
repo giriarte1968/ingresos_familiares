@@ -4109,6 +4109,13 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
             'n_cross_soft': meta_venta.get('n_cross_soft', 0),
         },
     }
+    from parsers.financial_evaluator import calcular_evaluacion_financiera
+    try:
+        resultado['evaluacion_financiera'] = calcular_evaluacion_financiera(prop, resultado)
+    except Exception as e:
+        logger.warning(f"[FINANCIAL_EVALUATOR] Error: {e}")
+        resultado['evaluacion_financiera'] = {}
+
     from parsers.audit_logger import generar_audit_log, guardar_audit_log
     audit_log = generar_audit_log(
         propiedad=prop, resultado=resultado,

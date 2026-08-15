@@ -309,12 +309,78 @@
     </div>
   </div>
 
-  <!-- Métricas de Inversión -->
+  <!-- Métricas de Inversión Tradicionales -->
   <div class="info-box">
     <strong>Métricas de inversión:</strong>
     Alquiler estimado: ARS {{ alquiler_ars }} (USD {{ alquiler_usd }}) |
     Cap Rate anual: {{ cap_rate }}
   </div>
+
+  {% if fin_eval and fin_eval.cape_inmobiliario %}
+  <!-- SECCIÓN FINANCIERA: NOI, CAPE INMOBILIARIO Y RETORNO TOTAL (TAREA-160) -->
+  <div class="section" style="margin-top:14px;">
+    <div class="section-header">
+      <div class="section-icon" style="background:linear-gradient(135deg, #1e1b4b, #312e81);">💼</div>
+      <div class="section-title">Evaluación Financiera & CAPE Inmobiliario</div>
+    </div>
+    
+    <div style="background:#f8fafc; border-radius:10px; padding:12px; border:1px solid #e2e8f0;">
+      <!-- KPIs Financieros -->
+      <div class="kpi-row" style="margin-bottom:10px;">
+        <div class="kpi-card" style="background:white; padding:8px 6px; border-top:3px solid {{ fin_eval.color_diagnostico }};">
+          <div class="kpi-number" style="color:{{ fin_eval.color_diagnostico }}; font-size:18px;">{{ fin_eval.cape_inmobiliario }}x</div>
+          <div class="kpi-label" style="font-size:9px;">CAPE Inmobiliario</div>
+          <div class="kpi-desc" style="font-size:8px;">Años de NOI para pagar costo</div>
+        </div>
+        <div class="kpi-card" style="background:white; padding:8px 6px; border-top:3px solid #10b981;">
+          <div class="kpi-number" style="color:#059669; font-size:18px;">USD ${{ "{:,.0f}".format(fin_eval.noi_anual_usd) }}</div>
+          <div class="kpi-label" style="font-size:9px;">NOI Anual Neto</div>
+          <div class="kpi-desc" style="font-size:8px;">USD ${{ "{:,.0f}".format(fin_eval.noi_mensual_usd) }}/mes de bolsillo</div>
+        </div>
+        <div class="kpi-card" style="background:white; padding:8px 6px; border-top:3px solid #f59e0b;">
+          <div class="kpi-number" style="color:#d97706; font-size:18px;">{{ fin_eval.retorno_total_tir }}%</div>
+          <div class="kpi-label" style="font-size:9px;">Retorno Total (TIR)</div>
+          <div class="kpi-desc" style="font-size:8px;">Cap Rate {{ fin_eval.cap_rate_neto }}% + Plusvalía {{ fin_eval.plusvalia_anual_estimada }}%</div>
+        </div>
+      </div>
+
+      <!-- Desglose P&L de NOI -->
+      <div style="background:white; border-radius:8px; padding:8px 12px; border:1px solid #e2e8f0; font-size:9px;">
+        <div style="font-weight:700; color:#1e293b; margin-bottom:4px; border-bottom:1px solid #cbd5e1; padding-bottom:3px;">
+          Desglose del Ingreso Neto Operativo Anual (P&L Operativo)
+        </div>
+        <table style="width:100%; border-collapse:collapse; font-size:8.5px;">
+          <tr>
+            <td style="padding:2px 0; color:#334155;"><strong>(+) Alquiler Bruto Anual Proyectado</strong></td>
+            <td style="text-align:right; font-weight:700; color:#0f172a;">USD ${{ "{:,.0f}".format(fin_eval.alquiler_bruto_anual_usd) }}</td>
+          </tr>
+          <tr>
+            <td style="padding:2px 0; color:#64748b;">(-) Vacancia y Morosidad Estimada (4%)</td>
+            <td style="text-align:right; color:#dc2626;">-USD ${{ "{:,.0f}".format(fin_eval.vacancia_anual_usd) }}</td>
+          </tr>
+          <tr>
+            <td style="padding:2px 0; color:#64748b;">(-) Fondo Reserva y Mantenimiento (0.5% VPP/año)</td>
+            <td style="text-align:right; color:#dc2626;">-USD ${{ "{:,.0f}".format(fin_eval.mantenimiento_anual_usd) }}</td>
+          </tr>
+          {% if fin_eval.expensas_prop_anual_usd > 0 %}
+          <tr>
+            <td style="padding:2px 0; color:#64748b;">(-) Expensas Propietario e Impuestos Locales</td>
+            <td style="text-align:right; color:#dc2626;">-USD ${{ "{:,.0f}".format(fin_eval.expensas_prop_anual_usd) }}</td>
+          </tr>
+          {% endif %}
+          <tr style="border-top:1px solid #94a3b8;">
+            <td style="padding:3px 0; color:#1e1b4b; font-weight:700;">(=) INGRESO NETO OPERATIVO REAL (NOI ANUAL)</td>
+            <td style="text-align:right; color:#1e1b4b; font-weight:700;">USD ${{ "{:,.0f}".format(fin_eval.noi_anual_usd) }}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="margin-top:6px; font-size:8.5px; color:#475569; font-style:italic;">
+        <strong>Diagnóstico Financiero:</strong> {{ fin_eval.etiqueta_diagnostico }}. El rango razonable de valuación por rentabilidad en {{ zona }} (Income Approach entre 16.0x y 20.0x NOI) se ubica entre <strong>USD ${{ "{:,.0f}".format(fin_eval.rango_income_approach.min) }}</strong> y <strong>USD ${{ "{:,.0f}".format(fin_eval.rango_income_approach.max) }}</strong>.
+      </div>
+    </div>
+  </div>
+  {% endif %}
 
   <!-- Evolución Histórica de Precios y Plusvalía -->
   <div class="section">

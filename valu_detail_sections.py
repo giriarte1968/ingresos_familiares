@@ -524,15 +524,59 @@ def render_manual_valuation_card(prop):
         param_line = ""
         _range_text = ""
 
-    grad_manual = "linear-gradient(135deg, #6B21A8 0%, #4C1D95 100%)"
+    # ─── MÓDULO FINANCIERO Y CAPE INMOBILIARIO (TAREA-160) ───
+    fin_eval = {}
+    try:
+        from parsers.financial_evaluator import calcular_evaluacion_financiera
+        # Obtener resultado base para calculo automatico de NOI y CAPE
+        _dummy_res = {
+            'valor_propiedad_usd': manual_valor if manual_valor > 0 else uv.get('valor_usd', 0),
+            'alquiler_estimado_ars': uv.get('alquiler_ars', 0),
+            'usdt_ars': usdt_ars if usdt_ars > 0 else 1585.0,
+            'plusvalia_12m_pct': uv.get('plusvalia_12m_pct', 3.5),
+        }
+        fin_eval = calcular_evaluacion_financiera(prop, _dummy_res)
+    except Exception:
+        fin_eval = {}
+
+    grad_manual = "linear-gradient(135deg, #1E1B4B 0%, #312E81 100%)"
     _range_div = f'<div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.15);">{_range_text}</div>' if _range_text else ''
+    
+    # Financial metrics badges
+    cape_val = fin_eval.get('cape_inmobiliario', 0)
+    noi_usd = fin_eval.get('noi_anual_usd', 0)
+    tir_val = fin_eval.get('retorno_total_tir', 0)
+    diag_label = fin_eval.get('etiqueta_diagnostico', 'Evaluación Financiera Activa')
+    diag_color = fin_eval.get('color_diagnostico', '#3B82F6')
+    
+    fin_html = ""
+    if cape_val > 0 and noi_usd > 0:
+        fin_html = f"""
+        <div style="display:flex;justify-content:space-around;margin-top:10px;padding-top:10px;border-top:1px dashed rgba(255,255,255,0.2);">
+            <div style="text-align:center;">
+                <div style="font-size:10px;color:rgba(255,255,255,0.6);">CAPE INMOBILIARIO</div>
+                <div style="font-size:16px;font-weight:700;color:{diag_color};">{cape_val:.1f}x</div>
+            </div>
+            <div style="text-align:center;">
+                <div style="font-size:10px;color:rgba(255,255,255,0.6);">NOI ANUAL NETO</div>
+                <div style="font-size:16px;font-weight:700;color:#10B981;">USD ${noi_usd:,.0f}</div>
+            </div>
+            <div style="text-align:center;">
+                <div style="font-size:10px;color:rgba(255,255,255,0.6);">RETORNO TOTAL (TIR)</div>
+                <div style="font-size:16px;font-weight:700;color:#F59E0B;">{tir_val:.1f}% p.a.</div>
+            </div>
+        </div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.65);margin-top:6px;font-style:italic;">{diag_label}</div>
+        """
+
     st.markdown(f"""
     <div style="border:none;border-radius:12px;padding:14px 16px;background:{grad_manual};box-shadow:0 4px 12px rgba(0,0,0,0.15);text-align:center;">
-        <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.7);margin-bottom:4px;">VALUACIÓN MANUAL</div>
+        <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.8);margin-bottom:4px;">VALUACIÓN MANUAL · SIMULADOR FINANCIERO & CAPE</div>
         <div style="font-size:15px;font-weight:600;color:#FFFFFF;">{meta_line}</div>
         <div style="font-size:11px;color:rgba(255,255,255,0.55);margin-top:2px;">{formula_line}</div>
         {'<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;">' + param_line + '</div>' if param_line else ''}
         {_range_div}
+        {fin_html}
     </div>
     """, unsafe_allow_html=True)
 

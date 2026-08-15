@@ -489,6 +489,18 @@ def build_context(prop, cache_data=None, res_in=None, auto_result_in=None):
         radio_m=meta.get('radio_usado', 1000),
         cv_qualitative=cv_qualitative,
     )
+    
+    # Financial Evaluation for PDF (TAREA-160)
+    try:
+        from parsers.financial_evaluator import calcular_evaluacion_financiera
+        _pdf_res = res or {}
+        _pdf_res['valor_propiedad_usd'] = safe_int(valor_adoptado.replace(',', '').replace('$', '')) if isinstance(valor_adoptado, str) else valor_adoptado
+        _pdf_res['alquiler_estimado_ars'] = alq_ars
+        _pdf_res['usdt_ars'] = dolar
+        ctx['fin_eval'] = calcular_evaluacion_financiera(prop, _pdf_res)
+    except Exception as e:
+        ctx['fin_eval'] = {}
+        
     return ctx
 
 

@@ -2629,3 +2629,34 @@ def test_zone_change_resets_exclusion_applied():
     assert prop3['_ultima_valuacion']['_comp_excluded'] == [], \
         f"_comp_excluded debe ser [] después de cambio estructural"
     print("[T-ZONE-RESET-EXCL] OK — _comp_exclusion_applied reseteado a False")
+
+
+# === TAREA-160: Financial Evaluator (NOI, CAPE Inmobiliario, TIR) ===
+
+@pytest.mark.core
+def test_financial_evaluator_noi_cape_tir():
+    """TAREA-160: calcular_evaluacion_financiera desglosa NOI, CAPE y TIR correctamente."""
+    from parsers.financial_evaluator import calcular_evaluacion_financiera
+
+    prop = {'nombre': 'Test Property', 'expensas_ars': 40000}
+    res_avm = {
+        'valor_propiedad_usd': 100000.0,
+        'alquiler_estimado_ars': 600000.0,
+        'usdt_ars': 1500.0,
+        'plusvalia_12m_pct': 4.0,
+    }
+
+    fin = calcular_evaluacion_financiera(prop, res_avm)
+    
+    assert fin['valor_propiedad_usd'] == 100000.0
+    assert fin['alquiler_bruto_anual_usd'] == 4800.0  # ($600.000 * 12) / 1500 = $4.800 USD/año
+    assert fin['vacancia_anual_usd'] == 192.0         # 4% de 4800 = 192
+    assert fin['mantenimiento_anual_usd'] == 500.0     # 0.5% de 100000 = 500
+    assert fin['expensas_prop_anual_usd'] == 80.0       # (40000 * 0.25 * 12) / 1500 = 80
+    assert fin['noi_anual_usd'] == 4028.0             # 4800 - (192 + 500 + 80) = 4028
+    assert abs(fin['cape_inmobiliario'] - 24.8) <= 0.2 # 100000 / 4028 = ~24.8x
+    assert abs(fin['cap_rate_neto'] - 4.03) <= 0.1     # 4028 / 100000 * 100 = ~4.03%
+    assert abs(fin['retorno_total_tir'] - 8.03) <= 0.1 # 4.03% + 4.0% = ~8.03%
+    assert fin['diagnostico_cape'] == 'PREMIUM'
+    print("[T-FINANCIAL-EVALUATOR] OK — NOI, CAPE, CapRate Neto y TIR desglosados correctamente")
+
