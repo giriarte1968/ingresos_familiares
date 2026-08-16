@@ -609,8 +609,15 @@ def render_evaluacion_financiera_analista(prop, res):
     auto_result = res.get('_auto_result', res)
     valor_usd = auto_result.get('valor_propiedad_usd', 0) if auto_result else res.get('valor_propiedad_usd', 0)
     dolar = auto_result.get('usdt_ars', 1585.0) if auto_result else res.get('usdt_ars', 1585.0)
-    base_alq = res.get('alquiler_estimado_ars', 516995)
-    base_plus = prop.get('_ultima_valuacion', {}).get('plusvalia_12m_pct', 3.5)
+
+    try:
+        from valu_detail_sections import _recalcular_alquiler
+        alq_info = _recalcular_alquiler(prop, res, auto_result=auto_result)
+        base_alq = alq_info.get('alq_ars') or res.get('alquiler_estimado_ars', 516995)
+    except Exception:
+        base_alq = res.get('alquiler_estimado_ars', 516995)
+
+    base_plus = prop.get('_ultima_valuacion', {}).get('plusvalia_12m_pct', 1.0)
 
     st.markdown("<h3 style='margin-bottom:2px;color:#1A2B5C;'>📊 Evaluación Financiera & Simulador CAPE Inmobiliario</h3>", unsafe_allow_html=True)
     st.markdown("<p style='color:#6B7280;font-size:13px;margin-bottom:12px;'>Simulación de rendimiento operativo, flujo de caja libre (NOI) y rentabilidad total ajustada por plusvalía zonal en USD.</p>", unsafe_allow_html=True)

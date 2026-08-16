@@ -121,6 +121,8 @@ def calcular_evaluacion_financiera(prop: Dict[str, Any], resultado_avm: Dict[str
         'noi_anual_ars': round(noi_anual_ars, 0),
         'noi_mensual_usd': round(noi_mensual_usd, 0),
         'noi_mensual_ars': round(noi_mensual_ars, 0),
+        'flujo_caja_mensual_neto_usd': round(noi_mensual_usd, 0),
+        'flujo_caja_mensual_neto_ars': round(noi_mensual_ars, 0),
         # Ratios Financieros
         'cape_inmobiliario': round(cape_inmobiliario, 1),
         'price_to_rent_bruto': round(price_to_rent_bruto, 1),
