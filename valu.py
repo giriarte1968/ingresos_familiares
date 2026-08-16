@@ -365,7 +365,7 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
         render_catastro, render_street_view, render_historial,
         generar_reporte_pdf, generar_reporte_pdf_bytes,
         render_valuacion_manual, render_disk_summary_card,
-        render_manual_valuation_card,
+        render_manual_valuation_card, render_evaluacion_financiera_analista,
     )
     _dl.mark("after_imports")
 
@@ -566,7 +566,10 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
                 render_tabla_comparables({**res, 'comparables_venta': comparables}, prop_name=prop_name)
             _dl.mark("after_render_tabla_comparables")
 
-    _dl.mark("after_section_comparables")
+    # ─── 📊 Evaluación Financiera & Simulador CAPE ───
+    with profile_block("render_evaluacion_financiera_analista", prop):
+        render_evaluacion_financiera_analista(prop, res)
+    _dl.mark("after_section_evaluacion_financiera")
 
     # ─── 🧮 Simulador Financiero & Valuación Manual ───
     manual_params_present = bool(res.get('_manual_params'))
