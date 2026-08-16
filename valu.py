@@ -359,14 +359,27 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
     _dl = StepLedger("mostrar_detalle_valu_ledger", nombre)
     _dl.mark("start")
 
-    from valu_detail_sections import (
-        render_actions, render_header, render_metricas,
-        render_razonamiento, render_mapa_propiedad, render_tabla_comparables,
-        render_catastro, render_street_view, render_historial,
-        generar_reporte_pdf, generar_reporte_pdf_bytes,
-        render_valuacion_manual, render_disk_summary_card,
-        render_manual_valuation_card, render_evaluacion_financiera_analista,
-    )
+    try:
+        from valu_detail_sections import (
+            render_actions, render_header, render_metricas,
+            render_razonamiento, render_mapa_propiedad, render_tabla_comparables,
+            render_catastro, render_street_view, render_historial,
+            generar_reporte_pdf, generar_reporte_pdf_bytes,
+            render_valuacion_manual, render_disk_summary_card,
+            render_manual_valuation_card, render_evaluacion_financiera_analista,
+        )
+    except ImportError:
+        import sys, importlib
+        if 'valu_detail_sections' in sys.modules:
+            importlib.reload(sys.modules['valu_detail_sections'])
+        from valu_detail_sections import (
+            render_actions, render_header, render_metricas,
+            render_razonamiento, render_mapa_propiedad, render_tabla_comparables,
+            render_catastro, render_street_view, render_historial,
+            generar_reporte_pdf, generar_reporte_pdf_bytes,
+            render_valuacion_manual, render_disk_summary_card,
+            render_manual_valuation_card, render_evaluacion_financiera_analista,
+        )
     _dl.mark("after_imports")
 
     with profile_block("render_actions", prop):

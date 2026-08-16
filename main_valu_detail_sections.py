@@ -1,4 +1,4 @@
-﻿"""
+"""
 Secciones del detalle de propiedad. Funciones de renderizado UI puras.
 Cada funcion recibe datos y renderiza una seccion especifica.
 Son llamadas desde mostrar_detalle_valu() en valu.py.
@@ -595,6 +595,66 @@ def render_street_view(prop, compact=True):
         st.markdown("<p style='color:#64748b; font-size:0.95rem; margin-top:4px;'>Explor├í la calle, el barrio y la fachada de la propiedad interactuando en 360┬░ desde Google Street View.</p>", unsafe_allow_html=True)
     with c2:
         st.markdown(f'<a href="{url}" target="_blank" class="detail-btn">Abrir Street View</a>', unsafe_allow_html=True)
+
+
+def render_evaluacion_financiera_analista(prop, res):
+    """
+    Sección completa de Evaluación Financiera & Simulador de Inversión (CAPE, NOI, TIR)
+    para el Analista Inmobiliario.
+    """
+    from parsers.financial_evaluator import calcular_evaluacion_financiera
+    nombre = prop.get('nombre', '')
+    skey = nombre.lower().strip().replace(' ', '_').replace('.', '_')
+
+    auto_result = res.get('_auto_result', res)
+    valor_usd = auto_result.get('valor_propiedad_usd', 0) if auto_result else res.get('valor_propiedad_usd', 0)
+    dolar = auto_result.get('usdt_ars', 1585.0) if auto_result else res.get('usdt_ars', 1585.0)
+    base_alq = res.get('alquiler_estimado_ars', 516995)
+    base_plus = prop.get('_ultima_valuacion', {}).get('plusvalia_12m_pct', 3.5)
+
+    st.markdown("<h3 style='margin-bottom:2px;color:#1A2B5C;'>📊 Evaluación Financiera & Simulador CAPE Inmobiliario</h3>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#6B7280;font-size:13px;margin-bottom:12px;'>Simulación de rendimiento operativo, flujo de caja libre (NOI) y rentabilidad total ajustada por plusvalía zonal en USD.</p>", unsafe_allow_html=True)
+
+    with st.container(border=True):
+        col_s1, col_s2 = st.columns(2)
+        with col_s1:
+            sim_alquiler = st.slider(
+                "💵 Alquiler Estimado Mensual (ARS)",
+                min_value=100000, max_value=3000000,
+                value=int(base_alq if base_alq > 0 else 516995),
+                step=25000, format="$%d",
+                key=f"sec_sim_alq_{skey}"
+            )
+        with col_s2:
+            sim_plusvalia = st.slider(
+                "📈 Plusvalía / Apreciación Anual Estimada (% USD/año)",
+                min_value=0.0, max_value=12.0,
+                value=float(base_plus if base_plus > 0 else 3.5),
+                step=0.5, format="%.1f%%",
+                key=f"sec_sim_plus_{skey}"
+            )
+
+        _dummy_sim = {
+            'valor_propiedad_usd': valor_usd,
+            'alquiler_estimado_ars': sim_alquiler,
+            'usdt_ars': dolar,
+            'plusvalia_12m_pct': sim_plusvalia,
+        }
+        fin = calcular_evaluacion_financiera(prop, _dummy_sim)
+
+        c1, c2, c3, c4, c5 = st.columns(5)
+        with c1:
+            st.metric("CAPE Inmobiliario", f"{fin.get('cape_inmobiliario', 0):.1f}x", help="Años de NOI necesarios para repagar la inversión")
+        with c2:
+            st.metric("NOI Anual Neto", f"USD ${fin.get('noi_anual_usd', 0):,.0f}", help="Ingreso Operativo Neto anual de alquileres")
+        with c3:
+            st.metric("Flujo Mensual Neto", f"USD ${fin.get('flujo_caja_mensual_neto_usd', 0):,.0f}/mes", help="Dinero neto libre por mes en el bolsillo")
+        with c4:
+            st.metric("Cap Rate Neto", f"{fin.get('cap_rate_neto', 0):.2f}%", help="Rendimiento neto anual por alquiler")
+        with c5:
+            st.metric("Retorno Total (TIR)", f"{fin.get('retorno_total_tir', 0):.1f}% p.a.", help="Cap Rate Neto + Plusvalía Zonal Anual")
+
+        st.info(f"💡 **Razonamiento Comercial:** {fin.get('razonamiento_cliente', '')}")
 
 
 def render_historial(nombre):
