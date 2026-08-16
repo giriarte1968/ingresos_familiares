@@ -568,12 +568,12 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
 
     _dl.mark("after_section_comparables")
 
-    # ─── 📐 Valuación Manual ───
+    # ─── 🧮 Simulador Financiero & Valuación Manual ───
     manual_params_present = bool(res.get('_manual_params'))
     manual_result_present = bool(res.get('_manual_result'))
     fuente_activa = res.get('_fuente_activa', 'N/A')
     print(f"[DEBUG-MANUAL-RESULT] {nombre}: render_valuacion_manual recibiendo: _manual_params={'SI' if manual_params_present else 'NO'}, _manual_result={'SI' if manual_result_present else 'NO'}, _fuente_activa={fuente_activa}")
-    with st.expander(f"📐 Valuacion Manual — {prop_name}", expanded=False):
+    with st.expander(f"🧮 SIMULADOR FINANCIERO & VALUACIÓN MANUAL — {prop_name}", expanded=True):
         with profile_block("render_valuacion_manual", prop):
             render_valuacion_manual(prop, res)
     _dl.mark("after_section_manual")
