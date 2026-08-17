@@ -526,51 +526,17 @@ def render_manual_valuation_card(prop):
         param_line = ""
         _range_text = ""
 
-    # ─── MÓDULO FINANCIERO Y CAPE INMOBILIARIO (TAREA-160) ───
-    fin_eval = {}
-    try:
-        from parsers.financial_evaluator import calcular_evaluacion_financiera
-        # Obtener resultado base para calculo automatico de NOI y CAPE
-        _dummy_res = {
-            'valor_propiedad_usd': manual_valor if manual_valor > 0 else uv.get('valor_usd', 0),
-            'alquiler_estimado_ars': uv.get('alquiler_ars', 0),
-            'usdt_ars': usdt_ars if usdt_ars > 0 else 1585.0,
-            'plusvalia_12m_pct': uv.get('plusvalia_12m_pct', 3.5),
-        }
-        fin_eval = calcular_evaluacion_financiera(prop, _dummy_res)
-    except Exception:
-        fin_eval = {}
-
     grad_manual = "linear-gradient(135deg, #1E1B4B 0%, #312E81 100%)"
     _range_div = f'<div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.15);">{_range_text}</div>' if _range_text else ''
-    
-    # Financial metrics badges
-    cape_val = fin_eval.get('cape_inmobiliario', 0)
-    noi_usd = fin_eval.get('noi_anual_usd', 0)
-    tir_val = fin_eval.get('retorno_total_tir', 0)
-    diag_label = fin_eval.get('etiqueta_diagnostico', 'Evaluación Financiera Activa')
-    diag_color = fin_eval.get('color_diagnostico', '#3B82F6')
-    
-    fin_html = ""
-    if cape_val > 0 and noi_usd > 0:
-        fin_html = (
-            f'<div style="display:flex;justify-content:space-around;margin-top:10px;padding-top:10px;border-top:1px dashed rgba(255,255,255,0.2);">'
-            f'<div style="text-align:center;"><div style="font-size:10px;color:rgba(255,255,255,0.6);">CAPE INMOBILIARIO</div><div style="font-size:16px;font-weight:700;color:{diag_color};">{cape_val:.1f}x</div></div>'
-            f'<div style="text-align:center;"><div style="font-size:10px;color:rgba(255,255,255,0.6);">NOI ANUAL NETO</div><div style="font-size:16px;font-weight:700;color:#10B981;">USD ${noi_usd:,.0f}</div></div>'
-            f'<div style="text-align:center;"><div style="font-size:10px;color:rgba(255,255,255,0.6);">RETORNO TOTAL (TIR)</div><div style="font-size:16px;font-weight:700;color:#F59E0B;">{tir_val:.1f}% p.a.</div></div>'
-            f'</div>'
-            f'<div style="font-size:10px;color:rgba(255,255,255,0.65);margin-top:6px;font-style:italic;">{diag_label}</div>'
-        )
-
     param_div = f'<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;">{param_line}</div>' if param_line else ''
+    
     card_html = (
         f'<div style="border:none;border-radius:12px;padding:14px 16px;background:{grad_manual};box-shadow:0 4px 12px rgba(0,0,0,0.15);text-align:center;">'
-        f'<div style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.8);margin-bottom:4px;">VALUACIÓN MANUAL · SIMULADOR FINANCIERO & CAPE</div>'
+        f'<div style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.8);margin-bottom:4px;">VALUACIÓN MANUAL</div>'
         f'<div style="font-size:15px;font-weight:600;color:#FFFFFF;">{meta_line}</div>'
         f'<div style="font-size:11px;color:rgba(255,255,255,0.55);margin-top:2px;">{formula_line}</div>'
         f'{param_div}'
         f'{_range_div}'
-        f'{fin_html}'
         f'</div>'
     )
     st.markdown(card_html, unsafe_allow_html=True)
@@ -753,38 +719,6 @@ def render_metricas(prop, res, valor_usd, dolar, auto_result=None, manual_result
             st.markdown(metric_card("", "Plusvalia", f"+${gain:,.0f} USD", f"{pct:+.1f}% desde compra", border_color="#F59E0B"), unsafe_allow_html=True)
         else:
             st.markdown(metric_card("", "Plusvalia", "-", "Sin datos de compra", border_color="#F59E0B"), unsafe_allow_html=True)
-
-    # Tarjeta de Rentabilidad de la inversión
-    expensas = prop.get('expensas_ars', 0)
-    mantenimiento = int(alq_ars * 0.065) if alq_ars > 0 else 0
-    vacancia = int(alq_ars * 0.04) if alq_ars > 0 else 0
-    cap_rate_pct = cap * 100
-    cap_rate_neto_pct = cap_rate_pct * 0.92
-
-    rentabilidad_html = f"""
-    <div style="background:white;border-radius:16px;padding:20px 24px;box-shadow:0 4px 12px rgba(0,0,0,0.08);margin-top:12px;">
-        <div style="font-size:14px;font-weight:700;color:#1A2B5C;margin-bottom:12px;">Rentabilidad de la inversión</div>
-        <div style="display:flex;gap:32px;margin-bottom:16px;">
-            <div>
-                <div style="color:#6B7280;font-size:12px;">Rentabilidad bruta</div>
-                <div style="color:#1A2B5C;font-size:18px;font-weight:700;">{cap_rate_pct:.1f}% anual</div>
-            </div>
-            <div>
-                <div style="color:#6B7280;font-size:12px;">Rentabilidad neta</div>
-                <div style="color:#16A34A;font-size:18px;font-weight:700;">{cap_rate_neto_pct:.1f}% anual</div>
-            </div>
-        </div>
-        <div style="border-top:1px solid #E5E7EB;padding-top:12px;">
-            <div style="color:#6B7280;font-size:12px;font-weight:600;margin-bottom:8px;">Costos del propietario:</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 24px;font-size:13px;color:#374151;">
-                <div>Expensas extraordinarias:</div><div style="text-align:right;">${expensas:,.0f} ARS/mes</div>
-                <div>Mantenimiento estimado:</div><div style="text-align:right;">${mantenimiento:,.0f} ARS/mes</div>
-                <div>Vacancia estimada (4%):</div><div style="text-align:right;">${vacancia:,.0f} ARS/mes</div>
-            </div>
-        </div>
-    </div>
-    """
-    st.markdown(rentabilidad_html, unsafe_allow_html=True)
 
 
 def render_razonamiento(prop, res):
