@@ -2254,42 +2254,7 @@ def render_valuacion_manual(prop, res):
     constr_display = f"{constr_label}" if constr_label and saved.get('incluir_prima_const', True) else "—"
     constr_pct_str = f"+{pct_const}%" if pct_const > 0 else ("—" if not constr_label else f"{pct_const}%")
 
-    preview_html = f"""
-    <div style="background:#ffffff;border:1px solid #d1d5db;border-radius:10px;padding:20px;margin:16px 0;">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
-        <div>
-          <div style="color:#000000;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">
-            Valor Manual Estimado
-          </div>
-          <div style="font-size:30px;font-weight:700;color:#000000;margin:4px 0;font-family:system-ui,-apple-system,sans-serif;">
-            ${pre_final:,.0f} USD
-          </div>
-          <div style="color:#333333;font-size:13px;">
-            Rango: ${pre_cons:,.0f} – ${pre_opt:,.0f} USD (±{inc:.0f}%)
-          </div>
-        </div>
-      </div>
-      <hr style="margin:14px 0;border:none;border-top:1px solid #d1d5db;">
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px 16px;font-size:13px;color:#333333;">
-        <div><span style="color:#000000;font-weight:600;">m² eq.:</span> {m2_eq:,.0f}</div>
-        <div><span style="color:#000000;font-weight:600;">USD/m²:</span> ${usd_m2_input:,.0f}</div>
-        <div><span style="color:#000000;font-weight:600;">FH:</span> {(fh_eff-1.0)*100:+.1f}%</div>
-        <div><span style="color:#000000;font-weight:600;">Constructora:</span> {constr_pct_str}</div>
-        <div><span style="color:#000000;font-weight:600;">Ajuste %:</span> {ajuste_pct:+.1f}%</div>
-        <div><span style="color:#000000;font-weight:600;">Incertidumbre:</span> ±{inc:.0f}%</div>
-        <div><span style="color:#000000;font-weight:600;">Activos:</span> ${pre_act:,.0f}</div>
-      </div>
-      <div style="color:#333333;font-size:11px;margin-top:10px;padding-top:10px;border-top:1px solid #d1d5db;">
-        m2_eq x USD/m2 x FH x constr + activos x (1 + ajuste)
-      </div>
-    </div>
-    """
-
-    if usd_m2_input > 0:
-        st.markdown(preview_html, unsafe_allow_html=True)
-    else:
-        with st.container(border=True):
-            st.warning("Ingrese un valor de USD/m² para ver la previsualizacion.")
+    # Card preview_html removida a pedido del usuario (remoción de tarjeta resumen de valor manual)
 
     # ========================================================================
     # BLOQUE 2.5: SIMULADOR FINANCIERO & CAPE EN VIVO (ANALISTA INMOBILIARIO)
