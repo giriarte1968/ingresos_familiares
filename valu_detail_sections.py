@@ -2256,57 +2256,7 @@ def render_valuacion_manual(prop, res):
 
     # Card preview_html removida a pedido del usuario (remoción de tarjeta resumen de valor manual)
 
-    # ========================================================================
-    # BLOQUE 2.5: SIMULADOR FINANCIERO & CAPE EN VIVO (ANALISTA INMOBILIARIO)
-    # ========================================================================
-    with st.container(border=True):
-        st.markdown("#### 🧮 Simulador Financiero en Vivo (Analista Inmobiliario)")
-        st.caption("Ajustá los sliders para simular el Cash Flow, NOI, CAPE Inmobiliario y TIR del cliente en tiempo real.")
-        
-        col_sim1, col_sim2 = st.columns(2)
-        with col_sim1:
-            base_alq = uv_dict.get('alquiler_ars') or res.get('alquiler_estimado_ars', 516995)
-            sim_alquiler = st.slider(
-                "💵 Alquiler Estimado Mensual (ARS)",
-                min_value=100000, max_value=3000000,
-                value=int(base_alq if base_alq > 0 else 516995),
-                step=25000, format="$%d",
-                key=f"sim_alq_{_safe_key(nombre)}"
-            )
-        with col_sim2:
-            base_plus = uv_dict.get('plusvalia_12m_pct', 3.5)
-            sim_plusvalia = st.slider(
-                "📈 Plusvalía / Apreciación Anual Estimada (% USD/año)",
-                min_value=0.0, max_value=12.0,
-                value=float(base_plus if base_plus > 0 else 3.5),
-                step=0.5, format="%.1f%%",
-                key=f"sim_plus_{_safe_key(nombre)}"
-            )
-
-        # Calcular simulacion en tiempo real con el precio manual proyectado (pre_final)
-        try:
-            from parsers.financial_evaluator import calcular_evaluacion_financiera
-            _dummy_sim = {
-                'valor_propiedad_usd': pre_final if pre_final > 0 else motor_valor,
-                'alquiler_estimado_ars': sim_alquiler,
-                'usdt_ars': dolar,
-                'plusvalia_12m_pct': sim_plusvalia,
-            }
-            fin_sim = calcular_evaluacion_financiera(prop, _dummy_sim)
-            
-            c1, c2, c3, c4 = st.columns(4)
-            with c1:
-                st.metric("CAPE Inmobiliario", f"{fin_sim.get('cape_inmobiliario', 0):.1f}x", help="Años de NOI necesarios para repagar la inversión")
-            with c2:
-                st.metric("NOI Anual Neto", f"USD ${fin_sim.get('noi_anual_usd', 0):,.0f}", help="Ingreso Operativo Neto anual de alquileres")
-            with c3:
-                st.metric("Cap Rate Neto", f"{fin_sim.get('cap_rate_neto', 0):.2f}%", help="Rendimiento neto anual por alquiler")
-            with c4:
-                st.metric("Retorno Total (TIR)", f"{fin_sim.get('retorno_total_tir', 0):.1f}% p.a.", help="Cap Rate Neto + Plusvalía Zonal Anual")
-
-            st.info(f"💡 **Razonamiento Comercial:** {fin_sim.get('razonamiento_cliente', '')}")
-        except Exception as e_sim:
-            print(f"[ERROR-SIM] {nombre}: {e_sim}")
+    # Bloque duplicado de simulador financiero removido de render_valuacion_manual (centralizado en render_evaluacion_financiera_analista)
 
     # ========================================================================
     # BLOQUE 3: ACCION
