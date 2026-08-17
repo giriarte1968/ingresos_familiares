@@ -579,8 +579,9 @@ def mostrar_detalle_valu(prop, res, guardar_fn):
             _dl.mark("after_render_tabla_comparables")
 
     # ─── 📊 Evaluación Financiera & Simulador CAPE ───
-    with profile_block("render_evaluacion_financiera_analista", prop):
-        render_evaluacion_financiera_analista(prop, res)
+    with st.expander(f"📊 EVALUACIÓN FINANCIERA & SIMULADOR CAPE — {prop_name}", expanded=False):
+        with profile_block("render_evaluacion_financiera_analista", prop):
+            render_evaluacion_financiera_analista(prop, res)
     _dl.mark("after_section_evaluacion_financiera")
 
     # ─── 🧮 Simulador Financiero & Valuación Manual ───
