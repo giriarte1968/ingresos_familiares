@@ -1252,10 +1252,10 @@ def _filtrar_por_ventana_edad(pool, anio_sujeto, ventana=10, min_con_anio=3):
         if anio_min <= p['_anio_construccion_calc'] <= anio_max
     ]
 
-    if len(pool_age_filtered) > 0:
+    if len(pool_age_filtered) >= min_con_anio:
         return pool_age_filtered, True, len(pool_age_filtered), anio_min, anio_max
 
-    return pool, False, len(pool), 0, 0
+    return pool_age_filtered, True, len(pool_age_filtered), anio_min, anio_max
 
 
 def _aplicar_size_adj_a_comparables(pool, subject_m2, macrozona_id=None, dormitorios=None):
