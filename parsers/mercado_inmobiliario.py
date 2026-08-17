@@ -3748,8 +3748,30 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
     else:
         factor_escalera = 1.0
 
+    # Factor constructora desde JSON (constructoras_rosario.json)
+    factor_const = 1.0
+    pct_const = 0
+    constr_nombre = prop.get('constructora', '')
+    if constr_nombre:
+        try:
+            constr_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'constructoras_rosario.json')
+            if not os.path.exists(constr_path):
+                constr_path = "C:/Users/Gustavo/ingresos_familiares_st/constructoras_rosario.json"
+            if os.path.exists(constr_path):
+                with open(constr_path, "r", encoding="utf-8") as f:
+                    constr_list = json.load(f)
+                    constr_clean = constr_nombre.lower().strip()
+                    if constr_clean and isinstance(constr_list, list):
+                        for entry in constr_list:
+                            if constr_clean == entry.get('descripcion', '').lower().strip():
+                                pct_const = entry.get('porcentaje', 0)
+                                factor_const = 1.0 + pct_const / 100.0
+                                break
+        except Exception as e_c:
+            logger.warning(f"Error cargando factor constructora: {e_c}")
+
     size_discount = 1.0
-    valor_venta = m2_equiv * m2_microzona * factor_disposicion * factor_escalera
+    valor_venta = m2_equiv * m2_microzona * factor_disposicion * factor_escalera * factor_const
     
     logger.info(f"--- CALCULO BASE (TAREA-073) ---")
     logger.info(f"m2_equiv: {m2_equiv}, m2_microzona: {m2_microzona}")
@@ -4048,6 +4070,9 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
         'm2_base_venta': round(m2_base_venta, 2),
         'm2_microzona': round(m2_microzona, 2),
         'size_discount': 1.0,
+        'factor_const': factor_const,
+        'pct_const': pct_const,
+        'constructora': constr_nombre,
         'valor_activos_total': round(valor_activos['total'], 2),
         # Rango 3 escenarios
         'valor_venta_conservador': int(rango_venta['min']),
