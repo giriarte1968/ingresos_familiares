@@ -3,7 +3,7 @@ import os
 import random
 from datetime import datetime, timedelta
 
-def bulk_generate_santa_fe(total_target=10000):
+def bulk_generate_santa_fe(total_target=100000):
     print("=" * 70)
     print(f"INGESTION ESCALADA EN CACHE: {total_target} PROPIEDADES EN SANTA FE CAPITAL")
     print("=" * 70)
@@ -30,7 +30,7 @@ def bulk_generate_santa_fe(total_target=10000):
     fuentes = ["zonaprop_santa_fe", "mercadolibre_santa_fe", "argenprop_santa_fe", "buscadorprop_santa_fe"]
     
     start_date = datetime(2024, 6, 1)
-    random.seed(2026) # Semilla fija para reproducibilidad matemática
+    random.seed(100000)
     
     for i in range(1, total_target + 1):
         b = random.choice(barrios_sf)
@@ -41,24 +41,24 @@ def bulk_generate_santa_fe(total_target=10000):
         r_op = random.random()
         operacion = "venta" if r_op < 0.84 else "alquiler"
         
-        lat_offset = random.uniform(-0.004, 0.004)
-        lon_offset = random.uniform(-0.004, 0.004)
+        lat_offset = random.uniform(-0.006, 0.006)
+        lon_offset = random.uniform(-0.006, 0.006)
         lat = round(b["lat"] + lat_offset, 6)
         lon = round(b["lon"] + lon_offset, 6)
         
         calle = random.choice(b["calle"])
-        num = random.randint(100, 6500)
+        num = random.randint(100, 7500)
         
         dorms = random.choice([1, 1, 2, 2, 2, 3, 3, 4])
         
         if tipo == "Departamento":
-            m2 = round(random.uniform(35.0, 140.0), 1)
+            m2 = round(random.uniform(30.0, 150.0), 1)
             antiquity = random.choice([0, 1, 3, 5, 8, 12, 16, 22, 30, 40, 50, 60])
         elif tipo == "Casa":
-            m2 = round(random.uniform(85.0, 320.0), 1)
+            m2 = round(random.uniform(75.0, 380.0), 1)
             antiquity = random.choice([8, 12, 18, 25, 32, 40, 50, 65])
         else:
-            m2 = round(random.uniform(55.0, 130.0), 1)
+            m2 = round(random.uniform(48.0, 140.0), 1)
             antiquity = random.choice([4, 8, 12, 18, 26, 35])
             
         p_m2_base = random.uniform(b["precio_m2"][0], b["precio_m2"][1])
@@ -69,12 +69,12 @@ def bulk_generate_santa_fe(total_target=10000):
             valor_m2 = round(precio / m2, 2)
         else:
             moneda = "ARS"
-            precio = round(m2 * random.uniform(6200.0, 9800.0), -3)
+            precio = round(m2 * random.uniform(5800.0, 10200.0), -3)
             valor_m2 = round(precio / m2, 2)
             
         fuente = random.choice(fuentes)
         
-        days_rand = random.randint(0, 620)
+        days_rand = random.randint(0, 640)
         dt_created = start_date + timedelta(days=days_rand)
         dt_str = dt_created.isoformat() + "Z"
         
@@ -108,7 +108,7 @@ def bulk_generate_santa_fe(total_target=10000):
         "fecha": datetime.now().isoformat(),
         "ciudad": "Santa Fe Capital",
         "provincia": "Santa Fe",
-        "status": "masivo_ingest_santa_fe_10k_cleaned",
+        "status": "masivo_ingest_santa_fe_100k_cleaned",
         "total": len(propiedades),
         "venta": len([p for p in propiedades if p["operacion"] == "venta"]),
         "alquiler": len([p for p in propiedades if p["operacion"] == "alquiler"]),
@@ -120,11 +120,12 @@ def bulk_generate_santa_fe(total_target=10000):
         json.dump(out_dict, f, ensure_ascii=False, indent=2)
         
     print("\n" + "=" * 70)
-    print(f"INGESTION COMPLETADA EXITOSAMENTE: {len(propiedades)} PROPIEDADES EN SANTA FE CAPITAL")
+    print(f"INGESTION ESCALADA 100.000 COMPLETADA EXITOSAMENTE:")
+    print(f" Total propiedades: {len(propiedades)}")
     print(f" Venta: {out_dict['venta']} | Alquiler: {out_dict['alquiler']}")
     print(f" Archivo guardado: {out_file}")
     print("=" * 70)
     return out_dict
 
 if __name__ == '__main__':
-    bulk_generate_santa_fe(10000)
+    bulk_generate_santa_fe(100000)
