@@ -3517,10 +3517,18 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
     
     prop = sanitizar_propiedad(propiedad)
     uv_stored = propiedad.get('_ultima_valuacion', {}) or {}
+    dorms = prop.get('dormitorios', 2)
     if (retro_dias is None or retro_dias == 0):
         stored_r = uv_stored.get('retro_dias') or propiedad.get('retro_dias', 0)
         if stored_r and stored_r > 0:
             retro_dias = stored_r
+
+    if flex_dormitorios is None:
+        stored_flex = uv_stored.get('flex_dormitorios') or propiedad.get('flex_dormitorios')
+        if stored_flex:
+            flex_dormitorios = stored_flex
+        elif dorms >= 4:
+            flex_dormitorios = [2, 3, 4]
     from parsers.profiler import profile_block
     with profile_block("load_cache_cached"):
         cache = load_cache_cached()
