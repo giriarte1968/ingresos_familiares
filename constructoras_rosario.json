@@ -23,5 +23,10 @@
   {"descripcion": "Escala", "porcentaje": 0},
   {"descripcion": "Crestale", "porcentaje": 0},
   {"descripcion": "MA", "porcentaje": 0},
-  {"descripcion": "Bled", "porcentaje": 0}
+  {"descripcion": "Bled", "porcentaje": 0},
+  {"descripcion": "COVIARA", "porcentaje": -10},
+  {"descripcion": "Gendarmeria / Fuerzas", "porcentaje": -10},
+  {"descripcion": "FONAVI", "porcentaje": -12},
+  {"descripcion": "BHN Social", "porcentaje": -8},
+  {"descripcion": "Cooperativa Fuerzas Armadas", "porcentaje": -10}
 ]
