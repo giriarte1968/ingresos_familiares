@@ -705,20 +705,18 @@ def render_metricas(prop, res, valor_usd, dolar, auto_result=None, manual_result
     alq_value = f"${alq_ars:,.0f} ARS / mes   USD {alq_usd:,}" if alq_usd > 0 else f"${alq_ars:,.0f} ARS / mes"
     alq_sub = f"Rango: ${alq_min:,.0f} – ${alq_max:,.0f}" if alq_min > 0 and alq_max > 0 else "Sin datos de rango"
 
-    m1, m2, m3 = st.columns(3)
+    m1, m2 = st.columns(2)
     with m1:
-        st.markdown(metric_card("", "Alquiler", alq_value, alq_sub), unsafe_allow_html=True)
-    with m2:
-        st.markdown(metric_card("", "Rentabilidad Neta", f"{cap*100:.1f}% anual", f"Cierre est: ${valor_usd*0.92:,.0f} USD", border_color="#16A34A"), unsafe_allow_html=True)
+        st.markdown(metric_card("", "Alquiler Estimado", alq_value, alq_sub), unsafe_allow_html=True)
 
     valor_compra = prop.get('valor_compra_usd', 0)
-    with m3:
+    with m2:
         if valor_compra > 0:
             gain = valor_usd - valor_compra
-            pct = (gain/valor_compra)*100
-            st.markdown(metric_card("", "Plusvalia", f"+${gain:,.0f} USD", f"{pct:+.1f}% desde compra", border_color="#F59E0B"), unsafe_allow_html=True)
+            pct = (gain / valor_compra) * 100
+            st.markdown(metric_card("", "Plusvalía Histórica", f"+${gain:,.0f} USD", f"{pct:+.1f}% desde compra", border_color="#F59E0B"), unsafe_allow_html=True)
         else:
-            st.markdown(metric_card("", "Plusvalia", "-", "Sin datos de compra", border_color="#F59E0B"), unsafe_allow_html=True)
+            st.markdown(metric_card("", "Plusvalía Histórica", "-", "Sin datos de precio de compra registrado", border_color="#F59E0B"), unsafe_allow_html=True)
 
 
 def render_razonamiento(prop, res):
