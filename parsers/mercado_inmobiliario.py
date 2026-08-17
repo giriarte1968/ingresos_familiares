@@ -3528,7 +3528,7 @@ def valuar_propiedad_v7(propiedad, fecha_ref=None, consultar_infomapa=True, retr
         if stored_flex:
             flex_dormitorios = stored_flex
         elif dorms >= 4:
-            flex_dormitorios = [2, 3, 4]
+            flex_dormitorios = [dorms - 1, dorms, dorms + 1]
     from parsers.profiler import profile_block
     with profile_block("load_cache_cached"):
         cache = load_cache_cached()
