@@ -341,9 +341,9 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix="", show_geocode=True)
                 cochera_tipos = ["cubierta", "semicubierta", "descubierta"]
                 cocheras_tipo = st.selectbox("Tipo Cochera", cochera_tipos, index=cochera_tipos.index(prop_inicial.get('cocheras_tipo', 'cubierta')) if prop_inicial.get('cocheras_tipo') in cochera_tipos else 0, key=f"coch_tipo_{key_suffix}")
             with col_c3:
-                valor_cochera_base = st.number_input("Valor Base Cochera (USD)", min_value=0.0, value=float(prop_inicial.get('valor_cochera_base', 15000.0)), step=500.0, key=f"coch_val_{key_suffix}")
+                valor_cochera_base = st.number_input("Valor Base Cochera (USD)", min_value=0.0, value=float(prop_inicial.get('valor_cochera_base', 0.0) or 0.0), step=500.0, key=f"coch_val_{key_suffix}")
             
-            valor_baulera = st.number_input("Valor Baulera (USD)", min_value=0.0, value=float(prop_inicial.get('valor_baulera', 3000.0)) if prop_inicial.get('baulera') or prop_inicial.get('valor_baulera') else 0.0, step=500.0, key=f"baul_val_{key_suffix}")
+            valor_baulera = st.number_input("Valor Baulera (USD)", min_value=0.0, value=float(prop_inicial.get('valor_baulera', 0.0) or 0.0), step=500.0, key=f"baul_val_{key_suffix}")
     
     # === SECCIÓN 5: FUNCIONALIDAD ===
     with st.container(border=True):

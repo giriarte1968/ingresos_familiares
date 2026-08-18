@@ -3467,8 +3467,8 @@ def ui_formulario_propiedad(prop_inicial=None, key_suffix=""):
                                   key=f"carp_{key_suffix}")
         cocheras_cantidad = st.number_input("Cant. Cocheras", min_value=0, max_value=10, value=int(prop_inicial.get('cocheras_cantidad', 0)), key=f"coch_cant_{key_suffix}")
         cocheras_tipo = st.selectbox("Tipo Cochera", ["cubierta", "semicubierta", "descubierta"], key=f"coch_tipo_{key_suffix}")
-        valor_cochera_base = st.number_input("Valor Base Cochera (USD)", min_value=0.0, value=float(prop_inicial.get('valor_cochera_base', 15000.0)), step=500.0, key=f"coch_val_{key_suffix}")
-        valor_baulera = st.number_input("Valor Baulera (USD)", min_value=0.0, value=float(prop_inicial.get('valor_baulera', 3000.0)), step=500.0, key=f"baul_val_{key_suffix}")
+        valor_cochera_base = st.number_input("Valor Base Cochera (USD)", min_value=0.0, value=float(prop_inicial.get('valor_cochera_base', 0.0) or 0.0), step=500.0, key=f"coch_val_{key_suffix}")
+        valor_baulera = st.number_input("Valor Baulera (USD)", min_value=0.0, value=float(prop_inicial.get('valor_baulera', 0.0) or 0.0), step=500.0, key=f"baul_val_{key_suffix}")
 
     st.caption("Funcionalidad y Descripción")
     col_f1, col_f2 = st.columns(2)

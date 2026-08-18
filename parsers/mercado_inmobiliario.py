@@ -2475,10 +2475,8 @@ def calcular_valor_activos(prop, m2_base_zona):
     cant = prop.get('cocheras_cantidad', 0)
     tipo = prop.get('cocheras_tipo', 'cubierta')
     
-    # El valor base puede venir del formulario o sugerirse por zona (12m2 * base)
-    valor_base = prop.get('valor_cochera_base')
-    if valor_base is None or valor_base <= 0:
-        valor_base = m2_base_zona * 12.0
+    # El valor base lo ingresa explicitamente el analista por UI (sin fallbacks dinamicos)
+    valor_base = float(prop.get('valor_cochera_base') or 0.0)
     
     coef_tipo = {'cubierta': 1.0, 'semicubierta': 0.7, 'descubierta': 0.4}.get(tipo, 1.0)
     

@@ -2179,7 +2179,7 @@ def render_valuacion_manual(prop, res):
         activos_parts = []
         if cant_cocheras > 0:
             coef_tipo_act = {'cubierta': 1.0, 'semicubierta': 0.7, 'descubierta': 0.4}.get(tipo_cochera, 1.0)
-            vbc = prop.get('valor_cochera_base', usd_m2_input * 12)
+            vbc = float(prop.get('valor_cochera_base', 0.0) or 0.0)
             for i in range(1, cant_cocheras + 1):
                 fu = 1.0 if i == 1 else 0.7 if i == 2 else 0.5
                 v = vbc * coef_tipo_act * fu
@@ -2237,7 +2237,7 @@ def render_valuacion_manual(prop, res):
     pre_act = 0
     if cant_cocheras > 0:
         coef_tipo_act = {'cubierta': 1.0, 'semicubierta': 0.7, 'descubierta': 0.4}.get(tipo_cochera, 1.0)
-        vbc = prop.get('valor_cochera_base', usd_m2_input * 12)
+        vbc = float(prop.get('valor_cochera_base', 0.0) or 0.0)
         for i in range(1, cant_cocheras + 1):
             fu = 1.0 if i == 1 else 0.7 if i == 2 else 0.5
             pre_act += vbc * coef_tipo_act * fu
