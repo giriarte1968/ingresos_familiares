@@ -1,6 +1,29 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-08-31 — Auditoría normativa: Valu vs Normas TTN (NNV) e IRAM
+
+### Contexto
+Se realizó una auditoría de conformidad normativa del motor AVM de Valu (`Valu_react/backend/house_valuation_engine.py`, `valuation_engine.py`) frente a las Normas Nacionales de Valuación del Tribunal de Tasaciones de la Nación (TTN) y las normas IRAM citadas por la propia metodología (`METODOLOGIA_VALUACION_ARGENTINA.md` / `docs/ALGORITMOS.md`).
+
+### Resultado
+Se documentaron **7 incumplimientos (NC-1 a NC-7)** en `docs/AUDITORIA_NORMAS_TTN_IRAM.md`:
+
+- **NC-1 (crítica):** Blend físico + comparables en casas (`HVE:1417-1442`) rompe el Principio de Mercado Puro (TTN 3.1 / Sección 7). La metodología se auto-contradice con su Sección 14.
+- **NC-2 (crítica):** Radio de búsqueda 2.5–3.0 km vs tope infranqueable declarado de 1.0 km (`HVE:962`, `:1460`, `:1689`).
+- **NC-3 (alta):** Depreciación ad-hoc ≠ CRD TTN 14.2 Ross–Heidecke (`HVE:1271-1281`).
+- **NC-4 (media):** Doble convención de superficies (0.5/0.2 vs 0.45/0.35/0.25) sin estándar único (IRAM 11603).
+- **NC-5 (media):** Terreno inferido por heurísticas + USD/m² tierra estáticos (TTN 5.2).
+- **NC-6 (media):** Informe sin matriz de homologación ni trazabilidad; `outliers_excluidos_count:0` y `escalera_penalizacion_aplicada:False` fijos (TTN 10.5 / IRAM-ISO 34850).
+- **NC-7 (baja/media):** Ajuste post-mediana sin cap de absorción zonal (riesgo de doble cómputo).
+
+### Decisiones
+- Ningún cambio de código en esta auditoría: documento analítico como entregable.
+- La remediación (a definir) requiere resolver primero la **contradicción doctrinal NC-1** (Mercado Puro vs Blend Adaptativo) antes de tocar el motor.
+
+### Archivos
+- **Nuevo:** `docs/AUDITORIA_NORMAS_TTN_IRAM.md`
+
 ## 2026-08-03 — TAREA-163: Fix flex_dormitorios destruye pool de comparables
 
 ### Contexto
