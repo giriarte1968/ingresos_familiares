@@ -1,6 +1,52 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-09-05 — TAREA: Scraper UP! Inmobiliaria (Tokko) Venta — Gran Rosario
+
+### Contexto
+Se creó el scraper `scripts/scraper_up_tokko.py` para traer los datos y precios de UP! Inmobiliaria (`upinmobiliaria.com.ar`, template **Tokko Broker**) en modo estándar, solo operación **Venta**, filtrado **Gran Rosario**. No se modificó `valu.py` ni la lógica de valuación (scraper no toca el portafolio).
+
+### Hallazgos / acciones
+- **1ª corrida (buggy):** el sentinel `--NoMoreProperties--` aparece literal en el JS de la página 1 (`must_get_next_page=false`), por eso cortaba la paginación temprano (81 únicas en vez de 201). **Fix:** se corta cuando la página AJAX no trae tarjetas o los `ids` se repiten (max 60 páginas).
+- **Parseo de números:** reemplazado `numero()` por `numero_precio()` (puntos = miles → `"USD 1.200.000"` → 1.2M) y `numero_medida()` (un punto = decimal → `"54.25 m"` → 54.25).
+- **Frente/fondo/m²:** anclados al bloque `SUPERFICIES Y MEDIDAS ... DESCRIPCION|DETALLES DE LA PROPIEDAD` con regex multilínea. Antes un regex global devolvía valores espurios (frente=866).
+- **Backoff anti-429:** `get()` reintenta con esperas 3/8/15s; fichas en paralelo con `ThreadPoolExecutor(max_workers=2)` + sleep progresivo.
+- **Precio oculto = placeholder `USD1`:** el sitio renderiza `USD1` cuando el precio no es público. Regla: `precio ≤ 1` → `None` + `precio_oculto: true` (9 fichas así). Pavada que sí confundía precios reales de cocheras (12k-16k).
+- **Normalización de ciudad:** se extrae la localidad del `(paréntesis)` y se corrige "Santa Fe" ambiguo ("Santa Fe, Funes" → ciudad=Funes).
+
+### Resultado (corrida validada)
+- Catálogo completo Venta: **201 únicas** (`/Venta` 201, Terrenos 45, Deptos 82, Casas 45, Oficinas 10, Locales 3, Campos 2, Cocheras 6, Garages 6). `/Countries-en-Venta` → 404 (esperado, se ignora).
+- **En Gran Rosario: 191 propiedades** → guardadas en `cache_scraping_up_tokko.json` (28 sin precio visible, 9 marcadas ocultas).
+- **Cross-check 5 propiedades del portafolio (VALU vs UP!):**
+  - id=42 **Eva Perón 9000** → Tokko `8693071` (Fisherton terr 3387 m², fondo 60) → **precio oculto** en UP! (antes 1.2M en ficha.info).
+  - id=44 **Mendoza 2900** → Tokko `8650864` → **USD 58.000** (57 m² cubiertos) ✓
+  - id=45 **Urquiza 1500** → Tokko `8541308` → **USD 81.000** (42 m² cubiertos) ✓
+  - id=46 **Vida Club Funes** → Tokko `8503273` → **USD 145.000**, terreno 1034 m², frente 54.25, fondo 19.54 ✓
+  - id=47 **Entre Ríos 2500** → Tokko **`8441850`** → **USD 230.000** (casa Abasto, 205 m² terreno / 225 m² cubiertos). ⚠️ Corrección: la nota previa "Entre Ríos=7038647 (Alem 2500, USD 25k)" era errónea; `7038647` es un depto "Entre Ríos al 400".
+
+### Justificación RO
+- No se modifica la fórmula de valuación ni los factores/clusters (AGENTS.md). No se toca `propiedades.json`/`valu.py`. Solo lectura de repos + archivo nuevo de cache.
+- `python scripts/auto_validate.py` → **OK** (run completo). Suite: 60 passed / 2 order-dependent (pasan individuales, fallan solo en suite completa — pre-existentes, no relacionados con este script).
+
+### Archivos
+- **Nuevo:** `scripts/scraper_up_tokko.py`, `cache_scraping_up_tokko.json`
+- **Actualizados:** `docs/MAPA_PROYECTO.md`, `docs/BITACORA_AGENTES.md`
+
+## 2026-08-31 """ Simulación gap TTL vs Valu (50 propiedades) + bugfix detectar_provincia_key
+
+### Contexto
+Se ejecutó `scripts/simular_gap_ttl_vs_valu.py` en `Valu_react`: simulación (sin guardar en el sistema Valu) de 48 propiedades de venta razonables del inventario público TTL (`data/ttl_inventario_venta.json`) contra el motor actual. Objetivo: listar propiedades con gap > 15% entre precio TTL y valuación Valu.
+
+### Hallazgos / acciones
+- **Bugfix RO-engine `detectar_provincia_key`:** en `backend/valuation_engine.py` las variables `z_low` y `dir_low` se referenciaban en las líneas de matching textual pero NUNCA se definían → `NameError`. Solo evitaba el crash el early-return del bounding-box de ROSARIO cuando la propiedad traía lat/lon dentro de la caja. Cualquier propiedad sin lat/lon (caso de inventario TTL) reventaba la valuación. Se definieron `z_low = str(zona or "").lower()` y `dir_low = str(direccion or "").lower()` antes del bloque de matching. No cambia lógica de valuación: solo corrige variable indefinida. (JUSTIFICACIÓN RO: no altera la fórmula ni los factores de valuación, solo corrige un bug de referencia; no viola reglas de oro de valuación.)
+- **Fix `simular_gap_ttl_vs_valu.py`:** el dict `tipo_tag` no incluía `"depto"` → `KeyError`. Se movió el armado de `tipo_tag` dentro de la rama no-depto (solo se usa en `valuar_inmueble_horizontal`).
+
+### Resultado de la simulación
+- Pool razonable: 46 | borderline admitidos: 4 → 48 valuadas (todas con método OK).
+- **39 de 48 con gap > 15%**.
+- Grandes sobrevaluaciones en terrenos/paños (p.ej. `5421392` PH Crespo $30k TTL → $204,500; `6528813` BrisaNova $49k → $220,500) y casas de barrio (Zona Oeste, Tiro Suizo, Barrio Rucci). Casos de subvaluación (negativo) sobre todo en deptos/PH de Centro y Abasto (`7056218` Ayacucho $290k → $145k; `7866221` Abasto terreno $330k → $82k; `8448397` Zeballos $57k → $500).
+- Excel: `Valu_react/data/simulacion_gap_ttl_vs_valu.xlsx`.
+
 ## 2026-08-31 — Auditoría normativa: Valu vs Normas TTN (NNV) e IRAM
 
 ### Contexto

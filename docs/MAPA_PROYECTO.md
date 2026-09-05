@@ -26,6 +26,17 @@ Este documento actúa como la guía técnica actualizada de la arquitectura y ar
 | `plantilla_propiedades.xlsx` | Excel maestro con los datos crudos de propiedades y desplegables sincronizados. |
 | `data/valuaciones_cache.json` | Caché de ejecuciones del motor AVM. |
 | `cache_scraping.json` | Base de datos de más de 20.000 muestras de mercado. |
+| `cache_scraping_up_tokko.json` | Inventario Venta de UP! Inmobiliaria (Tokko), filtrado Gran Rosario (191 propiedades: `id_tokko`, precios, m², código ULA/UAP, coords). |
+
+---
+
+## 2b. SCRIPTS DE SCRAPING (GRAN ROSARIO)
+
+| Script | Responsabilidad |
+|--------|-----------------|
+| `scripts/scraper_up_tokko.py` | Scraper de fichas UP! Inmobiliaria (`upinmobiliaria.com.ar`, template Tokko). Enumera `/Venta` + subcategorías, pagina AJAX, captura markers con coords, filtra Gran Rosario (bbox + localidades) y baja fichas `/p/{TokkoId}-{slug}` en paralelo. Salida `cache_scraping_up_tokko.json`. |
+| `scripts/gen_gran_rosario_enriquecido.py` | Lista de localidades del Gran Rosario (fuente de `GRAN_ROSARIO_LOCALIDADES`). |
+| `scripts/scraper_gran_rosario.py` | Bounding boxes `GRAN_ROSARIO_BBOX` / `LOCALIDADES_BBOX` usados por el scraper de UP!. |
 
 ---
 
