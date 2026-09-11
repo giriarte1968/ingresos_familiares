@@ -1,6 +1,36 @@
 
 # 📝 BITÁCORA DE AGENTES — AVM ROSARIO
 
+## 2026-09-10 — TAREA-165: Pipeline Nacional de Calibración Automática de Suelo Post-Scraping y Desacoplamiento de Barrios en UI
+
+### Contexto
+Se resolvió la discrepancia de valuación en lotes y casas por el anclaje a tablas estáticas manuales (`VALOR_TIERRA_ZONAL`), que causaban inconsistencias de hasta 60% por toponimia de barrio (ej: Bv. Seguí 4200 entre Bella Vista y Triángulo/Moderno). Se migró el sistema a un pipeline de calibración automatizado data-driven sobre los 42 datasets maestros de scraping en Argentina.
+
+### Acciones Realizadas
+1. **Frontend (`ValuationForm.jsx`)**:
+   - Reemplazado el `<select>` rígido por un `<input list="lista-zonas-provincia">` editable con sugerencias dinámicas. Permite ingresar o editar cualquier barrio de cualquier provincia del país.
+   - Preservación estricta de coordenadas: modificar el barrio descriptivo no borra ni resetea la lat/lon detectada por Nominatim o ingresada por el usuario.
+2. **Backend (`house_valuation_engine.py`)**:
+   - Unificado el valor de Bella Vista a 100 USD/m² (mismo estrato que Triángulo y Moderno y Distrito Oeste).
+   - Integrado `obtener_benchmark_suelo_nacional()` en `calcular_valor_tierra_casa` y `obtener_base_tierra_inmueble`: si existe calibración dinámica para la ciudad/barrio en `benchmark_suelo_nacional.json`, se prioriza automáticamente sobre la tabla estática.
+3. **Calibrador Automático (`scripts/calibrar_suelo_nacional.py`)**:
+   - Script que procesa los 42 datasets maestros de Argentina (>18.800 lotes urbanos reales).
+   - Calcula medianas P50 robustas, bandas P25/P75 y nivel de confianza (Normas TTN 3.1 / 4.1).
+   - Genera `backend/data/benchmark_suelo_nacional.json` y `data/reporte_calibracion_suelo.csv`.
+4. **Documentación**:
+   - Actualizado `METODOLOGIA_VALUACION_ARGENTINA.md` (Sección 31: Protocolo Obligatorio Post-Scraping).
+   - Creado `docs/PIPELINE_CALIBRACION_SUELO.md`.
+
+> [!IMPORTANT]
+> **REGLA MANDATORIA DE OPERACIÓN POST-SCRAPING:**
+> Tras cada corrida de scraping que actualice los archivos `cache_scraping_*_master.json`, es OBLIGATORIO ejecutar:
+> ```bash
+> python scripts/calibrar_suelo_nacional.py
+> ```
+> para recalibrar automáticamente los valores P50 de suelo en todo el país.
+
+---
+
 ## 2026-09-05 — TAREA: Scraper UP! Inmobiliaria (Tokko) Venta — Gran Rosario
 
 ### Contexto

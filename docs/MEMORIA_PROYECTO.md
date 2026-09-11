@@ -68,7 +68,7 @@ El modelo es Data-Driven: los precios emergen del mercado real
 
 **RO-13:** Los TTLs del caché de Streamlit se gestionan por entorno (`APP_ENV`). En `development`, los TTLs son 0 (frescura total). En `production`, se permiten TTLs largos (10hs a 7 días).
 
-**RO-14:** (Espacio reservado)
+**RO-14 (CALIBRACIÓN CONTINUA DE SUELO POST-SCRAPING):** Tras cada corrida de scraping masivo de portales que actualice `cache_scraping_*_master.json`, es OBLIGATORIO ejecutar `python scripts/calibrar_suelo_nacional.py` en `valu_react` para regenerar `benchmark_suelo_nacional.json`. El motor horizontal de tierra y casas no debe operar con tablas estáticas desalineadas de la realidad del mercado.
 
 **RO-15:** (OBSOLETO por TAREA-071) La fórmula es ahora multiplicativa pura: `factor_total = factor_estado × factor_calidad × factor_anti`. No hay sqrt ni suma_cruda.
 
